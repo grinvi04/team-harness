@@ -90,7 +90,7 @@ gh api "repos/$OWNER_REPO/commits/$HEAD_SHA/status" \
 판정 기준:
 - `statuses`에 **failure/error** → 머지 중단, 원인 확인
 - **pending** → 배포 완료까지 대기
-- **statuses 0개** → 외부 배포 commit-status 미연동 → `overall=pending`이어도 **정상 진행** (예: webhook-service)
+- **statuses 0개** → 외부 배포 commit-status 미연동 → `overall=pending`이어도 **정상 진행**
 
 ## 6. 머지
 
