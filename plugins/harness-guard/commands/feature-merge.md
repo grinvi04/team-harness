@@ -46,15 +46,9 @@ gh pr create --base develop --head $FEATURE_BRANCH \
 
 PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(AI 리뷰 대기·이슈 처리·스레드 reply+resolve)를 따른다. 절차 본문은 그 스킬이 단일 출처 — 커맨드에 복붙하지 않는다.
 
-### ⛔ 머지 전 필수 체크리스트 — 모두 ✅ 아니면 머지 진행 금지
+### ⛔ 머지 전 추가 체크리스트 — 모두 ✅ 아니면 머지 진행 금지
 
-**코드 품질**
-- [ ] HIGH 이슈 전부 수정 완료
-- [ ] MEDIUM 이슈 전부 검토 및 처리 완료
-- [ ] 수정한 모든 스레드에 reply 작성 완료
-- [ ] 모든 스레드 resolved 처리 완료 (GraphQL resolveReviewThread)
-- [ ] GitHub API로 스레드 isResolved 상태 직접 확인 → 미완료 시 재시도 루프
-- [ ] 재푸시 후 CI 통과 확인
+이슈 처리·스레드 resolve의 완료 기준은 `pr-review-gate` 2~3단계가 단일 출처 — 여기 중복하지 않는다.
 
 **Cross-domain 검토 (새 에러/권한/side effect가 있는 PR에만 적용)**
 - [ ] 새 에러 유형을 발생시킨다면 → 중앙 에러 핸들러에 대응 처리 추가됐는지 확인
@@ -72,13 +66,15 @@ PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(AI 리뷰 대기·이슈 
 ### 5. 브랜치 정리 (직접 실행)
 
 ```bash
+git checkout develop && git pull origin develop
 git branch -d "$FEATURE_BRANCH"
+git push origin --delete "$FEATURE_BRANCH"
 ```
 
 완료 후 출력:
 ```
 ✅ 머지 완료
 - 브랜치: [feature명] → develop
-- develop push: 완료
-- 로컬 브랜치 삭제: 완료
+- PR 머지: 완료 (#번호)
+- 브랜치 정리: 로컬·원격 삭제 완료
 ```

@@ -46,5 +46,5 @@ ERP/SCM의 권한 모델은 후행 도입 시 전체 재작업이 되는 영역 
 
 - 입력 검증: adapter 경계에서 (Bean Validation 등) — 길이·형식·범위. 도메인 불변식은 domain에서
 - 개인정보: 식별 컬럼은 설계 시 표시 — 응답 마스킹(주민번호·계좌 등), 필요 시 컬럼 암호화, 로그에 개인정보 출력 금지
-- 시크릿: 코드·설정 파일에 금지 — AWS Secrets Manager/SSM (`architecture-infra.md` §4)
+- 시크릿: 코드·설정 파일에 금지 — AWS Secrets Manager/SSM Parameter Store (`stack-guide.md` 운영 결정)
 - OWASP Top 10은 release 전 security-reviewer 에이전트 + CI secret-scan이 점검 (`harness-guard`)

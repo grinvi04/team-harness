@@ -10,8 +10,8 @@ on:
 
 jobs:
   ai-review:
-    # back-merge PR은 main PR에서 이미 리뷰됨 — 스킵 (pr-review-gate 부록 참조)
-    if: "!startsWith(github.head_ref, 'hotfix/') || github.base_ref != 'develop'"
+    # back-merge PR(hotfix/*·release/* → develop)은 main PR에서 이미 리뷰됨 — 스킵 (pr-review-gate 부록 참조)
+    if: "github.base_ref != 'develop' || (!startsWith(github.head_ref, 'hotfix/') && !startsWith(github.head_ref, 'release/'))"
     runs-on: ubuntu-latest
     permissions:
       contents: read
