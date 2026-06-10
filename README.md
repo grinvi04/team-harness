@@ -24,8 +24,9 @@ plugins/harness-guard/            ← 플러그인 본체
   commands/                       ← /feature-merge /hotfix /release
   skills/pr-review-gate/          ← PR 리뷰·CI 게이트 절차 (단일 출처)
   agents/security-reviewer.md     ← 릴리즈 전 보안 검토 (opus)
-templates/                        ← 신규 프로젝트에 복사할 파일들
-docs/onboarding.md                ← 프로젝트/팀원 온보딩 절차
+templates/                        ← 신규 프로젝트에 복사할 파일들 (설정·CI·PR 템플릿)
+docs/                             ← 온보딩 · stack-guide · architecture-infra · clean-architecture
+                                    · api/db/auth-standards · ai-collaboration · code-review
 ```
 
 ## 빠른 시작 (로컬 테스트)
