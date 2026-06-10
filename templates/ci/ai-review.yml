@@ -1,0 +1,37 @@
+# .github/workflows/ai-review.yml — PR AI 리뷰 (claude-code-action)
+# 비용: Anthropic API 사용량 과금 (구독 없음) — 모델·max-turns로 상한 제어.
+# 사전 준비: repo secrets에 ANTHROPIC_API_KEY 등록.
+# 첫 적용 시 anthropics/claude-code-action 최신 문서로 파라미터 재확인할 것.
+name: ai-review
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  ai-review:
+    # back-merge PR은 main PR에서 이미 리뷰됨 — 스킵 (pr-review-gate 부록 참조)
+    if: "!startsWith(github.head_ref, 'hotfix/') || github.base_ref != 'develop'"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            이 PR을 리뷰하라. 기준은 repo의 AGENTS.md와 다음 체크리스트(우선순위 순):
+            1) 정확성 — 요구사항·경계값·트랜잭션 경계·에러 경로
+            2) 경계 준수 — 도메인 모듈 직접 참조, 계층 역류, 크로스 스키마 조인
+            3) 테스트 — 명세 검증 여부(구현 복사 금지), 실패 케이스
+            4) 보안 — 입력 검증, 권한 검사 누락, 개인정보 로그 출력
+            5) DB — forward-only 마이그레이션, 무중단 호환, N+1
+            발견 항목은 심각도(HIGH/MEDIUM/LOW)를 붙여 해당 라인에 인라인 코멘트로 남겨라.
+            모든 발견을 보고하라 — 중요도 필터링은 사람 리뷰어가 한다.
+            이슈가 없으면 "AI 리뷰: 발견 사항 없음" 코멘트 하나만 남겨라.
+          claude_args: "--model claude-sonnet-4-6 --max-turns 15"

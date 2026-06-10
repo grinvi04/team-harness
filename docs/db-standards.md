@@ -33,6 +33,9 @@ updated_by  BIGINT      NOT NULL
 
 - 애플리케이션 공통 레이어(JPA Auditing 등)에서 자동 주입 — 수동 세팅 금지
 - 시각 타입은 **timestamptz 통일** (naive timestamp 금지), 저장은 UTC
+- **비대화형 쓰기(배치·스케줄러·외부 연동 수신)**: `created_by`/`updated_by`에는 기준정보에
+  시드된 **시스템 사용자 id**를 사용한다 (`system-batch`, `system-integration` 등 작업 유형별 분리).
+  NULL 허용으로 풀지 않는다 — "주체 없는 변경"을 만들지 않는 것이 감사 원칙
 
 ## 데이터 타입 규칙
 

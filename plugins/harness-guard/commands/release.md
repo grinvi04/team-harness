@@ -1,5 +1,5 @@
 ---
-description: 릴리즈 실행 — release 브랜치→main 태그→develop 반영→배포 헬스체크
+description: 릴리즈 실행 — release 브랜치→main 태그→develop back-merge PR→배포 헬스체크
 argument-hint: <version>
 ---
 
@@ -8,8 +8,9 @@ argument-hint: <version>
 **사용법**: `/release <version>`
 예) `/release 1.5.0`
 
-> `/release-check` 통과를 전제로 실행한다.
-> develop → release/vX.X.X → main (tag) + develop (--no-ff 머지)
+> **`/release-check` 통과를 전제로 실행한다** (별도 커맨드 — 품질·보안·마이그레이션 병렬 검증).
+> develop → release/vX.X.X → main PR (tag) → develop back-merge PR
+> 빌드·헬스체크 명령은 **repo의 AGENTS.md "빌드·테스트 명령" 섹션**에서 읽는다.
 
 ---
 
@@ -20,12 +21,10 @@ git branch --show-current
 git checkout develop && git pull origin develop
 ```
 
-**release-check 미통과 상태에서 절대 진행하지 않는다.**
+**`/release-check` 미통과 상태에서 절대 진행하지 않는다** — 직전 release-check 결과가 없으면
+사용자에게 실행 여부를 확인한다.
 
-스테이징 헬스 체크:
-```bash
-# <STAGING_HEALTH_CMD>  예: curl -sf https://<STAGING_URL>/health -o /dev/null && echo "✅ Staging 정상"
-```
+스테이징 헬스 체크: AGENTS.md의 스테이징 헬스체크 명령 실행 (정의돼 있지 않으면 사용자에게 확인).
 
 ---
 
@@ -33,7 +32,7 @@ git checkout develop && git pull origin develop
 
 ```bash
 git checkout -b release/v$VERSION
-# <VERSION_BUMP_CMD>  예: npm version $VERSION --no-git-tag-version (backend + frontend)
+# AGENTS.md의 버전 범프 명령 실행 (예: npm version / gradle properties 갱신)
 git add .
 git commit -m "chore(release): v$VERSION 릴리즈 준비
 
@@ -45,65 +44,70 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 ## Phase 2 — 최종 검증 (`subagent_type: general-purpose`, `model: sonnet`, **foreground**)
 
 **프롬프트:**
-```bash
-PROJECT_ROOT=$(git rev-parse --show-toplevel)
-# <FULL_QUALITY_CHECK_CMD>  (lint + test + build + e2e)
-```
-- 전부 통과 → ✅ 리포트
-- 실패 → ❌ 리포트 후 중단
+- AGENTS.md의 품질 검증 명령 전체 실행 (lint + test + build, e2e 있으면 포함)
+- 전부 통과 → ✅ 리포트 / 실패 → ❌ 리포트 후 중단
 
 ---
 
-## Phase 3 — PR 머지 + 태그 + develop 반영 (오케스트레이터 직접 실행)
+## Phase 3 — main PR 머지 + 태그 (오케스트레이터 직접 실행)
 
 Phase 2 ✅인 경우에만 진행.
 
 ```bash
-# 1. release 브랜치 push
+# 1. release 브랜치 push + main으로 PR 생성
 git push origin release/v$VERSION
-
-# 2. main으로 PR 생성 + CI + Gemini 리뷰
 gh pr create --base main --head release/v$VERSION \
   --title "release: v$VERSION" \
   --body "릴리즈 v$VERSION
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
-# CI watch · 외부 배포 commit-status 게이트 · Gemini 리뷰 처리(reply+resolve) · 머지
-# → pr-review-gate 스킬의 전체 절차(1~6단계)를 따른다 (단일 출처 — 여기에 복붙하지 않음)
-# gh pr merge 까지 완료한 뒤 아래 태그·develop 반영을 이어서 진행
+```
 
-# 3. 태그
+**`pr-review-gate` 스킬의 전체 절차(1~7단계)**를 따른다 — AI 리뷰 처리·사람 승인·CI·
+commit-status·머지. (단일 출처 — 여기에 복붙하지 않음)
+
+```bash
+# 2. 태그
 git checkout main && git pull origin main
 git tag v$VERSION
 git push origin --tags
-
-# 4. develop 반영
-git checkout develop
-git merge --no-ff release/v$VERSION -m "Merge release/v$VERSION into develop"
-git push origin develop
-
-# 5. 브랜치 정리
-git branch -d release/v$VERSION
 ```
 
 ---
 
-## Phase 4 — 배포 후 헬스 체크 (`subagent_type: general-purpose`, `model: haiku`, **foreground**)
+## Phase 4 — develop back-merge PR (오케스트레이터 직접 실행)
+
+develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **back-merge도 PR로**.
+
+```bash
+gh pr create --base develop --head release/v$VERSION \
+  --title "chore: release/v$VERSION develop 반영" \
+  --body "main PR과 동일 내용의 back-merge — 버전 범프 커밋을 develop에 반영.
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
+
+**`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 사람 승인 + CI + 머지만.
+
+```bash
+# 머지 완료 후 브랜치 정리
+git branch -d release/v$VERSION
+git push origin --delete release/v$VERSION 2>/dev/null || true
+```
+
+---
+
+## Phase 5 — 배포 후 헬스 체크 (`subagent_type: general-purpose`, `model: haiku`, **foreground**)
 
 **프롬프트:**
-```bash
-# 배포 완료 대기 (최대 10분, 30초 간격)
-# <DEPLOY_WAIT_CMD>  예: railway status polling
-
-# 프로덕션 헬스 체크
-# <PROD_HEALTH_CMD>  예: curl -sf https://<PROD_URL>/health -o /dev/null && echo "✅ 프로덕션 정상"
-```
+- AGENTS.md의 배포 대기·프로덕션 헬스체크 명령 실행 (최대 10분, 30초 간격)
+- 정의돼 있지 않으면 그 사실을 리포트하고 사용자에게 수동 확인 요청
 
 완료 후 출력:
 ```
 ✅ 릴리즈 완료
 - 버전: v$VERSION
 - main 태그: v$VERSION ✅
-- develop 반영: 완료 ✅
+- develop back-merge PR: 머지 완료 ✅
 - 프로덕션: 정상 ✅
 ```

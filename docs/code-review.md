@@ -40,7 +40,9 @@ feat(order): 월 주문 한도 검증 추가
 5. **DB**: 마이그레이션 forward-only·무중단 호환? 인덱스? N+1?
 6. **일관성**: API envelope·에러 코드·네이밍이 표준 문서와 일치?
 
-설계·도메인 적합성은 사람 리뷰의 본분 — 기계적 버그 스캔은 AI 리뷰(CI)에 맡긴다.
+설계·도메인 적합성은 사람 리뷰의 본분 — 기계적 버그 스캔은 **AI 리뷰(claude-code-action,
+`ai-review.yml` 워크플로)**가 PR마다 1차로 수행한다. AI 인라인 코멘트의 처리·resolve 절차는
+`pr-review-gate` 스킬을 따른다.
 
 ## 리뷰 코멘트 컨벤션 (Conventional Comments)
 

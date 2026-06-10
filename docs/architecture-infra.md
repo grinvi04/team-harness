@@ -77,6 +77,14 @@
 - **GitHub Actions → AWS는 OIDC 페더레이션** (장수 액세스 키 발급 금지)
 - IAM 최소권한: 서비스별 역할 분리, 사람 계정은 SSO/MFA
 
+### 인증 인프라 (Keycloak — `auth-standards.md` 확정 사항)
+
+- 배포: 컨테이너 (EC2 단계 compose 워크로드 / EKS 단계 전용 Deployment), `infra` repo에서 Terraform 관리
+- 저장소: 전용 DB (RDS 내 별도 database) — 앱 스키마와 분리
+- **SEV1 컴포넌트** — IdP 중단 = 전 서비스 로그인 불가: 헬스체크·알람 필수, EKS 단계에서 2+ replica
+- realm·클라이언트 설정도 export하여 git 관리 (GitOps 원칙 동일 적용 — 콘솔 수동 변경 금지)
+- 버전 업그레이드는 staging 선검증 후 적용
+
 ### 데이터 계층
 
 - RDS PostgreSQL: private 서브넷 + 멀티 AZ + 자동 백업/PITR + 삭제 보호
