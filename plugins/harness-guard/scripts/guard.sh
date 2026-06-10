@@ -32,8 +32,11 @@ if echo "$COMMAND" | grep -qE "\bgit\b.*\bcommit\b"; then
 fi
 
 # main/develop force push 금지 (--force/-f 또는 +branch refspec)
+# refspec 생략 시 현재 브랜치가 push 대상이므로, main/develop 위에서는 force push 전체를 차단한다
 if echo "$COMMAND" | grep -qE "git push.*(--force|-f)\b|git push.*\+(main|develop)\b"; then
-  if echo "$COMMAND" | grep -qE "origin[[:space:]]+(main|develop)([[:space:]]|$)|:(main|develop)([[:space:]]|$)|\+(main|develop)([[:space:]]|$)"; then
+  BRANCH=$(git branch --show-current 2>/dev/null)
+  if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]] || \
+     echo "$COMMAND" | grep -qE "origin[[:space:]]+(main|develop)([[:space:]]|$)|:(main|develop)([[:space:]]|$)|\+(main|develop)([[:space:]]|$)"; then
     echo "⛔ [guard] main/develop force push 금지"
     echo "   해결: 브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
     exit 2

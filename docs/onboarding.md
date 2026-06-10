@@ -26,7 +26,7 @@ repo Settings → Branches → branch protection rule을 **`main`, `develop` 양
 - [ ] Require a pull request before merging (+ 승인 1명 이상)
 - [ ] Require status checks to pass: `quality`, `secret-scan` (ci-gate.yml)
 - [ ] Block force pushes / Do not allow deletions
-- [ ] (권장) Require conversation resolution before merging
+- [ ] Require conversation resolution before merging (리뷰 스레드 전부 resolve — `code-review.md` 머지 조건의 서버 강제)
 
 ```bash
 # CLI로 일괄 적용 예시 (main; develop도 동일하게)
@@ -36,6 +36,7 @@ gh api repos/{owner}/{repo}/branches/main/protection -X PUT \
   -f "required_status_checks[contexts][]=secret-scan" \
   -f enforce_admins=true \
   -f required_pull_request_reviews[required_approving_review_count]=1 \
+  -f required_conversation_resolution=true \
   -F restrictions=null -f allow_force_pushes=false -f allow_deletions=false
 ```
 
