@@ -24,6 +24,7 @@ gh api repos/{owner}/{repo}/branches/main/protection -X PUT \
 
 ### 2. 계층 1 — repo 내 설정 커밋
 
+- [ ] `templates/githooks/pre-commit` → `.githooks/pre-commit` (실행 권한 유지: `chmod +x`)
 - [ ] `templates/ci/ci-gate.yml` → `.github/workflows/ci-gate.yml` (스택에 맞게 수정)
 - [ ] `templates/AGENTS.md` → `/AGENTS.md` (프로젝트 내용 채움)
 - [ ] `templates/CLAUDE.md` → `/CLAUDE.md`
@@ -41,6 +42,7 @@ gh api repos/{owner}/{repo}/branches/main/protection -X PUT \
 ```bash
 git clone <repo>   # .claude/ 포함 — 커맨드·에이전트·권한 컨벤션 자동 적용
 cd <repo>
+git config core.hooksPath .githooks   # git 네이티브 가드 활성화 (1회)
 claude             # 첫 실행 시 marketplace/plugin 신뢰 확인 → 설치
 ```
 

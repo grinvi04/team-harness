@@ -6,7 +6,8 @@
 
 | 계층 | 내용 | 강제 대상 | 위치 |
 |---|---|---|---|
-| 0 | branch protection + CI 게이트 | **모든 사람·모든 AI 도구** | GitHub (`templates/ci/`) |
+| 0 | branch protection + CI 게이트 (push 시점, 우회 불가) | **모든 사람·모든 AI 도구** | GitHub (`templates/ci/`) |
+| 0.5 | git pre-commit 훅 (커밋 시점, `--no-verify`로 우회 가능) | 모든 사람·모든 AI 도구 | 각 repo `.githooks/` (`templates/githooks/`) |
 | 1 | repo 커밋 설정 — AGENTS.md(규약 단일출처) + `.claude/` | repo를 clone한 전원 | 각 프로젝트 repo (`templates/`) |
 | 2 | harness-guard 플러그인 — 가드 훅·게이트 스킬·git-flow 커맨드 | Claude Code 사용자 | 이 repo (`plugins/`) |
 | 3 | 역할별 named agents | Claude Code 사용자 | 플러그인 + 프로젝트 `.claude/agents/` |
