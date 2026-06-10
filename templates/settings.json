@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment": "프로젝트 .claude/settings.json 템플릿 — repo에 커밋해서 팀원과 공유한다. settings.local.json(개인 오버라이드)만 gitignore. extraKnownMarketplaces: 현재 grinvi04 개인 private repo(임시) — 사내 git 호스팅 확정 시 교체. 키 포맷은 Claude Code 버전에 따라 변동 가능 — 적용 시 /plugin 으로 실동작 확인.",
+  "_comment": "프로젝트 .claude/settings.json 템플릿 — repo에 커밋해서 팀원과 공유한다. settings.local.json(개인 오버라이드)만 gitignore. extraKnownMarketplaces: 현재 grinvi04 개인 private repo(임시) — 사내 git 호스팅 확정 시 교체. 프로젝트 고유 가드(DB 마이그레이션 보호 등)가 필요하면 최상위에 hooks 키를 추가한다 — harness-guard 플러그인 훅과 공존함. (hooks 객체 안에는 이벤트명 외 키 금지 — 스키마 위반)",
   "permissions": {
     "allow": [
       "Bash(gh pr *)",
@@ -19,8 +19,5 @@
   },
   "enabledPlugins": {
     "harness-guard@team-harness": true
-  },
-  "hooks": {
-    "_comment": "프로젝트 고유 가드(DB 마이그레이션 보호 등)는 여기에 추가 — harness-guard 플러그인 훅과 공존한다"
   }
 }

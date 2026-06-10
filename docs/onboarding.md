@@ -30,7 +30,10 @@ gh api repos/{owner}/{repo}/branches/main/protection -X PUT \
 - [ ] `templates/CLAUDE.md` → `/CLAUDE.md`
 - [ ] `templates/settings.json` → `.claude/settings.json` (마켓플레이스 주소 교체)
 - [ ] `templates/gitignore.snippet` 내용을 `.gitignore`에 추가
-- [ ] 전부 PR로 커밋 — `.claude/`도 버전관리 대상이다
+- [ ] **초기 셋업 커밋(빈 repo의 첫 커밋)**: PR을 만들 base 브랜치가 없고 pre-commit이 main 커밋을 막으므로,
+      이 1회만 `git commit --no-verify`로 main에 직접 커밋한다 (또는 hooksPath 활성화를 첫 커밋 뒤로 미룬다).
+      push 후 develop 브랜치를 만들고 그제서야 branch protection을 적용한다.
+- [ ] 이후 모든 변경은 PR로 커밋 — `.claude/`도 버전관리 대상이다
 
 ### 3. 계층 2 — 플러그인 확인
 
