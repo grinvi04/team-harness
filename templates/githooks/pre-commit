@@ -1,0 +1,13 @@
+#!/bin/sh
+# 계층 0.5: git 네이티브 커밋 가드 — AI 도구·사람 구분 없이 모든 커밋에 적용
+# 활성화(클론 후 1회): git config core.hooksPath .githooks
+# 참고: git merge가 만드는 머지 커밋은 이 훅을 타지 않는다 (/release·/hotfix 플로우 정상)
+
+branch=$(git branch --show-current)
+if [ "$branch" = "main" ] || [ "$branch" = "develop" ]; then
+  echo "⛔ [pre-commit] $branch 브랜치 직접 커밋 금지"
+  echo "   feature/fix/hotfix/release 브랜치에서 작업 후 PR로 머지하세요"
+  echo "   (긴급 우회: --no-verify — 사용 시 팀 리드에게 보고)"
+  exit 1
+fi
+exit 0
