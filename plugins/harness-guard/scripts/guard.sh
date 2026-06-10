@@ -12,6 +12,15 @@ COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin
 
 if [[ "$TOOL" != "Bash" ]]; then exit 0; fi
 
+# 커맨드가 `cd <경로>`로 시작하면 그 경로 기준으로 검사한다.
+# (훅의 cwd는 세션 디렉토리라서, 다른 repo로 cd해서 커밋하는 우회를 막으려면 필요)
+if [[ "$COMMAND" =~ ^[[:space:]]*cd[[:space:]]+([^\;\&\|[:space:]]+) ]]; then
+  TARGET_DIR="${BASH_REMATCH[1]//\"/}"
+  TARGET_DIR="${TARGET_DIR//\'/}"
+  TARGET_DIR="${TARGET_DIR/#\~/$HOME}"
+  [[ -d "$TARGET_DIR" ]] && cd "$TARGET_DIR" 2>/dev/null
+fi
+
 # main/develop 직접 커밋 금지
 if echo "$COMMAND" | grep -qE "\bgit\b.*\bcommit\b"; then
   BRANCH=$(git branch --show-current 2>/dev/null)
