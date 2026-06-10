@@ -29,6 +29,21 @@
 - 테스트: `<TEST_CMD>`
 - 빌드: `<BUILD_CMD>`
 
+## 팀 표준 문서 (작업 전 해당 영역 표준 확인)
+
+상세 표준의 단일 출처: `github.com/grinvi04/team-harness/docs` (사내 git 이전 시 주소 교체)
+필요 시 `gh api repos/grinvi04/team-harness/contents/docs/<파일>` 또는 클론으로 조회한다.
+
+| 영역 | 문서 | 핵심 |
+|---|---|---|
+| API | api-standards.md | 공통 Envelope, 에러코드 체계, offset 페이지네이션 |
+| DB | db-standards.md | BIGINT PK+채번, 공통 감사 컬럼, forward-only 마이그레이션 |
+| 인증·인가 | auth-standards.md | Keycloak OIDC, RBAC 권한코드+데이터 스코프 |
+| 코드 구조 | clean-architecture.md | 도메인 모듈 1차 경계, 모듈 간 api/ 경유만 |
+| 리뷰·커밋 | code-review.md | Conventional Commits(타입 영어+본문 한국어), PR 규칙 |
+| AI 협업 | ai-collaboration.md | 책임 원칙, 금지사항 |
+| 운영·로깅 | operations.md | 로그 레벨 기준(ERROR=알람), traceId 전파 |
+
 ## 코딩 컨벤션
 
 - 가정하지 말 것 — 불확실하면 묻는다

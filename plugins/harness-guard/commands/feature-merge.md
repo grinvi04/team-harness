@@ -1,5 +1,5 @@
 ---
-description: feature/fix 브랜치를 develop에 머지 — 품질검증·Gemini리뷰·CI 게이트 경유
+description: feature/fix 브랜치를 develop에 머지 — 품질검증·AI리뷰·사람승인·CI 게이트 경유
 ---
 
 # /feature-merge — feature 브랜치를 develop에 머지
@@ -32,13 +32,11 @@ git status --short
 
 ### 2. 최종 품질 검증 (직접 실행)
 
-```bash
-# <QUALITY_CHECK_CMD>  (lint + test + build)
-```
+**repo의 AGENTS.md "빌드·테스트 명령" 섹션**의 품질 검증 명령(lint + test + build)을 실행한다.
 
 실패 시 → **즉시 중단**. 품질 문제 해결 후 재실행.
 
-### 3. PR 생성 + Gemini 리뷰 대기 (직접 실행)
+### 3. PR 생성 + 리뷰 게이트 (직접 실행)
 
 ```bash
 git push origin $FEATURE_BRANCH
@@ -46,7 +44,7 @@ gh pr create --base develop --head $FEATURE_BRANCH \
   --title "..." --body "..."
 ```
 
-PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(Gemini 리뷰 감지·이슈 처리·스레드 reply+resolve)를 따른다. 절차 본문은 그 스킬이 단일 출처 — 커맨드에 복붙하지 않는다.
+PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(AI 리뷰 대기·이슈 처리·스레드 reply+resolve)를 따른다. 절차 본문은 그 스킬이 단일 출처 — 커맨드에 복붙하지 않는다.
 
 ### ⛔ 머지 전 필수 체크리스트 — 모두 ✅ 아니면 머지 진행 금지
 
@@ -67,9 +65,9 @@ PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(Gemini 리뷰 감지·이
 
 ---
 
-### 4. CI 통과 + 머지 (직접 실행)
+### 4. 승인 + CI + 머지 (직접 실행)
 
-**`pr-review-gate` 스킬의 4~6단계**(CI watch · 외부 배포 commit-status 게이트 · 머지)를 따른다.
+**`pr-review-gate` 스킬의 4~7단계**(사람 승인 확인 · CI watch · 외부 배포 commit-status 게이트 · 머지)를 따른다.
 
 ### 5. 브랜치 정리 (직접 실행)
 
