@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "프로젝트 .claude/settings.json 템플릿 — repo에 커밋해서 팀원과 공유한다. settings.local.json(개인 오버라이드)만 gitignore. extraKnownMarketplaces의 source는 사내 git 호스팅 주소로 교체(로컬 테스트 시 디렉토리 경로). 키 포맷은 Claude Code 버전에 따라 변동 가능 — 적용 시 /plugin 으로 실동작 확인.",
+  "permissions": {
+    "allow": [
+      "Bash(gh pr *)",
+      "Bash(gh api *)"
+    ],
+    "deny": [],
+    "disableBypassPermissionsMode": "disable"
+  },
+  "extraKnownMarketplaces": {
+    "team-harness": {
+      "source": {
+        "source": "github",
+        "repo": "YOUR_ORG/team-harness"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "harness-guard@team-harness": true
+  },
+  "hooks": {
+    "_comment": "프로젝트 고유 가드(DB 마이그레이션 보호 등)는 여기에 추가 — harness-guard 플러그인 훅과 공존한다"
+  }
+}

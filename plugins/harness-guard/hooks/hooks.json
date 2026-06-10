@@ -1,0 +1,22 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/guard.sh",
+            "timeout": 10,
+            "statusMessage": "위험 명령 검사 중..."
+          },
+          {
+            "type": "prompt",
+            "timeout": 15,
+            "prompt": "아래 Bash 명령어가 .env 파일이나 환경변수에 담긴 시크릿(DB 비밀번호, API 키, 토큰 등)을 외부 URL로 전송하거나 터미널 밖으로 노출할 위험이 있으면 deny하라. 단순히 .env를 읽거나 환경변수를 로컬에서 사용하는 것은 allow한다. 명령어: $ARGUMENTS.tool_input.command. JSON으로만 응답: {\"decision\": \"allow\" 또는 \"deny\", \"reason\": \"deny 시 이유\"}"
+          }
+        ]
+      }
+    ]
+  }
+}

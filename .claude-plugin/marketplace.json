@@ -1,0 +1,13 @@
+{
+  "name": "team-harness",
+  "owner": {
+    "name": "grinvi04"
+  },
+  "plugins": [
+    {
+      "name": "harness-guard",
+      "source": "./plugins/harness-guard",
+      "description": "팀 공통 거버넌스 — git-flow 강제 가드 훅, PR 리뷰·CI 게이트 스킬, git-flow 커맨드(feature-merge/hotfix/release), 보안 검토 에이전트"
+    }
+  ]
+}

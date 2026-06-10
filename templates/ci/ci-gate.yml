@@ -1,0 +1,33 @@
+# .github/workflows/ci-gate.yml — PR 품질 게이트 템플릿
+# 계층 0 강제 장치: 어떤 AI 도구·사람이 작업해도 이 게이트는 통과해야 머지 가능.
+# branch protection에서 이 워크플로우를 required check로 지정한다 (docs/onboarding.md 참조).
+name: ci-gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ── 프로젝트 스택에 맞게 교체 ──
+      # - uses: actions/setup-node@v4
+      #   with: { node-version: 22 }
+      # - run: npm ci
+      # - run: npm run lint && npm test && npm run build
+
+      - name: placeholder
+        run: echo "프로젝트 스택에 맞는 lint/test/build 단계로 교체하세요" && exit 1
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

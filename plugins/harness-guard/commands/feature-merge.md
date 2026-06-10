@@ -1,0 +1,86 @@
+---
+description: feature/fix 브랜치를 develop에 머지 — 품질검증·Gemini리뷰·CI 게이트 경유
+---
+
+# /feature-merge — feature 브랜치를 develop에 머지
+
+**사용법**: `/feature-merge`
+현재 브랜치가 `feature/*` 또는 `fix/*`인 상태에서 실행한다.
+
+> 코드 확인 후 사용자가 직접 실행하는 커맨드.
+> 머지 전 품질 검증을 자동으로 수행한다.
+
+---
+
+## 중단 조건 (진입 전 즉시 판단)
+
+| 상황 | 중단 사유 출력 |
+|---|---|
+| 현재 브랜치가 `feature/*` 또는 `fix/*`가 아님 | "feature/* 또는 fix/* 브랜치에서만 실행할 수 있습니다. 현재 브랜치: [브랜치명]" |
+| 미커밋 변경사항 존재 | "미커밋 변경사항이 있습니다 — 커밋 또는 stash 후 재실행하세요." |
+
+---
+
+## 실행 절차
+
+### 1. 브랜치 상태 확인 (직접 실행)
+
+```bash
+git branch --show-current
+git status --short
+```
+
+### 2. 최종 품질 검증 (직접 실행)
+
+```bash
+# <QUALITY_CHECK_CMD>  (lint + test + build)
+```
+
+실패 시 → **즉시 중단**. 품질 문제 해결 후 재실행.
+
+### 3. PR 생성 + Gemini 리뷰 대기 (직접 실행)
+
+```bash
+git push origin $FEATURE_BRANCH
+gh pr create --base develop --head $FEATURE_BRANCH \
+  --title "..." --body "..."
+```
+
+PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(Gemini 리뷰 감지·이슈 처리·스레드 reply+resolve)를 따른다. 절차 본문은 그 스킬이 단일 출처 — 커맨드에 복붙하지 않는다.
+
+### ⛔ 머지 전 필수 체크리스트 — 모두 ✅ 아니면 머지 진행 금지
+
+**코드 품질**
+- [ ] HIGH 이슈 전부 수정 완료
+- [ ] MEDIUM 이슈 전부 검토 및 처리 완료
+- [ ] 수정한 모든 스레드에 reply 작성 완료
+- [ ] 모든 스레드 resolved 처리 완료 (GraphQL resolveReviewThread)
+- [ ] GitHub API로 스레드 isResolved 상태 직접 확인 → 미완료 시 재시도 루프
+- [ ] 재푸시 후 CI 통과 확인
+
+**Cross-domain 검토 (새 에러/권한/side effect가 있는 PR에만 적용)**
+- [ ] 새 에러 유형을 발생시킨다면 → 중앙 에러 핸들러에 대응 처리 추가됐는지 확인
+- [ ] 특정 역할 전용 기능이라면 → 인가 레이어에서 접근 제어가 실제로 적용됐는지 확인
+- [ ] 다른 도메인 데이터에 영향을 준다면 → 연관 도메인 상태까지 동기화됐는지 확인
+- [ ] 외부 입력을 받는다면 → 입력값 검증이 적용됐는지 확인
+- [ ] 도메인 에러 HTTP/API 응답 코드가 의미에 맞는가? → 중복/미존재/권한/인증 에러가 적절한 코드(409/404/403/401)로 반환되는지 확인
+
+---
+
+### 4. CI 통과 + 머지 (직접 실행)
+
+**`pr-review-gate` 스킬의 4~6단계**(CI watch · 외부 배포 commit-status 게이트 · 머지)를 따른다.
+
+### 5. 브랜치 정리 (직접 실행)
+
+```bash
+git branch -d "$FEATURE_BRANCH"
+```
+
+완료 후 출력:
+```
+✅ 머지 완료
+- 브랜치: [feature명] → develop
+- develop push: 완료
+- 로컬 브랜치 삭제: 완료
+```
