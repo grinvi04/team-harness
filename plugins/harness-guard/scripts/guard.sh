@@ -53,7 +53,9 @@ fi
 # 프로젝트 핵심 디렉터리 rm -rf 금지 (PROJECT_ROOT, src, app, node_modules)
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "rm\s+-[rRf]{1,3}"; then
-  if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT\"?[[:space:]]*$|(^|[[:space:]])(\./)?(src|app)(/|[[:space:]]|$)|node_modules[[:space:]]*$)"; then
+  # 경로의 정규식 메타문자([.+ 등)를 이스케이프 — 미처리 시 해당 경로에서 가드가 빗나감
+  PROJECT_ROOT_RE=$(printf '%s' "$PROJECT_ROOT" | sed 's/[][\.*^$()+?{}|]/\\&/g')
+  if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT_RE\"?[[:space:]]*$|(^|[[:space:]])(\./)?(src|app)(/|[[:space:]]|$)|node_modules[[:space:]]*$)"; then
     echo "⛔ [guard] 프로젝트 핵심 디렉터리 rm -rf 금지"
     echo "   해결: 삭제가 필요하면 사용자가 직접 실행하세요"
     exit 2
