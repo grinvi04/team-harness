@@ -141,6 +141,8 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 | [code-review.md](docs/code-review.md) | Conventional Commits(타입 영어+본문 한국어) · 리뷰어 배정 규칙 |
 | [ai-collaboration.md](docs/ai-collaboration.md) | AI 협업 책임 원칙 · 도구 공통 금지사항 |
 | [operations.md](docs/operations.md) | 장애 대응 · 로그 레벨 기준 · traceId 전파 (서비스 오픈 시 활성화) |
+| [decisions.md](docs/decisions.md) | 확정 결정의 단일 출처 — 결정·정본 문서·영향 문서 |
+| [harness-maintenance.md](docs/harness-maintenance.md) | 하네스 자체 변경 절차 · 플러그인 버전 정책 · 전파 방식 |
 
 ## 운영 원칙
 
@@ -153,7 +155,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 
 | 트리거 | 추가할 문서 |
 |---|---|
-| **스택 확정** | 스택 스캐폴드(AGENTS.md 빌드·테스트 명령 구체화, ci-gate 실제 단계, 스택 전용 가드 훅), 프론트엔드 컨벤션, 환경변수·설정 프로파일 규약 |
+| **스택 확정** | 스택 스캐폴드(AGENTS.md 빌드·테스트 명령 구체화, ci-gate 실제 단계, 스택 전용 가드 훅), 테스트 표준(픽스처·커버리지·e2e 범위), 프론트엔드 컨벤션, 환경변수·설정 프로파일 규약 |
 | **도메인 설계 시작** | 용어집(유비쿼터스 랭귀지), 공통코드·기준정보 거버넌스 |
 | **팀원 합류** | 로컬 개발환경 가이드(docker compose·시드 데이터 — 프로젝트 repo에) |
 | **서비스 오픈** | SLO·성능 기준, 온콜 로테이션 실명화 (`operations.md` 활성화) |
