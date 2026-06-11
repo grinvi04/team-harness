@@ -17,7 +17,7 @@
 - [ ] **초기 셋업 커밋(빈 repo의 첫 커밋)**: PR을 만들 base 브랜치가 없고 pre-commit이 main 커밋을 막으므로,
       이 1회만 `git commit --no-verify`로 main에 직접 커밋한다 (또는 hooksPath 활성화를 첫 커밋 뒤로 미룬다).
       push 후 develop 브랜치 생성.
-- [ ] ci-gate가 실제로 **통과하는 것을 확인** (테스트 PR 1개 또는 push로) — 그 다음에 §2 진행
+- [ ] ci-gate가 실제로 **통과하는 것을 확인** (테스트 PR 1개로 — `pull_request` 트리거 전용이라 push로는 실행되지 않음) — 그 다음에 §2 진행
 
 ### 2. 계층 0 — GitHub 강제 장치 (마지막에 적용, AI 도구 무관)
 

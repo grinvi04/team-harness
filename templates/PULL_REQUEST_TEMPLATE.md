@@ -22,4 +22,4 @@
 - [ ] 테스트 추가/갱신 (domain 로직 단위 테스트 포함)
 - [ ] DB 변경 시: 마이그레이션 forward-only·무중단 호환 (`db-standards.md`)
 - [ ] API 변경 시: envelope·에러 코드 표준 준수 (`api-standards.md`)
-- [ ] 권한·개인정보 관련 변경 시: 리드 리뷰어 추가 지정 (`auth-standards.md`)
+- [ ] 권한·금액 계산·마이그레이션 변경 시: 리드 리뷰어 추가 지정 (`code-review.md` 배정 규칙)

@@ -12,10 +12,12 @@ COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin
 
 if [[ "$TOOL" != "Bash" ]]; then exit 0; fi
 
-# 커맨드가 `cd <경로>`로 시작하면 그 경로 기준으로 검사한다.
-# (훅의 cwd는 세션 디렉토리라서, 다른 repo로 cd해서 커밋하는 우회를 막으려면 필요)
-if [[ "$COMMAND" =~ ^[[:space:]]*cd[[:space:]]+([^\;\&\|[:space:]]+) ]]; then
-  TARGET_DIR="${BASH_REMATCH[1]//\"/}"
+# 커맨드에 포함된 마지막 `cd <경로>` 또는 `git -C <경로>` 기준으로 검사한다.
+# (훅의 cwd는 세션 디렉토리 — 체인(`x && cd ...`)·서브셸(`(cd ...)`)·`git -C`로
+#  다른 repo에서 커밋하는 우회를 막으려면 필요. 선두 cd만 잡으면 자명하게 우회됨)
+TARGET_DIR=$(echo "$COMMAND" | grep -oE "(^|[^[:alnum:]_-])(cd|git[[:space:]]+-C)[[:space:]]+[^;&|)[:space:]]+" | tail -1 | sed -E 's/^.*(cd|-C)[[:space:]]+//')
+if [[ -n "$TARGET_DIR" ]]; then
+  TARGET_DIR="${TARGET_DIR//\"/}"
   TARGET_DIR="${TARGET_DIR//\'/}"
   TARGET_DIR="${TARGET_DIR/#\~/$HOME}"
   [[ -d "$TARGET_DIR" ]] && cd "$TARGET_DIR" 2>/dev/null
@@ -52,16 +54,19 @@ fi
 
 # 프로젝트 핵심 디렉터리 rm -rf 금지 (PROJECT_ROOT, src, app, node_modules)
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "rm\s+-[rRf]{1,3}"; then
-  if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT\"?[[:space:]]*$|(^|[[:space:]])(\./)?(src|app)(/|[[:space:]]|$)|node_modules[[:space:]]*$)"; then
+if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "rm[[:space:]]+(-[a-zA-Z]*[rRf]|--recursive|--force)"; then
+  # 경로의 정규식 메타문자([.+ 등)를 이스케이프 — 미처리 시 해당 경로에서 가드가 빗나감
+  PROJECT_ROOT_RE=$(printf '%s' "$PROJECT_ROOT" | sed 's/[][\.*^$()+?{}|]/\\&/g')
+  if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT_RE/?\"?[[:space:]]*$|(^|[[:space:]])(\./)?(src|app)(/|[[:space:]]|$)|node_modules/?[[:space:]]*$)"; then
     echo "⛔ [guard] 프로젝트 핵심 디렉터리 rm -rf 금지"
     echo "   해결: 삭제가 필요하면 사용자가 직접 실행하세요"
     exit 2
   fi
 fi
 
-# npm 글로벌 패키지 설치 금지
-if echo "$COMMAND" | grep -qE "npm\s+install\s+(-g|--global)\b"; then
+# npm 글로벌 패키지 설치 금지 (install/i/add 변형 + 플래그 위치 무관)
+if echo "$COMMAND" | grep -qE "npm[[:space:]]+(install|i|add)([[:space:]]|$)" && \
+   echo "$COMMAND" | grep -qE "(^|[[:space:]])(-g|--global)([[:space:]]|$)"; then
   echo "⛔ [guard] npm install -g 금지 — 글로벌 Node 환경 오염 위험"
   echo "   해결: 로컬 설치 사용 (npm install --save-dev 또는 npx)"
   exit 2

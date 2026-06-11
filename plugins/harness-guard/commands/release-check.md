@@ -29,14 +29,16 @@ git status --short   # 미커밋 변경 있으면 중단
 ### Agent B — 보안 (`subagent_type: security-reviewer`, `run_in_background: true`)
 
 `security-reviewer` 에이전트를 spawn한다 (체크리스트는 에이전트 정의에 포함).
-검토 대상 디렉토리만 전달한다 — AGENTS.md의 프로젝트 구조 섹션 참조.
+검토 대상 디렉토리만 전달한다 — AGENTS.md의 "프로젝트 개요" 섹션(디렉토리 구조) 참조.
 
 ### Agent C — DB 마이그레이션·표준 (`subagent_type: general-purpose`, `model: sonnet`, `run_in_background: true`)
 
 **프롬프트:**
 - 마이그레이션 디렉토리에서 마지막 릴리즈 태그 이후 추가된 파일 확인
-- **forward-only 위반 점검**: 기존(이전 릴리즈에 포함된) 마이그레이션 파일이 수정됐는지
+- **적용된 마이그레이션 수정 금지 점검**: 기존(이전 릴리즈에 포함된) 마이그레이션 파일이 수정됐는지
   `git diff <마지막태그>..HEAD -- <마이그레이션 경로>` 로 확인 — 수정 발견 시 ❌
+- **forward-only 위반 점검**: 신규 마이그레이션에 down/rollback 스크립트가 포함됐는지 — 포함 시 ❌
+  (`db-standards.md`: 되돌릴 때도 새 forward 버전 추가)
 - 신규 마이그레이션의 무중단 호환 위반(컬럼 즉시 삭제/rename, 비-CONCURRENTLY 대용량 인덱스) 점검
 - 금액 컬럼 float 사용 등 DB 표준 위반 스캔
 

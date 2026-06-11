@@ -74,7 +74,7 @@ team-harness/
 
 | 구성 요소 | 내용 |
 |---|---|
-| **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, 핵심 디렉터리 `rm -rf`, `npm install -g` 차단 (`cd` 우회 포함). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
+| **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, 핵심 디렉터리 `rm -rf`, npm 글로벌 설치 차단 (`cd` 체인·서브셸·`git -C` 우회 포함, 보조 장치 — 최종 강제는 계층 0). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
 | **커맨드 4종** | `/feature-merge` · `/hotfix` · `/release-check` · `/release` — git-flow 전 구간을 게이트 경유로 자동화. 빌드·테스트 명령은 각 repo의 AGENTS.md에서 읽는다 |
 | **스킬** `pr-review-gate` | PR 생성→머지의 표준 게이트 절차 **단일 출처** — AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
 | **에이전트** `security-reviewer` | 릴리즈 전 보안 검토(XSS·SQL 인젝션·하드코딩 시크릿·.env 추적) — 읽기 전용, opus |

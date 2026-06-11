@@ -11,7 +11,7 @@ model: opus
 
 - `<FRONTEND_DIR>/` — XSS 위험 패턴 (`dangerouslySetInnerHTML`, `innerHTML`, `eval`, 미검증 `href`/`src` 바인딩 등). sanitize/escape 적용 여부 확인.
 - `<BACKEND_DIR>/` — Raw SQL / 문자열 직접 concatenation으로 만든 쿼리 → SQL 인젝션 위험. 파라미터 바인딩 여부 확인.
-- `<BACKEND_DIR>/` — 하드코딩된 시크릿 (비밀번호·토큰·API 키 리터럴). `password=`, `secret=`, `api[-_]?key=`, `token=` 등 패턴.
+- `<BACKEND_DIR>/`·`<FRONTEND_DIR>/` — 하드코딩된 시크릿 (비밀번호·토큰·API 키 리터럴). `password=`, `secret=`, `api[-_]?key=`, `token=` 등 패턴.
 - `.env` / `*.key` / `*.pem` 파일이 git에 추적되는지 확인 (`.gitignore`에 포함됐는지 + `git ls-files`로 실제 추적 여부).
 
 ## 리포트 형식

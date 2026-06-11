@@ -91,7 +91,8 @@
 - **SemVer** `vMAJOR.MINOR.PATCH` — MINOR: 기능 릴리즈 / PATCH: hotfix (플러그인 `/release`·`/hotfix`
   커맨드가 태그까지 수행)
 - **CHANGELOG 자동 생성**: Conventional Commits 기반 (git-cliff) — 수기 작성 금지.
-  `feat`/`fix`만 노출, 커밋 메시지 품질이 곧 릴리즈 노트 품질 (`code-review.md`)
+  `feat`/`fix`만 노출, 커밋 메시지 품질이 곧 릴리즈 노트 품질 (`code-review.md`).
+  생성 단계는 스택 스캐폴드 시 `/release` 커맨드 또는 CI에 연결한다 (연결 전까지 미적용)
 - **두 종류의 릴리즈 노트**: 개발용 = CHANGELOG / **사용자 공지용** = 업무 영향 중심 한국어 별도 작성
   ("주문 화면에서 ~가 가능해집니다") — 기술 용어 금지
 - 배포 공지: Slack 채널에 배포 전·후 자동 알림 (CI), DB 마이그레이션 포함 배포는 사전 공지

@@ -78,7 +78,8 @@ PATCH=$(echo "$CURRENT" | awk -F. '{print $1"."$2"."$3+1}' | tr -d 'v')
 git tag "v$PATCH"
 git push origin --tags
 echo "✅ 태그: v$PATCH"
-# 버전을 매니페스트(package.json·build.gradle 등)에 기록하는 프로젝트면 함께 갱신
+# 버전 매니페스트(package.json·build.gradle 등)를 쓰는 프로젝트: main 직접 커밋이 차단되므로
+# 여기서가 아니라 PR 머지 전 hotfix 브랜치에서 미리 갱신한다 (release 브랜치 범프와 동일 패턴)
 ```
 
 ---
