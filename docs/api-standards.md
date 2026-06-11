@@ -51,7 +51,7 @@ GET /api/v1/orders?page=0&size=20&sort=createdAt,desc&status=CONFIRMED
 ```
 
 ```json
-{ "code": "OK", "data": { "content": [...], "page": 0, "size": 20, "totalElements": 1234, "totalPages": 62 } }
+{ "code": "OK", "message": null, "data": { "content": [...], "page": 0, "size": 20, "totalElements": 1234, "totalPages": 62 } }
 ```
 
 - `size` 상한 100 강제 (무한 조회 방지)

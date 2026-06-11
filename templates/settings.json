@@ -4,7 +4,8 @@
   "permissions": {
     "allow": [
       "Bash(gh pr *)",
-      "Bash(gh api *)"
+      "Bash(gh api *)",
+      "Bash(gh repo view *)"
     ],
     "deny": [],
     "disableBypassPermissionsMode": "disable"

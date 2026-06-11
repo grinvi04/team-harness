@@ -19,7 +19,7 @@
 ## 품질 게이트
 
 - 커밋 전: lint + test 통과 필수
-- PR 머지 전: CI 전체 통과 + 리뷰 스레드 전부 resolve
+- PR 머지 전: 사람 승인 1명 이상 + CI 전체 통과 + 리뷰 스레드 전부 resolve
 - 테스트 스킵 플래그(-DskipTests 등) 사용 금지
 
 ## 빌드·테스트 명령
@@ -39,7 +39,7 @@
 | API | api-standards.md | 공통 Envelope, 에러코드 체계, offset 페이지네이션 |
 | DB | db-standards.md | BIGINT PK+채번, 공통 감사 컬럼, forward-only 마이그레이션 |
 | 인증·인가 | auth-standards.md | Keycloak OIDC, RBAC 권한코드+데이터 스코프 |
-| 코드 구조 | clean-architecture.md | 도메인 모듈 1차 경계, 모듈 간 api/ 경유만 |
+| 코드 구조 | clean-architecture.md | 도메인 모듈 1차 경계, 모듈 간 api/·도메인 이벤트로만 통신 |
 | 리뷰·커밋 | code-review.md | Conventional Commits(타입 영어+본문 한국어), PR 규칙 |
 | AI 협업 | ai-collaboration.md | 책임 원칙, 금지사항 |
 | 운영·로깅 | operations.md | 로그 레벨 기준(ERROR=알람), traceId 전파 |
