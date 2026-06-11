@@ -2,7 +2,7 @@
 
 > **팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에.**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.1.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.2.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
