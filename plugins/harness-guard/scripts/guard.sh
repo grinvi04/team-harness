@@ -62,6 +62,23 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "rm[[:space:]]+(-[a-zA
     echo "   해결: 삭제가 필요하면 사용자가 직접 실행하세요"
     exit 2
   fi
+  # 심링크 표기(/tmp ↔ /private/tmp 등)로 적힌 root도 잡는다 — 경로 토큰을 정규화해 비교
+  set -f
+  for TOK in $COMMAND; do
+    TOK="${TOK//\"/}"; TOK="${TOK//\'/}"; TOK="${TOK/#\~/$HOME}"
+    case "$TOK" in
+      /*|./*|../*)
+        RESOLVED=$(cd "$TOK" 2>/dev/null && pwd -P)
+        if [[ -n "$RESOLVED" && "${RESOLVED%/}" == "${PROJECT_ROOT%/}" ]]; then
+          set +f
+          echo "⛔ [guard] 프로젝트 핵심 디렉터리 rm -rf 금지 (심링크 경로)"
+          echo "   해결: 삭제가 필요하면 사용자가 직접 실행하세요"
+          exit 2
+        fi
+        ;;
+    esac
+  done
+  set +f
 fi
 
 # npm 글로벌 패키지 설치 금지 (install/i/add 변형 + 플래그 위치 무관)
