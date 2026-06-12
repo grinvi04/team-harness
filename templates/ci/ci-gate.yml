@@ -24,6 +24,12 @@ jobs:
       # - run: npm ci
       # - run: npm run lint && npm test && npm run build
 
+      # ── E2E까지 게이트에 포함 권장 — release 브랜치 추가 커밋(리뷰 반영)도 e2e가 강제되도록.
+      #    외부 백엔드(Supabase 등)는 운영 키 대신 CI 내 로컬 스택 사용 (siku ci-gate.yml 참조):
+      # - uses: supabase/setup-cli@v1
+      # - run: supabase start && <로컬 키로 .env 생성>
+      # - run: npx playwright install --with-deps chromium && npm run test:e2e
+
       - name: placeholder
         run: echo "프로젝트 스택에 맞는 lint/test/build 단계로 교체하세요" && exit 1
 
