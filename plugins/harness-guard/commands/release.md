@@ -41,17 +41,27 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 
 ---
 
-## Phase 2 — 최종 검증 (`subagent_type: general-purpose`, `model: sonnet`, **foreground**)
+## Phase 2 — 최종 검증 (조건부)
 
-**프롬프트:**
-- AGENTS.md의 품질 검증 명령 전체 실행 (lint + test + build, e2e 있으면 포함)
-- 전부 통과 → ✅ 리포트 / 실패 → ❌ 리포트 후 중단
+> 중복 방지: release-check가 develop에서 전체 품질을 이미 검증했고, ci-gate가 release PR에서
+> 다시 강제한다. **repo의 ci-gate가 e2e까지 포함하면 이 Phase는 생략**한다.
+
+ci-gate에 e2e가 없는 repo만: (`subagent_type: general-purpose`, `model: sonnet`, **foreground**)
+- AGENTS.md의 품질 검증 명령 중 **ci-gate가 커버하지 않는 것**(통상 e2e)만 실행
+- 전부 통과 → ✅ / 실패 → ❌ 리포트 후 중단
+
+### ⚠️ release 브랜치에 버전 범프 외 커밋이 추가되면 (리뷰 반영 등)
+
+release-check는 그 커밋을 본 적이 없다 — 머지 전 **변경 범위 기반 재검증**이 필수:
+- 모든 경우: ci-gate 재통과 확인 (자동) + e2e 재실행 (ci-gate 미포함 repo는 직접)
+- 변경이 인증·권한·입력 검증·시크릿을 건드리면: `security-reviewer` 에이전트 재실행
+- 변경이 마이그레이션을 건드리면: release-check Agent C 기준으로 재점검
 
 ---
 
 ## Phase 3 — main PR 머지 + 태그 (오케스트레이터 직접 실행)
 
-Phase 2 ✅인 경우에만 진행.
+Phase 2(해당 시) ✅인 경우에만 진행.
 
 ```bash
 # 1. release 브랜치 push + main으로 PR 생성
