@@ -1,0 +1,51 @@
+# team-harness 자체 PR 품질 게이트 — 가드·템플릿은 전 프로젝트가 의존하는 인프라이므로
+# 구문 오류·시나리오 회귀가 머지되지 않도록 막는다.
+name: ci-gate
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 쉘 구문 검사
+        run: |
+          bash -n plugins/harness-guard/scripts/guard.sh
+          bash -n templates/githooks/pre-commit
+          bash -n .githooks/pre-commit
+          bash -n tests/guard-test.sh
+
+      - name: JSON 유효성 검사
+        run: |
+          python3 - <<'EOF'
+          import json
+          for p in [
+              "plugins/harness-guard/.claude-plugin/plugin.json",
+              "plugins/harness-guard/hooks/hooks.json",
+              ".claude-plugin/marketplace.json",
+              "templates/settings.json",
+          ]:
+              json.load(open(p))
+              print("OK", p)
+          EOF
+
+      - name: 가드 시나리오 테스트
+        run: bash tests/guard-test.sh
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
