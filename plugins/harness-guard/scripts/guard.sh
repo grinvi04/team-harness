@@ -7,6 +7,13 @@
 # load-bearing 강제는 GitHub branch protection + CI 게이트(계층 0)가 담당한다.
 
 INPUT=$(cat)
+
+# 가드는 fail-closed — python3 부재 시 파싱 실패로 TOOL이 빈 값이 되어 전체 가드가 우회되므로 차단
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "⛔ [guard] python3 없음 — 가드 실행 불가 (fail-closed)" >&2
+  exit 2
+fi
+
 TOOL=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_name',''))" 2>/dev/null)
 COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null)
 
@@ -54,7 +61,7 @@ fi
 
 # 프로젝트 핵심 디렉터리 rm -rf 금지 (PROJECT_ROOT, src, app, node_modules)
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "rm[[:space:]]+(-[a-zA-Z]*[rRf]|--recursive|--force)"; then
+if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-zA-Z]*[rRf]|--recursive|--force)"; then
   # 경로의 정규식 메타문자([.+ 등)를 이스케이프 — 미처리 시 해당 경로에서 가드가 빗나감
   PROJECT_ROOT_RE=$(printf '%s' "$PROJECT_ROOT" | sed 's/[][\.*^$()+?{}|]/\\&/g')
   if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT_RE/?\"?[[:space:]]*$|(^|[[:space:]])(\./)?(src|app)(/|[[:space:]]|$)|node_modules/?[[:space:]]*$)"; then
