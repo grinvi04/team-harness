@@ -27,8 +27,8 @@ fi
 if echo "$COMMAND" | grep -qE "\bgit\b.*\bcommit\b"; then
   BRANCH=$(git branch --show-current 2>/dev/null)
   if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]]; then
-    echo "⛔ [guard] main/develop 직접 커밋 금지"
-    echo "   해결: feature/fix/hotfix/release 브랜치에서 작업 후 /feature-merge 사용"
+    echo "⛔ [guard] main/develop 직접 커밋 금지" >&2
+    echo "   해결: feature/fix/hotfix/release 브랜치에서 작업 후 /feature-merge 사용" >&2
     exit 2
   fi
 fi
@@ -39,16 +39,16 @@ if echo "$COMMAND" | grep -qE "git push.*(--force|-f)\b|git push.*\+(main|develo
   BRANCH=$(git branch --show-current 2>/dev/null)
   if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]] || \
      echo "$COMMAND" | grep -qE "origin[[:space:]]+(main|develop)([[:space:]]|$)|:(main|develop)([[:space:]]|$)|\+(main|develop)([[:space:]]|$)"; then
-    echo "⛔ [guard] main/develop force push 금지"
-    echo "   해결: 브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
+    echo "⛔ [guard] main/develop force push 금지" >&2
+    echo "   해결: 브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요" >&2
     exit 2
   fi
 fi
 
 # git reset --hard 금지
 if echo "$COMMAND" | grep -qE "git reset --hard"; then
-  echo "⛔ [guard] git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험"
-  echo "   해결: 필요한 경우 사용자가 직접 실행 (Claude가 대신 실행하지 않음)"
+  echo "⛔ [guard] git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" >&2
+  echo "   해결: 필요한 경우 사용자가 직접 실행 (Claude가 대신 실행하지 않음)" >&2
   exit 2
 fi
 
@@ -58,8 +58,8 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "rm[[:space:]]+(-[a-zA
   # 경로의 정규식 메타문자([.+ 등)를 이스케이프 — 미처리 시 해당 경로에서 가드가 빗나감
   PROJECT_ROOT_RE=$(printf '%s' "$PROJECT_ROOT" | sed 's/[][\.*^$()+?{}|]/\\&/g')
   if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT_RE/?\"?[[:space:]]*$|(^|[[:space:]])(\./)?(src|app)(/|[[:space:]]|$)|node_modules/?[[:space:]]*$)"; then
-    echo "⛔ [guard] 프로젝트 핵심 디렉터리 rm -rf 금지"
-    echo "   해결: 삭제가 필요하면 사용자가 직접 실행하세요"
+    echo "⛔ [guard] 프로젝트 핵심 디렉터리 rm -rf 금지" >&2
+    echo "   해결: 삭제가 필요하면 사용자가 직접 실행하세요" >&2
     exit 2
   fi
   # 심링크 표기(/tmp ↔ /private/tmp 등)로 적힌 root도 잡는다 — 경로 토큰을 정규화해 비교
@@ -71,8 +71,8 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "rm[[:space:]]+(-[a-zA
         RESOLVED=$(cd "$TOK" 2>/dev/null && pwd -P)
         if [[ -n "$RESOLVED" && "${RESOLVED%/}" == "${PROJECT_ROOT%/}" ]]; then
           set +f
-          echo "⛔ [guard] 프로젝트 핵심 디렉터리 rm -rf 금지 (심링크 경로)"
-          echo "   해결: 삭제가 필요하면 사용자가 직접 실행하세요"
+          echo "⛔ [guard] 프로젝트 핵심 디렉터리 rm -rf 금지 (심링크 경로)" >&2
+          echo "   해결: 삭제가 필요하면 사용자가 직접 실행하세요" >&2
           exit 2
         fi
         ;;
@@ -84,8 +84,8 @@ fi
 # npm 글로벌 패키지 설치 금지 (install/i/add 변형 + 플래그 위치 무관)
 if echo "$COMMAND" | grep -qE "npm[[:space:]]+(install|i|add)([[:space:]]|$)" && \
    echo "$COMMAND" | grep -qE "(^|[[:space:]])(-g|--global)([[:space:]]|$)"; then
-  echo "⛔ [guard] npm install -g 금지 — 글로벌 Node 환경 오염 위험"
-  echo "   해결: 로컬 설치 사용 (npm install --save-dev 또는 npx)"
+  echo "⛔ [guard] npm install -g 금지 — 글로벌 Node 환경 오염 위험" >&2
+  echo "   해결: 로컬 설치 사용 (npm install --save-dev 또는 npx)" >&2
   exit 2
 fi
 
