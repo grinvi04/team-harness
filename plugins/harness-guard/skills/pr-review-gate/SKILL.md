@@ -13,28 +13,23 @@ description: PR 생성 후 머지까지의 표준 게이트 절차 — AI 리뷰
 OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 ```
 
-AI 리뷰는 repo의 `ai-review.yml` 워크플로(claude-code-action)가 PR에 인라인 코멘트로 남긴다.
-워크플로 미설치 repo면 1단계는 스킵하고 2단계부터 진행한다.
+AI 리뷰는 PR 단계에서 Claude Code `/code-review`로 수행한다 (구독 포함, PR별 API 과금 없음 — 외부 AI 리뷰봇에 의존하지 않는다).
+사람 리뷰어의 인라인 코멘트도 같은 기준으로 처리한다.
 
 ---
 
-## 1. AI 리뷰 완료 대기
+## 1. AI 코드 리뷰 (`/code-review`)
 
-ai-review 잡이 PR check로 잡힌다 — 완료까지 대기 (다른 CI와 함께 4단계에서 최종 확인되므로
-여기서는 리뷰 코멘트 생성 여부만 확인):
+PR 생성 후 Claude Code `/code-review`로 변경분(현재 브랜치/PR diff)을 리뷰하고,
+지적사항을 2단계 기준으로 처리한다 — 옳으면 수정 → 테스트 통과 → 재푸시, 틀리면 근거 기록.
+(구독 포함, PR별 API 과금 없음 — 외부 AI 리뷰봇에 의존하지 않는다.)
+
+사람 리뷰어가 인라인 코멘트를 남겼다면 같은 목록에서 함께 확인해 2단계 기준으로 처리한다:
 
 ```bash
-AI_WAIT=0; MAX=10
-until gh api "repos/$OWNER_REPO/pulls/$PR/comments" --jq 'length' 2>/dev/null | grep -qv "^0$"; do
-  AI_WAIT=$((AI_WAIT+1))
-  [ $AI_WAIT -ge $MAX ] && echo "AI 리뷰 코멘트 없음 (5분 초과) — 게이트 계속 진행" && break
-  sleep 30
-done
 gh api "repos/$OWNER_REPO/pulls/$PR/comments" \
   --jq '.[] | {id: .id, user: .user.login, path: .path, line: .line, body: .body[:300]}'
 ```
-
-사람 리뷰어가 단 인라인 코멘트도 같은 목록에 나온다 — 작성자 구분 없이 2단계 기준으로 전부 처리한다.
 
 ## 2. 이슈 처리 기준
 
