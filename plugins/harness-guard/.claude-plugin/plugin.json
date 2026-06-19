@@ -1,7 +1,7 @@
 {
   "name": "harness-guard",
   "description": "팀 공통 거버넌스 플러그인 — main/develop 보호 가드, pr-review-gate 절차, git-flow 커맨드(feature-add/modify TDD·qa 포함), security-reviewer 에이전트. 공식 플러그인이 제공하지 않는 자체 정책만 담는다.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "grinvi04"
   }
