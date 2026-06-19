@@ -33,12 +33,15 @@ argument-hint: <feature-name> "<설명>"
 
 ---
 
-## Phase 0 — 진입 전 점검 + TDD 적합성 판정 (오케스트레이터 직접 실행)
+## Phase 0 — 진입 전 점검 + 브랜치 + TDD 적합성 판정 (오케스트레이터 직접 실행)
 
-```bash
-git checkout develop && git pull origin develop
-git checkout -b feature/$FEATURE_NAME
-```
+**브랜치 결정 (한 기능 = 한 브랜치):**
+- **이미 `feature/*` 브랜치에 있고 작업트리가 깨끗하면** → 그 브랜치에서 **계속한다**(새로 만들지 않음). `/plan`으로 분해된 기능의 **후속 태스크**가 이 경우 — 여러 태스크가 한 브랜치에 원자적 커밋으로 쌓여 한 PR이 된다.
+- **`develop`/`main`에 있으면** → 새 feature 브랜치 생성:
+  ```bash
+  git checkout develop && git pull origin develop
+  git checkout -b feature/$FEATURE_NAME
+  ```
 - 동일 모듈이 이미 있으면 중단하고 `/feature-modify` 사용을 안내.
 - **TDD 적합성**: 탐색적 spike·빠르게 변하는 UI 비주얼·새 기술 학습·요구사항 미확정이면 TDD를 강제하지 않는다 — 먼저 spike로 학습 후 production을 TDD로 재작성하거나, "TDD 완화 모드"를 사용자에게 확인. (TDD는 동작이 명확한 로직에 가장 잘 맞는다.)
 
@@ -137,7 +140,7 @@ Phase 2 spec을 **계약서**로 구현.
    git commit -m "feat($FEATURE_NAME): $DESCRIPTION ..."
    ```
 
-브랜치는 develop에 머지하지 않는다 — 사용자 확인 후 `/feature-merge`.
+브랜치는 develop에 머지하지 않는다 — 사용자 확인 후 `/feature-merge`. (`/plan`으로 여러 태스크로 분해된 기능이면 **모든 태스크 완료 후** 한 번에 `/feature-merge` — 한 기능=한 PR.)
 
 ---
 
