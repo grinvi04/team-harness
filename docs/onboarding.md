@@ -2,52 +2,44 @@
 
 ## A. 신규 프로젝트 셋업 (프로젝트 리드, 1회)
 
-### 1. repo 내 설정 커밋 (계층 1 — protection보다 먼저)
-
-- [ ] `templates/githooks/pre-commit` → `.githooks/pre-commit` (실행 권한 유지: `chmod +x`)
-- [ ] `templates/ci/ci-gate.yml` → `.github/workflows/ci-gate.yml` — **스택에 맞는 실제 lint/test/build로 교체**
-      (placeholder는 항상 실패하도록 만들어져 있음 — 교체 전에 protection을 걸면 첫 PR부터 머지 불가)
-- [ ] `templates/ci/ai-review.yml` → `.github/workflows/ai-review.yml` + repo secrets에 `ANTHROPIC_API_KEY` 등록
-- [ ] `templates/AGENTS.md` → `/AGENTS.md` (프로젝트 내용 채움 — **빌드·테스트 명령 섹션 필수**:
-      플러그인 커맨드들이 이 섹션을 읽어 실행한다)
-- [ ] `templates/CLAUDE.md` → `/CLAUDE.md`
-- [ ] `templates/settings.json` → `.claude/settings.json` (마켓플레이스 주소 교체)
-- [ ] `templates/gitignore.snippet` 내용을 `.gitignore`에 추가
-- [ ] `templates/PULL_REQUEST_TEMPLATE.md` → `.github/PULL_REQUEST_TEMPLATE.md`
-- [ ] **초기 셋업 커밋(빈 repo의 첫 커밋)**: PR을 만들 base 브랜치가 없고 pre-commit이 main 커밋을 막으므로,
-      이 1회만 `git commit --no-verify`로 main에 직접 커밋한다 (또는 hooksPath 활성화를 첫 커밋 뒤로 미룬다).
-      push 후 develop 브랜치 생성.
-- [ ] ci-gate가 실제로 **통과하는 것을 확인** (테스트 PR 1개로 — `pull_request` 트리거 전용이라 push로는 실행되지 않음) — 그 다음에 §2 진행
-
-### 2. 계층 0 — GitHub 강제 장치 (마지막에 적용, AI 도구 무관)
-
-repo Settings → Branches → branch protection rule을 **`main`, `develop` 양쪽에** (back-merge도 PR 경유가 팀 정책):
-
-- [ ] Require a pull request before merging (+ 승인 1명 이상)
-- [ ] Require status checks to pass: `quality`, `secret-scan` (ci-gate.yml)
-- [ ] Block force pushes / Do not allow deletions
-- [ ] Require conversation resolution before merging (리뷰 스레드 전부 resolve — `code-review.md` 머지 조건의 서버 강제)
+### 1. 기계 셋업 — 스크립트 1회 실행
 
 ```bash
-# CLI로 일괄 적용 예시 (main; develop도 동일하게)
-gh api repos/{owner}/{repo}/branches/main/protection -X PUT \
-  -f required_status_checks[strict]=true \
-  -f "required_status_checks[contexts][]=quality" \
-  -f "required_status_checks[contexts][]=secret-scan" \
-  -f enforce_admins=true \
-  -f required_pull_request_reviews[required_approving_review_count]=1 \
-  -f required_conversation_resolution=true \
-  -F restrictions=null -f allow_force_pushes=false -f allow_deletions=false
+cd <새 repo 루트>
+bash /path/to/team-harness/scripts/new-repo.sh
 ```
 
-> `enforce_admins=true`는 **관리자 본인도** 직접 push가 막힌다는 뜻이다 — 의도된 설정(AI 에이전트가
-> 관리자 계정으로 작업해도 서버가 막아야 함). 긴급 우회가 필요하면 protection을 일시 해제하고
-> 작업 후 재적용하며, 그 사실을 팀에 공유한다.
+스크립트가 자동으로 처리하는 항목:
+- 템플릿 파일 복사 (pre-commit 훅·CI·AGENTS.md·CLAUDE.md·settings.json·PR 템플릿·gitignore)
+- `git config core.hooksPath .githooks`
+- main·develop branch protection (enforce_admins·PR1·status-checks·conversation-resolve)
 
-### 3. 계층 2 — 플러그인 확인
+> 멱등: 이미 있는 파일·protection은 건드리지 않음. 브랜치 없으면 "첫 커밋 후 재실행" 안내.
+
+> **초기 셋업 커밋(빈 repo의 첫 커밋)**: pre-commit 훅이 main 커밋을 막으므로,
+> 이 1회만 `git commit --no-verify`로 main에 직접 커밋한다(또는 hooksPath 활성화를 첫 커밋 뒤로 미룬다).
+> push 후 develop 브랜치 생성 → 스크립트 재실행으로 develop에도 protection 적용.
+
+### 2. 수동 3단계 (스크립트 출력이 안내)
+
+- [ ] **ci-gate.yml 수정**: placeholder → 스택 맞는 lint·test·build 명령으로 교체
+      (placeholder는 항상 실패 — 교체 전 protection 걸면 첫 PR부터 머지 불가)
+- [ ] **AGENTS.md 작성**: 프로젝트 개요·디렉터리·빌드·테스트 명령 채우기
+      (빌드·테스트 명령 섹션은 하네스 커맨드가 필수로 읽음)
+- [ ] **ANTHROPIC_API_KEY 등록**: repo Settings → Secrets → `ANTHROPIC_API_KEY`
+
+### 3. 최종 검증
+
+- [ ] 테스트 PR 1개 생성 → ci-gate(`quality`·`secret-scan`) 통과 확인
+      (`pull_request` 트리거 전용 — push로는 실행 안 됨)
+
+### 계층 2 — 플러그인
 
 `.claude/settings.json`의 `extraKnownMarketplaces` + `enabledPlugins` 선언으로
 팀원이 repo를 열면 harness-guard 설치가 안내된다(신뢰 확인 1회).
+
+> `~/project` 하위 repo는 `~/project/.claude/settings.local.json`에 이미 harness-guard가 활성화돼 있어
+> 플러그인 install 없이도 동작한다. 단, settings.json은 다른 클론 사용자를 위해 커밋한다.
 
 ## B. 신규 팀원 온보딩 (각자, 1회)
 
