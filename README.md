@@ -2,7 +2,7 @@
 
 > **팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에.**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.2.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.6.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -59,6 +59,7 @@ team-harness/
 ├── .claude-plugin/marketplace.json    사내 마켓플레이스 카탈로그
 ├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
 ├── plugins/harness-guard/             플러그인 본체 (아래 상세)
+├── scripts/new-repo.sh                신규 repo 셋업 자동화 (템플릿 복사 + branch protection)
 ├── templates/                         신규 프로젝트에 복사하는 파일들
 │   ├── AGENTS.md · CLAUDE.md          규약 단일 출처 + Claude 전용 지침
 │   ├── settings.json                  .claude/settings.json (마켓플레이스·플러그인 선언)
@@ -75,7 +76,10 @@ team-harness/
 | 구성 요소 | 내용 |
 |---|---|
 | **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, 핵심 디렉터리 `rm -rf`, npm 글로벌 설치 차단 (`cd` 체인·서브셸·`git -C` 우회 포함, 보조 장치 — 최종 강제는 계층 0). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
-| **커맨드 4종** | `/feature-merge` · `/hotfix` · `/release-check` · `/release` — git-flow 전 구간을 게이트 경유로 자동화. 빌드·테스트 명령은 각 repo의 AGENTS.md에서 읽는다 |
+| **계획 커맨드** | `/plan` — 스펙·플랜·태스크 분해(git 무관, `docs/specs/` 산출). 코드 전에 의도·수용기준 박제 |
+| **개발 커맨드** | `/feature-add` · `/feature-modify` — TDD(RED→GREEN→Refactor), 태스크당 원자적 커밋. 빌드·테스트 명령은 AGENTS.md에서 읽는다 |
+| **품질 커맨드** | `/qa` — 품질·보안·마이그레이션 병렬 검증 |
+| **머지·릴리즈 커맨드** | `/feature-merge` · `/hotfix` · `/release-check` · `/release` · `/solo-merge` — git-flow 전 구간을 게이트 경유로 자동화 |
 | **스킬** `pr-review-gate` | PR 생성→머지의 표준 게이트 절차 **단일 출처** — AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
 | **에이전트** `security-reviewer` | 릴리즈 전 보안 검토(XSS·SQL 인젝션·하드코딩 시크릿·.env 추적) — 읽기 전용, opus |
 
@@ -83,16 +87,26 @@ team-harness/
 
 ```mermaid
 flowchart LR
-    F["feature/* · fix/*"] -->|"/feature-merge<br/>품질검증 → PR → 게이트"| D[develop]
+    P["📋 /plan<br/>스펙·플랜·태스크 분해<br/>(git 무관)"]
+    F["feature/* · fix/*"]
+    D[develop]
+    M[main]
+
+    P -->|"승인 후 /feature-add<br/>TDD · 태스크당 커밋"| F
+    F -->|"/feature-merge<br/>품질검증 → PR → 게이트"| D
     D -->|"/release-check<br/>품질·보안·DB 병렬 검증"| D
-    D -->|"/release X.Y.Z<br/>release 브랜치 → PR → 태그"| M[main]
+    D -->|"/release X.Y.Z<br/>release 브랜치 → PR → 태그"| M
     M -.->|back-merge PR| D
     M -->|"/hotfix<br/>재현 테스트 → 수정 → PR"| M
 
     style M fill:#cf222e,color:#fff
     style D fill:#0969da,color:#fff
     style F fill:#57606a,color:#fff
+    style P fill:#6e40c9,color:#fff
 ```
+
+흐름: `/plan`(계획·승인, git 무관) → **`feature/*` 한 브랜치**에서 태스크별 `/feature-add`(TDD) →
+`/feature-merge`(한 PR). *한 기능 = 한 브랜치 = 한 PR.*
 
 모든 경로는 PR을 경유하고, 머지 전에 `pr-review-gate`의 게이트
 (AI 리뷰 처리 → **사람 승인** → CI → 외부 배포 상태)를 통과해야 한다.
@@ -113,10 +127,14 @@ claude                                # 첫 실행 시 marketplace/plugin 신뢰
 
 ### 신규 프로젝트 셋업 (리드 1회)
 
-`templates/` 복사 → CI를 스택에 맞게 교체 → **CI가 실제로 통과하는 것을 확인한 뒤**
-branch protection을 main·develop 양쪽에 적용. 순서가 중요하다 — placeholder CI는 항상
-실패하도록 만들어져 있어서, 교체 전에 protection을 걸면 첫 PR부터 머지가 막힌다.
-전체 체크리스트와 `gh api` 일괄 적용 명령: [`docs/onboarding.md`](docs/onboarding.md)
+```bash
+cd <새 repo 루트>
+bash /path/to/team-harness/scripts/new-repo.sh
+```
+
+스크립트가 자동으로 처리: 템플릿 파일 복사 7종 · `core.hooksPath` 설정 · main·develop branch protection.
+이후 수동 3가지: **ci-gate.yml 스택 커스터마이징** · **AGENTS.md 작성** · **ANTHROPIC_API_KEY 등록**.
+전체 절차: [`docs/onboarding.md`](docs/onboarding.md)
 
 ### 로컬 테스트 (플랜 불필요)
 
@@ -141,6 +159,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 | [code-review.md](docs/code-review.md) | Conventional Commits(타입 영어+본문 한국어) · 리뷰어 배정 규칙 |
 | [ai-collaboration.md](docs/ai-collaboration.md) | AI 협업 책임 원칙 · 도구 공통 금지사항 |
 | [operations.md](docs/operations.md) | 장애 대응 · 로그 레벨 기준 · traceId 전파 (서비스 오픈 시 활성화) |
+| [model-tiering.md](docs/model-tiering.md) | 모델 티어링 정책 — Haiku(단순)·Sonnet(빌드·메인 기본)·Opus(검증·설계·리서치) |
 | [decisions.md](docs/decisions.md) | 확정 결정의 단일 출처 — 결정·정본 문서·영향 문서 |
 | [harness-maintenance.md](docs/harness-maintenance.md) | 하네스 자체 변경 절차 · 플러그인 버전 정책 · 전파 방식 |
 
