@@ -27,5 +27,6 @@
 | 모듈 내부 계층 = adapter → application → domain (interface/infrastructure 분리 안 함) | 2026-06 | clean-architecture.md | stack-guide.md |
 | 배포 = EC2 단계 GitHub Actions push형 → EKS 단계 Argo CD pull형 | 2026-06 | architecture-infra.md | stack-guide.md |
 | 시크릿 = AWS Secrets Manager/SSM (.env를 서버에 두지 않음) | 2026-06 | stack-guide.md | auth-standards.md, gitignore.snippet |
+| 모델 티어링 = Haiku(단순)·Sonnet(빌드·메인 기본)·Opus(검증·설계·리서치), 메인 Haiku 불가 | 2026-06-21 | model-tiering.md | 커맨드 subagent `model:` 지정 |
 
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
