@@ -63,7 +63,14 @@ team-harness/
 ├── templates/                         신규 프로젝트에 복사하는 파일들
 │   ├── AGENTS.md · CLAUDE.md          규약 단일 출처 + Claude 전용 지침
 │   ├── settings.json                  .claude/settings.json (마켓플레이스·플러그인 선언)
-│   ├── ci/ci-gate.yml · ai-review.yml CI 품질 게이트 + AI 리뷰(claude-code-action)
+│   ├── ci/ci-gate.yml · ai-review.yml CI 기본 템플릿(placeholder) + AI 리뷰
+│   ├── ci/stacks/                     스택별 ci-gate 완성 템플릿 (new-repo.sh가 선택 복사)
+│   │   ├── ci-gate-node.yml           Node.js (React/Vue/Vite SPA, NestJS 단독)
+│   │   ├── ci-gate-nestjs-frontend.yml  NestJS 백엔드 + Node.js 프론트엔드
+│   │   ├── ci-gate-spring.yml         Spring Boot Java/Kotlin 단독
+│   │   ├── ci-gate-spring-frontend.yml  Spring Boot + Node.js 프론트엔드
+│   │   ├── ci-gate-python.yml         FastAPI / Django (PostgreSQL + Redis)
+│   │   └── ci-gate-rails.yml          Rails 8 (소팀 MVP)
 │   ├── githooks/pre-commit            계층 0.5 git 훅
 │   └── PULL_REQUEST_TEMPLATE.md · gitignore.snippet
 └── docs/                              팀 표준 문서 (아래 표)
