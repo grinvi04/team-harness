@@ -1,0 +1,108 @@
+# ci-gate — NestJS 백엔드 + Node.js 프론트엔드 (React / Vue / Next.js / Nuxt)
+# CUSTOMIZE: postgres 자격증명, ORM(Prisma/TypeORM), 프론트 디렉터리, env 변수
+# DB 불필요하면 services.postgres 블록 전체 제거
+name: ci-gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend — lint · build · test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci_user        # CUSTOMIZE
+          POSTGRES_PASSWORD: ci_password # CUSTOMIZE
+          POSTGRES_DB: ci_db            # CUSTOMIZE
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci_user -d ci_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://ci_user:ci_password@localhost:5432/ci_db  # CUSTOMIZE
+      JWT_SECRET: ci_jwt_secret_for_tests_only
+      NODE_ENV: test
+      # CUSTOMIZE: 추가 env (REDIS_URL, GEMINI_API_KEY="" 등)
+
+    defaults:
+      run:
+        working-directory: backend  # CUSTOMIZE
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: backend/.nvmrc  # CUSTOMIZE: 없으면 node-version: 22
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+
+      - run: npm ci
+
+      # Prisma 사용 시 아래 두 줄 활성화; TypeORM이면 마이그레이션 명령으로 교체
+      # - run: npx prisma generate
+      # - run: npx prisma migrate deploy
+
+      - run: npm run lint:check  # CUSTOMIZE: lint 명령 확인
+      - run: npm run build
+      - run: npm test
+
+  frontend:
+    name: Frontend — lint · build · test
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend  # CUSTOMIZE
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: frontend/.nvmrc  # CUSTOMIZE: 없으면 node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint --if-present
+      - run: npm run type-check --if-present
+      - run: npm run test:unit --if-present
+      - run: npm run build
+
+      # e2e가 있으면 아래 활성화
+      # - run: npx playwright install chromium --with-deps
+      # - run: npx playwright test
+      # - uses: actions/upload-artifact@v4
+      #   if: failure()
+      #   with:
+      #     name: playwright-report
+      #     path: frontend/playwright-report/
+      #     retention-days: 7
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -5,12 +5,11 @@
 #   bash /path/to/team-harness/scripts/new-repo.sh
 #
 # 전제: gh 인증 완료, git remote(origin)가 GitHub을 가리킬 것
-# 멱등: 이미 있는 파일은 건드리지 않음
+# 멱등: 이미 있는 파일·protection은 건드리지 않음
 
 set -euo pipefail
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-REPO_DIR="$(pwd)"
 
 # ── 사전 검사 ────────────────────────────────────────────────────────────────
 
@@ -28,6 +27,33 @@ fi
 echo "🔧  $OWNER_REPO 셋업 시작 ($(pwd))"
 echo ""
 
+# ── 스택 선택 ────────────────────────────────────────────────────────────────
+
+echo "스택을 선택하세요:"
+echo "  1) Node.js 단독      — React / Vue / Vite SPA, NestJS 단독 API"
+echo "  2) NestJS 풀스택     — NestJS 백엔드 + React / Vue / Next.js 프론트엔드"
+echo "  3) Spring Boot       — Java / Kotlin Gradle 백엔드 단독"
+echo "  4) Spring 풀스택     — Spring Boot 백엔드 + Node.js 프론트엔드"
+echo "  5) Python            — FastAPI / Django (+ PostgreSQL + Redis)"
+echo "  6) Rails 8           — 소팀 MVP · Hotwire 풀스택"
+echo ""
+read -rp "번호 입력 (1-6): " STACK_CHOICE
+
+case "$STACK_CHOICE" in
+  1) STACK_TEMPLATE="ci-gate-node.yml";             STACK_CHECKS=("quality" "secret-scan") ;;
+  2) STACK_TEMPLATE="ci-gate-nestjs-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan") ;;
+  3) STACK_TEMPLATE="ci-gate-spring.yml";           STACK_CHECKS=("quality" "secret-scan") ;;
+  4) STACK_TEMPLATE="ci-gate-spring-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan") ;;
+  5) STACK_TEMPLATE="ci-gate-python.yml";           STACK_CHECKS=("quality" "secret-scan") ;;
+  6) STACK_TEMPLATE="ci-gate-rails.yml";            STACK_CHECKS=("quality" "secret-scan") ;;
+  *) echo "❌ 잘못된 선택 — 1~6 중 입력하세요." >&2; exit 1 ;;
+esac
+
+STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
+echo ""
+echo "선택: $STACK_TEMPLATE"
+echo ""
+
 # ── 1. 템플릿 파일 복사 (기존 파일 덮어쓰지 않음) ────────────────────────
 
 echo "📁  템플릿 파일 복사..."
@@ -43,15 +69,22 @@ copy_once() {
   fi
 }
 
-copy_once "$HARNESS_DIR/templates/githooks/pre-commit"          .githooks/pre-commit          "pre-commit 훅"
+# 스택별 ci-gate
+if [[ -f ".github/workflows/ci-gate.yml" ]]; then
+  echo "  ⏭  ci-gate.yml (이미 있음)"
+else
+  cp "$STACK_TEMPLATE_PATH" .github/workflows/ci-gate.yml
+  echo "  ✅  ci-gate.yml ($STACK_TEMPLATE)  ← ⚠️ CUSTOMIZE 주석 부분 프로젝트에 맞게 수정"
+fi
+
+copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
 chmod +x .githooks/pre-commit
 
-copy_once "$HARNESS_DIR/templates/ci/ci-gate.yml"              .github/workflows/ci-gate.yml "ci-gate.yml"        "⚠️ 스택 맞는 lint/test/build로 교체 필요"
-copy_once "$HARNESS_DIR/templates/ci/ai-review.yml"            .github/workflows/ai-review.yml "ai-review.yml"    "⚠️ ANTHROPIC_API_KEY repo secret 등록 필요"
-copy_once "$HARNESS_DIR/templates/AGENTS.md"                   AGENTS.md                      "AGENTS.md"         "⚠️ 프로젝트 내용 채우기 (빌드·테스트 명령 섹션 필수)"
-copy_once "$HARNESS_DIR/templates/CLAUDE.md"                   CLAUDE.md                      "CLAUDE.md"
-copy_once "$HARNESS_DIR/templates/settings.json"               .claude/settings.json          ".claude/settings.json"
-copy_once "$HARNESS_DIR/templates/PULL_REQUEST_TEMPLATE.md"    .github/PULL_REQUEST_TEMPLATE.md "PR 템플릿"
+copy_once "$HARNESS_DIR/templates/ci/ai-review.yml"         .github/workflows/ai-review.yml "ai-review.yml"  "⚠️ ANTHROPIC_API_KEY repo secret 등록 필요"
+copy_once "$HARNESS_DIR/templates/AGENTS.md"                 AGENTS.md                  "AGENTS.md"      "⚠️ 프로젝트 내용 채우기 (빌드·테스트 명령 섹션 필수)"
+copy_once "$HARNESS_DIR/templates/CLAUDE.md"                 CLAUDE.md                  "CLAUDE.md"
+copy_once "$HARNESS_DIR/templates/settings.json"             .claude/settings.json      ".claude/settings.json"
+copy_once "$HARNESS_DIR/templates/PULL_REQUEST_TEMPLATE.md"  .github/PULL_REQUEST_TEMPLATE.md "PR 템플릿"
 
 # .gitignore — snippet 내용이 없으면 append
 if grep -qF ".claude/settings.local.json" .gitignore 2>/dev/null; then
@@ -77,10 +110,15 @@ apply_protection() {
     echo "  ⏭  $branch — 원격 브랜치 없음 (첫 커밋 후 재실행: bash $0)"
     return
   fi
+
+  local ctx_args=()
+  for check in "${STACK_CHECKS[@]}"; do
+    ctx_args+=(-f "required_status_checks[contexts][]=$check")
+  done
+
   gh api "repos/$OWNER_REPO/branches/$branch/protection" -X PUT \
     -f required_status_checks[strict]=true \
-    -f "required_status_checks[contexts][]=quality" \
-    -f "required_status_checks[contexts][]=secret-scan" \
+    "${ctx_args[@]}" \
     -f enforce_admins=true \
     -f required_pull_request_reviews[required_approving_review_count]=1 \
     -f required_conversation_resolution=true \
@@ -88,7 +126,7 @@ apply_protection() {
     -f allow_force_pushes=false \
     -f allow_deletions=false \
     > /dev/null 2>&1 \
-    && echo "  ✅  $branch 보호 완료" \
+    && echo "  ✅  $branch 보호 완료 (checks: ${STACK_CHECKS[*]})" \
     || echo "  ❌  $branch 보호 실패 (권한 확인 필요)"
 }
 
@@ -100,11 +138,10 @@ echo ""
 # ── 완료 요약 ───────────────────────────────────────────────────────────────
 
 echo "────────────────────────────────────────────────"
-echo "✅  기계 셋업 완료. 남은 수동 작업 (3가지):"
+echo "✅  기계 셋업 완료. 남은 수동 작업:"
 echo ""
-echo "  1. ci-gate.yml 수정:"
-echo "       스택 맞는 lint·test·build 명령으로 교체"
-echo "       (placeholder는 항상 실패 — 교체 전 protection 걸면 머지 불가)"
+echo "  1. ci-gate.yml 수정: CUSTOMIZE 주석 부분을 프로젝트에 맞게 교체"
+echo "       (credentials, env 변수, 디렉터리 경로 등)"
 echo ""
 echo "  2. AGENTS.md 작성:"
 echo "       프로젝트 개요·디렉터리·빌드 명령 채우기"
