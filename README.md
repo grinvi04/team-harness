@@ -194,4 +194,4 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 - [x] 팀 환경 정합화 — back-merge PR 절차, 사람 승인 게이트, AI 리뷰(claude-code-action) 연결
 - [ ] 첫 회사 프로젝트: 스택 확정 → 스캐폴드(AGENTS.md·CI 구체화) → 계층 0~2 풀 적용
 - [ ] 사내 git 호스팅으로 이전, 템플릿의 마켓 주소 교체
-- [ ] (플랜 도입 시) server-managed settings로 권한 강제 / (GA 시) agent teams 재검토
+- [ ] server-managed settings로 권한 강제 (Team/Enterprise 플랜 확보 시) / agent teams 재검토 (GA 시)
