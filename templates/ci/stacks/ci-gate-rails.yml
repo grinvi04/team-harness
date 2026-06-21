@@ -1,0 +1,68 @@
+# ci-gate — Ruby on Rails 8 (소팀 MVP · Hotwire 풀스택)
+# CUSTOMIZE: ruby-version, postgres 자격증명, 테스트 프레임워크(minitest/rspec)
+# Rails 8 기본: Solid Queue/Cache(Redis 불필요), Kamal 배포, 내장 인증
+name: ci-gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci_user        # CUSTOMIZE
+          POSTGRES_PASSWORD: ci_password # CUSTOMIZE
+          POSTGRES_DB: ci_db_test       # CUSTOMIZE
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci_user -d ci_db_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgresql://ci_user:ci_password@localhost:5432/ci_db_test  # CUSTOMIZE
+      SECRET_KEY_BASE: ci_secret_key_base_for_tests_only
+      # CUSTOMIZE: 추가 env
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: .ruby-version  # CUSTOMIZE: 없으면 ruby-version: '3.4'
+          bundler-cache: true           # Gemfile.lock 기반 bundle install + 캐시 자동화
+
+      - name: DB 스키마 로드
+        run: bin/rails db:schema:load
+
+      - name: Lint (RuboCop)
+        run: bundle exec rubocop --parallel  # CUSTOMIZE: rubocop 미사용 시 제거
+
+      - name: 테스트
+        run: bin/rails test  # CUSTOMIZE: RSpec이면 bundle exec rspec
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,67 @@
+# ci-gate — Spring Boot (Java/Kotlin) + Gradle 백엔드 단독
+# CUSTOMIZE: java-version, postgres 자격증명, env 변수, working-directory
+name: ci-gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Backend — checkstyle · test · build
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci_user        # CUSTOMIZE
+          POSTGRES_PASSWORD: ci_password # CUSTOMIZE
+          POSTGRES_DB: ci_db            # CUSTOMIZE
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci_user -d ci_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/ci_db  # CUSTOMIZE
+      DB_USERNAME: ci_user      # CUSTOMIZE
+      DB_PASSWORD: ci_password  # CUSTOMIZE
+      # CUSTOMIZE: JWT_SECRET 등 필요한 env 추가
+
+    defaults:
+      run:
+        working-directory: backend  # CUSTOMIZE: 루트가 백엔드면 '.' 으로 변경
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'        # CUSTOMIZE: 17이면 '17'
+          distribution: temurin
+          cache: gradle
+
+      - name: Run checks (Checkstyle + test + build)
+        run: ./gradlew check
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

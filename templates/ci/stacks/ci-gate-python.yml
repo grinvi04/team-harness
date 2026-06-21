@@ -1,0 +1,83 @@
+# ci-gate — Python FastAPI / Django
+# CUSTOMIZE: python-version, postgres/redis 자격증명, env 변수
+# Redis 불필요하면 services.redis 블록과 CELERY_* env 제거
+name: ci-gate
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci_user        # CUSTOMIZE
+          POSTGRES_PASSWORD: ci_password # CUSTOMIZE
+          POSTGRES_DB: ci_db            # CUSTOMIZE
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:  # CUSTOMIZE: Celery 안 쓰면 이 블록 전체 제거
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+psycopg2://ci_user:ci_password@localhost:5432/ci_db  # CUSTOMIZE
+      CELERY_BROKER_URL: redis://localhost:6379/0   # CUSTOMIZE: Celery 불필요 시 제거
+      CELERY_RESULT_BACKEND: redis://localhost:6379/0  # CUSTOMIZE: 동상
+      REDIS_URL: redis://localhost:6379/0            # CUSTOMIZE: 동상
+      # CUSTOMIZE: 필요한 env 추가 (JWT_SECRET, WEBHOOK_SECRET 등)
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'  # CUSTOMIZE
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Lint (ruff)
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Test (pytest)
+        run: pytest
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
