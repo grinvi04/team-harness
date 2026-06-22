@@ -1,4 +1,5 @@
 ---
+name: qa
 description: 프론트엔드 QA — 디자인 토큰 준수 + WCAG 2.2 접근성 검증 (stack-agnostic)
 ---
 
