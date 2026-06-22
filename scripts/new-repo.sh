@@ -40,12 +40,12 @@ echo ""
 read -rp "번호 입력 (1-6): " STACK_CHOICE
 
 case "$STACK_CHOICE" in
-  1) STACK_TEMPLATE="ci-gate-node.yml";             STACK_CHECKS=("quality" "secret-scan") ;;
-  2) STACK_TEMPLATE="ci-gate-nestjs-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan") ;;
-  3) STACK_TEMPLATE="ci-gate-spring.yml";           STACK_CHECKS=("quality" "secret-scan") ;;
-  4) STACK_TEMPLATE="ci-gate-spring-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan") ;;
-  5) STACK_TEMPLATE="ci-gate-python.yml";           STACK_CHECKS=("quality" "secret-scan") ;;
-  6) STACK_TEMPLATE="ci-gate-rails.yml";            STACK_CHECKS=("quality" "secret-scan") ;;
+  1) STACK_TEMPLATE="ci-gate-node.yml";             STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript") ;;
+  2) STACK_TEMPLATE="ci-gate-nestjs-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan"); STACK_RULES=("typescript" "prisma") ;;
+  3) STACK_TEMPLATE="ci-gate-spring.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("java" "flyway") ;;
+  4) STACK_TEMPLATE="ci-gate-spring-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan"); STACK_RULES=("java" "flyway" "typescript") ;;
+  5) STACK_TEMPLATE="ci-gate-python.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("python" "alembic") ;;
+  6) STACK_TEMPLATE="ci-gate-rails.yml";            STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=() ;;
   *) echo "❌ 잘못된 선택 — 1~6 중 입력하세요." >&2; exit 1 ;;
 esac
 
@@ -85,6 +85,14 @@ copy_once "$HARNESS_DIR/templates/AGENTS.md"                 AGENTS.md          
 copy_once "$HARNESS_DIR/templates/CLAUDE.md"                 CLAUDE.md                  "CLAUDE.md"
 copy_once "$HARNESS_DIR/templates/settings.json"             .claude/settings.json      ".claude/settings.json"
 copy_once "$HARNESS_DIR/templates/PULL_REQUEST_TEMPLATE.md"  .github/PULL_REQUEST_TEMPLATE.md "PR 템플릿"
+
+# 스택별 rules 파일 복사
+if [[ ${#STACK_RULES[@]} -gt 0 ]]; then
+  mkdir -p .claude/rules
+  for rule in "${STACK_RULES[@]}"; do
+    copy_once "$HARNESS_DIR/templates/rules/stacks/$rule.md" ".claude/rules/$rule.md" "rules/$rule.md"
+  done
+fi
 
 # .gitignore — snippet 내용이 없으면 append
 if grep -qF ".claude/settings.local.json" .gitignore 2>/dev/null; then
