@@ -1,4 +1,5 @@
 ---
+name: hotfix
 description: 운영 긴급 수정 — main 기준 hotfix 브랜치→PR→태그→develop back-merge PR
 argument-hint: <fix-name> "<증상 설명>"
 ---

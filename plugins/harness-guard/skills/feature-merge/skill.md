@@ -1,4 +1,5 @@
 ---
+name: feature-merge
 description: feature/fix 브랜치를 develop에 머지 — 품질검증·AI리뷰·사람승인·CI 게이트 경유
 ---
 
