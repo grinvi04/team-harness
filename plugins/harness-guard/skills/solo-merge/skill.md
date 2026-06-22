@@ -2,6 +2,8 @@
 name: solo-merge
 description: 솔로 머지 — 품질 게이트는 통과시키고 '솔로라 불가능한 승인 요건'만 enforce_admins 토글로 우회·즉시 복구·검증
 argument-hint: "[PR번호]" (생략 시 현재 브랜치의 PR)
+disable-model-invocation: true
+effort: medium
 ---
 
 # /solo-merge — 솔로 환경 안전 머지
