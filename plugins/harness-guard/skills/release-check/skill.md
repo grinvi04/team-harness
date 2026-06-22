@@ -1,6 +1,8 @@
 ---
 name: release-check
 description: 릴리즈 사전 검증 — 품질·보안·DB 마이그레이션을 병렬 검증. /release의 전제 조건
+disable-model-invocation: true
+effort: max
 ---
 
 # /release-check — 릴리즈 사전 검증

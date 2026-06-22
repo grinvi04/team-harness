@@ -2,6 +2,8 @@
 name: feature-add
 description: TDD로 신규 기능 개발 — 브랜치→테스트계약→구현→검증→커밋 (stack-agnostic)
 argument-hint: <feature-name> "<설명>"
+disable-model-invocation: true
+effort: high
 ---
 
 # /feature-add — TDD 기반 신규 기능 개발

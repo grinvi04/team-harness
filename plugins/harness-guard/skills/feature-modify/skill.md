@@ -2,6 +2,8 @@
 name: feature-modify
 description: TDD로 기존 기능 수정 — 변경분만 RED, 나머지 GREEN 유지 (stack-agnostic)
 argument-hint: <feature-name> "<변경 설명>"
+disable-model-invocation: true
+effort: high
 ---
 
 # /feature-modify — TDD 기반 기존 기능 수정
