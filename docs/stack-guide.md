@@ -20,6 +20,8 @@
 | 마이그레이션 | Flyway | 레퍼런스 최다 |
 | 테스트 | JUnit5 + AssertJ + Testcontainers(PostgreSQL) | TDD 기본 도구 세트 |
 
+**로컬 Java 21 설치**: `sdk install java 21-amzn` (sdkman) 또는 `brew install --cask amazon-corretto@21` (macOS Homebrew). CI는 temurin 21 사용 — 로컬과 버전이 다르면 Gradle toolchain 오류 발생.
+
 도메인이 복잡하고 트랜잭션이 무거운 업무 시스템의 업계 표준이자, 국내 백엔드 채용 풀이 가장 넓다(공고 1위). 일반 웹·API 서비스에도 두루 적합. **Kotlin은 신규/대형 서비스에서 빠르게 표준화 중**이라 팀 확장·채용 관점에서도 안전한 선택.
 클린 아키텍처 적용 구조는 `clean-architecture.md` 참조.
 

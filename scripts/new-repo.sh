@@ -102,6 +102,15 @@ else
   echo "  ✅  .gitignore (harness snippet 추가)"
 fi
 
+# Spring 스택 전용 추가 파일
+if [[ "$STACK_CHOICE" == "3" || "$STACK_CHOICE" == "4" ]]; then
+  copy_once "$HARNESS_DIR/templates/backend-gitignore.spring" "backend/.gitignore" \
+    "backend/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
+  mkdir -p backend/config/checkstyle
+  copy_once "$HARNESS_DIR/templates/checkstyle.xml" "backend/config/checkstyle/checkstyle.xml" \
+    "backend/config/checkstyle/checkstyle.xml"
+fi
+
 echo ""
 
 # ── 2. git hooks 경로 설정 ────────────────────────────────────────────────
