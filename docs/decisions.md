@@ -28,5 +28,8 @@
 | 배포 = EC2 단계 GitHub Actions push형 → EKS 단계 Argo CD pull형 | 2026-06 | architecture-infra.md | stack-guide.md |
 | 시크릿 = AWS Secrets Manager/SSM (.env를 서버에 두지 않음) | 2026-06 | stack-guide.md | auth-standards.md, gitignore.snippet |
 | 모델 티어링 = Haiku(단순)·Sonnet(빌드·메인 기본)·Opus(검증·설계·리서치), 메인 Haiku 불가 | 2026-06-21 | model-tiering.md | 커맨드 subagent `model:` 지정 |
+| 마일스톤 레이어 추가 = `/milestone` 스킬 — GitHub Milestone 단일 출처, `/plan` 위에서 마일스톤·진행률 관리. 내장 `/goal`(세션 stopping condition)과 이름 충돌 회피로 rename | 2026-06-23 | skills/milestone/skill.md | README.md |
+| `/plan` 스킬에 Claude Code plan mode 흡수 — Phase 0 진입 시 EnterPlanMode, Phase 5 승인 시 ExitPlanMode로 read-only 강제를 prose 규칙에서 메커니즘으로 승격 | 2026-06-23 | skills/plan/skill.md | — |
+| 동기 조건-루프 = `/loop` 스킬 — exit 0 달성까지 즉시 반복, max·stuck·checkpoint 안전 장치. 내장 `/loop`(ScheduleWakeup 비동기 예약)와 별개 | 2026-06-23 | skills/loop/skill.md | README.md |
 
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
