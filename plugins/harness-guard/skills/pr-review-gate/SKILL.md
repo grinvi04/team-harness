@@ -97,7 +97,7 @@ gh pr view "$PR" --json reviewDecision --jq .reviewDecision
 ## 5. CI 통과 확인
 
 ```bash
-gh pr checks "$PR" --watch
+gh pr checks "$PR" --watch --required
 ```
 
 ## 6. 외부 배포 commit-status 게이트

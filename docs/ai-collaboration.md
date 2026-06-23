@@ -36,6 +36,9 @@
 - 타 도구 팀: `AGENTS.md` 준수 + 계층 0(branch protection·CI)이 도구 무관하게 강제
 - git-flow 작업은 수작업 대신 플러그인 커맨드 사용: `/feature-merge`, `/hotfix`, `/release`
   (게이트 절차 누락 방지 — 절차의 단일 출처는 `pr-review-gate` 스킬)
+- **스킬 사용 순서**: 호출 전에 skill.md를 먼저 읽는다.
+  `disable-model-invocation: true`가 있으면 Skill 도구로 호출하지 말고,
+  skill.md의 bash 명령을 직접 실행한다 (모델 판단 개입 없이 절차 그대로 수행).
 
 ## AI 생성 코드의 리뷰
 

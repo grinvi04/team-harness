@@ -4,6 +4,9 @@
 
 ### 1. 기계 셋업 — 스크립트 1회 실행
 
+> ⛔ **AI 도구 주의**: `.claude/`, `.github/`, `.githooks/` 파일을 직접 만들지 말 것.
+> new-repo.sh가 없으면 온보딩이 안 된 것이다 — 스크립트 먼저, 코드 나중.
+
 ```bash
 cd <새 repo 루트>
 bash /path/to/team-harness/scripts/new-repo.sh
@@ -30,8 +33,8 @@ bash /path/to/team-harness/scripts/new-repo.sh
 
 ### 3. 최종 검증
 
-- [ ] 테스트 PR 1개 생성 → ci-gate(`quality`·`secret-scan`) 통과 확인
-      (`pull_request` 트리거 전용 — push로는 실행 안 됨)
+- [ ] 테스트 PR 1개 생성 → ci-gate 통과 확인 (`pull_request` 트리거 전용 — push로는 실행 안 됨)
+      체크명은 스택별로 다름: Node/Python/Rails=`quality`·`secret-scan`, Spring/NestJS 풀스택=`backend`·`frontend`·`secret-scan`
 
 ### 계층 2 — 플러그인
 

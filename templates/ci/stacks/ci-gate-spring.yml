@@ -16,7 +16,6 @@ concurrency:
 
 jobs:
   quality:
-    name: Backend — checkstyle · test · build
     runs-on: ubuntu-latest
 
     services:
@@ -65,3 +64,5 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Organization repo는 GITLEAKS_LICENSE secret 필요 (개인 repo는 불필요)
+          # GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
