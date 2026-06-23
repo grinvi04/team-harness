@@ -4,6 +4,9 @@
 
 ### 1. 기계 셋업 — 스크립트 1회 실행
 
+> ⛔ **AI 도구 주의**: `.claude/`, `.github/`, `.githooks/` 파일을 직접 만들지 말 것.
+> new-repo.sh가 없으면 온보딩이 안 된 것이다 — 스크립트 먼저, 코드 나중.
+
 ```bash
 cd <새 repo 루트>
 bash /path/to/team-harness/scripts/new-repo.sh
