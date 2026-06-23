@@ -83,8 +83,10 @@ team-harness/
 | 구성 요소 | 내용 |
 |---|---|
 | **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, 핵심 디렉터리 `rm -rf`, npm 글로벌 설치 차단 (`cd` 체인·서브셸·`git -C` 우회 포함, 보조 장치 — 최종 강제는 계층 0). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
+| **마일스톤 커맨드** | `/milestone` — 제품·마일스톤 정의→기능 분해→GitHub 마일스톤 생성→진행률 대시보드. `/plan` 위에 놓이는 목표 레이어. Claude Code 내장 `/goal`(세션 stopping condition)과 보완 관계 |
 | **계획 커맨드** | `/plan` — 스펙·플랜·태스크 분해(git 무관, `docs/specs/` 산출). 코드 전에 의도·수용기준 박제 |
 | **개발 커맨드** | `/feature-add` · `/feature-modify` — TDD(RED→GREEN→Refactor), 태스크당 원자적 커밋. 빌드·테스트 명령은 AGENTS.md에서 읽는다 |
+| **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 안전 장치(max·stuck·checkpoint) 안에서 자동화. 내장 `/loop`(ScheduleWakeup 비동기 예약)와 별개 |
 | **품질 커맨드** | `/qa` — 품질·보안·마이그레이션 병렬 검증 |
 | **머지·릴리즈 커맨드** | `/feature-merge` · `/hotfix` · `/release-check` · `/release` · `/solo-merge` — git-flow 전 구간을 게이트 경유로 자동화 |
 | **스킬** `pr-review-gate` | PR 생성→머지의 표준 게이트 절차 **단일 출처** — AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
@@ -94,13 +96,18 @@ team-harness/
 
 ```mermaid
 flowchart LR
+    G["📊 /milestone<br/>목표·마일스톤<br/>(GitHub Milestone)"]
     P["📋 /plan<br/>스펙·플랜·태스크 분해<br/>(git 무관)"]
     F["feature/* · fix/*"]
     D[develop]
     M[main]
+    L["🔁 /loop<br/>조건 달성까지<br/>자율 반복"]
 
+    G -->|"기능 분해 → 목표 연결"| P
     P -->|"승인 후 /feature-add<br/>TDD · 태스크당 커밋"| F
     F -->|"/feature-merge<br/>품질검증 → PR → 게이트"| D
+    D --> L
+    L -->|"통과 후 커밋"| D
     D -->|"/release-check<br/>품질·보안·DB 병렬 검증"| D
     D -->|"/release X.Y.Z<br/>release 브랜치 → PR → 태그"| M
     M -.->|back-merge PR| D
@@ -110,10 +117,14 @@ flowchart LR
     style D fill:#0969da,color:#fff
     style F fill:#57606a,color:#fff
     style P fill:#6e40c9,color:#fff
+    style G fill:#0a6640,color:#fff
+    style L fill:#953800,color:#fff
 ```
 
-흐름: `/plan`(계획·승인, git 무관) → **`feature/*` 한 브랜치**에서 태스크별 `/feature-add`(TDD) →
+흐름: `/milestone`(목표·마일스톤 정의) → `/plan`(기능 단위 계획·승인, plan mode 강제) → **`feature/*` 한 브랜치**에서 태스크별 `/feature-add`(TDD) →
 `/feature-merge`(한 PR). *한 기능 = 한 브랜치 = 한 PR.*
+`/loop`: develop에서 CI·lint·테스트 등 반복 수정을 exit 0까지 동기 자율 실행.
+내장 `/goal`(세션 stopping condition)·`/loop`(ScheduleWakeup 비동기)는 별도 유지.
 
 모든 경로는 PR을 경유하고, 머지 전에 `pr-review-gate`의 게이트
 (AI 리뷰 처리 → **사람 승인** → CI → 외부 배포 상태)를 통과해야 한다.
