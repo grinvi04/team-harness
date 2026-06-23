@@ -30,7 +30,7 @@ BASE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName --jq .baseRefNam
 아래가 **모두 통과**여야 Phase 2 진행 (하나라도 아니면 중단·보고):
 ```bash
 # 1) CI required check 전부 통과 (pending이면 --watch로 완료까지 대기)
-gh pr checks "$PR" --repo "$OWNER_REPO" --watch
+gh pr checks "$PR" --repo "$OWNER_REPO" --watch --required
 # 2) 외부 배포 commit-status (statuses 0개면 미연동 → 정상)
 HEAD_SHA=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefOid --jq .headRefOid)
 gh api "repos/$OWNER_REPO/commits/$HEAD_SHA/status" --jq '.state'

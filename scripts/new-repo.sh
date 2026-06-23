@@ -103,7 +103,7 @@ else
 fi
 
 # Spring 스택 전용 추가 파일
-if [[ "$STACK_CHOICE" == "3" || "$STACK_CHOICE" == "4" ]]; then
+if [[ "$STACK_TEMPLATE" == *spring* ]]; then
   mkdir -p backend/config/checkstyle
   copy_once "$HARNESS_DIR/templates/backend-gitignore.spring" "backend/.gitignore" \
     "backend/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
