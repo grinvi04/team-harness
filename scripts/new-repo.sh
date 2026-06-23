@@ -124,7 +124,8 @@ echo ""
 apply_protection() {
   local branch="$1"
   if ! git ls-remote --exit-code --heads origin "$branch" > /dev/null 2>&1; then
-    echo "  ⏭  $branch — 원격 브랜치 없음 (첫 커밋 후 재실행: bash $0)"
+    echo "  ⚠️  $branch — 원격 브랜치 없음 → 보호 미적용 (직접 push 가능)"
+    echo "      push 후 반드시 재실행: bash $0"
     return
   fi
 
@@ -133,18 +134,19 @@ apply_protection() {
     ctx_args+=(-f "required_status_checks[contexts][]=$check")
   done
 
-  gh api "repos/$OWNER_REPO/branches/$branch/protection" -X PUT \
-    -f required_status_checks[strict]=true \
+  local api_out
+  api_out=$(gh api "repos/$OWNER_REPO/branches/$branch/protection" -X PUT \
+    -F required_status_checks[strict]=true \
     "${ctx_args[@]}" \
-    -f enforce_admins=true \
-    -f required_pull_request_reviews[required_approving_review_count]=1 \
-    -f required_conversation_resolution=true \
+    -F enforce_admins=true \
+    -F required_pull_request_reviews[required_approving_review_count]=1 \
+    -F required_conversation_resolution=true \
     -F restrictions=null \
-    -f allow_force_pushes=false \
-    -f allow_deletions=false \
-    > /dev/null 2>&1 \
+    -F allow_force_pushes=false \
+    -F allow_deletions=false \
+    2>&1) \
     && echo "  ✅  $branch 보호 완료 (checks: ${STACK_CHECKS[*]})" \
-    || echo "  ❌  $branch 보호 실패 (권한 확인 필요)"
+    || { echo "  ❌  $branch 보호 실패: $api_out"; }
 }
 
 echo "🔒  Branch protection 적용..."

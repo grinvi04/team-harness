@@ -39,7 +39,7 @@ git checkout -b release/v$VERSION
 git add .
 git commit -m "chore(release): v$VERSION 릴리즈 준비
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 ---
@@ -73,7 +73,7 @@ gh pr create --base main --head release/v$VERSION \
   --title "release: v$VERSION" \
   --body "릴리즈 v$VERSION
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 **`pr-review-gate` 스킬의 전체 절차(1~7단계)**를 따른다 — AI 리뷰 처리·사람 승인·CI·
@@ -97,7 +97,7 @@ gh pr create --base develop --head release/v$VERSION \
   --title "chore: release/v$VERSION develop 반영" \
   --body "main PR과 동일 내용의 back-merge — 버전 범프 커밋을 develop에 반영.
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 **`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 사람 승인 + CI + 머지만.

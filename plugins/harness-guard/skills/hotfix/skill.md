@@ -67,7 +67,7 @@ gh pr create --base main --head hotfix/$FIX_NAME \
   --title "fix($FIX_NAME): $DESCRIPTION" \
   --body "긴급 수정: $DESCRIPTION
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 **`pr-review-gate` 스킬의 전체 절차(1~7단계)**를 따른다 — AI 리뷰 처리·사람 승인·CI·
@@ -96,7 +96,7 @@ gh pr create --base develop --head hotfix/$FIX_NAME \
   --title "chore: hotfix/$FIX_NAME develop 반영" \
   --body "main PR과 동일 내용의 back-merge — main 머지·태그(v$PATCH) 완료 후 develop 반영.
 
-Co-Authored-By: Claude <noreply@anthropic.com>"
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 **`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 사람 승인 + CI + 머지만.
