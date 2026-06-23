@@ -109,3 +109,17 @@
 
 - `dev` / `staging` / `prod` 최소 3환경, 계정 분리(prod 별도 AWS 계정) 권장
 - 환경별 차이는 gitops-config 오버레이(Kustomize) / Terraform workspace·tfvars로만 표현
+
+## 5. Docker 이미지 기준 (AWS 특화)
+
+**원칙: 베이스 이미지는 AWS 공식 배포 이미지를 사용한다.** ECR public에 미러가 있는 경우 `public.ecr.aws`에서 가져온다 — Docker Hub rate limit과 공급망 리스크를 동시에 줄인다.
+
+| 런타임 | 빌드 이미지 | 런타임 이미지 | 비고 |
+|---|---|---|---|
+| Java | `amazoncorretto:21-al2023-jdk` | `amazoncorretto:21-al2023-jdk-headless` | headless = GUI 라이브러리 제외(더 작음). 로컬·CI·Docker 모두 Corretto 통일 |
+| Node.js | `public.ecr.aws/docker/library/node:22-alpine` | `public.ecr.aws/docker/library/node:22-alpine` | Alpine 기반, ECR public 미러 사용 |
+| Python | `public.ecr.aws/docker/library/python:3.12-slim` | `public.ecr.aws/docker/library/python:3.12-slim` | slim = 불필요 패키지 제외 |
+
+**멀티스테이지 빌드 필수**: `build` → `runner` 2단계. 빌드 도구·소스가 런타임 이미지에 포함되지 않도록.
+
+**GitHub Actions setup-java**: `distribution: corretto` (Docker 이미지와 동일한 배포판 — `temurin` 사용 금지).

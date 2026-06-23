@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           java-version: '21'        # CUSTOMIZE: 17이면 '17'
-          distribution: temurin
+          distribution: corretto
           cache: gradle
 
       - run: ./gradlew check
