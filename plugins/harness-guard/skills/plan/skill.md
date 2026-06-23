@@ -2,7 +2,6 @@
 name: plan
 description: 제품/기능을 AI가 잘 구현하도록 분석·계획 — 스펙(의도·수용기준)→플랜(HOW)→테스트화·롤백 가능한 태스크 분해. git을 쓰지 않는 계획 단계, 승인 후 /feature-add로 개발 핸드오프
 argument-hint: <feature-name> "<무엇을·왜>"
-disable-model-invocation: true
 effort: high
 ---
 

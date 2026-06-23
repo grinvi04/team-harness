@@ -2,7 +2,6 @@
 name: release
 description: 릴리즈 실행 — release 브랜치→main 태그→develop back-merge PR→배포 헬스체크
 argument-hint: <version>
-disable-model-invocation: true
 effort: high
 ---
 
