@@ -29,6 +29,15 @@
 - 테스트: `<TEST_CMD>`
 - 빌드: `<BUILD_CMD>`
 
+## 배포·헬스체크 명령
+
+<!-- 프로젝트별로 채움. /release Phase 0(스테이징 헬스체크)·Phase 5(프로덕션 헬스체크)가 이 섹션을 읽는다 -->
+- 로컬 인프라 실행 (DB · Keycloak): `docker compose up -d`
+- 백엔드 헬스체크: `curl -sf http://localhost:<BACKEND_PORT>/actuator/health`
+- Keycloak 헬스체크: `curl -sf http://localhost:<KEYCLOAK_PORT>/health/ready`
+- 전체 스택 중지: `docker compose down`
+- 데이터 초기화: `docker compose down -v`
+
 ## 팀 표준 문서 (작업 전 해당 영역 표준 확인)
 
 상세 표준의 단일 출처: `github.com/grinvi04/team-harness/docs` (사내 git 이전 시 주소 교체)
