@@ -80,7 +80,6 @@ fi
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
 chmod +x .githooks/pre-commit
 
-copy_once "$HARNESS_DIR/templates/ci/ai-review.yml"         .github/workflows/ai-review.yml "ai-review.yml"  "ℹ️ CLAUDE_CODE_OAUTH_TOKEN repo secret 등록 시 활성화(선택) — 미등록이어도 CI 통과"
 copy_once "$HARNESS_DIR/templates/AGENTS.md"                 AGENTS.md                  "AGENTS.md"      "⚠️ 프로젝트 내용 채우기 (빌드·테스트 명령 섹션 필수)"
 copy_once "$HARNESS_DIR/templates/CLAUDE.md"                 CLAUDE.md                  "CLAUDE.md"
 copy_once "$HARNESS_DIR/templates/settings.json"             .claude/settings.json      ".claude/settings.json"
@@ -166,9 +165,7 @@ echo "  2. AGENTS.md 작성:"
 echo "       프로젝트 개요·디렉터리·빌드 명령 채우기"
 echo "       (빌드·테스트 명령 섹션은 하네스 커맨드가 필수로 읽음)"
 echo ""
-echo "  3. (선택) AI 리뷰 활성화 — 구독 사용, API 과금 없음:"
-echo "       로컬 'claude setup-token' → repo Settings → Secrets → CLAUDE_CODE_OAUTH_TOKEN"
-echo "       (미등록이어도 ai-review 잡은 통과)"
+echo "  AI 리뷰는 PR마다 /code-review 스킬(구독, API 과금 없음)이 수행 — 별도 설정 없음."
 echo ""
 echo "  이후: 테스트 PR 1개 → ci-gate 통과 확인"
 echo "  (main/develop 보호를 못 걸었으면 이 스크립트 재실행)"
