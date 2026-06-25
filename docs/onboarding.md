@@ -29,7 +29,8 @@ bash /path/to/team-harness/scripts/new-repo.sh
       (placeholder는 항상 실패 — 교체 전 protection 걸면 첫 PR부터 머지 불가)
 - [ ] **AGENTS.md 작성**: 프로젝트 개요·디렉터리·빌드·테스트 명령 채우기
       (빌드·테스트 명령 섹션은 하네스 커맨드가 필수로 읽음)
-- [ ] **ANTHROPIC_API_KEY 등록**: repo Settings → Secrets → `ANTHROPIC_API_KEY`
+
+> AI 리뷰는 PR마다 `/code-review` 스킬(구독 포함, API 과금 없음)이 수행 — 외부 봇·시크릿 등록 불필요.
 
 ### 3. 최종 검증
 

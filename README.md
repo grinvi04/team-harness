@@ -63,7 +63,7 @@ team-harness/
 ├── templates/                         신규 프로젝트에 복사하는 파일들
 │   ├── AGENTS.md · CLAUDE.md          규약 단일 출처 + Claude 전용 지침
 │   ├── settings.json                  .claude/settings.json (마켓플레이스·플러그인 선언)
-│   ├── ci/ci-gate.yml · ai-review.yml CI 기본 템플릿(placeholder) + AI 리뷰
+│   ├── ci/ci-gate.yml                 CI 기본 템플릿(placeholder)
 │   ├── ci/stacks/                     스택별 ci-gate 완성 템플릿 (new-repo.sh가 선택 복사)
 │   │   ├── ci-gate-node.yml           Node.js (React/Vue/Vite SPA, NestJS 단독)
 │   │   ├── ci-gate-nestjs-frontend.yml  NestJS 백엔드 + Node.js 프론트엔드
@@ -150,9 +150,9 @@ cd <새 repo 루트>
 bash /path/to/team-harness/scripts/new-repo.sh
 ```
 
-스크립트가 자동으로 처리: 템플릿 파일 복사 7종 · `core.hooksPath` 설정 · main·develop branch protection.
+스크립트가 자동으로 처리: 템플릿 파일 복사 · `core.hooksPath` 설정 · main·develop branch protection.
 이후 수동 2가지: **ci-gate.yml 스택 커스터마이징** · **AGENTS.md 작성**.
-(선택) AI 리뷰는 `claude setup-token` → `CLAUDE_CODE_OAUTH_TOKEN` 시크릿 등록 시 활성화 — 미등록이어도 CI 통과, API 과금 없음.
+AI 리뷰는 PR마다 `/code-review` 스킬(구독 포함, API 과금 없음)이 수행 — 외부 봇·시크릿 불필요.
 전체 절차: [`docs/onboarding.md`](docs/onboarding.md)
 
 ### 로컬 테스트 (플랜 불필요)
@@ -210,7 +210,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 - [x] 로컬 마켓플레이스 설치·가드 실동작 검증 (cd 우회 차단, settings 키 포맷 스키마 대조)
 - [x] 파일럿 리허설 — 온보딩 절차 풀 드릴, 발견 사항 반영
 - [x] GitHub push (개인 private repo, 임시) + 문서 체계 구축
-- [x] 팀 환경 정합화 — back-merge PR 절차, 사람 승인 게이트, AI 리뷰(claude-code-action) 연결
+- [x] 팀 환경 정합화 — back-merge PR 절차, 사람 승인 게이트, AI 리뷰(`/code-review` 스킬) 연결
 - [ ] 첫 회사 프로젝트: 스택 확정 → 스캐폴드(AGENTS.md·CI 구체화) → 계층 0~2 풀 적용
 - [ ] 사내 git 호스팅으로 이전, 템플릿의 마켓 주소 교체
 - [ ] server-managed settings로 권한 강제 (Team/Enterprise 플랜 확보 시) / agent teams 재검토 (GA 시)
