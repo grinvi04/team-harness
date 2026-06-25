@@ -61,7 +61,32 @@
 배포 흐름(EKS): 코드 PR 머지 → ci-gate → 이미지 빌드 → ECR push → gitops-config 태그 갱신
 → Argo CD 동기화. 롤백 = config repo revert (git이 곧 배포 이력).
 
-## 4. 인프라·네트워크 표준
+## 4. 호스팅·배포 대상 (규모·비용 단계별)
+
+**원칙: 규모·비용에 맞는 최소 운영부담 타깃을 고르고, 성장하면 단계 이동.** 처음부터 EKS는 과투자 —
+아래 5·6장(AWS VPC·EKS·ECR)은 **성장/엔터프라이즈 단계**의 구체안이다.
+
+| 단계 | 프론트 | 백엔드 | DB | 인증(Keycloak) | 월비용(대략) |
+|---|---|---|---|---|---|
+| **솔로/MVP/데모** | Vercel·Netlify·CF Pages (무료) | Railway·Render·Fly.io (PaaS, Dockerfile) | Neon·Supabase (무료 PG) | PaaS 단일 컨테이너 | $0~15 |
+| **소팀/초기 상용** | Vercel Pro | Railway/Render 유료 or 단일 VPS+**Kamal** | Neon/Supabase 유료 or RDS 소형 | 단일 컨테이너 | $20~100 |
+| **성장/엔터프라이즈** | CloudFront+S3 / Vercel | **AWS EC2 → EKS**(5·6장) | RDS/Aurora | EKS Keycloak HA | 사용량 |
+
+스택별 1순위(`stack-guide.md` 연계):
+- **Next.js → Vercel**(네이티브·프리뷰·엣지). 컨테이너 통일 시 `output: standalone`.
+- **Spring Boot/NestJS/Django → Railway·Render·Fly**(Dockerfile, `PORT` 주입·헬스체크 바인딩). EC2/EKS는 성장 단계.
+- **PostgreSQL →** 초기 **Neon/Supabase**(브랜칭·무료 티어), 상용 **RDS/Aurora**.
+- **Keycloak →** 메모리(~512MB+)가 PaaS 비용 driver. 초기엔 단일 인스턴스, 규모 시 HA.
+
+비용·운영 원칙:
+- 무료 티어 한계(빌드시간·콜드스타트·DB 용량·동시연결)를 먼저 확인. Keycloak이 PaaS 비용 주범 — 트래픽 적으면 sleep 지원 플랫폼 활용 or 관리형 IAM 검토.
+- CD는 플랫폼 **GitHub 연동(자동배포)** 을 기본 — GH Actions 분 절약. 멀티서비스 조율이 필요할 때만 워크플로(`deploy.yml`).
+- **단계 이동 트리거**: 비용 예측가능성↓·규모↑·컴플라이언스(전용 VPC·감사) 요구 → 5·6장(AWS) 경로로.
+
+> repo별 **확정 타깃**은 각 `AGENTS.md`의 "호스팅·배포 대상"에 명시한다(이 문서는 기본 권장).
+> 예: erp는 Vercel(프론트)+Railway(백엔드·PG·Keycloak), 런북 `docs/deployment.md`.
+
+## 5. 인프라·네트워크 표준
 
 ### 네트워크 (VPC)
 
@@ -110,7 +135,7 @@
 - `dev` / `staging` / `prod` 최소 3환경, 계정 분리(prod 별도 AWS 계정) 권장
 - 환경별 차이는 gitops-config 오버레이(Kustomize) / Terraform workspace·tfvars로만 표현
 
-## 5. Docker 이미지 기준 (AWS 특화)
+## 6. Docker 이미지 기준 (AWS 특화)
 
 **원칙: 베이스 이미지는 AWS 공식 배포 이미지를 사용한다.** ECR public에 미러가 있는 경우 `public.ecr.aws`에서 가져온다 — Docker Hub rate limit과 공급망 리스크를 동시에 줄인다.
 
