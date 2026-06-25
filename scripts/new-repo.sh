@@ -49,6 +49,9 @@ case "$STACK_CHOICE" in
   *) echo "❌ 잘못된 선택 — 1~6 중 입력하세요." >&2; exit 1 ;;
 esac
 
+# 모든 스택 공통 required check — 테스트 삭제 차단 게이트(stack 무관)
+STACK_CHECKS+=("test-guard")
+
 STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
 echo ""
 echo "선택: $STACK_TEMPLATE"
@@ -76,6 +79,8 @@ else
   cp "$STACK_TEMPLATE_PATH" .github/workflows/ci-gate.yml
   echo "  ✅  ci-gate.yml ($STACK_TEMPLATE)  ← ⚠️ CUSTOMIZE 주석 부분 프로젝트에 맞게 수정"
 fi
+
+copy_once "$HARNESS_DIR/templates/ci/test-guard.yml"        .github/workflows/test-guard.yml "test-guard.yml (테스트 삭제 차단 게이트)"
 
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
 chmod +x .githooks/pre-commit
