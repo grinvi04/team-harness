@@ -151,7 +151,8 @@ bash /path/to/team-harness/scripts/new-repo.sh
 ```
 
 스크립트가 자동으로 처리: 템플릿 파일 복사 7종 · `core.hooksPath` 설정 · main·develop branch protection.
-이후 수동 3가지: **ci-gate.yml 스택 커스터마이징** · **AGENTS.md 작성** · **ANTHROPIC_API_KEY 등록**.
+이후 수동 2가지: **ci-gate.yml 스택 커스터마이징** · **AGENTS.md 작성**.
+(선택) AI 리뷰는 `claude setup-token` → `CLAUDE_CODE_OAUTH_TOKEN` 시크릿 등록 시 활성화 — 미등록이어도 CI 통과, API 과금 없음.
 전체 절차: [`docs/onboarding.md`](docs/onboarding.md)
 
 ### 로컬 테스트 (플랜 불필요)

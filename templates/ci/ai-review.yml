@@ -1,7 +1,9 @@
 # .github/workflows/ai-review.yml — PR AI 리뷰 (claude-code-action)
-# 비용: Anthropic API 사용량 과금 (구독 없음) — 모델·max-turns로 상한 제어.
-# 사전 준비: repo secrets에 ANTHROPIC_API_KEY 등록.
-# 첫 적용 시 anthropics/claude-code-action 최신 문서로 파라미터 재확인할 것.
+# 인증: Claude 구독(OAuth 토큰) 사용 — Anthropic API 사용량 과금 없음.
+#   토큰 발급: 로컬에서 `claude setup-token` 실행 → 출력값을
+#   repo Settings → Secrets → Actions 에 CLAUDE_CODE_OAUTH_TOKEN 으로 등록.
+# 토큰 미설정 시: 잡은 그대로 통과(스킵) — API 키 없이도 빨간 X 없이 동작.
+#   등록되면 자동으로 실제 리뷰가 활성화된다.
 name: ai-review
 
 on:
@@ -21,9 +23,24 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
+      # 구독 토큰 유무를 확인 — 없으면 리뷰 스텝을 스킵해 잡이 통과한다(필수 체크 아님).
+      - name: Check subscription token
+        id: token
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          if [ -n "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::CLAUDE_CODE_OAUTH_TOKEN 미설정 — AI 리뷰 스킵(필수 아님). 'claude setup-token' 후 repo secret 등록 시 활성화."
+          fi
+
       - uses: anthropics/claude-code-action@v1
+        if: steps.token.outputs.present == 'true'
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             이 PR을 리뷰하라. 기준은 repo의 AGENTS.md와 다음 체크리스트(우선순위 순):
             1) 정확성 — 요구사항·경계값·트랜잭션 경계·에러 경로
