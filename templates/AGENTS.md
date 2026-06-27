@@ -52,6 +52,7 @@
 | 리뷰·커밋 | code-review.md | Conventional Commits(타입 영어+본문 한국어), PR 규칙 |
 | AI 협업 | ai-collaboration.md | 책임 원칙, 금지사항 |
 | 운영·로깅 | operations.md | 로그 레벨 기준(ERROR=알람), traceId 전파 |
+| README | readme-standards.md | 루트 README 양식(섹션 순서·뱃지·mermaid·시작하기), `templates/README.template.md` |
 
 ## 코딩 컨벤션
 
