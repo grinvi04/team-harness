@@ -115,6 +115,17 @@ if [[ "$STACK_TEMPLATE" == *spring* ]]; then
     "backend/config/checkstyle/checkstyle.xml"
 fi
 
+# 프론트엔드 분리 스택 전용 — Prettier 포맷 게이트 + 디자인 토큰 게이트 스크립트
+# (ci-gate frontend 잡의 `npm run lint:design`가 이 스크립트를 실행. package.json scripts에
+#  `"lint:design": "node scripts/check-design-tokens.mjs"` 추가는 수동.)
+if [[ "$STACK_TEMPLATE" == *frontend* ]]; then
+  mkdir -p frontend/scripts
+  copy_once "$HARNESS_DIR/templates/.prettierrc" "frontend/.prettierrc" \
+    "frontend/.prettierrc" "Prettier 포맷 게이트 — prettier --check를 CI에"
+  copy_once "$HARNESS_DIR/templates/frontend/check-design-tokens.mjs" "frontend/scripts/check-design-tokens.mjs" \
+    "frontend/scripts/check-design-tokens.mjs" "⚠️ package.json scripts에 lint:design 추가 필요"
+fi
+
 echo ""
 
 # ── 2. git hooks 경로 설정 ────────────────────────────────────────────────

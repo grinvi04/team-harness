@@ -52,8 +52,8 @@ jobs:
           distribution: corretto
           cache: gradle
 
-      - name: Run checks (Checkstyle + test + build)
-        run: ./gradlew check
+      - name: Run checks (Spotless + Checkstyle + test + build)
+        run: ./gradlew check   # check가 spotlessCheck(포맷 게이트)·checkstyle·test를 모두 실행 — 별도 스텝 불필요
 
   secret-scan:
     runs-on: ubuntu-latest

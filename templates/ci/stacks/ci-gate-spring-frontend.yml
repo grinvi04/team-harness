@@ -52,7 +52,7 @@ jobs:
           distribution: corretto
           cache: gradle
 
-      - run: ./gradlew check
+      - run: ./gradlew check   # check가 spotlessCheck(포맷 게이트)·checkstyle·test를 모두 실행 — 별도 스텝 불필요
 
   frontend:
     runs-on: ubuntu-latest
@@ -73,6 +73,7 @@ jobs:
       - run: npm ci
       - run: npm run type-check --if-present
       - run: npm run lint
+      - run: npm run lint:design --if-present   # 디자인 토큰 게이트 (하드코딩 색 차단)
       - run: npm run test:unit --if-present
       - run: npm run build
 

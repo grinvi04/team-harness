@@ -64,10 +64,13 @@ jobs:
           pip install -r requirements.txt
           pip install -r requirements-dev.txt
 
-      - name: Lint (ruff)
+      - name: Lint + format (ruff)
         run: |
           ruff check .
-          ruff format --check .
+          ruff format --check .   # 포맷 게이트 — 어긋나면 차단 (`ruff format .`로 자동수정)
+
+      - name: Type check (mypy)
+        run: mypy .   # CUSTOMIZE: 패키지/경로 지정 (예: mypy app/) · pyproject [tool.mypy] strict 권장
 
       - name: Test (pytest)
         run: pytest
