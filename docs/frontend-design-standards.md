@@ -1,102 +1,104 @@
 # 프론트엔드 디자인 표준 — 디자인 시스템·컴포넌트·함정
 
-> 모든 프로젝트(grinvi04 산하)의 웹 프론트가 따르는 디자인 시스템 표준.
-> 목표: 처음부터 **"상용 프리미엄 SaaS"** 수준 + 다크모드·반응형·접근성을 기본 탑재하고,
-> erp 디자인 시스템 구축에서 실제로 겪은 함정을 새 프로젝트가 반복하지 않게 한다.
-> 스택 기준: Next.js(App Router) · TypeScript · Tailwind v4 · shadcn/ui(@base-ui) · recharts.
+> 모든 프로젝트(grinvi04 산하) 웹 프론트의 디자인 시스템 표준.
+> 목표: 처음부터 **"상용 프리미엄 SaaS"** 수준 + 다크모드·반응형·접근성을 기본 탑재.
+>
+> **§1~4·7~9는 프레임워크 무관 원칙**(React·Vue·Svelte·Rails Hotwire 등 무엇이든 적용).
+> **§5~6은 특정 스택에서 실제로 겪은 함정의 "예시"** — 다른 스택은 각자의 공식 문서·관용으로 동등 점검한다.
+> 스택 선택 자체는 `stack-guide.md`(권장: React 최신 + Next.js, Vue+Nuxt도 무방).
 
 ---
 
-## 0. 원칙 (한 줄씩)
+## 0. 전제 원칙 — 프레임워크·라이브러리는 **현재 공식 문서로 확인**
 
-- **토큰 먼저, 하드코딩 색 금지** — 하드코딩 회색/파랑은 다크모드를 깨뜨린다(가장 흔한 버그).
-- **정제된 엔터프라이즈 미학** — 절제된 액센트 1색 + 카테고리 차트 팔레트 + 강한 타이포 계층 + 데이터 밀도. 화려함 아님.
-- **정직한 UI** — 동작 안 하는 장식 컨트롤(가짜 검색·알림 배지) 금지.
-- **검증은 스크린샷** — 라이트·다크·모바일을 Playwright로 실제 캡처해 눈으로 확인.
+프레임워크/UI 라이브러리는 자주 바뀐다. **학습 데이터/관성으로 API를 가정하지 말고 그 시점의 공식 문서로 확인한다.**
+(`stack-guide.md`: "최신 안정 버전은 킥오프 시 공식 릴리즈로 재확인". 프로젝트 룰 예: "This is NOT the Next.js you know — `node_modules`의 해당 가이드를 읽고 작성, deprecation 준수".)
+
+- 버전·시그니처·SSR/RSC 경계·deprecation은 **설치된 버전의 공식 문서**가 1차 출처.
+- 아래 §5~6의 구체 코드는 **특정 시점·스택의 사례**다. 그대로 복붙하지 말고, **같은 "부류"의 함정을 너의 스택 공식 문서로 확인**하라(요지는 패턴이지 특정 API가 아니다).
 
 ---
 
-## 1. 디자인 토큰 (필수, 첫 작업)
+## 1. 디자인 토큰 (프레임워크 무관, 첫 작업)
 
-`globals.css`에 **시맨틱 토큰**을 OKLCH로 정의하고 라이트·다크 둘 다 채운다. 화면 코드는 토큰만 쓴다.
+**시맨틱 토큰을 CSS 커스텀 프로퍼티(변수)로 정의**하고 라이트·다크 둘 다 채운다. 화면 코드는 토큰만 쓴다(Tailwind면 `@theme`, 순수 CSS면 `:root`/`.dark`, CSS-in-JS면 테마 객체 — 메커니즘은 스택마다 달라도 원칙은 같다).
 
 필수 토큰군:
 - 표면/텍스트: `background` `foreground` `card` `popover` `muted` `muted-foreground` `border` `input` `ring`
-- 브랜드: `primary` `primary-foreground` `accent` `accent-foreground`
-- **상태**: `destructive` **`success` `warning`** (+ `-foreground`) — 배지·경고·금액 증감에 필수
-- **차트 팔레트**: `chart-1`~`chart-5` (인디고·틸·앰버·로즈·바이올렛 같은 **카테고리 구분색**). ⚠️ 회색 단색으로 두면 차트가 흑백이 된다.
-- 사이드바: `sidebar` `sidebar-foreground` `sidebar-primary` `sidebar-accent`(+`-foreground`) `sidebar-border`
+- 브랜드: `primary`(+`-foreground`) `accent`(+`-foreground`)
+- **상태**: `destructive` **`success` `warning`**(+`-foreground`) — 배지·경고·증감에 필수
+- **차트 팔레트**: `chart-1`~`chart-5`(인디고·틸·앰버·로즈·바이올렛 같은 **카테고리 구분색**). ⚠️ 회색 단색이면 차트가 흑백이 된다.
+- (해당 시) 사이드바 토큰군
 
 규칙:
-- **하드코딩 색 0** — `text-gray-900`·`bg-white`·`text-blue-600`·`bg-blue-500` 등 금지. 매핑: 900/800/700→`text-foreground`, 600~300→`text-muted-foreground`, `bg-white`→`bg-card`, `bg-gray-50`→`bg-muted/40`, `border-gray-*`→`border-border`/`border-input`, blue→`primary`, green/emerald→`success`, red/rose→`destructive`, amber/yellow→`warning`.
-- **차트 데이터색**은 `bg-primary`로 뭉치지 말고 `chart-1~5`로 카테고리 구분 유지.
-- 다크 토큰을 반드시 같이 정의 — 안 하면 다크에서 글자가 안 보인다.
-- 폰트: `--font-sans`/`--font-mono` 변수를 root layout의 폰트와 **이름 일치**시킬 것(불일치 시 폰트 미적용). 금액·수치는 `tabular-nums`.
-
----
+- **하드코딩 색 0** — `gray-900`·`white`·`blue-600` 류 금지. 다크모드를 깨뜨리는 1순위 원인.
+- 차트 데이터색은 브랜드색으로 뭉치지 말고 `chart-1~5`로 카테고리 구분.
+- **다크 토큰을 반드시 같이** 정의(안 하면 다크에서 글자가 안 보인다).
+- 금액·수치는 등폭(tabular) 정렬.
 
 ## 2. 앱 셸
 
-- **사이드바**: 토큰 기반(다크 슬레이트 콘솔 톤 권장), 브랜드 마크, 섹션 라벨, **접이식 그룹**, 절제된 활성 인디케이터(좌측 바+accent 배경), ScrollArea.
-- **헤더**: 검색(커맨드 팔레트)·테마 토글·프로필 드롭다운. **반응형**: 사이드바 nav를 `SidebarNav`로 분리해 데스크톱 `<aside>`와 모바일 `<Sheet>` 드로어가 **재사용**하게.
-- 레이아웃 배경도 토큰(`bg-muted/30`), `bg-gray-50` 금지.
+- **사이드바**: 토큰 기반, 브랜드 마크, 섹션 라벨, 접이식 그룹, 절제된 활성 인디케이터.
+- **헤더**: 검색(커맨드 팔레트)·테마 토글·프로필.
+- **반응형**: 사이드바 네비를 **한 컴포넌트로 분리**해 데스크톱 고정 패널과 모바일 드로어가 재사용.
+- 배경도 토큰. 하드코딩 배경색 금지.
 
----
-
-## 3. 공통 컴포넌트 (프리미티브 — 화면 만들기 전에)
+## 3. 공통 컴포넌트 (화면 만들기 전에 프리미티브부터)
 
 | 컴포넌트 | 역할 |
 |---|---|
-| `PageHeader` | 제목·설명·우측 액션 — 모든 화면 상단 통일 |
-| `StatCard` | KPI(라벨·값·틴티드 아이콘 칩·추세 배지·옵션 href) |
-| `EmptyState` / `ErrorState` | 빈/오류 상태 일관 |
-| `ChartCard` | 차트/콘텐츠 카드(제목·설명·드릴다운 href) |
-| `DataTable` | **정렬·행선택·일괄액션·스켈레톤·빈상태**(제네릭). 기본 `<Table>` 직접 쓰지 말 것 |
-| `FormField` | 라벨·필수표시·**인라인 에러/힌트**(toast 검증 대체) |
+| PageHeader | 제목·설명·우측 액션 — 화면 상단 통일 |
+| StatCard | KPI(라벨·값·아이콘 칩·추세·옵션 링크) |
+| EmptyState / ErrorState | 빈/오류 상태 일관 |
+| ChartCard | 차트/콘텐츠 카드(드릴다운 링크) |
+| **DataTable** | 정렬·행선택·일괄액션·스켈레톤·빈상태. 원시 테이블 직접 반복 금지 |
+| **FormField** | 라벨·필수표시·**인라인 에러/힌트**(toast 검증 대체) |
 
-- 폼 검증은 **FormField 인라인**(필드 옆 에러 + `aria-invalid`)으로. `toast.error`만 쓰지 말 것.
-- 리스트는 처음부터 `DataTable`로. 나중에 31개 페이지를 일괄 교체하는 사태를 피한다.
+- 리스트는 **처음부터** DataTable류로 — 나중에 수십 개 페이지를 일괄 교체하는 사태를 피한다.
+- 폼 검증은 **필드 인라인**(toast만 쓰지 말 것).
 
----
+## 4. 차트
 
-## 4. 차트 (recharts)
-
-- 색은 **`var(--chart-N)`** 문자열로 — 라이트/다크 자동 적응.
-- **서버 컴포넌트 → 클라이언트 차트에 함수 prop 금지**(직렬화 불가). 포맷은 **직렬화 디스크립터**로: `valueFormat: {kind:'money',currency} | {kind:'suffix',suffix} | {kind:'number'}` 같이 넘기고 클라에서 포맷.
-- 테마 툴팁(`bg-popover`·`border-border`), 축·그리드는 토큰색.
-- 분포=도넛/가로막대, 시계열=세로막대. 시계열은 **데이터의 `month` 필드로 매핑**(배열 인덱스 의존 금지 — 희소 데이터에서 라벨이 어긋난다).
+- 색은 **차트 토큰 변수**로 — 라이트/다크 자동 적응.
+- 분포=도넛/가로막대, 시계열=세로막대. 시계열은 **데이터의 시간 필드로 매핑**(배열 인덱스 의존 금지 — 희소 데이터에서 라벨이 어긋난다).
+- 테마 툴팁(팝오버 토큰), 축·그리드도 토큰색.
+- **서버 렌더 경계가 있으면**(RSC 등) 차트(클라이언트)에 **함수 prop을 넘기지 말 것** — 직렬화 가능한 포맷 디스크립터(`{kind:'money',currency}` 등)로.
 
 ---
 
-## 5. @base-ui / shadcn 함정 (실제로 막힌 것들)
+## 5. 스택별 UI 라이브러리 함정 — **예시(현재 스택: Next.js + shadcn/@base-ui + recharts)**
 
-- **`asChild` 없음 → `render` prop.** shadcn이 @base-ui 기반이면 트리거는 `<SheetTrigger render={<Button/>}>`. (radix의 `asChild` 아님)
-- **체크박스 indeterminate**: `checked`+`indeterminate`+`onCheckedChange`. Indicator는 `checked||indeterminate`에 마운트되므로, indeterminate일 때 **MinusIcon**을 보이게 `group-data-indeterminate:` + `data-indeterminate:bg-primary` 스타일을 줘야 한다(안 하면 빈 박스에 체크표시처럼 깨진다).
-- **recharts Tooltip payload는 readonly + dataKey가 함수일 수 있음** → 툴팁 props를 좁은/느슨한 타입(`ReadonlyArray<{dataKey?:unknown; value?:unknown}>`)으로 받아 우회.
+> ⚠️ 아래는 *이 스택·이 버전*에서 실제로 막힌 사례다. **다른 스택/버전은 공식 문서로 동등 확인**하고, "이런 부류의 함정이 있다"만 가져가라.
 
-## 6. React/Next 함정
+- **트리거 합성 방식 차이**: shadcn이 @base-ui 기반이면 `asChild`가 아니라 `render` prop. (radix 가정 금지 — 설치된 라이브러리 문서 확인.)
+- **체크박스 indeterminate**: Indicator가 `checked||indeterminate`에 마운트 → indeterminate일 때 **MinusIcon**을 따로 보이게 `data-indeterminate` 스타일을 줘야 함(안 하면 빈 박스에 체크처럼 깨진다).
+- **차트 라이브러리 툴팁 타입**(recharts): payload가 readonly·dataKey가 함수일 수 있음 → 툴팁 props를 느슨한 타입으로 받아 우회.
+- **차트 라이브러리는 무겁다** — 라우트 단위 코드 스플릿/지연 로드 고려.
 
-- **`react-hooks/set-state-in-effect` lint**: effect 안에서 `setState` 직접 호출 금지.
-  - 마운트 가드(테마 아이콘)는 effect 대신 **CSS `dark:` variant**로.
-  - prop 변화 시 상태 리셋(DataTable 선택, 팔레트 검색어)은 effect 대신 **렌더 중 "이전 값 저장" 패턴**: `const [prev,setPrev]=useState(p); if(prev!==p){setPrev(p); reset()}`.
-- **서버→클라 함수 prop 금지**(차트 포맷·콜백). 직렬화 가능한 값만.
-- **DataTable 등 선택상태 컴포넌트**: `data`는 안정 참조로. 인라인 `.filter()`/`.map()`을 prop으로 주면 매 렌더 선택이 초기화된다.
+## 6. 프레임워크 상태/렌더 함정 — **예시(React)**
 
-## 7. 접근성·정직성
+> ⚠️ React 사례. Vue/Svelte 등은 반응성 모델이 달라 **동일 부류의 문제(파생상태·effect 남용·prop 변화 리셋)를 각자 관용으로** 푼다.
 
-- 정렬 헤더에 `aria-sort`, 토글 버튼에 `aria-label`. 입력 오류에 `aria-invalid`.
-- **동작 안 하는 컨트롤을 그리지 말 것** — 클릭해도 아무 일 없는 검색창, 읽지 않은 점이 켜진 가짜 알림 벨 등은 미완성/거짓 신호다. 실제 기능(커맨드 팔레트 등)을 붙이거나 제거.
-- KPI에서 다중통화는 **기준통화 합계를 헤드라인 + 통화별 내역을 sub**로 — 카드 높이를 균일하게, 긴 문자열 잘림 방지.
+- **effect에서 setState 직접 호출 회피**(lint `set-state-in-effect`):
+  - 테마 아이콘 같은 마운트 가드는 effect 대신 **CSS 변형**(`dark:`)으로.
+  - prop 변화 시 상태 리셋(테이블 선택·검색어)은 effect 대신 **렌더 중 "이전 값 저장" 패턴**.
+- **서버→클라이언트 함수 prop 금지**(직렬화 가능한 값만).
+- **선택상태 컴포넌트**: 데이터는 안정 참조로. 인라인 `.filter()/.map()`을 prop으로 주면 매 렌더 선택이 초기화된다.
 
----
+## 7. 접근성·정직성 (프레임워크 무관)
 
-## 8. 검증 (PR 전)
+- 정렬 헤더 `aria-sort`, 토글 `aria-label`, 입력 오류 `aria-invalid`. 색 대비 확보.
+- **동작 안 하는 컨트롤을 그리지 말 것** — 클릭해도 무반응인 검색창, 안 읽은 점이 켜진 가짜 알림 벨은 거짓 신호다. 실제 기능을 붙이거나 제거.
+- KPI 다중통화는 **기준통화 합계 헤드라인 + 통화별 내역 sub**로(카드 높이 균일·잘림 방지).
 
-- `type-check` · `lint` · `build` 통과.
-- **Playwright로 라이트·다크·모바일(+드로어) 실제 스크린샷** 캡처해 눈으로 확인(특히 차트가 다크에서 보이는지, 금액이 잘리지 않는지).
-- 데이터 0인 테넌트면 데모 데이터를 시드해 차트·KPI를 실제로 본다(빈 화면으론 품질 판단 불가).
+## 8. 검증 (PR 전, 프레임워크 무관)
+
+- `type-check`(있으면)·lint·build 통과.
+- **라이트·다크·모바일(+드로어)을 실제 브라우저 자동화로 스크린샷** 캡처해 눈으로 확인(차트가 다크에서 보이는지·금액이 잘리지 않는지).
+- 데이터 0 환경이면 **데모 데이터를 시드**해 차트·KPI를 실제로 본다(빈 화면으론 품질 판단 불가).
 
 ## 9. 적용
 
-- **새 프로젝트**: §1 토큰 → §2 셸 → §3 프리미티브를 **화면 만들기 전에** 깔고 시작. 처음부터 DataTable·FormField·ChartCard로 화면을 만든다.
-- **기존 프로젝트**: 토큰화(다크 정상화)부터 → 셸 → 프리미티브 도입 → 화면을 점진 마이그레이션(한 PR에 다 넣지 말고 응집 단위로).
+- **새 프로젝트**: §0(공식 문서 확인) 전제 위에 §1 토큰 → §2 셸 → §3 프리미티브를 **화면 만들기 전에** 깔고 시작.
+- **기존 프로젝트**: 토큰화(다크 정상화) → 셸 → 프리미티브 도입 → 화면 점진 마이그레이션(한 PR에 다 넣지 말고 응집 단위로).
+- 스택이 React/Next가 아니면 §1~4·7~9는 그대로, §5~6은 **너의 스택 공식 문서로 같은 부류를 점검**해 대체한다.
