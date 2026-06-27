@@ -34,10 +34,20 @@
 
 ## 🏗️ 아키텍처
 
+<!-- mermaid는 github.com 웹에서만 렌더됨 → 정적 이미지를 1차로, mermaid 소스는 <details>에.
+     이미지 생성: npx -y @mermaid-js/mermaid-cli -i arch.mmd -o docs/architecture.png -b white -w 1600 -->
+
+![아키텍처 다이어그램](docs/architecture.png)
+
+<details>
+<summary>mermaid 소스 (GitHub 웹에선 차트로 렌더)</summary>
+
 ```mermaid
 flowchart LR
     A["<클라이언트>"] --> B["<서버/앱>"] --> C[("<DB>")]
 ```
+
+</details>
 
 - **<핵심 원칙 1>** — <설명>
 - **<핵심 원칙 2>** — <설명>
