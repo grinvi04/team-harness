@@ -57,6 +57,12 @@ effort: high
 코드베이스를 **읽기만** 한다 — 재사용할 기존 패턴·코드, 영향 모듈, 제약(스키마·권한·외부 연동)을 파악.
 **추측 금지**: 불명확한 점은 조용히 가정하지 말고 `[NEEDS CLARIFICATION: 질문]`으로 표면화한다(미지정 요구는 회귀 확률 ~2배).
 
+> **Preflight (계획 전 선독, 필수)**: 이 기능이 건드리는 ① 해당 team-harness **표준 섹션**과
+> ② **설치된 라이브러리의 실제 API/소스**(학습데이터가 아니라 `node_modules`의 설치본 문서·
+> `src/components/ui/*` 등 repo에 들어온 실제 코드)를 *계획을 쓰기 전에* 읽는다. 알아낸 함정·제약을
+> 플랜(§7 HOW)·태스크에 적는다. (근거: 'This is NOT the Next.js you know — node_modules 문서를 읽어라' —
+> 버전이 바뀌면 API도 바뀐다. 기억으로 계획하지 말 것.)
+
 ---
 
 ## Phase 2 — 스펙 작성 (WHAT/WHY만, `docs/specs/<feature-name>.md`)
