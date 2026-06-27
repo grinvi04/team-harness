@@ -27,6 +27,7 @@ jobs:
 
       - run: npm ci
       - run: npm run lint
+      - run: npm run lint:design --if-present   # 디자인 토큰 게이트 (SPA 프론트면 활성, API-only면 no-op)
       - run: npm test
       - run: npm run build
 

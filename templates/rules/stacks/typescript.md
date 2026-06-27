@@ -4,6 +4,14 @@ paths: ["**/*.ts", "**/*.tsx"]
 
 # TypeScript 작업 규칙
 
+## 포맷·디자인 토큰은 게이트가 강제 (prose 아님)
+- **포맷은 Prettier가 강제** — `prettier --check`를 CI에 둔다. 손으로 맞추지 말 것: `prettier --write .`로 자동수정.
+  설정은 `templates/.prettierrc`(no-semi·single-quote·2-space·trailingComma=all·printWidth 100)를 repo 루트(또는 `frontend/`)에 복사.
+- **하드코딩 색 금지는 `lint:design` 게이트가 강제** — `templates/frontend/check-design-tokens.mjs`를 `scripts/check-design-tokens.mjs`로 복사하고
+  `package.json` scripts에 `"lint:design": "node scripts/check-design-tokens.mjs"`를 추가, CI(ci-gate)에 `npm run lint:design` 스텝을 둔다.
+  숫자 스케일 색(`gray-500`·`blue-600`)·`bg-white` 금지 → 시맨틱 토큰만(다크모드 보장). 의도적 예외는 줄 끝 `// design-token-ok`.
+- **lint은 eslint-config-next 유지** — `react-hooks`·`jsx-a11y`·`@typescript-eslint` 규칙을 포함하므로 별도 추가 설정 없이 `npm run lint`.
+
 ## 타입 안전
 - `as any` 캐스팅 금지 — 명시적 타입 선언 또는 unknown + 타입가드.
 - API 응답 타입은 별도 파일(`types/`)에 정의. 인라인 추론에 의존하지 않을 것.

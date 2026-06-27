@@ -4,6 +4,28 @@ paths: ["**/*.py"]
 
 # Python / FastAPI 작업 규칙
 
+## 포맷·린트·타입은 게이트가 강제 (prose 아님)
+- **ruff(린트) + `ruff format`(Black 호환 포맷) + mypy(타입)이 빌드 게이트**다. CI가 어긋난 코드를 차단한다.
+- 자동수정: `ruff check --fix .` + `ruff format .` (커밋 전). 손으로 포맷 맞추지 말 것.
+- `pyproject.toml`에 넣을 설정 (line-length 100, mypy strict 권장):
+
+```toml
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+# E,F=pyflakes/pycodestyle · I=isort · UP=pyupgrade · B=bugbear · SIM=simplify · C4=comprehensions
+select = ["E", "F", "I", "UP", "B", "SIM", "C4"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_ignores = true
+```
+
+- CI(ci-gate)에 세 스텝: `ruff check .` · `ruff format --check .` · `mypy .` (셋 다 통과해야 머지).
+
 ## async / sync 혼용 금지
 - `async def` 엔드포인트에서 동기 DB 호출(`db.query`, `db.commit`) 직접 호출 금지 — 이벤트 루프 블로킹.
 - 동기 유지(`def`)하거나 AsyncSession으로 완전 전환 중 하나.
