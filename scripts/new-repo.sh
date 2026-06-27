@@ -49,8 +49,8 @@ case "$STACK_CHOICE" in
   *) echo "❌ 잘못된 선택 — 1~6 중 입력하세요." >&2; exit 1 ;;
 esac
 
-# 모든 스택 공통 required check — 테스트 삭제 차단 게이트(stack 무관)
-STACK_CHECKS+=("test-guard")
+# 모든 스택 공통 required check — 테스트 삭제 차단 게이트 + 커밋 컨벤션 게이트(stack 무관)
+STACK_CHECKS+=("test-guard" "commitlint")
 
 STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
 echo ""
@@ -81,6 +81,8 @@ else
 fi
 
 copy_once "$HARNESS_DIR/templates/ci/test-guard.yml"        .github/workflows/test-guard.yml "test-guard.yml (테스트 삭제 차단 게이트)"
+copy_once "$HARNESS_DIR/templates/ci/commitlint.yml"        .github/workflows/commitlint.yml "commitlint.yml (커밋 컨벤션 게이트)"
+copy_once "$HARNESS_DIR/templates/commitlint.config.js"     commitlint.config.js       "commitlint.config.js (Conventional Commits 규약)"
 
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
 chmod +x .githooks/pre-commit

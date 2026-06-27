@@ -62,6 +62,12 @@ $ARGUMENTS에서 도출: API/인터페이스 계약(요청·응답·비즈니스
 
 **테스트 시나리오 리스트**를 산출한다(정상 경로 + 예외 + 경계). 분석 결과·리스트를 Phase 2 프롬프트에 명시적으로 포함한다 — $ARGUMENTS만으로 추론하지 않는다.
 
+**Preflight (테스트·코드 쓰기 전 선독, 필수)**: 이 작업이 건드리는 ① 해당 team-harness **표준 섹션**과
+② **설치된 라이브러리의 실제 API/소스**(학습데이터가 아니라 `node_modules`의 설치본 문서·`src/components/ui/*`
+등 repo에 들어온 실제 코드)를 *Phase 2 테스트 계약을 쓰기 전에* 읽는다. 알아낸 함정(시그니처·기본동작·버전
+차이)을 테스트 시나리오·구현 메모에 반영한다. (근거: 'This is NOT the Next.js you know — node_modules 문서를
+읽어라' — 기억으로 API를 가정하면 RED가 틀린다.)
+
 ---
 
 ## Phase 2 — 테스트 계약 작성 (`subagent_type: general-purpose`, `model: sonnet`, **foreground**)

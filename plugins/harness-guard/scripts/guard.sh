@@ -59,6 +59,16 @@ if echo "$COMMAND" | grep -qE "git reset --hard"; then
   exit 2
 fi
 
+# 검증기(테스트·마이그레이션) 파일 삭제 금지 — 게이트 무력화 방지
+# rm / git rm 으로 테스트(*Test.java·*.spec.*·*.test.*·test_*.py·*_test.py·tests/)나
+# 마이그레이션(db/migration/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
+if echo "$COMMAND" | grep -qE "(^|[^[:alnum:]_.-])(rm|git[[:space:]]+rm)([[:space:]]|$)" && \
+   echo "$COMMAND" | grep -qE "[^[:space:]]*Test\.java|[^[:space:]]*\.(spec|test)\.[A-Za-z]+|(^|/)test_[^[:space:]/]*\.py|[^[:space:]/]*_test\.py|(^|[[:space:]]|/)tests?/|db/migration/|alembic/versions/|prisma/migrations/"; then
+  echo "⛔ [guard] 검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" >&2
+  echo "   해결: 정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)" >&2
+  exit 2
+fi
+
 # 프로젝트 핵심 디렉터리 rm -rf 금지 (PROJECT_ROOT, src, app, node_modules)
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-zA-Z]*[rRf]|--recursive|--force)"; then
