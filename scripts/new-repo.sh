@@ -82,7 +82,7 @@ fi
 
 copy_once "$HARNESS_DIR/templates/ci/test-guard.yml"        .github/workflows/test-guard.yml "test-guard.yml (테스트 삭제 차단 게이트)"
 copy_once "$HARNESS_DIR/templates/ci/commitlint.yml"        .github/workflows/commitlint.yml "commitlint.yml (커밋 컨벤션 게이트)"
-copy_once "$HARNESS_DIR/templates/commitlint.config.js"     commitlint.config.js       "commitlint.config.js (Conventional Commits 규약)"
+copy_once "$HARNESS_DIR/templates/commitlint.config.cjs"    commitlint.config.cjs      "commitlint.config.cjs (Conventional Commits 규약)"
 
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
 chmod +x .githooks/pre-commit
