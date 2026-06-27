@@ -19,7 +19,7 @@
 ## 품질 게이트
 
 - 커밋 전: lint + test 통과 필수
-- 커밋 메시지: Conventional Commits(타입 영어 + 본문 한국어) — `commitlint`가 CI에서 강제 (`commitlint.config.js`)
+- 커밋 메시지: Conventional Commits(타입 영어 + 본문 한국어) — `commitlint`가 CI에서 강제 (`commitlint.config.cjs`)
 - PR 머지 전: 사람 승인 1명 이상 + CI 전체 통과 + 리뷰 스레드 전부 resolve
 - 테스트 스킵 플래그(-DskipTests 등) 사용 금지
 
