@@ -36,6 +36,10 @@ warn_unused_ignores = true
 $queryRaw / text() 직접 SQL  # → ORM 또는 파라미터 바인딩 사용
 ```
 
+## 입력 오류는 4xx (단일 출처: `docs/api-standards.md`)
+- Pydantic 검증 실패는 FastAPI가 422로 매핑하지만, 커스텀 검증·핸들러 미매핑 예외는 500으로 흡수된다 —
+  잘못된 입력은 `@app.exception_handler`로 4xx + 공통 Envelope에 매핑(`docs/api-standards.md`).
+
 ## 테스트
 - FastAPI 의존성 mock: `app.dependency_overrides[get_db] = ...` 필수 (`mocker.patch` 동작 안 함)
 - 테스트 후 반드시 `app.dependency_overrides.clear()`

@@ -25,3 +25,7 @@ alembic downgrade -1   # 한 단계씩 롤백
 alembic current        # 현재 상태 확인
 alembic history        # 전체 이력
 ```
+
+## 운영 안전 (단일 출처: `docs/db-standards.md`)
+- **순서·out-of-order**: `down_revision` 체인이 분기하면 head가 여러 개가 되고 브랜치 머지 시 적용 순서가
+  뒤섞일 수 있다 — 기존·운영 DB에 새 리비전이 누락·역행 없이 증분 적용되는지 실 DB로 검증(`docs/db-standards.md`).

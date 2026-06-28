@@ -84,7 +84,7 @@
 - **단계 이동 트리거**: 비용 예측가능성↓·규모↑·컴플라이언스(전용 VPC·감사) 요구 → 5·6장(AWS) 경로로.
 
 > repo별 **확정 타깃**은 각 `AGENTS.md`의 "호스팅·배포 대상"에 명시한다(이 문서는 기본 권장).
-> 예: erp는 Vercel(프론트)+Railway(백엔드·PG·Keycloak), 런북 `docs/deployment.md`.
+> 예: 어떤 repo는 Vercel(프론트)+Railway(백엔드·PG·Keycloak)에 배포하고 런북을 `docs/deployment.md`에 둔다.
 
 ## 5. 인프라·네트워크 표준
 

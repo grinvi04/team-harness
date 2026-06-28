@@ -52,6 +52,13 @@ esac
 # 모든 스택 공통 required check — 테스트 삭제 차단 게이트 + 커밋 컨벤션 게이트(stack 무관)
 STACK_CHECKS+=("test-guard" "commitlint")
 
+# Flyway 스택 — 마이그레이션 안전성 게이트(접두사 대역 + out-of-order 정합성)
+HAS_FLYWAY=false
+if [[ ${#STACK_RULES[@]} -gt 0 ]] && printf '%s\n' "${STACK_RULES[@]}" | grep -qx flyway; then
+  HAS_FLYWAY=true
+  STACK_CHECKS+=("migration-safety")
+fi
+
 STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
 echo ""
 echo "선택: $STACK_TEMPLATE"
@@ -83,6 +90,13 @@ fi
 copy_once "$HARNESS_DIR/templates/ci/test-guard.yml"        .github/workflows/test-guard.yml "test-guard.yml (테스트 삭제 차단 게이트)"
 copy_once "$HARNESS_DIR/templates/ci/commitlint.yml"        .github/workflows/commitlint.yml "commitlint.yml (커밋 컨벤션 게이트)"
 copy_once "$HARNESS_DIR/templates/commitlint.config.cjs"    commitlint.config.cjs      "commitlint.config.cjs (Conventional Commits 규약)"
+
+# Flyway 스택 — 마이그레이션 안전성 게이트 워크플로 + 무의존 검사 스크립트
+if [[ "$HAS_FLYWAY" == true ]]; then
+  mkdir -p scripts
+  copy_once "$HARNESS_DIR/templates/ci/migration-safety.yml" .github/workflows/migration-safety.yml "migration-safety.yml (접두사 대역+out-of-order 게이트)"
+  copy_once "$HARNESS_DIR/scripts/check-migration-safety.mjs" scripts/check-migration-safety.mjs "scripts/check-migration-safety.mjs"
+fi
 
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
 chmod +x .githooks/pre-commit

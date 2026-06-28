@@ -8,7 +8,7 @@ paths: ["**/*.java"]
 - 코드 포맷은 의견이 아니라 **빌드 게이트**다. `spotlessCheck`가 `check`에 연결돼 CI가 어긋난 포맷을 차단한다.
 - 자동수정: `./gradlew spotlessApply` (커밋 전에 돌리면 끝 — 포맷을 손으로 맞추지 말 것).
 - checkstyle은 **의미 규칙만**(UnusedImports·NeedBraces·EmptyBlock·MagicNumber). **공백·들여쓰기·줄바꿈은 google-java-format이 소유** — checkstyle에 공백 규칙을 넣지 말 것(충돌).
-- `build.gradle`에 넣을 블록 (erp 검증 설정):
+- `build.gradle`에 넣을 블록 (검증 설정 예시):
 
 ```gradle
 plugins {
@@ -48,6 +48,14 @@ System.out.println("...");        // ❌ → log.debug/info 사용 (@Slf4j)
 return ResponseEntity.ok(entity); // ❌ → DTO.from(entity) 변환 후 반환
 user.get().getName();             // ❌ → .orElseThrow(() -> new XxxNotFoundException(id))
 ```
+
+## 운영 정합성 함정 (단일 출처: 표준 문서)
+- **소프트삭제**: `@SQLRestriction`은 `@MappedSuperclass`에서 **상속되지 않음** — 베이스에만 달면 하위
+  엔티티에 적용 안 돼 삭제 데이터가 노출. 엔티티별 적용 + 삭제 후 제외 테스트 (`docs/db-standards.md`).
+- **낙관적 잠금**: update 응답 DTO는 **flush 후**(또는 재조회) 매핑 — flush 전이면 `@Version` 증가
+  미반영, stale version으로 거짓 409 (`docs/api-standards.md`).
+- **입력 오류 400**: `HttpMessageNotReadableException`·`MethodArgumentTypeMismatchException`·
+  `ConstraintViolationException` 등을 전역 핸들러에서 400으로 매핑 — 미매핑 시 500 흡수 (`docs/api-standards.md`).
 
 ## 테스트 레이어 선택
 - Service 로직 → `@ExtendWith(MockitoExtension.class)` (Spring 컨텍스트 없음)

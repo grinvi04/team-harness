@@ -24,3 +24,8 @@ npm run lint:check
 - DB 스키마와 코드 불일치 시 서버 기동 불가
 - 롤백: `prisma migrate resolve --rolled-back <migration_name>`
 - 운영 DB: `prisma migrate deploy`가 배포 시 자동 실행
+
+## 운영 정합성 함정 (단일 출처: `docs/db-standards.md`)
+- **소프트삭제 필터**: Prisma는 ORM 차원 글로벌 필터가 없어 client extension(구 `$use` 미들웨어)이나
+  쿼리별 `where`로 거르는데, 모델·쿼리 누락 시 삭제 데이터가 노출된다 — 모든 모델/쿼리에 실제 적용되는지
+  삭제 후 제외 테스트로 검증(`docs/db-standards.md`).

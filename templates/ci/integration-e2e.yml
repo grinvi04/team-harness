@@ -1,0 +1,82 @@
+# integration-e2e — 실 IdP(Keycloak) + 실 백엔드 + 실 DB 통합 e2e 게이트 (스캐폴드).
+# 원칙(code-review.md): 인증·데이터 의존 기능은 더미세션 렌더 스모크로 갈음 금지 —
+#   실 IdP 인증 + 실 백엔드 데이터로 끝까지 검증해야 "로그인하면 빈 화면" 같은 통합 결함을 잡는다.
+# 이 워크플로는 그 원칙의 실행 수단이다. CI 내부에 로컬 스택을 띄워(운영 키 사용 금지) e2e를 돌린다.
+#
+# env 게이트: 셋업 전 repo에서 실패하지 않도록 vars.E2E_ENABLED == 'true'일 때만 본 잡을 실행한다.
+#   (셋업 후) Settings → Variables 에 E2E_ENABLED=true 등록 + 이 워크플로를 required check로 지정.
+# CUSTOMIZE 표시 지점: 서비스 자격증명, Keycloak realm/클라이언트, 디렉터리, 시드, e2e 명령.
+name: integration-e2e
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    # 셋업 전엔 skip(통과) — 켠 repo만 강제. required check로 등록하면 미설정 시 pending이 아니라 skip 처리됨.
+    if: ${{ vars.E2E_ENABLED == 'true' }}
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci_user        # CUSTOMIZE
+          POSTGRES_PASSWORD: ci_password # CUSTOMIZE
+          POSTGRES_DB: ci_db            # CUSTOMIZE
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U ci_user -d ci_db"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+      # 실 IdP — 더미 세션이 아니라 진짜 OIDC 토큰을 발급받는다.
+      keycloak:
+        image: quay.io/keycloak/keycloak:26.0  # CUSTOMIZE: 버전
+        env:
+          KC_BOOTSTRAP_ADMIN_USERNAME: admin
+          KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+          KC_HEALTH_ENABLED: "true"
+        ports: ["8180:8080"]
+        options: >-
+          --health-cmd "exec 3<>/dev/tcp/localhost/9000 && echo -e 'GET /health/ready HTTP/1.1\r\nhost: localhost\r\nConnection: close\r\n\r\n' >&3 && cat <&3 | grep -q UP"
+          --health-interval 10s --health-timeout 5s --health-retries 20
+        # NOTE: Keycloak를 dev 모드로 띄우려면 service 대신 step에서 `docker run ... start-dev --import-realm`을 쓰고
+        #       realm export(JSON)를 import한다. CUSTOMIZE: 프로젝트 realm/클라이언트 이름.
+
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/ci_db   # CUSTOMIZE
+      DB_USERNAME: ci_user        # CUSTOMIZE
+      DB_PASSWORD: ci_password    # CUSTOMIZE
+      OIDC_ISSUER: http://localhost:8180/realms/app     # CUSTOMIZE: realm 이름
+      # CUSTOMIZE: 테스트 사용자/클라이언트 시크릿 등 (운영 시크릿 금지 — CI 전용 값)
+
+    steps:
+      - uses: actions/checkout@v5
+
+      # 1) realm·테스트 클라이언트·테스트 사용자 준비 (CUSTOMIZE: kcadm 또는 realm import)
+      # - run: ./scripts/ci/keycloak-seed.sh
+
+      # 2) 백엔드 기동 (실 DB·실 IdP 연결)
+      - uses: actions/setup-java@v4
+        with: { java-version: '21', distribution: corretto, cache: gradle }  # CUSTOMIZE
+      - name: Start backend
+        working-directory: backend   # CUSTOMIZE
+        run: ./gradlew bootRun &     # CUSTOMIZE: 헬스체크까지 대기 로직 추가
+      # - run: until curl -sf http://localhost:8080/actuator/health; do sleep 2; done
+
+      # 3) 데이터 시드 — 빈 테넌트로는 통합 동작을 검증할 수 없다.
+      # - run: ./scripts/ci/seed.sh   # CUSTOMIZE
+
+      # 4) 프론트 + e2e (실 로그인 → 실 데이터 흐름)
+      - uses: actions/setup-node@v5
+        with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }  # CUSTOMIZE
+      - name: e2e
+        working-directory: frontend  # CUSTOMIZE
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npm run test:e2e            # CUSTOMIZE: 실 IdP 로그인 → 실 백엔드 데이터 단언
