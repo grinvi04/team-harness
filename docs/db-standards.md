@@ -50,10 +50,9 @@ updated_by  BIGINT      NOT NULL
 - **업무 전표 데이터**(주문·전표·이력): 물리 삭제 금지 → `deleted_at timestamptz NULL` soft delete
   - soft delete + UNIQUE 충돌은 **partial unique index**로 해결:
     `CREATE UNIQUE INDEX uq_x ON t(col) WHERE deleted_at IS NULL`
-  - soft delete 필터는 **각 엔티티에 실제로 적용되는지 테스트로 검증**한다 — 베이스 클래스
-    (`@MappedSuperclass`)에만 선언하면 ORM이 하위 엔티티에 적용하지 않을 수 있다(Hibernate
-    `@SQLRestriction`은 `@MappedSuperclass`에서 **상속되지 않음** → 삭제 데이터가 목록·조회·집계에
-    그대로 노출). 실제 삭제 후 목록·집계에서 제외되는지 단언하는 테스트를 둔다
+  - soft delete 필터는 **모든 대상 엔티티/모델에 실제로 적용되는지 테스트로 검증**한다 — ORM에 따라
+    베이스·상위 타입에만 필터를 선언하면 하위 타입에는 적용되지 않을 수 있다. 실제 삭제 후
+    목록·조회·집계에서 제외되는지 단언하는 테스트를 둔다 (ORM별 상속 함정은 스택 룰 파일 참조)
 - **기준정보(마스터)**: 삭제 대신 `is_active` 비활성화 (참조 무결성 보존)
 - 물리 삭제는 개인정보 파기 등 법적 요건에만, 절차 문서화 후
 
@@ -76,11 +75,12 @@ updated_by  BIGINT      NOT NULL
 - **CI(빈 DB) ≠ 운영(기존 DB)**: CI는 마이그레이션을 빈 DB에 순서대로 적용해 통과하지만, 기존·운영
   DB는 이미 일부 적용된 상태라 다른 실패가 난다. 마이그레이션 변경은 "기존 DB에 증분 적용" 관점으로
   검증한다(실 DB 재기동 또는 prod 스냅샷 대상)
-- **접두사 번호 규약을 쓰면 `out-of-order: true`가 전제**: 모듈 접두사 번호(0xxx common·1xxx
-  hr…4xxx crm)를 쓰면 새 저접두사 마이그레이션이 이미 적용된 고접두사보다 버전이 낮아 **구조적으로
-  out-of-order**가 된다. `out-of-order: false`면 기존·운영 DB가 validate 실패로 기동 불가하다(erp
-  실측: 신규 V0008이 4xxx 적용된 DB에서 validate 실패로 기동 불가, CI는 빈 DB라 통과). 모듈별
-  마이그레이션은 서로 독립이라 적용 순서가 무관하므로 `out-of-order: true`로 둔다 — forward-only는 유지
+- **도메인·모듈별 번호(또는 브랜치) 규약은 구조적 out-of-order를 만든다**: 모듈별로 번호 대역을
+  나누거나 브랜치별로 마이그레이션을 만들면, 새 항목이 이미 적용된 것보다 낮은 버전이 되어 **구조적
+  out-of-order**가 발생한다. 마이그레이션 도구가 이를 거부하면(기본값인 경우가 많다) 기존·운영 DB의
+  기동·배포가 validate 실패로 막힌다 — CI는 빈 DB라 순서대로 통과하므로 드러나지 않는다. 모듈별
+  마이그레이션이 서로 독립이면(적용 순서가 무관하면) **도구의 out-of-order 허용을 켠다**(구체 설정명은
+  스택 룰 파일 참조). forward-only는 그대로 유지
 
 ## 기타
 

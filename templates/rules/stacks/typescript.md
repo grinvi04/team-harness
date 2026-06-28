@@ -24,6 +24,10 @@ data.forEach(...)       // ❌ (배열 검증 없이)
 // @ts-ignore           // ❌ (회피 대신 타입 수정)
 ```
 
+## 입력 오류는 4xx (백엔드, 단일 출처: `docs/api-standards.md`)
+- NestJS는 `ValidationPipe`로 DTO 검증 실패를 400에 매핑하고, exception filter 미매핑 예외는 500으로
+  흡수된다 — 잘못된 입력은 4xx + 공통 Envelope에 매핑(`docs/api-standards.md`).
+
 ## 테스트
 - 타입체크: `npm run type-check` (커밋 전 필수)
 - 단위 테스트: vitest / jest + Testing Library
