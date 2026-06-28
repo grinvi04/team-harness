@@ -1,0 +1,6 @@
+name: migration-safety
+jobs:
+  migration-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - run: node scripts/check-migration-safety.mjs

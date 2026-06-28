@@ -7,7 +7,7 @@ on:
   pull_request:
     branches: [main, develop]
 
-# gitleaks-action이 PR 커밋 목록 조회에 pull-requests: read 필요 — 없으면 403 (siku 실측)
+# gitleaks-action이 PR 커밋 목록 조회에 pull-requests: read 필요 — 없으면 403 (외부 SPA/Supabase 스택 repo 실측)
 permissions:
   contents: read
   pull-requests: read
@@ -25,7 +25,7 @@ jobs:
       # - run: npm run lint && npm test && npm run build
 
       # ── E2E까지 게이트에 포함 권장 — release 브랜치 추가 커밋(리뷰 반영)도 e2e가 강제되도록.
-      #    외부 백엔드(Supabase 등)는 운영 키 대신 CI 내 로컬 스택 사용 (siku ci-gate.yml 참조):
+      #    외부 백엔드(Supabase 등)는 운영 키 대신 CI 내 로컬 스택 사용 (외부 백엔드 스택 ci-gate 참조):
       # - uses: supabase/setup-cli@v1
       # - run: supabase start && <로컬 키로 .env 생성>
       # - run: npx playwright install --with-deps chromium && npm run test:e2e

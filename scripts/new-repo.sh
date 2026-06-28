@@ -189,6 +189,19 @@ apply_protection main
 apply_protection develop
 echo ""
 
+# ── 4. 드리프트 self-check (정보성, 비차단) ──────────────────────────────────
+# 방금 복사한 자산이 표준과 sync 됐는지 check-repo-sync.mjs로 즉시 확인.
+# 신규=여기, 기존 repo=언제든 `node check-repo-sync.mjs --repo <경로>`로 대칭 점검.
+if command -v node > /dev/null 2>&1; then
+  echo "🔎  드리프트 self-check (check-repo-sync.mjs)..."
+  node "$HARNESS_DIR/scripts/check-repo-sync.mjs" --repo "$(pwd)" --harness "$HARNESS_DIR" \
+    || echo "  ⚠️  위 표에서 MISSING 항목 확인 — 누락 자산을 채우세요(셋업 직후라면 보통 통과)."
+  echo ""
+else
+  echo "ℹ️  node 미설치 — 드리프트 점검 생략. 이후: node $HARNESS_DIR/scripts/check-repo-sync.mjs --repo $(pwd)"
+  echo ""
+fi
+
 # ── 완료 요약 ───────────────────────────────────────────────────────────────
 
 echo "────────────────────────────────────────────────"
