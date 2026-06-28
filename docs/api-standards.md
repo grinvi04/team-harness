@@ -35,6 +35,12 @@
 
 에러 변환은 **전역 핸들러 한 곳**에서만 (`@RestControllerAdvice` 등) — 컨트롤러에서 envelope 수동 조립 금지.
 
+**클라이언트 입력 오류는 4xx로 — 5xx 흡수 금지**: 잘못된 enum·깨진 JSON 본문·경로변수 타입 불일치가
+전역 핸들러에 매핑이 없으면 **500으로 흡수**돼 on-call 알람·에러지표를 오염시킨다(erp 실측).
+역직렬화·타입변환·제약위반 예외(Spring: `HttpMessageNotReadableException`·
+`MethodArgumentTypeMismatchException`·`ConstraintViolationException` 등)를 **400 + 공통 Envelope**로
+매핑한다. 5xx는 서버 실패에만 쓴다.
+
 ## 필드·데이터 포맷
 
 - JSON 필드: **camelCase**
@@ -66,5 +72,8 @@ GET /api/v1/orders?page=0&size=20&sort=createdAt,desc&status=CONFIRMED
 ## 기타 규칙
 
 - `PUT`/`DELETE`는 멱등하게 구현. 결제·전표 생성 등 중복 위험 `POST`는 `Idempotency-Key` 헤더 지원
+- **낙관적 잠금 응답의 `version` 정확성**: update 응답 DTO를 **flush 전에** 매핑하면 `@Version` 증가가
+  반영되지 않아 stale version을 반환한다 → UI가 그 값으로 재수정하면 거짓 409 충돌(erp 실측). update
+  응답은 **flush 후**(또는 재조회) 매핑해 증가된 version을 반환한다
 - 서비스 간 호출도 이 표준 동일 적용 (envelope 포함) + 호출 측 타임아웃 명시 필수
 - 응답에 내부 구조 노출 금지: 스택트레이스, SQL, 내부 ID 체계(외부 노출은 채번 코드 — `db-standards.md`)

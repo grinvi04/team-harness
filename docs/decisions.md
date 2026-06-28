@@ -31,5 +31,9 @@
 | 마일스톤 레이어 추가 = `/milestone` 스킬 — GitHub Milestone 단일 출처, `/plan` 위에서 마일스톤·진행률 관리. 내장 `/goal`(세션 stopping condition)과 이름 충돌 회피로 rename | 2026-06-23 | skills/milestone/skill.md | README.md |
 | `/plan` 스킬에 Claude Code plan mode 흡수 — Phase 0 진입 시 EnterPlanMode, Phase 5 승인 시 ExitPlanMode로 read-only 강제를 prose 규칙에서 메커니즘으로 승격 | 2026-06-23 | skills/plan/skill.md | — |
 | 동기 조건-루프 = `/loop` 스킬 — exit 0 달성까지 즉시 반복, max·stuck·checkpoint 안전 장치. 내장 `/loop`(ScheduleWakeup 비동기 예약)와 별개 | 2026-06-23 | skills/loop/skill.md | README.md |
+| 접두사 번호 규약 시 Flyway `out-of-order: true` 전제 — 모듈별 독립 마이그레이션이라 새 저접두사가 적용된 고접두사보다 낮아도 정상, `false`면 기존·운영 DB validate 실패(CI는 빈 DB라 통과) | 2026-06-28 | db-standards.md | flyway.md |
+| 소프트삭제 필터는 엔티티별 적용 + 삭제 후 제외 테스트로 검증 — `@SQLRestriction`은 `@MappedSuperclass`에서 미상속 | 2026-06-28 | db-standards.md | java.md |
+| 클라이언트 입력 오류(역직렬화·타입변환·제약위반)는 400 매핑, 5xx 흡수 금지 / 낙관적 잠금 update 응답은 flush 후 매핑(stale version 방지) | 2026-06-28 | api-standards.md | java.md |
+| 인증·데이터 의존 기능은 실 IdP 인증 + 실 백엔드 데이터 통합 e2e를 별도 게이트(env 플래그)로 — 더미세션 렌더 스모크로 갈음 금지 | 2026-06-28 | code-review.md | — |
 
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
