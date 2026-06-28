@@ -8,7 +8,7 @@ paths: ["**/*.java"]
 - 코드 포맷은 의견이 아니라 **빌드 게이트**다. `spotlessCheck`가 `check`에 연결돼 CI가 어긋난 포맷을 차단한다.
 - 자동수정: `./gradlew spotlessApply` (커밋 전에 돌리면 끝 — 포맷을 손으로 맞추지 말 것).
 - checkstyle은 **의미 규칙만**(UnusedImports·NeedBraces·EmptyBlock·MagicNumber). **공백·들여쓰기·줄바꿈은 google-java-format이 소유** — checkstyle에 공백 규칙을 넣지 말 것(충돌).
-- `build.gradle`에 넣을 블록 (erp 검증 설정):
+- `build.gradle`에 넣을 블록 (검증 설정 예시):
 
 ```gradle
 plugins {

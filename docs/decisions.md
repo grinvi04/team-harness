@@ -35,5 +35,6 @@
 | 소프트삭제 필터는 모든 대상 엔티티/모델에 실제 적용되는지 삭제 후 제외 테스트로 검증 — ORM에 따라 상위 타입 선언이 하위 타입에 미상속될 수 있음 | 2026-06-28 | db-standards.md | java.md |
 | 클라이언트 입력 오류(역직렬화·타입변환·검증 위반)는 4xx 매핑, 5xx 흡수 금지 / 낙관적 잠금 update 응답은 flush 후 매핑(stale version 방지) | 2026-06-28 | api-standards.md | java.md |
 | 인증·데이터 의존 기능은 실 IdP 인증 + 실 백엔드 데이터 통합 e2e를 별도 게이트(env 플래그)로 — 더미세션 렌더 스모크로 갈음 금지 | 2026-06-28 | code-review.md | — |
+| 위 교훈들을 prose→메커니즘으로 승격: 마이그레이션 안전성 정적 게이트(`scripts/check-migration-safety.mjs`+CI `migration-safety`), 게이트 스킬 체크 강화(release-check·pr-review-gate), 신규 프로젝트 템플릿 기본값(out-of-order: true·integration-e2e 스캐폴드) | 2026-06-28 | scripts/check-migration-safety.mjs | release-check/skill.md, pr-review-gate/skill.md, flyway.md, templates/ci/migration-safety.yml, templates/ci/integration-e2e.yml |
 
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)

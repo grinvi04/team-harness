@@ -1,0 +1,32 @@
+# migration-safety — 마이그레이션 접두사 대역 + out-of-order 설정 정합성 게이트.
+# 배경: 모듈별 접두사 번호 규약(0xxx·1xxx·…)은 구조적 out-of-order를 만든다. 도구의 out-of-order
+# 허용이 꺼져 있으면 기존·운영 DB가 validate 실패로 기동 불가하다(CI는 빈 DB라 통과 — 운영에서만 터짐).
+# 이 게이트가 scripts/check-migration-safety.mjs로 그 함정을 정적 차단한다. 단일 출처: docs/db-standards.md
+# 셋업: new-repo.sh가 이 파일과 scripts/check-migration-safety.mjs를 복사하고 'migration-safety'를 required check에 등록한다.
+# 무관 스택(Flyway류 마이그레이션 없음)은 자동 skip(통과) — 오탐 없음.
+name: migration-safety
+
+on:
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "**/db/migration/**"
+      - "**/application*.yml"
+      - "**/application*.yaml"
+      - "**/flyway.conf"
+      - "scripts/check-migration-safety.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  migration-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      # 무의존 node 스크립트 — 루트에서 마이그레이션·설정을 탐색해 검사한다.
+      - name: Check migration safety
+        run: node scripts/check-migration-safety.mjs
