@@ -11,6 +11,7 @@ paths: ["**/*.ts", "**/*.tsx"]
   `package.json` scripts에 `"lint:design": "node scripts/check-design-tokens.mjs"`를 추가, CI(ci-gate)에 `npm run lint:design` 스텝을 둔다.
   숫자 스케일 색(`gray-500`·`blue-600`)·`bg-white` 금지 → 시맨틱 토큰만(다크모드 보장). 의도적 예외는 줄 끝 `// design-token-ok`.
 - **lint은 eslint-config-next 유지** — `react-hooks`·`jsx-a11y`·`@typescript-eslint` 규칙을 포함하므로 별도 추가 설정 없이 `npm run lint`.
+- **`as any`/`any` 금지는 prose가 아니라 lint 규칙으로 강제** — eslint 설정에 `@typescript-eslint/no-explicit-any: "error"`를 배선한다(eslint-config-next 기본은 warn이라 CI를 막지 못함). 이미 규칙이 켜져 있으면 `error` 레벨인지만 확인. 의도적 예외는 그 줄에 사유 주석과 함께 `// eslint-disable-next-line @typescript-eslint/no-explicit-any`.
 
 ## 타입 안전
 - `as any` 캐스팅 금지 — 명시적 타입 선언 또는 unknown + 타입가드.

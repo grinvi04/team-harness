@@ -12,6 +12,12 @@
  *   - 검사 B: 접두사 번호 대역인데 out-of-order: false 명시됨 → FAIL (더 강한 신호)
  *   - 단조 증가 번호만 쓰는 repo / 마이그레이션·설정 미발견 / 타임스탬프 버전 → 통과(오탐 금지)
  *
+ * ⚠ 적용 범위 — 이 정적 게이트는 **Flyway 전용**이다 (버전 파일 명명 `V###__….sql`만 검출).
+ *   - Prisma/Supabase: 타임스탬프 명명(`20240101…`)이라 구조적으로 단조 증가 → out-of-order 위험 없음(안전).
+ *   - Alembic: down_revision 체인이 분기하면 **다중 head(분기 미머지)**가 위험인데, 이는 파일명이 아니라
+ *     리비전 그래프 문제라 이 스크립트가 검출하지 못한다 — Alembic 스택은 별도 CI 점검(`alembic heads | wc -l`)
+ *     으로 다중 head를 차단한다(templates/rules/stacks/alembic.md). 여기서 Flyway가 아니면 정직하게 skip한다.
+ *
  * 단일 출처: docs/db-standards.md · templates/rules/stacks/flyway.md
  */
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
@@ -88,8 +94,11 @@ if (!explicitMigrations || !explicitConfig) {
 }
 
 // ── skip: 마이그레이션 없음 (무관 스택) ────────────────────
+// 이 게이트는 Flyway 전용이다 — Prisma/Supabase(타임스탬프 명명=단조 안전), Alembic(다중 head는
+// 파일명이 아닌 리비전 그래프 문제라 별도 CI 점검)은 여기서 검출 대상이 아니다.
 if (migrationFiles.length === 0) {
-  console.log('• 마이그레이션 안전성 게이트: Flyway류 마이그레이션 파일 없음 — 통과(skip)')
+  console.log('• 마이그레이션 안전성 게이트: Flyway류 버전 파일(V###__…​.sql) 없음 — 통과(skip, 이 게이트는 Flyway 전용)')
+  console.log('  Prisma/Supabase=타임스탬프 명명이라 구조적 단조(안전) · Alembic=다중 head는 alembic.md의 별도 CI 점검 소관.')
   process.exit(0)
 }
 

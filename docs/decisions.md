@@ -36,5 +36,7 @@
 | 클라이언트 입력 오류(역직렬화·타입변환·검증 위반)는 4xx 매핑, 5xx 흡수 금지 / 낙관적 잠금 update 응답은 flush 후 매핑(stale version 방지) | 2026-06-28 | api-standards.md | java.md |
 | 인증·데이터 의존 기능은 실 IdP 인증 + 실 백엔드 데이터 통합 e2e를 별도 게이트(env 플래그)로 — 더미세션 렌더 스모크로 갈음 금지 | 2026-06-28 | code-review.md | — |
 | 위 교훈들을 prose→메커니즘으로 승격: 마이그레이션 안전성 정적 게이트(`scripts/check-migration-safety.mjs`+CI `migration-safety`), 게이트 스킬 체크 강화(release-check·pr-review-gate), 신규 프로젝트 템플릿 기본값(out-of-order: true·integration-e2e 스캐폴드) | 2026-06-28 | scripts/check-migration-safety.mjs | release-check/skill.md, pr-review-gate/skill.md, flyway.md, templates/ci/migration-safety.yml, templates/ci/integration-e2e.yml |
+| 게이트 결함 수정(v0.8.0): migration-safety의 on.paths 필터 제거(항상 실행+스크립트 self-skip, required check가 영구 pending으로 안 막히게) · 정적 게이트는 Flyway 전용임을 정직하게 스코프(Alembic 다중 head는 별도 CI 점검) · integration-e2e를 new-repo.sh가 env-gated required로 자동 배선 · 보안 핵심 로직 mock-only 테스트 점검 + 배포 env-key 대조 + e2e 격리 + CSV formula injection 갭 보강 | 2026-06-29 | scripts/check-migration-safety.mjs | templates/ci/migration-safety.yml, scripts/new-repo.sh, flyway.md, alembic.md, security-reviewer.md, release-check/skill.md, pr-review-gate/SKILL.md, typescript.md, java.md, db-standards.md, api-standards.md, operations.md |
+| 모듈 내부 계층 표기 정합화: java.md가 `interfaces`/`infrastructure` 계층을 기술해 clean-architecture.md(adapter→application→domain, 분리 안 함)와 모순 → java.md를 decisions 기준으로 수정(역반영 누락) | 2026-06-29 | clean-architecture.md | java.md |
 
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)

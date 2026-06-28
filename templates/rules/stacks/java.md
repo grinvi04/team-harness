@@ -39,7 +39,8 @@ spotless {
 
 ## Clean Architecture 의존성 (절대 역전 금지)
 - `domain` 패키지: 순수 Java만. `@Entity`, `@Service`, `@Component` 등 Spring/JPA 어노테이션 금지.
-- `interfaces` / `infrastructure` → `application` → `domain` 방향으로만.
+- `adapter` → `application` → `domain` 방향으로만 (모듈 내부 계층 = adapter → application → domain,
+  interface/infrastructure를 별도 계층으로 분리하지 않음 — 단일 출처: `clean-architecture.md`·`decisions.md`).
 - Controller에서 Repository 직접 호출 금지. Entity를 Controller 응답으로 직접 반환 금지.
 
 ## 절대 금지 패턴
