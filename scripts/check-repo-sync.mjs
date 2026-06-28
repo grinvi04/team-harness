@@ -185,9 +185,18 @@ checks.push({
   asset: 'ci-gate 워크플로',
   severity: 'error',
   applicable: true,
-  // 본문은 스택별 커스터마이즈라 내용 diff 금지 — 존재만 본다.
-  status: wfList.some((w) => /ci-gate/i.test(w.name)) ? 'OK' : 'MISSING',
-  detail: '.github/workflows/ci-gate*.yml (존재만 확인 — 본문은 스택별 커스터마이즈)',
+  // 본문은 스택별 커스터마이즈라 내용 diff 금지 — "주 품질 게이트가 존재하는가"만 본다.
+  // 파일명은 repo마다 다르다(ci-gate.yml·ci.yml·quality.yml) → 파일명 힌트 OR
+  // 내용 신호(lint계열 + test계열 스텝을 모두 가진 워크플로 = 주 품질 게이트)로 인식한다.
+  status: wfList.some(
+    (w) =>
+      /ci-gate|^ci\.ya?ml$|quality/i.test(w.name) ||
+      (/\b(lint|ruff|eslint|gradlew[^\n]*check)\b/i.test(w.text) &&
+        /\b(test|pytest|jest|vitest|gradlew[^\n]*test|npm[^\n]*test)\b/i.test(w.text)),
+  )
+    ? 'OK'
+    : 'MISSING',
+  detail: '.github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)',
 })
 checks.push({
   asset: 'test-guard 게이트',
