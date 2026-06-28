@@ -13,6 +13,10 @@ model: opus
 - `<BACKEND_DIR>/` — Raw SQL / 문자열 직접 concatenation으로 만든 쿼리 → SQL 인젝션 위험. 파라미터 바인딩 여부 확인.
 - `<BACKEND_DIR>/`·`<FRONTEND_DIR>/` — 하드코딩된 시크릿 (비밀번호·토큰·API 키 리터럴). `password=`, `secret=`, `api[-_]?key=`, `token=` 등 패턴.
 - `.env` / `*.key` / `*.pem` 파일이 git에 추적되는지 확인 (`.gitignore`에 포함됐는지 + `git ls-files`로 실제 추적 여부).
+- **보안 핵심 로직의 테스트가 mock-only인지** 점검 — 서명 검증·인증·HMAC·토큰 검증 등 보안 핵심 함수는
+  **실 서명/실 토큰으로 valid(양성) + invalid·위변조(음성) 경로를 실제 실행하는 테스트**가 있어야 한다.
+  검증 함수 자체를 mock으로 통째 대체(예: `verify()`를 항상 true 반환으로 stub)한 테스트는 회귀 무방비다 —
+  위변조를 통과시키는 버그가 들어와도 초록불이 된다. mock으로 대체된 보안 검증을 발견하면 위험으로 리포트한다.
 
 ## 리포트 형식
 

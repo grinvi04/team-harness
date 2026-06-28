@@ -3,18 +3,16 @@
 # 허용이 꺼져 있으면 기존·운영 DB가 validate 실패로 기동 불가하다(CI는 빈 DB라 통과 — 운영에서만 터짐).
 # 이 게이트가 scripts/check-migration-safety.mjs로 그 함정을 정적 차단한다. 단일 출처: docs/db-standards.md
 # 셋업: new-repo.sh가 이 파일과 scripts/check-migration-safety.mjs를 복사하고 'migration-safety'를 required check에 등록한다.
-# 무관 스택(Flyway류 마이그레이션 없음)은 자동 skip(통과) — 오탐 없음.
+# 트리거 패턴: integration-e2e.yml과 동일하게 "항상 트리거 + 내부 skip" — on.paths 필터를 두지 않는다.
+#   (이유) required check + on.paths 필터를 함께 쓰면, 마이그레이션을 안 건드린 PR에서는 워크플로가
+#   아예 실행되지 않아 check-run이 보고되지 않고 머지가 영구 pending으로 막힌다. 그래서 항상 실행하고,
+#   스크립트가 Flyway류 마이그레이션이 없으면 즉시 exit 0으로 self-skip한다(비용 무시 수준). 이렇게 해야
+#   "무관 스택은 자동 skip(통과)"이 path 필터에 막히지 않고 실제로 성립한다.
 name: migration-safety
 
 on:
   pull_request:
     branches: [main, develop]
-    paths:
-      - "**/db/migration/**"
-      - "**/application*.yml"
-      - "**/application*.yaml"
-      - "**/flyway.conf"
-      - "scripts/check-migration-safety.mjs"
 
 permissions:
   contents: read

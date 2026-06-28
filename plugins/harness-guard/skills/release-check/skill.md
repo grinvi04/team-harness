@@ -26,6 +26,11 @@ git status --short   # 미커밋 변경 있으면 중단
 
 **프롬프트:**
 - AGENTS.md의 품질 검증 명령 전체 실행 (lint + test + build, e2e 있으면 포함)
+- **배포 env 변수명 ↔ 코드 참조명 대조**: 코드가 실제로 읽는 환경변수 키(예: 프론트가
+  `process.env.KEYCLOAK_ISSUER`를 읽음)와 배포 설정/문서(`docs/deployment.md`·`railway.json`·
+  `vercel` env·`.env.example`)가 안내하는 키 목록이 **일치하는지** 대조한다. 불일치(예: 코드는
+  `KEYCLOAK_ISSUER`인데 문서는 `AUTH_KEYCLOAK_ISSUER`로 안내)는 배포 시 런타임에서야 터지는
+  로그인·연동 깨짐 클래스 → ❌로 리포트.
 - 실패 항목은 파일·원인과 함께 리포트, 전부 통과 시 ✅
 
 ### Agent B — 보안 (`subagent_type: security-reviewer`, `run_in_background: true`)

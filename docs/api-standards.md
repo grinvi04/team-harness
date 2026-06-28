@@ -76,3 +76,4 @@ GET /api/v1/orders?page=0&size=20&sort=createdAt,desc&status=CONFIRMED
   충돌을 유발한다 (ORM별 구체는 스택 룰 파일 참조)
 - 서비스 간 호출도 이 표준 동일 적용 (envelope 포함) + 호출 측 타임아웃 명시 필수
 - 응답에 내부 구조 노출 금지: 스택트레이스, SQL, 내부 ID 체계(외부 노출은 채번 코드 — `db-standards.md`)
+- **CSV/엑셀 export는 formula injection 방지**: 셀 값이 `=` `+` `-` `@` `TAB`(또는 캐리지리턴)으로 시작하면 Excel/Sheets가 수식으로 실행한다(데이터 유출·명령 실행 위험). export 시 해당 선두 문자를 무력화한다(앞에 `'` 또는 공백 프리픽스, 혹은 값 인용 처리).
