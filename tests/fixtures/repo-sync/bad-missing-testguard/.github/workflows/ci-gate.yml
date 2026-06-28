@@ -1,0 +1,9 @@
+name: ci-gate
+on:
+  pull_request:
+    branches: [main, develop]
+jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: gitleaks/gitleaks-action@v2
