@@ -22,6 +22,8 @@ jobs:
           bash -n templates/githooks/pre-commit
           bash -n .githooks/pre-commit
           bash -n tests/guard-test.sh
+          bash -n tests/route-intent-test.sh
+          node --check plugins/harness-guard/scripts/route-intent.mjs
 
       - name: JSON 유효성 검사
         run: |
@@ -39,6 +41,9 @@ jobs:
 
       - name: 가드 시나리오 테스트
         run: bash tests/guard-test.sh
+
+      - name: 의도 라우터 테스트
+        run: bash tests/route-intent-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
