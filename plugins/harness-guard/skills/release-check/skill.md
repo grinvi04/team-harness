@@ -38,7 +38,7 @@ git status --short   # 미커밋 변경 있으면 중단
 `security-reviewer` 에이전트를 spawn한다 (체크리스트는 에이전트 정의에 포함).
 검토 대상 디렉토리만 전달한다 — AGENTS.md의 "프로젝트 개요" 섹션(디렉토리 구조) 참조.
 
-### Agent C — DB 마이그레이션·표준 (`subagent_type: general-purpose`, `model: haiku`, `run_in_background: true`)
+### Agent C — DB 마이그레이션·표준 (`subagent_type: general-purpose`, `model: sonnet`, `run_in_background: true`)
 
 **프롬프트:**
 - 마이그레이션 디렉토리에서 마지막 릴리즈 태그 이후 추가된 파일 확인

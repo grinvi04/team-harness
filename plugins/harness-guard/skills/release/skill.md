@@ -109,7 +109,7 @@ git push origin --delete release/v$VERSION 2>/dev/null || true
 
 ---
 
-## Phase 5 — 배포 후 헬스 체크 (`subagent_type: general-purpose`, `model: haiku`, **foreground**)
+## Phase 5 — 배포 후 헬스 체크 (`subagent_type: Explore`, `model: haiku`, **foreground**)
 
 **프롬프트:**
 - AGENTS.md의 배포 대기·프로덕션 헬스체크 명령 실행 (최대 10분, 30초 간격)
