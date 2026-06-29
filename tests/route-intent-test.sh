@@ -96,6 +96,21 @@ check_no_grep "AC-2e: 상태 보여줘 → inject=false (오버트리거 없음)
   '"inject":true' \
   --prompt "상태 보여줘" --branch "feature/x" --open-pr 5
 
+# AC-2f: "확인해줘"(분석 요청, 해줘 포함) → inject=false (substring 오버트리거 방지)
+check_no_grep "AC-2f: 확인해줘 → inject=false (해줘 substring 오버트리거 방지)" \
+  '"inject":true' \
+  --prompt "에러 메시지 확인해줘" --branch "feature/x" --open-pr 5
+
+# AC-2g: "진행상황 알려줘"(진행 포함) → inject=false (진행 substring 오버트리거 방지)
+check_no_grep "AC-2g: 진행상황 알려줘 → inject=false (진행 substring 오버트리거 방지)" \
+  '"inject":true' \
+  --prompt "진행상황 알려줘" --branch "feature/x" --open-pr 5
+
+# AC-2h: "요약해줘" → inject=false
+check_no_grep "AC-2h: 요약해줘 → inject=false" \
+  '"inject":true' \
+  --prompt "이 로그 요약해줘" --branch "feature/x" --open-pr 5
+
 # ── AC-3: 상태 불명확 → inject=false ──────────────────────────────────────
 echo ""
 echo "=== AC-3: 상태 불명확 → inject=false ==="
@@ -125,13 +140,19 @@ echo "=== AC-5: fail-open (라이브 모드) ==="
 
 # 비-repo 디렉터리에서 라이브 모드 실행 → exit 0 + 프롬프트 처리 미차단
 _tmpdir=$(mktemp -d)
-printf '{"prompt":"진행해","cwd":"%s"}' "$_tmpdir" | node "$SCRIPT" >/dev/null 2>&1
+_out=$(printf '{"prompt":"진행해","cwd":"%s"}' "$_tmpdir" | node "$SCRIPT" 2>/dev/null)
 _rc=$?
 rm -rf "$_tmpdir"
 if [ "$_rc" -eq 0 ]; then
   echo "PASS: AC-5: 비-repo 라이브 모드 → exit 0"; PASS=$((PASS+1))
 else
   echo "FAIL: AC-5: 비-repo 라이브 모드 → exit $_rc (0 예상)"; FAIL=$((FAIL+1))
+fi
+# AC-5b: 비-repo서 주입도 없어야(fail-open의 핵심 보장 = 무주입)
+if [ -z "$_out" ]; then
+  echo "PASS: AC-5b: 비-repo → 무주입(stdout 비어있음)"; PASS=$((PASS+1))
+else
+  echo "FAIL: AC-5b: 비-repo서 주입됨 | 출력: $_out"; FAIL=$((FAIL+1))
 fi
 
 # ── 결과 ──────────────────────────────────────────────────────────────────

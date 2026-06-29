@@ -24,7 +24,7 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/route-intent.mjs",
-            "timeout": 10,
+            "timeout": 15,
             "statusMessage": "하네스 단계 판정 중..."
           }
         ]
