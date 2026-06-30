@@ -32,13 +32,24 @@ effort: low
 
 ```bash
 BRANCH=$(git branch --show-current)
+[ -z "$BRANCH" ] && { echo "detached HEAD — feature/* 또는 fix/* 브랜치에서 실행하세요."; exit 1; }
 git status --short
 
-# base 감지: develop가 origin에 있으면 develop, 없으면 origin 기본 브랜치(보통 main)
-BASE=develop
-git ls-remote --heads origin develop 2>/dev/null | grep -q . || \
+# base 감지: origin에 develop 있으면 develop, 없으면 origin 기본 브랜치(보통 main)
+# 주의: ls-remote 패턴은 ref tail 매칭이라 'develop'만 주면 foo/develop도 매칭됨 → 정확 매칭 anchor.
+BASE=main
+HEADS=$(git ls-remote --heads origin 2>/dev/null)        # 원격 질의(네트워크)
+if [ -n "$HEADS" ]; then                                  # 원격 도달 성공 → 원격 진실
+  if echo "$HEADS" | grep -q 'refs/heads/develop$'; then
+    BASE=develop
+  else
+    BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
+  fi
+elif git show-ref --verify --quiet refs/remotes/origin/develop; then  # 오프라인 → 로컬 캐시 폴백
+  BASE=develop
+else
   BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
-[ -z "$BASE" ] && BASE=$(git remote show origin 2>/dev/null | sed -n 's/.*HEAD branch: //p')
+fi
 [ -z "$BASE" ] && BASE=main
 echo "감지된 base: $BASE"
 ```
