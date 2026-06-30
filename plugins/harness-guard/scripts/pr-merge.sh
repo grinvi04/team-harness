@@ -22,16 +22,29 @@ OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 OWNER="${OWNER_REPO%/*}"; NAME="${OWNER_REPO#*/}"
 echo "게이트 검증: $OWNER_REPO PR #$PR"
 
-# 1) CI required check 전부 통과 (required check 없으면 통과로 간주)
-if ! gh pr checks "$PR" --repo "$OWNER_REPO" --required >/dev/null 2>&1; then
-  # required check가 아예 없으면 gh가 비0을 줄 수 있으니, 실패가 'no checks'인지 구분
-  if gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1 | grep -qi "no checks"; then
-    echo "  CI: required check 없음 → 통과"
-  else
-    echo "  ⛔ CI required check 미통과 — 머지 중단" >&2; exit 1
-  fi
-else
+# 1) CI 검증 — 1차: gh pr checks(외부 CI 포함). 토큰이 checks API를 못 읽으면(GraphQL 403)
+#    2차: Actions run(gh run list)으로 이 커밋의 워크플로 결과를 폴백 검증.
+CHECKS_OUT=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1); CHECKS_RC=$?
+if [ "$CHECKS_RC" -eq 0 ]; then
   echo "  CI: required green"
+elif echo "$CHECKS_OUT" | grep -qiE "no checks|no required"; then
+  echo "  CI: required check 없음 → 통과"
+elif echo "$CHECKS_OUT" | grep -qiE "not accessible|GraphQL|Resource not accessible"; then
+  # 토큰이 checks API 접근 불가 → Actions run으로 폴백(이 커밋 한정)
+  HEAD_SHA=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefOid --jq .headRefOid)
+  HBRANCH=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefName --jq .headRefName)
+  RUNCOUNT=$(gh run list --repo "$OWNER_REPO" --branch "$HBRANCH" --limit 30 --json headSha,status,conclusion \
+    --jq "[.[]|select(.headSha==\"$HEAD_SHA\")]|length" 2>/dev/null || echo 0)
+  BADCOUNT=$(gh run list --repo "$OWNER_REPO" --branch "$HBRANCH" --limit 30 --json headSha,status,conclusion \
+    --jq "[.[]|select(.headSha==\"$HEAD_SHA\" and (.status!=\"completed\" or .conclusion!=\"success\"))]|length" 2>/dev/null || echo ERR)
+  if [ "$RUNCOUNT" = "0" ]; then
+    echo "  ⛔ CI: checks API 접근 불가 + 이 커밋의 Actions run 없음 — 검증 불가, 머지 중단" >&2; exit 1
+  elif [ "$BADCOUNT" != "0" ]; then
+    echo "  ⛔ CI: 미완료/실패 Actions run 있음(또는 조회 실패=$BADCOUNT) — 머지 중단" >&2; exit 1
+  fi
+  echo "  CI: Actions run 폴백 검증 통과 (checks API 토큰 제한)"
+else
+  echo "  ⛔ CI required check 미통과 — 머지 중단" >&2; echo "$CHECKS_OUT" | head -3 >&2; exit 1
 fi
 
 # 2) 미해결 리뷰 스레드 0 — fail-CLOSED(쿼리 실패=검증 불가 → 중단). CI·mergeable 게이트와 일관.
