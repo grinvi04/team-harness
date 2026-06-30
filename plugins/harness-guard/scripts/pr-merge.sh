@@ -24,7 +24,9 @@ echo "게이트 검증: $OWNER_REPO PR #$PR"
 
 # 1) CI 검증 — 1차: gh pr checks(외부 CI 포함). 토큰이 checks API를 못 읽으면(GraphQL 403)
 #    2차: Actions run(gh run list)으로 이 커밋의 워크플로 결과를 폴백 검증.
-CHECKS_OUT=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1); CHECKS_RC=$?
+# 주의: set -e라 `VAR=$(실패명령)`는 RC 캡처 전에 스크립트를 죽인다 → `|| CHECKS_RC=$?`로 흡수.
+CHECKS_RC=0
+CHECKS_OUT=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1) || CHECKS_RC=$?
 if [ "$CHECKS_RC" -eq 0 ]; then
   echo "  CI: required green"
 elif echo "$CHECKS_OUT" | grep -qiE "no checks|no required"; then
