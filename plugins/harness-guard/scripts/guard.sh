@@ -20,8 +20,13 @@ deny() {
   ts=$(date +%Y-%m-%dT%H:%M:%S 2>/dev/null)
   sid=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('session_id','?'))" 2>/dev/null) || sid="?"
   cwd=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cwd','?'))" 2>/dev/null) || cwd="?"
-  # cmd는 한 줄로 정제(개행→공백) + 길이 제한 — 로그 한 줄/엔트리 보장
-  cmd1=$(printf '%s' "${COMMAND:-}" | tr '\n\r\t' '   ' | cut -c1-200)
+  # cmd는 한 줄로 정제(개행→공백) + 시크릿 마스킹(URL 박힌 크레덴셜·gh 토큰·PAT) + 길이 제한.
+  # 차단된 명령을 평문 로깅하므로, 토큰이 섞인 명령(예: https://x:TOKEN@host)이 로그에 남지 않게 마스킹.
+  cmd1=$(printf '%s' "${COMMAND:-}" | tr '\n\r\t' '   ' \
+    | sed -E -e 's#(https?://)[^@ ]*@#\1***@#g' \
+             -e 's#gh[pousr]_[A-Za-z0-9]{20,}#gh_***#g' \
+             -e 's#github_pat_[A-Za-z0-9_]{20,}#github_pat_***#g' \
+    | cut -c1-200)
   { printf '%s session=%s cwd=%s DENY %s | cmd=%s\n' "${ts:-?}" "${sid:-?}" "${cwd:-?}" "$reason" "$cmd1" >> "$GUARD_LOG"; } 2>/dev/null
   echo "⛔ [guard] $reason" >&2
   [[ -n "$hint" ]] && echo "   해결: $hint" >&2
