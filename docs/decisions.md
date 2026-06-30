@@ -50,4 +50,6 @@
 
 | `pr-create` 스킬 신설(v0.13.0) — **base 자동감지 PR 생성 단일 프리미티브**. 노출: `feature-merge`가 `gh pr create --base develop` 하드코딩이라 develop 없는 main 기반 repo(team-harness 자체·develop 미사용 public repo)에서 안 맞아 매번 맨손 `gh pr create`로 샘(이번 세션 team-harness PR들 실증). 해결: `pr-create`가 base를 동적 감지(`git ls-remote origin develop` 있으면 develop, 없으면 `origin/HEAD` 기본 브랜치, fallback main)→push·품질검증·PR 생성. `feature-merge` §3은 이 스킬에 **위임**(PR 생성 로직 단일 출처·중복 제거). `pr-create`는 PR 생성까지만 — 머지는 pr-review-gate/solo-merge가 소유. route-intent는 무변경(feature+커밋+PR없음→feature-merge가 base 무관하게 동작) | 2026-06-30 | plugins/harness-guard/skills/pr-create/skill.md | feature-merge/skill.md, plugin.json(v0.13.0), README.md |
 
+| team-harness도 **develop 통합브랜치 채택** — 다른 모든 repo(erp·siku·DriveTree·webhook-service)가 `기본=main + develop` 클래식 gitflow인데 team-harness만 main 단독이라 비일관 → develop 추가로 정렬. 기본 브랜치는 main 유지(다른 repo와 동일). ci-gate.yml 트리거를 `[main]`→`[main, develop]`로 확장(develop 대상 feature PR도 품질 게이트 경유, 안 그러면 develop이 무게이트 통합지점이 됨). 영향: team-harness 자체 작업도 feature→develop→(release)→main 흐름. **pr-create의 정당성은 유지** — develop 미사용 public 개인 repo + 오프라인/엣지 견고성 때문(team-harness 단독 사례가 아니라 일반 프리미티브). private+Free라 develop도 branch protection 없음(guard.sh 훅이 직접커밋 차단으로 대체) | 2026-06-30 | .github/workflows/ci-gate.yml | docs/decisions.md(pr-create 행), 다른 repo 브랜치 구조 |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
