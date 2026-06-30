@@ -59,6 +59,7 @@
 | 운영·로깅 | operations.md | 로그 레벨 기준(ERROR=알람), traceId 전파 |
 | README | readme-standards.md | 루트 README 양식(섹션 순서·뱃지·mermaid·시작하기), `templates/README.template.md` |
 | 프론트 디자인 | frontend-design-standards.md | 디자인 토큰(하드코딩색 금지·차트팔레트·status)·앱셸·공통 컴포넌트(DataTable·FormField·StatCard·ChartCard·차트)·base-ui/recharts/React 함정·다크/반응형/a11y/정직한 UI |
+| 한국 UI/UX | korean-ux.md | 정착 용어(마이페이지·장바구니)·마이크로카피 해요체·폼 포맷(010·도로명·사업자번호·원화·날짜 YYYY.MM.DD) — 영어 직역체 금지(한국어 화면) |
 
 ## 코딩 컨벤션
 

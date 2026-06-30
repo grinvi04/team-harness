@@ -136,6 +136,13 @@ if [[ ${#STACK_RULES[@]} -gt 0 ]]; then
   done
 fi
 
+# 한국어 UX 룰 — 프론트엔드(UI) 스택에 복사. path-scoped(*.tsx·*.vue 등)라 비-UI repo엔 무영향.
+# 영어 UI 서비스면 셋업 후 삭제. (단일 출처: docs/korean-ux.md)
+if printf '%s\n' "${STACK_RULES[@]}" | grep -qxE 'typescript|vue|nextjs' || [[ "$STACK_TEMPLATE" == *rails* ]]; then
+  mkdir -p .claude/rules
+  copy_once "$HARNESS_DIR/templates/rules/korean-ux.md" ".claude/rules/korean-ux.md" "rules/korean-ux.md"
+fi
+
 # .gitignore — snippet 내용이 없으면 append
 if grep -qF ".claude/settings.local.json" .gitignore 2>/dev/null; then
   echo "  ⏭  .gitignore (snippet 이미 포함)"
