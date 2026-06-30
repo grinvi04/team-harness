@@ -71,14 +71,17 @@ fi
 # 스킬은 scripts/pr-create.sh·pr-merge.sh를 호출하고, 그 안의 gh는 자식 프로세스라 이 PreToolUse 훅에
 # 걸리지 않는다(훅은 Claude의 Bash 도구 호출만 본다). raw gh pr create/merge를 직접 치는 반사적
 # 맨손질만 차단한다. (난독화 우회 — temp 스크립트에 gh 숨기기 — 는 plan에서 제외한 범위.)
-# 명령 *위치*(문자열 시작 또는 ; & ( 뒤)에서만 매칭 — grep/echo 등의 "gh pr create" 문자열
-# 언급은 통과시켜 오탐을 막는다. (env-prefix 같은 변형은 범위 외.)
-# `|`는 분리자에서 제외: 따옴표 속 정규식 alternation(grep "a|gh pr create")을 셸 파이프로
-# 오인하는 오탐이 잦고, `cmd | gh pr create`(파이프로 PR 생성)는 실재 패턴이 아니라 손실 없음.
-if echo "$COMMAND" | grep -qE "(^|[;&(])[[:space:]]*gh[[:space:]]+pr[[:space:]]+create([[:space:]]|$)"; then
+# 명령 *위치*에서만 매칭 — grep/echo 등의 "gh pr create" 문자열 언급은 통과(오탐 방지).
+# 분리자: 문자열 시작 `^`, `; & (`, 그리고 **공백 동반 파이프 `| `**(셸 파이프 — echo y | gh pr merge,
+#   cat body | gh pr create --body-file - 류 실재 호출을 잡는다). 무공백 `|gh`는 정규식 alternation
+#   (grep "a|gh pr create")일 확률이 높아 분리자로 보지 않는다(따옴표 인식 불가라 이 휴리스틱으로 절충).
+# 후행: 공백·끝·`) ; & |`(서브셸 닫힘 $(gh pr create)·체인·파이프아웃).
+# 알려진 한계(보조 장치, 최종 강제는 계층0): `echo y|gh pr merge`(무공백 파이프)·따옴표 안 명령·
+#   env-prefix·temp 스크립트 난독화는 못 잡는다.
+if echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+create([[:space:]);&|]|$)"; then
   deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다."
 fi
-if echo "$COMMAND" | grep -qE "(^|[;&(])[[:space:]]*gh[[:space:]]+pr[[:space:]]+merge([[:space:]]|$)"; then
+if echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+merge([[:space:]);&|]|$)"; then
   deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다."
 fi
 

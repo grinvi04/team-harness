@@ -62,6 +62,9 @@ check "문자열 언급(echo) 오탐 없음"   0 Bash "echo '맨손 gh pr merge 
 check "정규식 alternation | 오탐 없음" 0 Bash "grep -E 'foo|gh pr create' f.txt"  "$FEAT"
 check "alternation 속 gh pr merge 통과" 0 Bash "grep -E 'bar|gh pr merge' f.txt"   "$FEAT"
 check "&& 뒤 gh pr create는 여전히 차단" 2 Bash "git push && gh pr create --fill"   "$FEAT"
+check "공백 파이프 gh pr merge 차단"   2 Bash "echo y | gh pr merge 5"             "$FEAT"
+check "공백 파이프 gh pr create 차단"  2 Bash "cat body.md | gh pr create --fill"   "$FEAT"
+check "서브셸 닫힘 직후 gh pr create 차단" 2 Bash 'x=$(gh pr create)'                "$FEAT"
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
