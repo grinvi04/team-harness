@@ -60,9 +60,8 @@ git checkout -b hotfix/$FIX_NAME
 Phase 2 ✅인 경우에만 진행.
 
 ```bash
-# 1. hotfix 브랜치 push + main으로 PR 생성
-git push origin hotfix/$FIX_NAME
-gh pr create --base main --head hotfix/$FIX_NAME \
+# 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
+bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh --base main \
   --title "fix($FIX_NAME): $DESCRIPTION" \
   --body "긴급 수정: $DESCRIPTION
 
@@ -91,7 +90,7 @@ echo "✅ 태그: v$PATCH"
 develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **back-merge도 PR로**.
 
 ```bash
-gh pr create --base develop --head hotfix/$FIX_NAME \
+bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh --base develop \
   --title "chore: hotfix/$FIX_NAME develop 반영" \
   --body "main PR과 동일 내용의 back-merge — main 머지·태그(v$PATCH) 완료 후 develop 반영.
 

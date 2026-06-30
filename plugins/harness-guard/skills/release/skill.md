@@ -66,9 +66,8 @@ release-check는 그 커밋을 본 적이 없다 — 머지 전 **변경 범위 
 Phase 2(해당 시) ✅인 경우에만 진행.
 
 ```bash
-# 1. release 브랜치 push + main으로 PR 생성
-git push origin release/v$VERSION
-gh pr create --base main --head release/v$VERSION \
+# 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
+bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh --base main \
   --title "release: v$VERSION" \
   --body "릴리즈 v$VERSION
 
@@ -92,7 +91,7 @@ git push origin --tags
 develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **back-merge도 PR로**.
 
 ```bash
-gh pr create --base develop --head release/v$VERSION \
+bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh --base develop \
   --title "chore: release/v$VERSION develop 반영" \
   --body "main PR과 동일 내용의 back-merge — 버전 범프 커밋을 develop에 반영.
 

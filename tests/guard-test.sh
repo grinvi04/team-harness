@@ -48,6 +48,18 @@ check "일반 파일 rm 통과"             0 Bash "rm build/output.log"        
 check "일반 명령 통과"                0 Bash "npm run build"                    "$DEV"
 check "비Bash 도구 통과"              0 Edit ""                                 "$DEV"
 
+# 맨손 gh pr create/merge 차단 — PR 생성·머지는 래퍼 스크립트(스킬) 경유만 허용
+check "맨손 gh pr create 차단"        2 Bash "gh pr create --base develop --head feature/x --title t --body b" "$FEAT"
+check "맨손 gh pr merge 차단"         2 Bash "gh pr merge 5 --merge --delete-branch" "$FEAT"
+check "체인 속 gh pr create 차단"     2 Bash "git push -u origin feature/x && gh pr create --fill" "$FEAT"
+check "래퍼 pr-create.sh 통과"        0 Bash "bash scripts/pr-create.sh --title t --body b" "$FEAT"
+check "래퍼 pr-merge.sh 통과"         0 Bash "bash scripts/pr-merge.sh 5"        "$FEAT"
+check "gh pr view 조회 통과"          0 Bash "gh pr view 5 --json state"        "$FEAT"
+check "gh pr list 조회 통과"          0 Bash "gh pr list --state merged"        "$FEAT"
+check "gh pr checks 통과"             0 Bash "gh pr checks 5 --required"         "$FEAT"
+check "문자열 언급(grep) 오탐 없음"   0 Bash "grep -rn 'gh pr create' skills/"   "$FEAT"
+check "문자열 언급(echo) 오탐 없음"   0 Bash "echo '맨손 gh pr merge 금지'"      "$FEAT"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
