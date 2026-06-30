@@ -1,4 +1,4 @@
-# ci-gate — Node.js 단일 repo (React / Vue / Vite / NestJS)
+# ci-gate — Vue 3 (Vite SPA)
 # CUSTOMIZE: node-version, 필요한 env 변수 추가
 name: ci-gate
 
@@ -26,11 +26,11 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run lint
-      - run: npm run type-check --if-present     # tsc --noEmit (빌드가 타입오류를 무시 설정일 때 보완)
-      - run: npm run lint:design --if-present   # 디자인 토큰 게이트 (SPA 프론트면 활성, API-only면 no-op)
-      - run: npm test
-      - run: npm run build
+      - run: npm run lint                       # eslint-plugin-vue (eslint-config-next 아님)
+      - run: npm run type-check --if-present     # vue-tsc --noEmit (.vue SFC 타입체크 — tsc만으론 부족)
+      - run: npm run lint:design --if-present    # 디자인 토큰 게이트
+      - run: npm run test:unit --if-present       # vitest + @vue/test-utils
+      - run: npm run build                       # vite build
 
   secret-scan:
     runs-on: ubuntu-latest

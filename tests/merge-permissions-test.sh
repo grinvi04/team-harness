@@ -69,6 +69,12 @@ assert_out \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(npm run *)' in a else 1)" \
   --base "$FIX/base.json" --rules " typescript " --fragments "$FRAGS"
 
+# AC8: nextjs·vue rule → 실 템플릿 fragment 매핑(npx next·vue-tsc 포함) — 회귀 방지
+assert_out \
+  "AC8: --rules nextjs,vue → npx next·vue-tsc 포함 (실 템플릿)" \
+  "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if all(x in a for x in ['Bash(npx next *)','Bash(npx vue-tsc *)']) else 1)" \
+  --base "$FIX/base.json" --rules nextjs,vue --fragments "$ROOT/templates/permissions"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

@@ -1,4 +1,4 @@
-# ci-gate — Node.js 단일 repo (React / Vue / Vite / NestJS)
+# ci-gate — Next.js 단독 (App Router 풀스택)
 # CUSTOMIZE: node-version, 필요한 env 변수 추가
 name: ci-gate
 
@@ -26,11 +26,11 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run lint
-      - run: npm run type-check --if-present     # tsc --noEmit (빌드가 타입오류를 무시 설정일 때 보완)
-      - run: npm run lint:design --if-present   # 디자인 토큰 게이트 (SPA 프론트면 활성, API-only면 no-op)
-      - run: npm test
-      - run: npm run build
+      - run: npm run lint                      # next lint (eslint-config-next 포함) 또는 eslint
+      - run: npm run type-check --if-present    # tsc --noEmit (Next.js 빌드는 타입오류를 무시 설정일 수 있어 별도 강제)
+      - run: npm run lint:design --if-present   # 디자인 토큰 게이트
+      - run: npm run test --if-present          # vitest/jest (있으면)
+      - run: npm run build                      # next build — NEXT_PUBLIC_ 노출·RSC 경계 오류를 빌드가 잡음
 
   secret-scan:
     runs-on: ubuntu-latest

@@ -43,7 +43,7 @@ git status --short
 PR 생성은 **래퍼 스크립트**로 한다(맨손 `gh pr create`는 guard 차단). §2에서 품질검증을 이미 했으므로, 스크립트가 base 자동감지(develop 기반이면 base=develop)·push·`gh pr create`를 수행한다(hotfix·release와 동일 경로):
 
 ```bash
-bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh \
+bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh \
   --title "<타입(scope): 요약>" --body "<무엇을·왜·검증>"
 ```
 
