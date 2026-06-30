@@ -57,7 +57,7 @@ REVIEW_COUNT=$(echo "$REVIEWS_CONFIG" | python3 -c "import sys,json; print(json.
 gh api -X DELETE "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews"
 
 # 머지 — 맨손 gh pr merge는 guard가 차단. 래퍼가 CI·스레드·mergeable 게이트 재검증 후 머지.
-bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-merge.sh "$PR"
+bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-merge.sh "$PR"
 
 # 즉시 복구
 gh api -X PATCH "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews" \

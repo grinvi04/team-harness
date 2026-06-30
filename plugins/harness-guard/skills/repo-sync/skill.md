@@ -10,7 +10,7 @@ effort: low
 프로젝트가 team-harness 표준과 sync 됐는지 점검한다(드리프트 감지). `templates/`는 신규 셋업에만 적용돼 기존 repo에 자동 전파되지 않으므로, 표준 게이트가 빠진 채 드리프트가 쌓인다. 이 커맨드를 **수동 호출**해 그 공백을 점검한다.
 
 > 단일 출처: `docs/harness-maintenance.md` (기존 repo 드리프트 점검 절).
-> 점검 로직은 `${CLAUDE_PLUGIN_ROOT}/scripts/check-repo-sync.mjs` — 신규 셋업 `new-repo.sh`의 대칭 도구.
+> 점검 로직은 `${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/check-repo-sync.mjs` — 신규 셋업 `new-repo.sh`의 대칭 도구.
 
 ---
 
@@ -19,7 +19,7 @@ effort: low
 1. **대상 결정**: 인자로 repo 경로(들)를 받으면 그 repo들, 없으면 현재 작업 repo(cwd) 하나.
 2. **각 대상 점검**: 대상마다 실행한다.
    ```bash
-   node ${CLAUDE_PLUGIN_ROOT}/scripts/check-repo-sync.mjs --repo <경로>
+   node ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/check-repo-sync.mjs --repo <경로>
    ```
    스크립트가 repo 스택(java·flyway·typescript·nestjs·vite·python·prisma·alembic·supabase)을 파일 신호로 감지하고, 그 스택의 필수 harness 자산(test-guard·commitlint·secret-scan·migration-safety 게이트 + 스택 룰)이 표준과 sync 됐는지 자산별 `OK / WEAK / WARN / MISSING` 표로 출력한다.
    - **exit 1(MISSING 있음)이어도 보고는 계속한다** — 다음 대상도 마저 실행하고 마지막에 종합한다.

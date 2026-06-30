@@ -41,7 +41,7 @@ effort: low
 > 스크립트가 base 자동 감지(develop 있으면 develop, 없으면 기본 브랜치) · push · `gh pr create`를 수행한다(내부 gh는 자식 프로세스라 guard에 안 걸린다).
 
 ```bash
-bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh \
+bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh \
   --title "<타입(scope): 요약>" --body "<무엇을·왜·검증>"
 # base를 강제해야 하면(hotfix/release 등) --base <branch> 추가.
 ```
