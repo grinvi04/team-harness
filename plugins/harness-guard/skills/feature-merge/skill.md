@@ -40,7 +40,12 @@ git status --short
 
 ### 3. PR 생성 + 리뷰 게이트 (직접 실행)
 
-PR 생성은 **`pr-create` 스킬**을 사용한다 — 맨손 `gh pr create`를 쓰지 않는다. `pr-create`가 base를 자동 감지하므로(develop 기반 repo면 base=develop) push·품질검증·PR 생성을 그 단일 출처가 수행한다.
+PR 생성은 **래퍼 스크립트**로 한다(맨손 `gh pr create`는 guard 차단). §2에서 품질검증을 이미 했으므로, 스크립트가 base 자동감지(develop 기반이면 base=develop)·push·`gh pr create`를 수행한다(hotfix·release와 동일 경로):
+
+```bash
+bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh \
+  --title "<타입(scope): 요약>" --body "<무엇을·왜·검증>"
+```
 
 PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(AI 리뷰 대기·이슈 처리·스레드 reply+resolve)를 따른다. 절차 본문은 그 스킬이 단일 출처 — 커맨드에 복붙하지 않는다.
 
