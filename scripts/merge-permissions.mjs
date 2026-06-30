@@ -7,6 +7,8 @@ import { resolve, dirname } from 'path';
 // rule 이름 → fragment 파일명 매핑 (null = 매핑 없음·무시)
 const RULE_TO_FRAGMENT = {
   typescript: 'node',
+  nextjs: 'nextjs',
+  vue: 'vue',
   prisma: 'prisma',
   java: 'java',
   python: 'python',
