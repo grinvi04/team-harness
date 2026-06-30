@@ -30,14 +30,16 @@ echo ""
 # ── 스택 선택 ────────────────────────────────────────────────────────────────
 
 echo "스택을 선택하세요:"
-echo "  1) Node.js 단독      — React / Vue / Vite SPA, NestJS 단독 API"
+echo "  1) Node.js 단독      — React / Vite SPA, NestJS 단독 API"
 echo "  2) NestJS 풀스택     — NestJS 백엔드 + React / Vue / Next.js 프론트엔드"
 echo "  3) Spring Boot       — Java / Kotlin Gradle 백엔드 단독"
 echo "  4) Spring 풀스택     — Spring Boot 백엔드 + Node.js 프론트엔드"
 echo "  5) Python            — FastAPI / Django (+ PostgreSQL + Redis)"
 echo "  6) Rails 8           — 소팀 MVP · Hotwire 풀스택"
+echo "  7) Next.js 단독      — App Router 풀스택 (RSC · server actions)"
+echo "  8) Vue 3             — Vite SPA (Composition API · Pinia)"
 echo ""
-read -rp "번호 입력 (1-6): " STACK_CHOICE
+read -rp "번호 입력 (1-8): " STACK_CHOICE
 
 case "$STACK_CHOICE" in
   1) STACK_TEMPLATE="ci-gate-node.yml";             STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript") ;;
@@ -46,7 +48,9 @@ case "$STACK_CHOICE" in
   4) STACK_TEMPLATE="ci-gate-spring-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan"); STACK_RULES=("java" "flyway" "typescript") ;;
   5) STACK_TEMPLATE="ci-gate-python.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("python" "alembic") ;;
   6) STACK_TEMPLATE="ci-gate-rails.yml";            STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=() ;;
-  *) echo "❌ 잘못된 선택 — 1~6 중 입력하세요." >&2; exit 1 ;;
+  7) STACK_TEMPLATE="ci-gate-nextjs.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript" "nextjs") ;;
+  8) STACK_TEMPLATE="ci-gate-vue.yml";              STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript" "vue") ;;
+  *) echo "❌ 잘못된 선택 — 1~8 중 입력하세요." >&2; exit 1 ;;
 esac
 
 # 모든 스택 공통 required check — 테스트 삭제 차단 게이트 + 커밋 컨벤션 게이트(stack 무관)
