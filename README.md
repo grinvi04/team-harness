@@ -2,7 +2,7 @@
 
 > **팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에.**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.12.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.14.2-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -85,7 +85,8 @@ team-harness/
 
 | 구성 요소 | 내용 |
 |---|---|
-| **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, **검증기·마이그레이션 삭제**, 핵심 디렉터리 `rm -rf`, npm 글로벌 설치 차단 (`cd` 체인·서브셸·`git -C` 우회 포함, 보조 장치 — 최종 강제는 계층 0). **차단 시 `~/.claude/hooks/guard-block.log`에 session_id·cwd·명령 기록**(멀티세션 위반 시도 감사). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
+| **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, **검증기·마이그레이션 삭제**, 핵심 디렉터리 `rm -rf`, npm 글로벌 설치, **맨손 `gh pr create`·`gh pr merge`**(PR 생성·머지는 래퍼 스크립트=스킬 경유만 — 반사적 우회 차단) 차단 (`cd` 체인·서브셸·`git -C` 우회 포함, 보조 장치 — 최종 강제는 계층 0). **차단 시 `~/.claude/hooks/guard-block.log`에 session_id·cwd·명령 기록**(멀티세션 위반 시도 감사). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
+| **PR 래퍼 스크립트** | `pr-create.sh`(base 자동감지·push·생성) · `pr-merge.sh`(CI·스레드·mergeable 게이트 후 머지) — guard가 맨손 gh를 막으므로 **PR 생성·머지의 유일 경로**. 스킬이 이 스크립트를 호출(내부 gh는 자식 프로세스라 훅에 안 걸림) |
 | **의도 라우터** (UserPromptSubmit) | `route-intent.mjs` — 매 프롬프트마다 git/PR 상태에서 현재 하네스 단계를 판정해, "진행해/해줘" 류 캐주얼 지시일 때 **다음 단계 스킬 호출을 컨텍스트에 주입**(열린 PR→`/pr-review-gate`·솔로면 `/solo-merge`, feature 브랜치+커밋→`/feature-merge` 등). 반사적 맨손 gh/git 대신 스킬을 쓰게 유도. read-only·fail-open(상태 불명확/비-actionable엔 무주입) |
 | **마일스톤 커맨드** | `/milestone` — 제품·마일스톤 정의→기능 분해→GitHub 마일스톤 생성→진행률 대시보드. `/plan` 위에 놓이는 목표 레이어. Claude Code 내장 `/goal`(세션 stopping condition)과 보완 관계 |
 | **계획 커맨드** | `/plan` — 스펙·플랜·태스크 분해(git 무관, `docs/specs/` 산출). 코드 전에 의도·수용기준 박제 |

@@ -20,8 +20,13 @@ deny() {
   ts=$(date +%Y-%m-%dT%H:%M:%S 2>/dev/null)
   sid=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('session_id','?'))" 2>/dev/null) || sid="?"
   cwd=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cwd','?'))" 2>/dev/null) || cwd="?"
-  # cmd는 한 줄로 정제(개행→공백) + 길이 제한 — 로그 한 줄/엔트리 보장
-  cmd1=$(printf '%s' "${COMMAND:-}" | tr '\n\r\t' '   ' | cut -c1-200)
+  # cmd는 한 줄로 정제(개행→공백) + 시크릿 마스킹(URL 박힌 크레덴셜·gh 토큰·PAT) + 길이 제한.
+  # 차단된 명령을 평문 로깅하므로, 토큰이 섞인 명령(예: https://x:TOKEN@host)이 로그에 남지 않게 마스킹.
+  cmd1=$(printf '%s' "${COMMAND:-}" | tr '\n\r\t' '   ' \
+    | sed -E -e 's#(https?://)[^@ ]*@#\1***@#g' \
+             -e 's#gh[pousr]_[A-Za-z0-9]{20,}#gh_***#g' \
+             -e 's#github_pat_[A-Za-z0-9_]{20,}#github_pat_***#g' \
+    | cut -c1-200)
   { printf '%s session=%s cwd=%s DENY %s | cmd=%s\n' "${ts:-?}" "${sid:-?}" "${cwd:-?}" "$reason" "$cmd1" >> "$GUARD_LOG"; } 2>/dev/null
   echo "⛔ [guard] $reason" >&2
   [[ -n "$hint" ]] && echo "   해결: $hint" >&2
@@ -65,6 +70,24 @@ if echo "$COMMAND" | grep -qE "git push.*(--force|-f)\b|git push.*\+(main|develo
      echo "$COMMAND" | grep -qE "origin[[:space:]]+(main|develop)([[:space:]]|$)|:(main|develop)([[:space:]]|$)|\+(main|develop)([[:space:]]|$)"; then
     deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
   fi
+fi
+
+# 맨손 gh pr create / gh pr merge 금지 — PR 생성·머지는 스킬(래퍼 스크립트) 경유만 허용.
+# 스킬은 scripts/pr-create.sh·pr-merge.sh를 호출하고, 그 안의 gh는 자식 프로세스라 이 PreToolUse 훅에
+# 걸리지 않는다(훅은 Claude의 Bash 도구 호출만 본다). raw gh pr create/merge를 직접 치는 반사적
+# 맨손질만 차단한다. (난독화 우회 — temp 스크립트에 gh 숨기기 — 는 plan에서 제외한 범위.)
+# 명령 *위치*에서만 매칭 — grep/echo 등의 "gh pr create" 문자열 언급은 통과(오탐 방지).
+# 분리자: 문자열 시작 `^`, `; & (`, 그리고 **공백 동반 파이프 `| `**(셸 파이프 — echo y | gh pr merge,
+#   cat body | gh pr create --body-file - 류 실재 호출을 잡는다). 무공백 `|gh`는 정규식 alternation
+#   (grep "a|gh pr create")일 확률이 높아 분리자로 보지 않는다(따옴표 인식 불가라 이 휴리스틱으로 절충).
+# 후행: 공백·끝·`) ; & |`(서브셸 닫힘 $(gh pr create)·체인·파이프아웃).
+# 알려진 한계(보조 장치, 최종 강제는 계층0): `echo y|gh pr merge`(무공백 파이프)·따옴표 안 명령·
+#   env-prefix·temp 스크립트 난독화는 못 잡는다.
+if echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+create([[:space:]);&|]|$)"; then
+  deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다."
+fi
+if echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+merge([[:space:]);&|]|$)"; then
+  deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다."
 fi
 
 # git reset --hard 금지

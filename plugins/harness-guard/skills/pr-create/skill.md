@@ -28,52 +28,27 @@ effort: low
 
 ## 실행 절차
 
-### 1. 브랜치 상태 + base 감지 (직접 실행)
-
-```bash
-BRANCH=$(git branch --show-current)
-[ -z "$BRANCH" ] && { echo "detached HEAD — feature/* 또는 fix/* 브랜치에서 실행하세요."; exit 1; }
-git status --short
-
-# base 감지: origin에 develop 있으면 develop, 없으면 origin 기본 브랜치(보통 main)
-# 주의: ls-remote 패턴은 ref tail 매칭이라 'develop'만 주면 foo/develop도 매칭됨 → 정확 매칭 anchor.
-BASE=main
-HEADS=$(git ls-remote --heads origin 2>/dev/null)        # 원격 질의(네트워크)
-if [ -n "$HEADS" ]; then                                  # 원격 도달 성공 → 원격 진실
-  if echo "$HEADS" | grep -q 'refs/heads/develop$'; then
-    BASE=develop
-  else
-    BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
-  fi
-elif git show-ref --verify --quiet refs/remotes/origin/develop; then  # 오프라인 → 로컬 캐시 폴백
-  BASE=develop
-else
-  BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##')
-fi
-[ -z "$BASE" ] && BASE=main
-echo "감지된 base: $BASE"
-```
-
-`BRANCH == $BASE`이면 중단 조건 3 발동.
-
-### 2. 최종 품질 검증 (직접 실행)
+### 1. 최종 품질 검증 (직접 실행)
 
 **repo의 `AGENTS.md` "빌드·테스트 명령" 섹션**의 품질 검증 명령(lint + test + build)을 실행한다.
 (AGENTS.md가 없거나 prose-only repo면 해당 검증을 생략한다 — 예: team-harness는 `tests/*.sh` 게이트.)
 
 실패 시 → **즉시 중단**. 품질 문제 해결 후 재실행.
 
-### 3. push + PR 생성 (직접 실행)
+### 2. PR 생성 — 래퍼 스크립트 실행 (직접 실행)
+
+> ⛔ 맨손 `gh pr create`는 guard가 차단한다(반사적 우회 방지). **반드시 아래 스크립트로** 생성한다.
+> 스크립트가 base 자동 감지(develop 있으면 develop, 없으면 기본 브랜치) · push · `gh pr create`를 수행한다(내부 gh는 자식 프로세스라 guard에 안 걸린다).
 
 ```bash
-git push -u origin "$BRANCH"
-gh pr create --base "$BASE" --head "$BRANCH" \
+bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh \
   --title "<타입(scope): 요약>" --body "<무엇을·왜·검증>"
+# base를 강제해야 하면(hotfix/release 등) --base <branch> 추가.
 ```
 
 PR 번호를 출력한다.
 
-### 4. 다음 단계 안내 (머지하지 않음)
+### 3. 다음 단계 안내 (머지하지 않음)
 
 `/pr-create`는 **PR 생성까지만** 한다 — 머지는 별도 게이트가 소유한다:
 - **리뷰 게이트**: `pr-review-gate` 1~3단계(AI 리뷰 대기·이슈 처리·스레드 reply+resolve).

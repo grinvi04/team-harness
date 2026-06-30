@@ -121,9 +121,9 @@ gh api "repos/$OWNER_REPO/commits/$HEAD_SHA/status" \
 
 ## 7. 머지
 
-이슈 처리·스레드 resolve(0건)·사람 승인·CI·commit-status 모두 통과 후:
+이슈 처리·스레드 resolve(0건)·사람 승인·CI·commit-status 모두 통과 후, **머지 래퍼**로 머지한다(맨손 `gh pr merge`는 guard가 차단 — 래퍼가 CI·스레드·mergeable 게이트를 재검증한 뒤 머지):
 ```bash
-gh pr merge "$PR" --merge
+bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-merge.sh "$PR"
 ```
 
 ## 부록 — back-merge PR 간소 게이트

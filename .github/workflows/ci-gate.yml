@@ -19,6 +19,8 @@ jobs:
       - name: 쉘 구문 검사
         run: |
           bash -n plugins/harness-guard/scripts/guard.sh
+          bash -n plugins/harness-guard/scripts/pr-create.sh
+          bash -n plugins/harness-guard/scripts/pr-merge.sh
           bash -n templates/githooks/pre-commit
           bash -n .githooks/pre-commit
           bash -n tests/guard-test.sh

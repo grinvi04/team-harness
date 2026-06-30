@@ -340,7 +340,8 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 PR 생성 시 마일스톤을 지정한다 — GitHub이 자동으로 `closed_issues`를 올린다:
 ```bash
-gh pr create --milestone "<slug>" ...
+# PR 생성은 pr-create 래퍼 경유(맨손 gh pr create는 guard 차단) — 마일스톤은 --milestone로 전달
+bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh --milestone "<slug>" --title "..." --body "..."
 # 또는 기존 PR에 추가
 gh pr edit <PR번호> --milestone "<slug>"
 ```
