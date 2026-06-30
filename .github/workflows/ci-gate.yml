@@ -23,18 +23,22 @@ jobs:
           bash -n .githooks/pre-commit
           bash -n tests/guard-test.sh
           bash -n tests/route-intent-test.sh
+          bash -n tests/merge-permissions-test.sh
+          bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/route-intent.mjs
+          node --check scripts/merge-permissions.mjs
 
       - name: JSON 유효성 검사
         run: |
           python3 - <<'EOF'
-          import json
-          for p in [
+          import json, glob
+          paths = [
               "plugins/harness-guard/.claude-plugin/plugin.json",
               "plugins/harness-guard/hooks/hooks.json",
               ".claude-plugin/marketplace.json",
               "templates/settings.json",
-          ]:
+          ] + sorted(glob.glob("templates/permissions/*.json"))
+          for p in paths:
               json.load(open(p))
               print("OK", p)
           EOF
@@ -44,6 +48,9 @@ jobs:
 
       - name: 의도 라우터 테스트
         run: bash tests/route-intent-test.sh
+
+      - name: 권한 병합 테스트
+        run: bash tests/merge-permissions-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest

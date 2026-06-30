@@ -110,6 +110,20 @@ copy_once "$HARNESS_DIR/templates/CLAUDE.md"                 CLAUDE.md          
 copy_once "$HARNESS_DIR/templates/settings.json"             .claude/settings.json      ".claude/settings.json"
 copy_once "$HARNESS_DIR/templates/PULL_REQUEST_TEMPLATE.md"  .github/PULL_REQUEST_TEMPLATE.md "PR 템플릿"
 
+# 스택별 dev 권한을 커밋 settings.json에 병합 (공통 베이스라인은 템플릿에 이미 포함).
+# dev 권한 단일출처 = 커밋 settings.json — settings.local.json은 폐지(진짜 머신-특정만).
+if [[ ${#STACK_RULES[@]} -gt 0 && -f .claude/settings.json ]]; then
+  RULES_CSV=$(IFS=,; echo "${STACK_RULES[*]}")
+  DOCKER_FLAG=""
+  printf '%s\n' "${STACK_RULES[@]}" | grep -qxE 'java|python|prisma' && DOCKER_FLAG="--docker"
+  if node "$HARNESS_DIR/scripts/merge-permissions.mjs" --base .claude/settings.json \
+       --rules "$RULES_CSV" $DOCKER_FLAG --fragments "$HARNESS_DIR/templates/permissions" --write; then
+    echo "  ✅  .claude/settings.json 스택 권한 병합 ($RULES_CSV${DOCKER_FLAG:+ +docker})"
+  else
+    echo "  ❌  스택 권한 병합 실패 — .claude/settings.json 수동 확인 필요 (베이스라인만 적용됨)" >&2
+  fi
+fi
+
 # 스택별 rules 파일 복사
 if [[ ${#STACK_RULES[@]} -gt 0 ]]; then
   mkdir -p .claude/rules
