@@ -228,7 +228,7 @@
 
   <!-- 히어로 -->
   <section class="hero" id="top">
-    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.10.1</div>
+    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.14.2</div>
     <h1>team-harness</h1>
     <p class="lead">
       AI 코딩 에이전트를 팀에서 안전하게 쓰기 위한 거버넌스 레이어.<br>
@@ -238,7 +238,7 @@
       <div class="stat"><div class="n">14</div><div class="l">Skills</div></div>
       <div class="stat"><div class="n">5</div><div class="l">방어 계층</div></div>
       <div class="stat"><div class="n">6</div><div class="l">스택 템플릿</div></div>
-      <div class="stat"><div class="n">6</div><div class="l">가드 규칙</div></div>
+      <div class="stat"><div class="n">7</div><div class="l">가드 규칙</div></div>
     </div>
   </section>
 
@@ -270,7 +270,7 @@
   <h2 id="arch">아키텍처</h2>
   <div class="layers">
     <div class="layer l3"><span class="lv">계층 3</span><span class="lw">역할별 에이전트 (security-reviewer 등)</span><span class="scope">Claude Code</span></div>
-    <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 10종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code</span></div>
+    <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 15종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code</span></div>
     <div class="layer l1"><span class="lv">계층 1</span><span class="lw">AGENTS.md + .claude/ 설정 (플러그인·rules)</span><span class="scope">clone한 전원</span></div>
     <div class="layer l05"><span class="lv">계층 0.5</span><span class="lw">git pre-commit hook (시크릿 검출)</span><span class="scope">전원</span></div>
     <div class="layer l0"><span class="lv">계층 0</span><span class="lw">branch protection + CI gate — 우회 불가</span><span class="scope">전원 · 모든 도구</span></div>
@@ -300,6 +300,11 @@
       <div class="name">/feature-modify</div>
       <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-high">effort: high</span></div>
       <div class="desc">기존 기능 수정. 변경 대상만 RED, 나머지 GREEN 유지. 회귀 방지에 집중.</div>
+    </div>
+    <div class="sk">
+      <div class="name">/pr-create</div>
+      <div class="badges"><span class="badge auto">Claude 자동 가능</span></div>
+      <div class="desc">base 자동감지(develop 있으면 develop, 없으면 기본 브랜치) PR 생성 단일 프리미티브. 맨손 <code>gh pr create</code> 대체 — develop 없는 main 기반 repo도 한 경로로. feature-merge·hotfix·release가 이 스크립트를 호출.</div>
     </div>
     <div class="sk">
       <div class="name">/feature-merge</div>
@@ -367,7 +372,7 @@
 
   <!-- 가드 -->
   <h2 id="guard">가드 훅</h2>
-  <p>모든 Bash 명령 실행 전 <code>PreToolUse</code> 훅이 <code>guard.sh</code>를 실행한다. 차단 시 Claude가 멈추고 사유를 출력하며, <b>차단 이력을 <code>~/.claude/hooks/guard-block.log</code>(session_id·cwd·명령)에 기록</b>해 멀티세션 위반 시도를 감사할 수 있다.</p>
+  <p>모든 Bash 명령 실행 전 <code>PreToolUse</code> 훅이 <code>guard.sh</code>를 실행한다. 차단 시 Claude가 멈추고 사유를 출력하며, <b>차단 이력을 <code>~/.claude/hooks/guard-block.log</code>(session_id·cwd·명령 — 크레덴셜·토큰은 마스킹)에 기록</b>해 멀티세션 위반 시도를 감사할 수 있다.</p>
 
   <div class="guards">
     <div class="guard">
@@ -393,6 +398,10 @@
     <div class="guard">
       <div class="rule">⛔ npm install -g 금지</div>
       <div class="why">글로벌 Node 환경 오염 방지. 로컬 설치(<code>--save-dev</code>) 또는 <code>npx</code> 사용.</div>
+    </div>
+    <div class="guard">
+      <div class="rule">⛔ 맨손 gh pr create·gh pr merge 금지</div>
+      <div class="why">PR 생성·머지는 래퍼 스크립트(<code>pr-create.sh</code>·<code>pr-merge.sh</code>) 경유만 — 반사적 맨손 gh 차단. 스킬이 스크립트를 호출(내부 gh는 자식 프로세스라 훅에 안 걸림).</div>
     </div>
   </div>
 
@@ -513,12 +522,12 @@
     <span class="garrow">›</span>
     <div class="gate" style="border-color:var(--accent)">
       <div class="gn" style="color:var(--accent)">머지</div>
-      <div class="gs">gh pr merge</div>
+      <div class="gs">pr-merge.sh<br>게이트 래퍼</div>
     </div>
   </div>
   <p>AI 리뷰(<code>claude-code-action</code>)는 인라인 코멘트로 제안을 남긴다. 제안을 처리하고 스레드를 resolve한 뒤에도 <b>사람 승인은 별도로 필요</b>하다 — AI 리뷰가 사람을 대체하지 않는다.</p>
   <div class="callout warn">
-    <b>솔로 개발자</b> — GitHub에서 자기 PR을 승인할 수 없다. <code>/solo-merge</code>가 CI·스레드 확인 등 품질 게이트를 모두 통과시킨 뒤 승인 요건만 <code>--admin</code>으로 우회하고 즉시 검증한다.
+    <b>솔로 개발자</b> — GitHub에서 자기 PR을 승인할 수 없다. <code>/solo-merge</code>가 CI·스레드 확인 등 품질 게이트를 모두 통과시킨 뒤 승인 요건만 <code>required_pull_request_reviews</code> 일시 삭제로 우회하고 즉시 복구·검증한다(<code>--admin</code>/enforce_admins 토글은 GitHub 변경으로 더 이상 작동 안 함).
   </div>
 
   <!-- 스택 템플릿 -->

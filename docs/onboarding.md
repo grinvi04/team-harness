@@ -1,5 +1,11 @@
 # 신규 프로젝트 / 신규 팀원 온보딩
 
+> **가시성·라이선스(개인/솔로 코드 프로젝트)**: **public repo + MIT 라이선스**가 기본.
+> 사유 — GitHub Free는 **public repo에서만 branch protection 무료**(계층0 강제의 전제)라, "강제는 서버에"가
+> 솔로에서도 성립하려면 public이어야 한다. private가 필요하면 Pro. **예외**: 거버넌스 메타 repo(team-harness 자체)·
+> 프로필/문서 전용 repo는 private 가능(그 경우 protection은 못 걸리니 `/solo-merge`+사람 승인에 의존).
+> (정본: 이 문서 + `decisions.md` 가시성·라이선스 행)
+
 ## A. 신규 프로젝트 셋업 (프로젝트 리드, 1회)
 
 ### 1. 기계 셋업 — 스크립트 1회 실행
