@@ -44,6 +44,10 @@
 상세 표준의 단일 출처: `github.com/grinvi04/team-harness/docs` (사내 git 이전 시 주소 교체)
 필요 시 `gh api repos/grinvi04/team-harness/contents/docs/<파일>` 또는 클론으로 조회한다.
 
+> **이 repo의 설계 결정·도메인 지식은 `docs/decisions.md`에 누적한다.** 비자명한 선택·제약·"왜 이렇게 했나"를
+> 여기 기록 — **도구 로컬 AI 메모리(예: `~/.claude` 메모리)에 두지 않는다**(다른 PC·세션·사람이 못 보고 유실).
+> 로컬 메모리는 팀 공유 불필요한 *개인 작업습관*에만 최소로. (정본: `ai-collaboration.md`)
+
 | 영역 | 문서 | 핵심 |
 |---|---|---|
 | API | api-standards.md | 공통 Envelope, 에러코드 체계, offset 페이지네이션 |
@@ -51,7 +55,7 @@
 | 인증·인가 | auth-standards.md | Keycloak OIDC, RBAC 권한코드+데이터 스코프 |
 | 코드 구조 | clean-architecture.md | 도메인 모듈 1차 경계, 모듈 간 api/·도메인 이벤트로만 통신 |
 | 리뷰·커밋 | code-review.md | Conventional Commits(타입 영어+본문 한국어), PR 규칙 |
-| AI 협업 | ai-collaboration.md | 책임 원칙, 금지사항 |
+| AI 협업 | ai-collaboration.md | 책임 원칙, 금지사항, 결정·지식→docs/decisions.md(로컬 메모리 최소) |
 | 운영·로깅 | operations.md | 로그 레벨 기준(ERROR=알람), traceId 전파 |
 | README | readme-standards.md | 루트 README 양식(섹션 순서·뱃지·mermaid·시작하기), `templates/README.template.md` |
 | 프론트 디자인 | frontend-design-standards.md | 디자인 토큰(하드코딩색 금지·차트팔레트·status)·앱셸·공통 컴포넌트(DataTable·FormField·StatCard·ChartCard·차트)·base-ui/recharts/React 함정·다크/반응형/a11y/정직한 UI |
