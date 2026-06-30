@@ -119,6 +119,8 @@ if [[ ${#STACK_RULES[@]} -gt 0 && -f .claude/settings.json ]]; then
   if node "$HARNESS_DIR/scripts/merge-permissions.mjs" --base .claude/settings.json \
        --rules "$RULES_CSV" $DOCKER_FLAG --fragments "$HARNESS_DIR/templates/permissions" --write; then
     echo "  ✅  .claude/settings.json 스택 권한 병합 ($RULES_CSV${DOCKER_FLAG:+ +docker})"
+  else
+    echo "  ❌  스택 권한 병합 실패 — .claude/settings.json 수동 확인 필요 (베이스라인만 적용됨)" >&2
   fi
 fi
 

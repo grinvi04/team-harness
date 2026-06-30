@@ -63,6 +63,12 @@ assert_out \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(docker-compose *)' in a else 1)" \
   --base "$FIX/base.json" --rules typescript --docker --fragments "$FRAGS"
 
+# AC7: --rules 값 공백 trim — ' typescript '(앞뒤 공백)도 node 병합 (코드리뷰 반영)
+assert_out \
+  "AC7: --rules ' typescript '(공백) → trim 후 node 병합" \
+  "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(npm run *)' in a else 1)" \
+  --base "$FIX/base.json" --rules " typescript " --fragments "$FRAGS"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
