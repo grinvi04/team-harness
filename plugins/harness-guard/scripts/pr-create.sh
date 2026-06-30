@@ -19,13 +19,19 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# title/body는 함께 주거나 둘 다 생략(--fill). 한쪽만은 gh가 비대화형에서 에러 → push 전에 거절.
+if { [ -n "$TITLE" ] && [ -z "$BODY" ]; } || { [ -z "$TITLE" ] && [ -n "$BODY" ]; }; then
+  echo "pr-create.sh: --title과 --body는 함께 주세요(둘 다 생략 시 --fill 사용)." >&2; exit 2
+fi
+
 BRANCH=$(git branch --show-current)
 [ -z "$BRANCH" ] && { echo "detached HEAD — feature/* 또는 fix/* 브랜치에서 실행하세요." >&2; exit 2; }
 case "$BRANCH" in
   main|develop) echo "현재 브랜치가 base($BRANCH)입니다 — feature/fix 브랜치에서 실행하세요." >&2; exit 2;;
 esac
-if [ -n "$(git status --porcelain)" ]; then
-  echo "미커밋 변경사항이 있습니다 — 커밋 또는 stash 후 재실행하세요." >&2; exit 2
+# 추적 파일의 dirty 상태만 차단(untracked 스크래치 파일은 PR에 안 들어가므로 무시).
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+  echo "미커밋 변경사항이 있습니다(추적 파일) — 커밋 또는 stash 후 재실행하세요." >&2; exit 2
 fi
 
 # base 감지(미지정 시): origin 도달되면 원격 진실, 아니면 로컬 캐시 폴백

@@ -34,19 +34,24 @@ else
   echo "  CI: required green"
 fi
 
-# 2) 미해결 리뷰 스레드 0
+# 2) 미해결 리뷰 스레드 0 — fail-CLOSED(쿼리 실패=검증 불가 → 중단). CI·mergeable 게이트와 일관.
 UNRESOLVED=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved}}}}}' \
   -F o="$OWNER" -F n="$NAME" -F p="$PR" \
-  --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false)]|length' 2>/dev/null || echo 0)
-if [ "${UNRESOLVED:-0}" != "0" ]; then
-  echo "  ⛔ 미해결 리뷰 스레드 ${UNRESOLVED}건 — 머지 중단" >&2; exit 1
+  --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false)]|length' 2>/dev/null) || UNRESOLVED="ERR"
+if [ "$UNRESOLVED" != "0" ]; then
+  echo "  ⛔ 미해결 리뷰 스레드 미통과(값=$UNRESOLVED · ERR=API오류) — 머지 중단" >&2; exit 1
 fi
 echo "  미해결 스레드: 0"
 
-# 3) mergeable
-MERGEABLE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable)
+# 3) mergeable — push 직후 GitHub가 비동기 계산 중이면 UNKNOWN을 줄 수 있어 잠깐 폴링.
+MERGEABLE=""
+for _ in 1 2 3 4; do
+  MERGEABLE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable)
+  [ "$MERGEABLE" != "UNKNOWN" ] && break
+  sleep 2
+done
 if [ "$MERGEABLE" != "MERGEABLE" ]; then
-  echo "  ⛔ mergeable=$MERGEABLE (충돌 등) — 머지 중단" >&2; exit 1
+  echo "  ⛔ mergeable=$MERGEABLE (충돌 또는 계산 미완) — 머지 중단" >&2; exit 1
 fi
 echo "  mergeable: MERGEABLE"
 
