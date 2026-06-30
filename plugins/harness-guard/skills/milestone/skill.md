@@ -306,7 +306,7 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 
 ```bash
 # PR 생성은 pr-create 래퍼 경유(맨손 gh pr create는 guard 차단) — 마일스톤은 --milestone로 전달
-bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-create.sh --milestone "<slug>" --title "..." --body "..."
+bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --milestone "<slug>" --title "..." --body "..."
 gh pr edit <PR번호> --milestone "<slug>"
 ```
 

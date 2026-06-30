@@ -58,4 +58,6 @@
 
 | 스킬 간 참조는 **3종으로 구분**(섞지 말 것): ① **메커니즘**(`gh pr create/merge` 실제 실행) = **래퍼 스크립트**(`bash scripts/pr-create.sh`·`pr-merge.sh`) — guard 강제 대상, 모든 PR 스킬이 이걸 참조. ② **절차 위임**(리뷰 게이트 = AI 리뷰 스레드 처리·사람 승인·CI watch·머지 오케스트레이션) = **스킬 참조**(`pr-review-gate N단계`) — 다단계+판단/상호작용이라 스크립트로 못 감쌈(그 안의 머지 1줄만 pr-merge.sh). ③ **워크플로 핸드오프**("다음은 /feature-merge") = **스킬 이름**. **②③를 래퍼 참조로 바꾸면 안 됨**(절차가 사라짐). 즉 "왜 어떤 건 스크립트, 어떤 건 스킬?"의 답: gh 실행=스크립트, 절차·핸드오프=스킬 | 2026-06-30 | docs/decisions.md | 전 PR 스킬(메커니즘=스크립트, 게이트=pr-review-gate 위임) |
 
+| 스킬의 스크립트 참조 이식성: 절대경로 `/Users/grinvi04/team-harness/...`(사용자명 하드코딩 → 다른 PC서 깨짐)를 **`${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}` 폴백형**으로 통일. 사유: 훅(hooks.json)은 런타임이 `CLAUDE_PLUGIN_ROOT`를 주입하지만 **스킬 prose의 bash엔 그 변수가 없을 수 있어**, 변수 있으면 사용·없으면 `$HOME/team-harness`(클론 위치 관행)로 폴백 → 사용자명 무관 이식. 대상: pr-create.sh·pr-merge.sh·check-repo-sync.mjs 참조 9개 스킬. hooks.json은 런타임 변수가 보장돼 bare 유지 | 2026-06-30 | plugins/harness-guard/skills/*/skill.md | (포터블 경로 컨벤션) |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
