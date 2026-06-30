@@ -53,11 +53,11 @@ gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable
 REVIEWS_CONFIG=$(gh api "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews" 2>/dev/null)
 REVIEW_COUNT=$(echo "$REVIEWS_CONFIG" | python3 -c "import sys,json; print(json.load(sys.stdin)['required_approving_review_count'])" 2>/dev/null || echo "1")
 
-# review 요건 일시 삭제
+# review 요건 일시 삭제 (보호가 있는 repo만 — 보호 없으면 이 DELETE/PATCH는 생략)
 gh api -X DELETE "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews"
 
-# 머지
-gh pr merge "$PR" --repo "$OWNER_REPO" --merge --delete-branch
+# 머지 — 맨손 gh pr merge는 guard가 차단. 래퍼가 CI·스레드·mergeable 게이트 재검증 후 머지.
+bash /Users/grinvi04/team-harness/plugins/harness-guard/scripts/pr-merge.sh "$PR"
 
 # 즉시 복구
 gh api -X PATCH "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews" \
