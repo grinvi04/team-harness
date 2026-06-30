@@ -60,4 +60,6 @@
 
 | 스킬의 스크립트 참조 이식성: 절대경로 `/Users/grinvi04/team-harness/...`(사용자명 하드코딩 → 다른 PC서 깨짐)를 **`${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}` 폴백형**으로 통일. 사유: 훅(hooks.json)은 런타임이 `CLAUDE_PLUGIN_ROOT`를 주입하지만 **스킬 prose의 bash엔 그 변수가 없을 수 있어**, 변수 있으면 사용·없으면 `$HOME/team-harness`(클론 위치 관행)로 폴백 → 사용자명 무관 이식. 대상: pr-create.sh·pr-merge.sh·check-repo-sync.mjs 참조 9개 스킬. hooks.json은 런타임 변수가 보장돼 bare 유지 | 2026-06-30 | plugins/harness-guard/skills/*/skill.md | (포터블 경로 컨벤션) |
 
+| AI 지식 저장 정책 표준화: **프로젝트 결정·도메인 지식은 repo `docs/decisions.md`에 누적, 도구 로컬 AI 메모리는 팀 공유 불필요한 개인 습관·행동교정에만 최소 사용**(팀 지식 저장소로 안 씀). 사유: 로컬 메모리는 다른 PC·세션·사람이 못 보고 유실 → 팀이 알아야 할 건 전부 repo docs로. 기존 표준은 "생성 문서→docs/ 커밋"까지만이고 "결정→decisions.md + 메모리 최소"는 미문서화라 신규 repo가 상속 못 함 → ai-collaboration.md에 정책 추가 + templates/AGENTS.md에 "이 repo 결정은 docs/decisions.md" 지침·표 행 추가(신규 repo 상속). 기존 프로젝트(erp·siku는 main에만, DriveTree·webhook 없음)는 decisions.md를 develop에 전파·생성 필요(후속) | 2026-06-30 | docs/ai-collaboration.md | templates/AGENTS.md, (각 프로젝트 docs/decisions.md) |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
