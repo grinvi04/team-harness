@@ -155,6 +155,126 @@ else
   echo "FAIL: AC-5b: 비-repo서 주입됨 | 출력: $_out"; FAIL=$((FAIL+1))
 fi
 
+# ── 신규 라우트 확장 케이스 (v0.12.0) ────────────────────────────────────
+
+echo ""
+echo "=== 신규 라우트 확장 케이스 (v0.12.0) ==="
+
+# Route 2 — 릴리즈 (develop 브랜치 한정)
+check_grep "Route2-a: 릴리즈해+develop → skill=release-check" \
+  '"skill":"release-check"' \
+  --prompt "릴리즈해" --branch "develop"
+
+check_grep "Route2-b: 배포해+develop → skill=release-check" \
+  '"skill":"release-check"' \
+  --prompt "배포해" --branch "develop"
+
+check_no_grep "Route2-c: 릴리즈해+feature/x(develop 아님) → inject=false" \
+  '"inject":true' \
+  --prompt "릴리즈해" --branch "feature/x"
+
+# Route 3 — 핫픽스
+check_grep "Route3-a: 핫픽스 진행해 → skill=hotfix" \
+  '"skill":"hotfix"' \
+  --prompt "핫픽스 진행해" --branch "main"
+
+check_grep "Route3-b: 긴급 수정해야 해 → skill=hotfix" \
+  '"skill":"hotfix"' \
+  --prompt "긴급 수정해야 해" --branch "main"
+
+# Route 5 — QA
+check_grep "Route5-a: qa 해줘 → skill=qa" \
+  '"skill":"qa"' \
+  --prompt "qa 해줘" --branch "develop"
+
+check_grep "Route5-b: 접근성 검사 해줘 → skill=qa" \
+  '"skill":"qa"' \
+  --prompt "접근성 검사 해줘" --branch "develop"
+
+check_no_grep "Route5-c: a11y 확인해줘 → inject=false (확인 veto)" \
+  '"inject":true' \
+  --prompt "a11y 확인해줘" --branch "develop"
+
+# Route 6 — repo-sync
+check_grep "Route6-a: 드리프트 점검해줘 → skill=repo-sync" \
+  '"skill":"repo-sync"' \
+  --prompt "드리프트 점검해줘" --branch "develop"
+
+check_grep "Route6-b: 동기화 해줘 → skill=repo-sync" \
+  '"skill":"repo-sync"' \
+  --prompt "동기화 해줘" --branch "develop"
+
+# Route 7 — loop
+check_grep "Route7-a: 루프 돌려줘 → skill=loop" \
+  '"skill":"loop"' \
+  --prompt "루프 돌려줘" --branch "develop"
+
+check_grep "Route7-b: 통과까지 반복해줘 → skill=loop" \
+  '"skill":"loop"' \
+  --prompt "통과까지 반복해줘" --branch "develop"
+
+# Route 8 — milestone
+check_grep "Route8-a: 마일스톤 진행해줘 → skill=milestone" \
+  '"skill":"milestone"' \
+  --prompt "마일스톤 진행해줘" --branch "develop"
+
+check_no_grep "Route8-b: 목표 달성률 보여줘 → inject=false (보여 veto)" \
+  '"inject":true' \
+  --prompt "목표 달성률 보여줘" --branch "develop"
+
+# Route 9 — plan
+check_grep "Route9-a: 계획 세워줘 → skill=plan" \
+  '"skill":"plan"' \
+  --prompt "계획 세워줘" --branch "develop"
+
+check_grep "Route9-b: 스펙 짜줘 → skill=plan" \
+  '"skill":"plan"' \
+  --prompt "스펙 짜줘" --branch "develop"
+
+# Route 10 — feature-add (develop 한정)
+check_grep "Route10-a: 로그인 기능 만들어줘+develop → skill=feature-add" \
+  '"skill":"feature-add"' \
+  --prompt "로그인 기능 만들어줘" --branch "develop"
+
+check_grep "Route10-b: 알림 기능 추가해줘+develop → skill=feature-add" \
+  '"skill":"feature-add"' \
+  --prompt "알림 기능 추가해줘" --branch "develop"
+
+check_no_grep "Route10-c: 로그인 기능 만들어줘+feature/x → inject=false (Route10 조건 불충족)" \
+  '"inject":true' \
+  --prompt "로그인 기능 만들어줘" --branch "feature/x"
+
+# Route 11 — feature-modify (develop 한정)
+check_grep "Route11-a: 로그인 버그 수정해줘+develop → skill=feature-modify" \
+  '"skill":"feature-modify"' \
+  --prompt "로그인 버그 수정해줘" --branch "develop"
+
+check_grep "Route11-b: 프로필 기능 고쳐줘+develop → skill=feature-modify" \
+  '"skill":"feature-modify"' \
+  --prompt "프로필 기능 고쳐줘" --branch "develop"
+
+# Route 12 — fallback + 상태 추론 (기존 AC-1d 유지 확인)
+check_grep "Route12-a: 진행해+develop+hasSpec → skill=feature-add" \
+  '"skill":"feature-add"' \
+  --prompt "진행해" --branch "develop" --has-spec
+
+# 오버트리거 방지
+check_no_grep "OT-a: 릴리즈 일정 확인해줘 → inject=false (확인 veto)" \
+  '"inject":true' \
+  --prompt "릴리즈 일정 확인해줘" --branch "develop"
+
+check_no_grep "OT-b: sync 상황 요약해줘 → inject=false (요약 veto)" \
+  '"inject":true' \
+  --prompt "sync 상황 요약해줘" --branch "develop"
+
+check_no_grep "OT-c: 핫픽스 내용이 뭐야? → inject=false (뭐 veto)" \
+  '"inject":true' \
+  --prompt "핫픽스 내용이 뭐야?" --branch "main"
+
+check_no_grep "OT-d: qa 결과 알려줘 → inject=false (알려 veto)" \
+  '"inject":true' \
+  --prompt "qa 결과 알려줘" --branch "develop"
+
 # ── 결과 ──────────────────────────────────────────────────────────────────
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
