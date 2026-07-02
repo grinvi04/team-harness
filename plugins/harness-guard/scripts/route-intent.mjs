@@ -16,15 +16,26 @@ import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
 
 // ── 액션어블 판정 ─────────────────────────────────────────────────────────────
-// 조회·분석·질문 신호: 있으면 actionable 아님(오버트리거 방지 — "확인해줘"·"진행상황 알려줘" 등).
+// 조회·분석·질문 신호: 있으면 어떤 라우트도 작동 안 함(전역 veto).
 const NON_ACTIONABLE = [
   '?', '？', '뭐', '뭔', '무엇', '어때', '어떻게', '왜', '언제', '어디', '누가',
   '보여', '알려', '확인', '요약', '설명', '복사', '공유', '검토', '분석', '상황', '비교',
 ]
-// 명확한 실행 지시(한국어 + 최소 영어). substring 매칭이되 위 veto가 먼저 걸러낸다.
+// 제네릭 실행 지시(fallback/route-1용). veto가 먼저 걸러낸다.
 const ACTIONABLE = [
   '진행해', '진행시', '머지', '배포', '릴리즈', '올려줘', '커밋해', '푸시해',
   '고고', 'ㄱㄱ', '계속해', '해줘', 'go ahead', 'merge it', 'proceed', 'ship it',
+]
+// 라우트별 전용 키워드(routes 3~11) — ACTIONABLE에 없는 것만
+const ROUTE_EXTRA_KW = [
+  '핫픽스', '긴급', '장애', 'hotfix',
+  'qa', '접근성', 'a11y', '디자인검증',
+  '드리프트', '동기화', '표준점검', 'sync',
+  '루프', '반복', '통과까지', 'loop',
+  '목표', '마일스톤', '진행률', 'milestone',
+  '계획', '기획', '스펙', 'plan',
+  '만들어', '구현해', '추가해', '개발해',
+  '수정해', '고쳐', '변경해',
 ]
 
 export function isActionable(prompt) {
@@ -33,6 +44,15 @@ export function isActionable(prompt) {
   // veto 먼저 — 조회·분석·질문이면 실행 지시어가 섞여 있어도 actionable 아님
   if (NON_ACTIONABLE.some(kw => p.includes(kw.toLowerCase()))) return false
   return ACTIONABLE.some(kw => p.includes(kw.toLowerCase()))
+}
+
+// 라이브 모드 단락용: veto 통과 + ACTIONABLE 또는 라우트 전용 키워드 포함 여부
+function isRoutable(prompt) {
+  const p = (prompt ?? '').trim().toLowerCase()
+  if (!p) return false
+  if (NON_ACTIONABLE.some(kw => p.includes(kw.toLowerCase()))) return false
+  return ACTIONABLE.some(kw => p.includes(kw.toLowerCase())) ||
+         ROUTE_EXTRA_KW.some(kw => p.includes(kw.toLowerCase()))
 }
 
 // inject=true 결과 빌더 — 주입 메시지 형식의 단일 출처
@@ -50,19 +70,53 @@ const isFeatureBranch = (b) => b.startsWith('feature/') || b.startsWith('fix/')
 // ── 순수 코어 ─────────────────────────────────────────────────────────────────
 export function decide(state) {
   const { prompt, branch = '', committed, openPR, hasSpec, isSolo } = state
+  const p = (prompt ?? '').trim().toLowerCase()
 
-  if (!isActionable(prompt)) return { inject: false }
+  // 전역 veto: 조회·분석·질문이면 어떤 라우트도 작동 안 함
+  if (NON_ACTIONABLE.some(kw => p.includes(kw.toLowerCase()))) return { inject: false }
 
-  // 1. openPR 있음 → 머지 게이트 (최우선). 솔로 repo면 solo-merge.
+  const isDevelop = branch === 'develop'
+  const isFeature = isFeatureBranch(branch)
+  const hasActionable = ACTIONABLE.some(kw => p.includes(kw.toLowerCase()))
+
+  // 1. openPR + 제네릭 actionable → 머지 게이트 (최우선, PR 존재 우선 원칙)
+  if (openPR && hasActionable) return inject(isSolo ? 'solo-merge' : 'pr-review-gate')
+
+  // 2. 릴리즈 [릴리즈/배포/release/deploy] + develop
+  if (isDevelop && /릴리즈|배포|release|deploy/.test(p)) return inject('release-check')
+
+  // 3. 핫픽스 [핫픽스/긴급/장애/hotfix]
+  if (/핫픽스|긴급|장애|hotfix/.test(p)) return inject('hotfix')
+
+  // 4. feature-merge [진행/머지] + feature/fix 브랜치 + committed + PR없음
+  if (!openPR && isFeature && committed && /진행|머지|merge/.test(p)) return inject('feature-merge')
+
+  // 5. QA [qa/접근성/a11y/디자인검증]
+  if (/qa|접근성|a11y|디자인검증/.test(p)) return inject('qa')
+
+  // 6. repo-sync [드리프트/동기화/표준점검/sync]
+  if (/드리프트|동기화|표준점검|sync/.test(p)) return inject('repo-sync')
+
+  // 7. loop [루프/반복/통과까지/loop]
+  if (/루프|반복|통과까지|loop/.test(p)) return inject('loop')
+
+  // 8. milestone [목표/마일스톤/진행률/milestone]
+  if (/목표|마일스톤|진행률|milestone/.test(p)) return inject('milestone')
+
+  // 9. plan [계획/기획/스펙/plan]
+  if (/계획|기획|스펙|plan/.test(p)) return inject('plan')
+
+  // 10. feature-add [만들어/구현해/추가해/개발해] + develop
+  if (isDevelop && /만들어|구현해|추가해|개발해/.test(p)) return inject('feature-add')
+
+  // 11. feature-modify [수정해/고쳐/변경해] + develop
+  if (isDevelop && /수정해|고쳐|변경해/.test(p)) return inject('feature-modify')
+
+  // 12. 제네릭 fallback — 위 키워드 없음, ACTIONABLE 상태 추론
+  if (!hasActionable) return { inject: false }
   if (openPR) return inject(isSolo ? 'solo-merge' : 'pr-review-gate')
-
-  // 2. feature/fix 브랜치 + 커밋됨 → feature-merge (PR 생성)
-  if (isFeatureBranch(branch) && committed) return inject('feature-merge')
-
-  // 3. spec 있고 아직 feature 브랜치 아님 → feature-add (개발 시작)
-  if (hasSpec && !isFeatureBranch(branch)) return inject('feature-add')
-
-  // 4. 판정 신호 없음 → 무주입
+  if (isFeature && committed) return inject('feature-merge')
+  if (hasSpec && !isFeature) return inject('feature-add')
   return { inject: false }
 }
 
@@ -168,8 +222,8 @@ if (_isMain) {
       const prompt = hook.prompt ?? ''
       const cwd = hook.cwd ?? process.cwd()
 
-      // 단락: 비-actionable이면 git/gh 수집을 아예 건너뜀(오버트리거 0 + 비용 0)
-      if (!isActionable(prompt)) { process.exit(0) }
+      // 단락: 라우팅 불가(veto 걸림 또는 키워드 없음)이면 git/gh 수집을 건너뜀(오버트리거 0 + 비용 0)
+      if (!isRoutable(prompt)) { process.exit(0) }
 
       const result = decide(collectState(cwd, prompt))
       if (result.inject) {
