@@ -24,6 +24,7 @@
 아래로 내려갈수록 강제력이 세지고, AI 도구 중립적이 된다.
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#6b7280', 'background': '#f8fafc', 'mainBkg': '#f8fafc', 'fontSize': '14px'}}}%%
 flowchart TD
     L3["<b>계층 3 · 역할별 에이전트</b><br/>security-reviewer 등 — 검증 자동화"]
     L2["<b>계층 2 · harness-guard 플러그인</b><br/>가드 훅 · git-flow 커맨드 · 게이트 스킬"]
@@ -103,6 +104,7 @@ team-harness/
 ### git-flow와 커맨드의 관계
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#6b7280', 'background': '#f8fafc', 'mainBkg': '#f8fafc', 'fontSize': '14px'}}}%%
 flowchart LR
     G["📊 /milestone<br/>목표·마일스톤<br/>(GitHub Milestone)"]
     P["📋 /plan<br/>스펙·플랜·태스크 분해<br/>(git 무관)"]
