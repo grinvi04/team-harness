@@ -82,3 +82,7 @@ Team/Enterprise 없이도 파일 기반 managed settings로 본인 머신에서 
   Gemini CLI는 contextFileName을 AGENTS.md로 설정
 - 가드 훅은 Claude Code 전용이지만, branch protection + CI(계층 0)는
   도구와 무관하게 모두에게 강제된다
+
+## E. 솔로 머지 권한 (auto-mode · 새 머신 1회 셋업)
+
+솔로 환경에서 `/solo-merge`가 main 브랜치 보호의 승인요건을 잠시 조정하려 하면, auto-mode 분류기가 이를 보안 변경으로 보고 차단한다. 이 권한은 **보안 경계상 에이전트가 스스로 부여할 수 없다 — 사람이 1회** `~/.claude/settings.json`의 `permissions.allow`에 해당 허용 규칙을 직접 추가해야 한다(전역이라 모든 repo 적용, 설정은 sync되지 않아 새 PC마다 반복). 규칙 상세는 본인 보안정책에 따라 구성한다.
