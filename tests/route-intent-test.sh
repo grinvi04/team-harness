@@ -111,6 +111,22 @@ check_no_grep "AC-2h: 요약해줘 → inject=false" \
   '"inject":true' \
   --prompt "이 로그 요약해줘" --branch "feature/x" --open-pr 5
 
+# AC-2i~k: 일반 코딩 지시 → inject=false (v0.17.0 오버트리거 방지 — 실증 케이스)
+# "루프"·"접근성"·"동기화"가 /loop·/hotfix·/repo-sync를 키워드 매칭으로 오주입했던 케이스.
+# 상태 기반 라우터(v0.16.x)는 키워드를 보지 않으므로 당연히 PASS.
+# 이 케이스들이 FAIL이면 키워드 기반 로직이 다시 들어온 것 — 즉시 리버트.
+check_no_grep "AC-2i: for 루프 고쳐줘 → inject=false (loop 오버트리거 방지)" \
+  '"inject":true' \
+  --prompt "for 루프 고쳐줘" --branch "develop"
+
+check_no_grep "AC-2j: 장애인 접근성 고쳐줘 → inject=false (hotfix 오버트리거 방지)" \
+  '"inject":true' \
+  --prompt "장애인 접근성 고쳐줘" --branch "develop"
+
+check_no_grep "AC-2k: DB 동기화 로직 만들어줘 → inject=false (repo-sync 오버트리거 방지)" \
+  '"inject":true' \
+  --prompt "DB 동기화 로직 만들어줘" --branch "develop"
+
 # ── AC-3: 상태 불명확 → inject=false ──────────────────────────────────────
 echo ""
 echo "=== AC-3: 상태 불명확 → inject=false ==="
