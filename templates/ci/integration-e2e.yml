@@ -16,7 +16,8 @@ permissions:
   contents: read
 
 jobs:
-  gate:
+  # job명 = required check context (new-repo.sh가 'integration-e2e'로 등록) — 반드시 일치해야 머지가 안 막힘
+  integration-e2e:
     runs-on: ubuntu-latest
     # 셋업 전엔 skip(통과) — 켠 repo만 강제. required check로 등록하면 미설정 시 pending이 아니라 skip 처리됨.
     if: ${{ vars.E2E_ENABLED == 'true' }}
