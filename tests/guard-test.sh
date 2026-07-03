@@ -76,6 +76,24 @@ check "기존 브랜치 전환(-b 없음) 통과"       0 Bash "git checkout fea
 check "git switch -c feature 생성도 차단"    2 Bash "git switch -c feature/noplan"       "$DEV"
 check "git switch -c fix 는 통과"            0 Bash "git switch -c fix/noplan"           "$DEV"
 
+# 엔지니어링 리뷰 guard 하드닝 (G1~G5)
+: > "$DEV/docs/specs/bar.md"
+# G1: non-repo로의 후행 cd로 develop 커밋 가드 우회 불가(cd /tmp는 repo 아님 → 원래 cwd=develop 판정)
+check "G1: commit && cd non-repo → develop 차단 유지" 2 Bash "git commit -m x && cd /tmp" "$DEV"
+check "G1: cd 실제 feature repo && commit 통과"        0 Bash "cd $FEAT && git commit -m x" "$DEV"
+# G2: 무관한 rm + 다른 세그먼트 tests/ 참조 오탐 없음
+check "G2: rm 로그; grep tests/ 오탐 없음"    0 Bash "rm /tmp/x.log; grep foo tests/unit" "$FEAT"
+check "G2npm: echo -g && npm install 오탐 없음" 0 Bash "echo -g && npm install foo"        "$FEAT"
+check "npm ci --global 오탐 없음"             0 Bash "npm ci --global"                    "$FEAT"
+# G3: npm 글로벌 설치는 플래그 순서 무관 차단
+check "G3: npm --global install 차단"        2 Bash "npm --global install leftpad"       "$DEV"
+check "G3: npm i --global 차단"              2 Bash "npm i --global leftpad"             "$DEV"
+# G4: 서브셸 (checkout -b feature/bar) — spec 있으면 ')' 오탐 없이 통과
+check "G4: 서브셸 (checkout -b feature/bar) spec有 통과" 0 Bash "(git checkout -b feature/bar)" "$DEV"
+# G5: git branch 로 feature 생성해도 plan-gate 발동(무 spec 차단), 삭제는 무관
+check "G5: git branch feature/(무spec) 차단"  2 Bash "git branch feature/noplan && git switch feature/noplan" "$DEV"
+check "git branch -d 삭제는 게이트 무관 통과"  0 Bash "git branch -d feature/old"          "$FEAT"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
