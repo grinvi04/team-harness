@@ -51,7 +51,12 @@ if [[ -n "$TARGET_DIR" ]]; then
   TARGET_DIR="${TARGET_DIR//\"/}"
   TARGET_DIR="${TARGET_DIR//\'/}"
   TARGET_DIR="${TARGET_DIR/#\~/$HOME}"
-  [[ -d "$TARGET_DIR" ]] && cd "$TARGET_DIR" 2>/dev/null
+  # TARGET_DIR가 실제 git 작업트리일 때만 추종한다(G1). non-repo로의 후행 cd
+  # (예: `git commit -m x && cd /tmp`)를 따라가 브랜치 판정을 빈 값으로 만들어
+  # 커밋·force-push 가드를 우회하는 것을 막는다 — non-repo면 원래 cwd 기준으로 판정.
+  if [[ -d "$TARGET_DIR" ]] && git -C "$TARGET_DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    cd "$TARGET_DIR" 2>/dev/null
+  fi
 fi
 
 # main/develop 직접 커밋 금지
@@ -77,9 +82,10 @@ fi
 # checkout -b / switch -c 로 feature/<name> 을 만들 때만 발동 — 기존 브랜치 계속·fix/hotfix 는 통과.
 # 명시 면제: 명령에 HARNESS_TRIVIAL=1 프리픽스(계획 건너뛰기를 침묵 기본값이 아닌 의식적 행위로).
 # 보조 장치 — fail-safe(name/root 추출 실패 시 미차단), 최종 강제는 계층0(리뷰/CI).
-if echo "$COMMAND" | grep -qE "git[[:space:]]+(checkout[[:space:]]+-b|switch[[:space:]]+-c)[[:space:]]+feature/"; then
+if echo "$COMMAND" | grep -qE "git[[:space:]]+(checkout[[:space:]]+-b|switch[[:space:]]+-c|branch)[[:space:]]+feature/"; then
   if ! echo "$COMMAND" | grep -qE "(^|[[:space:]])HARNESS_TRIVIAL=1([[:space:]]|$)"; then
-    FEAT_NAME=$(echo "$COMMAND" | grep -oE "feature/[^[:space:];&|]+" | head -1 | sed 's#^feature/##')
+    # 종단문자에 `)`도 제외(G4) — 서브셸 `(git checkout -b feature/x)`에서 이름에 `)`가 붙는 오탐 방지.
+    FEAT_NAME=$(echo "$COMMAND" | grep -oE "feature/[^[:space:];&|)]+" | head -1 | sed 's#^feature/##')
     SPEC_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
     if [[ -n "$FEAT_NAME" && -n "$SPEC_ROOT" && ! -f "$SPEC_ROOT/docs/specs/$FEAT_NAME.md" ]]; then
       deny "신규 feature 브랜치는 승인된 plan 아티팩트(docs/specs/$FEAT_NAME.md) 필요 — 계획-먼저 강제" \
@@ -114,8 +120,9 @@ fi
 # 검증기(테스트·마이그레이션) 파일 삭제 금지 — 게이트 무력화 방지
 # rm / git rm 으로 테스트(*Test.java·*.spec.*·*.test.*·test_*.py·*_test.py·tests/)나
 # 마이그레이션(db/migration/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
-if echo "$COMMAND" | grep -qE "(^|[^[:alnum:]_.-])(rm|git[[:space:]]+rm)([[:space:]]|$)" && \
-   echo "$COMMAND" | grep -qE "[^[:space:]]*Test\.java|[^[:space:]]*\.(spec|test)\.[A-Za-z]+|(^|/)test_[^[:space:]/]*\.py|[^[:space:]/]*_test\.py|(^|[[:space:]]|/)tests?/|db/migration/|alembic/versions/|prisma/migrations/"; then
+# rm/git rm과 대상 경로를 **같은 명령 세그먼트**([^;&|]*)로 결합해 검사한다(G2) —
+# `rm x.log; grep foo tests/`처럼 무관한 rm과 다른 세그먼트의 테스트경로가 각각 있어도 차단하던 오탐 방지.
+if echo "$COMMAND" | grep -qE "(^|[^[:alnum:]_.-])(rm|git[[:space:]]+rm)[[:space:]][^;&|]*(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^[:space:]/]*\.py|[^[:space:]/]*_test\.py|tests?/|db/migration/|alembic/versions/|prisma/migrations/)"; then
   deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
 fi
 
@@ -144,9 +151,9 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-
   set +f
 fi
 
-# npm 글로벌 패키지 설치 금지 (install/i/add 변형 + 플래그 위치 무관)
-if echo "$COMMAND" | grep -qE "npm[[:space:]]+(install|i|add)([[:space:]]|$)" && \
-   echo "$COMMAND" | grep -qE "(^|[[:space:]])(-g|--global)([[:space:]]|$)"; then
+# npm 글로벌 패키지 설치 금지 — install-verb와 -g/--global을 **같은 npm 세그먼트**에서, 순서 무관하게 결합 검사.
+# G3: `npm --global install x`(플래그가 서브커맨드 앞) 우회 차단. G2: `echo -g && npm install x`(다른 세그먼트의 -g) 오탐 방지.
+if echo "$COMMAND" | grep -qE "npm[[:space:]]([^;&|]*[[:space:]])?(install|i|add)[[:space:]]([^;&|]*[[:space:]])?(-g|--global)([[:space:]]|$)|npm[[:space:]]([^;&|]*[[:space:]])?(-g|--global)[[:space:]]([^;&|]*[[:space:]])?(install|i|add)([[:space:]]|$)"; then
   deny "npm install -g 금지 — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (npm install --save-dev 또는 npx)"
 fi
 
