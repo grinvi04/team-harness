@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.18.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.18.1-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -222,8 +222,10 @@ team-harness/
 │   ├── ci/integration-e2e.yml         실 IdP·실 백엔드 통합 e2e (env-gated)
 │   ├── ci/test-guard.yml · commitlint.yml · repo-sync.yml  거버넌스 게이트 (스택 무관)
 │   ├── ci/stacks/                     스택별 ci-gate 완성 템플릿 (new-repo.sh가 선택 복사)
-│   │   ├── ci-gate-node.yml           Node.js (React/Vue/Vite SPA, NestJS 단독)
+│   │   ├── ci-gate-node.yml           Node.js (React/Vite SPA, NestJS 단독)
 │   │   ├── ci-gate-nestjs-frontend.yml  NestJS 백엔드 + Node.js 프론트엔드
+│   │   ├── ci-gate-nextjs.yml         Next.js 단독 (App Router)
+│   │   ├── ci-gate-vue.yml            Vue 3 (Vite SPA)
 │   │   ├── ci-gate-spring.yml         Spring Boot Java/Kotlin 단독
 │   │   ├── ci-gate-spring-frontend.yml  Spring Boot + Node.js 프론트엔드
 │   │   ├── ci-gate-python.yml         FastAPI / Django (PostgreSQL + Redis)
