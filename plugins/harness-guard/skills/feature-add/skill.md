@@ -37,6 +37,8 @@ effort: high
 
 ## Phase 0 — 진입 전 점검 + 브랜치 + TDD 적합성 판정 (오케스트레이터 직접 실행)
 
+> ⚠️ **진입 계약 (상류 plan 선행 — guard가 강제):** 신규 `feature/<name>` 브랜치는 승인된 `docs/specs/<name>.md`(`/plan` 산출)가 있어야 생성된다. 없으면 guard.sh가 브랜치 생성을 차단한다 — 먼저 `/plan`으로 스펙을 만들 것. **trivial 변경**(typo·1줄 등 계획 불필요)이면 `HARNESS_TRIVIAL=1 git checkout -b feature/<name>`로 **의식적으로 면제**한다(침묵 우회가 아니라 명시). 기존 feature 브랜치 계속·fix/hotfix는 게이트 무관.
+
 **브랜치 결정 (한 기능 = 한 브랜치):**
 - **이미 `feature/*` 브랜치에 있고 작업트리가 깨끗하면** → 그 브랜치에서 **계속한다**(새로 만들지 않음). `/plan`으로 분해된 기능의 **후속 태스크**가 이 경우 — 여러 태스크가 한 브랜치에 원자적 커밋으로 쌓여 한 PR이 된다.
 - **`develop`/`main`에 있으면** → 새 feature 브랜치 생성:

@@ -66,6 +66,16 @@ check "공백 파이프 gh pr merge 차단"   2 Bash "echo y | gh pr merge 5"   
 check "공백 파이프 gh pr create 차단"  2 Bash "cat body.md | gh pr create --fill"   "$FEAT"
 check "서브셸 닫힘 직후 gh pr create 차단" 2 Bash 'x=$(gh pr create)'                "$FEAT"
 
+# feature-add plan-gate (감사 F5) — 신규 feature 브랜치 생성 시 상류 plan 아티팩트(docs/specs/<name>.md) 강제
+mkdir -p "$DEV/docs/specs" && : > "$DEV/docs/specs/haveplan.md"
+check "spec 없이 feature 브랜치 생성 차단"   2 Bash "git checkout -b feature/noplan"     "$DEV"
+check "spec 있으면 feature 브랜치 통과"      0 Bash "git checkout -b feature/haveplan"   "$DEV"
+check "HARNESS_TRIVIAL 명시 면제 통과"       0 Bash "HARNESS_TRIVIAL=1 git checkout -b feature/noplan" "$DEV"
+check "fix 브랜치 생성은 게이트 무관 통과"   0 Bash "git checkout -b fix/noplan"         "$DEV"
+check "기존 브랜치 전환(-b 없음) 통과"       0 Bash "git checkout feature/test"          "$DEV"
+check "git switch -c feature 생성도 차단"    2 Bash "git switch -c feature/noplan"       "$DEV"
+check "git switch -c fix 는 통과"            0 Bash "git switch -c fix/noplan"           "$DEV"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
