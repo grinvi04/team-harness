@@ -70,8 +70,7 @@ PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(AI 리뷰 대기·이슈 
 
 ```bash
 git checkout develop && git pull origin develop
-git branch -d "$FEATURE_BRANCH"
-git push origin --delete "$FEATURE_BRANCH"
+git branch -d "$FEATURE_BRANCH" 2>/dev/null || true   # 원격은 pr-merge.sh --delete-branch가 이미 삭제(E7: 중복 원격 delete 제거 — 없는 ref 삭제 에러 방지)
 ```
 
 완료 후 출력:
