@@ -54,6 +54,12 @@ jobs:
       - name: 권한 병합 테스트
         run: bash tests/merge-permissions-test.sh
 
+      - name: 마이그레이션 안전성 테스트
+        run: bash tests/migration-safety-test.sh
+
+      - name: 드리프트 점검 테스트
+        run: bash tests/repo-sync-test.sh
+
   secret-scan:
     runs-on: ubuntu-latest
     steps:

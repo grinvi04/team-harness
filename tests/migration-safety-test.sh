@@ -22,6 +22,8 @@ check() { # desc, expected_exit, target_path
 check "대역 + out-of-order 미설정 → FAIL"   1 "$FIX/bad-missing"
 # 검사 B: 대역인데 out-of-order:false 명시 → 차단
 check "대역 + out-of-order:false → FAIL"     1 "$FIX/bad-false"
+# S1: 비운영(test) 프로파일에만 out-of-order:true, 운영 config엔 없음 → FAIL(false-pass 방지)
+check "대역 + test프로파일만 ooo:true → FAIL(S1)" 1 "$FIX/bad-nonprod-ooo"
 # 대역 + out-of-order:true → 통과
 check "대역 + out-of-order:true → 통과"      0 "$FIX/good"
 # 단조 증가 → 통과(오탐 금지)
