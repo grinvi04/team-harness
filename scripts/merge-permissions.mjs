@@ -43,7 +43,10 @@ export function mergeAllow(baseAllow, stackRules, opts = {}) {
       try {
         raw = readFileSync(resolve(fragmentsDir, `${name}.json`), 'utf8');
       } catch {
-        continue; // 파일 없음 → 무시
+        // 파일 없음도 warn — invalid-JSON·비배열과 동일 수준(F7). RULE_TO_FRAGMENT에
+        // 룰을 추가하고 fragment 파일을 안 만들면 조용히 불완전 allow-list가 되는 것 방지.
+        console.error(`warning: fragment ${name}.json — 파일 없음, 건너뜀`);
+        continue;
       }
       let parsed;
       try {
