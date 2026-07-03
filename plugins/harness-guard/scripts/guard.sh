@@ -72,6 +72,22 @@ if echo "$COMMAND" | grep -qE "git push.*(--force|-f)\b|git push.*\+(main|develo
   fi
 fi
 
+# 신규 feature 브랜치 생성 시 상류 plan 아티팩트 강제 (감사 F5 remedy)
+# 상태 기반(docs/specs/<name>.md 파일 존재) — NL 추측·키워드 없음(F6 오버트리거 회피).
+# checkout -b / switch -c 로 feature/<name> 을 만들 때만 발동 — 기존 브랜치 계속·fix/hotfix 는 통과.
+# 명시 면제: 명령에 HARNESS_TRIVIAL=1 프리픽스(계획 건너뛰기를 침묵 기본값이 아닌 의식적 행위로).
+# 보조 장치 — fail-safe(name/root 추출 실패 시 미차단), 최종 강제는 계층0(리뷰/CI).
+if echo "$COMMAND" | grep -qE "git[[:space:]]+(checkout[[:space:]]+-b|switch[[:space:]]+-c)[[:space:]]+feature/"; then
+  if ! echo "$COMMAND" | grep -qE "(^|[[:space:]])HARNESS_TRIVIAL=1([[:space:]]|$)"; then
+    FEAT_NAME=$(echo "$COMMAND" | grep -oE "feature/[^[:space:];&|]+" | head -1 | sed 's#^feature/##')
+    SPEC_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+    if [[ -n "$FEAT_NAME" && -n "$SPEC_ROOT" && ! -f "$SPEC_ROOT/docs/specs/$FEAT_NAME.md" ]]; then
+      deny "신규 feature 브랜치는 승인된 plan 아티팩트(docs/specs/$FEAT_NAME.md) 필요 — 계획-먼저 강제" \
+           "먼저 /plan 으로 스펙을 작성·승인 후 재시도. trivial 변경이면 'HARNESS_TRIVIAL=1 git checkout -b feature/$FEAT_NAME' 로 명시 면제."
+    fi
+  fi
+fi
+
 # 맨손 gh pr create / gh pr merge 금지 — PR 생성·머지는 스킬(래퍼 스크립트) 경유만 허용.
 # 스킬은 scripts/pr-create.sh·pr-merge.sh를 호출하고, 그 안의 gh는 자식 프로세스라 이 PreToolUse 훅에
 # 걸리지 않는다(훅은 Claude의 Bash 도구 호출만 본다). raw gh pr create/merge를 직접 치는 반사적
