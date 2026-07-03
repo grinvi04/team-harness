@@ -126,9 +126,14 @@ const isBanded = !isTimestamp && bands >= 2
 
 // ── 설정에서 out-of-order 상태 추출 ───────────────────────
 // Flyway: spring `out-of-order: true` (yaml) / `flyway.outOfOrder=true` (conf)
+// S1: out-of-order 크레딧은 **운영에 적용되는** 설정에서만 인정한다. test/dev/ci 등 비운영
+// 프로파일(application-test.yml 등)에만 true가 있고 운영 설정엔 없으면 운영 DB는 여전히
+// 기동 실패하므로, 그 프로파일의 true를 신뢰하면 안전게이트가 false-pass 한다.
+const NONPROD_PROFILE_RE = /application-(test|dev|ci|local|it|e2e|integration)\b/i
+const prodConfigFiles = configFiles.filter((cf) => !NONPROD_PROFILE_RE.test(basename(cf)))
 const OOO_RE = /out[-_]?of[-_]?order\s*[:=]\s*["']?(true|false)/gi
 let oooState = 'absent' // 'true' | 'false' | 'absent'
-for (const cf of configFiles) {
+for (const cf of prodConfigFiles) {
   let text
   try { text = readFileSync(cf, 'utf8') } catch { continue }
   let m
@@ -153,10 +158,10 @@ if (!isBanded) {
   process.exit(0)
 }
 
-// 대역인데 설정 파일을 못 찾음 → skip (오탐 금지)
-if (configFiles.length === 0) {
-  console.log(`• 마이그레이션 안전성 게이트: 접두사 대역(${bands}개) 감지됐으나 설정 파일 미발견 — 통과(skip)`)
-  console.log('  ⚠ out-of-order: true 가 설정돼 있는지 수동 확인하세요 (application*.yml / flyway.conf).')
+// 대역인데 운영 설정 파일을 못 찾음(비운영 프로파일만 존재하는 경우 포함) → skip (오탐 금지)
+if (prodConfigFiles.length === 0) {
+  console.log(`• 마이그레이션 안전성 게이트: 접두사 대역(${bands}개) 감지됐으나 운영 설정 파일 미발견 — 통과(skip)`)
+  console.log('  ⚠ out-of-order: true 가 운영 설정(application.yml/application-prod.yml/flyway.conf)에 있는지 수동 확인하세요.')
   process.exit(0)
 }
 
