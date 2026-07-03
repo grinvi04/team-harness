@@ -1,6 +1,6 @@
-# team-harness
+# 🛡️ team-harness — AI 코딩 거버넌스 하네스
 
-> **팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에.**
+> **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
 ![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.16.4-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
@@ -17,11 +17,51 @@
 도구마다 동작이 다르다. 그래서 강제력의 원천을 GitHub(서버)까지 내려보내고, 위 계층은
 그 위에서 *편의와 자동화*를 제공하도록 역할을 나눈다.
 
+## 목차
+
+- [✨ 주요 기능](#-주요-기능)
+- [🧱 기술 스택](#-기술-스택)
+- [🏗️ 아키텍처](#️-아키텍처)
+- [harness-guard 플러그인](#harness-guard-플러그인)
+- [🚀 빠른 시작](#-빠른-시작)
+- [🧪 테스트](#-테스트)
+- [📁 repo 구조](#-repo-구조)
+- [📚 팀 표준 문서](#-팀-표준-문서-docs)
+- [📄 라이선스](#-라이선스)
+
 ---
 
-## 강제 계층 — Defense in Depth
+## ✨ 주요 기능
+
+| 기능 | 설명 |
+|---|---|
+| 🛡️ 가드 훅 | main/develop 직접 커밋·force push·맨손 `gh pr` 차단 — 차단 시 audit 로그 기록 |
+| 📋 의도 라우터 | 캐주얼 지시("진행해/해줘") → 현재 git 상태에서 다음 하네스 스킬 자동 안내 |
+| 🔄 git-flow 커맨드 | `/plan`·`/feature-add`·`/feature-merge`·`/release-check`·`/release`·`/hotfix` 전 구간 |
+| 🔍 PR 게이트 스킬 | `pr-review-gate` — AI 리뷰·사람 승인·CI·commit-status 단일 절차 |
+| 🔒 솔로 머지 | `/solo-merge` — 자기 PR 승인 불가 제약을 review 보호 일시 해제·복구로 처리 |
+| 📦 드리프트 점검 | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 감지 및 백필 PR 제안 |
+| 🏅 릴리즈 검증 | `/release-check` — 품질(A)·보안(B)·DB 마이그레이션(C) 병렬 검증 에이전트 |
+
+## 🧱 기술 스택
+
+| 영역 | 스택 |
+|---|---|
+| 플러그인 배포 | Claude Code 마켓플레이스 (로컬 private 마켓) |
+| 가드·훅 | Bash (PreToolUse, UserPromptSubmit 훅) |
+| 의도 라우터 | Node.js (ES modules, `route-intent.mjs`) |
+| CI 게이트 | GitHub Actions (`templates/ci/`) |
+| 에이전트 | Claude Opus (`security-reviewer` 전용) |
+| 테스트 | Bash 통합 테스트 (`tests/route-intent-test.sh`) |
+
+## 🏗️ 아키텍처
 
 아래로 내려갈수록 강제력이 세지고, AI 도구 중립적이 된다.
+
+![아키텍처 다이어그램](docs/architecture.png)
+
+<details>
+<summary>mermaid 소스 (GitHub 웹에선 차트로 렌더)</summary>
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#6b7280', 'background': '#f8fafc', 'mainBkg': '#f8fafc', 'fontSize': '14px'}}}%%
@@ -41,6 +81,8 @@ flowchart TD
     style L3 fill:#54aeff,color:#fff
 ```
 
+</details>
+
 | 계층 | 강제 대상 | 위치 |
 |---|---|---|
 | 0 — branch protection + CI 게이트 | **모든 사람 · 모든 AI 도구** | GitHub (`templates/ci/`) |
@@ -53,32 +95,7 @@ flowchart TD
 > Codex는 네이티브로 읽고, Gemini CLI는 contextFileName 설정으로 읽는다.
 > 계층 2–3은 못 쓰더라도 **계층 0은 도구와 무관하게 전원에게 강제된다.**
 
-## repo 구조
-
-```
-team-harness/
-├── .claude-plugin/marketplace.json    사내 마켓플레이스 카탈로그
-├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
-├── plugins/harness-guard/             플러그인 본체 (아래 상세)
-├── scripts/new-repo.sh                신규 repo 셋업 자동화 (템플릿 복사 + branch protection)
-├── templates/                         신규 프로젝트에 복사하는 파일들
-│   ├── AGENTS.md · CLAUDE.md          규약 단일 출처 + Claude 전용 지침
-│   ├── settings.json                  .claude/settings.json (마켓플레이스·플러그인 선언)
-│   ├── ci/ci-gate.yml                 CI 기본 템플릿(placeholder)
-│   ├── ci/migration-safety.yml        마이그레이션 정적 게이트 (out-of-order·forward-only)
-│   ├── ci/integration-e2e.yml         실 IdP·실 백엔드 통합 e2e (env-gated)
-│   ├── ci/test-guard.yml · commitlint.yml · repo-sync.yml  거버넌스 게이트 (스택 무관)
-│   ├── ci/stacks/                     스택별 ci-gate 완성 템플릿 (new-repo.sh가 선택 복사)
-│   │   ├── ci-gate-node.yml           Node.js (React/Vue/Vite SPA, NestJS 단독)
-│   │   ├── ci-gate-nestjs-frontend.yml  NestJS 백엔드 + Node.js 프론트엔드
-│   │   ├── ci-gate-spring.yml         Spring Boot Java/Kotlin 단독
-│   │   ├── ci-gate-spring-frontend.yml  Spring Boot + Node.js 프론트엔드
-│   │   ├── ci-gate-python.yml         FastAPI / Django (PostgreSQL + Redis)
-│   │   └── ci-gate-rails.yml          Rails 8 (소팀 MVP)
-│   ├── githooks/pre-commit            계층 0.5 git 훅
-│   └── PULL_REQUEST_TEMPLATE.md · gitignore.snippet
-└── docs/                              팀 표준 문서 (아래 표)
-```
+---
 
 ## harness-guard 플러그인
 
@@ -102,6 +119,11 @@ team-harness/
 | **에이전트** `security-reviewer` | 릴리즈 전 보안 검토(XSS·SQL 인젝션·하드코딩 시크릿·.env 추적) — 읽기 전용, opus |
 
 ### git-flow와 커맨드의 관계
+
+![git-flow 다이어그램](docs/architecture-gitflow.png)
+
+<details>
+<summary>mermaid 소스 (GitHub 웹에선 차트로 렌더)</summary>
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#6b7280', 'background': '#f8fafc', 'mainBkg': '#f8fafc', 'fontSize': '14px'}}}%%
@@ -131,6 +153,8 @@ flowchart LR
     style L fill:#953800,color:#fff
 ```
 
+</details>
+
 흐름: `/milestone`(목표·마일스톤 정의) → `/plan`(기능 단위 계획·승인, plan mode 강제) → **`feature/*` 한 브랜치**에서 태스크별 `/feature-add`(TDD) →
 `/feature-merge`(한 PR). *한 기능 = 한 브랜치 = 한 PR.*
 `/loop`: develop에서 CI·lint·테스트 등 반복 수정을 exit 0까지 동기 자율 실행.
@@ -140,7 +164,9 @@ flowchart LR
 (AI 리뷰 처리 → **사람 승인** → CI → 외부 배포 상태)를 통과해야 한다.
 AI 리뷰와 CI 통과는 사람 승인을 대체하지 않는다.
 
-## 빠른 시작
+---
+
+## 🚀 빠른 시작
 
 ### 팀원 온보딩 (각자 1회, ~3분)
 
@@ -174,7 +200,40 @@ AI 리뷰는 PR마다 `/code-review` 스킬(구독 포함, API 과금 없음)이
 
 main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 
-## 팀 표준 문서 (`docs/`)
+## 🧪 테스트
+
+```bash
+bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (20 케이스)
+```
+
+## 📁 repo 구조
+
+```
+team-harness/
+├── .claude-plugin/marketplace.json    사내 마켓플레이스 카탈로그
+├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
+├── plugins/harness-guard/             플러그인 본체 (아래 상세)
+├── scripts/new-repo.sh                신규 repo 셋업 자동화 (템플릿 복사 + branch protection)
+├── templates/                         신규 프로젝트에 복사하는 파일들
+│   ├── AGENTS.md · CLAUDE.md          규약 단일 출처 + Claude 전용 지침
+│   ├── settings.json                  .claude/settings.json (마켓플레이스·플러그인 선언)
+│   ├── ci/ci-gate.yml                 CI 기본 템플릿(placeholder)
+│   ├── ci/migration-safety.yml        마이그레이션 정적 게이트 (out-of-order·forward-only)
+│   ├── ci/integration-e2e.yml         실 IdP·실 백엔드 통합 e2e (env-gated)
+│   ├── ci/test-guard.yml · commitlint.yml · repo-sync.yml  거버넌스 게이트 (스택 무관)
+│   ├── ci/stacks/                     스택별 ci-gate 완성 템플릿 (new-repo.sh가 선택 복사)
+│   │   ├── ci-gate-node.yml           Node.js (React/Vue/Vite SPA, NestJS 단독)
+│   │   ├── ci-gate-nestjs-frontend.yml  NestJS 백엔드 + Node.js 프론트엔드
+│   │   ├── ci-gate-spring.yml         Spring Boot Java/Kotlin 단독
+│   │   ├── ci-gate-spring-frontend.yml  Spring Boot + Node.js 프론트엔드
+│   │   ├── ci-gate-python.yml         FastAPI / Django (PostgreSQL + Redis)
+│   │   └── ci-gate-rails.yml          Rails 8 (소팀 MVP)
+│   ├── githooks/pre-commit            계층 0.5 git 훅
+│   └── PULL_REQUEST_TEMPLATE.md · gitignore.snippet
+└── docs/                              팀 표준 문서 (아래 표)
+```
+
+## 📚 팀 표준 문서 (`docs/`)
 
 | 문서 | 내용 |
 |---|---|
@@ -192,6 +251,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 | [model-tiering.md](docs/model-tiering.md) | 모델 티어링 정책 — Haiku(단순)·Sonnet(빌드·메인 기본)·Opus(검증·설계·리서치) |
 | [decisions.md](docs/decisions.md) | 확정 결정의 단일 출처 — 결정·정본 문서·영향 문서 |
 | [harness-maintenance.md](docs/harness-maintenance.md) | 하네스 자체 변경 절차 · 플러그인 버전 정책 · 전파 방식 |
+| [readme-standards.md](docs/readme-standards.md) | 프로젝트 repo README 표준 양식 |
 
 ## 운영 원칙
 
@@ -209,7 +269,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 | **팀원 합류** | 로컬 개발환경 가이드(docker compose·시드 데이터 — 프로젝트 repo에) |
 | **서비스 오픈** | SLO·성능 기준, 온콜 로테이션 실명화 (`operations.md` 활성화) |
 
-## 현재 제약 (2026-06 기준)
+## 현재 제약 (2026-07 기준)
 
 - Team/Enterprise 플랜 없음 → 서버 managed settings 불가 → **계층 0이 유일한 하드 강제**
 - 실험 기능(agent teams 등) 미사용
@@ -225,3 +285,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 - [ ] 첫 회사 프로젝트: 스택 확정 → 스캐폴드(AGENTS.md·CI 구체화) → 계층 0~2 풀 적용
 - [ ] 사내 git 호스팅으로 이전, 템플릿의 마켓 주소 교체
 - [ ] server-managed settings로 권한 강제 (Team/Enterprise 플랜 확보 시) / agent teams 재검토 (GA 시)
+
+## 📄 라이선스
+
+Private — 팀 내부용.
