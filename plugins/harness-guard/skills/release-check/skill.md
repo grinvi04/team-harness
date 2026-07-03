@@ -31,6 +31,11 @@ git status --short   # 미커밋 변경 있으면 중단
   `vercel` env·`.env.example`)가 안내하는 키 목록이 **일치하는지** 대조한다. 불일치(예: 코드는
   `KEYCLOAK_ISSUER`인데 문서는 `AUTH_KEYCLOAK_ISSUER`로 안내)는 배포 시 런타임에서야 터지는
   로그인·연동 깨짐 클래스 → ❌로 리포트.
+- **아키텍처 SVG 신선도 점검**: `docs/gen_arch_svg.py`가 존재하면
+  `docs/architecture.svg`의 수정시각 ≥ `docs/gen_arch_svg.py`의 수정시각인지 확인
+  (`python3 -c "import os; s=os.stat; g=s('docs/gen_arch_svg.py').st_mtime; a=s('docs/architecture.svg').st_mtime; exit(0 if a>=g else 1)"`).
+  SVG가 스크립트보다 오래됐으면 ❌ (재생성 필요 — `python3 docs/gen_arch_svg.py` 실행 후 커밋).
+  `docs/gen_arch_svg.py` 자체가 없으면 이 항목은 SKIP.
 - 실패 항목은 파일·원인과 함께 리포트, 전부 통과 시 ✅
 
 ### Agent B — 보안 (`subagent_type: security-reviewer`, `run_in_background: true`)
