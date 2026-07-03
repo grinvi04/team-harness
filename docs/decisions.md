@@ -22,7 +22,7 @@
 | DB = PostgreSQL (NoSQL은 보조 용도만) | 2026-06 | stack-guide.md | db-standards.md |
 | 인증 = Keycloak OIDC, 자체 구현 금지 / 인가 = RBAC 권한코드 + 데이터 스코프 | 2026-06 | auth-standards.md | architecture-infra.md, stack-guide.md |
 | API 응답 = 공통 Envelope (code·message·data), offset 페이지네이션 기본 | 2026-06 | api-standards.md | — |
-| 마이그레이션 = forward-only (down 스크립트 금지), BIGINT PK + 채번 | 2026-06 | db-standards.md | release-check.md |
+| 마이그레이션 = forward-only (down 스크립트 금지), BIGINT PK + 채번 | 2026-06 | db-standards.md | skills/release-check/skill.md |
 | 아키텍처 = 모듈러 모놀리스 → 미니서비스, 1차 경계 = 도메인 모듈 | 2026-06 | architecture-infra.md | clean-architecture.md |
 | 모듈 내부 계층 = adapter → application → domain (interface/infrastructure 분리 안 함) | 2026-06 | clean-architecture.md | stack-guide.md |
 | 배포 = EC2 단계 GitHub Actions push형 → EKS 단계 Argo CD pull형 | 2026-06 | architecture-infra.md | stack-guide.md |
