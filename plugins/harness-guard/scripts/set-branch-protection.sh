@@ -11,8 +11,10 @@
 #
 # 표준 config(솔로, decisions "브랜치 보호 표준"):
 #   required status checks(자동감지·strict) · 대화 resolve · force-push/삭제 차단,
-#   **승인요건 0 · enforce_admins=false** (솔로 자기승인 불가 → 승인요건 걸면 데드락. CI가 게이트).
-#   리뷰어 합류 시 승인요건을 수동 1↑ 조정(그때만 /solo-merge break-glass 필요).
+#   **승인요건 0 · enforce_admins=true** (승인0이라 데드락 없음 · enforce_admins=true라야
+#   required status check(CI)가 소유자·관리자에게도 강제되는 **우회불가 계약** — false면 관리자가
+#   CI red/pending도 머지 가능). 리뷰어 합류 시 승인요건을 수동 1↑ 조정.
+#   ※ 긴급 break-glass(드묾: CI 인프라 자체 장애)는 required_status_checks를 일시 완화 — 통상은 CI를 고쳐 머지.
 set -uo pipefail
 
 REPO="${1:?사용: set-branch-protection.sh <repo> [--check]}"
@@ -29,8 +31,15 @@ for branch in main develop; do
     prot=$(gh api "repos/$REPO/branches/$branch/protection" 2>/dev/null || true)
     if [ -z "$prot" ]; then echo "✗ $REPO:$branch — 보호 미적용"; rc=1; continue; fi
     appr=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_pull_request_reviews'); print(r.get('required_approving_review_count') if r else 0)" 2>/dev/null || echo "?")
-    if [ "$appr" = "0" ] || [ "$appr" = "None" ]; then echo "✓ $REPO:$branch — 보호 적용(승인0, 솔로 표준)"
-    else echo "⚠ $REPO:$branch — 보호 있으나 승인요건=$appr (솔로 표준=0 불일치 · 리뷰어 有면 의도된 것)"; rc=1; fi
+    adm=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('enforce_admins',{}).get('enabled'))" 2>/dev/null || echo "?")
+    okappr=false; { [ "$appr" = "0" ] || [ "$appr" = "None" ]; } && okappr=true
+    if $okappr && [ "$adm" = "True" ]; then echo "✓ $REPO:$branch — 보호 적용(승인0 · enforce_admins=on, 솔로 표준)"
+    else
+      msg="⚠ $REPO:$branch — 드리프트:"
+      $okappr || msg="$msg 승인요건=$appr(표준0·리뷰어 有면 의도)"
+      [ "$adm" = "True" ] || msg="$msg enforce_admins=$adm(표준=on · off면 CI red 머지 가능!)"
+      echo "$msg"; rc=1
+    fi
     continue
   fi
 
@@ -38,7 +47,7 @@ for branch in main develop; do
   ctx=$(gh api "repos/$REPO/commits/$branch/check-runs" --jq '[.check_runs[].name]|unique' 2>/dev/null); [ -z "$ctx" ] && ctx='[]'
   rsc="null"; [ "$ctx" != "[]" ] && rsc="{\"strict\":true,\"contexts\":$ctx}"
   if gh api -X PUT "repos/$REPO/branches/$branch/protection" --input - >/dev/null 2>&1 <<JSON
-{"required_status_checks":$rsc,"enforce_admins":false,"required_pull_request_reviews":null,"restrictions":null,"required_conversation_resolution":true,"allow_force_pushes":false,"allow_deletions":false}
+{"required_status_checks":$rsc,"enforce_admins":true,"required_pull_request_reviews":null,"restrictions":null,"required_conversation_resolution":true,"allow_force_pushes":false,"allow_deletions":false}
 JSON
   then echo "✓ $REPO:$branch — 보호 적용(승인0 · checks=$ctx)"
   else echo "✗ $REPO:$branch — 적용 실패(private+Free? 권한?)"; rc=1; fi
