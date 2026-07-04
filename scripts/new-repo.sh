@@ -11,6 +11,13 @@ set -euo pipefail
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# ── B4 게이트(순수): 보호 적용 실패 플래그 → 스크립트 종료코드 결정. 실패를 ❌ 출력 후 삼키지 않고
+#    non-zero로 반영한다(gh·파일복사와 분리해 테스트가 검증 — tests/new-repo-test.sh). ──
+prot_exit_ok() { [ "${1:-0}" = "0" ]; }   # rc0 = 실패 없음(exit 0), rc1 = 실패 있음(exit 1)
+
+# 테스트 훅: 함수만 로드하고 종료(git/gh/파일복사 없이 prot_exit_ok만 검증).
+[ -n "${NEWREPO_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
+
 # ── 사전 검사 ────────────────────────────────────────────────────────────────
 
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -251,4 +258,4 @@ echo "  (main/develop 보호를 못 걸었으면 이 스크립트 재실행)"
 echo "────────────────────────────────────────────────"
 
 # B4: 보호 적용에 실패했으면(위 ❌) 성공 요약을 냈더라도 non-zero로 종료 — 체이닝·자동화가 감지.
-[ "${PROT_FAILED:-0}" = "0" ] || { echo ""; echo "⚠️  branch protection 미적용 — 위 ❌ 확인 후 재실행 필요"; exit 1; }
+prot_exit_ok "${PROT_FAILED:-0}" || { echo ""; echo "⚠️  branch protection 미적용 — 위 ❌ 확인 후 재실행 필요"; exit 1; }

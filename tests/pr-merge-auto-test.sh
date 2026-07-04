@@ -1,6 +1,7 @@
 #!/bin/bash
-# tests/pr-merge-auto-test.sh — pr-merge.sh --auto의 base 정책(require_develop_base) 단위 검증.
-# require_develop_base만 source해 검증한다(gh 무관 — PRMERGE_SOURCE_ONLY로 함수만 로드).
+# tests/pr-merge-auto-test.sh — pr-merge.sh 순수 판정 함수 단위 검증(gh 무관).
+#  ① --auto base 정책(require_develop_base)  ② 게이트 본체(classify_ci_gate·gate_threads·gate_mergeable).
+# PRMERGE_SOURCE_ONLY로 함수만 로드해 값 주입 검증한다(gh 호출 없이 판정 로직만).
 # 로컬·CI 동일: bash tests/pr-merge-auto-test.sh
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -17,6 +18,38 @@ check() { # desc, base, want_rc
 check "base=develop → 통과(0)"     develop     0
 check "base=main → 거부(3)"        main        3
 check "base=release/v1 → 거부(3)"  release/v1  3
+
+# ── D1: 게이트 본체 순수 판정 함수 (gh 호출과 분리한 seam) ──
+# classify_ci_gate: (rc, out) → 판정 문자열(green/none/fallback/fail)
+ci() { # desc, rc, out, want
+  local desc="$1" rc="$2" out="$3" want="$4" got
+  got=$(PRMERGE_SOURCE_ONLY=1 bash -c 'source "$1"; classify_ci_gate "$2" "$3"' _ "$GATE" "$rc" "$out")
+  if [ "$got" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — expected $want, got $got"; FAIL=$((FAIL+1)); fi
+}
+# gate_threads / gate_mergeable: 인자 → rc(0 통과 / 1 중단)
+grc() { # desc, fn, arg, want_rc
+  local desc="$1" fn="$2" arg="$3" want="$4" rc
+  rc=$(PRMERGE_SOURCE_ONLY=1 bash -c 'source "$1"; if "$2" "$3" >/dev/null 2>&1; then echo 0; else echo 1; fi' _ "$GATE" "$fn" "$arg")
+  if [ "$rc" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — expected $want, got $rc"; FAIL=$((FAIL+1)); fi
+}
+
+# CI 판정: rc0=green, 'no checks'/'no required'=none, 접근불가=fallback, 그 외=fail(중단)
+ci "CI rc=0 → green"                        0 "any output"                             green
+ci "CI 'no checks' → none(통과)"            1 "no checks reported on the 'abc' commit"  none
+ci "CI 'no required' → none(통과)"          1 "no required checks"                      none
+ci "CI 'Resource not accessible' → fallback" 1 "Resource not accessible by integration" fallback
+ci "CI 'GraphQL' 403 → fallback"            1 "GraphQL: Resource not accessible"        fallback
+ci "CI 실패 출력 → fail(중단)"              1 "1 failing, 2 successful, 0 skipped"      fail
+
+# 미해결 스레드: "0"만 통과, 나머지(ERR·1+·빈값) fail-CLOSED
+grc "threads=0 → 통과"          gate_threads   0            0
+grc "threads=1 → 중단"          gate_threads   1            1
+grc "threads=ERR → 중단(fail-closed)" gate_threads ERR      1
+grc "threads='' → 중단(fail-closed)"  gate_threads ""       1
+# mergeable: "MERGEABLE"만 통과
+grc "mergeable=MERGEABLE → 통과"   gate_mergeable MERGEABLE   0
+grc "mergeable=CONFLICTING → 중단" gate_mergeable CONFLICTING 1
+grc "mergeable=UNKNOWN → 중단"     gate_mergeable UNKNOWN     1
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

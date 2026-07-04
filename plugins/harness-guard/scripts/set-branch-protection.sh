@@ -17,6 +17,25 @@
 #   ※ 긴급 break-glass(드묾: CI 인프라 자체 장애)는 required_status_checks를 일시 완화 — 통상은 CI를 고쳐 머지.
 set -uo pipefail
 
+# ── 드리프트 판정(순수) — (승인수, enforce_admins, status-check 개수)만 받아 판정. gh/python과 분리해
+#    테스트가 주입 검증(tests/set-branch-protection-test.sh). 판정 로직 단일 출처 = 이 함수. ──
+#   appr: 승인요건 개수("0"/"None"=표준0). adm: enforce_admins.enabled("True"=표준on).
+#   chk : required status check 개수(-1=null/없음, 0=빈목록=약한 보호, >0=정상). "?"=파싱실패=fail-closed.
+#   echo "ok"(표준 부합, rc0) 또는 "drift:<사유들>"(rc1).
+classify_protection() {
+  local appr="$1" adm="$2" chk="$3" msg="" okappr=false okchk=false
+  { [ "$appr" = "0" ] || [ "$appr" = "None" ]; } && okappr=true
+  [ "$chk" -gt 0 ] 2>/dev/null && okchk=true
+  if $okappr && [ "$adm" = "True" ] && $okchk; then echo "ok"; return 0; fi
+  $okappr || msg="$msg 승인요건=$appr(표준0·리뷰어 有면 의도)"
+  [ "$adm" = "True" ] || msg="$msg enforce_admins=$adm(표준=on · off면 CI red 머지 가능!)"
+  $okchk || msg="$msg required_status_checks=${chk}개(표준 non-null · CI 이후 재적용 필요)"
+  echo "drift:$msg"; return 1
+}
+
+# 테스트 훅: 함수만 로드하고 종료(REPO 인자 파싱·gh 없이 classify_protection만 검증).
+[ -n "${SBP_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
+
 REPO="${1:?사용: set-branch-protection.sh <repo> [--check]}"
 CHECK=false; [ "${2:-}" = "--check" ] && CHECK=true
 [[ "$REPO" == */* ]] || REPO="$(gh api user --jq .login 2>/dev/null)/$REPO"
@@ -34,15 +53,11 @@ for branch in main develop; do
     adm=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('enforce_admins',{}).get('enabled'))" 2>/dev/null || echo "?")
     # B1: required_status_checks 개수 — -1=null(없음), 0=빈 목록(약한 보호), >0=정상.
     chk=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(len(r.get('contexts') or [c.get('context') for c in (r.get('checks') or [])]) if r else -1)" 2>/dev/null || echo "?")
-    okappr=false; { [ "$appr" = "0" ] || [ "$appr" = "None" ]; } && okappr=true
-    okchk=false; [ "$chk" -gt 0 ] 2>/dev/null && okchk=true
-    if $okappr && [ "$adm" = "True" ] && $okchk; then echo "✓ $REPO:$branch — 보호 적용(승인0 · enforce_admins=on · checks=$chk, 솔로 표준)"
+    verdict=$(classify_protection "$appr" "$adm" "$chk") || true
+    if [ "$verdict" = "ok" ]; then
+      echo "✓ $REPO:$branch — 보호 적용(승인0 · enforce_admins=on · checks=$chk, 솔로 표준)"
     else
-      msg="⚠ $REPO:$branch — 드리프트:"
-      $okappr || msg="$msg 승인요건=$appr(표준0·리뷰어 有면 의도)"
-      [ "$adm" = "True" ] || msg="$msg enforce_admins=$adm(표준=on · off면 CI red 머지 가능!)"
-      $okchk || msg="$msg required_status_checks=${chk}개(표준 non-null · CI 이후 재적용 필요)"
-      echo "$msg"; rc=1
+      echo "⚠ $REPO:$branch — 드리프트:${verdict#drift:}"; rc=1
     fi
     continue
   fi

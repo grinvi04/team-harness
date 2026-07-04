@@ -112,6 +112,16 @@ check "A5: git log --grep=commit 통과"          0 Bash "git log --grep=commit"
 check "A5: git help commit 통과"                0 Bash "git help commit"                    "$DEV"
 check "A5: grep 'git commit' 통과"              0 Bash "grep 'git commit' f.txt"            "$DEV"
 
+# D2: 안전경로(legitimate) 과차단 방지 — 삭제/전역/보호가 아닌 무해 명령은 통과해야 한다(회귀 방지).
+check "D2: 비force push(feature) 통과"          0 Bash "git push origin feature/x"           "$FEAT"
+check "D2: git reset --soft 통과(≠--hard)"      0 Bash "git reset --soft HEAD~1"             "$FEAT"
+check "D2: 테스트파일 mv(리네임) 통과(≠rm)"     0 Bash "mv src/foo.test.ts src/bar.test.ts"  "$FEAT"
+check "D2: 마이그레이션 cat(읽기) 통과(≠rm)"    0 Bash "cat db/migration/V1__init.sql"       "$FEAT"
+check "D2: npm install(로컬) 통과(≠-g)"         0 Bash "npm install"                         "$FEAT"
+check "D2: npm install --save-dev 통과"         0 Bash "npm install --save-dev jest"         "$FEAT"
+check "D2: git stash 통과"                      0 Bash "git stash"                           "$FEAT"
+check "D2: 테스트파일 cp(복사) 통과(≠rm)"       0 Bash "cp src/a.test.ts /backup/"           "$FEAT"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
