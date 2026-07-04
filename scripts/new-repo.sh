@@ -11,6 +11,13 @@ set -euo pipefail
 
 HARNESS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# ── B4 게이트(순수): 보호 적용 실패 플래그 → 스크립트 종료코드 결정. 실패를 ❌ 출력 후 삼키지 않고
+#    non-zero로 반영한다(gh·파일복사와 분리해 테스트가 검증 — tests/new-repo-test.sh). ──
+prot_exit_ok() { [ "${1:-0}" = "0" ]; }   # rc0 = 실패 없음(exit 0), rc1 = 실패 있음(exit 1)
+
+# 테스트 훅: 함수만 로드하고 종료(git/gh/파일복사 없이 prot_exit_ok만 검증).
+[ -n "${NEWREPO_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
+
 # ── 사전 검사 ────────────────────────────────────────────────────────────────
 
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -66,6 +73,14 @@ if [[ ${#STACK_RULES[@]} -gt 0 ]] && printf '%s\n' "${STACK_RULES[@]}" | grep -q
   STACK_CHECKS+=("migration-safety")
 fi
 
+# Alembic 스택 — 다중 head(분기 마이그레이션) 차단 게이트(별도 CI 점검, decisions "정적 게이트 Flyway 전용").
+# 검증기(check-repo-sync.mjs)가 alembic 감지 시 이 게이트를 required로 기대 → 프로비저너가 대칭 제공.
+HAS_ALEMBIC=false
+if [[ ${#STACK_RULES[@]} -gt 0 ]] && printf '%s\n' "${STACK_RULES[@]}" | grep -qx alembic; then
+  HAS_ALEMBIC=true
+  STACK_CHECKS+=("alembic-heads")
+fi
+
 STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
 echo ""
 echo "선택: $STACK_TEMPLATE"
@@ -104,6 +119,11 @@ if [[ "$HAS_FLYWAY" == true ]]; then
   mkdir -p scripts
   copy_once "$HARNESS_DIR/templates/ci/migration-safety.yml" .github/workflows/migration-safety.yml "migration-safety.yml (접두사 대역+out-of-order 게이트)"
   copy_once "$HARNESS_DIR/scripts/check-migration-safety.mjs" scripts/check-migration-safety.mjs "scripts/check-migration-safety.mjs"
+fi
+
+# Alembic 스택 — 다중 head 차단 게이트 워크플로(자기-스킵 — alembic.ini 없으면 통과)
+if [[ "$HAS_ALEMBIC" == true ]]; then
+  copy_once "$HARNESS_DIR/templates/ci/alembic-heads.yml" .github/workflows/alembic-heads.yml "alembic-heads.yml (다중 head 차단 게이트)"
 fi
 
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
@@ -195,24 +215,25 @@ apply_protection() {
   done
 
   # 솔로 표준(decisions): required checks + force-push/삭제 차단 + 대화 resolve.
-  # **승인요건 0 · enforce_admins=false** — 솔로는 자기 PR 자기승인이 불가하므로 승인요건을 걸면
-  # 데드락. CI 체크가 우회불가 게이트, 소유자가 머지. 리뷰어 합류 시 승인요건을 수동으로 1로 올린다
-  # (그때만 /solo-merge break-glass 필요). 단일 출처: scripts/set-branch-protection.sh.
+  # **승인요건 0 · enforce_admins=true** — 승인0이라 데드락 없음(자기승인 불필요). enforce_admins=true라야
+  # required check(CI)가 소유자·관리자에게도 강제(false면 관리자가 CI red/pending도 머지). 리뷰어 합류 시
+  # 승인요건 수동 1↑. 긴급 break-glass(CI 인프라 장애)는 required_status_checks 일시 완화. 단일 출처: set-branch-protection.sh.
   local api_out
   api_out=$(gh api "repos/$OWNER_REPO/branches/$branch/protection" -X PUT \
     -F required_status_checks[strict]=true \
     "${ctx_args[@]}" \
-    -F enforce_admins=false \
+    -F enforce_admins=true \
     -F required_pull_request_reviews=null \
     -F required_conversation_resolution=true \
     -F restrictions=null \
     -F allow_force_pushes=false \
     -F allow_deletions=false \
     2>&1) \
-    && echo "  ✅  $branch 보호 완료 (솔로: 승인0 · checks: ${STACK_CHECKS[*]})" \
-    || { echo "  ❌  $branch 보호 실패: $api_out"; }
+    && echo "  ✅  $branch 보호 완료 (솔로: 승인0 · enforce_admins=on · checks: ${STACK_CHECKS[*]})" \
+    || { echo "  ❌  $branch 보호 실패: $api_out"; PROT_FAILED=1; }
 }
 
+PROT_FAILED=0   # B4: 보호 적용 실패를 ❌ 출력 후 삼키지 않고 스크립트 종료코드(exit)에 반영
 echo "🔒  Branch protection 적용..."
 apply_protection main
 apply_protection develop
@@ -248,3 +269,6 @@ echo ""
 echo "  이후: 테스트 PR 1개 → ci-gate 통과 확인"
 echo "  (main/develop 보호를 못 걸었으면 이 스크립트 재실행)"
 echo "────────────────────────────────────────────────"
+
+# B4: 보호 적용에 실패했으면(위 ❌) 성공 요약을 냈더라도 non-zero로 종료 — 체이닝·자동화가 감지.
+prot_exit_ok "${PROT_FAILED:-0}" || { echo ""; echo "⚠️  branch protection 미적용 — 위 ❌ 확인 후 재실행 필요"; exit 1; }

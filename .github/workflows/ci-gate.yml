@@ -27,9 +27,15 @@ jobs:
           bash -n tests/guard-test.sh
           bash -n tests/route-intent-test.sh
           bash -n tests/merge-permissions-test.sh
+          bash -n tests/pr-merge-auto-test.sh
+          bash -n tests/pr-create-test.sh
+          bash -n tests/set-branch-protection-test.sh
+          bash -n tests/new-repo-test.sh
+          bash -n tests/alembic-heads-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
+          node --check templates/frontend/check-design-tokens.mjs
 
       - name: JSON 유효성 검사
         run: |
@@ -60,6 +66,21 @@ jobs:
 
       - name: 드리프트 점검 테스트
         run: bash tests/repo-sync-test.sh
+
+      - name: pr-merge --auto·게이트 판정 테스트
+        run: bash tests/pr-merge-auto-test.sh
+
+      - name: pr-create 검증 함수 테스트
+        run: bash tests/pr-create-test.sh
+
+      - name: set-branch-protection --check 판정 테스트
+        run: bash tests/set-branch-protection-test.sh
+
+      - name: new-repo B4 게이트 테스트
+        run: bash tests/new-repo-test.sh
+
+      - name: alembic-heads 계수 테스트
+        run: bash tests/alembic-heads-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest

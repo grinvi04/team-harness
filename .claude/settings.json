@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "team-harness 자체 프로젝트 설정(dogfood). develop 전용 자동머지 래퍼(pr-merge.sh --auto)를 허용해 develop CI-green PR을 분류기 프롬프트 없이 머지한다(개선2, docs/specs/develop-auto-merge.md). 안전 1차 보증은 pr-merge.sh의 base 강제(매처 아님) — main base는 --auto가 거부(exit 3). 플러그인 로딩(marketplace/enabledPlugins)은 로컬 dev 플러그인 셰도잉 회피로 넣지 않는다(사용자 전역 설정에 맡김). allow는 사용자 설정과 병합(additive).",
+  "permissions": {
+    "allow": [
+      "Bash(bash * pr-merge.sh --auto *)"
+    ]
+  }
+}

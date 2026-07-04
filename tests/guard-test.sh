@@ -94,6 +94,42 @@ check "G4: 서브셸 (checkout -b feature/bar) spec有 통과" 0 Bash "(git chec
 check "G5: git branch feature/(무spec) 차단"  2 Bash "git branch feature/noplan && git switch feature/noplan" "$DEV"
 check "git branch -d 삭제는 게이트 무관 통과"  0 Bash "git branch -d feature/old"          "$FEAT"
 
+# P1: guard 정규식 정확성 (감사 T2) — 우회 4 + 과차단 1
+: > "$DEV/f.txt"
+# A1: force-push 결합 단축플래그(-fu)·plus-refspec(+HEAD:main) — 외부 게이트가 놓치던 것
+check "A1: git push -fu origin main 차단"       2 Bash "git push -fu origin main"           "$FEAT"
+check "A1: git push +HEAD:main 차단"            2 Bash "git push origin +HEAD:main"         "$FEAT"
+check "A1: 비보호 force push 통과"              0 Bash "git push --force origin featx"       "$FEAT"
+# A2: git -C <보호repo> commit 은 cd 우회와 무관하게 그 repo 기준 판정
+check "A2: git -C develop-repo commit 차단"     2 Bash "git -C $DEV commit -m x && cd $FEAT" "$FEAT"
+# A3: 후행 슬래시 없는 디렉터리 통삭제
+check "A3: rm -rf tests(슬래시無) 차단"          2 Bash "rm -rf tests"                       "$FEAT"
+check "A3: git rm -r db/migration 차단"         2 Bash "git rm -r db/migration"             "$FEAT"
+# A4: node_modules && 체인(끝 앵커 비대칭)
+check "A4: rm -rf node_modules && echo 차단"    2 Bash "rm -rf node_modules && echo x"      "$FEAT"
+# A5: commit 단어 과차단 제거 — 보호 브랜치에서 무해 명령 통과
+check "A5: git log --grep=commit 통과"          0 Bash "git log --grep=commit"              "$DEV"
+check "A5: git help commit 통과"                0 Bash "git help commit"                    "$DEV"
+check "A5: grep 'git commit' 통과"              0 Bash "grep 'git commit' f.txt"            "$DEV"
+
+# A5b (릴리즈 보안검토 회귀): commit 앞 임의 git 전역옵션(-c·--no-pager 등)은 여전히 직접커밋으로 차단.
+# A5가 commit을 서브커맨드로 좁힐 때 -C만 허용해 `git -c user.name=x commit`이 우회되던 구멍 재봉쇄.
+check "A5b: git -c ... commit(보호) 차단"       2 Bash "git -c user.name=x -c user.email=x@x commit -m x" "$DEV"
+check "A5b: git --no-pager commit 차단"         2 Bash "git --no-pager commit -m x"          "$DEV"
+check "A5b: git -c commit.gpgsign=false commit 차단" 2 Bash "git -c commit.gpgsign=false commit -m x" "$DEV"
+check "A5b: 전역옵션 있어도 feature는 통과"     0 Bash "git -c user.name=x commit -m x"      "$FEAT"
+check "A5b: git -c ... log --grep=commit 통과(과차단 방지)" 0 Bash "git -c user.name=x log --grep=commit" "$DEV"
+
+# D2: 안전경로(legitimate) 과차단 방지 — 삭제/전역/보호가 아닌 무해 명령은 통과해야 한다(회귀 방지).
+check "D2: 비force push(feature) 통과"          0 Bash "git push origin feature/x"           "$FEAT"
+check "D2: git reset --soft 통과(≠--hard)"      0 Bash "git reset --soft HEAD~1"             "$FEAT"
+check "D2: 테스트파일 mv(리네임) 통과(≠rm)"     0 Bash "mv src/foo.test.ts src/bar.test.ts"  "$FEAT"
+check "D2: 마이그레이션 cat(읽기) 통과(≠rm)"    0 Bash "cat db/migration/V1__init.sql"       "$FEAT"
+check "D2: npm install(로컬) 통과(≠-g)"         0 Bash "npm install"                         "$FEAT"
+check "D2: npm install --save-dev 통과"         0 Bash "npm install --save-dev jest"         "$FEAT"
+check "D2: git stash 통과"                      0 Bash "git stash"                           "$FEAT"
+check "D2: 테스트파일 cp(복사) 통과(≠rm)"       0 Bash "cp src/a.test.ts /backup/"           "$FEAT"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

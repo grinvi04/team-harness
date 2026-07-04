@@ -22,6 +22,18 @@ check() { # desc, expected_exit, repo_path
 check "good(자산 완비) → 통과"              0 "$FIX/good"
 # test-guard 게이트 누락 → 드리프트 차단
 check "bad(test-guard 누락) → MISSING/FAIL"  1 "$FIX/bad-missing-testguard"
+
+# E1: alembic 대칭 — alembic 감지 시 alembic-heads 게이트를 required로 기대(프로비저너 대칭 제공).
+check "E1: alembic 완비(heads 有) → 통과"     0 "$FIX/alembic-nextjs-vue"
+check "E1: alembic-heads 누락 → MISSING/FAIL" 1 "$FIX/alembic-missing-heads"
+
+# E2: nextjs·vue 감지 + 룰 점검(검증기 ruleMap 대칭) — 감지 스택·룰 자산이 출력에 나타나야 한다.
+OUT=$(node "$GATE" --repo "$FIX/alembic-nextjs-vue" --harness "$ROOT" 2>&1)
+if echo "$OUT" | grep -q "nextjs, vue, alembic\|nextjs" && echo "$OUT" | grep -q "룰: nextjs.md" && echo "$OUT" | grep -q "룰: vue.md"; then
+  echo "PASS: E2 nextjs·vue 감지+룰 점검"; PASS=$((PASS+1))
+else
+  echo "FAIL: E2 nextjs·vue 감지+룰 점검"; FAIL=$((FAIL+1))
+fi
 # --help → 통과
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
 

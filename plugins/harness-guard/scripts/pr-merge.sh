@@ -4,13 +4,58 @@
 # 머지 *전에* 게이트를 직접 검증한다 — CI required green · 미해결 리뷰 스레드 0 · mergeable.
 # 게이트를 통과하지 못하면 머지하지 않고 종료(게이트가 머지 경로에 박혀 건너뛸 수 없음).
 #
-# 사용: pr-merge.sh [<PR#>] [--base <branch>]   (PR# 생략 시 현재 브랜치의 PR)
+# 사용: pr-merge.sh [<PR#>] [--base <branch>] [--auto]   (PR# 생략 시 현재 브랜치의 PR)
+#   --auto: develop 전용 자동머지 — base가 develop이 아니면 거부(exit 3). settings allow-rule과 짝.
 #   브랜치 보호(승인 요건) 해제·복구는 이 스크립트가 하지 않는다 — solo-merge가 별도로 감싼다.
 set -euo pipefail
 
-PR="" BASE=""
+# --auto(develop 전용 자동머지) 정책: base가 develop이 아니면 거부. gh와 분리한 순수 함수라
+# 테스트가 주입해 검증한다(tests/pr-merge-auto-test.sh). 안전의 1차 보증 = 이 base 강제(매처 아님).
+require_develop_base() {
+  local base="$1"
+  [ "$base" = "develop" ] && return 0
+  echo "  ⛔ --auto는 develop 전용 자동머지 — 이 PR base=$base." >&2
+  echo "     main 머지는 /release·/hotfix 경로 또는 명시 승인으로(자동머지 대상 아님)." >&2
+  return 3
+}
+
+# ── 게이트 본체(순수 판정 함수) — gh 호출과 분리해 테스트가 주입 검증(tests/pr-merge-auto-test.sh).
+#    main은 gh로 값을 얻어 이 함수들에 넘긴다(판정 로직 단일 출처 = 함수). ──
+
+# CI 게이트 판정: `gh pr checks --required`의 (rc, out)만 받아 판정 문자열을 echo.
+#   green    = required 통과            (rc 0)
+#   none     = required check 없음→통과 (rc 0)
+#   fallback = checks API 접근 불가(토큰 제한) → Actions run 폴백 필요(호출부가 처리, rc 0)
+#   fail     = 그 외 미통과 → 머지 중단 (rc 1)
+classify_ci_gate() {
+  local rc="$1" out="$2"
+  if [ "$rc" -eq 0 ]; then echo green; return 0; fi
+  if printf '%s' "$out" | grep -qiE "no checks|no required"; then echo none; return 0; fi
+  if printf '%s' "$out" | grep -qiE "not accessible|GraphQL|Resource not accessible"; then echo fallback; return 0; fi
+  echo fail; return 1
+}
+
+# 미해결 리뷰 스레드 게이트: "0"만 통과. ""·"ERR"·"1"+ 는 fail-CLOSED(쿼리 실패=검증 불가=중단).
+gate_threads() { [ "$1" = "0" ]; }
+
+# mergeable 게이트: "MERGEABLE"만 통과. UNKNOWN·CONFLICTING 등은 fail(충돌/계산 미완).
+gate_mergeable() { [ "$1" = "MERGEABLE" ]; }
+
+# --auto 안전 계약: 무인 자동머지는 CI가 **서버-강제**(required status check 존재)여야 성립한다.
+# required check가 없으면(verdict=none) CI-green을 보장할 수 없어 자동머지는 거부(fail-CLOSED).
+# 수동 머지(auto=0)는 none도 허용 — 사람이 책임지고 머지(무인 자동화만 서버강제를 요구).
+auto_ci_ok() { # verdict, auto → rc0 허용 / rc1 거부(none + --auto)
+  { [ "$1" = "none" ] && [ "$2" = "1" ]; } && return 1
+  return 0
+}
+
+# 테스트 훅: 함수만 로드하고 종료(main 로직·gh 호출 없이 순수 판정 함수만 검증).
+[ -n "${PRMERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
+
+PR="" BASE="" AUTO=0
 while [ $# -gt 0 ]; do
   case "$1" in
+    --auto) AUTO=1; shift;;
     --base) BASE="${2:-}"; shift 2;;
     -*) echo "pr-merge.sh: 알 수 없는 인자 '$1'" >&2; exit 2;;
     *) PR="$1"; shift;;
@@ -22,16 +67,30 @@ OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 OWNER="${OWNER_REPO%/*}"; NAME="${OWNER_REPO#*/}"
 echo "게이트 검증: $OWNER_REPO PR #$PR"
 
+# --auto: 이 PR의 실제 base가 develop인지 강제(아니면 거부). 게이트 검증 전 선차단.
+if [ "$AUTO" = "1" ]; then
+  PR_BASE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName --jq .baseRefName)
+  require_develop_base "$PR_BASE" || exit 3
+  echo "  --auto: base=develop 확인"
+fi
+
 # 1) CI 검증 — 1차: gh pr checks(외부 CI 포함). 토큰이 checks API를 못 읽으면(GraphQL 403)
 #    2차: Actions run(gh run list)으로 이 커밋의 워크플로 결과를 폴백 검증.
 # 주의: set -e라 `VAR=$(실패명령)`는 RC 캡처 전에 스크립트를 죽인다 → `|| CHECKS_RC=$?`로 흡수.
 CHECKS_RC=0
 CHECKS_OUT=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1) || CHECKS_RC=$?
-if [ "$CHECKS_RC" -eq 0 ]; then
+CI_VERDICT=$(classify_ci_gate "$CHECKS_RC" "$CHECKS_OUT") || true
+# --auto는 required check가 없으면(none) 거부 — 자동머지의 CI-green 보장은 서버-강제 required check 전제.
+if ! auto_ci_ok "$CI_VERDICT" "$AUTO"; then
+  echo "  ⛔ --auto 거부: 이 브랜치에 required status check 없음(none) — 자동머지는 서버-강제 CI가 전제." >&2
+  echo "     set-branch-protection.sh <repo> --contexts <a,b>로 등록 후 재시도, 또는 --auto 없이 수동 머지." >&2
+  exit 1
+fi
+if [ "$CI_VERDICT" = "green" ]; then
   echo "  CI: required green"
-elif echo "$CHECKS_OUT" | grep -qiE "no checks|no required"; then
+elif [ "$CI_VERDICT" = "none" ]; then
   echo "  CI: required check 없음 → 통과"
-elif echo "$CHECKS_OUT" | grep -qiE "not accessible|GraphQL|Resource not accessible"; then
+elif [ "$CI_VERDICT" = "fallback" ]; then
   # 토큰이 checks API 접근 불가 → Actions run으로 폴백(이 커밋 한정)
   HEAD_SHA=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefOid --jq .headRefOid)
   HBRANCH=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefName --jq .headRefName)
@@ -53,7 +112,7 @@ fi
 UNRESOLVED=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved}}}}}' \
   -F o="$OWNER" -F n="$NAME" -F p="$PR" \
   --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false)]|length' 2>/dev/null) || UNRESOLVED="ERR"
-if [ "$UNRESOLVED" != "0" ]; then
+if ! gate_threads "$UNRESOLVED"; then
   echo "  ⛔ 미해결 리뷰 스레드 미통과(값=$UNRESOLVED · ERR=API오류) — 머지 중단" >&2; exit 1
 fi
 echo "  미해결 스레드: 0"
@@ -65,7 +124,7 @@ for _ in 1 2 3 4; do
   [ "$MERGEABLE" != "UNKNOWN" ] && break
   sleep 2
 done
-if [ "$MERGEABLE" != "MERGEABLE" ]; then
+if ! gate_mergeable "$MERGEABLE"; then
   echo "  ⛔ mergeable=$MERGEABLE (충돌 또는 계산 미완) — 머지 중단" >&2; exit 1
 fi
 echo "  mergeable: MERGEABLE"

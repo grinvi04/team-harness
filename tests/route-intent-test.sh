@@ -1,5 +1,5 @@
 #!/bin/bash
-# tests/route-intent-test.sh — route-intent.mjs 시나리오 테스트 (RED)
+# tests/route-intent-test.sh — route-intent.mjs 시나리오 테스트
 # 로컬·CI 동일 실행: bash tests/route-intent-test.sh
 set -u
 
