@@ -48,6 +48,18 @@ effort: high
 
 ## Phase 0 — 사전 검증 (오케스트레이터 직접 실행)
 
+### 0-0. 작업 브랜치 확인 (K4)
+
+체크포인트 커밋은 `develop`/`main`에서 guard에 차단된다(진행 보존 불가). 루프는 **작업 브랜치(feature/fix/…)** 에서 돌려야 한다.
+
+```bash
+BR=$(git branch --show-current 2>/dev/null)
+if [ "$BR" = "develop" ] || [ "$BR" = "main" ]; then
+  echo "⛔ /loop 는 보호 브랜치($BR)에서 체크포인트 커밋을 못 한다. 작업 브랜치로 전환 후 재실행하거나 --no-commit 을 쓰세요."; exit 1
+fi
+```
+> `--no-commit`으로 돌리면 보호 브랜치에서도 실행 가능하나, 진행이 커밋으로 보존되지 않는다.
+
 ### 0-1. 인수 파싱
 
 `$ARGUMENTS`에서:
