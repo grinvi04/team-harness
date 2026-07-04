@@ -100,4 +100,6 @@
 
 | **모델 티어링 현행화 — 메인 = Opus 기본**(#30 "Sonnet 메인 기본" 대체): Opus 4.8 이후 Anthropic 공식 권장이 **"Start with Opus"**로 전환 — Max·Team Premium·Enterprise·API 계정 default = Opus 4.8(Pro·Team Standard = Sonnet 4.6). 과거 표준("메인=Sonnet 기본")은 Sonnet이 합리적 기본이던 시절 서술이라 역행 → 현행화. **3-tier 개념·서브에이전트 티어링(enforce-subagent-model 훅)은 유지, 메인 세션 기본만 Sonnet→Opus** 정정. 비용 인식은 `opusplan`(계획=opus·실행=sonnet)·effort 튜닝·세션 위생(`/clear`·`/compact`) — 다운그레이드가 아님. 발단: 세션 비용($80) 검토에서 사용자가 "현재 Opus가 기본·recommended"임을 지적, 공식 문서로 확인. 기준: Claude Code *Model configuration* "Start with Opus"(2026-07 확인). | 2026-07-05 | docs/model-tiering.md | docs/decisions.md(#30 대체) |
 
+| **비용 위생 = model-tiering 실전 결정표**(Claude 전용): 위임 정책을 추상 지침에서 **카테고리→구체예시→티어/도구 결정표**로 강화(읽기·검색=Explore/haiku·빌드=general-purpose/sonnet·검증/설계=opus·무거운 다단계=Workflow·단일 trivial만 인라인). Rules 2·3·5는 표로 축약(단일 출처). **강제 불가**(메인 AI의 위임 판단은 훅으로 못 막음 — 모든 인라인 읽기 차단은 오케스트레이션 불가)라 "따르기 쉽고 오해석 어렵게"가 최선. **진짜 결정론적 레버 = Workflow(stage별 모델)·opusplan(도구 기능, team-harness 밖)**; 문서는 이를 가리킴. tool-agnostic 추상화·강제 훅(T1 서브에이전트 훅 편입·T2 넛지) 폐기 — 지금은 Claude 전용, Codex/Gemini는 나중 재엔지니어링. 발단: $80 세션 opus 98%·sonnet/haiku 바닥 = 추상 지침 rationalization('자잘' 확대 적용)으로 읽기·빌드까지 opus 인라인한 실증. | 2026-07-05 | docs/model-tiering.md | docs/decisions.md |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
