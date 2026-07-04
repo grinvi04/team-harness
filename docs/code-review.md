@@ -30,6 +30,7 @@ feat(order): 월 주문 한도 검증 추가
   - (a) **승인요건 유지 + `/solo-merge`**: 머지할 때만 승인요건을 일시 우회·즉시 복구. 리뷰 흐름을 언제든 다시 쓸 수 있게 보존. 반복 마찰을 줄이려면 한 줄 별칭(`sm <PR>`) 권장 — AI는 보호 토글이 분류기에 막혀 사람이 실행.
   - (b) **승인요건 제거 + CI 게이트만**: `required_pull_request_reviews` 삭제 → 그 뒤 **`pr-merge.sh`(게이트 래퍼)로 머지**(AI도 가능 — 맨손 `gh pr merge`는 guard가 차단하므로 래퍼가 CI·스레드·mergeable 검증 후 머지). 리뷰어 합류 시 `required_approving_review_count`로 복구.
   - **main(릴리즈)은 보호 유지 권장** — 머지가 드물고 운영 배포 대상이라 게이트 한 겹이 안전.
+  - **develop 자동머지(개선2)**: develop CI-green PR은 `bash pr-merge.sh --auto <PR>`로 **분류기 프롬프트 없이** 머지한다(settings `Bash(bash * pr-merge.sh --auto *)` allow-rule이 분류기를 우회). `--auto`는 **base=develop만** 허용하고 main base는 거부(exit 3)하므로 자동승인돼도 main은 못 뚫는다 — **안전 1차 보증은 스크립트의 base 강제**(allow-rule 매처는 마찰감소, fragile해도 최악=분류기 폴백). enforce_admins=true로 CI가 서버 강제라 develop 자동의 남은 리스크는 "의도"뿐(revertable). **main/release는 --auto 대상 아님** — /release·/hotfix로 확인 유지. 단일 출처: `docs/specs/develop-auto-merge.md`.
 - 리뷰 SLA: **1영업일** — 지연 시 리뷰어 재지정
 
 ## 리뷰 관점 체크리스트 (리뷰어용)
