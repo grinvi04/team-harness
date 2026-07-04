@@ -121,9 +121,11 @@ for (const f of migrationFiles) {
 }
 const sorted = [...new Set(versions)].sort((a, b) => a - b)
 
-// 타임스탬프 버전(8자리 이상, 예: 20240101…)은 접두사 대역 규약이 아님 → 검사 A 비대상
+// 타임스탬프 버전(8자리 이상, 예: 20240101…)은 접두사 대역 규약이 아님 → 검사 A 비대상.
+// B2: **모든** 버전이 임계 이상일 때만 순수 타임스탬프로 본다(Math.min). 접두사 대역(1xxx..4xxx)에
+// 타임스탬프 하나만 섞이면(min<임계) 대역 검사를 계속 켜야 함 — Math.max면 하나로 검사 전체가 꺼져 false-pass.
 const TIMESTAMP_MIN = 1e7
-const isTimestamp = sorted.length > 0 && Math.max(...sorted) >= TIMESTAMP_MIN
+const isTimestamp = sorted.length > 0 && Math.min(...sorted) >= TIMESTAMP_MIN
 
 // 대역 판정: 정렬된 버전 사이에 예약 점프(큰 갭)가 1개 이상 있으면 접두사 대역.
 // 단조 증가(…,3,4,5,…)는 큰 갭이 없어 단일 대역 → 안전.
@@ -144,15 +146,21 @@ const NONPROD_PROFILE_RE = /application-(test|dev|ci|local|it|e2e|integration)\b
 const prodConfigFiles = configFiles.filter((cf) => !NONPROD_PROFILE_RE.test(basename(cf)))
 const OOO_RE = /out[-_]?of[-_]?order\s*[:=]\s*["']?(true|false)/gi
 let oooState = 'absent' // 'true' | 'false' | 'absent'
+// B3: 라인 단위로 읽고 주석(`#` 이후)을 제거한 뒤 스캔 — 주석 처리된 `# out-of-order: true`가
+// 실제 false를 덮어 게이트를 false-pass 시키던 것 차단(yaml/conf/toml/ini 공통 주석문자 #).
 for (const cf of prodConfigFiles) {
   let text
   try { text = readFileSync(cf, 'utf8') } catch { continue }
-  let m
-  OOO_RE.lastIndex = 0
-  while ((m = OOO_RE.exec(text)) !== null) {
-    const v = m[1].toLowerCase()
-    if (v === 'true') { oooState = 'true'; break }
-    if (v === 'false') oooState = 'false'
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.replace(/#.*$/, '') // 라인 내 주석 제거
+    let m
+    OOO_RE.lastIndex = 0
+    while ((m = OOO_RE.exec(line)) !== null) {
+      const v = m[1].toLowerCase()
+      if (v === 'true') { oooState = 'true'; break }
+      if (v === 'false') oooState = 'false'
+    }
+    if (oooState === 'true') break
   }
   if (oooState === 'true') break
 }

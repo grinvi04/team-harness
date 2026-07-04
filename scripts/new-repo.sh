@@ -210,9 +210,10 @@ apply_protection() {
     -F allow_deletions=false \
     2>&1) \
     && echo "  ✅  $branch 보호 완료 (솔로: 승인0 · enforce_admins=on · checks: ${STACK_CHECKS[*]})" \
-    || { echo "  ❌  $branch 보호 실패: $api_out"; }
+    || { echo "  ❌  $branch 보호 실패: $api_out"; PROT_FAILED=1; }
 }
 
+PROT_FAILED=0   # B4: 보호 적용 실패를 ❌ 출력 후 삼키지 않고 스크립트 종료코드(exit)에 반영
 echo "🔒  Branch protection 적용..."
 apply_protection main
 apply_protection develop
@@ -248,3 +249,6 @@ echo ""
 echo "  이후: 테스트 PR 1개 → ci-gate 통과 확인"
 echo "  (main/develop 보호를 못 걸었으면 이 스크립트 재실행)"
 echo "────────────────────────────────────────────────"
+
+# B4: 보호 적용에 실패했으면(위 ❌) 성공 요약을 냈더라도 non-zero로 종료 — 체이닝·자동화가 감지.
+[ "${PROT_FAILED:-0}" = "0" ] || { echo ""; echo "⚠️  branch protection 미적용 — 위 ❌ 확인 후 재실행 필요"; exit 1; }

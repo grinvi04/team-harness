@@ -24,6 +24,10 @@ check "대역 + out-of-order 미설정 → FAIL"   1 "$FIX/bad-missing"
 check "대역 + out-of-order:false → FAIL"     1 "$FIX/bad-false"
 # S1: 비운영(test) 프로파일에만 out-of-order:true, 운영 config엔 없음 → FAIL(false-pass 방지)
 check "대역 + test프로파일만 ooo:true → FAIL(S1)" 1 "$FIX/bad-nonprod-ooo"
+# B2: 대역 repo에 타임스탬프 버전 1개 혼입 — Math.max 오판으로 대역검사 꺼지던 false-pass 차단
+check "대역+타임스탬프 혼입 → FAIL(B2)"          1 "$FIX/bad-timestamp-mix"
+# B3: 주석 처리된 out-of-order:true가 실제 false를 덮던 false-pass 차단
+check "대역+주석 ooo:true → FAIL(B3)"            1 "$FIX/bad-commented-ooo"
 # 대역 + out-of-order:true → 통과
 check "대역 + out-of-order:true → 통과"      0 "$FIX/good"
 # 단조 증가 → 통과(오탐 금지)

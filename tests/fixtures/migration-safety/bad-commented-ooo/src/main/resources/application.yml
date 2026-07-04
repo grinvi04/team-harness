@@ -1,0 +1,4 @@
+spring:
+  flyway:
+    # out-of-order: true
+    out-of-order: false

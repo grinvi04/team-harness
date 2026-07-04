@@ -32,12 +32,16 @@ for branch in main develop; do
     if [ -z "$prot" ]; then echo "✗ $REPO:$branch — 보호 미적용"; rc=1; continue; fi
     appr=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_pull_request_reviews'); print(r.get('required_approving_review_count') if r else 0)" 2>/dev/null || echo "?")
     adm=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('enforce_admins',{}).get('enabled'))" 2>/dev/null || echo "?")
+    # B1: required_status_checks 개수 — -1=null(없음), 0=빈 목록(약한 보호), >0=정상.
+    chk=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(len(r.get('contexts') or [c.get('context') for c in (r.get('checks') or [])]) if r else -1)" 2>/dev/null || echo "?")
     okappr=false; { [ "$appr" = "0" ] || [ "$appr" = "None" ]; } && okappr=true
-    if $okappr && [ "$adm" = "True" ]; then echo "✓ $REPO:$branch — 보호 적용(승인0 · enforce_admins=on, 솔로 표준)"
+    okchk=false; [ "$chk" -gt 0 ] 2>/dev/null && okchk=true
+    if $okappr && [ "$adm" = "True" ] && $okchk; then echo "✓ $REPO:$branch — 보호 적용(승인0 · enforce_admins=on · checks=$chk, 솔로 표준)"
     else
       msg="⚠ $REPO:$branch — 드리프트:"
       $okappr || msg="$msg 승인요건=$appr(표준0·리뷰어 有면 의도)"
       [ "$adm" = "True" ] || msg="$msg enforce_admins=$adm(표준=on · off면 CI red 머지 가능!)"
+      $okchk || msg="$msg required_status_checks=${chk}개(표준 non-null · CI 이후 재적용 필요)"
       echo "$msg"; rc=1
     fi
     continue
@@ -49,7 +53,13 @@ for branch in main develop; do
   if gh api -X PUT "repos/$REPO/branches/$branch/protection" --input - >/dev/null 2>&1 <<JSON
 {"required_status_checks":$rsc,"enforce_admins":true,"required_pull_request_reviews":null,"restrictions":null,"required_conversation_resolution":true,"allow_force_pushes":false,"allow_deletions":false}
 JSON
-  then echo "✓ $REPO:$branch — 보호 적용(승인0 · checks=$ctx)"
+  then
+    if [ "$ctx" = "[]" ]; then
+      # B1: 감지된 check가 0개면 required_status_checks=null(약한 보호)로 걸린 것 — 성공으로 은폐하지 않는다.
+      echo "⚠ $REPO:$branch — 보호 적용됐으나 required status check 0개(첫 CI 이전?) — CI 실행 후 재실행 필요"; rc=1
+    else
+      echo "✓ $REPO:$branch — 보호 적용(승인0 · enforce_admins=on · checks=$ctx)"
+    fi
   else echo "✗ $REPO:$branch — 적용 실패(private+Free? 권한?)"; rc=1; fi
 done
 exit $rc
