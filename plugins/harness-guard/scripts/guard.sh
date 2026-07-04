@@ -59,17 +59,27 @@ if [[ -n "$TARGET_DIR" ]]; then
   fi
 fi
 
-# main/develop 직접 커밋 금지
-if echo "$COMMAND" | grep -qE "\bgit\b.*\bcommit\b"; then
-  BRANCH=$(git branch --show-current 2>/dev/null)
+# main/develop 직접 커밋 금지 — commit을 **서브커맨드 위치**로 좁혀 과차단 제거(A5:
+#   `git log --grep=commit`·`git help commit`·`grep "git commit"`는 통과). `git -C <dir> commit`이면
+#   후행 cd 우회와 무관하게 **그 -C dir** 기준으로 판정(A2: 커밋 dir ≠ 판정 dir 우회 차단).
+COMMIT_SEG=$(echo "$COMMAND" | grep -oE "(^|[;&|(][[:space:]]*)git([[:space:]]+-C[[:space:]]+[^;&|[:space:]]+)?[[:space:]]+commit([[:space:]]|$)" | head -1)
+if [[ -n "$COMMIT_SEG" ]]; then
+  CDIR=$(echo "$COMMIT_SEG" | grep -oE "\-C[[:space:]]+[^;&|[:space:]]+" | sed -E 's/^-C[[:space:]]+//' | head -1)
+  if [[ -n "$CDIR" ]]; then
+    CDIR="${CDIR//\"/}"; CDIR="${CDIR//\'/}"; CDIR="${CDIR/#\~/$HOME}"
+    BRANCH=$(git -C "$CDIR" branch --show-current 2>/dev/null)
+  else
+    BRANCH=$(git branch --show-current 2>/dev/null)
+  fi
   if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]]; then
     deny "main/develop 직접 커밋 금지" "feature/fix/hotfix/release 브랜치에서 작업 후 /feature-merge 사용"
   fi
 fi
 
-# main/develop force push 금지 (--force/-f 또는 +branch refspec)
-# refspec 생략 시 현재 브랜치가 push 대상이므로, main/develop 위에서는 force push 전체를 차단한다
-if echo "$COMMAND" | grep -qE "git push.*(--force|-f)\b|git push.*\+(main|develop)\b"; then
+# main/develop force push 금지 (--force/-f, 결합 단축플래그 -fu, 또는 +refspec)
+# 외부 게이트는 force 신호를 넓게 잡고(내부 조건이 main/develop 대상 여부를 판정) — 결합플래그(-fu)·
+# plus-refspec(+HEAD:main)를 놓쳐 우회되던 것 교정(감사 A1). refspec 생략 시 현재 브랜치가 push 대상.
+if echo "$COMMAND" | grep -qE "git[[:space:]]+push[^;&|]*(--force|-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)"; then
   BRANCH=$(git branch --show-current 2>/dev/null)
   if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]] || \
      echo "$COMMAND" | grep -qE "origin[[:space:]]+(main|develop)([[:space:]]|$)|:(main|develop)([[:space:]]|$)|\+(main|develop)([[:space:]]|$)"; then
@@ -122,7 +132,7 @@ fi
 # 마이그레이션(db/migration/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
 # rm/git rm과 대상 경로를 **같은 명령 세그먼트**([^;&|]*)로 결합해 검사한다(G2) —
 # `rm x.log; grep foo tests/`처럼 무관한 rm과 다른 세그먼트의 테스트경로가 각각 있어도 차단하던 오탐 방지.
-if echo "$COMMAND" | grep -qE "(^|[^[:alnum:]_.-])(rm|git[[:space:]]+rm)[[:space:]][^;&|]*(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^[:space:]/]*\.py|[^[:space:]/]*_test\.py|tests?/|db/migration/|alembic/versions/|prisma/migrations/)"; then
+if echo "$COMMAND" | grep -qE "(^|[^[:alnum:]_.-])(rm|git[[:space:]]+rm)[[:space:]][^;&|]*(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^[:space:]/]*\.py|[^[:space:]/]*_test\.py|tests?(/|[[:space:]]|$)|db/migration(/|[[:space:]]|$)|alembic/versions(/|[[:space:]]|$)|prisma/migrations(/|[[:space:]]|$))"; then
   deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
 fi
 
@@ -131,7 +141,7 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-zA-Z]*[rRf]|--recursive|--force)"; then
   # 경로의 정규식 메타문자([.+ 등)를 이스케이프 — 미처리 시 해당 경로에서 가드가 빗나감
   PROJECT_ROOT_RE=$(printf '%s' "$PROJECT_ROOT" | sed 's/[][\.*^$()+?{}|]/\\&/g')
-  if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT_RE/?\"?[[:space:]]*$|(^|[[:space:]])(\./)?(src|app)(/|[[:space:]]|$)|node_modules/?[[:space:]]*$)"; then
+  if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT_RE/?\"?[[:space:]]*$|(^|[[:space:]])(\./)?(src|app|node_modules)(/|[[:space:]]|$))"; then
     deny "프로젝트 핵심 디렉터리 rm -rf 금지" "삭제가 필요하면 사용자가 직접 실행하세요"
   fi
   # 심링크 표기(/tmp ↔ /private/tmp 등)로 적힌 root도 잡는다 — 경로 토큰을 정규화해 비교
