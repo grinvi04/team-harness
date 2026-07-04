@@ -68,7 +68,7 @@ const DIMENSIONS = [
   {
     key: 'standards-impl',
     prompt: `docs 표준이 주장하는 자동 점검을 플러그인·CI가 실제로 수행하는지 검토하라.
-대상: agents/security-reviewer.md, skills/release-check/skill.md, templates/ci/ 전체 vs docs/auth-standards.md·db-standards.md·api-standards.md·operations.md
+대상: agents/security-reviewer.md, skills/release-check/SKILL.md, templates/ci/ 전체 vs docs/auth-standards.md·db-standards.md·api-standards.md·operations.md
 문서가 "X가 점검한다"고 주장하는 항목이 해당 구현의 정의에 실제로 있는지, 구현의 점검 정의가 표준의 용어 정의(forward-only 등)와 같은 의미인지, 귀속(계층 0 vs 플러그인)이 정확한지 확인하라.`,
   },
   {
