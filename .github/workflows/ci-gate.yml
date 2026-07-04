@@ -27,6 +27,7 @@ jobs:
           bash -n tests/guard-test.sh
           bash -n tests/route-intent-test.sh
           bash -n tests/merge-permissions-test.sh
+          bash -n tests/pr-merge-auto-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
@@ -60,6 +61,9 @@ jobs:
 
       - name: 드리프트 점검 테스트
         run: bash tests/repo-sync-test.sh
+
+      - name: pr-merge --auto 정책 테스트
+        run: bash tests/pr-merge-auto-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
