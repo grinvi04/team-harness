@@ -80,8 +80,9 @@ CHECK=false; CONTEXTS=""; APPROVALS=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)     CHECK=true; shift;;
-    --contexts)  CONTEXTS="${2:-}"; shift 2;;   # 기존 repo 리메디에이션 — 명시 required check 이름
-    --approvals) APPROVALS="${2:-}"; shift 2;;   # 팀 모드 — main에 리뷰 승인 N(develop은 0 유지)
+    # 값 필수(마지막 인자로 값 없이 오면 shift 2가 no-op → 무한루프): $#>=2 확인 후 소비.
+    --contexts)  [ $# -ge 2 ] || { echo "set-branch-protection.sh: --contexts는 값이 필요합니다 (a,b,c)" >&2; exit 2; }; CONTEXTS="$2"; shift 2;;   # 기존 repo 리메디에이션 — 명시 required check 이름
+    --approvals) [ $# -ge 2 ] || { echo "set-branch-protection.sh: --approvals는 값이 필요합니다 (0 이상 정수)" >&2; exit 2; }; APPROVALS="$2"; shift 2;;   # 팀 모드 — main에 리뷰 승인 N(develop은 0 유지)
     *) echo "set-branch-protection.sh: 알 수 없는 인자 '$1'" >&2; exit 2;;
   esac
 done
