@@ -23,7 +23,7 @@ bash /path/to/team-harness/scripts/new-repo.sh
 스크립트가 자동으로 처리하는 항목:
 - 템플릿 파일 복사 (pre-commit 훅·CI·AGENTS.md·CLAUDE.md·settings.json·PR 템플릿·gitignore)
 - `git config core.hooksPath .githooks`
-- main·develop branch protection (enforce_admins·PR1·status-checks·conversation-resolve)
+- main·develop branch protection (enforce_admins on·승인요건 0·status-checks·conversation-resolve)
 
 > 멱등: 이미 있는 파일·protection은 건드리지 않음. 브랜치 없으면 "첫 커밋 후 재실행" 안내.
 

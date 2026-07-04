@@ -11,7 +11,7 @@
 
 - **harness-guard 플러그인**(`plugins/harness-guard/`): `guard.sh`(PreToolUse 가드), `route-intent.mjs`(UserPromptSubmit), PR 래퍼(`pr-create.sh`·`pr-merge.sh`), 스킬(`skills/`), 에이전트.
 - **팀 표준 문서**(`docs/`): 전 소비 repo가 상속하는 표준의 **단일 출처**. 설계 결정 = `docs/decisions.md`.
-- **신규 repo 셋업 도구**(`templates/`, `scripts/new-repo.sh`, `scripts/set-branch-protection.sh`).
+- **신규 repo 셋업 도구**(`templates/`, `scripts/new-repo.sh`, `plugins/harness-guard/scripts/set-branch-protection.sh`).
 - 소비 repo(erp·siku·webhook-service·drivertree)가 이 repo의 표준·플러그인을 상속한다.
 
 ## 스택
@@ -30,7 +30,7 @@
 
 - `main`/`develop` 직접 커밋·push **금지**(guard.sh + branch protection 서버 강제). 작업은 `fix/`·`feature/`·`hotfix/`·`release/` 브랜치 → PR.
 - **feature 브랜치는 `docs/specs/<name>.md`(=`/plan` 산출) 선행 필수**(guard.sh F5 게이트). trivial은 `HARNESS_TRIVIAL=1` 명시 면제.
-- 맨손 `gh pr create`/`gh pr merge` **금지** → 래퍼 `scripts/pr-create.sh`·`scripts/pr-merge.sh` 경유(내부 gh는 자식 프로세스라 훅 무관).
+- 맨손 `gh pr create`/`gh pr merge` **금지** → 래퍼 `plugins/harness-guard/scripts/{pr-create,pr-merge}.sh` 경유(내부 gh는 자식 프로세스라 훅 무관).
 - PR·머지·솔로/브랜치보호 정책의 **정본 = `docs/code-review.md`**. develop CI-green 자동머지는 `pr-merge.sh --auto`(같은 문서).
 - 커밋: **Conventional Commits**(타입 영어 + 본문 한국어) — `docs/code-review.md`.
 
@@ -41,7 +41,7 @@
 
 ## 버전·릴리즈
 
-- **플러그인 동작 변경**(스크립트·훅·스킬·`templates/`) 시 `plugins/harness-guard/.claude-plugin/plugin.json` + `README.md` 배지 **버전 bump** — `docs/harness-maintenance.md`.
+- **플러그인 동작 변경**(가드·래퍼 스크립트·훅·스킬·에이전트 — `docs/harness-maintenance.md` SemVer 표가 정본) 시 `plugins/harness-guard/.claude-plugin/plugin.json` + `README.md` 배지 **버전 bump**. `templates/`는 신규 셋업에만 적용돼 자동 전파 안 됨(그 자체로는 bump 트리거 아님 — 동반 플러그인 변경이 트리거).
 - 릴리즈: `develop`→`release/vX`→`main` PR + 태그(`/release`). 상세 `docs/harness-maintenance.md`.
 
 ## 금지 사항
@@ -49,3 +49,4 @@
 - guard/secret-scan 훅·가드를 **우회 목적으로 완화** 금지(정당한 개선은 테스트·decisions 동반).
 - 소비 repo에 영향 주는 변경 시 **버전 bump 누락** 금지.
 - 테스트 스킵, `main`/`develop` 직접 push, 시크릿 커밋 금지.
+- guard.sh가 서버에서 강제하는 것들(사용자 직접 실행 대상): `git reset --hard`, 핵심 디렉터리 `rm -rf`, `npm install -g`, 검증기(테스트·마이그레이션) 삭제.
