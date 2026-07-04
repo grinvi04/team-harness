@@ -242,14 +242,9 @@ gh api "repos/$OWNER_REPO/milestones?state=all&per_page=100" \
 
 ---
 
-## Phase S2 — 커밋 (오케스트레이터 직접 실행)
+## Phase S2 — 로컬 대시보드 (커밋하지 않음)
 
-```bash
-git add docs/milestones/*.md
-git commit -m "docs(milestone): 진행률 갱신 — $(date +%Y-%m-%d)
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-```
+> 진행률의 정본은 **GitHub Milestone**(open/closed issue 카운트)다 — `docs/milestones/*.md`는 로컬 대시보드라 커밋하지 않는다(K3, gitignore).
 
 ---
 
@@ -284,14 +279,9 @@ cat "docs/milestones/$SLUG.md"
 
 ---
 
-## Phase B2 — 커밋 (오케스트레이터 직접 실행)
+## Phase B2 — 로컬 대시보드 (커밋하지 않음)
 
-```bash
-git add "docs/milestones/$SLUG.md"
-git commit -m "docs(milestone): $SLUG 기능 분해 갱신
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-```
+> 분해 결과의 정본은 **GitHub Milestone + Issue/PR**다 — `docs/milestones/$SLUG.md`는 로컬 대시보드라 커밋하지 않는다(K3, gitignore).
 
 ---
 
