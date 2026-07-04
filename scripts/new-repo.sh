@@ -138,7 +138,7 @@ fi
 
 # 한국어 UX 룰 — 프론트엔드(UI) 스택에 복사. path-scoped(*.tsx·*.vue 등)라 비-UI repo엔 무영향.
 # 영어 UI 서비스면 셋업 후 삭제. (단일 출처: docs/korean-ux.md)
-if printf '%s\n' "${STACK_RULES[@]}" | grep -qxE 'typescript|vue|nextjs' || [[ "$STACK_TEMPLATE" == *rails* ]]; then
+if printf '%s\n' "${STACK_RULES[@]+"${STACK_RULES[@]}"}" | grep -qxE 'typescript|vue|nextjs' || [[ "$STACK_TEMPLATE" == *rails* ]]; then
   mkdir -p .claude/rules
   copy_once "$HARNESS_DIR/templates/rules/korean-ux.md" ".claude/rules/korean-ux.md" "rules/korean-ux.md"
 fi
