@@ -62,7 +62,11 @@ fi
 # main/develop 직접 커밋 금지 — commit을 **서브커맨드 위치**로 좁혀 과차단 제거(A5:
 #   `git log --grep=commit`·`git help commit`·`grep "git commit"`는 통과). `git -C <dir> commit`이면
 #   후행 cd 우회와 무관하게 **그 -C dir** 기준으로 판정(A2: 커밋 dir ≠ 판정 dir 우회 차단).
-COMMIT_SEG=$(echo "$COMMAND" | grep -oE "(^|[;&|(][[:space:]]*)git([[:space:]]+-C[[:space:]]+[^;&|[:space:]]+)?[[:space:]]+commit([[:space:]]|$)" | head -1)
+#   A5b(릴리즈 보안검토 회귀): commit 앞의 **임의 git 전역옵션**을 허용해야 우회 안 됨 — `-c name=val`·
+#   `--no-pager` 등이 git과 commit 사이에 오면 매치가 깨져 `git -c user.name=x commit`이 통과되던 구멍.
+#   전역옵션 = 값-분리 플래그(-C/-c/--git-dir/… <값>) 또는 임의 단일 플래그(-x/--flag[=v]). 서브커맨드가
+#   commit이어야 매치(log 등 다른 서브커맨드는 여전히 통과 → 과차단 유지 안 함).
+COMMIT_SEG=$(echo "$COMMAND" | grep -oE "(^|[;&|(][[:space:]]*)git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+commit([[:space:]]|$)" | head -1)
 if [[ -n "$COMMIT_SEG" ]]; then
   CDIR=$(echo "$COMMIT_SEG" | grep -oE "\-C[[:space:]]+[^;&|[:space:]]+" | sed -E 's/^-C[[:space:]]+//' | head -1)
   if [[ -n "$CDIR" ]]; then
