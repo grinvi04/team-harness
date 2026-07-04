@@ -49,19 +49,23 @@ gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable
 ## Phase 2 — 삭제·머지·복구
 
 ```bash
-# 현재 review 보호 설정 저장 (복구용)
+# 현재 review 보호 설정 **전체**를 저장한다(복구용). count만 저장하면 복구 PATCH가
+# dismiss_stale_reviews·require_code_owner_reviews·require_last_push_approval 등을 유실시켜
+# base 브랜치 보호가 매 실행마다 영구 약화된다(K1). 보호가 없던 repo면 아예 만들지 않는다.
 REVIEWS_CONFIG=$(gh api "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews" 2>/dev/null)
-REVIEW_COUNT=$(echo "$REVIEWS_CONFIG" | python3 -c "import sys,json; print(json.load(sys.stdin)['required_approving_review_count'])" 2>/dev/null || echo "1")
+HAD_PROTECTION=no; [ -n "$REVIEWS_CONFIG" ] && echo "$REVIEWS_CONFIG" | grep -q required_approving_review_count && HAD_PROTECTION=yes
 
-# review 요건 일시 삭제 (보호가 있는 repo만 — 보호 없으면 이 DELETE/PATCH는 생략)
-gh api -X DELETE "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews"
+# review 요건 일시 삭제 (보호가 있던 repo만)
+[ "$HAD_PROTECTION" = "yes" ] && gh api -X DELETE "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews"
 
 # 머지 — 맨손 gh pr merge는 guard가 차단. 래퍼가 CI·스레드·mergeable 게이트 재검증 후 머지.
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-merge.sh "$PR"
 
-# 즉시 복구
-gh api -X PATCH "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews" \
-  -F required_approving_review_count="$REVIEW_COUNT"
+# 즉시 복구 — 저장한 **전체 설정**을 그대로 되돌린다(모든 필드 보존). 보호 없던 repo면 생략(요건 조작 생성 방지).
+if [ "$HAD_PROTECTION" = "yes" ]; then
+  echo "$REVIEWS_CONFIG" | python3 -c "import sys,json; c=json.load(sys.stdin); print(json.dumps({k:c[k] for k in ('required_approving_review_count','dismiss_stale_reviews','require_code_owner_reviews','require_last_push_approval') if k in c}))" \
+    | gh api -X PATCH "repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews" --input -
+fi
 ```
 
 ---
