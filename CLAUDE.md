@@ -8,6 +8,7 @@
 - **PR 머지 전 게이트**: `pr-review-gate` 스킬 절차를 따른다(단일 출처).
 - **머지 안전(develop-auto)**: develop CI-green PR은 `bash pr-merge.sh --auto <PR>`로 auto-mode 분류기 프롬프트 없이 머지한다(settings `Bash(bash * pr-merge.sh --auto *)` allow-rule). `--auto`는 base=develop만 허용하고 main은 거부 — **main/release는 --auto 대상 아님**, 건별 확인·`/release`·`/hotfix` 경유. 정본: `docs/code-review.md` 솔로 절 + `docs/specs/develop-auto-merge.md`.
 - **릴리즈 전 보안 검토**: `security-reviewer` 에이전트를 spawn한다.
+- **모델 티어 위임(비용)**: 읽기·검색은 `Explore`(haiku)·빌드·테스트는 `general-purpose`(sonnet)에 **위임**하고, opus 메인은 계획·검토·설계·오케스트레이션만. 무거운 다단계는 `Workflow`(stage별 모델 결정론적). **"1회성 자잘" 확대 적용해 읽기·빌드를 opus 인라인하지 말 것**(단일 trivial만 인라인). 구체 결정표 = `docs/model-tiering.md` "실전 결정표". 강제 아닌 재량 안내 — 진짜 결정론적 보장은 `opusplan`·Workflow(도구 기능).
 - **자기 dogfooding**: team-harness는 자기 guard.sh·branch protection의 적용 대상이다 — 다른 소비 repo와 똑같이 브랜치·PR·게이트를 지킨다.
 - **자기 플러그인을 세션에서 활성화(dogfood 실행법)**: 이 repo에서 harness-guard의 훅·스킬을 실제로 발동시키려면
   **`claude --plugin-dir ./plugins/harness-guard`로 실행**한다 — 워킹트리에서 **라이브 로드**(캐시 stale 회피).
