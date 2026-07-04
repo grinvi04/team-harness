@@ -7,6 +7,8 @@
 # 사용: pr-merge.sh [<PR#>] [--base <branch>] [--auto]   (PR# 생략 시 현재 브랜치의 PR)
 #   --auto: develop 전용 자동머지 — base가 develop이 아니면 거부(exit 3). settings allow-rule과 짝.
 #   브랜치 보호(승인 요건) 해제·복구는 이 스크립트가 하지 않는다 — solo-merge가 별도로 감싼다.
+#   머지 성공 후 로컬 head 브랜치도 정리한다(원격은 --delete-branch·repo delete_branch_on_merge로 삭제).
+#   안전: origin/<base>에 브랜치 tip이 포함(=머지됨)일 때만 삭제 — 미머지 로컬 커밋을 유실하지 않는다.
 set -euo pipefail
 
 # --auto(develop 전용 자동머지) 정책: base가 develop이 아니면 거부. gh와 분리한 순수 함수라
@@ -46,6 +48,13 @@ gate_mergeable() { [ "$1" = "MERGEABLE" ]; }
 # 수동 머지(auto=0)는 none도 허용 — 사람이 책임지고 머지(무인 자동화만 서버강제를 요구).
 auto_ci_ok() { # verdict, auto → rc0 허용 / rc1 거부(none + --auto)
   { [ "$1" = "none" ] && [ "$2" = "1" ]; } && return 1
+  return 0
+}
+
+# 머지 후 로컬 정리 시 checkout 대상 결정(순수): 현재 브랜치가 삭제될 head면 base로 이동(빈 base면
+# develop 폴백), 아니면 이동 불필요(빈 문자열). 삭제될 브랜치 위에 남지 않게 하는 로직 — 테스트가 주입 검증.
+merge_cleanup_checkout() { # head base current → echo checkout 대상("" = 이동 불필요)
+  [ "$3" = "$1" ] && printf '%s' "${2:-develop}"
   return 0
 }
 
@@ -132,3 +141,18 @@ echo "  mergeable: MERGEABLE"
 echo "게이트 통과 → 머지"
 gh pr merge "$PR" --repo "$OWNER_REPO" --merge --delete-branch
 echo "✅ PR #$PR 머지 완료"
+
+# 로컬 head 브랜치 정리 — 원격은 --delete-branch로 삭제됨(로컬 복사본은 수동 삭제해야 누적을 막음).
+# 안전: origin/<base>에 브랜치 tip이 포함(=머지됨)일 때만 -D — 미머지 로컬 커밋 유실 방지.
+HEAD_BRANCH=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefName --jq .headRefName 2>/dev/null) || HEAD_BRANCH=""
+if [ -n "$HEAD_BRANCH" ] && git show-ref --verify --quiet "refs/heads/$HEAD_BRANCH"; then
+  CB_BASE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName --jq .baseRefName 2>/dev/null) || CB_BASE=""
+  git fetch origin --quiet 2>/dev/null || true
+  if git merge-base --is-ancestor "$HEAD_BRANCH" "origin/${CB_BASE:-main}" 2>/dev/null; then
+    CB_CO=$(merge_cleanup_checkout "$HEAD_BRANCH" "$CB_BASE" "$(git branch --show-current 2>/dev/null || echo)")
+    if [ -n "$CB_CO" ]; then git checkout "$CB_CO" --quiet 2>/dev/null || true; fi
+    git branch -D "$HEAD_BRANCH" >/dev/null 2>&1 && echo "🧹 로컬 브랜치 삭제: $HEAD_BRANCH (원격은 이미 삭제됨)" || true
+  else
+    echo "ℹ️ 로컬 '$HEAD_BRANCH' 보존 — origin/${CB_BASE:-main}에 미포함(미머지 커밋 가능)"
+  fi
+fi
