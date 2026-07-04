@@ -112,6 +112,14 @@ check "A5: git log --grep=commit 통과"          0 Bash "git log --grep=commit"
 check "A5: git help commit 통과"                0 Bash "git help commit"                    "$DEV"
 check "A5: grep 'git commit' 통과"              0 Bash "grep 'git commit' f.txt"            "$DEV"
 
+# A5b (릴리즈 보안검토 회귀): commit 앞 임의 git 전역옵션(-c·--no-pager 등)은 여전히 직접커밋으로 차단.
+# A5가 commit을 서브커맨드로 좁힐 때 -C만 허용해 `git -c user.name=x commit`이 우회되던 구멍 재봉쇄.
+check "A5b: git -c ... commit(보호) 차단"       2 Bash "git -c user.name=x -c user.email=x@x commit -m x" "$DEV"
+check "A5b: git --no-pager commit 차단"         2 Bash "git --no-pager commit -m x"          "$DEV"
+check "A5b: git -c commit.gpgsign=false commit 차단" 2 Bash "git -c commit.gpgsign=false commit -m x" "$DEV"
+check "A5b: 전역옵션 있어도 feature는 통과"     0 Bash "git -c user.name=x commit -m x"      "$FEAT"
+check "A5b: git -c ... log --grep=commit 통과(과차단 방지)" 0 Bash "git -c user.name=x log --grep=commit" "$DEV"
+
 # D2: 안전경로(legitimate) 과차단 방지 — 삭제/전역/보호가 아닌 무해 명령은 통과해야 한다(회귀 방지).
 check "D2: 비force push(feature) 통과"          0 Bash "git push origin feature/x"           "$FEAT"
 check "D2: git reset --soft 통과(≠--hard)"      0 Bash "git reset --soft HEAD~1"             "$FEAT"
