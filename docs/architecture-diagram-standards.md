@@ -190,6 +190,18 @@ ok = check_labels('diagram_name', boxes_list, [(lx, ly-7, text) for lx, ly, text
 5. 생성 실행: `python3 docs/gen_arch_svg.py`
 6. 출력: `docs/architecture.svg`
 7. README `🏗️ 아키텍처` 섹션에 `![아키텍처 다이어그램](docs/architecture.svg)` + mermaid `<details>`
+8. **자동 재생성 훅**(권장): `templates/hooks/regen-arch-svg.sh`를 `.claude/hooks/regen-arch-svg.sh`로 복사(`chmod +x`)하고
+   프로젝트 `.claude/settings.json`의 `hooks.PostToolUse`(matcher `Edit|Write|MultiEdit`)에 배선한다 — 이후
+   `docs/gen_arch_svg.py`를 저장할 때마다 SVG가 자동 재생성된다(수동 `python3` 실행 불필요). 훅은 대상 파일이
+   `docs/gen_arch_svg.py`가 아니면 즉시 exit 0이라 다른 편집엔 무영향. 배선 예:
+   ```json
+   "PostToolUse": [
+     { "matcher": "Edit|Write|MultiEdit", "hooks": [
+       { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/regen-arch-svg.sh", "timeout": 15 }
+     ]}
+   ]
+   ```
+   > 훅 스크립트의 **단일 출처 = `templates/hooks/regen-arch-svg.sh`** — repo마다 복붙하지 말고 이 템플릿에서 복사한다.
 
 ### 노드 좌표 설계 체크리스트
 
