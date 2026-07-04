@@ -45,8 +45,8 @@ git checkout develop && git pull origin develop
 ## Phase 1 — 영향 범위 분석 (오케스트레이터 직접 실행)
 
 $ARGUMENTS에서 도출: 수정 범위(영향 파일), **변경할 기존 테스트 vs 유지할 테스트**(목록으로 명확히), DB 스키마 변경 여부, 브랜치 전략:
-- 기능 확장 → `feature/$FEATURE_NAME-update`, 커밋 타입 `feat`
-- 버그 수정 → `fix/$FEATURE_NAME`, 커밋 타입 `fix`
+- 기능 확장 → `feature/$FEATURE_NAME-update`, 커밋 타입 `feat`. ⚠️ **feature/* 생성은 F5 plan-gate 발동**(K2) — 실질적 신규 기능이면 먼저 `/plan`으로 스펙을 만들고(있으면 통과), trivial 확장이면 `HARNESS_TRIVIAL=1 git checkout -b …` 로 명시 면제하거나 `fix/*`를 쓴다.
+- 버그 수정 → `fix/$FEATURE_NAME`, 커밋 타입 `fix` (`fix/*`는 게이트 무관)
 
 ```bash
 git checkout -b <결정된 브랜치명>

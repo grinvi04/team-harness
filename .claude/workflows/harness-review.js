@@ -52,8 +52,8 @@ const DIMENSIONS = [
   {
     key: 'commands-gate',
     prompt: `git-flow 커맨드와 게이트 절차의 정합성을 검토하라.
-대상: plugins/harness-guard/commands/ 전체, skills/pr-review-gate/SKILL.md, agents/security-reviewer.md
-커맨드가 절차를 복붙해 스킬(단일 출처)과 드리프트가 생겼는지, 커맨드 간 상호 참조·전제가 실제 파일 내용과 맞는지, 커맨드가 참조하는 섹션명(AGENTS.md 등)이 실존하는지, 지시가 자기 가드·branch protection에 차단되어 실행 불가능하지 않은지 확인하라.`,
+대상: plugins/harness-guard/skills/ 전체(git-flow 스킬 — 과거 commands/는 skills/로 이전됨), agents/security-reviewer.md
+스킬이 절차를 복붙해 단일 출처와 드리프트가 생겼는지, 스킬 간 상호 참조·전제가 실제 파일 내용과 맞는지, 참조하는 섹션명(AGENTS.md 등)이 실존하는지, 지시가 자기 가드·branch protection에 차단되어 실행 불가능하지 않은지 확인하라.`,
   },
   {
     key: 'templates-onboarding',
@@ -68,7 +68,7 @@ const DIMENSIONS = [
   {
     key: 'standards-impl',
     prompt: `docs 표준이 주장하는 자동 점검을 플러그인·CI가 실제로 수행하는지 검토하라.
-대상: agents/security-reviewer.md, commands/release-check.md, templates/ci/ 전체 vs docs/auth-standards.md·db-standards.md·api-standards.md·operations.md
+대상: agents/security-reviewer.md, skills/release-check/skill.md, templates/ci/ 전체 vs docs/auth-standards.md·db-standards.md·api-standards.md·operations.md
 문서가 "X가 점검한다"고 주장하는 항목이 해당 구현의 정의에 실제로 있는지, 구현의 점검 정의가 표준의 용어 정의(forward-only 등)와 같은 의미인지, 귀속(계층 0 vs 플러그인)이 정확한지 확인하라.`,
   },
   {

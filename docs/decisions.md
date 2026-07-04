@@ -22,7 +22,7 @@
 | DB = PostgreSQL (NoSQL은 보조 용도만) | 2026-06 | stack-guide.md | db-standards.md |
 | 인증 = Keycloak OIDC, 자체 구현 금지 / 인가 = RBAC 권한코드 + 데이터 스코프 | 2026-06 | auth-standards.md | architecture-infra.md, stack-guide.md |
 | API 응답 = 공통 Envelope (code·message·data), offset 페이지네이션 기본 | 2026-06 | api-standards.md | — |
-| 마이그레이션 = forward-only (down 스크립트 금지), BIGINT PK + 채번 | 2026-06 | db-standards.md | release-check.md |
+| 마이그레이션 = forward-only (down 스크립트 금지), BIGINT PK + 채번 | 2026-06 | db-standards.md | skills/release-check/skill.md |
 | 아키텍처 = 모듈러 모놀리스 → 미니서비스, 1차 경계 = 도메인 모듈 | 2026-06 | architecture-infra.md | clean-architecture.md |
 | 모듈 내부 계층 = adapter → application → domain (interface/infrastructure 분리 안 함) | 2026-06 | clean-architecture.md | stack-guide.md |
 | 배포 = EC2 단계 GitHub Actions push형 → EKS 단계 Argo CD pull형 | 2026-06 | architecture-infra.md | stack-guide.md |
@@ -73,5 +73,7 @@
 | team-harness → **public 전환**: 결정 #47의 "예외: team-harness = private" 변경. 사유: repo-sync CI가 team-harness를 checkout할 때 private이면 각 프로젝트에 PAT(HARNESS_RO_TOKEN)을 등록해야 함 — 기밀 내용이 없는 거버넌스 메타 repo에 불필요한 운영 부담. public 전환 시 토큰 불필요·repo-sync 즉시 활성화 가능·GitHub Free branch protection도 선택 가능. 결정 #47의 나머지(개인 코드 프로젝트 = public+MIT, 신규 repo 하네스 준수)는 유지 | 2026-07-03 | onboarding.md | templates/ci/repo-sync.yml(token 줄 삭제), 각 프로젝트 .github/workflows/repo-sync.yml |
 
 | repo-sync CI 활성화(4개 프로젝트): team-harness public 전환 후 erp·siku·DriveTree·webhook-service에 HARNESS_SYNC_ENABLED=true 설정. token 불필요라 HARNESS_RO_TOKEN secret 등록 불필요. templates/ci/repo-sync.yml의 `token:` 줄 삭제(public이면 불필요 주석 참조). 각 프로젝트 .github/workflows/repo-sync.yml도 동일 갱신 | 2026-07-03 | templates/ci/repo-sync.yml | erp·siku·DriveTree·webhook-service .github/workflows/repo-sync.yml |
+
+| feature 브랜치 진입 계약 강제(v0.18.0, 감사 F5 remedy): guard.sh가 `git checkout -b`/`switch -c feature/<name>` 시 승인된 `docs/specs/<name>.md`(=`/plan` 산출) 부재 & `HARNESS_TRIVIAL=1` 면제 부재면 차단. 동기: feature-add가 `/plan` 하류로 설계됐으나 상류 spec을 **관례로만 전제**(강제 안 함) — AI가 "응 해"에 성급히 `/feature-add` 진입하는 실패모드(이 세션 실증, 감사 PR #99 F5). **상태 기반(파일 존재)** 강제라 route-intent 오버트리거(substring, #46·#69)와 달리 정밀. 발단(브랜치 생성)만 게이트 — 기존 브랜치 계속·fix/hotfix 무관(guard-test 39/0). 명시 면제 토큰으로 "계획 건너뛰기=침묵 기본값"을 "의식적 행위"로 전환. 공유 guard라 전 소비 repo 적용(MINOR). 정직한 한계: 보조장치(난독화 우회 가능, 최종강제=계층0). F3·F4(solo-merge·release 유사 패턴)는 보상게이트 有로 별건. 버전: 0.17.0은 리버트로 burned(#69) → 0.18.0 | 2026-07-04 | plugins/harness-guard/scripts/guard.sh | skills/feature-add/skill.md, tests/guard-test.sh, plugin.json(v0.18.0), README.md |
 
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)

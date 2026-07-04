@@ -1,0 +1,4 @@
+spring:
+  flyway:
+    enabled: true
+    # 운영 프로파일 — out-of-order 미설정(대역 마이그레이션이 운영 DB validate 실패)

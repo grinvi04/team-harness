@@ -127,6 +127,11 @@ check_no_grep "AC-2k: DB 동기화 로직 만들어줘 → inject=false (repo-sy
   '"inject":true' \
   --prompt "DB 동기화 로직 만들어줘" --branch "develop"
 
+# AC-2l: 부정문("~하지 말고") → inject=false (F6 — '배포' substring 오버트리거 방지)
+check_no_grep "AC-2l: 배포하지 말고 로그만 남겨줘 → inject=false (부정문 veto, F6)" \
+  '"inject":true' \
+  --prompt "배포하지 말고 로그만 남겨줘" --branch "feature/x" --committed
+
 # ── AC-3: 상태 불명확 → inject=false ──────────────────────────────────────
 echo ""
 echo "=== AC-3: 상태 불명확 → inject=false ==="

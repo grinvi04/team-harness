@@ -35,10 +35,10 @@ elif echo "$CHECKS_OUT" | grep -qiE "not accessible|GraphQL|Resource not accessi
   # 토큰이 checks API 접근 불가 → Actions run으로 폴백(이 커밋 한정)
   HEAD_SHA=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefOid --jq .headRefOid)
   HBRANCH=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefName --jq .headRefName)
-  RUNCOUNT=$(gh run list --repo "$OWNER_REPO" --branch "$HBRANCH" --limit 30 --json headSha,status,conclusion \
-    --jq "[.[]|select(.headSha==\"$HEAD_SHA\")]|length" 2>/dev/null || echo 0)
-  BADCOUNT=$(gh run list --repo "$OWNER_REPO" --branch "$HBRANCH" --limit 30 --json headSha,status,conclusion \
-    --jq "[.[]|select(.headSha==\"$HEAD_SHA\" and (.status!=\"completed\" or .conclusion!=\"success\"))]|length" 2>/dev/null || echo ERR)
+  # S3: gh run list를 1회만 호출하고 결과를 재사용(동일 쿼리 2회 중복 제거).
+  RUNS_JSON=$(gh run list --repo "$OWNER_REPO" --branch "$HBRANCH" --limit 30 --json headSha,status,conclusion 2>/dev/null || echo '[]')
+  RUNCOUNT=$(printf '%s' "$RUNS_JSON" | python3 -c "import sys,json; r=json.load(sys.stdin); print(len([x for x in r if x['headSha']=='$HEAD_SHA']))" 2>/dev/null || echo 0)
+  BADCOUNT=$(printf '%s' "$RUNS_JSON" | python3 -c "import sys,json; r=json.load(sys.stdin); print(len([x for x in r if x['headSha']=='$HEAD_SHA' and (x['status']!='completed' or x['conclusion']!='success')]))" 2>/dev/null || echo ERR)
   if [ "$RUNCOUNT" = "0" ]; then
     echo "  ⛔ CI: checks API 접근 불가 + 이 커밋의 Actions run 없음 — 검증 불가, 머지 중단" >&2; exit 1
   elif [ "$BADCOUNT" != "0" ]; then
