@@ -82,4 +82,6 @@
 
 | **migration-safety 짝-플래그 fail-fast**(엔지니어링 리뷰 S2, #109): `check-migration-safety.mjs`가 `--config`만 주고 `--migrations` 생략(또는 역) 시 나머지를 cwd에서 긁어 무관 마이그레이션/설정을 대상으로 오판(false-pass/fail)하던 문제. **한쪽만 명시하면 exit 2(사용법 오류)로 즉시 중단** — 둘 다 명시(정밀 모드) 또는 둘 다 생략([루트경로] 발견 모드)만 허용. 기존 호출부(templates/ci/migration-safety.yml=플래그 없는 발견 모드)는 안 깨짐. 테스트 3건 추가(11/0) | 2026-07-04 | scripts/check-migration-safety.mjs | tests/migration-safety-test.sh |
 
+| **브랜치 보호 enforce_admins=false→true(정정)**: 직전 "브랜치 보호 표준" 행이 `enforce_admins=false`로 정했으나, 그 근거("소유자 릴리즈 머지 위해 false 필요")는 **승인요건이 있을 때만** 성립 — 승인요건 0에선 enforce_admins=true여도 소유자가 green이면 바로 머지(데드락 없음). false는 **CI-green 강제를 관례로 격하**(관리자가 required check 우회 가능 → CI red 머지 구멍, 실제 관측). true라야 "강제는 서버에" 원칙대로 CI-green이 소유자·에이전트에게도 우회불가 **계약**. 축 구분: solo-merge:14의 "enforce_admins 토글 무효"는 **review 요건** 축(그래서 solo-merge는 required_pull_request_reviews 직접 삭제), 이 결정은 **required status check(CI)** 축 — 별개. 긴급 break-glass(CI 인프라 장애, 드묾)는 required_status_checks 일시 완화(통상은 CI 고쳐 머지). set-branch-protection.sh `--check`가 enforce_admins off 드리프트도 리포트. 적용: 5 repo × main/develop 재적용 | 2026-07-04 | plugins/harness-guard/scripts/set-branch-protection.sh | scripts/new-repo.sh, docs/decisions.md(직전 행 정정) |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
