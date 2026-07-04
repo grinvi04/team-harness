@@ -31,6 +31,7 @@ jobs:
           bash -n tests/pr-create-test.sh
           bash -n tests/set-branch-protection-test.sh
           bash -n tests/new-repo-test.sh
+          bash -n tests/alembic-heads-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
@@ -77,6 +78,9 @@ jobs:
 
       - name: new-repo B4 게이트 테스트
         run: bash tests/new-repo-test.sh
+
+      - name: alembic-heads 계수 테스트
+        run: bash tests/alembic-heads-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest

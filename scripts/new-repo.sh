@@ -73,6 +73,14 @@ if [[ ${#STACK_RULES[@]} -gt 0 ]] && printf '%s\n' "${STACK_RULES[@]}" | grep -q
   STACK_CHECKS+=("migration-safety")
 fi
 
+# Alembic 스택 — 다중 head(분기 마이그레이션) 차단 게이트(별도 CI 점검, decisions "정적 게이트 Flyway 전용").
+# 검증기(check-repo-sync.mjs)가 alembic 감지 시 이 게이트를 required로 기대 → 프로비저너가 대칭 제공.
+HAS_ALEMBIC=false
+if [[ ${#STACK_RULES[@]} -gt 0 ]] && printf '%s\n' "${STACK_RULES[@]}" | grep -qx alembic; then
+  HAS_ALEMBIC=true
+  STACK_CHECKS+=("alembic-heads")
+fi
+
 STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
 echo ""
 echo "선택: $STACK_TEMPLATE"
@@ -111,6 +119,11 @@ if [[ "$HAS_FLYWAY" == true ]]; then
   mkdir -p scripts
   copy_once "$HARNESS_DIR/templates/ci/migration-safety.yml" .github/workflows/migration-safety.yml "migration-safety.yml (접두사 대역+out-of-order 게이트)"
   copy_once "$HARNESS_DIR/scripts/check-migration-safety.mjs" scripts/check-migration-safety.mjs "scripts/check-migration-safety.mjs"
+fi
+
+# Alembic 스택 — 다중 head 차단 게이트 워크플로(자기-스킵 — alembic.ini 없으면 통과)
+if [[ "$HAS_ALEMBIC" == true ]]; then
+  copy_once "$HARNESS_DIR/templates/ci/alembic-heads.yml" .github/workflows/alembic-heads.yml "alembic-heads.yml (다중 head 차단 게이트)"
 fi
 
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"

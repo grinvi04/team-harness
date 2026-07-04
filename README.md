@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.19.3-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.20.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -203,7 +203,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 ## 🧪 테스트
 
 ```bash
-bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (20 케이스)
+bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (21 케이스)
 ```
 
 ## 📁 repo 구조
