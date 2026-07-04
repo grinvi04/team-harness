@@ -23,6 +23,11 @@ effort: low
    ```
    스크립트가 repo 스택(java·flyway·typescript·nestjs·vite·python·prisma·alembic·supabase)을 파일 신호로 감지하고, 그 스택의 필수 harness 자산(test-guard·commitlint·secret-scan·migration-safety 게이트 + 스택 룰)이 표준과 sync 됐는지 자산별 `OK / WEAK / WARN / MISSING` 표로 출력한다.
    - **exit 1(MISSING 있음)이어도 보고는 계속한다** — 다음 대상도 마저 실행하고 마지막에 종합한다.
+3. **브랜치 보호 점검**(gh 인증 필요 · GitHub repo 대상): 표준 솔로 보호(승인0·CI-gate) 적용 여부를 점검한다.
+   ```bash
+   bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/set-branch-protection.sh <owner/repo> --check
+   ```
+   `✗ 보호 미적용` 또는 `⚠ 승인요건 불일치`면 보고에 포함(적용은 `--check` 빼고 실행 — 사용자 승인 후). check-repo-sync.mjs는 무의존 정적검사라 이 네트워크 점검은 별도 스크립트로 분리.
 
 ## 보고
 
