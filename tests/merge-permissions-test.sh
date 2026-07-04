@@ -1,5 +1,5 @@
 #!/bin/bash
-# tests/merge-permissions-test.sh — merge-permissions.mjs TDD 계약(RED)
+# tests/merge-permissions-test.sh — merge-permissions.mjs 병합 계약 테스트(구현 완료·GREEN).
 # 로컬·CI 동일 실행: bash tests/merge-permissions-test.sh
 set -u
 
@@ -22,42 +22,36 @@ assert_out() {
 }
 
 # AC1: typescript → node fragment 병합 → allow에 Bash(npm run *) 포함
-# stub은 병합 안 함 → FAIL(RED 확인용)
 assert_out \
   "AC1: --rules typescript → Bash(npm run *) 포함" \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(npm run *)' in a else 1)" \
   --base "$FIX/base.json" --rules typescript --fragments "$FRAGS"
 
 # AC2: python + alembic → python3·pytest·alembic 전부 포함
-# stub은 병합 안 함 → FAIL(RED)
 assert_out \
   "AC2: --rules python,alembic → python3·pytest·alembic 전부 포함" \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if all(x in a for x in ['Bash(python3 *)', 'Bash(pytest *)', 'Bash(alembic *)']) else 1)" \
   --base "$FIX/base.json" --rules python,alembic --fragments "$FRAGS"
 
 # AC3: typescript + base에 Bash(npm run *) 이미 존재 → dedup(1개) + Bash(npx jest *) 포함
-# stub은 병합 안 하므로 Bash(npx jest *)가 없음 → FAIL(RED)
 assert_out \
   "AC3: dedup — Bash(npm run *) 1개·Bash(npx jest *) 포함" \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if a.count('Bash(npm run *)') == 1 and 'Bash(npx jest *)' in a else 1)" \
   --base "$FIX/base-with-npm.json" --rules typescript --fragments "$FRAGS"
 
-# AC4: 알 수 없는 rule → 변화 없음, base allow 그대로
-# stub은 병합 안 하므로 base 그대로 → 우연히 PASS 가능(의도된 예외)
+# AC4: 알 수 없는 rule → 무시, base allow 그대로여야 한다
 assert_out \
-  "AC4: --rules foobar → base allow 변화 없음 [stub PASS 가능]" \
+  "AC4: --rules foobar → base allow 변화 없음" \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if a == ['Bash(git *)'] else 1)" \
   --base "$FIX/base.json" --rules foobar --fragments "$FRAGS"
 
-# AC5: deny 보존 — 어떤 규칙 적용 후에도 deny는 base 그대로
-# stub은 deny 건드리지 않으므로 → 우연히 PASS 가능(의도된 예외)
+# AC5: deny 보존 — 어떤 규칙 적용 후에도 deny(base)는 그대로 보존돼야 한다
 assert_out \
-  "AC5: deny 보존 — Bash(sudo *) 유지 [stub PASS 가능]" \
+  "AC5: deny 보존 — Bash(sudo *) 유지" \
   "import sys,json; d=json.load(sys.stdin); dny=d['permissions']['deny']; exit(0 if 'Bash(sudo *)' in dny else 1)" \
   --base "$FIX/base.json" --rules typescript --fragments "$FRAGS"
 
 # AC6: --docker → docker-compose fragment 추가
-# stub은 병합 안 함 → FAIL(RED)
 assert_out \
   "AC6: --docker → Bash(docker-compose *) 포함" \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(docker-compose *)' in a else 1)" \

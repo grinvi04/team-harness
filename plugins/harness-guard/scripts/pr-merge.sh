@@ -19,7 +19,29 @@ require_develop_base() {
   return 3
 }
 
-# 테스트 훅: 함수만 로드하고 종료(main 로직·gh 호출 없이 require_develop_base만 검증).
+# ── 게이트 본체(순수 판정 함수) — gh 호출과 분리해 테스트가 주입 검증(tests/pr-merge-auto-test.sh).
+#    main은 gh로 값을 얻어 이 함수들에 넘긴다(판정 로직 단일 출처 = 함수). ──
+
+# CI 게이트 판정: `gh pr checks --required`의 (rc, out)만 받아 판정 문자열을 echo.
+#   green    = required 통과            (rc 0)
+#   none     = required check 없음→통과 (rc 0)
+#   fallback = checks API 접근 불가(토큰 제한) → Actions run 폴백 필요(호출부가 처리, rc 0)
+#   fail     = 그 외 미통과 → 머지 중단 (rc 1)
+classify_ci_gate() {
+  local rc="$1" out="$2"
+  if [ "$rc" -eq 0 ]; then echo green; return 0; fi
+  if printf '%s' "$out" | grep -qiE "no checks|no required"; then echo none; return 0; fi
+  if printf '%s' "$out" | grep -qiE "not accessible|GraphQL|Resource not accessible"; then echo fallback; return 0; fi
+  echo fail; return 1
+}
+
+# 미해결 리뷰 스레드 게이트: "0"만 통과. ""·"ERR"·"1"+ 는 fail-CLOSED(쿼리 실패=검증 불가=중단).
+gate_threads() { [ "$1" = "0" ]; }
+
+# mergeable 게이트: "MERGEABLE"만 통과. UNKNOWN·CONFLICTING 등은 fail(충돌/계산 미완).
+gate_mergeable() { [ "$1" = "MERGEABLE" ]; }
+
+# 테스트 훅: 함수만 로드하고 종료(main 로직·gh 호출 없이 순수 판정 함수만 검증).
 [ -n "${PRMERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
 PR="" BASE="" AUTO=0
@@ -49,11 +71,12 @@ fi
 # 주의: set -e라 `VAR=$(실패명령)`는 RC 캡처 전에 스크립트를 죽인다 → `|| CHECKS_RC=$?`로 흡수.
 CHECKS_RC=0
 CHECKS_OUT=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1) || CHECKS_RC=$?
-if [ "$CHECKS_RC" -eq 0 ]; then
+CI_VERDICT=$(classify_ci_gate "$CHECKS_RC" "$CHECKS_OUT") || true
+if [ "$CI_VERDICT" = "green" ]; then
   echo "  CI: required green"
-elif echo "$CHECKS_OUT" | grep -qiE "no checks|no required"; then
+elif [ "$CI_VERDICT" = "none" ]; then
   echo "  CI: required check 없음 → 통과"
-elif echo "$CHECKS_OUT" | grep -qiE "not accessible|GraphQL|Resource not accessible"; then
+elif [ "$CI_VERDICT" = "fallback" ]; then
   # 토큰이 checks API 접근 불가 → Actions run으로 폴백(이 커밋 한정)
   HEAD_SHA=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefOid --jq .headRefOid)
   HBRANCH=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefName --jq .headRefName)
@@ -75,7 +98,7 @@ fi
 UNRESOLVED=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved}}}}}' \
   -F o="$OWNER" -F n="$NAME" -F p="$PR" \
   --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false)]|length' 2>/dev/null) || UNRESOLVED="ERR"
-if [ "$UNRESOLVED" != "0" ]; then
+if ! gate_threads "$UNRESOLVED"; then
   echo "  ⛔ 미해결 리뷰 스레드 미통과(값=$UNRESOLVED · ERR=API오류) — 머지 중단" >&2; exit 1
 fi
 echo "  미해결 스레드: 0"
@@ -87,7 +110,7 @@ for _ in 1 2 3 4; do
   [ "$MERGEABLE" != "UNKNOWN" ] && break
   sleep 2
 done
-if [ "$MERGEABLE" != "MERGEABLE" ]; then
+if ! gate_mergeable "$MERGEABLE"; then
   echo "  ⛔ mergeable=$MERGEABLE (충돌 또는 계산 미완) — 머지 중단" >&2; exit 1
 fi
 echo "  mergeable: MERGEABLE"
