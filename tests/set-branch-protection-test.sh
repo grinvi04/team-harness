@@ -70,6 +70,19 @@ rj "승인1 → 승인1+dismiss_stale"   1  '{"required_approving_review_count":
 rj "승인2 → 승인2+dismiss_stale"   2  '{"required_approving_review_count":2,"dismiss_stale_reviews":true}'
 rj "비숫자 → null(fail-safe)"      x  "null"
 
+# arg 파서 하드닝: 값 없는 --approvals/--contexts는 무한루프 대신 즉시 exit 2.
+# REPO는 owner/name(=/ 포함)이라 gh api user 미호출 · 가드는 for-branch 루프(gh) 이전이라 네트워크 무관.
+# timeout(없으면 gtimeout)으로 회귀(무한루프) 시 hang 대신 rc124=FAIL 되게 감싼다.
+TO=""; command -v timeout >/dev/null 2>&1 && TO=timeout; command -v gtimeout >/dev/null 2>&1 && TO=gtimeout
+arg_case() { # desc, want_rc, args...
+  local desc="$1" wantrc="$2"; shift 2; local rc
+  ${TO:+$TO 5} bash "$SBP" "$@" >/dev/null 2>&1; rc=$?
+  if [ "$rc" = "$wantrc" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want rc$wantrc got rc$rc"; FAIL=$((FAIL+1)); fi
+}
+arg_case "값없는 --approvals → exit 2"  2  o/r --approvals
+arg_case "값없는 --contexts → exit 2"   2  o/r --contexts
+arg_case "미지정 인자 → exit 2"         2  o/r --nope
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
