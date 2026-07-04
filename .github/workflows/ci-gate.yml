@@ -21,6 +21,7 @@ jobs:
           bash -n plugins/harness-guard/scripts/guard.sh
           bash -n plugins/harness-guard/scripts/pr-create.sh
           bash -n plugins/harness-guard/scripts/pr-merge.sh
+          bash -n plugins/harness-guard/scripts/set-branch-protection.sh
           bash -n templates/githooks/pre-commit
           bash -n .githooks/pre-commit
           bash -n tests/guard-test.sh
