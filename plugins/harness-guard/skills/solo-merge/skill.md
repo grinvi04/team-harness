@@ -9,7 +9,7 @@ effort: medium
 
 솔로 개발자는 자기 PR을 승인할 수 없다(GitHub 자기승인 불가). branch protection이 승인 1+를 요구하면 머지가 영구히 막힌다. 이 커맨드는 **CI·리뷰·스레드 resolve 등 품질 게이트는 그대로 통과시킨 뒤, 솔로라 충족 불가능한 승인 요건만** `required_pull_request_reviews`를 일시 삭제해 머지하고 **즉시 복구·검증**한다.
 
-> **언제 필요한가**: 브랜치 보호에 **승인요건(1+)이 걸린 repo**(팀 모드 / 리뷰어 합류로 재활성)에서만. **솔로 표준**(decisions "브랜치 보호 표준" — 승인요건 0·CI-gate·enforce_admins off)에선 우회할 승인요건이 없어 소유자가 바로 `pr-merge.sh`로 머지하므로 **이 커맨드가 불필요**하다. 즉 승인요건을 재활성했을 때의 **break-glass**다.
+> **언제 필요한가**: 브랜치 보호에 **승인요건(1+)이 걸린 repo**(팀 모드 / 리뷰어 합류로 재활성)에서만. **솔로 표준**(decisions "브랜치 보호 표준" — 승인요건 0·CI-gate·enforce_admins on)에선 우회할 승인요건이 없어 소유자가 바로 `pr-merge.sh`로 머지하므로 **이 커맨드가 불필요**하다. 즉 승인요건을 재활성했을 때의 **break-glass**다.
 
 > ⚠️ **enforce_admins 토글 방식은 더 이상 작동하지 않는다.** GitHub이 2026년경 동작을 변경해 `enforce_admins=false`로 설정해도 REST API·GraphQL 모두 review 요건을 강제한다. `required_pull_request_reviews` 직접 삭제·복구 방식을 사용한다.
 

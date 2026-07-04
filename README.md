@@ -70,7 +70,7 @@ flowchart TD
     L2["<b>계층 2 · harness-guard 플러그인</b><br/>가드 훅 · git-flow 커맨드 · 게이트 스킬"]
     L1["<b>계층 1 · repo 커밋 설정</b><br/>AGENTS.md(규약 단일 출처) + .claude/settings.json"]
     L05["<b>계층 0.5 · git pre-commit 훅</b><br/>main/develop 직접 커밋 차단 (--no-verify로 우회 가능)"]
-    L0["<b>계층 0 · GitHub branch protection + CI 게이트</b><br/>PR 필수 · 사람 승인 1+ · required checks — <b>우회 불가</b>"]
+    L0["<b>계층 0 · GitHub branch protection + CI 게이트</b><br/>PR 필수 · required checks(CI) · enforce_admins=on · (팀 모드) 승인 1+ — <b>우회 불가</b>"]
 
     L3 --> L2 --> L1 --> L05 --> L0
 
@@ -161,8 +161,8 @@ flowchart LR
 내장 `/goal`(세션 stopping condition)·`/loop`(ScheduleWakeup 비동기)는 별도 유지.
 
 모든 경로는 PR을 경유하고, 머지 전에 `pr-review-gate`의 게이트
-(AI 리뷰 처리 → **사람 승인** → CI → 외부 배포 상태)를 통과해야 한다.
-AI 리뷰와 CI 통과는 사람 승인을 대체하지 않는다.
+(AI 리뷰 처리 → CI → 외부 배포 상태, **팀 모드는 + 사람 승인**)를 통과해야 한다.
+**솔로 표준**(승인요건 0)에선 CI·스레드 resolve가 우회불가 게이트이고 사람 승인 단계는 생략된다 — enforce_admins=on이 소유자·AI에게도 CI-green을 강제한다(pr-review-gate §4).
 
 ---
 
