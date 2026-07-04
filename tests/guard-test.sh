@@ -94,6 +94,24 @@ check "G4: 서브셸 (checkout -b feature/bar) spec有 통과" 0 Bash "(git chec
 check "G5: git branch feature/(무spec) 차단"  2 Bash "git branch feature/noplan && git switch feature/noplan" "$DEV"
 check "git branch -d 삭제는 게이트 무관 통과"  0 Bash "git branch -d feature/old"          "$FEAT"
 
+# P1: guard 정규식 정확성 (감사 T2) — 우회 4 + 과차단 1
+: > "$DEV/f.txt"
+# A1: force-push 결합 단축플래그(-fu)·plus-refspec(+HEAD:main) — 외부 게이트가 놓치던 것
+check "A1: git push -fu origin main 차단"       2 Bash "git push -fu origin main"           "$FEAT"
+check "A1: git push +HEAD:main 차단"            2 Bash "git push origin +HEAD:main"         "$FEAT"
+check "A1: 비보호 force push 통과"              0 Bash "git push --force origin featx"       "$FEAT"
+# A2: git -C <보호repo> commit 은 cd 우회와 무관하게 그 repo 기준 판정
+check "A2: git -C develop-repo commit 차단"     2 Bash "git -C $DEV commit -m x && cd $FEAT" "$FEAT"
+# A3: 후행 슬래시 없는 디렉터리 통삭제
+check "A3: rm -rf tests(슬래시無) 차단"          2 Bash "rm -rf tests"                       "$FEAT"
+check "A3: git rm -r db/migration 차단"         2 Bash "git rm -r db/migration"             "$FEAT"
+# A4: node_modules && 체인(끝 앵커 비대칭)
+check "A4: rm -rf node_modules && echo 차단"    2 Bash "rm -rf node_modules && echo x"      "$FEAT"
+# A5: commit 단어 과차단 제거 — 보호 브랜치에서 무해 명령 통과
+check "A5: git log --grep=commit 통과"          0 Bash "git log --grep=commit"              "$DEV"
+check "A5: git help commit 통과"                0 Bash "git help commit"                    "$DEV"
+check "A5: grep 'git commit' 통과"              0 Bash "grep 'git commit' f.txt"            "$DEV"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
