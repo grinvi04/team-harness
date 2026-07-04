@@ -41,6 +41,14 @@ gate_threads() { [ "$1" = "0" ]; }
 # mergeable 게이트: "MERGEABLE"만 통과. UNKNOWN·CONFLICTING 등은 fail(충돌/계산 미완).
 gate_mergeable() { [ "$1" = "MERGEABLE" ]; }
 
+# --auto 안전 계약: 무인 자동머지는 CI가 **서버-강제**(required status check 존재)여야 성립한다.
+# required check가 없으면(verdict=none) CI-green을 보장할 수 없어 자동머지는 거부(fail-CLOSED).
+# 수동 머지(auto=0)는 none도 허용 — 사람이 책임지고 머지(무인 자동화만 서버강제를 요구).
+auto_ci_ok() { # verdict, auto → rc0 허용 / rc1 거부(none + --auto)
+  { [ "$1" = "none" ] && [ "$2" = "1" ]; } && return 1
+  return 0
+}
+
 # 테스트 훅: 함수만 로드하고 종료(main 로직·gh 호출 없이 순수 판정 함수만 검증).
 [ -n "${PRMERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
@@ -72,6 +80,12 @@ fi
 CHECKS_RC=0
 CHECKS_OUT=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1) || CHECKS_RC=$?
 CI_VERDICT=$(classify_ci_gate "$CHECKS_RC" "$CHECKS_OUT") || true
+# --auto는 required check가 없으면(none) 거부 — 자동머지의 CI-green 보장은 서버-강제 required check 전제.
+if ! auto_ci_ok "$CI_VERDICT" "$AUTO"; then
+  echo "  ⛔ --auto 거부: 이 브랜치에 required status check 없음(none) — 자동머지는 서버-강제 CI가 전제." >&2
+  echo "     set-branch-protection.sh <repo> --contexts <a,b>로 등록 후 재시도, 또는 --auto 없이 수동 머지." >&2
+  exit 1
+fi
 if [ "$CI_VERDICT" = "green" ]; then
   echo "  CI: required green"
 elif [ "$CI_VERDICT" = "none" ]; then

@@ -51,6 +51,18 @@ grc "mergeable=MERGEABLE → 통과"   gate_mergeable MERGEABLE   0
 grc "mergeable=CONFLICTING → 중단" gate_mergeable CONFLICTING 1
 grc "mergeable=UNKNOWN → 중단"     gate_mergeable UNKNOWN     1
 
+# --auto 안전 계약: required check 없음(none)은 --auto에서만 거부(수동은 허용). green/fail 등은 정상 처리.
+ac() { # desc, verdict, auto, want_rc
+  local desc="$1" v="$2" a="$3" want="$4" rc
+  rc=$(PRMERGE_SOURCE_ONLY=1 bash -c 'source "$1"; if auto_ci_ok "$2" "$3"; then echo 0; else echo 1; fi' _ "$GATE" "$v" "$a")
+  if [ "$rc" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want $want got $rc"; FAIL=$((FAIL+1)); fi
+}
+ac "none + --auto → 거부(fail-closed)"   none  1  1
+ac "none + 수동(auto=0) → 허용"          none  0  0
+ac "green + --auto → 허용"               green 1  0
+ac "fail + --auto → 허용(정상 fail 경로)" fail  1  0
+ac "fallback + --auto → 허용"            fallback 1 0
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

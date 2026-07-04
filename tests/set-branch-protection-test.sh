@@ -36,6 +36,17 @@ chk_case "chk='?'(파싱실패) → drift"       0    True  "?"  drift 1
 # 복합 드리프트(승인1 + admins off + checks0) → drift
 chk_case "복합(1·False·0) → drift"         1    False 0    drift 1
 
+# --contexts 명시 등록: CSV → JSON 배열(공백 trim·빈 항목 제거) — 기존 repo 리메디에이션
+cj() { # desc, csv, want_json
+  local desc="$1" csv="$2" want="$3" got
+  got=$(SBP_SOURCE_ONLY=1 bash -c 'source "$1"; contexts_json "$2"' _ "$SBP" "$csv")
+  if [ "$got" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want '$want' got '$got'"; FAIL=$((FAIL+1)); fi
+}
+cj "CSV 3개 → JSON 배열"    "quality,secret-scan,test-guard"  '["quality", "secret-scan", "test-guard"]'
+cj "공백 trim"             " a , b "                          '["a", "b"]'
+cj "빈 항목 제거"          "a,,b,"                            '["a", "b"]'
+cj "단일 context"          "quality"                          '["quality"]'
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
