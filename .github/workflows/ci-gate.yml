@@ -53,6 +53,12 @@ jobs:
               print("OK", p)
           EOF
 
+      - name: 템플릿 생성기 ruff 검사 (python repo가 복사 시 CI 통과 보장 — v0.24.1)
+        run: |
+          pipx install ruff==0.15.15
+          ruff check --line-length 100 --select E,F,W templates/gen_arch_svg.py
+          ruff format --line-length 100 --check templates/gen_arch_svg.py
+
       - name: 가드 시나리오 테스트
         run: bash tests/guard-test.sh
 

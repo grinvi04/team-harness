@@ -112,4 +112,6 @@
 
 | **템플릿 생성기 ruff-clean**(v0.24.1): `templates/gen_arch_svg.py`가 ruff 미준수(`def l`=E743·미사용 `n`=F841·긴 f-string=E501·미포맷)라, python 소비 repo가 §9대로 복사하면 CI(ruff check + format --check)가 막혔다(webhook 실증: 복사본을 수동으로 E743 noqa·E501 분할·ruff format해야 통과). 템플릿을 ruff-clean화(E743 noqa·미사용 변수 제거·wrap() 연결 f-string 재작성으로 E501 해소·ruff format) — **생성 svg 출력은 불변**(베이스라인 diff 0으로 검증). 이제 python repo가 복사해도 즉시 CI 통과. 방금 v0.24.0 훅 표준화의 완결. 발단: webhook 생성기 커밋 중 템플릿 자체가 CI-비준수임을 발견. (team-harness CI는 python 미검사라 이 정합은 로컬 ruff로 검증 — 향후 CI 가드는 후속 후보.) | 2026-07-05 | templates/gen_arch_svg.py | plugins/harness-guard/.claude-plugin/plugin.json, README.md, docs/intro.html |
 
+| **템플릿 ruff CI 가드**(v0.24.1 후속): v0.24.1이 "team-harness CI는 python 미검사라 향후 CI 가드 후속 후보"라 남긴 것을 완결 — `ci-gate.yml` quality 잡에 `templates/gen_arch_svg.py`의 `ruff check`(E,F,W·line-length 100) + `ruff format --check`(ruff==0.15.15 핀)를 추가. 이제 템플릿 편집이 ruff를 깨면 team-harness CI가 막아 python 소비 repo의 복사-후-CI실패 재발을 방지. team-harness 자체 CI 변경이라 소비 repo 미영향 → 버전 bump 없음. | 2026-07-05 | .github/workflows/ci-gate.yml | — |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
