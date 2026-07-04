@@ -1,18 +1,24 @@
-# 아키텍처 다이어그램 표준 — 커스텀 다크 테마 SVG
+# 아키텍처 다이어그램 — 커스텀 다크 테마 SVG (선택적 고급 방식)
 
+> **정본은 mermaid→PNG다** — `readme-standards.md §4`가 규정하는 `docs/architecture.png`
+> (mermaid 소스를 `<details>`에 병행)가 모든 repo의 **기본·정본**이다.
+> 이 문서는 **픽셀 단위 다크테마 레이아웃이 꼭 필요한 repo만** 택하는 **선택적** 커스텀 SVG 방식이다.
+> 기존 SVG 산출물(webhook-service·siku·DriveTree)은 그대로 유효 — **강제 마이그레이션 없음**(신규만 mermaid→PNG 기본).
 > 생성기 스크립트: [`templates/gen_arch_svg.py`](../templates/gen_arch_svg.py)
-> 모든 프로젝트 repo `docs/architecture.svg`는 이 표준을 따른다.
 
 ---
 
-## 1. 왜 커스텀 SVG인가
+## 1. 언제 커스텀 SVG를 쓰나 (정본 아님)
+
+기본은 mermaid→PNG(readme-standards §4). 아래 이점이 **실제로 필요할 때만** 이 방식을 택한다:
 
 | 방식 | 장점 | 단점 |
 |---|---|---|
-| mermaid | 빠른 작성, GitHub 웹 렌더 | GitHub 외 뷰어 원문 노출, 다크 테마 제한, 박스 위치 제어 불가 |
-| 커스텀 SVG | 다크 테마, 픽셀 단위 레이아웃, 라벨 충돌 검증 | 초기 작성 비용 |
+| **mermaid→PNG (정본)** | 텍스트 소스 git diff·유지보수 쉬움, 빠른 작성, GitHub 웹 렌더 | 다크 테마 제한, 박스 위치 제어 불가 |
+| 커스텀 SVG (선택) | 다크 테마, 픽셀 단위 레이아웃, 라벨 충돌 검증 | 초기 작성 비용·스크립트 유지비 |
 
-**원칙**: `docs/architecture.svg`는 커스텀 SVG. README의 `![아키텍처 다이어그램](docs/architecture.svg)` + mermaid 소스를 `<details>`에 병행(readme-standards §4 준수).
+**원칙**: 기본은 `docs/architecture.png`(mermaid). 커스텀 SVG를 택한 repo만 `docs/architecture.svg`를 쓰고,
+어느 경우든 README는 `![아키텍처 다이어그램](docs/architecture.{png\|svg})` + mermaid 소스를 `<details>`에 병행한다(readme-standards §4 준수).
 
 ---
 

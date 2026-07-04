@@ -41,6 +41,7 @@ if (args.includes('--help') || args.includes('-h')) {
 종료 코드:
   0  통과 또는 skip(대상 없음 — 오탐 금지)
   1  FAIL — 접두사 대역인데 out-of-order 허용이 없음/false
+  2  사용법 오류 — --migrations 와 --config 는 함께 지정해야 함(한쪽만 주면 무관 대상 오판)
 
 검사 대상: Flyway류 버전 파일(V{번호}__설명.sql)과 out-of-order 설정.
 `)
@@ -53,6 +54,17 @@ function optVal(name) {
 }
 const explicitMigrations = optVal('--migrations') || process.env.MIGRATION_DIR || null
 const explicitConfig = optVal('--config') || process.env.MIGRATION_CONFIG || null
+
+// S2: --migrations 와 --config 는 짝이다. 한쪽만 명시하면 나머지를 cwd에서 긁어
+// 무관한 마이그레이션/설정을 대상으로 오판(false-pass/false-fail)할 수 있으므로 fail-fast.
+// 둘 다 명시하거나(정밀 모드), 둘 다 생략하고 [루트경로]로 탐색(발견 모드)해야 한다.
+if (Boolean(explicitMigrations) !== Boolean(explicitConfig)) {
+  console.error('✖ --migrations 와 --config 는 함께 지정해야 합니다.')
+  console.error('  한쪽만 주면 나머지를 현재 디렉터리에서 탐색해 무관 대상을 오판합니다.')
+  console.error('  → 둘 다 명시하거나, 둘 다 생략하고 [루트경로]로 탐색하세요.')
+  process.exit(2)
+}
+
 const roots = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--migrations' && args[i - 1] !== '--config')
 if (roots.length === 0) roots.push('.')
 
@@ -78,17 +90,16 @@ function walk(dir, onFile, depth = 0) {
 const migrationFiles = []
 const configFiles = []
 
-if (explicitMigrations) {
+if (explicitMigrations && explicitConfig) {
+  // 정밀 모드: 둘 다 명시 — 지정된 경로만 검사(무관 대상 오판 없음).
   walk(explicitMigrations, (p, name) => { if (FLYWAY_RE.test(name)) migrationFiles.push(p) })
-}
-if (explicitConfig) {
   if (existsSync(explicitConfig)) configFiles.push(explicitConfig)
-}
-if (!explicitMigrations || !explicitConfig) {
+} else {
+  // 발견 모드: 둘 다 생략 — [루트경로](기본 cwd)에서 마이그레이션·설정을 함께 탐색.
   for (const root of roots) {
     walk(root, (p, name) => {
-      if (!explicitMigrations && FLYWAY_RE.test(name)) migrationFiles.push(p)
-      if (!explicitConfig && CONFIG_NAMES.test(name)) configFiles.push(p)
+      if (FLYWAY_RE.test(name)) migrationFiles.push(p)
+      if (CONFIG_NAMES.test(name)) configFiles.push(p)
     })
   }
 }
