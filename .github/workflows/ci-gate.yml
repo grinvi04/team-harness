@@ -32,6 +32,7 @@ jobs:
           bash -n tests/set-branch-protection-test.sh
           bash -n tests/new-repo-test.sh
           bash -n tests/alembic-heads-test.sh
+          bash -n tests/skill-discovery-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
@@ -81,6 +82,9 @@ jobs:
 
       - name: alembic-heads 계수 테스트
         run: bash tests/alembic-heads-test.sh
+
+      - name: 스킬 발견성(SKILL.md) 테스트
+        run: bash tests/skill-discovery-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
