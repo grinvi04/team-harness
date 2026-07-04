@@ -1,0 +1,43 @@
+# alembic-heads — Alembic 다중 head(분기 마이그레이션) 차단 게이트.
+# 배경: 여러 브랜치가 각자 마이그레이션을 추가하면 down_revision 그래프에 head가 2개 이상 생긴다.
+# 다중 head 상태로 배포하면 `alembic upgrade head`가 모호해져 실패한다(CI 빈 DB는 종종 통과 — 운영에서 터짐).
+# Flyway 접두사-대역 정합성은 정적 게이트(migration-safety)가, Alembic 다중 head는 이 별도 CI 점검이 막는다
+# (decisions.md — "정적 게이트는 Flyway 전용, Alembic 다중 head는 별도 CI 점검"). 단일 출처: docs/alembic.md
+# 셋업: new-repo.sh가 alembic 스택에 이 파일을 복사하고 'alembic-heads'를 required check에 등록한다.
+# 트리거 패턴: migration-safety·integration-e2e와 동일하게 "항상 트리거 + 내부 skip" — on.paths 필터를 두지 않는다.
+#   (이유) required check + on.paths 필터를 함께 쓰면 마이그레이션 무관 PR에서 워크플로가 실행되지 않아
+#   check-run이 보고되지 않고 머지가 영구 pending으로 막힌다. 그래서 항상 실행하고, alembic.ini가 없으면
+#   즉시 exit 0으로 self-skip한다(비-alembic repo·셋업 이전은 자동 통과).
+name: alembic-heads
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  alembic-heads:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      # 자기-스킵: alembic.ini(루트) 없으면(비-alembic·셋업 이전·모노레포는 workflow 조정) 통과.
+      # 있으면 `alembic heads`로 head 수를 세어 다중 head(분기 마이그레이션)를 차단.
+      # (GitHub 기본 셸 = bash -eo pipefail → grep 0매치 rc1을 `|| true`로 흡수해야 self-skip 성립)
+      - name: Alembic 다중 head 차단 (자기-스킵)
+        run: |
+          if [ ! -f alembic.ini ]; then echo "alembic.ini 없음 — self-skip (통과)"; exit 0; fi
+          pip install --quiet alembic || { echo "⚠️  alembic 설치 실패 — 다중 head 검사 skip"; exit 0; }
+          # 실패 시 에러를 삼키지 않고 노출(마이그레이션 env·구문 오류 가시화) 후 skip(required check 데드락 회피).
+          out=$(alembic heads 2>&1) || { echo "⚠️  'alembic heads' 실행 실패 — 검사 skip:"; echo "$out"; exit 0; }
+          # 각 head 는 '(head)' 또는 depends_on 시 '(effective head)'로 표시 → 'head)'로 세면 둘 다 포함
+          # ('(head)'만 세면 effective head 누락 → 실제 2-head인데 통과하는 false-negative).
+          heads=$(printf '%s\n' "$out" | grep -c 'head)' || true)
+          if [ "${heads:-0}" -gt 1 ]; then
+            echo "❌ alembic 다중 head=$heads — 분기된 마이그레이션을 하나로 merge 하세요:"; printf '%s\n' "$out"; exit 1
+          fi
+          echo "✓ alembic head=${heads:-0} (다중 head 아님)"

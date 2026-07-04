@@ -40,7 +40,7 @@ if (args.includes('--help') || args.includes('-h')) {
   --help, -h         이 도움말
 
 동작:
-  1) 대상 repo의 파일 신호로 스택 감지 (java/flyway/typescript/nestjs/vite/python/prisma/alembic/supabase)
+  1) 대상 repo의 파일 신호로 스택 감지 (java/flyway/typescript/nestjs/nextjs/vue/vite/python/prisma/alembic/supabase)
   2) 감지된 스택에 해당하는 표준 harness 자산(게이트·룰)이 sync 됐는지 점검
   3) 자산별 OK / WEAK / MISSING / WARN 표 + 요약 출력
 
@@ -122,15 +122,20 @@ const hasPrisma = hasDir(/(^|\/)prisma$/) || hasFile(/^schema\.prisma$/)
 const hasAlembic = hasFile(/^alembic\.ini$/) || hasDir(/(^|\/)alembic$/)
 const hasSupabase = hasDir(/(^|\/)supabase$/)
 
-// nestjs: package.json 의존성에 @nestjs/ 포함
-let isNest = false
+// 의존성 신호: nestjs=@nestjs/*, nextjs=next, vue=vue (한 번 순회로 세 스택 동시 감지)
+let isNest = false, isNext = false, isVue = false
 for (const pj of packageJsons) {
   try {
     const j = JSON.parse(readFileSync(pj, 'utf8'))
     const deps = { ...(j.dependencies || {}), ...(j.devDependencies || {}) }
-    if (Object.keys(deps).some((d) => d.startsWith('@nestjs/'))) { isNest = true; break }
+    if (Object.keys(deps).some((d) => d.startsWith('@nestjs/'))) isNest = true
+    if ('next' in deps) isNext = true
+    if ('vue' in deps) isVue = true
   } catch { /* ignore */ }
 }
+// 파일 신호 병용 — next.config.* / vue.config.* / *.vue (의존성 없이도 감지)
+const hasNext = isNext || hasFile(/^next\.config\.[cm]?[jt]s$/)
+const hasVue = isVue || hasFile(/^vue\.config\.[cm]?[jt]s$/) || hasFile(/\.vue$/)
 
 // typescript 룰 대상 = node 계열(package.json 또는 vite)
 const hasTypescript = hasPackageJson || hasVite
@@ -140,6 +145,8 @@ const stacks = {
   flyway: hasFlyway,
   typescript: hasTypescript,
   nestjs: isNest,
+  nextjs: hasNext,
+  vue: hasVue,
   vite: hasVite,
   python: hasPython,
   prisma: hasPrisma,
@@ -259,6 +266,8 @@ const ruleMap = [
   ['java', stacks.java],
   ['flyway', stacks.flyway],
   ['typescript', stacks.typescript],
+  ['nextjs', stacks.nextjs],
+  ['vue', stacks.vue],
   ['python', stacks.python],
   ['prisma', stacks.prisma],
   ['alembic', stacks.alembic],

@@ -1,0 +1,5 @@
+name: alembic-heads
+jobs:
+  alembic-heads:
+    steps:
+      - run: alembic heads
