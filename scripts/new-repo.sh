@@ -194,18 +194,22 @@ apply_protection() {
     ctx_args+=(-f "required_status_checks[contexts][]=$check")
   done
 
+  # 솔로 표준(decisions): required checks + force-push/삭제 차단 + 대화 resolve.
+  # **승인요건 0 · enforce_admins=false** — 솔로는 자기 PR 자기승인이 불가하므로 승인요건을 걸면
+  # 데드락. CI 체크가 우회불가 게이트, 소유자가 머지. 리뷰어 합류 시 승인요건을 수동으로 1로 올린다
+  # (그때만 /solo-merge break-glass 필요). 단일 출처: scripts/set-branch-protection.sh.
   local api_out
   api_out=$(gh api "repos/$OWNER_REPO/branches/$branch/protection" -X PUT \
     -F required_status_checks[strict]=true \
     "${ctx_args[@]}" \
-    -F enforce_admins=true \
-    -F required_pull_request_reviews[required_approving_review_count]=1 \
+    -F enforce_admins=false \
+    -F required_pull_request_reviews=null \
     -F required_conversation_resolution=true \
     -F restrictions=null \
     -F allow_force_pushes=false \
     -F allow_deletions=false \
     2>&1) \
-    && echo "  ✅  $branch 보호 완료 (checks: ${STACK_CHECKS[*]})" \
+    && echo "  ✅  $branch 보호 완료 (솔로: 승인0 · checks: ${STACK_CHECKS[*]})" \
     || { echo "  ❌  $branch 보호 실패: $api_out"; }
 }
 
