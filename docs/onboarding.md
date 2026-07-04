@@ -31,6 +31,8 @@ bash /path/to/team-harness/scripts/new-repo.sh
 > 이 1회만 `git commit --no-verify`로 main에 직접 커밋한다(또는 hooksPath 활성화를 첫 커밋 뒤로 미룬다).
 > push 후 develop 브랜치 생성 → 스크립트 재실행으로 develop에도 protection 적용.
 
+> **팀(리뷰어 ≥1)**: 멤버 합류 후 `bash set-branch-protection.sh <owner/repo> --approvals 1`로 main에 승인 요건을 올린다(develop은 0 유지). 신규 repo 생성 시엔 걸지 않는다 — 소유자 1명이면 self-approve 불가로 첫 PR 데드락.
+
 ### 2. 수동 3단계 (스크립트 출력이 안내)
 
 - [ ] **ci-gate.yml 수정**: placeholder → 스택 맞는 lint·test·build 명령으로 교체

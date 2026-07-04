@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.21.3-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.22.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -163,6 +163,7 @@ flowchart LR
 모든 경로는 PR을 경유하고, 머지 전에 `pr-review-gate`의 게이트
 (AI 리뷰 처리 → CI → 외부 배포 상태, **팀 모드는 + 사람 승인**)를 통과해야 한다.
 **솔로 표준**(승인요건 0)에선 CI·스레드 resolve가 우회불가 게이트이고 사람 승인 단계는 생략된다 — enforce_admins=on이 소유자·AI에게도 CI-green을 강제한다(pr-review-gate §4).
+팀은 `set-branch-protection.sh --approvals N`으로 main에 리뷰 승인 요건을 추가한다(develop은 0 유지).
 
 ---
 

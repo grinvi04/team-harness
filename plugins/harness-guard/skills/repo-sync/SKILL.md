@@ -27,7 +27,7 @@ effort: low
    ```bash
    bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/set-branch-protection.sh <owner/repo> --check
    ```
-   `✗ 보호 미적용` 또는 `⚠ 승인요건 불일치`면 보고에 포함(적용은 `--check` 빼고 실행 — 사용자 승인 후). check-repo-sync.mjs는 무의존 정적검사라 이 네트워크 점검은 별도 스크립트로 분리.
+   `✗ 보호 미적용`이면 보고에 포함(적용은 `--check` 빼고 실행 — 사용자 승인 후). `--approvals` 없이 `--check`하면 승인 개수는 **정보성**(0/≥1 모두 통과, 드리프트 아님)이고 `enforce_admins`·required checks만 엄격 판정한다 — 팀 repo는 `--approvals N`을 함께 줘 그 baseline으로 검증한다(불일치 시 `⚠ 승인요건 불일치`). check-repo-sync.mjs는 무의존 정적검사라 이 네트워크 점검은 별도 스크립트로 분리.
 
 ## 보고
 
