@@ -63,6 +63,17 @@ ac "green + --auto → 허용"               green 1  0
 ac "fail + --auto → 허용(정상 fail 경로)" fail  1  0
 ac "fallback + --auto → 허용"            fallback 1 0
 
+# 머지 후 로컬 정리 checkout 결정: 현재가 삭제될 head면 base로 이동(빈 base=develop), 아니면 이동 불필요("")
+mcc() { # desc, head, base, current, want
+  local desc="$1" head="$2" base="$3" cur="$4" want="$5" got
+  got=$(PRMERGE_SOURCE_ONLY=1 bash -c 'source "$1"; merge_cleanup_checkout "$2" "$3" "$4"' _ "$GATE" "$head" "$base" "$cur")
+  if [ "$got" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want '$want' got '$got'"; FAIL=$((FAIL+1)); fi
+}
+mcc "현재=head → base로 이동"       feature/x  develop feature/x  develop
+mcc "현재=head, base=main → main"   release/v1 main    release/v1 main
+mcc "현재≠head → 이동 불필요('')"   feature/x  develop develop    ""
+mcc "빈 base → develop 폴백"        feature/x  ""      feature/x  develop
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
