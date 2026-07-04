@@ -153,8 +153,8 @@ GitHub Milestone: 오픈 N · 완료 0
 ### 2-2. GitHub Milestone 생성·갱신
 
 ```bash
-M_NUM=$(gh api "repos/$OWNER_REPO/milestones" \
-  --jq ".[] | select(.title==\"$SLUG\") | .number")
+M_NUM=$(gh api "repos/$OWNER_REPO/milestones?state=all" \
+  --jq ".[] | select(.title==\"$SLUG\") | .number")   # state=all — 동명 closed 마일스톤도 조회(K5: 미조회 시 create가 422)
 
 if [ -z "$M_NUM" ]; then
   gh api "repos/$OWNER_REPO/milestones" \
@@ -183,14 +183,9 @@ fi
 
 ---
 
-## Phase C4 — 커밋 (오케스트레이터 직접 실행)
+## Phase C4 — 로컬 대시보드 (커밋하지 않음)
 
-```bash
-git add docs/milestones/"$SLUG".md
-git commit -m "docs(milestone): $SLUG 마일스톤 정의 — $DESC
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-```
+> **정본은 GitHub Milestone**(Phase C2에서 생성/갱신)이다 — `docs/milestones/$SLUG.md`는 **로컬 대시보드**일 뿐이라 커밋하지 않는다(K3·decisions #63: 프로젝트 상태는 GitHub에 누적, 로컬 doc 중복 금지). `.gitignore`에 `docs/milestones/`를 두어 로컬 전용으로 유지한다(develop/main 직접 커밋은 guard가 차단하기도 함). 진행률·목록의 단일 출처는 GitHub Milestone·Issue.
 
 완료 출력:
 ```

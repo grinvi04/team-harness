@@ -152,8 +152,8 @@ GitHub Milestone: 오픈 N · 완료 0
 ### 2-2. GitHub Milestone 생성·갱신
 
 ```bash
-# 이미 존재하는 마일스톤 번호 확인
-M_NUM=$(gh api "repos/$OWNER_REPO/milestones" \
+# 이미 존재하는 마일스톤 번호 확인 (state=all — 동명 closed도 조회, 미조회 시 create 422 방지: K5)
+M_NUM=$(gh api "repos/$OWNER_REPO/milestones?state=all" \
   --jq ".[] | select(.title==\"$SLUG\") | .number")
 
 if [ -z "$M_NUM" ]; then
@@ -188,16 +188,9 @@ fi
 
 ---
 
-## Phase C4 — 커밋 (오케스트레이터 직접 실행)
+## Phase C4 — 로컬 대시보드 (커밋하지 않음)
 
-승인 후에만 실행:
-
-```bash
-git add docs/goals/"$SLUG".md
-git commit -m "docs(goal): $SLUG 목표 정의 — $DESC
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-```
+> **커밋 안 함(K3).** 정본은 GitHub Milestone(2-2에서 생성/갱신). `docs/goals/$SLUG.md`는 로컬 대시보드라 `.gitignore`에 `docs/goals/`를 두어 로컬 전용으로 유지한다(decisions #63: 프로젝트 상태는 GitHub에 누적 · develop/main 직접 커밋은 guard 차단).
 
 완료 출력:
 ```
@@ -271,16 +264,9 @@ gh api "repos/$OWNER_REPO/milestones?state=all&per_page=100" \
 
 ---
 
-## Phase S2 — 커밋 (오케스트레이터 직접 실행)
+## Phase S2 — 로컬 대시보드 (커밋하지 않음)
 
-진행률 섹션을 갱신한 파일이 있으면:
-
-```bash
-git add docs/goals/*.md
-git commit -m "docs(goal): 진행률 갱신 — $(date +%Y-%m-%d)
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-```
+> 진행률의 정본은 **GitHub Milestone/Issue 상태**다 — `docs/goals/*.md`는 로컬 대시보드라 커밋하지 않는다(K3, `.gitignore`에 `docs/goals/`).
 
 ---
 
@@ -316,14 +302,9 @@ cat "docs/goals/$SLUG.md"
 
 ---
 
-## Phase B2 — 커밋 (오케스트레이터 직접 실행)
+## Phase B2 — 로컬 대시보드 (커밋하지 않음)
 
-```bash
-git add "docs/goals/$SLUG.md"
-git commit -m "docs(goal): $SLUG 기능 분해 갱신
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-```
+> 분해 결과의 정본은 **GitHub Milestone + Issue**다 — `docs/goals/$SLUG.md`는 로컬 대시보드라 커밋하지 않는다(K3, gitignore).
 
 완료 출력:
 ```
