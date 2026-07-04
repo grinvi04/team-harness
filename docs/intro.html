@@ -208,7 +208,7 @@
     <a href="#arch">아키텍처</a>
 
     <div class="section-label">핵심 구성</div>
-    <a href="#skills">스킬 14종</a>
+    <a href="#skills">스킬 15종</a>
     <a href="#guard">가드 훅</a>
     <a href="#model">모델 티어링</a>
 
@@ -228,16 +228,16 @@
 
   <!-- 히어로 -->
   <section class="hero" id="top">
-    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.14.2</div>
+    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.21.3</div>
     <h1>team-harness</h1>
     <p class="lead">
       AI 코딩 에이전트를 팀에서 안전하게 쓰기 위한 거버넌스 레이어.<br>
       <b>규약은 AGENTS.md 하나, 강제는 서버에.</b>
     </p>
     <div class="stats">
-      <div class="stat"><div class="n">14</div><div class="l">Skills</div></div>
+      <div class="stat"><div class="n">15</div><div class="l">Skills</div></div>
       <div class="stat"><div class="n">5</div><div class="l">방어 계층</div></div>
-      <div class="stat"><div class="n">6</div><div class="l">스택 템플릿</div></div>
+      <div class="stat"><div class="n">8</div><div class="l">스택 템플릿</div></div>
       <div class="stat"><div class="n">7</div><div class="l">가드 규칙</div></div>
     </div>
   </section>
@@ -281,7 +281,7 @@
   </div>
 
   <!-- 스킬 -->
-  <h2 id="skills">스킬 14종</h2>
+  <h2 id="skills">스킬 15종</h2>
   <p>모든 스킬은 <b>사용자가 명시적으로 호출</b>해야 실행된다 (<code>disable-model-invocation: true</code>). Claude가 자율 판단으로 릴리즈하거나 머지하는 일은 없다.</p>
 
   <h3>개발 워크플로</h3>
@@ -445,7 +445,7 @@
         <li>품질 검증 (Agent A)</li>
         <li>마이그레이션 안전 감사 (Agent C)</li>
         <li>lint·test·build</li>
-        <li><i>(메인 스레드 기본값)</i></li>
+        <li><i>(general-purpose 기본 위임)</i></li>
       </ul>
     </div>
     <div class="tier">
@@ -455,7 +455,8 @@
         <li>XSS·SQLi 탐지</li>
         <li>시크릿 유출 패턴</li>
         <li>설계·다각도 검증</li>
-        <li><i>(verifier·Plan)</i></li>
+        <li>오케스트레이션</li>
+        <li><i>(verifier·Plan·메인 세션 기본값)</i></li>
       </ul>
     </div>
   </div>
@@ -464,6 +465,7 @@
   </div>
   <p style="margin-top:.8rem"><b>왜 Agent C는 Sonnet인가</b> — DB 마이그레이션 안전 감사(out-of-order·forward-only·증분 적용 관점)는 릴리즈 게이트의 <b>판단형</b> 작업이라 Haiku로 내리면 회귀. 반면 Phase 5 배포 후 헬스체크는 명령 실행·상태 확인뿐이라 Explore(Haiku)가 맞다.</p>
   <p style="margin-top:.8rem">release-check의 Agent A·B·C는 <b>동시에 spawn</b>된다 — 병렬 실행으로 전체 검증 시간을 단축.</p>
+  <p style="margin-top:.8rem"><b>비용 인식</b> — 읽기·검색은 최저 티어(<code>Explore</code>/Haiku), 빌드·구현은 Sonnet에 위임한다. 병렬성 있는 무거운 다단계는 <b>Workflow</b>가 stage별 모델을 결정론적으로 지정하고, 계획과 실행을 분리할 땐 <code>opusplan</code>(계획=Opus·실행=Sonnet)을 쓴다. 위임 결정표의 단일 출처는 <code>docs/model-tiering.md</code> "실전 결정표".</p>
 
   <!-- Git Flow -->
   <h2 id="gitflow">Git Flow</h2>
@@ -536,12 +538,14 @@
 
   <h3>CI 템플릿</h3>
   <div class="tpl-grid">
-    <div class="tpl"><div class="tn">nestjs</div><div class="tp">Node · NestJS · Jest</div></div>
+    <div class="tpl"><div class="tn">node</div><div class="tp">Node.js · React/Vite SPA · NestJS 단독</div></div>
     <div class="tpl"><div class="tn">nestjs-frontend</div><div class="tp">NestJS + Vite/Vue · Playwright</div></div>
     <div class="tpl"><div class="tn">spring</div><div class="tp">Java · Spring Boot · Gradle</div></div>
     <div class="tpl"><div class="tn">spring-frontend</div><div class="tp">Spring + Vue · Playwright</div></div>
     <div class="tpl"><div class="tn">python</div><div class="tp">FastAPI · pytest · ruff</div></div>
     <div class="tpl"><div class="tn">rails</div><div class="tp">Ruby on Rails · RSpec</div></div>
+    <div class="tpl"><div class="tn">nextjs</div><div class="tp">Next.js App Router</div></div>
+    <div class="tpl"><div class="tn">vue</div><div class="tp">Vue 3 · Vite SPA</div></div>
   </div>
 
   <h3>거버넌스 CI 워크플로 (스택 무관)</h3>
