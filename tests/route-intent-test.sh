@@ -176,6 +176,19 @@ else
   echo "FAIL: AC-5b: 비-repo서 주입됨 | 출력: $_out"; FAIL=$((FAIL+1))
 fi
 
+# ── T4 (#109): collectState의 isSolo 판정(classifySolo) 단위 검증 — 404=solo, 그 외 불확실=team(안전) ──
+# 감사 우려: protection 조회 403/5xx를 solo로 오판하면 solo-merge가 보호를 해제하려 시도. team-safe 확인.
+cs() { # desc, status, stderr, want(true/false)
+  local desc="$1" st="$2" err="$3" want="$4" got
+  got=$(node --input-type=module -e "const m=await import('$SCRIPT'); console.log(m.classifySolo($st, \"$err\"))" 2>/dev/null)
+  if [ "$got" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want $want got $got"; FAIL=$((FAIL+1)); fi
+}
+cs "protection 있음(status 0) → team(false)"       0  ""                    false
+cs "404 not found → solo(true)"                     1  "not found"           true
+cs "HTTP 404 → solo(true)"                          1  "HTTP 404"            true
+cs "403 Forbidden → team-safe(false)"               1  "HTTP 403 Forbidden"  false
+cs "5xx/네트워크(status -1) → team-safe(false)"      -1 ""                    false
+
 # ── 결과 ──────────────────────────────────────────────────────────────────
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

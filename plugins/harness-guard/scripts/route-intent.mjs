@@ -99,6 +99,15 @@ function run(cmd, args, cwd) {
 }
 const ok = (r) => r.status === 0 ? r.stdout : null
 
+// isSolo 판정(순수): branch protection 조회 결과(status·stderr)만으로. gh 호출과 분리해 테스트가 주입 검증(T4).
+//   status 0 = 보호 있음 → team(false). 404/not found = 보호 없음 → solo(true).
+//   403/5xx/네트워크 등 '불확실' = team(false, 안전 — solo-merge가 보호를 해제하려는 오판 방지).
+export function classifySolo(status, stderr = '') {
+  if (status === 0) return false
+  if (/not found|404/i.test(stderr)) return true
+  return false
+}
+
 function collectState(cwd, prompt) {
   const branch = ok(run('git', ['-C', cwd, 'branch', '--show-current'], cwd)) ?? ''
 
@@ -138,9 +147,7 @@ function collectState(cwd, prompt) {
     const repo = ok(run('gh', ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'], cwd))
     if (repo) {
       const r = run('gh', ['api', `repos/${repo}/branches/${branch}/protection`], cwd)
-      if (r.status === 0) isSolo = false                       // 보호 있음 = team
-      else if (/not found|404/i.test(r.stderr)) isSolo = true  // 보호 없음 = solo
-      // 그 외(403/5xx/네트워크) → isSolo=false 유지(안전)
+      isSolo = classifySolo(r.status, r.stderr)   // 404=solo · 그 외 불확실=team(안전)
     }
   }
 
