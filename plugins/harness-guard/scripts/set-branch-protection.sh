@@ -5,9 +5,12 @@
 # (실제 보고되는 check context를 자동 감지 → 이름 불일치 데드락 회피).
 #
 # 사용:
-#   bash set-branch-protection.sh <repo>            # <repo>의 main·develop에 표준 보호 적용
-#   bash set-branch-protection.sh <repo> --check    # 적용 안 하고 현재 상태만 검증(드리프트 리포트)
+#   bash set-branch-protection.sh <repo>                    # main·develop에 표준 보호 적용(check 자동감지)
+#   bash set-branch-protection.sh <repo> --check            # 적용 안 하고 현재 상태만 검증(드리프트 리포트)
+#   bash set-branch-protection.sh <repo> --contexts a,b,c   # required check를 명시 등록(기존 repo 리메디에이션)
 #   <repo> = owner/name 또는 name(=$(gh api user)/name)
+#   ※ --contexts: base 브랜치 머지커밋엔 check-run이 없어 자동감지가 빈 목록이 될 때(기존 repo 첫 적용) 쓴다.
+#     new-repo.sh(신규)는 STACK_CHECKS로 자동 등록하므로 불필요.
 #
 # 표준 config(솔로, decisions "브랜치 보호 표준"):
 #   required status checks(자동감지·strict) · 대화 resolve · force-push/삭제 차단,
@@ -33,11 +36,23 @@ classify_protection() {
   echo "drift:$msg"; return 1
 }
 
-# 테스트 훅: 함수만 로드하고 종료(REPO 인자 파싱·gh 없이 classify_protection만 검증).
+# CSV "a, b ,c" → JSON 배열 '["a", "b", "c"]'(공백 trim·빈 항목 제거). --contexts 명시 등록용 순수 함수.
+contexts_json() {
+  printf '%s' "$1" | python3 -c "import sys,json; print(json.dumps([x.strip() for x in sys.stdin.read().split(',') if x.strip()]))"
+}
+
+# 테스트 훅: 함수만 로드하고 종료(REPO 인자 파싱·gh 없이 순수 함수만 검증).
 [ -n "${SBP_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
-REPO="${1:?사용: set-branch-protection.sh <repo> [--check]}"
-CHECK=false; [ "${2:-}" = "--check" ] && CHECK=true
+REPO="${1:?사용: set-branch-protection.sh <repo> [--check] [--contexts a,b,c]}"; shift
+CHECK=false; CONTEXTS=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --check)    CHECK=true; shift;;
+    --contexts) CONTEXTS="${2:-}"; shift 2;;  # 기존 repo 리메디에이션 — 명시 required check 이름
+    *) echo "set-branch-protection.sh: 알 수 없는 인자 '$1'" >&2; exit 2;;
+  esac
+done
 [[ "$REPO" == */* ]] || REPO="$(gh api user --jq .login 2>/dev/null)/$REPO"
 
 rc=0
@@ -62,8 +77,13 @@ for branch in main develop; do
     continue
   fi
 
-  # 적용: 실제 보고되는 check 이름만 required로(없으면 생략 → 데드락 방지)
-  ctx=$(gh api "repos/$REPO/commits/$branch/check-runs" --jq '[.check_runs[].name]|unique' 2>/dev/null); [ -z "$ctx" ] && ctx='[]'
+  # 적용: --contexts 지정 시 그 이름을 required로(기존 repo 리메디에이션 — base 머지커밋엔 check-run이 없어
+  #       자동감지 불가한 경우). 미지정 시 실제 보고되는 check 이름을 자동감지(없으면 생략 → 데드락 방지).
+  if [ -n "$CONTEXTS" ]; then
+    ctx=$(contexts_json "$CONTEXTS")
+  else
+    ctx=$(gh api "repos/$REPO/commits/$branch/check-runs" --jq '[.check_runs[].name]|unique' 2>/dev/null); [ -z "$ctx" ] && ctx='[]'
+  fi
   rsc="null"; [ "$ctx" != "[]" ] && rsc="{\"strict\":true,\"contexts\":$ctx}"
   if gh api -X PUT "repos/$REPO/branches/$branch/protection" --input - >/dev/null 2>&1 <<JSON
 {"required_status_checks":$rsc,"enforce_admins":true,"required_pull_request_reviews":null,"restrictions":null,"required_conversation_resolution":true,"allow_force_pushes":false,"allow_deletions":false}
