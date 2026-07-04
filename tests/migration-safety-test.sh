@@ -35,6 +35,18 @@ check "마이그레이션 없음 → skip 통과"        0 "$ROOT/docs"
 # --help → 통과
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
 
+# S2: --migrations 와 --config 는 짝 — 한쪽만 주면 무관 대상 오판 방지로 exit 2
+GOOD_MIG="$FIX/good/src/main/resources/db/migration"
+GOOD_CFG="$FIX/good/src/main/resources/application.yml"
+flagcheck() { # desc, expected_exit, args...
+  local desc="$1" want="$2"; shift 2
+  node "$GATE" "$@" >/dev/null 2>&1; local rc=$?
+  if [ "$rc" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — expected exit $want, got $rc"; FAIL=$((FAIL+1)); fi
+}
+flagcheck "--config 단독(--migrations 없음) → exit 2(S2)"   2 --config "$GOOD_CFG"
+flagcheck "--migrations 단독(--config 없음) → exit 2(S2)"   2 --migrations "$GOOD_MIG"
+flagcheck "--migrations + --config 정밀모드 → 통과(S2)"     0 --migrations "$GOOD_MIG" --config "$GOOD_CFG"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
