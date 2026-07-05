@@ -9,6 +9,7 @@
   2026-07) 2차 방어선을 둔다. 하드포스와 달리 명시값은 그대로 존중 — 의식적 다운그레이드 유연성 보존)
 - 그 외 타입(Plan·harness-manager 등)은 손대지 않음 → 메인 모델 상속.
 - 결정을 ~/.claude/hooks/subagent-model.log 에 남겨 세션·repo별 실측 감사(예: `grep 'cwd=.*/erp'`).
+  경로는 HARNESS_SUBAGENT_MODEL_LOG 환경변수로 오버라이드 가능(테스트 격리용 — 실 감사 로그 오염 방지).
 
 의도적 하드포스(TIER 항목): 넘긴 model이 있어도 무조건 강제한다.
   → "파일수정+opus"가 필요하면 위임이 아니라 **메인(opus) 인라인** 또는 **Workflow**(stage별 모델 지정,
@@ -33,7 +34,8 @@ DEFAULT = {
     "harness-guard:security-reviewer": "opus",
 }
 
-LOG = os.path.expanduser("~/.claude/hooks/subagent-model.log")
+LOG = os.environ.get("HARNESS_SUBAGENT_MODEL_LOG") or os.path.expanduser("~/.claude/hooks/subagent-model.log")
+# env override는 테스트 격리용(실 감사 로그 오염 방지) — 정상 운영 시엔 항상 위 기본 경로.
 
 
 def log(msg):
@@ -68,6 +70,16 @@ def main():
         log(f"parse-error {e}")
         return  # 입력 파싱 실패 시 아무것도 안 함(스폰 정상 진행 — 비용 fail-open)
 
+    try:
+        _process(data)
+    except Exception as e:
+        # JSON은 파싱됐지만 형태가 예상과 다름(최상위 non-dict·tool_input non-dict·
+        # subagent_type unhashable 등) — parse-error와 동일한 계약(조용한 fail-open+감사 로그)을
+        # 여기서도 지킨다. 이게 없으면 uncaught 예외가 stderr로 새고 로그도 안 남는다(2026-07 발견).
+        log(f"shape-error {e!r}")
+
+
+def _process(data):
     if data.get("tool_name") != "Agent":
         return
 
