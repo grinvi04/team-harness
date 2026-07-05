@@ -23,7 +23,7 @@ check() { # desc, expected_exit, tool, command, workdir
 
 # 테스트용 임시 git repo — 보호 브랜치(develop)와 작업 브랜치(feature/*) 각 1개
 DEV=$(mktemp -d); FEAT=$(mktemp -d)
-trap 'rm -rf "$DEV" "$FEAT"' EXIT
+trap 'rm -rf "$DEV" "$FEAT" "${LITE_REPO:-}"' EXIT
 for D in "$DEV" "$FEAT"; do
   git -C "$D" init -q
   git -C "$D" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init
@@ -129,6 +129,25 @@ check "D2: npm install(로컬) 통과(≠-g)"         0 Bash "npm install"      
 check "D2: npm install --save-dev 통과"         0 Bash "npm install --save-dev jest"         "$FEAT"
 check "D2: git stash 통과"                      0 Bash "git stash"                           "$FEAT"
 check "D2: 테스트파일 cp(복사) 통과(≠rm)"       0 Bash "cp src/a.test.ts /backup/"           "$FEAT"
+
+# LITE: 경량 repo 면제(.harness-lite) — dev git-flow는 면제(통과), 파괴적 안전가드는 유지(차단)
+LITE_REPO=$(mktemp -d)
+git -C "$LITE_REPO" init -q
+git -C "$LITE_REPO" checkout -q -b develop
+: > "$LITE_REPO/.harness-lite"
+git -C "$LITE_REPO" -c user.email=t@t -c user.name=t add -A
+git -C "$LITE_REPO" -c user.email=t@t -c user.name=t commit -q -m init
+check "LITE: develop 직접 커밋 통과"        0 Bash "git commit -m x"                "$LITE_REPO"
+check "LITE: 맨손 gh pr create 통과"        0 Bash "gh pr create --fill"            "$LITE_REPO"
+check "LITE: 맨손 gh pr merge 통과"         0 Bash "gh pr merge 5 --merge"          "$LITE_REPO"
+check "LITE: main force push 통과"          0 Bash "git push --force origin main"   "$LITE_REPO"
+check "LITE: 무spec feature 브랜치 통과"    0 Bash "git checkout -b feature/noplan" "$LITE_REPO"
+check "LITE: reset --hard 여전히 차단(안전유지)"  2 Bash "git reset --hard HEAD~1"  "$LITE_REPO"
+check "LITE: 테스트파일 rm 여전히 차단(안전유지)" 2 Bash "rm src/foo.test.ts"       "$LITE_REPO"
+check "LITE: rm -rf core 여전히 차단(안전유지)"   2 Bash "rm -rf src/"              "$LITE_REPO"
+check "LITE: npm -g 여전히 차단(안전유지)"        2 Bash "npm install -g x"         "$LITE_REPO"
+# 마커 없는 repo는 여전히 차단(회귀 방지 — 면제가 전역 누출 안 됨)
+check "非LITE: develop 커밋 여전히 차단"    2 Bash "git commit -m x"                "$DEV"
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

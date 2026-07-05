@@ -59,6 +59,15 @@ if [[ -n "$TARGET_DIR" ]]; then
   fi
 fi
 
+# 경량 repo 면제 — repo 루트에 .harness-lite 마커가 있으면 dev git-flow 강제(main/develop 직접 커밋·
+# 신규 feature 브랜치 plan 요구·main/develop force push·맨손 gh pr create/merge)를 스킵한다.
+# 파괴적 안전가드(rm -rf 코어·검증기 삭제·reset --hard·npm -g)는 경량 repo에도 그대로 유지한다.
+# 원칙: 의식의 무게를 산출물별로 right-size — 문서/경량 repo에 풀 git-flow는 과적용(역방향 오버엔지니어링).
+# 코드 repo는 마커 없음 → 그대로 강제. 마커 = 의식적 opt-out(HARNESS_TRIVIAL 프리픽스의 repo 스코프판).
+LITE=0
+_LITE_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+[[ -n "$_LITE_ROOT" && -f "$_LITE_ROOT/.harness-lite" ]] && LITE=1
+
 # main/develop 직접 커밋 금지 — commit을 **서브커맨드 위치**로 좁혀 과차단 제거(A5:
 #   `git log --grep=commit`·`git help commit`·`grep "git commit"`는 통과). `git -C <dir> commit`이면
 #   후행 cd 우회와 무관하게 **그 -C dir** 기준으로 판정(A2: 커밋 dir ≠ 판정 dir 우회 차단).
@@ -67,7 +76,7 @@ fi
 #   전역옵션 = 값-분리 플래그(-C/-c/--git-dir/… <값>) 또는 임의 단일 플래그(-x/--flag[=v]). 서브커맨드가
 #   commit이어야 매치(log 등 다른 서브커맨드는 여전히 통과 → 과차단 유지 안 함).
 COMMIT_SEG=$(echo "$COMMAND" | grep -oE "(^|[;&|(][[:space:]]*)git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+commit([[:space:]]|$)" | head -1)
-if [[ -n "$COMMIT_SEG" ]]; then
+if [[ "$LITE" != 1 && -n "$COMMIT_SEG" ]]; then
   CDIR=$(echo "$COMMIT_SEG" | grep -oE "\-C[[:space:]]+[^;&|[:space:]]+" | sed -E 's/^-C[[:space:]]+//' | head -1)
   if [[ -n "$CDIR" ]]; then
     CDIR="${CDIR//\"/}"; CDIR="${CDIR//\'/}"; CDIR="${CDIR/#\~/$HOME}"
@@ -83,7 +92,7 @@ fi
 # main/develop force push 금지 (--force/-f, 결합 단축플래그 -fu, 또는 +refspec)
 # 외부 게이트는 force 신호를 넓게 잡고(내부 조건이 main/develop 대상 여부를 판정) — 결합플래그(-fu)·
 # plus-refspec(+HEAD:main)를 놓쳐 우회되던 것 교정(감사 A1). refspec 생략 시 현재 브랜치가 push 대상.
-if echo "$COMMAND" | grep -qE "git[[:space:]]+push[^;&|]*(--force|-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)"; then
+if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git[[:space:]]+push[^;&|]*(--force|-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)"; then
   BRANCH=$(git branch --show-current 2>/dev/null)
   if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]] || \
      echo "$COMMAND" | grep -qE "origin[[:space:]]+(main|develop)([[:space:]]|$)|:(main|develop)([[:space:]]|$)|\+(main|develop)([[:space:]]|$)"; then
@@ -96,7 +105,7 @@ fi
 # checkout -b / switch -c 로 feature/<name> 을 만들 때만 발동 — 기존 브랜치 계속·fix/hotfix 는 통과.
 # 명시 면제: 명령에 HARNESS_TRIVIAL=1 프리픽스(계획 건너뛰기를 침묵 기본값이 아닌 의식적 행위로).
 # 보조 장치 — fail-safe(name/root 추출 실패 시 미차단), 최종 강제는 계층0(리뷰/CI).
-if echo "$COMMAND" | grep -qE "git[[:space:]]+(checkout[[:space:]]+-b|switch[[:space:]]+-c|branch)[[:space:]]+feature/"; then
+if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git[[:space:]]+(checkout[[:space:]]+-b|switch[[:space:]]+-c|branch)[[:space:]]+feature/"; then
   if ! echo "$COMMAND" | grep -qE "(^|[[:space:]])HARNESS_TRIVIAL=1([[:space:]]|$)"; then
     # 종단문자에 `)`도 제외(G4) — 서브셸 `(git checkout -b feature/x)`에서 이름에 `)`가 붙는 오탐 방지.
     FEAT_NAME=$(echo "$COMMAND" | grep -oE "feature/[^[:space:];&|)]+" | head -1 | sed 's#^feature/##')
@@ -119,10 +128,10 @@ fi
 # 후행: 공백·끝·`) ; & |`(서브셸 닫힘 $(gh pr create)·체인·파이프아웃).
 # 알려진 한계(보조 장치, 최종 강제는 계층0): `echo y|gh pr merge`(무공백 파이프)·따옴표 안 명령·
 #   env-prefix·temp 스크립트 난독화는 못 잡는다.
-if echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+create([[:space:]);&|]|$)"; then
+if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+create([[:space:]);&|]|$)"; then
   deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다."
 fi
-if echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+merge([[:space:]);&|]|$)"; then
+if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+merge([[:space:]);&|]|$)"; then
   deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다."
 fi
 
