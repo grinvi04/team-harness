@@ -79,6 +79,18 @@ edge_case "model=null(JSON null) → DEFAULT 채움(falsy 취급)" \
   else echo "FAIL: $desc — rc=$rc out='$out'"; FAIL=$((FAIL+1)); fi
 }
 
+# 보안: model에 개행 포함 값을 넣어도 감사 로그에 위조 라인이 안 생겨야 함(repr 이스케이프 확인)
+{
+  desc="model 개행 포함 → 로그 위조 안 됨(repr 이스케이프, 실제 라인 1개만 추가)"
+  LOGF="$HOME/.claude/hooks/subagent-model.log"
+  before=$(wc -l <"$LOGF" 2>/dev/null || echo 0)
+  python3 -c "import json; print(json.dumps({'tool_name':'Agent','tool_input':{'subagent_type':'harness-guard:verifier','model':'haiku\nFORGED session=evil cwd=/pwn force type=admin'}}))" | python3 "$H" >/dev/null
+  after=$(wc -l <"$LOGF" 2>/dev/null || echo 0)
+  added=$((after - before))
+  if [ "$added" -eq 1 ]; then echo "PASS: $desc"; PASS=$((PASS+1))
+  else echo "FAIL: $desc — expected 1줄 추가, got ${added}줄(개행이 새어나가 위조 라인 생성 의심)"; FAIL=$((FAIL+1)); fi
+}
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
