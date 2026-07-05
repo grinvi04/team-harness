@@ -118,4 +118,6 @@
 
 | **/repo-sync 아키텍처 다이어그램 소스 점검**(v0.24.2): `check-repo-sync.mjs`에 arch 다이어그램 자산 점검 추가 — `docs/architecture.svg`(산출물)가 있는 repo에 `docs/gen_arch_svg.py`(소스)가 없으면 **WARN**(재생성 불가한 소스-less 산출물, webhook이 그 상태였음). severity=warn(비차단·다이어그램은 선택), applicable=산출물 보유 repo만(없으면 스킵). 생성기는 repo별 커스텀이라 템플릿과 내용 대조는 불가 — "소스 존재" 여부만 점검. 발단: dry-run 후속으로 아까 노트했던 "/repo-sync arch 미점검"을 완결. | 2026-07-05 | plugins/harness-guard/scripts/check-repo-sync.mjs | — |
 
+| **경량 repo 면제 `.harness-lite`**(v0.25.0): 문서/경량 repo에 dev git-flow 강제(main/develop 직접 커밋·feature plan-gate·force push·맨손 gh pr create/merge)가 과적용되던 것을 repo 루트 `.harness-lite` 마커로 opt-out. 마커 있으면 guard.sh가 git-flow 5블록을 스킵(LITE 플래그). **파괴적 안전가드(rm -rf 코어·검증기 삭제·reset --hard·npm -g)는 경량 repo에도 유지** — 게이트 무력화 방지. 동기: 원칙 "의식의 무게를 산출물별로 right-size" — 문서 플레이북 등에 풀 git-flow는 역방향 오버엔지니어링. 마커=의식적 opt-out(HARNESS_TRIVIAL의 repo 스코프판). 트레이드오프: 마커를 코드 repo에 잘못 두면 git-flow 게이트 전면 면제 → 의식적 파일 생성 필요라 HARNESS_TRIVIAL과 동급 리스크(최종 강제는 계층0=branch protection·CI). guard-test.sh에 LITE 10케이스 추가(82/82 통과). | 2026-07-05 | plugins/harness-guard/scripts/guard.sh | plugin.json(0.25.0), tests/guard-test.sh |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
