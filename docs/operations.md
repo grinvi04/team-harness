@@ -86,6 +86,19 @@
   DB 감사 테이블의 몫 (`db-standards.md` §감사)
 - 감사성 접근 기록(CloudTrail 등): 1년+
 
+### 하네스 자체 감사 로그
+
+위는 **앱**의 로깅. 하네스(harness-guard)도 게이트 결정을 로컬 로그로 남긴다 — 실측·감사용:
+
+| 로그 | 위치 | 내용 |
+|---|---|---|
+| 가드 차단 | `~/.claude/hooks/guard-block.log` | deny된 명령·사유·session·cwd (시크릿 마스킹) |
+| 모델 티어링 | `~/.claude/hooks/subagent-model.log` | 서브에이전트 타입별 force/skip 모델 결정 |
+
+- **읽는 법**: `grep 'cwd=.*/erp' ~/.claude/hooks/subagent-model.log`(특정 repo 스폰 모델 감사) · `grep DENY ~/.claude/hooks/guard-block.log`(차단 이력).
+- **VCS 밖**: 머신 로컬 런타임 데이터(cwd·명령 히스토리 포함)라 **repo에 커밋하지 않는다** — 소스(훅)만 versioned. 팀 집계가 필요하면 로컬 커밋이 아니라 중앙 스토어로 ship.
+- **로테이션**: 256KB 초과 시 훅이 최근 절반만 보존(무한 증가 방지).
+
 ## 4. 릴리즈·버전 정책
 
 - **SemVer** `vMAJOR.MINOR.PATCH` — MINOR: 기능 릴리즈 / PATCH: hotfix (플러그인 `/release`·`/hotfix`
