@@ -73,7 +73,7 @@ def main():
 
     sid = data.get("session_id") or "?"
     cwd = data.get("cwd") or "?"
-    meta = f"session={sid} cwd={cwd}"
+    meta = f"session={sid!r} cwd={cwd!r}"  # repr — 개행 등으로 가짜 감사 라인 위조 방지(로그 포징)
 
     tool_input = data.get("tool_input") or {}
     stype = tool_input.get("subagent_type")
@@ -87,21 +87,21 @@ def main():
             log(f"{meta} noop type={stype!r} model={forced}")
             return
         _emit(tool_input, forced)
-        log(f"{meta} force type={stype!r} model={prev}->{forced}")
+        log(f"{meta} force type={stype!r} model={prev!r}->{forced}")
         return
 
     default = DEFAULT.get(stype)
     if default:
         if passed:
             # 명시값 있으면 그대로 존중(의식적 다운그레이드 허용) — 하드포스와의 핵심 차이
-            log(f"{meta} skip(explicit) type={stype!r} model={passed}")
+            log(f"{meta} skip(explicit) type={stype!r} model={passed!r}")
             return
         _emit(tool_input, default)
         log(f"{meta} fill type={stype!r} model=inherit(main)->{default}")
         return
 
     # TIER에도 DEFAULT에도 없는 타입 — 손대지 않는다(메인 모델 상속)
-    log(f"{meta} skip type={stype!r} model={prev}")
+    log(f"{meta} skip type={stype!r} model={prev!r}")
 
 
 if __name__ == "__main__":
