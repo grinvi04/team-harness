@@ -467,6 +467,32 @@
   <p style="margin-top:.8rem">release-check의 Agent A·B·C는 <b>동시에 spawn</b>된다 — 병렬 실행으로 전체 검증 시간을 단축.</p>
   <p style="margin-top:.8rem"><b>비용 인식</b> — 읽기·검색은 최저 티어(<code>Explore</code>/Haiku), 빌드·구현은 Sonnet에 위임한다. 병렬성 있는 무거운 다단계는 <b>Workflow</b>가 stage별 모델을 결정론적으로 지정하고, 계획과 실행을 분리할 땐 <code>opusplan</code>(계획=Opus·실행=Sonnet)을 쓴다. <b>다만 가장 큰 비용 축은 모델 선택이 아니라 세션 길이다</b> — 긴 단일 세션은 누적 컨텍스트를 매 턴 캐시-리드해 Opus 비용을 키운다(실측상 최대 축). 페이즈 전환 시 <code>/clear</code>, 컨텍스트가 커지면 <code>/compact</code>로 리셋한다. 위임·세션 위생의 단일 출처는 <code>docs/model-tiering.md</code>.</p>
 
+  <h3 style="margin-top:1.8rem; font-size:1.05rem;">실측 검증 <span style="font-size:.8rem; color:var(--muted); font-weight:400;">— 강제가 실제로 먹히는지 측정했다</span></h3>
+  <div class="callout ok"><b>이 티어링은 "권장"이 아니라 실제 강제된다.</b> effort(스킬 frontmatter)와 모델(훅) 두 축을 측정으로 확인.</div>
+  <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; margin:1rem 0;">
+    <div class="tier">
+      <div style="font-weight:700; margin-bottom:.5rem;">① effort <span class="badge effort-max">frontmatter 강제</span></div>
+      <p style="font-size:.83rem; color:var(--muted); margin:0 0 .6rem;">동일 과제·동일 입력, 스킬 <code>effort:</code>만 다르게 → A/B 측정</p>
+      <table style="width:100%; border-collapse:collapse; font-size:.82rem;">
+        <tr style="color:var(--muted); text-align:left;"><th style="padding:.25rem .4rem;"></th><th style="padding:.25rem .4rem;">output tokens</th><th style="padding:.25rem .4rem;">cost</th></tr>
+        <tr><td style="padding:.25rem .4rem;"><span class="badge effort-med">low</span></td><td style="padding:.25rem .4rem;">2,112</td><td style="padding:.25rem .4rem;">$0.116</td></tr>
+        <tr><td style="padding:.25rem .4rem;"><span class="badge effort-max">max</span></td><td style="padding:.25rem .4rem;"><b style="color:var(--red);">7,274</b></td><td style="padding:.25rem .4rem;">$0.245</td></tr>
+      </table>
+      <p style="font-size:.85rem; margin:.6rem 0 0;"><b style="color:var(--red);">3.4×</b> 출력 토큰 — 유일한 변수가 frontmatter <code>effort</code>. 스킬별 effort는 실제 적용된다.</p>
+    </div>
+    <div class="tier">
+      <div style="font-weight:700; margin-bottom:.5rem;">② 모델 <span class="badge auto">훅 강제</span></div>
+      <p style="font-size:.83rem; color:var(--muted); margin:0 0 .6rem;"><code>enforce-subagent-model.py</code>가 타입별 <code>updatedInput.model</code>을 주입 · <code>subagent-model.log</code>에 감사 기록</p>
+      <ul style="list-style:none; font-size:.85rem; padding:0; margin:0; line-height:1.8;">
+        <li><code>Explore</code> → <span style="color:var(--teal); font-weight:700;">haiku</span></li>
+        <li><code>general-purpose</code>·<code>claude</code> → <span style="color:var(--accent); font-weight:700;">sonnet</span></li>
+        <li>verifier·security-reviewer·Plan → <span style="color:var(--purple); font-weight:700;">opus 유지</span></li>
+      </ul>
+      <p style="font-size:.85rem; margin:.6rem 0 0;">실제 세션 로그에서 opus 메인 → <b>서브에이전트 haiku/sonnet 다운그레이드</b> 확인.</p>
+    </div>
+  </div>
+  <div class="callout"><b>관측성 차이</b> — effort는 <b>요청 파라미터</b>라 세션 로그엔 안 남아 A/B로만 검증(과거 소급 불가). 모델 티어링은 <b>훅이 결정을 로그로 남겨</b> 직접 감사 가능. 둘 다 실측으로 "실제 강제됨"을 확인했다.</div>
+
   <!-- Git Flow -->
   <h2 id="gitflow">Git Flow</h2>
   <p>모든 변경은 PR로만 흐른다. 직접 커밋·push 경로는 없다 — 시도하면 3겹(guard→pre-commit→branch protection)에서 차단된다.</p>
