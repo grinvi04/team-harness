@@ -6,6 +6,12 @@ set -u
 H="$(cd "$(dirname "$0")/.." && pwd)/plugins/harness-guard/scripts/enforce-subagent-model.py"
 PASS=0; FAIL=0
 
+# 이 테스트는 훅을 수십 회 호출한다 — 실 감사 로그(~/.claude/hooks/subagent-model.log)에
+# 쓰면 사용자의 진짜 감사 이력을 오염시킨다(2026-07 실제 사고: 레이스 재현 테스트가 그 로그를
+# 덮어써 당일 이력이 유실됨). HARNESS_SUBAGENT_MODEL_LOG로 임시 파일에 격리한다.
+export HARNESS_SUBAGENT_MODEL_LOG; HARNESS_SUBAGENT_MODEL_LOG="$(mktemp -t enforce-subagent-model-test-log)"
+trap 'rm -f "$HARNESS_SUBAGENT_MODEL_LOG"' EXIT
+
 # subagent_type·(선택)model·(선택)tool_name 으로 hook 입력 JSON 생성 → hook 실행
 run() { # subagent_type [model] [tool_name=Agent]
   python3 -c "import json,sys
@@ -79,13 +85,34 @@ edge_case "model=null(JSON null) → DEFAULT 채움(falsy 취급)" \
   else echo "FAIL: $desc — rc=$rc out='$out'"; FAIL=$((FAIL+1)); fi
 }
 
+# 엣지: JSON은 유효하지만 형태가 예상과 다름 — 2026-07 발견(uncaught 예외가 fail-open 계약을 깸)
+shape_error_case() { # desc, python_json_literal
+  local desc="$1" out rc
+  out=$(printf '%s' "$2" | python3 "$H" 2>&1); rc=$?
+  if [ "$rc" -eq 0 ] && [ -z "$out" ]; then echo "PASS: $desc"; PASS=$((PASS+1))
+  else echo "FAIL: $desc — rc=$rc out='$out'"; FAIL=$((FAIL+1)); fi
+}
+shape_error_case "최상위 JSON이 object가 아님(배열) → 크래시 없이 안전 무시" \
+  '[1,2,3]'
+shape_error_case "tool_input이 dict가 아님(문자열) → 크래시 없이 안전 무시" \
+  '{"tool_name":"Agent","tool_input":"not a dict"}'
+shape_error_case "subagent_type이 unhashable(리스트) → 크래시 없이 안전 무시" \
+  '{"tool_name":"Agent","tool_input":{"subagent_type":["nested","list"]}}'
+
+# 위 3건이 감사 로그에 shape-error로 기록되는지(격리된 임시 로그라 안전하게 검사 가능)
+{
+  desc="shape-error 3건이 격리 로그에 기록됨"
+  got=$(grep -c "shape-error" "$HARNESS_SUBAGENT_MODEL_LOG" 2>/dev/null || echo 0)
+  if [ "$got" -eq 3 ]; then echo "PASS: $desc"; PASS=$((PASS+1))
+  else echo "FAIL: $desc — expected 3, got $got"; FAIL=$((FAIL+1)); fi
+}
+
 # 보안: model에 개행 포함 값을 넣어도 감사 로그에 위조 라인이 안 생겨야 함(repr 이스케이프 확인)
 {
   desc="model 개행 포함 → 로그 위조 안 됨(repr 이스케이프, 실제 라인 1개만 추가)"
-  LOGF="$HOME/.claude/hooks/subagent-model.log"
-  before=$(wc -l <"$LOGF" 2>/dev/null || echo 0)
+  before=$(wc -l <"$HARNESS_SUBAGENT_MODEL_LOG" 2>/dev/null || echo 0)
   python3 -c "import json; print(json.dumps({'tool_name':'Agent','tool_input':{'subagent_type':'harness-guard:verifier','model':'haiku\nFORGED session=evil cwd=/pwn force type=admin'}}))" | python3 "$H" >/dev/null
-  after=$(wc -l <"$LOGF" 2>/dev/null || echo 0)
+  after=$(wc -l <"$HARNESS_SUBAGENT_MODEL_LOG" 2>/dev/null || echo 0)
   added=$((after - before))
   if [ "$added" -eq 1 ]; then echo "PASS: $desc"; PASS=$((PASS+1))
   else echo "FAIL: $desc — expected 1줄 추가, got ${added}줄(개행이 새어나가 위조 라인 생성 의심)"; FAIL=$((FAIL+1)); fi
