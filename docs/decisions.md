@@ -116,4 +116,6 @@
 
 | **new-repo 부트스트랩 데드락 수정**(v0.24.2 · dry-run 발견): 도입 리허설(버릴 test repo로 실전 플로우 검증)에서 발견 — `new-repo.sh`가 CI 워크플로 push **전에** main(README로 이미 존재)에 required-check 보호를 걸어, 초기 설정 커밋 push가 `required status checks are expected`로 거부되는 **day-1 블로커**. `apply_protection`에 "워크플로가 원격 브랜치에 있을 때만 보호 적용"(develop의 '원격 없으면 스킵'과 대칭) 가드 추가 → 보호는 설정 push 뒤에 걸림. onboarding.md 부트스트랩 순서 재작성 + `git commit --no-verify`가 **서버 branch protection을 못 뚫는다**(로컬 훅만 우회)는 틀린 안내 정정. dry-run에서 팀 모드(main 승인1·develop 승인0·enforce_admins)도 실전 검증(솔로만 dogfood했던 것). | 2026-07-05 | scripts/new-repo.sh | docs/onboarding.md, plugins/harness-guard/.claude-plugin/plugin.json, README.md, docs/intro.html |
 
+| **/repo-sync 아키텍처 다이어그램 소스 점검**(v0.24.2): `check-repo-sync.mjs`에 arch 다이어그램 자산 점검 추가 — `docs/architecture.svg`(산출물)가 있는 repo에 `docs/gen_arch_svg.py`(소스)가 없으면 **WARN**(재생성 불가한 소스-less 산출물, webhook이 그 상태였음). severity=warn(비차단·다이어그램은 선택), applicable=산출물 보유 repo만(없으면 스킵). 생성기는 repo별 커스텀이라 템플릿과 내용 대조는 불가 — "소스 존재" 여부만 점검. 발단: dry-run 후속으로 아까 노트했던 "/repo-sync arch 미점검"을 완결. | 2026-07-05 | plugins/harness-guard/scripts/check-repo-sync.mjs | — |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
