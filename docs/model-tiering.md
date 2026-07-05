@@ -32,7 +32,7 @@
 | 좁은 예외: 단일 trivial | 한 줄 명령·**파일 1개** 읽기·작은 단일 편집 | 메인 인라인 OK — **애매하거나 여러 개면 위 행대로 위임** |
 
 > 이 표가 위임 정책의 **단일 출처**. **무엇을 위임할지는 재량 안내**지만, **위임된 뒤의 강제는 실재한다**:
-> ① **서브에이전트 모델 = 훅 강제** — harness-guard 플러그인 `scripts/enforce-subagent-model.py`(PreToolUse, matcher: Agent, hooks.json 배선)가 타입별로 `updatedInput.model`을 주입한다: Explore→haiku · general-purpose/claude→sonnet · 특권타입(verifier·security-reviewer·Plan·harness-manager)은 미터치=opus 유지(frontmatter/상속). 결정은 `~/.claude/hooks/subagent-model.log`에 기록돼 **감사 가능**(실측: 실제 세션에서 general-purpose→sonnet·Explore→haiku 확인).
+> ① **서브에이전트 모델 = 훅 강제(2단)** — harness-guard 플러그인 `scripts/enforce-subagent-model.py`(PreToolUse, matcher: Agent, hooks.json 배선)가 타입별로 `updatedInput.model`을 주입한다. **TIER(하드포스, 비용 다운그레이드)**: Explore→haiku · general-purpose/claude→sonnet, 넘긴 model 있어도 무시. **DEFAULT(기본값 채움, 품질 하한)**: `harness-guard:verifier`·`harness-guard:security-reviewer`는 model 미지정 시에만 opus로 채우고, 명시값은 그대로 존중(다운그레이드 가능) — agents/*.md의 `model: opus` frontmatter가 1차 방어선인데 새 특권 타입 작성 시 누락되거나 플랫폼이 frontmatter를 안 지키는 사례(Claude Code 공개 이슈 다수, 2026-07 실측 확인)가 있어 2차 방어선으로 둔다. Plan·harness-manager 등 그 외 타입은 미터치=메인 상속. 결정은 `~/.claude/hooks/subagent-model.log`에 기록돼 **감사 가능**(실측: general-purpose→sonnet·Explore→haiku 하드포스, verifier/security-reviewer→opus 기본채움·명시값 존중 전부 세션 로그+실제 transcript model 필드로 검증).
 > ② **스킬 effort = frontmatter 강제** — 각 SKILL.md의 `effort:` 필드가 실제 적용된다(A/B 실측: 동일 과제에서 `max`가 `low` 대비 출력 토큰 **3.4×**).
 > ③ Workflow stage별 모델 지정·`opusplan`(도구 기능).
 > 즉 문서는 **정책 출처**, 강제는 위 셋이 담당한다. (effort는 요청 파라미터라 세션 로그엔 안 남고 A/B로만 검증됨 · 서브에이전트 모델은 로그로 직접 검증됨.)
