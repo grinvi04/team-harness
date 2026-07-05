@@ -236,6 +236,17 @@ checks.push({
   detail: 'gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)',
 })
 
+// 아키텍처 다이어그램 — 산출물(svg)이 있으면 소스(생성기)도 있어야 재생성 가능(소스-less 산출물 방지).
+// applicable=산출물 보유 repo만(다이어그램 없는 repo는 스킵). severity=warn(비차단 — 다이어그램은 선택).
+checks.push({
+  asset: '아키텍처 다이어그램 소스',
+  severity: 'warn',
+  applicable: existsSync(join(REPO, 'docs/architecture.svg')),
+  status: existsSync(join(REPO, 'docs/gen_arch_svg.py')) ? 'OK' : 'WARN',
+  detail:
+    'docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)',
+})
+
 // Flyway 스택 — 마이그레이션 안전성 게이트
 checks.push({
   asset: 'migration-safety 워크플로',
