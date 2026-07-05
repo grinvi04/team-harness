@@ -23,13 +23,21 @@ bash /path/to/team-harness/scripts/new-repo.sh
 스크립트가 자동으로 처리하는 항목:
 - 템플릿 파일 복사 (pre-commit 훅·CI·AGENTS.md·CLAUDE.md·settings.json·PR 템플릿·gitignore)
 - `git config core.hooksPath .githooks`
-- main·develop branch protection (enforce_admins=on·승인0·status-checks·conversation-resolve)
+- main·develop branch protection (enforce_admins=on·승인0·status-checks·conversation-resolve) — **CI 워크플로가 원격에 push된 뒤** 적용(아래 부트스트랩 순서)
 
-> 멱등: 이미 있는 파일·protection은 건드리지 않음. 브랜치 없으면 "첫 커밋 후 재실행" 안내.
+> 멱등: 이미 있는 파일·protection은 건드리지 않음. 브랜치 없거나 워크플로 미push면 "커밋·push 후 재실행" 안내.
 
-> **초기 셋업 커밋(빈 repo의 첫 커밋)**: pre-commit 훅이 main 커밋을 막으므로,
-> 이 1회만 `git commit --no-verify`로 main에 직접 커밋한다(또는 hooksPath 활성화를 첫 커밋 뒤로 미룬다).
-> push 후 develop 브랜치 생성 → 스크립트 재실행으로 develop에도 protection 적용.
+> **부트스트랩 순서 (중요 — 이 순서로 안 하면 첫 push가 막힌다)**:
+> 1. `new-repo.sh` — 템플릿 복사. **required-check 보호는 보류**한다 — 워크플로가 원격에 없는데 보호를
+>    걸면 초기 커밋 push가 `required status checks are expected`로 거부돼 워크플로를 올릴 수 없는 데드락.
+> 2. §2 커스터마이즈(ci-gate.yml·AGENTS.md).
+> 3. 초기 커밋 — pre-commit 훅이 main 직접 커밋을 막으니 이 1회만 `git commit --no-verify` → `git push origin main`
+>    (보호가 아직 없어 push 성공).
+> 4. `git checkout -b develop && git push -u origin develop`.
+> 5. `new-repo.sh` **재실행** — 이제 워크플로가 원격에 있어 main·develop 보호가 적용된다.
+>
+> ⚠️ `git commit --no-verify`는 **로컬 pre-commit 훅만** 우회한다 — **서버 branch protection은 못 뚫는다**.
+> 그래서 --no-verify로도 보호된 브랜치엔 push가 거부되므로, "보호를 push 뒤(5단계)에 거는" 순서가 해법이다.
 
 > **팀(리뷰어 ≥1)**: 멤버 합류 후 `bash set-branch-protection.sh <owner/repo> --approvals 1`로 main에 승인 요건을 올린다(develop은 0 유지). 신규 repo 생성 시엔 걸지 않는다 — 소유자 1명이면 self-approve 불가로 첫 PR 데드락.
 

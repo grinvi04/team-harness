@@ -209,6 +209,15 @@ apply_protection() {
     return
   fi
 
+  # 부트스트랩 데드락 방지: CI 워크플로가 원격 브랜치에 아직 없으면 required-check 보호를 걸지 않는다.
+  # (워크플로 push 전에 보호를 걸면 초기 설정 커밋 push가 "required status checks are expected"로 거부돼
+  #  워크플로를 올릴 방법이 없어진다. develop처럼 '설정 push 후 재실행' 2-스텝으로 유도.)
+  if ! gh api "repos/$OWNER_REPO/contents/.github/workflows?ref=$branch" > /dev/null 2>&1; then
+    echo "  ⚠️  $branch — CI 워크플로가 아직 원격에 없음 → 보호 보류 (required check 데드락 방지)"
+    echo "      설정을 커밋·push한 뒤 재실행: bash $0"
+    return
+  fi
+
   local ctx_args=()
   for check in "${STACK_CHECKS[@]}"; do
     ctx_args+=(-f "required_status_checks[contexts][]=$check")
