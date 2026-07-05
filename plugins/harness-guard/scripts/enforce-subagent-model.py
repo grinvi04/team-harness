@@ -26,6 +26,11 @@ LOG = os.path.expanduser("~/.claude/hooks/subagent-model.log")
 def log(msg):
     try:
         os.makedirs(os.path.dirname(LOG), exist_ok=True)  # 새 머신에서도 로그 디렉터리 보장
+        if os.path.exists(LOG) and os.path.getsize(LOG) > 256 * 1024:  # 256KB 초과 시 최근 절반만 보존
+            with open(LOG) as f:
+                lines = f.readlines()
+            with open(LOG, "w") as f:
+                f.writelines(lines[len(lines) // 2:])
         with open(LOG, "a") as f:
             f.write(f"{datetime.datetime.now().astimezone().isoformat()} {msg}\n")
     except Exception:

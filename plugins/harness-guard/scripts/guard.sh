@@ -27,6 +27,8 @@ deny() {
              -e 's#gh[pousr]_[A-Za-z0-9]{20,}#gh_***#g' \
              -e 's#github_pat_[A-Za-z0-9_]{20,}#github_pat_***#g' \
     | cut -c1-200)
+  # 로그 로테이션: 256KB 초과 시 최근 절반만 보존(무한 증가 방지)
+  { [ -f "$GUARD_LOG" ] && [ "$(wc -c <"$GUARD_LOG" 2>/dev/null || echo 0)" -gt 262144 ] && tail -n "$(( $(wc -l <"$GUARD_LOG" 2>/dev/null || echo 0)/2 ))" "$GUARD_LOG" > "$GUARD_LOG.tmp" && mv "$GUARD_LOG.tmp" "$GUARD_LOG"; } 2>/dev/null
   { printf '%s session=%s cwd=%s DENY %s | cmd=%s\n' "${ts:-?}" "${sid:-?}" "${cwd:-?}" "$reason" "$cmd1" >> "$GUARD_LOG"; } 2>/dev/null
   echo "⛔ [guard] $reason" >&2
   [[ -n "$hint" ]] && echo "   해결: $hint" >&2
