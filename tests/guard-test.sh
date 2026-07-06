@@ -202,6 +202,22 @@ check "REJ2: force HEAD:refs/heads/develop 차단" 2 Bash "git push -f origin HE
 check "REJ2: force upstream main 차단"       2 Bash "git push --force upstream main"                 "$FEAT"
 check "REJ2over: force origin featmain 통과(오탐)" 0 Bash "git push --force origin featmain"          "$FEAT"
 
+# #204: 자기-회귀 교정 — reset wrapper 우회 + force-push 과탐/명시refspec
+# #4 reset --hard가 wrapper 프리픽스로 우회되던 것 차단(무백스톱 파괴가드)
+check "#204: sudo git reset --hard 차단"       2 Bash "sudo git reset --hard HEAD~1"        "$DEV"
+check "#204: env FOO=x git reset --hard 차단"  2 Bash "env FOO=x git reset --hard"          "$DEV"
+check "#204: time git reset --hard 차단"       2 Bash "time git reset --hard"               "$DEV"
+check "#204over: sudo git reset --soft 통과"   0 Bash "sudo git reset --soft HEAD~1"         "$FEAT"
+# #1 force-push 목적지 판정을 push 세그먼트로 — rebase 인자·커밋메시지·주석의 main/develop 오탐 방지
+check "#204: rebase main && feature force 통과" 0 Bash "git rebase main && git push --force-with-lease origin feature/foo" "$FEAT"
+check "#204: 커밋메시지 main && feature force 통과" 0 Bash "git commit -m 'fix main' && git push --force origin feature/foo"   "$FEAT"
+check "#204: --follow-tags feature push 통과(비force)" 0 Bash "git push --follow-tags origin feature/foo" "$FEAT"
+# #5 명시 refspec feature force-push는 develop 체크아웃에서도 통과
+check "#204: develop서 명시 feature force 통과" 0 Bash "git push --force origin feature/x"    "$DEV"
+# 회귀 방지 — 여전히 차단되어야 하는 것
+check "#204: origin main force 여전히 차단"    2 Bash "git push --force origin main"         "$FEAT"
+check "#204: bare force(develop) 여전히 차단"  2 Bash "git push --force"                     "$DEV"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

@@ -107,8 +107,12 @@ fi
 # main/develop force push 금지 (--force/-f, 결합 단축플래그 -fu, 또는 +refspec)
 # 외부 게이트는 force 신호를 넓게 잡고(내부 조건이 main/develop 대상 여부를 판정) — 결합플래그(-fu)·
 # plus-refspec(+HEAD:main)를 놓쳐 우회되던 것 교정(감사 A1). refspec 생략 시 현재 브랜치가 push 대상.
-if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+push[^;&|]*(--force|-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)"; then
-  # git -C <dir> push 이면 그 dir 기준으로 현재 브랜치를 판정 — commit(A2)만 -C를 잡던 비대칭 교정.
+# force 신호는 --force 또는 단일대시 결합(-f/-fu) 또는 +refspec만 — --follow-tags 같은 비파괴 롱플래그를 force로
+#   오탐하지 않게 결합플래그를 [[:space:]]-…f… 로 좁힌다(#204). refspec 생략 시 현재 브랜치가 push 대상.
+if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+push[^;&|]*(--force|[[:space:]]-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)"; then
+  # 목적지 판정은 명령 전체가 아니라 **push 세그먼트**로 한정(#204: rebase 인자·커밋메시지·주석의 main/develop 오탐 방지).
+  PUSH_SEG=$(echo "$COMMAND" | grep -oE "git[^;&|]*[[:space:]]push[^;&|]*" | head -1)
+  # git -C <dir> push 이면 그 dir 기준으로 현재 브랜치를 판정 — commit(A2)와 대칭.
   PDIR=$(echo "$COMMAND" | grep -oE "git[[:space:]]+-C[[:space:]]+[^;&|[:space:]]+" | sed -E 's/^git[[:space:]]+-C[[:space:]]+//' | head -1)
   if [[ -n "$PDIR" ]]; then
     PDIR="${PDIR//\"/}"; PDIR="${PDIR//\'/}"; PDIR="${PDIR/#\~/$HOME}"
@@ -116,8 +120,12 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--gi
   else
     BRANCH=$(git branch --show-current 2>/dev/null)
   fi
-  if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]] || \
-     echo "$COMMAND" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?(main|develop)([[:space:]]|$)"; then
+  # push 세그먼트에 명시 refspec(remote + ref, 예: origin feature/x)이 있으면 현재 브랜치는 무관 —
+  #   bare push(git push -f)만 현재 브랜치가 실제 대상이라 현재-브랜치 판정을 적용(#204 명시-refspec 오차단 교정).
+  HAS_REF=""; echo "$PUSH_SEG" | grep -qE "push([[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+[^-;&|[:space:]]+[[:space:]]+[^-;&|[:space:]]+" && HAS_REF=1
+  if echo "$PUSH_SEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?(main|develop)([[:space:]]|$)"; then
+    deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
+  elif [[ -z "$HAS_REF" && ( "$BRANCH" == "main" || "$BRANCH" == "develop" ) ]]; then
     deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
   fi
 fi
@@ -160,7 +168,9 @@ fi
 # git reset --hard 금지 — reset 서브커맨드 + --hard 플래그를 순서·공백·git -C·env-prefix 무관하게 검사한다.
 # (기존 리터럴 `git reset --hard`는 이중공백·탭·인자후치·`git -C . reset --hard`를 놓쳐 우회됨. 형제 가드처럼
 #  명령 위치 앵커라 `grep 'git reset --hard'` 같은 문자열 언급은 통과 — 기존 과차단도 함께 제거.)
-RESET_SEG=$(echo "$COMMAND" | grep -oE "(^[[:space:]]*|[;&|(][[:space:]]*)([A-Za-z_][A-Za-z0-9_]*=[^;&|[:space:]]*[[:space:]]+)*git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+reset([[:space:]]|$)[^;&|]*" | head -1)
+# 앵커에 선행 공백([[:space:]])도 허용 — sudo/env/time/xargs/command/nice 등 wrapper 프리픽스 뒤 git을 잡는다(#204).
+#   git이 따옴표 바로 뒤(grep 'git reset --hard')면 공백이 직전이 아니라 여전히 미매치 → 문자열 언급 보호 유지.
+RESET_SEG=$(echo "$COMMAND" | grep -oE "(^[[:space:]]*|[;&|(][[:space:]]*|[[:space:]])([A-Za-z_][A-Za-z0-9_]*=[^;&|[:space:]]*[[:space:]]+)*git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+reset([[:space:]]|$)[^;&|]*" | head -1)
 if [[ -n "$RESET_SEG" ]] && echo "$RESET_SEG" | grep -qE "(^|[[:space:]])--hard([[:space:]]|$)"; then
   deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (Claude가 대신 실행하지 않음)"
 fi
