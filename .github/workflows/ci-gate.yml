@@ -25,6 +25,7 @@ jobs:
           bash -n templates/githooks/pre-commit
           bash -n .githooks/pre-commit
           bash -n tests/guard-test.sh
+          bash -n tests/guard-matrix-test.sh
           bash -n tests/route-intent-test.sh
           bash -n tests/merge-permissions-test.sh
           bash -n tests/pr-merge-auto-test.sh
@@ -61,6 +62,9 @@ jobs:
 
       - name: 가드 시나리오 테스트
         run: bash tests/guard-test.sh
+
+      - name: 가드 계약 전수 매트릭스
+        run: bash tests/guard-matrix-test.sh
 
       - name: 의도 라우터 테스트
         run: bash tests/route-intent-test.sh
