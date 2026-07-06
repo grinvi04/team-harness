@@ -52,7 +52,7 @@ PR 번호를 출력한다.
 
 `/pr-create`는 **PR 생성까지만** 한다 — 머지는 별도 게이트가 소유한다:
 - **리뷰 게이트**: `pr-review-gate` 1~3단계(AI 리뷰 대기·이슈 처리·스레드 reply+resolve).
-- **머지**: 팀 repo → `pr-review-gate` 4~7단계 / 솔로 repo(보호 없음) → `solo-merge`.
+- **머지**: 솔로 표준(승인요건 0) → CI·스레드 게이트 통과 후 `pr-merge.sh`로 직접 머지(우회할 승인요건이 없어 `/solo-merge` 불필요). 팀 모드(승인 1+ 재활성) → `pr-review-gate` 4~7단계(리뷰어 부재로 REVIEW_REQUIRED 고착 시 `/solo-merge`로 승인요건만 break-glass).
 - develop 기반 feature 흐름 전체(PR 생성→리뷰→머지→브랜치 정리)를 원하면 `/feature-merge`를 쓴다 — 그 스킬이 이 PR 생성을 포함한다.
 
 완료 후 출력:
@@ -60,5 +60,5 @@ PR 번호를 출력한다.
 ✅ PR 생성 완료
 - 브랜치: [BRANCH] → [BASE]
 - PR: #[번호]
-- 다음: pr-review-gate(리뷰) → 솔로면 solo-merge / 팀이면 pr-review-gate 머지
+- 다음: pr-review-gate(리뷰) → 솔로면 pr-merge.sh 직접 머지 / 팀이면 pr-review-gate 머지
 ```
