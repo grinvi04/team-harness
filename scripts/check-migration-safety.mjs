@@ -151,6 +151,18 @@ const OOO_RE = /out[-_]?of[-_]?order\s*[:=]\s*["']?(true|false)/gi
 //   OOO 크레딧에서 제외한다(운영·프로파일無 문서만 신뢰). .properties/.conf 등 `---` 없는 파일은 단일 문서로 처리(무변경).
 const NONPROD_TOKEN_RE = /\b(test|dev|ci|local|it|e2e|integration)\b/i
 const ON_PROFILE_RE = /(?:on-profile|spring\.profiles(?:\.active|\.include)?)\s*[:=]\s*(.+)/i
+// 문서의 on-profile 값이 '운영에 적용되는가'를 의미론적으로 판정(#197). out-of-order 크레딧은 운영 적용 문서에서만 인정.
+//   - `!prod`/`!production`(부정): 운영 제외 → 적용 안 됨(false). (#2 false-pass 차단)
+//   - `prod`/`production` 토큰 포함(예: `test | prod`): 운영 적용됨(true). (#7 false-FAIL 차단)
+//   - 비운영 토큰(test/dev/…)만: 적용 안 됨(false).
+//   - 인식 가능한 프로파일 없음(default 문서): 운영 적용(true).
+const isProdApplicable = (val) => {
+  const v = (val || '').toLowerCase()
+  if (/![\s"']*prod(uction)?\b/.test(v)) return false
+  if (/\bprod(uction)?\b/.test(v)) return true
+  if (NONPROD_TOKEN_RE.test(v)) return false
+  return true
+}
 let oooState = 'absent' // 'true' | 'false' | 'absent'
 // B3: 라인 단위로 읽고 주석(`#` 이후)을 제거한 뒤 스캔 — 주석 처리된 `# out-of-order: true`가
 // 실제 false를 덮어 게이트를 false-pass 시키던 것 차단(yaml/conf/toml/ini 공통 주석문자 #).
@@ -162,7 +174,7 @@ for (const cf of prodConfigFiles) {
     const lines = doc.split(/\r?\n/).map((l) => l.replace(/#.*$/, '')) // 라인 내 주석 제거
     // 이 문서가 비운영 프로파일 전용이면(on-profile: test 등) OOO 크레딧 대상에서 제외.
     const profileLine = lines.find((l) => ON_PROFILE_RE.test(l))
-    if (profileLine && NONPROD_TOKEN_RE.test(profileLine.match(ON_PROFILE_RE)[1] || '')) continue
+    if (profileLine && !isProdApplicable(profileLine.match(ON_PROFILE_RE)[1])) continue
     for (const line of lines) {
       let m
       OOO_RE.lastIndex = 0
