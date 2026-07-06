@@ -6,6 +6,20 @@
 # 주의: 이 가드는 Claude Code 사용자만 막는 보조 장치다.
 # load-bearing 강제는 GitHub branch protection + CI 게이트(계층 0)가 담당한다.
 #
+# ── 판정 철학 (decisions.md "가드/게이트 판정 철학" · #220) ─────────────────────────
+# 위협모델: 상대는 **혼란한 에이전트**(반사적으로 `git push --force`를 침)지, `echo y|gh`를 조합하는
+#   동기 있는 공격자가 아니다. 결정된 우회는 항상 존재하므로 우회-군비경쟁엔 종료조건이 없다.
+# 두 부류를 다르게 취급한다:
+#   (a) **서버-백스톱 있는 git-flow 넛지** — main/develop 직접 커밋·force-push·맨손 gh pr.
+#       branch protection(allow_force_pushes:false·enforce_admins:on)이 이미 서버에서 거부하므로
+#       계층0과 중복이다. → best-effort 넛지. 정규식을 **동결**하고 적대적 우회-테스트 대상에서 제외한다.
+#       (과차단은 고비용/저이득 — 서버가 어차피 잡으므로 under-block 편향.)
+#   (b) **로컬-전용 파괴 가드** — reset --hard·rm -rf 코어·검증기 삭제·npm -g.
+#       branch protection도 CI도 커버하지 않는다 → **이 계층의 진짜 load-bearing**. 로컬 비가역이라
+#       하드블록 유지하되, 흔한 형태만 잡는다(정규식으로 셸을 완전 파싱하려 들지 않는다 — 완결 불가).
+# 원칙: 판정기는 파싱 안 된 문자열에서 의미론을 무한정 추론하지 않는다. 정밀 판정이 꼭 필요하면
+#   정규식 epicycle이 아니라 실제 파서(shlex)로 옮긴다(재설계 #220-A).
+#
 # 차단(deny)은 전부 deny() 단일 경로를 거친다 — 사용자 메시지 출력 + 차단 이력 로그(감사용).
 # 로그: ~/.claude/hooks/guard-block.log (session_id·cwd·사유·명령) — 멀티세션 위반 시도 추적.
 
