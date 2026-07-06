@@ -108,6 +108,14 @@ export function classifySolo(status, stderr = '') {
   return false
 }
 
+// solo 판정을 위해 branch protection을 조회할 대상 브랜치 — PR이 머지되는 **base**(develop/main)여야 한다.
+//   현재(feature) 브랜치를 조회하면 항상 비보호 404 → team repo도 solo 오분류돼 solo-merge(리뷰요건 해제)로
+//   오라우팅되던 버그(#181) 교정. openPR 없음(머지 대상 PR 없음)·base 불명이면 null → 호출측 team-safe(isSolo=false) 유지.
+export function soloProtectionRef({ openPR, prBase }) {
+  if (!openPR || !prBase) return null
+  return prBase
+}
+
 function collectState(cwd, prompt) {
   const branch = ok(run('git', ['-C', cwd, 'branch', '--show-current'], cwd)) ?? ''
 
@@ -121,14 +129,15 @@ function collectState(cwd, prompt) {
   const aheadOut = ok(run('git', ['-C', cwd, 'rev-list', '--count', `${baseRef}..HEAD`], cwd))
   if (aheadOut !== null) committed = Number(aheadOut) > 0
 
-  // open PR — 반드시 현재 브랜치(--head)로 한정(무관한 repo PR 오탐 방지)
+  // open PR — 반드시 현재 브랜치(--head)로 한정(무관한 repo PR 오탐 방지). baseRefName도 함께 조회(solo 판정용).
   let openPR = 0
+  let prBase = ''
   if (branch) {
-    const prOut = ok(run('gh', ['pr', 'list', '--head', branch, '--state', 'open', '--json', 'number', '--limit', '1'], cwd))
+    const prOut = ok(run('gh', ['pr', 'list', '--head', branch, '--state', 'open', '--json', 'number,baseRefName', '--limit', '1'], cwd))
     if (prOut) {
       try {
         const prs = JSON.parse(prOut)
-        if (Array.isArray(prs) && prs.length > 0) openPR = prs[0].number
+        if (Array.isArray(prs) && prs.length > 0) { openPR = prs[0].number; prBase = prs[0].baseRefName ?? '' }
       } catch {}
     }
   }
@@ -140,13 +149,16 @@ function collectState(cwd, prompt) {
     if (existsSync(specDir)) hasSpec = readdirSync(specDir).some(f => f.endsWith('.md'))
   } catch {}
 
-  // isSolo: protection 조회가 404(보호 없음)일 때만 solo=true.
-  // 403/5xx/네트워크 등 '불확실'은 team으로 안전 기본값(solo-merge가 보호를 해제하려 시도하는 오판 방지).
+  // isSolo: PR이 머지되는 **base 브랜치**(develop/main)의 protection이 404(보호 없음)일 때만 solo=true.
+  //   (현재 feature 브랜치를 조회하면 항상 비보호 404라 team repo도 solo로 오분류돼 solo-merge로 오라우팅되던
+  //    버그#181 — base로 교정. soloProtectionRef가 조회 대상을 결정: openPR 없음/base 불명이면 team-safe.)
+  //   403/5xx/네트워크 등 '불확실'은 team으로 안전 기본값(solo-merge가 보호를 해제하려 시도하는 오판 방지).
   let isSolo = false
-  if (branch) {
+  const soloRef = soloProtectionRef({ openPR, prBase })
+  if (soloRef) {
     const repo = ok(run('gh', ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'], cwd))
     if (repo) {
-      const r = run('gh', ['api', `repos/${repo}/branches/${branch}/protection`], cwd)
+      const r = run('gh', ['api', `repos/${repo}/branches/${soloRef}/protection`], cwd)
       isSolo = classifySolo(r.status, r.stderr)   // 404=solo · 그 외 불확실=team(안전)
     }
   }
