@@ -138,4 +138,6 @@
 
 | **check-repo-sync sentinel 매칭 전 주석 제거 — 비활성 게이트 오인 차단**(v0.29.3): 심층 헌트로 확정 — 필수 CI 게이트 존재 판정이 워크플로 전체 텍스트를 부분일치해, 주석 처리된(비활성) 게이트(`# TODO gitleaks`)도 존재 신호로 오인돼 드리프트가 미탐지됐다. wfList 구성 시 YAML 주석(라인시작·공백 뒤 `#`)을 제거해 주석된 게이트가 크레딧을 못 받게 교정. **범위 결정**: echo/텍스트 기반 sentinel의 느슨함(예: `run: echo "...gitleaks..."` 언급)은 제거하지 않음 — 하네스 자체 test-guard 워크플로가 `run: echo allow-test-removal`을 정당한 신호로 쓰므로(good 픽스처로 확인) echo를 언급으로 보고 제거하면 정당 신호가 깨진다. sentinel 검사는 functional 검증이 아니라 존재 신호이며 OK/WEAK 티어가 그 부정확성을 이미 인정 — echo-언급 벡터는 설계상 수용 한계로 남긴다(주석 벡터만 봉쇄). 픽스처 bad-sentinel-comment 추가(gitleaks가 주석에만 → MISSING), repo-sync-test 6→7. 전체 스위트 회귀 0. GitHub #183. | 2026-07-06 | plugins/harness-guard/scripts/check-repo-sync.mjs | tests/repo-sync-test.sh, tests/fixtures/repo-sync/bad-sentinel-comment, plugin.json(0.29.3) |
 
+| **commitlint type-enum을 정본 code-review.md와 동일 집합으로 정합**(v0.29.4): 회귀 검토로 확정 — 품질 게이트(commitlint)가 정본으로 선언한 code-review.md와 실제 강제 규칙이 어긋나, 문서상 유효한 `perf` 타입 커밋이 required check(commitlint)에서 거부돼 PR 머지가 막히던 기능 불일치. 역으로 `style`·`ci`는 게이트만 허용. 양방향 드리프트를 union superset(`feat fix docs style refactor perf test chore ci`)으로 정합 — 양쪽 추가만, 제거 없음(기존 커밋 무영향). node 스크립트로 두 집합 동일 검증. GitHub #190. | 2026-07-06 | templates/commitlint.config.cjs | docs/code-review.md, plugin.json(0.29.4) |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
