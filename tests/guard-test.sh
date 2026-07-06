@@ -218,6 +218,18 @@ check "#204: develop서 명시 feature force 통과" 0 Bash "git push --force or
 check "#204: origin main force 여전히 차단"    2 Bash "git push --force origin main"         "$FEAT"
 check "#204: bare force(develop) 여전히 차단"  2 Bash "git push --force"                     "$DEV"
 
+# #208: 체인된 다중 push의 뒤쪽 세그먼트 main/develop force-push도 차단(head -1 우회 교정)
+check "#208: feat push && main force → 차단"   2 Bash "git push origin feature/x && git push --force origin main"     "$FEAT"
+check "#208: feat force && develop force → 차단" 2 Bash "git push -f origin feature/x && git push -f origin develop"    "$FEAT"
+check "#208: main force && feat push → 차단(순서무관)" 2 Bash "git push -f origin main && git push origin feature/x"    "$FEAT"
+check "#208over: feat && feat force 통과(과탐없음)" 0 Bash "git push origin feature/a && git push --force origin feature/b" "$FEAT"
+
+# #208: 감사로그 URL 크레덴셜 마스킹이 대문자 스킴(HTTPS://)도 처리 — 크레덴셜 평문 유출 방지
+FHOME2=$(mktemp -d); mkdir -p "$FHOME2/.claude/hooks"
+printf '%s' '{"tool_name":"Bash","session_id":"s","cwd":"/x","tool_input":{"command":"git reset --hard HTTPS://user:SECRETPASS@host/x"}}' | HOME="$FHOME2" bash "$G" >/dev/null 2>&1
+if grep -q "SECRETPASS" "$FHOME2/.claude/hooks/guard-block.log" 2>/dev/null; then echo "FAIL: #208 대문자 URL 크레덴셜 로그 유출"; FAIL=$((FAIL+1)); else echo "PASS: #208 대문자 URL 크레덴셜 마스킹"; PASS=$((PASS+1)); fi
+rm -rf "$FHOME2"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
