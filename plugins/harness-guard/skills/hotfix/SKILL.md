@@ -88,8 +88,14 @@ echo "✅ 태그: v$PATCH"
 ## Phase 4 — develop back-merge PR ← 반드시 실행 (오케스트레이터 직접 실행)
 
 develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **back-merge도 PR로**.
+단, `main`은 head로 PR 불가(pr-create가 base 브랜치를 head로 거부)이고 hotfix 브랜치는 Phase 3 머지로 이미 삭제됐다
+→ **main 기준 `sync/` 브랜치를 만들어 그것을 head로** develop에 PR한다.
 
 ```bash
+# main 최신을 담은 back-merge용 sync 브랜치 생성(sync/* 는 F5 plan-게이트 무관)
+git checkout main && git pull origin main
+git checkout -b sync/backmerge-$FIX_NAME
+git push -u origin sync/backmerge-$FIX_NAME
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
   --title "chore: hotfix/$FIX_NAME develop 반영" \
   --body "main PR과 동일 내용의 back-merge — main 머지·태그(v$PATCH) 완료 후 develop 반영.

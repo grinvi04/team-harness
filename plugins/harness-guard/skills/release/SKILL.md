@@ -89,8 +89,14 @@ git push origin --tags
 ## Phase 4 — develop back-merge PR (오케스트레이터 직접 실행)
 
 develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **back-merge도 PR로**.
+단, `main`은 head로 PR 불가(pr-create가 base 브랜치를 head로 거부)이고 release 브랜치는 머지로 정리됐다
+→ **main 기준 `sync/` 브랜치를 만들어 그것을 head로** develop에 PR한다.
 
 ```bash
+# main 최신(태그·버전범프 포함)을 담은 back-merge용 sync 브랜치 생성(sync/* 는 F5 plan-게이트 무관)
+git checkout main && git pull origin main
+git checkout -b sync/backmerge-v$VERSION
+git push -u origin sync/backmerge-v$VERSION
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
   --title "chore: release/v$VERSION develop 반영" \
   --body "main PR과 동일 내용의 back-merge — 버전 범프 커밋을 develop에 반영.
