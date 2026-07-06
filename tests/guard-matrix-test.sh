@@ -1,7 +1,7 @@
 #!/bin/bash
 # tests/guard-matrix-test.sh — guard.sh 계약 전수 매트릭스.
 # 목적: force-push·reset·rm·commit 가드를 '계약(무엇을 막고 무엇을 허용)' 단위로 전수 검증한다.
-#   guard-test.sh(시나리오/회귀)와 상보 — 이쪽은 계약 커버리지(형태·세그먼트·wrapper·체인·현재브랜치 전 조합)로
+#   guard-test.sh(시나리오/회귀)와 상보 — 이쪽은 계약 커버리지(흔한 형태·세그먼트·wrapper·체인·서브셸·현재브랜치 조합)로
 #   구멍(막아야 하는데 통과)·과탐(정당한데 차단)을 한 번에 드러낸다. 로컬·CI 동일: bash tests/guard-matrix-test.sh
 set -u
 G="$(cd "$(dirname "$0")/.." && pwd)/plugins/harness-guard/scripts/guard.sh"
@@ -30,7 +30,7 @@ case_() { # desc, want(2|0), command, cwd
   fi
 }
 
-# ── force-push: DENY (main/develop에 도달하는 모든 형태/세그먼트/wrapper/체인) ──
+# ── force-push: DENY (main/develop 도달 — 흔한 형태·세그먼트·wrapper·체인·서브셸. best-effort 넛지, 정본 강제는 계층0) ──
 case_ "force origin main"                2 "git push --force origin main"                 "$FEAT"
 case_ "force -f origin develop"          2 "git push -f origin develop"                   "$FEAT"
 case_ "force -fu origin main"            2 "git push -fu origin main"                     "$FEAT"
@@ -48,6 +48,8 @@ case_ "chained feat-force develop-force" 2 "git push -f origin feature/x && git 
 case_ "sudo prefix force main"          2 "sudo git push --force origin main"            "$FEAT"
 case_ "git -C develop-repo bare force"  2 "git -C $DEVC push --force"                    "$FEAT"
 case_ "semicolon-chained main force"    2 "echo hi; git push --force origin main"        "$FEAT"
+case_ "subshell force origin main"      2 "(git push --force origin main)"               "$FEAT"
+case_ "subshell force origin develop"   2 "(git push -f origin develop)"                 "$FEAT"
 # ── force-push: ALLOW (feature/비-force/언급) ──
 case_ "force feature explicit"          0 "git push --force origin feature/x"            "$FEAT"
 case_ "force feature on develop cwd"    0 "git push --force origin feature/x"            "$DEV"
@@ -59,6 +61,7 @@ case_ "multi feature force"             0 "git push origin feature/a && git push
 case_ "force featmain (substring)"      0 "git push --force origin featmain"             "$FEAT"
 case_ "force mainfeature"               0 "git push --force origin mainfeature"          "$FEAT"
 case_ "bare force on feature"           0 "git push --force"                             "$FEAT"
+case_ "subshell force feature (allow)"  0 "(git push --force origin feature/x)"          "$FEAT"
 
 # ── reset --hard: DENY (변형/wrapper/LITE에서도) ──
 case_ "reset --hard"                    2 "git reset --hard HEAD~1"                      "$DEV"
