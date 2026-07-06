@@ -116,16 +116,23 @@ export function soloProtectionRef({ openPR, prBase }) {
   return prBase
 }
 
+// committed 판정의 base 브랜치 — feature/fix는 develop에서 갈라져 develop로 PR되므로(pr-create과 정합) develop 우선.
+//   origin/main 기준이면 develop이 main보다 앞선 만큼 0-커밋 신규 feature 브랜치도 committed=true로 오판(#209).
+export function committedBaseRef(hasOriginDevelop, originHead) {
+  if (hasOriginDevelop) return 'origin/develop'
+  return originHead || 'origin/main'
+}
+
 function collectState(cwd, prompt) {
   const branch = ok(run('git', ['-C', cwd, 'branch', '--show-current'], cwd)) ?? ''
 
   const statusOut = ok(run('git', ['-C', cwd, 'status', '--porcelain'], cwd))
   const dirty = statusOut !== null && statusOut.length > 0
 
-  // committed: 기본 base(origin/HEAD)보다 앞선 커밋 수 — upstream 미설정과 무관하게 동작
+  // committed: 통합 base(develop 우선, 없으면 origin/HEAD)보다 앞선 커밋 수 — upstream 미설정과 무관하게 동작.
   let committed = false
-  let baseRef = ok(run('git', ['-C', cwd, 'rev-parse', '--abbrev-ref', 'origin/HEAD'], cwd))
-  if (!baseRef) baseRef = 'origin/main'
+  const hasDevelop = run('git', ['-C', cwd, 'rev-parse', '--verify', '--quiet', 'refs/remotes/origin/develop'], cwd).status === 0
+  const baseRef = committedBaseRef(hasDevelop, ok(run('git', ['-C', cwd, 'rev-parse', '--abbrev-ref', 'origin/HEAD'], cwd)))
   const aheadOut = ok(run('git', ['-C', cwd, 'rev-list', '--count', `${baseRef}..HEAD`], cwd))
   if (aheadOut !== null) committed = Number(aheadOut) > 0
 
