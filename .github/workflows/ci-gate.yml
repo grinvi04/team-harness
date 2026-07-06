@@ -34,6 +34,7 @@ jobs:
           bash -n tests/new-repo-test.sh
           bash -n tests/alembic-heads-test.sh
           bash -n tests/skill-discovery-test.sh
+          bash -n tests/enforce-subagent-model-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
@@ -53,6 +54,9 @@ jobs:
               json.load(open(p))
               print("OK", p)
           EOF
+
+      - name: 파이썬 구문 검사 (등록된 훅 — enforce-subagent-model.py)
+        run: python3 -m py_compile plugins/harness-guard/scripts/enforce-subagent-model.py
 
       - name: 템플릿 생성기 ruff 검사 (python repo가 복사 시 CI 통과 보장 — v0.24.1)
         run: |
@@ -95,6 +99,9 @@ jobs:
 
       - name: 스킬 발견성(SKILL.md) 테스트
         run: bash tests/skill-discovery-test.sh
+
+      - name: subagent 모델 강제 훅 테스트
+        run: bash tests/enforce-subagent-model-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
