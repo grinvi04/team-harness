@@ -292,4 +292,4 @@ team-harness/
 
 ## 📄 라이선스
 
-Private — 팀 내부용.
+MIT — 2026-07 public 전환(decisions #73). 루트 [`LICENSE`](LICENSE) 참조.
