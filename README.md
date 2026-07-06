@@ -51,7 +51,7 @@
 | 가드·훅 | Bash (PreToolUse, UserPromptSubmit 훅) |
 | 의도 라우터 | Node.js (ES modules, `route-intent.mjs`) |
 | CI 게이트 | GitHub Actions (`templates/ci/`) |
-| 에이전트 | Claude Opus (`security-reviewer` 전용) |
+| 에이전트 | Claude Opus (`security-reviewer`·`verifier`) |
 | 테스트 | Bash 통합 테스트 (`tests/route-intent-test.sh`) |
 
 ## 🏗️ 아키텍처
@@ -117,6 +117,7 @@ flowchart TD
 | **머지·릴리즈 커맨드** | `/feature-merge` · `/hotfix` · `/release` · `/solo-merge` — git-flow 전 구간을 게이트 경유로 자동화 |
 | **스킬** `pr-review-gate` | PR 생성→머지의 표준 게이트 절차 **단일 출처** — AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
 | **에이전트** `security-reviewer` | 릴리즈 전 보안 검토(XSS·SQL 인젝션·하드코딩 시크릿·.env 추적) — 읽기 전용, opus |
+| **에이전트** `verifier` | 검증·연구·설계 판단 전용 — 계획·코드의 정확성을 다른 각도로 재검토, 누락·회귀·논리오류 보고(읽기 전용, opus) |
 
 ### git-flow와 커맨드의 관계
 
@@ -204,7 +205,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 ## 🧪 테스트
 
 ```bash
-bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (21 케이스)
+bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (30 케이스)
 ```
 
 ## 📁 repo 구조

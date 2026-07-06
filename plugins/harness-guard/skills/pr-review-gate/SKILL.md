@@ -89,7 +89,7 @@ query($owner:String!,$name:String!,$pr:Int!){
 branch protection이 승인을 요구하는 팀 모드에서만 적용된다 — AI 리뷰·CI 통과는 사람 승인을 대체하지 않는다.
 
 > **솔로 표준(승인요건 0)**: 브랜치 보호가 CI-게이트만이고 승인요건 0이면(decisions "브랜치 보호 표준" — 솔로는 자기승인 불가라 승인요건을 안 건다) **이 4단계는 해당 없음** — CI·스레드 resolve 통과 후 소유자가 바로 `pr-merge.sh`로 머지한다. `/solo-merge`도 불필요.
-> **팀 모드(승인 1+ 재활성)**: 리뷰어 부재로 REVIEW_REQUIRED 고착 시 품질 게이트 통과 후 **`/solo-merge`** 로 승인요건만 안전 우회(전체 보호설정 저장→삭제→머지→복구). (enforce_admins 토글 폐기 — solo-merge/skill.md.)
+> **팀 모드(승인 1+ 재활성)**: 리뷰어 부재로 REVIEW_REQUIRED 고착 시 품질 게이트 통과 후 **`/solo-merge`** 로 승인요건만 안전 우회(전체 보호설정 저장→삭제→머지→복구). (enforce_admins 토글 폐기 — solo-merge/SKILL.md.)
 
 ```bash
 gh pr view "$PR" --json reviewDecision --jq .reviewDecision

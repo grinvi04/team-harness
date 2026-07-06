@@ -13,6 +13,7 @@
 
 - `main` / `develop` 직접 커밋·push **금지** — branch protection으로 서버에서 강제됨
 - 작업 브랜치: `feature/*`, `fix/*`, `hotfix/*`, `release/*`
+- `feature/*` 브랜치는 **계획 아티팩트(`docs/specs/<name>.md`) 선행 필수** — 없으면 하네스 가드가 브랜치 생성을 차단(계획-먼저 강제). trivial 변경은 `HARNESS_TRIVIAL=1` 프리픽스로 명시 면제. (`fix/*`·`hotfix/*`는 이 게이트 무관)
 - 모든 변경은 PR 경유: 브랜치 → PR 생성 → 리뷰·CI 게이트 통과 → 머지
 - hotfix는 main 기준 분기 후 **main과 develop 양쪽에** 반영
 

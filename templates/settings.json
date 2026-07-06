@@ -1,6 +1,6 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment": "프로젝트 .claude/settings.json 템플릿 — repo에 커밋해서 팀원과 공유한다(권한은 repo가 이미 스택 노출하므로 커밋해도 무방, 비공개는 repo private). **dev 권한 단일출처 = 이 커밋 파일** — 공통 베이스라인은 여기에, 스택별(npm·python·docker 등)은 new-repo.sh가 templates/permissions/<스택>.json에서 병합한다. settings.local.json(개인 오버라이드)은 폐지 권장 — 진짜 머신-특정만. extraKnownMarketplaces: 현재 grinvi04 개인 private repo(임시) — 사내 git 호스팅 확정 시 교체. 프로젝트 고유 가드(DB 마이그레이션 보호 등)가 필요하면 최상위에 hooks 키를 추가한다 — harness-guard 플러그인 훅과 공존함. (hooks 객체 안에는 이벤트명 외 키 금지 — 스키마 위반)",
+  "_comment": "프로젝트 .claude/settings.json 템플릿 — repo에 커밋해서 팀원과 공유한다(권한은 repo가 이미 스택 노출하므로 커밋해도 무방, 비공개는 repo private). **dev 권한 단일출처 = 이 커밋 파일** — 공통 베이스라인은 여기에, 스택별(npm·python·docker 등)은 new-repo.sh가 templates/permissions/<스택>.json에서 병합한다. settings.local.json(개인 오버라이드)은 폐지 권장 — 진짜 머신-특정만. extraKnownMarketplaces: grinvi04/team-harness (2026-07 public 전환 — decisions #73, 토큰 없이 checkout 가능) — 사내 git 호스팅 확정 시 교체 가능. 프로젝트 고유 가드(DB 마이그레이션 보호 등)가 필요하면 최상위에 hooks 키를 추가한다 — harness-guard 플러그인 훅과 공존함. (hooks 객체 안에는 이벤트명 외 키 금지 — 스키마 위반)",
   "permissions": {
     "allow": [
       "Bash(git *)",
