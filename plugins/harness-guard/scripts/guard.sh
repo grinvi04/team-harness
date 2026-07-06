@@ -26,7 +26,7 @@ deny() {
   # cmd는 한 줄로 정제(개행→공백) + 시크릿 마스킹(URL 박힌 크레덴셜·gh 토큰·PAT) + 길이 제한.
   # 차단된 명령을 평문 로깅하므로, 토큰이 섞인 명령(예: https://x:TOKEN@host)이 로그에 남지 않게 마스킹.
   cmd1=$(printf '%s' "${COMMAND:-}" | tr '\n\r\t' '   ' \
-    | sed -E -e 's#(https?://)[^@ ]*@#\1***@#g' \
+    | sed -E -e 's#([Hh][Tt][Tt][Pp][Ss]?://)[^@ ]*@#\1***@#g' \
              -e 's#gh[pousr]_[A-Za-z0-9]{20,}#gh_***#g' \
              -e 's#github_pat_[A-Za-z0-9_]{20,}#github_pat_***#g' \
     | cut -c1-200)
@@ -110,24 +110,29 @@ fi
 # force 신호는 --force 또는 단일대시 결합(-f/-fu) 또는 +refspec만 — --follow-tags 같은 비파괴 롱플래그를 force로
 #   오탐하지 않게 결합플래그를 [[:space:]]-…f… 로 좁힌다(#204). refspec 생략 시 현재 브랜치가 push 대상.
 if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+push[^;&|]*(--force|[[:space:]]-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)"; then
-  # 목적지 판정은 명령 전체가 아니라 **push 세그먼트**로 한정(#204: rebase 인자·커밋메시지·주석의 main/develop 오탐 방지).
-  PUSH_SEG=$(echo "$COMMAND" | grep -oE "git[^;&|]*[[:space:]]push[^;&|]*" | head -1)
-  # git -C <dir> push 이면 그 dir 기준으로 현재 브랜치를 판정 — commit(A2)와 대칭.
-  PDIR=$(echo "$COMMAND" | grep -oE "git[[:space:]]+-C[[:space:]]+[^;&|[:space:]]+" | sed -E 's/^git[[:space:]]+-C[[:space:]]+//' | head -1)
-  if [[ -n "$PDIR" ]]; then
-    PDIR="${PDIR//\"/}"; PDIR="${PDIR//\'/}"; PDIR="${PDIR/#\~/$HOME}"
-    BRANCH=$(git -C "$PDIR" branch --show-current 2>/dev/null)
-  else
-    BRANCH=$(git branch --show-current 2>/dev/null)
-  fi
-  # push 세그먼트에 명시 refspec(remote + ref, 예: origin feature/x)이 있으면 현재 브랜치는 무관 —
-  #   bare push(git push -f)만 현재 브랜치가 실제 대상이라 현재-브랜치 판정을 적용(#204 명시-refspec 오차단 교정).
-  HAS_REF=""; echo "$PUSH_SEG" | grep -qE "push([[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+[^-;&|[:space:]]+[[:space:]]+[^-;&|[:space:]]+" && HAS_REF=1
-  if echo "$PUSH_SEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?(main|develop)([[:space:]]|$)"; then
-    deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
-  elif [[ -z "$HAS_REF" && ( "$BRANCH" == "main" || "$BRANCH" == "develop" ) ]]; then
-    deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
-  fi
+  # 명령의 **모든** push 세그먼트를 개별 판정한다 — 체인된 다중 push에서 뒤쪽 세그먼트의 force-push를
+  #   head -1이 놓쳐 우회되던 것 교정(#207 회귀: 무해한 첫 push 뒤에 main force-push를 붙이면 통과했음).
+  #   목적지는 명령 전체가 아니라 각 push 세그먼트로 한정(#204: rebase 인자·커밋메시지의 오탐 방지).
+  while IFS= read -r PSEG; do
+    [[ -z "$PSEG" ]] && continue
+    # 이 세그먼트 자체가 force push가 아니면 스킵(비-force push는 무관).
+    echo "$PSEG" | grep -qE "push[^;&|]*(--force|[[:space:]]-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)" || continue
+    # git -C <dir> push 이면 그 dir 기준으로 현재 브랜치 판정(commit A2와 대칭).
+    PDIR=$(echo "$PSEG" | grep -oE "git[[:space:]]+-C[[:space:]]+[^;&|[:space:]]+" | sed -E 's/^git[[:space:]]+-C[[:space:]]+//' | head -1)
+    if [[ -n "$PDIR" ]]; then
+      PDIR="${PDIR//\"/}"; PDIR="${PDIR//\'/}"; PDIR="${PDIR/#\~/$HOME}"
+      BRANCH=$(git -C "$PDIR" branch --show-current 2>/dev/null)
+    else
+      BRANCH=$(git branch --show-current 2>/dev/null)
+    fi
+    # 명시 refspec(remote + ref)이 있으면 현재 브랜치 무관 — bare push만 현재 브랜치가 대상(#204).
+    HAS_REF=""; echo "$PSEG" | grep -qE "push([[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+[^-;&|[:space:]]+[[:space:]]+[^-;&|[:space:]]+" && HAS_REF=1
+    if echo "$PSEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?(main|develop)([[:space:]]|$)"; then
+      deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
+    elif [[ -z "$HAS_REF" && ( "$BRANCH" == "main" || "$BRANCH" == "develop" ) ]]; then
+      deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
+    fi
+  done < <(echo "$COMMAND" | grep -oE "git[^;&|]*[[:space:]]push[^;&|]*")
 fi
 
 # 신규 feature 브랜치 생성 시 상류 plan 아티팩트 강제 (감사 F5 remedy)
