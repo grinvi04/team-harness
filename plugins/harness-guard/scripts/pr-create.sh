@@ -58,6 +58,10 @@ if [ -z "$BASE" ]; then
   else BASE=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true); fi
   [ -z "$BASE" ] && BASE=main
 fi
+# 감지된 base가 현재 브랜치와 같으면 self-PR(예: 기본 브랜치명이 trunk라 is_base_branch에 안 걸린 경우) → 거절(#215).
+if [ "$BRANCH" = "$BASE" ]; then
+  echo "현재 브랜치($BRANCH)가 감지된 base와 같습니다 — feature/fix 브랜치에서 실행하세요(self-PR 방지)." >&2; exit 2
+fi
 echo "감지된 base: $BASE  (브랜치: $BRANCH)"
 
 git push -u origin "$BRANCH"
