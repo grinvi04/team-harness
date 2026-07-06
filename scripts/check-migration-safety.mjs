@@ -149,21 +149,21 @@ const OOO_RE = /out[-_]?of[-_]?order\s*[:=]\s*["']?(true|false)/gi
 //   out-of-order:true 가 운영 문서의 false/미설정을 덮어 게이트를 false-pass 시키던 것 차단. 파일명(basename)
 //   필터만으로는 프로파일 문서가 단일 파일에 합쳐진 경우를 못 걸러 — 문서 단위로 on-profile을 보고 비운영 문서를
 //   OOO 크레딧에서 제외한다(운영·프로파일無 문서만 신뢰). .properties/.conf 등 `---` 없는 파일은 단일 문서로 처리(무변경).
-const NONPROD_TOKEN_RE = /\b(test|dev|ci|local|it|e2e|integration)\b/i
 const ON_PROFILE_RE = /(?:on-profile|spring\.profiles(?:\.active|\.include)?)\s*[:=]\s*(.+)/i
-// 문서의 on-profile 값이 '운영에 적용되는가'를 의미론적으로 판정(#197). out-of-order 크레딧은 운영 적용 문서에서만 인정.
-//   - `!prod`/`!production`(부정): 운영 제외 → 적용 안 됨(false). (false-pass 차단)
-//   - `!test`/`!dev` 등 비운영 부정: test 아닐 때 활성 = 운영 포함 → 적용됨(true). (#205 false-FAIL 차단)
-//   - `prod`/`production` 토큰 포함(예: `test | prod`): 운영 적용됨(true). (false-FAIL 차단)
-//   - 비운영 토큰(test/dev/…)만: 적용 안 됨(false).
-//   - 인식 가능한 프로파일 없음(default 문서): 운영 적용(true).
+// on-profile을 가진 문서가 '운영에 적용되는가'를 의미론적으로 판정. out-of-order 크레딧은 운영 적용 문서에서만 인정.
+//   **safe-default**: 하드코딩 비운영 토큰 리스트는 본질적으로 불완전(staging/uat/qa/sandbox/… 누락 시 false-pass, #214).
+//   그래서 '명시 on-profile을 가진 문서'는 **운영에 적용된다는 확실한 신호가 있을 때만** 크레딧한다:
+//     - `!prod`/`!production`(운영 제외 부정) → 미적용(false)
+//     - `prod`/`production` 토큰 포함(예: `test | prod`, `production-eu`) → 적용(true)
+//     - 다른 비운영 프로파일의 부정(`!test`,`!staging` 등 = 운영 포함) → 적용(true)
+//     - 그 외 명명된 프로파일(staging/uat/qa/test/…) → **미적용(false)** ← 리스트 무관, 안전측
+//   (프로파일 라인이 아예 없는 default 문서는 호출측이 isProdApplicable을 부르지 않고 그대로 스캔한다.)
 const isProdApplicable = (val) => {
   const v = (val || '').toLowerCase()
-  if (/![\s"']*prod(uction)?\b/.test(v)) return false                            // !prod → 운영 미적용
-  if (/![\s"']*(test|dev|ci|local|it|e2e|integration)\b/.test(v)) return true    // !test 등 비운영 부정 → 운영 적용
-  if (/\bprod(uction)?\b/.test(v)) return true                                   // prod 포함 → 적용
-  if (NONPROD_TOKEN_RE.test(v)) return false                                     // 비운영만 → 미적용
-  return true                                                                    // default/미인식 → 적용
+  if (/![\s"']*prod(uction)?\b/.test(v)) return false   // !prod/!production → 운영 제외 → 미적용
+  if (/\bprod(uction)?\b/.test(v)) return true           // prod/production 토큰 포함 → 적용
+  if (/![\s"']*[a-z]/.test(v)) return true               // 다른 비운영 프로파일의 부정(!test,!staging,…) → 운영 포함 → 적용
+  return false                                           // 그 외 명명된 (비운영) 프로파일 → 미적용(safe-default)
 }
 let oooState = 'absent' // 'true' | 'false' | 'absent'
 // B3: 라인 단위로 읽고 주석(`#` 이후)을 제거한 뒤 스캔 — 주석 처리된 `# out-of-order: true`가

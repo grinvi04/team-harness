@@ -1,0 +1,14 @@
+# #214: 미등록 비운영 프로파일(staging)의 ooo:true는 운영 미적용 → 운영(prod)이 ooo:false라 FAIL 이어야 한다.
+spring:
+  config:
+    activate:
+      on-profile: staging
+  flyway:
+    out-of-order: true
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  flyway:
+    out-of-order: false
