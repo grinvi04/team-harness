@@ -22,6 +22,8 @@ check() { # desc, expected_exit, repo_path
 check "good(자산 완비) → 통과"              0 "$FIX/good"
 # test-guard 게이트 누락 → 드리프트 차단
 check "bad(test-guard 누락) → MISSING/FAIL"  1 "$FIX/bad-missing-testguard"
+# #183: sentinel(gitleaks)이 주석에만 있는 비활성 게이트는 존재로 오인 안 됨 → MISSING/FAIL
+check "bad(sentinel 주석에만) → MISSING/FAIL" 1 "$FIX/bad-sentinel-comment"
 
 # E1: alembic 대칭 — alembic 감지 시 alembic-heads 게이트를 required로 기대(프로비저너 대칭 제공).
 check "E1: alembic 완비(heads 有) → 통과"     0 "$FIX/alembic-nextjs-vue"
