@@ -161,10 +161,15 @@ const ON_PROFILE_RE = /(?:on-profile|spring\.profiles(?:\.active|\.include)?)\s*
 //   (프로파일 라인이 아예 없는 default 문서는 호출측이 isProdApplicable을 부르지 않고 그대로 스캔한다.)
 const isProdApplicable = (val) => {
   const v = (val || '').toLowerCase()
+  // 괄호 그룹(예: `!(prod | staging)`)은 정규식+split로 안전 파싱 불가 — bare `prod` 토큰이 부정 안에 있어도
+  //   양의 prod로 오인해 위험한 false-pass가 난다. 안전측으로 **미적용(false)** 처리해 OOO 크레딧을 거부한다.
+  //   (드문 over-block(`!(test)`류 = 실제 운영적용인데 FAIL)을 감수하고 위험한 false-pass를 막는다 — 비가역>가역.
+  //    진짜 완전한 해법은 boolean 표현식 파서 #220-A. 이건 부분 교정이며 '전 클래스를 닫았다'고 주장하지 않는다.)
+  if (/[()]/.test(v)) return false
   if (/![\s"']*prod(uction)?\b/.test(v)) return false   // !prod/!production → 운영 제외 → 미적용
   if (/\bprod(uction)?\b/.test(v)) return true           // 양의 prod/production 토큰 포함(예: test|prod) → 적용
   // 항 단위로 분해 — 모든 항이 부정(!X)이면 적용(부정은 배제만), 양의 비운영 항이 있으면 미적용.
-  const terms = v.replace(/["'()]/g, ' ').split(/[\s&|,]+/).filter(Boolean)
+  const terms = v.replace(/["']/g, ' ').split(/[\s&|,]+/).filter(Boolean)
   if (terms.length && terms.every((t) => t.startsWith('!'))) return true
   return false                                           // 양의 비운영 항 존재 or 미인식 → 미적용(safe-default)
 }
