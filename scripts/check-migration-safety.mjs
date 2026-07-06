@@ -139,11 +139,14 @@ const isBanded = !isTimestamp && bands >= 2
 
 // ── 설정에서 out-of-order 상태 추출 ───────────────────────
 // Flyway: spring `out-of-order: true` (yaml) / `flyway.outOfOrder=true` (conf)
-// S1: out-of-order 크레딧은 **운영에 적용되는** 설정에서만 인정한다. test/dev/ci 등 비운영
-// 프로파일(application-test.yml 등)에만 true가 있고 운영 설정엔 없으면 운영 DB는 여전히
-// 기동 실패하므로, 그 프로파일의 true를 신뢰하면 안전게이트가 false-pass 한다.
-const NONPROD_PROFILE_RE = /application-(test|dev|ci|local|it|e2e|integration)\b/i
-const prodConfigFiles = configFiles.filter((cf) => !NONPROD_PROFILE_RE.test(basename(cf)))
+// S1: out-of-order 크레딧은 **운영에 적용되는** 설정에서만 인정한다. 비운영 프로파일 파일(application-test.yml 등)에만
+// true가 있고 운영 설정엔 없으면 운영 DB는 기동 실패하므로 그 true를 신뢰하면 false-pass 한다.
+//   **safe-default(#227)**: 하드코딩 nonprod 토큰 리스트는 본질적으로 불완전(staging/uat/qa/sandbox/… 누락 시 false-pass).
+//   그래서 `application-<profile>.<ext>`는 profile이 **prod/production일 때만** 운영 파일로 보고, 그 외 명명된 프로파일은
+//   비운영으로 제외한다(리스트 무관 — 임의 프로파일명 자동 처리). `application.<ext>`(프로파일無)·비-application 설정
+//   (flyway.conf 등)은 운영으로 취급. isProdApplicable(in-document)의 safe-default와 동일 원리.
+const NONPROD_PROFILE_FILE_RE = /^application-(?!prod(uction)?\b)[^.]+\.(ya?ml|properties|conf)$/i
+const prodConfigFiles = configFiles.filter((cf) => !NONPROD_PROFILE_FILE_RE.test(basename(cf)))
 const OOO_RE = /out[-_]?of[-_]?order\s*[:=]\s*["']?(true|false)/gi
 // S1b(#182): 단일 application.yml 안에 `---`로 구분된 다중 프로파일 문서에서, 비운영(test/dev/ci) 문서의
 //   out-of-order:true 가 운영 문서의 false/미설정을 덮어 게이트를 false-pass 시키던 것 차단. 파일명(basename)
