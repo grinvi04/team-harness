@@ -24,6 +24,8 @@ check "good(자산 완비) → 통과"              0 "$FIX/good"
 check "bad(test-guard 누락) → MISSING/FAIL"  1 "$FIX/bad-missing-testguard"
 # #183: sentinel(gitleaks)이 주석에만 있는 비활성 게이트는 존재로 오인 안 됨 → MISSING/FAIL
 check "bad(sentinel 주석에만) → MISSING/FAIL" 1 "$FIX/bad-sentinel-comment"
+# #205: sentinel이 echo 문자열 안 '#12' 뒤에 있는 정당 게이트 — 트레일링 # 오제거로 false MISSING 나면 안 됨
+check "good(sentinel이 인라인 # 뒤 문자열) → 통과" 0 "$FIX/good-sentinel-inline-hash"
 
 # E1: alembic 대칭 — alembic 감지 시 alembic-heads 게이트를 required로 기대(프로비저너 대칭 제공).
 check "E1: alembic 완비(heads 有) → 통과"     0 "$FIX/alembic-nextjs-vue"

@@ -30,6 +30,8 @@ check "대역 + 단일yml 다중프로파일(test true/prod false) → FAIL(S1b)
 check "대역 + !prod 프로파일 ooo:true(운영 미적용) → FAIL(#197)" 1 "$FIX/bad-neg-prod-profile"
 # #197: 리스트 프로파일(test | prod)은 운영 적용 → ooo:true 크레딧 유효 → PASS(false-FAIL 방지)
 check "대역 + 'test|prod' 프로파일 ooo:true → 통과(#197)" 0 "$FIX/good-list-profile"
+# #205: 부정 비운영 프로파일(!test = 운영 포함)의 ooo:true → 운영 적용 → PASS(false-FAIL 회귀 방지)
+check "대역 + '!test' 프로파일 ooo:true(운영 적용) → 통과(#205)" 0 "$FIX/good-neg-nonprod-profile"
 # B2: 대역 repo에 타임스탬프 버전 1개 혼입 — Math.max 오판으로 대역검사 꺼지던 false-pass 차단
 check "대역+타임스탬프 혼입 → FAIL(B2)"          1 "$FIX/bad-timestamp-mix"
 # B3: 주석 처리된 out-of-order:true가 실제 false를 덮던 false-pass 차단
