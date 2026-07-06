@@ -9,14 +9,20 @@
 # ── 판정 철학 (decisions.md "가드/게이트 판정 철학" · #220) ─────────────────────────
 # 위협모델: 상대는 **혼란한 에이전트**(반사적으로 `git push --force`를 침)지, `echo y|gh`를 조합하는
 #   동기 있는 공격자가 아니다. 결정된 우회는 항상 존재하므로 우회-군비경쟁엔 종료조건이 없다.
-# 두 부류를 다르게 취급한다:
+# 세 부류를 다르게 취급한다:
 #   (a) **서버-백스톱 있는 git-flow 넛지** — main/develop 직접 커밋·force-push·맨손 gh pr.
-#       branch protection(allow_force_pushes:false·enforce_admins:on)이 이미 서버에서 거부하므로
-#       계층0과 중복이다. → best-effort 넛지. 정규식을 **동결**하고 적대적 우회-테스트 대상에서 제외한다.
-#       (과차단은 고비용/저이득 — 서버가 어차피 잡으므로 under-block 편향.)
+#       branch protection(allow_force_pushes:false·enforce_admins:on)이 서버에서 거부한다 → best-effort 넛지.
+#       정규식을 **동결**하고 적대적 우회-테스트 대상에서 제외, under-block 편향(과차단 안 함).
+#       단, 동결의 근거는 '계층0 중복'이 아니라 **위협모델(혼란한 에이전트는 흔한 형태만)**이다 —
+#       중복 논거는 protection 미설정(Private Free-plan)·드리프트 repo에선 성립 안 함(그땐 guard가 유일선).
+#       그래서 repo-sync가 protection-on을 점검해 그 공백을 메운다(#220). gh pr merge의 서버 백스톱은
+#       CI-green만 커버하고 리뷰-게이트 절차는 아니다 → 부분 백스톱.
 #   (b) **로컬-전용 파괴 가드** — reset --hard·rm -rf 코어·검증기 삭제·npm -g.
 #       branch protection도 CI도 커버하지 않는다 → **이 계층의 진짜 load-bearing**. 로컬 비가역이라
-#       하드블록 유지하되, 흔한 형태만 잡는다(정규식으로 셸을 완전 파싱하려 들지 않는다 — 완결 불가).
+#       하드블록 유지하되 흔한 형태만 잡는다. (python3 부재 시 fail-closed는 바로 이 (b) 계층 때문 —
+#       파싱된 COMMAND 없이는 판정 불가라 안전측 차단. under-block 편향은 (a)에만 적용.)
+#   (c) **서버-백스톱 없는 프로세스 넛지** — F5(feature 브랜치 전 docs/specs 스펙). 비파괴이나
+#       CI가 스펙 존재를 강제하지 않는다(사람 리뷰만) → (a)의 서버 백스톱도 (b)의 비가역도 아닌 순수 절차 넛지.
 # 원칙: 판정기는 파싱 안 된 문자열에서 의미론을 무한정 추론하지 않는다. 정밀 판정이 꼭 필요하면
 #   정규식 epicycle이 아니라 실제 파서(shlex)로 옮긴다(재설계 #220-A).
 #
