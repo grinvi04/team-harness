@@ -201,6 +201,16 @@ sr "openPR+base main → main 조회"                        7 main    main
 sr "openPR 없음 → null(solo 판정 안 함)"                 0 develop null
 sr "base 불명 → null(team-safe)"                         5 ""      null
 
+# ── T4c (#209): committed base는 develop 우선(develop-기반 feature 브랜치 오라우팅 방지) ──
+cbr() { # desc, hasDevelop(1/0), originHead, want
+  local desc="$1" hd="$2" oh="$3" want="$4" got
+  got=$(node --input-type=module -e "const m=await import('$SCRIPT'); console.log(m.committedBaseRef($([ "$hd" = 1 ] && echo true || echo false), '$oh'))" 2>/dev/null)
+  if [ "$got" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want $want got $got"; FAIL=$((FAIL+1)); fi
+}
+cbr "origin/develop 있으면 develop 우선(origin/main 아님)" 1 origin/main origin/develop
+cbr "develop 없으면 origin/HEAD 사용"                       0 origin/main origin/main
+cbr "develop 없고 HEAD 불명이면 origin/main 폴백"           0 ""          origin/main
+
 # ── 결과 ──────────────────────────────────────────────────────────────────
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
