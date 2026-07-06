@@ -5,8 +5,8 @@
 module.exports = {
   extends: ['@commitlint/config-conventional'],
   rules: {
-    // 허용 타입(영어): feat/fix/docs/style/refactor/test/chore/ci
-    'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore', 'ci']],
+    // 허용 타입(영어): feat/fix/docs/style/refactor/perf/test/chore/ci (정본 code-review.md와 동일 집합)
+    'type-enum': [2, 'always', ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'chore', 'ci']],
     // 한국어 제목·본문 허용 — case·줄길이 제한 해제
     'subject-case': [0],
     'body-max-line-length': [0],
