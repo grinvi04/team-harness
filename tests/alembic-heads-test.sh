@@ -13,6 +13,13 @@ if grep -qF "grep -c 'head)'" "$YML"; then
 else
   echo "FAIL: alembic-heads.yml 계수 패턴 드리프트 — 이 테스트의 로직과 불일치"; FAIL=$((FAIL+1))
 fi
+# 드리프트 가드 — 게이트 임계값(다중 head = >1 차단)도 YAML의 실제 표현식에 묶는다(#199).
+#   계수 패턴만 검증하면 임계값을 `-gt 2` 등으로 열어도 이 테스트가 green이라(게이트 조용히 개방) 실효성 없음.
+if grep -qF -- '"${heads:-0}" -gt 1' "$YML"; then
+  echo "PASS: alembic-heads.yml 임계값 '-gt 1'(2+ head 차단) 유지"; PASS=$((PASS+1))
+else
+  echo "FAIL: alembic-heads.yml 게이트 임계값 드리프트 — '[ \"\${heads:-0}\" -gt 1 ]' 아님(게이트가 열렸을 수 있음)"; FAIL=$((FAIL+1))
+fi
 
 # 계수·차단 로직 = 워크플로와 동일: grep -c 'head)' → head 수, >1이면 차단
 count() { printf '%s\n' "$1" | grep -c 'head)' || true; }
