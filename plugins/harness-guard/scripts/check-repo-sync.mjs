@@ -157,15 +157,21 @@ const detected = Object.entries(stacks).filter(([, v]) => v).map(([k]) => k)
 
 // ── 워크플로 내용 수집 (sentinel 매칭용) ──────────────────
 const wfFiles = files.filter((f) => /(^|\/)\.github\/workflows\/.+\.ya?ml$/.test(f.rel))
-// sentinel 매칭 전 YAML 주석 제거(#183) — 주석 처리된(비활성) 게이트가 존재 신호로 오인돼
-//   드리프트가 미탐지되던 것 차단. 실제 실행 텍스트(run/echo/uses)는 유지한다: 하네스 자체 test-guard가
-//   `run: echo allow-test-removal`을 정당한 신호로 쓰므로 echo를 '언급'으로 보고 제거하면 정당 신호가 깨진다.
-//   echo/텍스트 기반 sentinel의 느슨함(functional 검증 아님)은 설계상 수용 — OK/WEAK 티어가 그 부정확성을 인정.
-//   주석 판정: 라인 시작 `#` 또는 공백 뒤 `#`(YAML 규약) — 문자열 안 `#42` 같은 비주석은 보존.
-// #205: 전체-라인 주석(라인 시작이 `#`)만 제거한다. 트레일링/인라인 `#`(예: `run: echo "issue #12 … allow-test-removal"`)를
-//   제거하면 따옴표 문자열 안의 정당 sentinel까지 삭제돼 false MISSING(머지 차단)이 났다. #183 목표(주석 처리된 게이트)는
-//   전체-라인 주석이라 이 범위로 충분하다.
-const stripComments = (raw) => raw.split(/\r?\n/).map((l) => /^\s*#/.test(l) ? '' : l).join('\n')
+// sentinel 매칭 전 YAML 주석 제거 — 주석 처리된(비활성) 게이트가 존재 신호로 오인돼 드리프트가 미탐지되던 것 차단.
+//   #183(전체-라인 주석만) → #205(false MISSING로 원복 시도) → 둘 다 coarse했다. 올바른 판정은 **따옴표 인식**:
+//   진짜 YAML 주석(따옴표 밖 + 라인시작/공백 뒤 `#`)만 제거하고, 따옴표 문자열 안의 `#`(예: echo "issue #12
+//   allow-test-removal")는 보존한다. → (a) 전체-라인 주석 게이트=MISSING(#183) (b) 트레일링 주석 게이트=MISSING(제거된
+//   게이트 미탐 방지) (c) 따옴표 안 정당 sentinel=보존(#205 false MISSING 방지) 세 가지를 동시에 만족.
+const stripComments = (raw) => raw.split(/\r?\n/).map((l) => {
+  let inS = false, inD = false
+  for (let i = 0; i < l.length; i++) {
+    const c = l[i]
+    if (c === "'" && !inD) inS = !inS
+    else if (c === '"' && !inS) inD = !inD
+    else if (c === '#' && !inS && !inD && (i === 0 || /\s/.test(l[i - 1]))) return l.slice(0, i)
+  }
+  return l
+}).join('\n')
 const wfList = wfFiles.map((f) => {
   let text = ''
   try { text = stripComments(readFileSync(f.p, 'utf8')) } catch { /* ignore */ }
@@ -210,7 +216,7 @@ checks.push({
     (w) =>
       /ci-gate|^ci\.ya?ml$|quality/i.test(w.name) ||
       (/\b(lint|ruff|eslint|gradlew[^\n]*check)\b/i.test(w.text) &&
-        /\b(test|pytest|jest|vitest|gradlew[^\n]*test|npm[^\n]*test)\b/i.test(w.text)),
+        /\b(test|pytest|jest|vitest|gradlew[^\n]*(test|check)|npm[^\n]*test)\b/i.test(w.text)),
   )
     ? 'OK'
     : 'MISSING',
