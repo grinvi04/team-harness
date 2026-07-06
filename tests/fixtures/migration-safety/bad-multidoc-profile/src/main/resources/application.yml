@@ -1,0 +1,16 @@
+# 단일 application.yml 안에 --- 로 구분된 다중 프로파일 문서(#182 재현 픽스처).
+# 비운영(test) 문서에 out-of-order:true, 운영(prod) 문서엔 false — 게이트는 FAIL 이어야 한다.
+spring:
+  config:
+    activate:
+      on-profile: test
+  flyway:
+    out-of-order: true
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  flyway:
+    enabled: true
+    out-of-order: false

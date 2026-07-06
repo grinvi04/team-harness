@@ -145,24 +145,35 @@ const isBanded = !isTimestamp && bands >= 2
 const NONPROD_PROFILE_RE = /application-(test|dev|ci|local|it|e2e|integration)\b/i
 const prodConfigFiles = configFiles.filter((cf) => !NONPROD_PROFILE_RE.test(basename(cf)))
 const OOO_RE = /out[-_]?of[-_]?order\s*[:=]\s*["']?(true|false)/gi
+// S1b(#182): 단일 application.yml 안에 `---`로 구분된 다중 프로파일 문서에서, 비운영(test/dev/ci) 문서의
+//   out-of-order:true 가 운영 문서의 false/미설정을 덮어 게이트를 false-pass 시키던 것 차단. 파일명(basename)
+//   필터만으로는 프로파일 문서가 단일 파일에 합쳐진 경우를 못 걸러 — 문서 단위로 on-profile을 보고 비운영 문서를
+//   OOO 크레딧에서 제외한다(운영·프로파일無 문서만 신뢰). .properties/.conf 등 `---` 없는 파일은 단일 문서로 처리(무변경).
+const NONPROD_TOKEN_RE = /\b(test|dev|ci|local|it|e2e|integration)\b/i
+const ON_PROFILE_RE = /(?:on-profile|spring\.profiles(?:\.active|\.include)?)\s*[:=]\s*(.+)/i
 let oooState = 'absent' // 'true' | 'false' | 'absent'
 // B3: 라인 단위로 읽고 주석(`#` 이후)을 제거한 뒤 스캔 — 주석 처리된 `# out-of-order: true`가
 // 실제 false를 덮어 게이트를 false-pass 시키던 것 차단(yaml/conf/toml/ini 공통 주석문자 #).
+outer:
 for (const cf of prodConfigFiles) {
   let text
   try { text = readFileSync(cf, 'utf8') } catch { continue }
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.replace(/#.*$/, '') // 라인 내 주석 제거
-    let m
-    OOO_RE.lastIndex = 0
-    while ((m = OOO_RE.exec(line)) !== null) {
-      const v = m[1].toLowerCase()
-      if (v === 'true') { oooState = 'true'; break }
-      if (v === 'false') oooState = 'false'
+  for (const doc of text.split(/^\s*---\s*$/m)) {
+    const lines = doc.split(/\r?\n/).map((l) => l.replace(/#.*$/, '')) // 라인 내 주석 제거
+    // 이 문서가 비운영 프로파일 전용이면(on-profile: test 등) OOO 크레딧 대상에서 제외.
+    const profileLine = lines.find((l) => ON_PROFILE_RE.test(l))
+    if (profileLine && NONPROD_TOKEN_RE.test(profileLine.match(ON_PROFILE_RE)[1] || '')) continue
+    for (const line of lines) {
+      let m
+      OOO_RE.lastIndex = 0
+      while ((m = OOO_RE.exec(line)) !== null) {
+        const v = m[1].toLowerCase()
+        if (v === 'true') { oooState = 'true'; break }
+        if (v === 'false') oooState = 'false'
+      }
+      if (oooState === 'true') break outer
     }
-    if (oooState === 'true') break
   }
-  if (oooState === 'true') break
 }
 
 // ── 판정 ──────────────────────────────────────────────────
