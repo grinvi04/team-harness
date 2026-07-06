@@ -18,7 +18,7 @@
 | `맨손 gh pr create/merge 금지` | PR 생성·머지는 게이트 스킬 경유 | `/pr-create`·`/feature-merge`·`/solo-merge` 사용(래퍼가 base 감지·게이트 검증) |
 | `신규 feature 브랜치는 승인된 plan 아티팩트 필요` (F5) | 계획-먼저 강제 | 먼저 `/plan`으로 `docs/specs/<name>.md` 작성. trivial이면 `HARNESS_TRIVIAL=1 git checkout -b feature/<name>` |
 
-> **넛지 vs load-bearing**: 커밋·force-push·gh 차단은 서버 branch protection이 이미 막는 **넛지**(best-effort)다. `reset --hard`·`rm -rf 코어`·검증기 삭제는 서버 백스톱이 없는 **진짜 방어선**이라 로컬에서 하드블록한다.
+> **넛지 vs load-bearing**: 커밋·force-push·gh 차단은 서버 branch protection이 막는 **넛지**(best-effort — protection 미설정/드리프트 repo에선 guard가 유일선이라 repo-sync가 protection-on을 점검). `reset --hard`·`rm -rf 코어`·검증기 삭제·`npm -g`는 서버 백스톱이 없는 **진짜 방어선**이라 로컬에서 하드블록한다. F5(스펙-먼저)는 서버 백스톱 없는 절차 넛지(사람 리뷰만).
 
 ## 2. 정당한 명령이 막혔다 (과탐)
 
