@@ -142,7 +142,7 @@
 | 런타임 | 빌드 이미지 | 런타임 이미지 | 비고 |
 |---|---|---|---|
 | Java | `amazoncorretto:21-al2023-jdk` | `amazoncorretto:21-al2023-jdk-headless` | headless = GUI 라이브러리 제외(더 작음). 로컬·CI·Docker 모두 Corretto 통일 |
-| Node.js | `public.ecr.aws/docker/library/node:22-alpine` | `public.ecr.aws/docker/library/node:22-alpine` | Alpine 기반, ECR public 미러 사용 |
+| Node.js | `public.ecr.aws/docker/library/node:24-alpine` | `public.ecr.aws/docker/library/node:24-alpine` | Alpine 기반, ECR public 미러. 최신 LTS(stack-guide.md §스택 = 24 LTS)와 통일 |
 | Python | `public.ecr.aws/docker/library/python:3.12-slim` | `public.ecr.aws/docker/library/python:3.12-slim` | slim = 불필요 패키지 제외 |
 
 **멀티스테이지 빌드 필수**: `build` → `runner` 2단계. 빌드 도구·소스가 런타임 이미지에 포함되지 않도록.

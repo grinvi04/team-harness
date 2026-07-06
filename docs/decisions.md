@@ -15,7 +15,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
-| git-flow + main/develop branch protection (PR·승인 1+·스레드 resolve 서버 강제) | 2026-06 | onboarding.md | code-review.md, AGENTS.md, guard.sh |
+| **⚠️ #79에서 솔로 표준(승인요건 0)으로 대체됨** — git-flow + main/develop branch protection (원안: PR·승인 1+·스레드 resolve 서버 강제 / 현행: 승인 0·enforce_admins=on·CI-gate, 팀 모드는 #105 opt-in) | 2026-06 | onboarding.md | code-review.md, AGENTS.md, guard.sh |
 | 거버넌스 배포 = 플러그인 버전 배포 (파일 복사·동기화 스크립트 금지) | 2026-06 | README.md | harness-maintenance.md |
 | 규약 단일 출처 = AGENTS.md (도구별 전용 지침은 각 도구 파일에만) | 2026-06 | templates/AGENTS.md | CLAUDE.md, ai-collaboration.md |
 | 커밋 = Conventional Commits (타입 영어 + 본문 한국어) | 2026-06 | code-review.md | operations.md(CHANGELOG) |
@@ -141,5 +141,7 @@
 | **commitlint type-enum을 정본 code-review.md와 동일 집합으로 정합**(v0.29.4): 회귀 검토로 확정 — 품질 게이트(commitlint)가 정본으로 선언한 code-review.md와 실제 강제 규칙이 어긋나, 문서상 유효한 `perf` 타입 커밋이 required check(commitlint)에서 거부돼 PR 머지가 막히던 기능 불일치. 역으로 `style`·`ci`는 게이트만 허용. 양방향 드리프트를 union superset(`feat fix docs style refactor perf test chore ci`)으로 정합 — 양쪽 추가만, 제거 없음(기존 커밋 무영향). node 스크립트로 두 집합 동일 검증. GitHub #190. | 2026-07-06 | templates/commitlint.config.cjs | docs/code-review.md, plugin.json(0.29.4) |
 
 | **스킬 정합성 2건 교정 — pr-create 솔로/팀 오라우팅 + release-check forward-only Alembic 오탐**(v0.29.5): 회귀 검토로 확정. (A) pr-create/SKILL.md가 머지 후속을 '솔로→solo-merge / 팀→pr-review-gate'로 안내했으나 정본(solo-merge·pr-review-gate SKILL)은 정반대 — solo-merge는 승인요건(1+) 걸린 팀 모드용 break-glass이고 솔로(승인0)는 직접 pr-merge.sh. 솔로 사용자를 승인우회 커맨드로 오도하던 것 교정. (B) release-check/SKILL.md의 forward-only 점검이 Flyway-scoped 정의(undo 파일 U{n} 금지)를 스택무관 'down/rollback 포함 시 ❌'로 적용 → Alembic의 정상 `downgrade()`(autogenerate 생성)를 전건 위반으로 거짓 차단. Flyway undo 파일로 스코프하고 Alembic downgrade()는 정상(금지는 downgrade base뿐)임을 명시. 둘 다 스킬 프롬프트·안내 텍스트 교정(로직 무변경). GitHub #191. | 2026-07-06 | plugins/harness-guard/skills/pr-create/SKILL.md, plugins/harness-guard/skills/release-check/SKILL.md | plugin.json(0.29.5) |
+
+| **정합성 드리프트 4건 정정**(문서, 버전 무관): 회귀 검토 확정 — ① decisions #18(git-flow branch protection)에 '#79 솔로 표준(승인0)으로 대체됨' 마커 추가(자기 규약 line 10-11 준수, 승인 1+↔0 자기모순 해소). ② Node 표준 통일 — architecture-infra Docker 베이스 `node:22-alpine`→`24-alpine`(stack-guide '최신 LTS 24'와 정합, '로컬·CI·Docker 일치' 원칙). ③ frontend-design-standards korean-ux 룰 경로를 소스(`templates/rules`)→주입(`.claude/rules`) 관계로 정합(정본 korean-ux.md·#67과 일치). ④ README 라이선스 'Private'→'MIT'(2026-07 public 전환 #73 반영) + 루트 LICENSE(MIT) 파일 추가(#47·readme-standards 정책 충족). GitHub #192. | 2026-07-06 | docs/decisions.md, docs/architecture-infra.md, docs/frontend-design-standards.md, README.md, LICENSE | — |
 
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
