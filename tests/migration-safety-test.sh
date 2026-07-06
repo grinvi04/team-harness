@@ -38,6 +38,8 @@ check "대역 + 'staging' 프로파일 ooo:true(운영 미적용) → FAIL(#214)
 check "대역 + 'staging & !test' 복합 ooo:true → FAIL(#214-compound)" 1 "$FIX/bad-compound-profile"
 # #223-paren: 괄호 부정 '!(prod | staging)'은 안전 파싱 불가 → safe-default 미적용 → FAIL(bare prod 토큰이 부정 안에서 오단락하던 false-pass 교정. 완전해법=#220-A 파서)
 check "대역 + '!(prod | staging)' 괄호부정 ooo:true → FAIL(#223-paren)" 1 "$FIX/bad-paren-neg-profile"
+# #227: 별도 비운영 프로파일 파일(application-staging.yml)의 ooo:true는 운영 미적용 → FAIL(파일명 필터 safe-default화, 토큰리스트 무관)
+check "대역 + 별도 application-staging.yml ooo:true → FAIL(#227)" 1 "$FIX/bad-staging-file"
 # B2: 대역 repo에 타임스탬프 버전 1개 혼입 — Math.max 오판으로 대역검사 꺼지던 false-pass 차단
 check "대역+타임스탬프 혼입 → FAIL(B2)"          1 "$FIX/bad-timestamp-mix"
 # B3: 주석 처리된 out-of-order:true가 실제 false를 덮던 false-pass 차단
