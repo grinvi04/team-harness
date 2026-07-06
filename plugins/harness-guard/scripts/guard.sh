@@ -51,6 +51,11 @@ COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin
 
 if [[ "$TOOL" != "Bash" ]]; then exit 0; fi
 
+# LITE 면제는 명령이 실제로 실행되는 원래 repo(세션 cwd) 기준으로 판정한다 — 후행 cd/-C로 다른 .harness-lite
+# repo에 착지시켜 현재 코드 repo의 LITE-게이트 가드를 무장해제하는 교차오염(#196)을 막기 위해,
+# 아래 TARGET_DIR 추종 cd **이전**에 원래 repo 루트를 캡처한다.
+_ORIG_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
+
 # 커맨드에 포함된 마지막 `cd <경로>` 또는 `git -C <경로>` 기준으로 검사한다.
 # (훅의 cwd는 세션 디렉토리 — 체인(`x && cd ...`)·서브셸(`(cd ...)`)·`git -C`로
 #  다른 repo에서 커밋하는 우회를 막으려면 필요. 선두 cd만 잡으면 자명하게 우회됨)
@@ -73,8 +78,9 @@ fi
 # 원칙: 의식의 무게를 산출물별로 right-size — 문서/경량 repo에 풀 git-flow는 과적용(역방향 오버엔지니어링).
 # 코드 repo는 마커 없음 → 그대로 강제. 마커 = 의식적 opt-out(HARNESS_TRIVIAL 프리픽스의 repo 스코프판).
 LITE=0
-_LITE_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
-[[ -n "$_LITE_ROOT" && -f "$_LITE_ROOT/.harness-lite" ]] && LITE=1
+# 후행 cd 이전에 캡처한 _ORIG_ROOT(원래 세션 repo) 기준 — `<cmd> && cd <lite repo>`로 LITE=1을 유발해
+# 현재 코드 repo의 가드를 우회하는 교차오염 차단(#196).
+[[ -n "$_ORIG_ROOT" && -f "$_ORIG_ROOT/.harness-lite" ]] && LITE=1
 
 # main/develop 직접 커밋 금지 — commit을 **서브커맨드 위치**로 좁혀 과차단 제거(A5:
 #   `git log --grep=commit`·`git help commit`·`grep "git commit"`는 통과). `git -C <dir> commit`이면
@@ -111,7 +117,7 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--gi
     BRANCH=$(git branch --show-current 2>/dev/null)
   fi
   if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]] || \
-     echo "$COMMAND" | grep -qE "origin[[:space:]]+(main|develop)([[:space:]]|$)|:(main|develop)([[:space:]]|$)|\+(main|develop)([[:space:]]|$)"; then
+     echo "$COMMAND" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?(main|develop)([[:space:]]|$)"; then
     deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
   fi
 fi
@@ -199,7 +205,7 @@ fi
 
 # npm 글로벌 패키지 설치 금지 — install-verb와 -g/--global을 **같은 npm 세그먼트**에서, 순서 무관하게 결합 검사.
 # G3: `npm --global install x`(플래그가 서브커맨드 앞) 우회 차단. G2: `echo -g && npm install x`(다른 세그먼트의 -g) 오탐 방지.
-if echo "$COMMAND" | grep -qE "npm[[:space:]]([^;&|]*[[:space:]])?(install|i|add)[[:space:]]([^;&|]*[[:space:]])?(-g|--global)([[:space:]]|$)|npm[[:space:]]([^;&|]*[[:space:]])?(-g|--global)[[:space:]]([^;&|]*[[:space:]])?(install|i|add)([[:space:]]|$)"; then
+if echo "$COMMAND" | grep -qE "npm[[:space:]]([^;&|]*[[:space:]])?(install|i|add)[[:space:]]([^;&|]*[[:space:]])?(-g|--global)(=[^;&|[:space:]]*)?([[:space:]]|$)|npm[[:space:]]([^;&|]*[[:space:]])?(-g|--global)(=[^;&|[:space:]]*)?[[:space:]]([^;&|]*[[:space:]])?(install|i|add)([[:space:]]|$)"; then
   deny "npm install -g 금지 — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (npm install --save-dev 또는 npx)"
 fi
 
