@@ -140,4 +140,6 @@
 
 | **commitlint type-enum을 정본 code-review.md와 동일 집합으로 정합**(v0.29.4): 회귀 검토로 확정 — 품질 게이트(commitlint)가 정본으로 선언한 code-review.md와 실제 강제 규칙이 어긋나, 문서상 유효한 `perf` 타입 커밋이 required check(commitlint)에서 거부돼 PR 머지가 막히던 기능 불일치. 역으로 `style`·`ci`는 게이트만 허용. 양방향 드리프트를 union superset(`feat fix docs style refactor perf test chore ci`)으로 정합 — 양쪽 추가만, 제거 없음(기존 커밋 무영향). node 스크립트로 두 집합 동일 검증. GitHub #190. | 2026-07-06 | templates/commitlint.config.cjs | docs/code-review.md, plugin.json(0.29.4) |
 
+| **스킬 정합성 2건 교정 — pr-create 솔로/팀 오라우팅 + release-check forward-only Alembic 오탐**(v0.29.5): 회귀 검토로 확정. (A) pr-create/SKILL.md가 머지 후속을 '솔로→solo-merge / 팀→pr-review-gate'로 안내했으나 정본(solo-merge·pr-review-gate SKILL)은 정반대 — solo-merge는 승인요건(1+) 걸린 팀 모드용 break-glass이고 솔로(승인0)는 직접 pr-merge.sh. 솔로 사용자를 승인우회 커맨드로 오도하던 것 교정. (B) release-check/SKILL.md의 forward-only 점검이 Flyway-scoped 정의(undo 파일 U{n} 금지)를 스택무관 'down/rollback 포함 시 ❌'로 적용 → Alembic의 정상 `downgrade()`(autogenerate 생성)를 전건 위반으로 거짓 차단. Flyway undo 파일로 스코프하고 Alembic downgrade()는 정상(금지는 downgrade base뿐)임을 명시. 둘 다 스킬 프롬프트·안내 텍스트 교정(로직 무변경). GitHub #191. | 2026-07-06 | plugins/harness-guard/skills/pr-create/SKILL.md, plugins/harness-guard/skills/release-check/SKILL.md | plugin.json(0.29.5) |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
