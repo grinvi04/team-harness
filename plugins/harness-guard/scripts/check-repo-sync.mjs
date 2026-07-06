@@ -162,7 +162,10 @@ const wfFiles = files.filter((f) => /(^|\/)\.github\/workflows\/.+\.ya?ml$/.test
 //   `run: echo allow-test-removal`을 정당한 신호로 쓰므로 echo를 '언급'으로 보고 제거하면 정당 신호가 깨진다.
 //   echo/텍스트 기반 sentinel의 느슨함(functional 검증 아님)은 설계상 수용 — OK/WEAK 티어가 그 부정확성을 인정.
 //   주석 판정: 라인 시작 `#` 또는 공백 뒤 `#`(YAML 규약) — 문자열 안 `#42` 같은 비주석은 보존.
-const stripComments = (raw) => raw.split(/\r?\n/).map((l) => l.replace(/(^|\s)#.*$/, '$1')).join('\n')
+// #205: 전체-라인 주석(라인 시작이 `#`)만 제거한다. 트레일링/인라인 `#`(예: `run: echo "issue #12 … allow-test-removal"`)를
+//   제거하면 따옴표 문자열 안의 정당 sentinel까지 삭제돼 false MISSING(머지 차단)이 났다. #183 목표(주석 처리된 게이트)는
+//   전체-라인 주석이라 이 범위로 충분하다.
+const stripComments = (raw) => raw.split(/\r?\n/).map((l) => /^\s*#/.test(l) ? '' : l).join('\n')
 const wfList = wfFiles.map((f) => {
   let text = ''
   try { text = stripComments(readFileSync(f.p, 'utf8')) } catch { /* ignore */ }
