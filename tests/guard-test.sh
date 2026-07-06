@@ -189,6 +189,19 @@ _lines=$(wc -l < "$FHOME/.claude/hooks/guard-block.log" 2>/dev/null | tr -d ' ')
 if [ "$_lines" = 1 ]; then echo "PASS: 7: 감사로그 개행 위조 방지"; PASS=$((PASS+1)); else echo "FAIL: 7: 감사로그 개행 위조 — 로그 ${_lines:-0}줄(기대 1)"; FAIL=$((FAIL+1)); fi
 rm -rf "$FHOME"
 
+# #196: LITE 교차-repo 오염 방지 — 코드 repo(마커無)에서 실행하는 명령 뒤에 lite repo로 후행 cd해도 LITE-게이트 유지
+check "#196: develop 커밋 && cd lite → 차단 유지" 2 Bash "git commit -m x && cd $LITE_REPO"          "$DEV"
+check "#196: 무spec feature && cd lite → plan게이트 유지" 2 Bash "git checkout -b feature/evil && cd $LITE_REPO" "$DEV"
+check "#196: git -C code commit && cd lite → 차단 유지" 2 Bash "git -C $DEV commit -m x && cd $LITE_REPO" "$FEAT"
+# #196: npm 글로벌 =값 형태 우회 차단
+check "#196: npm install --global=true 차단" 2 Bash "npm install --global=true leftpad"              "$DEV"
+check "#196: npm --global=true install 차단" 2 Bash "npm --global=true install leftpad"              "$DEV"
+# REJ2: force-push 완전수식 refspec·non-origin remote 차단(로컬 가드 정본화)
+check "REJ2: force refs/heads/main 차단"     2 Bash "git push --force origin refs/heads/main"        "$FEAT"
+check "REJ2: force HEAD:refs/heads/develop 차단" 2 Bash "git push -f origin HEAD:refs/heads/develop" "$FEAT"
+check "REJ2: force upstream main 차단"       2 Bash "git push --force upstream main"                 "$FEAT"
+check "REJ2over: force origin featmain 통과(오탐)" 0 Bash "git push --force origin featmain"          "$FEAT"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
