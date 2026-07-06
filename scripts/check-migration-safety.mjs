@@ -155,15 +155,18 @@ const ON_PROFILE_RE = /(?:on-profile|spring\.profiles(?:\.active|\.include)?)\s*
 //   그래서 '명시 on-profile을 가진 문서'는 **운영에 적용된다는 확실한 신호가 있을 때만** 크레딧한다:
 //     - `!prod`/`!production`(운영 제외 부정) → 미적용(false)
 //     - `prod`/`production` 토큰 포함(예: `test | prod`, `production-eu`) → 적용(true)
-//     - 다른 비운영 프로파일의 부정(`!test`,`!staging` 등 = 운영 포함) → 적용(true)
-//     - 그 외 명명된 프로파일(staging/uat/qa/test/…) → **미적용(false)** ← 리스트 무관, 안전측
+//     - 표현식의 **모든 항이 부정(!X)**이면(예: `!test`, `!dev & !test`) prod가 배제되지 않아 적용(true)
+//     - **양의(비운영) 항이 하나라도** 있으면(예: `staging`, `staging & !test`, `qa,!smoke`) 그 항이 문서를
+//       비운영으로 스코프하므로 **미적용(false)** ← 리스트 무관, 복합식(`&`/`|`/`,`)도 정확, 안전측
 //   (프로파일 라인이 아예 없는 default 문서는 호출측이 isProdApplicable을 부르지 않고 그대로 스캔한다.)
 const isProdApplicable = (val) => {
   const v = (val || '').toLowerCase()
   if (/![\s"']*prod(uction)?\b/.test(v)) return false   // !prod/!production → 운영 제외 → 미적용
-  if (/\bprod(uction)?\b/.test(v)) return true           // prod/production 토큰 포함 → 적용
-  if (/![\s"']*[a-z]/.test(v)) return true               // 다른 비운영 프로파일의 부정(!test,!staging,…) → 운영 포함 → 적용
-  return false                                           // 그 외 명명된 (비운영) 프로파일 → 미적용(safe-default)
+  if (/\bprod(uction)?\b/.test(v)) return true           // 양의 prod/production 토큰 포함(예: test|prod) → 적용
+  // 항 단위로 분해 — 모든 항이 부정(!X)이면 적용(부정은 배제만), 양의 비운영 항이 있으면 미적용.
+  const terms = v.replace(/["'()]/g, ' ').split(/[\s&|,]+/).filter(Boolean)
+  if (terms.length && terms.every((t) => t.startsWith('!'))) return true
+  return false                                           // 양의 비운영 항 존재 or 미인식 → 미적용(safe-default)
 }
 let oooState = 'absent' // 'true' | 'false' | 'absent'
 // B3: 라인 단위로 읽고 주석(`#` 이후)을 제거한 뒤 스캔 — 주석 처리된 `# out-of-order: true`가
