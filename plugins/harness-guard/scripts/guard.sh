@@ -20,6 +20,9 @@ deny() {
   ts=$(date +%Y-%m-%dT%H:%M:%S 2>/dev/null)
   sid=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('session_id','?'))" 2>/dev/null) || sid="?"
   cwd=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cwd','?'))" 2>/dev/null) || cwd="?"
+  # 로그 위조(log forging) 방지 — session_id·cwd의 개행·탭·제어문자가 감사 로그에 별도 라인/ANSI를 주입하지 못하게 정제.
+  sid=$(printf '%s' "$sid" | tr '\n\r\t' '   ' | cut -c1-80)
+  cwd=$(printf '%s' "$cwd" | tr '\n\r\t' '   ' | cut -c1-256)
   # cmd는 한 줄로 정제(개행→공백) + 시크릿 마스킹(URL 박힌 크레덴셜·gh 토큰·PAT) + 길이 제한.
   # 차단된 명령을 평문 로깅하므로, 토큰이 섞인 명령(예: https://x:TOKEN@host)이 로그에 남지 않게 마스킹.
   cmd1=$(printf '%s' "${COMMAND:-}" | tr '\n\r\t' '   ' \
@@ -41,6 +44,9 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 
 TOOL=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_name',''))" 2>/dev/null)
+# python3가 존재하나 실행 실패/입력 손상 시 파싱이 조용히 빈 값이 되어 전 가드가 우회되므로 차단(fail-closed).
+# (부재는 위 command -v 로, '있으나 깨짐'은 이 rc 검사로 — 둘 다 fail-closed.)
+if [[ $? -ne 0 ]]; then deny "가드 입력 파싱 실패 — python3 실행 불가/JSON 손상 (fail-closed)" ""; fi
 COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null)
 
 if [[ "$TOOL" != "Bash" ]]; then exit 0; fi
@@ -77,7 +83,8 @@ _LITE_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 #   `--no-pager` 등이 git과 commit 사이에 오면 매치가 깨져 `git -c user.name=x commit`이 통과되던 구멍.
 #   전역옵션 = 값-분리 플래그(-C/-c/--git-dir/… <값>) 또는 임의 단일 플래그(-x/--flag[=v]). 서브커맨드가
 #   commit이어야 매치(log 등 다른 서브커맨드는 여전히 통과 → 과차단 유지 안 함).
-COMMIT_SEG=$(echo "$COMMAND" | grep -oE "(^|[;&|(][[:space:]]*)git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+commit([[:space:]]|$)" | head -1)
+# 앵커에 선행공백(`^[[:space:]]*`)·env-var 프리픽스(`X= git commit`)를 허용 — 리터럴 앵커가 이들을 놓쳐 우회되던 구멍 교정.
+COMMIT_SEG=$(echo "$COMMAND" | grep -oE "(^[[:space:]]*|[;&|(][[:space:]]*)([A-Za-z_][A-Za-z0-9_]*=[^;&|[:space:]]*[[:space:]]+)*git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+commit([[:space:]]|$)" | head -1)
 if [[ "$LITE" != 1 && -n "$COMMIT_SEG" ]]; then
   CDIR=$(echo "$COMMIT_SEG" | grep -oE "\-C[[:space:]]+[^;&|[:space:]]+" | sed -E 's/^-C[[:space:]]+//' | head -1)
   if [[ -n "$CDIR" ]]; then
@@ -94,8 +101,15 @@ fi
 # main/develop force push 금지 (--force/-f, 결합 단축플래그 -fu, 또는 +refspec)
 # 외부 게이트는 force 신호를 넓게 잡고(내부 조건이 main/develop 대상 여부를 판정) — 결합플래그(-fu)·
 # plus-refspec(+HEAD:main)를 놓쳐 우회되던 것 교정(감사 A1). refspec 생략 시 현재 브랜치가 push 대상.
-if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git[[:space:]]+push[^;&|]*(--force|-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)"; then
-  BRANCH=$(git branch --show-current 2>/dev/null)
+if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+push[^;&|]*(--force|-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)"; then
+  # git -C <dir> push 이면 그 dir 기준으로 현재 브랜치를 판정 — commit(A2)만 -C를 잡던 비대칭 교정.
+  PDIR=$(echo "$COMMAND" | grep -oE "git[[:space:]]+-C[[:space:]]+[^;&|[:space:]]+" | sed -E 's/^git[[:space:]]+-C[[:space:]]+//' | head -1)
+  if [[ -n "$PDIR" ]]; then
+    PDIR="${PDIR//\"/}"; PDIR="${PDIR//\'/}"; PDIR="${PDIR/#\~/$HOME}"
+    BRANCH=$(git -C "$PDIR" branch --show-current 2>/dev/null)
+  else
+    BRANCH=$(git branch --show-current 2>/dev/null)
+  fi
   if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]] || \
      echo "$COMMAND" | grep -qE "origin[[:space:]]+(main|develop)([[:space:]]|$)|:(main|develop)([[:space:]]|$)|\+(main|develop)([[:space:]]|$)"; then
     deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
@@ -137,8 +151,11 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:s
   deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다."
 fi
 
-# git reset --hard 금지
-if echo "$COMMAND" | grep -qE "git reset --hard"; then
+# git reset --hard 금지 — reset 서브커맨드 + --hard 플래그를 순서·공백·git -C·env-prefix 무관하게 검사한다.
+# (기존 리터럴 `git reset --hard`는 이중공백·탭·인자후치·`git -C . reset --hard`를 놓쳐 우회됨. 형제 가드처럼
+#  명령 위치 앵커라 `grep 'git reset --hard'` 같은 문자열 언급은 통과 — 기존 과차단도 함께 제거.)
+RESET_SEG=$(echo "$COMMAND" | grep -oE "(^[[:space:]]*|[;&|(][[:space:]]*)([A-Za-z_][A-Za-z0-9_]*=[^;&|[:space:]]*[[:space:]]+)*git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+reset([[:space:]]|$)[^;&|]*" | head -1)
+if [[ -n "$RESET_SEG" ]] && echo "$RESET_SEG" | grep -qE "(^|[[:space:]])--hard([[:space:]]|$)"; then
   deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (Claude가 대신 실행하지 않음)"
 fi
 
@@ -147,7 +164,7 @@ fi
 # 마이그레이션(db/migration/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
 # rm/git rm과 대상 경로를 **같은 명령 세그먼트**([^;&|]*)로 결합해 검사한다(G2) —
 # `rm x.log; grep foo tests/`처럼 무관한 rm과 다른 세그먼트의 테스트경로가 각각 있어도 차단하던 오탐 방지.
-if echo "$COMMAND" | grep -qE "(^|[^[:alnum:]_.-])(rm|git[[:space:]]+rm)[[:space:]][^;&|]*(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^[:space:]/]*\.py|[^[:space:]/]*_test\.py|tests?(/|[[:space:]]|$)|db/migration(/|[[:space:]]|$)|alembic/versions(/|[[:space:]]|$)|prisma/migrations(/|[[:space:]]|$))"; then
+if echo "$COMMAND" | grep -qE "(^|[^[:alnum:]_.-])(rm|git[[:space:]]+rm)[[:space:]][^;&|]*(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^[:space:]/]*\.py|[^[:space:]/]*_test\.py|tests?(/|[[:space:]]|[\"']|$)|db/migration(/|[[:space:]]|[\"']|$)|alembic/versions(/|[[:space:]]|[\"']|$)|prisma/migrations(/|[[:space:]]|[\"']|$))"; then
   deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
 fi
 
@@ -156,7 +173,7 @@ PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
 if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-zA-Z]*[rRf]|--recursive|--force)"; then
   # 경로의 정규식 메타문자([.+ 등)를 이스케이프 — 미처리 시 해당 경로에서 가드가 빗나감
   PROJECT_ROOT_RE=$(printf '%s' "$PROJECT_ROOT" | sed 's/[][\.*^$()+?{}|]/\\&/g')
-  if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT_RE/?\"?[[:space:]]*$|(^|[[:space:]])(\./)?(src|app|node_modules)(/|[[:space:]]|$))"; then
+  if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT_RE/?\"?[[:space:]]*$|(^|[[:space:]])[\"']?(\./)?(src|app|node_modules)[\"']?(/|[[:space:]]|$))"; then
     deny "프로젝트 핵심 디렉터리 rm -rf 금지" "삭제가 필요하면 사용자가 직접 실행하세요"
   fi
   # 심링크 표기(/tmp ↔ /private/tmp 등)로 적힌 root도 잡는다 — 경로 토큰을 정규화해 비교
@@ -164,11 +181,15 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-
   for TOK in $COMMAND; do
     TOK="${TOK//\"/}"; TOK="${TOK//\'/}"; TOK="${TOK/#\~/$HOME}"
     case "$TOK" in
-      /*|./*|../*)
+      .|..|/*|./*|../*)
         RESOLVED=$(cd "$TOK" 2>/dev/null && pwd -P)
-        if [[ -n "$RESOLVED" && "${RESOLVED%/}" == "${PROJECT_ROOT%/}" ]]; then
-          set +f
-          deny "프로젝트 핵심 디렉터리 rm -rf 금지 (심링크 경로)" "삭제가 필요하면 사용자가 직접 실행하세요"
+        if [[ -n "$RESOLVED" ]]; then
+          # 해석된 경로가 프로젝트 루트와 같거나(예: rm -rf .) 그 상위(루트를 포함, 예: rm -rf .. / /)면 차단.
+          _R="${RESOLVED%/}"; _PR="${PROJECT_ROOT%/}"
+          if [[ "$_PR" == "$_R" || "$_PR" == "$_R"/* ]]; then
+            set +f
+            deny "프로젝트 핵심 디렉터리 rm -rf 금지 (루트/상위 경로)" "삭제가 필요하면 사용자가 직접 실행하세요"
+          fi
         fi
         ;;
     esac
