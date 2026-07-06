@@ -1,0 +1,14 @@
+# #223-paren: 괄호 부정 '!(prod | staging)'은 운영 제외 — 안전 파싱 불가라 safe-default 미적용 → 운영(prod) ooo:false → FAIL.
+spring:
+  config:
+    activate:
+      on-profile: "!(prod | staging)"
+  flyway:
+    out-of-order: true
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  flyway:
+    out-of-order: false

@@ -147,7 +147,7 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--gi
     fi
     # 명시 refspec(remote + ref)이 있으면 현재 브랜치 무관 — bare push만 현재 브랜치가 대상(#204).
     HAS_REF=""; echo "$PSEG" | grep -qE "push([[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+[^-;&|[:space:]]+[[:space:]]+[^-;&|[:space:]]+" && HAS_REF=1
-    if echo "$PSEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?(main|develop)([[:space:]]|[)]|$)"; then
+    if echo "$PSEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?(main|develop)([[:space:]]|$)"; then
       deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
     elif [[ -z "$HAS_REF" && ( "$BRANCH" == "main" || "$BRANCH" == "develop" ) ]]; then
       deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"

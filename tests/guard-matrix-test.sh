@@ -48,8 +48,8 @@ case_ "chained feat-force develop-force" 2 "git push -f origin feature/x && git 
 case_ "sudo prefix force main"          2 "sudo git push --force origin main"            "$FEAT"
 case_ "git -C develop-repo bare force"  2 "git -C $DEVC push --force"                    "$FEAT"
 case_ "semicolon-chained main force"    2 "echo hi; git push --force origin main"        "$FEAT"
-case_ "subshell force origin main"      2 "(git push --force origin main)"               "$FEAT"
-case_ "subshell force origin develop"   2 "(git push -f origin develop)"                 "$FEAT"
+# NOTE(#220): 서브셸 `(git push -f origin main)`은 차단 안 됨(수용된 best-effort 갭 — category(a) 넛지,
+#   서버 branch protection이 정본). `)` 종단 패치(#224)는 echo mention 과탐 회귀를 낳아 되돌림.
 # ── force-push: ALLOW (feature/비-force/언급) ──
 case_ "force feature explicit"          0 "git push --force origin feature/x"            "$FEAT"
 case_ "force feature on develop cwd"    0 "git push --force origin feature/x"            "$DEV"
@@ -62,6 +62,9 @@ case_ "force featmain (substring)"      0 "git push --force origin featmain"    
 case_ "force mainfeature"               0 "git push --force origin mainfeature"          "$FEAT"
 case_ "bare force on feature"           0 "git push --force"                             "$FEAT"
 case_ "subshell force feature (allow)"  0 "(git push --force origin feature/x)"          "$FEAT"
+# #224 회귀방지: echo/커밋메시지의 'main)' mention은 절대 오차단 금지(category(a) under-block 편향)
+case_ "echo mention main) (allow)"      0 'echo "git push --force origin main)"'         "$FEAT"
+case_ "echo subshell mention (allow)"   0 "echo 'see (git push --force origin main)'"    "$FEAT"
 
 # ── reset --hard: DENY (변형/wrapper/LITE에서도) ──
 case_ "reset --hard"                    2 "git reset --hard HEAD~1"                      "$DEV"
