@@ -148,6 +148,12 @@ if command -v jq >/dev/null 2>&1; then
   ok "$(grep -c '^PATCH' "$L")" 1 "R1 jq폴백 — 복구 PATCH 발생"
   grep -q '^PATCH .*required_approving_review_count' "$L" && { echo "PASS: R1 jq폴백 — payload 4필드"; PASS=$((PASS+1)); } || { echo "FAIL: R1 jq폴백 — payload 누락"; FAIL=$((FAIL+1)); }
   ok "$RC" 0 "R1 jq폴백 — 정상 성공(RC0)"
+  # R1b: jq-branch payload 값 보존(bool 포함) 정확 검증 — python3 셰도로 jq 경로 강제(값 어서션, grep 아님)
+  JQOUT=$(PATH="$PYSTUB:$PATH" SOLO_MERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | extract_restore_payload' _ "$SM" "$FULL")
+  ok "$JQOUT" '{"required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":false,"require_last_push_approval":false}' "R1b jq-branch payload 4필드 값 보존"
+  # R1c: _json_field jq-branch — count=0(falsy)이 sentinel로 오독되지 않음
+  JF=$(PATH="$PYSTUB:$PATH" SOLO_MERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "{\"required_approving_review_count\":0}" | _json_field required_approving_review_count' _ "$SM")
+  ok "$JF" "0" "R1c jq-branch count=0 보존(sentinel 오독 없음)"
 else
   echo "SKIP: R1 jq 폴백 (jq 미설치)"
 fi

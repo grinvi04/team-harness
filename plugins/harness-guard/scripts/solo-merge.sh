@@ -102,8 +102,9 @@ _restore() {
   [ "$HAD_PROTECTION" = yes ] || return 0
   _restored=1
   local payload; payload=$(printf '%s' "$REVIEWS_CONFIG" | extract_restore_payload 2>/dev/null || true)
-  if [ -z "$payload" ]; then   # payload 생성 실패(python3·jq 모두 부재/실패) → 빈 PATCH 보내지 않음
-    echo "  ⚠️ 복구 payload 생성 실패(python3·jq 부재/실패) — $BASE 승인요건 수동 재설정 필요(count=$ORIG_COUNT). verify가 fail-closed로 경보." >&2
+  if [ -z "$payload" ] || [ "$payload" = "{}" ]; then   # payload 생성 실패/빈 객체 → PATCH 안 보냄
+    # 빈 PATCH나 {} PATCH는 no-op/필드 리셋 위험 → 보내지 않고 경보. verify가 fail-closed로 재확인.
+    echo "  ⚠️ 복구 payload 생성 실패/공백(python3·jq 부재·실패) — $BASE 승인요건 수동 재설정 필요(count=$ORIG_COUNT)." >&2
     return 0
   fi
   printf '%s' "$payload" | gh api -X PATCH "$RPR_PATH" --input - >/dev/null 2>&1 \
