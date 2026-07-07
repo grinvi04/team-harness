@@ -1,0 +1,5 @@
+release:
+  note: "hotfix #1 migration-safety: scheme=monotonic rollout"
+spring:
+  flyway:
+    enabled: true

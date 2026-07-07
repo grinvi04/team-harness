@@ -1,0 +1,4 @@
+# migration-safety: scheme=prefix-band
+spring:
+  flyway:
+    enabled: true

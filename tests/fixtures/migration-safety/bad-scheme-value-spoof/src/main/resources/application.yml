@@ -1,0 +1,4 @@
+changelog: "migration-safety: scheme=monotonic (legacy note)"
+spring:
+  flyway:
+    enabled: true

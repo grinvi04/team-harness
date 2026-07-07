@@ -21,7 +21,7 @@
  * 단일 출처: docs/db-standards.md · templates/rules/stacks/flyway.md
  */
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
-import { join, basename } from 'node:path'
+import { join, basename, dirname, sep } from 'node:path'
 
 // ── 인자 파싱 ─────────────────────────────────────────────
 const args = process.argv.slice(2)
@@ -113,29 +113,43 @@ if (migrationFiles.length === 0) {
   process.exit(0)
 }
 
-// ── 버전 파싱 + 대역(out-of-order) 판정 ────────────────────
-const versions = []
-for (const f of migrationFiles) {
-  const m = basename(f).match(/^V(\d+)/i)
-  if (m) versions.push(Number(m[1]))
+// 타임스탬프 버전(예: 20240101…)은 접두사 대역 규약이 아님 → 검사 A 비대상.
+// #219-3: 자릿수(과거 TIMESTAMP_MIN=1e7)가 아니라 **실제 날짜형식**으로 판정한다 — V10000001(월=00) 같은
+//   8자리 모듈 접두사 대역이 자릿수만으로 타임스탬프로 오판돼 대역검사가 꺼지던 false-pass의 **비-날짜 부분집합**을 차단.
+//   8자리=yyyymmdd(월 1-12·일 1-31), 14자리=yyyymmddHHMMSS. 그 외 자릿수·범위밖은 날짜 아님.
+//   ⚠ 한계: **날짜형(V10010101 등) 8자리 대역**은 형식만으론 타임스탬프와 구분 불가(잔여 모호) — 그런 repo는
+//   `# migration-safety: scheme=prefix-band` 선언으로 강제 밴드검사(선언 경로가 이 클래스의 정밀 해법).
+// B2 유지: **모든** 버전이 유효 날짜일 때만 순수 타임스탬프(every). 대역에 타임스탬프 하나만 섞여도(비-날짜 존재)
+//   대역 검사를 계속 켠다 — 하나로 검사 전체가 꺼지는 false-pass 방지.
+function isValidDate(n) {
+  const s = String(n)
+  if (s.length !== 8 && s.length !== 14) return false
+  const mo = +s.slice(4, 6), d = +s.slice(6, 8)
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return false
+  if (s.length === 14) {
+    const h = +s.slice(8, 10), mi = +s.slice(10, 12), se = +s.slice(12, 14)
+    if (h > 23 || mi > 59 || se > 59) return false
+  }
+  return true
 }
-const sorted = [...new Set(versions)].sort((a, b) => a - b)
-
-// 타임스탬프 버전(8자리 이상, 예: 20240101…)은 접두사 대역 규약이 아님 → 검사 A 비대상.
-// B2: **모든** 버전이 임계 이상일 때만 순수 타임스탬프로 본다(Math.min). 접두사 대역(1xxx..4xxx)에
-// 타임스탬프 하나만 섞이면(min<임계) 대역 검사를 계속 켜야 함 — Math.max면 하나로 검사 전체가 꺼져 false-pass.
-const TIMESTAMP_MIN = 1e7
-const isTimestamp = sorted.length > 0 && Math.min(...sorted) >= TIMESTAMP_MIN
 
 // 대역 판정: 정렬된 버전 사이에 예약 점프(큰 갭)가 1개 이상 있으면 접두사 대역.
 // 단조 증가(…,3,4,5,…)는 큰 갭이 없어 단일 대역 → 안전.
 const GAP_THRESHOLD = 100
-let bandBoundaries = 0
-for (let i = 1; i < sorted.length; i++) {
-  if (sorted[i] - sorted[i - 1] >= GAP_THRESHOLD) bandBoundaries++
+
+// #219-1: 대역/out-of-order 판정을 **모듈(=가장 가까운 설정 디렉터리) 단위**로 하기 위해 순수 함수로 분리.
+// analyzeBand: 한 그룹의 버전 목록 → {bands, isBanded, isTimestamp} (기존 로직 그대로, 대상만 그룹으로 축소).
+function analyzeBand(versions) {
+  const sorted = [...new Set(versions)].sort((a, b) => a - b)
+  const isTimestamp = sorted.length > 0 && sorted.every(isValidDate)
+  let bandBoundaries = 0
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i] - sorted[i - 1] >= GAP_THRESHOLD) bandBoundaries++
+  }
+  const bands = 1 + bandBoundaries
+  const isBanded = !isTimestamp && bands >= 2
+  return { bands, isBanded, isTimestamp }
 }
-const bands = 1 + bandBoundaries
-const isBanded = !isTimestamp && bands >= 2
 
 // ── 설정에서 out-of-order 상태 추출 ───────────────────────
 // Flyway: spring `out-of-order: true` (yaml) / `flyway.outOfOrder=true` (conf)
@@ -146,7 +160,6 @@ const isBanded = !isTimestamp && bands >= 2
 //   비운영으로 제외한다(리스트 무관 — 임의 프로파일명 자동 처리). `application.<ext>`(프로파일無)·비-application 설정
 //   (flyway.conf 등)은 운영으로 취급. isProdApplicable(in-document)의 safe-default와 동일 원리.
 const NONPROD_PROFILE_FILE_RE = /^application-(?!prod(uction)?\b)[^.]+\.(ya?ml|properties|conf)$/i
-const prodConfigFiles = configFiles.filter((cf) => !NONPROD_PROFILE_FILE_RE.test(basename(cf)))
 const OOO_RE = /out[-_]?of[-_]?order\s*[:=]\s*["']?(true|false)/gi
 // S1b(#182): 단일 application.yml 안에 `---`로 구분된 다중 프로파일 문서에서, 비운영(test/dev/ci) 문서의
 //   out-of-order:true 가 운영 문서의 false/미설정을 덮어 게이트를 false-pass 시키던 것 차단. 파일명(basename)
@@ -176,69 +189,183 @@ const isProdApplicable = (val) => {
   if (terms.length && terms.every((t) => t.startsWith('!'))) return true
   return false                                           // 양의 비운영 항 존재 or 미인식 → 미적용(safe-default)
 }
-let oooState = 'absent' // 'true' | 'false' | 'absent'
-// B3: 라인 단위로 읽고 주석(`#` 이후)을 제거한 뒤 스캔 — 주석 처리된 `# out-of-order: true`가
-// 실제 false를 덮어 게이트를 false-pass 시키던 것 차단(yaml/conf/toml/ini 공통 주석문자 #).
-outer:
-for (const cf of prodConfigFiles) {
-  let text
-  try { text = readFileSync(cf, 'utf8') } catch { continue }
-  for (const doc of text.split(/^\s*---\s*$/m)) {
-    const lines = doc.split(/\r?\n/).map((l) => l.replace(/#.*$/, '')) // 라인 내 주석 제거
-    // 이 문서가 비운영 프로파일 전용이면(on-profile: test 등) OOO 크레딧 대상에서 제외.
-    const profileLine = lines.find((l) => ON_PROFILE_RE.test(l))
-    if (profileLine && !isProdApplicable(profileLine.match(ON_PROFILE_RE)[1])) continue
-    for (const line of lines) {
-      let m
-      OOO_RE.lastIndex = 0
-      while ((m = OOO_RE.exec(line)) !== null) {
-        const v = m[1].toLowerCase()
-        if (v === 'true') { oooState = 'true'; break }
-        if (v === 'false') oooState = 'false'
+
+// #219-1: scanOoo — 한 그룹의 설정 파일 목록에서 out-of-order 상태를 추출. 기존 전역 스캔 로직을
+// 그대로 그룹 단위 함수로 이동(비운영 파일명 필터 → 문서 분리 → on-profile 판정 → 주석 제거 → OOO_RE 스캔).
+function scanOoo(groupConfigFiles) {
+  const prodConfigFiles = groupConfigFiles.filter((cf) => !NONPROD_PROFILE_FILE_RE.test(basename(cf)))
+  let oooState = 'absent' // 'true' | 'false' | 'absent'
+  // B3: 라인 단위로 읽고 주석(`#` 이후)을 제거한 뒤 스캔 — 주석 처리된 `# out-of-order: true`가
+  // 실제 false를 덮어 게이트를 false-pass 시키던 것 차단(yaml/conf/toml/ini 공통 주석문자 #).
+  outer:
+  for (const cf of prodConfigFiles) {
+    let text
+    try { text = readFileSync(cf, 'utf8') } catch { continue }
+    for (const doc of text.split(/^\s*---\s*$/m)) {
+      const lines = doc.split(/\r?\n/).map((l) => l.replace(/#.*$/, '')) // 라인 내 주석 제거
+      // 이 문서가 비운영 프로파일 전용이면(on-profile: test 등) OOO 크레딧 대상에서 제외.
+      const profileLine = lines.find((l) => ON_PROFILE_RE.test(l))
+      if (profileLine && !isProdApplicable(profileLine.match(ON_PROFILE_RE)[1])) continue
+      for (const line of lines) {
+        let m
+        OOO_RE.lastIndex = 0
+        while ((m = OOO_RE.exec(line)) !== null) {
+          const v = m[1].toLowerCase()
+          if (v === 'true') { oooState = 'true'; break }
+          if (v === 'false') oooState = 'false'
+        }
+        if (oooState === 'true') break outer
       }
-      if (oooState === 'true') break outer
     }
   }
+  return oooState
 }
 
-// ── 판정 ──────────────────────────────────────────────────
-const summary = `대상 ${migrationFiles.length}개 · 대역 ${bands}개${isTimestamp ? ' · 타임스탬프 버전' : ''} · out-of-order=${oooState}`
-
-// 단조 증가 → 안전 (out-of-order:false여도 정상)
-if (!isBanded) {
-  console.log(`✓ 마이그레이션 안전성 게이트 통과 — ${summary}`)
-  console.log(isTimestamp
-    ? '  타임스탬프 버전이라 접두사 대역 규약 비대상.'
-    : '  단조 증가 번호 — 구조적 out-of-order 위험 없음.')
-  process.exit(0)
+// #219-2: 선택적 scheme 선언 — 지배 config의 **주석** `# migration-safety: scheme=<x>`.
+//   촘촘 밴드(갭<GAP_THRESHOLD)는 휴리스틱으로 단조와 구분 불가라, 선언이 있으면 그것을 신뢰한다(없으면 휴리스틱=하위호환).
+//   prefix-band→강제 대역 · monotonic→강제 비대역 · timestamp→타임스탬프 취급 · 미인식→무시+경고(휴리스틱 폴백).
+//   ⚠ 선언(특히 monotonic/timestamp)은 밴드검사를 **끄는** 강한 신호라 ooo:true 크레딧과 **동일한 신뢰 스코프**를
+//   요구한다(scanOoo와 대칭): (1) 운영 config만(NONPROD 파일 제외) (2) 운영 적용 문서만(on-profile 비운영 제외)
+//   (3) **주석 라인 안에서만** 매칭(값 문자열 `changelog: "…scheme=monotonic…"` 스푸핑 차단). 안 그러면 #197..#227이
+//   막은 비운영·값 스푸핑 false-pass가 선언 경로로 재유입된다.
+const SCHEME_RE = /migration-safety:\s*scheme\s*=\s*([a-z][a-z-]*)/i
+const VALID_SCHEMES = new Set(['prefix-band', 'monotonic', 'timestamp'])
+// 따옴표 인식 주석 추출 — 첫 **비따옴표** `#` 뒤를 주석으로 본다(null=주석 없음). 순진한 indexOf('#')는
+//   값 문자열 안의 `#`(예: `note: "hotfix #1 … scheme=monotonic"`)를 주석 경계로 오인해 스푸핑 false-PASS를
+//   내므로(scanOoo는 안전측 오류지만 여기선 밴드검사를 *끄는* 불안전측이라) 따옴표 상태를 추적한다.
+function commentOf(line) {
+  let inS = false, inD = false
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i]
+    if (c === "'" && !inD) inS = !inS
+    else if (c === '"' && !inS) inD = !inD
+    else if (c === '#' && !inS && !inD) return line.slice(i + 1)
+  }
+  return null
+}
+function readScheme(groupConfigFiles) {
+  const prodConfigFiles = groupConfigFiles.filter((cf) => !NONPROD_PROFILE_FILE_RE.test(basename(cf)))
+  for (const cf of prodConfigFiles) {
+    let text
+    try { text = readFileSync(cf, 'utf8') } catch { continue }
+    for (const doc of text.split(/^\s*---\s*$/m)) {
+      const rawLines = doc.split(/\r?\n/)
+      const codeLines = rawLines.map((l) => l.replace(/#.*$/, ''))
+      // 비운영 프로파일 전용 문서면 이 문서의 선언 무시(운영 미적용)
+      const profileLine = codeLines.find((l) => ON_PROFILE_RE.test(l))
+      if (profileLine && !isProdApplicable(profileLine.match(ON_PROFILE_RE)[1])) continue
+      for (const raw of rawLines) {
+        const comment = commentOf(raw)               // 따옴표 인식 — 값 안의 #는 주석 아님(스푸핑 차단)
+        if (comment === null) continue
+        const m = comment.match(SCHEME_RE)
+        if (!m) continue
+        const s = m[1].toLowerCase()
+        if (VALID_SCHEMES.has(s)) return s
+        console.error(`⚠ migration-safety: 미인식 scheme='${m[1]}' (${basename(cf)}) — 무시하고 휴리스틱으로 판정. 유효값: prefix-band|monotonic|timestamp`)
+        return null   // 선언은 됐으나 미인식 → 휴리스틱 폴백(AC-8)
+      }
+    }
+  }
+  return null
 }
 
-// 대역인데 운영 설정 파일을 못 찾음(비운영 프로파일만 존재하는 경우 포함) → skip (오탐 금지)
-if (prodConfigFiles.length === 0) {
-  console.log(`• 마이그레이션 안전성 게이트: 접두사 대역(${bands}개) 감지됐으나 운영 설정 파일 미발견 — 통과(skip)`)
-  console.log('  ⚠ out-of-order: true 가 운영 설정(application.yml/application-prod.yml/flyway.conf)에 있는지 수동 확인하세요.')
-  process.exit(0)
+// ── 그룹핑: nearest-config 파티션(#219-1) ──────────────────
+// 발견 모드: 마이그레이션 파일마다 "가장 가까운(=deepest) 조상 설정 디렉터리"를 찾아 그 디렉터리가
+//   관장하는 그룹으로 묶는다. 같은 디렉터리의 설정 파일 전부가 그 그룹의 설정. 조상 설정 디렉터리가
+//   없는 마이그레이션은 하나의 "미연결" 그룹(설정 없음)으로 모아 무관 모듈 간 크레딧 교차를 막는다.
+// 정밀 모드(--migrations/--config 둘 다 명시): 단일 그룹(발견된 전체 마이그레이션 + 지정 설정 하나).
+const groups = []
+if (explicitMigrations && explicitConfig) {
+  groups.push({ dir: null, migrations: migrationFiles, configs: existsSync(explicitConfig) ? [explicitConfig] : [] })
+} else {
+  const configDirs = [...new Set(configFiles.map(dirname))]
+  const UNASSOCIATED = Symbol('unassociated')
+  const byKey = new Map() // governing dir(문자열) 또는 UNASSOCIATED → group
+  for (const mf of migrationFiles) {
+    let governingDir = null
+    for (const dir of configDirs) {
+      if (mf.startsWith(dir + sep) && (governingDir === null || dir.length > governingDir.length)) {
+        governingDir = dir
+      }
+    }
+    const key = governingDir === null ? UNASSOCIATED : governingDir
+    if (!byKey.has(key)) byKey.set(key, { dir: governingDir, migrations: [], configs: [] })
+    byKey.get(key).migrations.push(mf)
+  }
+  for (const cf of configFiles) {
+    const d = dirname(cf)
+    if (byKey.has(d)) byKey.get(d).configs.push(cf)
+  }
+  groups.push(...byKey.values())
 }
 
-// 대역 + out-of-order 허용 → 통과
-if (oooState === 'true') {
-  console.log(`✓ 마이그레이션 안전성 게이트 통과 — ${summary}`)
-  console.log('  접두사 대역 + out-of-order: true — 기존·운영 DB 증분 적용 안전.')
-  process.exit(0)
+// ── 판정(그룹별 집계) ───────────────────────────────────────
+const failures = []
+for (const g of groups) {
+  const versions = []
+  for (const f of g.migrations) {
+    const m = basename(f).match(/^V(\d+)/i)
+    if (m) versions.push(Number(m[1]))
+  }
+  const analysis = analyzeBand(versions)
+  const bands = analysis.bands
+  let { isBanded, isTimestamp } = analysis
+  // #219-2: 선언 override(휴리스틱보다 우선). 없으면 휴리스틱 그대로(하위호환).
+  const scheme = readScheme(g.configs)
+  if (scheme === 'prefix-band') isBanded = true
+  else if (scheme === 'monotonic') isBanded = false
+  else if (scheme === 'timestamp') { isTimestamp = true; isBanded = false }
+  const label = g.dir ? ` [${g.dir}]` : ''
+  const schemeNote = scheme ? ` · scheme=${scheme}(선언)` : ''
+
+  // 단조 증가 → 안전 (out-of-order:false여도 정상)
+  if (!isBanded) {
+    console.log(`✓ 마이그레이션 안전성 게이트 통과${label} — 대상 ${g.migrations.length}개 · 대역 ${bands}개${isTimestamp ? ' · 타임스탬프 버전' : ''}${schemeNote}`)
+    console.log(isTimestamp
+      ? '  타임스탬프 버전이라 접두사 대역 규약 비대상.'
+      : '  단조 증가 번호 — 구조적 out-of-order 위험 없음.')
+    continue
+  }
+
+  // 대역인데 운영 설정 파일을 못 찾음(비운영 프로파일만 존재하는 경우 포함) → 이 그룹만 skip (오탐 금지)
+  const prodConfigFiles = g.configs.filter((cf) => !NONPROD_PROFILE_FILE_RE.test(basename(cf)))
+  if (prodConfigFiles.length === 0) {
+    console.log(`• 마이그레이션 안전성 게이트${label}: 접두사 대역(${bands}개) 감지됐으나 운영 설정 파일 미발견 — 통과(skip)`)
+    console.log('  ⚠ out-of-order: true 가 운영 설정(application.yml/application-prod.yml/flyway.conf)에 있는지 수동 확인하세요.')
+    continue
+  }
+
+  const oooState = scanOoo(g.configs)
+  const summary = `대상 ${g.migrations.length}개 · 대역 ${bands}개${schemeNote} · out-of-order=${oooState}`
+
+  // 대역 + out-of-order 허용 → 통과
+  if (oooState === 'true') {
+    console.log(`✓ 마이그레이션 안전성 게이트 통과${label} — ${summary}`)
+    console.log('  접두사 대역 + out-of-order: true — 기존·운영 DB 증분 적용 안전.')
+    continue
+  }
+
+  // 대역 + (out-of-order 없음 | false) → 이 그룹 FAIL
+  failures.push({ label, bands, oooState, summary })
 }
 
-// 대역 + (out-of-order 없음 | false) → FAIL
-const why = oooState === 'false'
-  ? '검사 B: out-of-order: false 가 명시돼 있습니다'
-  : '검사 A: out-of-order 설정이 없습니다'
-console.error(`\n✖ 마이그레이션 안전성 게이트 실패 — ${summary}`)
-console.error(`  ${why}.`)
-console.error(`  접두사 번호 대역(${bands}개 대역)은 새 저접두사 마이그레이션이 이미 적용된 고접두사보다`)
-console.error('  버전이 낮은 "구조적 out-of-order"를 만듭니다. 허용이 꺼져 있으면 기존·운영 DB가')
-console.error('  validate 실패로 기동 불가합니다 (CI는 빈 DB라 통과 — 운영에서만 터집니다).')
-console.error('\n  해결:')
-console.error('    • Spring(yaml):  spring.flyway.out-of-order: true')
-console.error('    • flyway.conf:   flyway.outOfOrder=true')
-console.error('  또는 모든 모듈을 단일 단조 증가 번호 체계로 통일하세요.')
-console.error('  단일 출처: docs/db-standards.md · templates/rules/stacks/flyway.md\n')
-process.exit(1)
+if (failures.length > 0) {
+  for (const { label, bands, oooState, summary } of failures) {
+    const why = oooState === 'false'
+      ? '검사 B: out-of-order: false 가 명시돼 있습니다'
+      : '검사 A: out-of-order 설정이 없습니다'
+    console.error(`\n✖ 마이그레이션 안전성 게이트 실패${label} — ${summary}`)
+    console.error(`  ${why}.`)
+    console.error(`  접두사 번호 대역(${bands}개 대역)은 새 저접두사 마이그레이션이 이미 적용된 고접두사보다`)
+    console.error('  버전이 낮은 "구조적 out-of-order"를 만듭니다. 허용이 꺼져 있으면 기존·운영 DB가')
+    console.error('  validate 실패로 기동 불가합니다 (CI는 빈 DB라 통과 — 운영에서만 터집니다).')
+    console.error('\n  해결:')
+    console.error('    • Spring(yaml):  spring.flyway.out-of-order: true')
+    console.error('    • flyway.conf:   flyway.outOfOrder=true')
+    console.error('  또는 모든 모듈을 단일 단조 증가 번호 체계로 통일하세요.')
+  }
+  console.error('  단일 출처: docs/db-standards.md · templates/rules/stacks/flyway.md\n')
+  process.exit(1)
+}
+
+process.exit(0)

@@ -42,6 +42,30 @@ check "대역 + '!(prod | staging)' 괄호부정 ooo:true → FAIL(#223-paren)" 
 check "대역 + 별도 application-staging.yml ooo:true → FAIL(#227)" 1 "$FIX/bad-staging-file"
 # B2: 대역 repo에 타임스탬프 버전 1개 혼입 — Math.max 오판으로 대역검사 꺼지던 false-pass 차단
 check "대역+타임스탬프 혼입 → FAIL(B2)"          1 "$FIX/bad-timestamp-mix"
+# #3: 8자리이나 유효 날짜 아님(V10000001 월00) — 자릿수만 보고 타임스탬프로 오판해 대역검사 꺼지던 false-pass 차단
+check "8자리 비-날짜 대역(10000001) → FAIL(#3)"  1 "$FIX/bad-8digit-band"
+# #1: 멀티모듈 격리 — svcA(대역·ooo없음)가 무관 svcB(ooo:true)의 크레딧을 받아 통과하던 greedy false-pass 차단
+check "멀티모듈 svcA대역+svcB무관ooo:true → FAIL(#1)" 1 "$FIX/bad-multimodule-isolation"
+# #2-a(AC-5): 촘촘밴드(갭<100, 휴리스틱 미감지)를 scheme=prefix-band 선언으로 강제 밴드검사 → ooo없음 → FAIL
+check "scheme=prefix-band 선언 촘촘밴드 → FAIL(#2)"  1 "$FIX/bad-dense-band-declared"
+# #2-b(AC-6): 휴리스틱상 대역이나 scheme=monotonic 선언 → 강제 통과(false-FAIL escape hatch)
+check "scheme=monotonic 선언 → 통과(#2)"            0 "$FIX/good-monotonic-declared"
+# #2-c(AC-6): scheme=timestamp 선언 → 타임스탬프 취급 통과
+check "scheme=timestamp 선언 → 통과(#2)"            0 "$FIX/good-timestamp-declared"
+# #2-d(AC-8): 미인식 scheme 값 → 무시(휴리스틱 폴백)·크래시 없음 → 단조라 통과
+check "scheme=bogus(미인식) → 무시·통과(AC-8)"      0 "$FIX/good-scheme-invalid"
+# 리뷰 D1a: scheme 선언이 비운영 파일(application-test.yml)에만 — ooo:true와 동일 스코프로 무시 → 대역 FAIL(스푸핑 차단)
+check "scheme=monotonic 비운영파일 → 무시·대역 FAIL(D1)" 1 "$FIX/bad-scheme-nonprod-file"
+# 리뷰 D1b: scheme이 주석 아닌 값 문자열에 — 무시(주석만 인정) → 대역 FAIL(값 스푸핑 차단)
+check "scheme 값문자열 스푸핑 → 무시·대역 FAIL(D1)"  1 "$FIX/bad-scheme-value-spoof"
+# 리뷰 D1c: 따옴표 안 #가 포함된 값(`"hotfix #1 …scheme=monotonic"`) — 따옴표 인식으로 주석 아님 → 대역 FAIL
+check "scheme 따옴표속# 값 스푸핑 → 무시·대역 FAIL(D1c)" 1 "$FIX/bad-scheme-hash-value-spoof"
+# 리뷰 D2: 날짜형 8자리 대역(휴리스틱상 타임스탬프)도 scheme=prefix-band 선언으로 강제 밴드 → FAIL(escape hatch)
+check "날짜형8자리+scheme=prefix-band → FAIL(D2)"    1 "$FIX/bad-dateshaped-8digit-declared"
+# 리뷰 F3: 모듈 자체 config(ooo없음)가 조상 config(ooo:true)보다 우선(nearest 권위) → FAIL
+check "nearest-config 권위(모듈 ooo없음) → FAIL(F3)" 1 "$FIX/bad-nearest-config-authoritative"
+# 리뷰 F4: config가 조상 아님 → 미연결 그룹 skip+경고(오탐 금지) → 통과
+check "비-조상 config → skip 통과(F4)"              0 "$FIX/good-nonancestor-skip"
 # B3: 주석 처리된 out-of-order:true가 실제 false를 덮던 false-pass 차단
 check "대역+주석 ooo:true → FAIL(B3)"            1 "$FIX/bad-commented-ooo"
 # 대역 + out-of-order:true → 통과
