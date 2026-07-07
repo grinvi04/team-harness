@@ -40,7 +40,7 @@
 | [I] 온보딩 반증-스모크 | ✅ **완료** | 2026-07-08. `tests/plugin-wiring-test.sh` — hooks.json을 진실원본으로 삼아 배선 검증: 계층1(AC-1~3 matcher→guard.sh 경로해석+보호브랜치 차단 exit2 반증-구동)·계층0.5(AC-4~6 pre-commit 아티팩트+hooksPath 오설정FAIL/미설정WARN). ci-gate 등록. 반증 확정(guard 경로 깨면 FAIL). troubleshooting.md:33 거짓 "repo-sync가 점검" 교정(mjs 순수성 유지). onboarding §B 설정→검증·§C 스모크. 버전 bump 없음(소비-비대면). spec: onboarding-falsification-smoke.md |
 | [A] guard.sh shlex 재설계 | ✅ **완료** | v0.29.27. 순수 bash 토큰화(`scripts/lib/tokenize.sh`)로 monster global-opts 정규식 소멸(0곳)·PROTECTED_BRANCHES 단일화. commit·reset·force-push + gh-pr·validator-del·npm 이관, F5·rm-core는 보수(정규식 유지). 독립 적대적 검증 2회(reset 신규홀0 + validator `$`앵커 HOLE 발견·봉쇄). $'...'·pnpm·__tests__ 등 커버리지 확장은 동작보존 밖이라 후속이슈로 분리. guard-test 132+matrix 84+tokenizer 24=240 GREEN. spec: guard-shlex-tokenizer.md |
 | [B]/#219 migration 선언입력 재설계 | ✅ **완료** | PR #243 merged (v0.29.26). #1 nearest-config 모듈 partition · #3 실제 날짜검증(isValidDate) · #2 선택적 scheme 선언(opt-in, ooo와 동일 신뢰 스코프·따옴표 인식). 하위호환(기존 21 테스트 GREEN), false-FAIL 0. spec: migration-declarative-scheme.md |
-| [K] 버전 롤백·canary | ❔ 확인 안 됨 | 관련 커밋 없음 |
+| [K] 버전 롤백·canary | ✅ **해소(비결함)** | 2026-07-08 원본 재도출. **롤백**: 실재·배선됨 — forward-only `git revert`+`/hotfix`·`/release` 재릴리즈에 올라타 있고, v0.16.1 사건(decisions.md 71행)에서 나쁜 버전 배포→v0.16.2 재릴리즈로 **실제 복구**(통과가 아니라 실동작으로 확정). "관련 커밋 없음"은 낡음 — *"rollback"제목* 커밋이 없을 뿐 범용 revert+hotfix 기계에 실려 있음. **canary**: speculative(YAGNI) — 로컬-디렉터리 마켓플레이스=머신별 수동 pull 캐시 모델(중앙배포·롤아웃 컨트롤러 없음)이라 canary 삽입점이 아키텍처적으로 부재. 이 모델의 실제 실패모드는 정반대(harness-maintenance.md 31행: stale 캐시 **미갱신**으로 전파지연) — canary는 없는 문제를 최적화. 솔로+소비 repo ~4개 규모에 롤아웃 컨트롤러 구축은 불요 유연성 |
 | [L] 시크릿 런북 + 파괴 DDL 게이트 | ✅ **완료** | v0.29.28. (A) operations.md 시크릿 유출 대응 런북(폐기-우선 5단계, 감지·차단 계층 참조만). (B) `check-destructive-ddl.mjs` 파괴 DDL 정적 게이트 — 문장단위 DROP TABLE·TRUNCATE·DROP COLUMN 등, 승인마커(`destructive-ok`) escape, 주석·문자열·마커 스푸핑 따옴표-인식 차단(반증 픽스처+7 우회공격 확정). stack-agnostic L3 전파(templates/ci·new-repo required·repo-sync sentinel). destructive-ddl-test 20 GREEN. spec: secret-runbook-ddl-gate.md |
 
 ---
@@ -50,7 +50,7 @@
 - **Phase 1 (전제, near-term):** `[D]` python3 degraded(✅ #239) + `[F]` break-glass 원자성(✅ #240) + repo-sync protection-on 검증(✅ #238+SKILL)
   → Phase 2 [A]의 안전 위임(force-push를 계층0에 넘김) 전제를 만든다. **✅ Phase 1 완료 — Phase 2 진입 가능.**
 - **Phase 2 (재설계, L-effort):** `[B]`/#219(✅ #243) → `[A]`(✅ v0.29.27). **각각 전용 `/plan`.** **Phase 2 완료 — 심장부 재설계 종료.** 잔여 = Phase 3 안전망·Phase 4 문서위생 + [A] 커버리지 확장 후속이슈.
-- **Phase 3 (안전망):** `[L]`(✅ v0.29.28 시크릿 런북+파괴 DDL 게이트) · `[I]`(✅ 2026-07-08 온보딩 배선 반증-스모크) 완료. 잔여 = `[E]` 중앙 ship · `[F]` 후반 · `[K]` — 병렬, 클러스터 범위.
+- **Phase 3 (안전망):** `[L]`(✅ v0.29.28 시크릿 런북+파괴 DDL 게이트) · `[I]`(✅ 2026-07-08 온보딩 배선 반증-스모크) · `[K]`(✅ 2026-07-08 해소(비결함) — 롤백은 revert+hotfix 배선·v0.16.1 실복구, canary는 pull-캐시 모델에 삽입점 부재=YAGNI) 완료. 잔여 = `[E]` 중앙 ship · `[F]` 후반 — 병렬, 클러스터 범위.
 - **Phase 4 (문서위생):** `[G]`(포인터화·grep가드, 80KB 분할은 제외) · `[H]`.
 
 ---
