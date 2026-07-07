@@ -204,22 +204,24 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git[[:space:]]+(checkout[[:
   fi
 fi
 
-# 맨손 gh pr create / gh pr merge 금지 — PR 생성·머지는 스킬(래퍼 스크립트) 경유만 허용.
-# 스킬은 scripts/pr-create.sh·pr-merge.sh를 호출하고, 그 안의 gh는 자식 프로세스라 이 PreToolUse 훅에
-# 걸리지 않는다(훅은 Claude의 Bash 도구 호출만 본다). raw gh pr create/merge를 직접 치는 반사적
-# 맨손질만 차단한다. (난독화 우회 — temp 스크립트에 gh 숨기기 — 는 plan에서 제외한 범위.)
-# 명령 *위치*에서만 매칭 — grep/echo 등의 "gh pr create" 문자열 언급은 통과(오탐 방지).
-# 분리자: 문자열 시작 `^`, `; & (`, 그리고 **공백 동반 파이프 `| `**(셸 파이프 — echo y | gh pr merge,
-#   cat body | gh pr create --body-file - 류 실재 호출을 잡는다). 무공백 `|gh`는 정규식 alternation
-#   (grep "a|gh pr create")일 확률이 높아 분리자로 보지 않는다(따옴표 인식 불가라 이 휴리스틱으로 절충).
-# 후행: 공백·끝·`) ; & |`(서브셸 닫힘 $(gh pr create)·체인·파이프아웃).
-# 알려진 한계(보조 장치, 최종 강제는 계층0): `echo y|gh pr merge`(무공백 파이프)·따옴표 안 명령·
-#   env-prefix·temp 스크립트 난독화는 못 잡는다.
-if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+create([[:space:]);&|]|$)"; then
-  deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다."
-fi
-if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+merge([[:space:]);&|]|$)"; then
-  deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다."
+# 맨손 gh pr create / gh pr merge 금지 (토큰 판정 — #220-A). PR 생성·머지는 스킬(래퍼 스크립트) 경유만 허용.
+# 스킬 내부 gh는 자식 프로세스라 이 훅에 안 걸린다 — raw gh pr create/merge 반사적 맨손질만 차단.
+# 각 세그먼트의 token0=gh·token1=pr·token2∈{create,merge}면 차단. 토큰화가 정규식 휴리스틱을 대체:
+#   - 따옴표 안 명령/alternation `grep -E 'foo|gh pr create'`는 `|`가 따옴표 안이라 세그먼트 분리 안 됨
+#     → token0=grep → 통과(기존 '무공백 |gh' 휴리스틱을 진짜 따옴표 인식으로 대체, 정밀↑).
+#   - echo/grep 등의 "gh pr create" 문자열 언급 → 따옴표 안이라 한 토큰 → token0≠gh → 통과.
+#   - 실 파이프 `echo y | gh pr merge`·서브셸 `$(gh pr create)`·체인 `&& gh pr create` → 각 세그먼트 token0=gh → 차단.
+# 알려진 한계(보조 장치, 최종 강제는 계층0): `sudo gh pr create`(wrapper 뒤 gh는 token0 아님 → category(a)
+#   under-block, 서버 백스톱이 정본)·env-prefix·temp 스크립트 난독화는 못 잡는다.
+if [[ "$LITE" != 1 ]]; then
+  while IFS= read -r GSEG; do
+    _tok_into _gt "$GSEG"
+    [[ "${_gt[0]:-}" == gh && "${_gt[1]:-}" == pr ]] || continue
+    case "${_gt[2]:-}" in
+      create) deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다." ;;
+      merge)  deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다." ;;
+    esac
+  done < <(split_segments "$COMMAND")
 fi
 
 # git reset --hard 금지 (토큰 판정 — #220-A, 기존 monster 정규식 대체)
