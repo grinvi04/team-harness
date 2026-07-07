@@ -1,2 +1,7 @@
 # macOS
 .DS_Store
+
+# 목표·마일스톤 로컬 대시보드 — 정본은 GitHub Milestone/Issue (/goal·/milestone은 커밋 안 함)
+# team-harness도 자기 표준(templates/gitignore.snippet)을 dogfood — decisions K3
+docs/goals/
+docs/milestones/
