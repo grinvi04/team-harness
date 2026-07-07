@@ -78,6 +78,22 @@ case_ "reset even in LITE"              2 "git reset --hard"                    
 case_ "reset --soft"                    0 "git reset --soft HEAD~1"                      "$FEAT"
 case_ "grep mention reset --hard"       0 "grep 'git reset --hard' notes.txt"           "$DEV"
 
+# ── #220-A 토큰 재설계 적대적 헌트 (reset = category(b) 무백스톱 — 신규 홀 0 반증) ──
+# 토큰판정이 현행 정규식이 놓치던 난독화(따옴표 벗김·백슬래시·wrapper·서브셸)를 닫는다.
+# 단 완결은 아님: ANSI-C `$'git' reset --hard`류는 여전히 통과한다(tokenize가 $'...'를 디코드 안 함).
+#   이는 **현행 정규식도 동일하게 통과**하던 것이라 회귀 아니며, `$'...'`는 의도적 셸 문법이지
+#   위협모델의 "혼란한 에이전트 반사적 형태"가 아니므로 category(b) "흔한 형태만" 원칙상 수용(정본 강제=계층0).
+case_ "reset wrapper xargs"             2 "xargs git reset --hard"                       "$DEV"
+case_ "reset wrapper nice"              2 "nice git reset --hard"                        "$DEV"
+case_ "reset 백슬래시 \\git 난독화"      2 "\\git reset --hard"                           "$DEV"
+case_ "reset 따옴표 --h\"\"ard 난독화"    2 'git reset --h""ard'                           "$DEV"
+case_ "reset 서브셸 (…)"                2 "(git reset --hard)"                           "$DEV"
+case_ "reset 체인 && 뒤"                2 "echo hi && git reset --hard"                  "$DEV"
+case_ "reset 세미콜론 뒤"               2 "echo hi; git reset --hard"                    "$DEV"
+# 과차단 반증(정당한데 차단 금지) — mention·soft·다른세그먼트 --hard
+case_ "reset 따옴표 전체 mention"        0 'echo "git reset --hard"'                      "$DEV"
+case_ "reset soft + 딴세그 --hard mention" 0 'git reset --soft && echo "--hard"'          "$FEAT"
+
 # ── rm 코어/검증기: DENY ──
 case_ "rm -rf src"                      2 "rm -rf src"                                   "$DEV"
 case_ "rm -rf quoted src"               2 'rm -rf "src"'                                 "$DEV"
@@ -91,6 +107,30 @@ case_ "rm -rf even in LITE"             2 "rm -rf src"                          
 case_ "rm -rf ./build"                  0 "rm -rf ./build"                               "$FEAT"
 case_ "rm build log"                    0 "rm build/output.log"                          "$FEAT"
 case_ "terraform -rf plan (word bound)" 0 "terraform -rf plan apply"                     "$DEV"
+
+# ── #220-A Slice2 헌트: validator-delete·npm (category(b) — 신규 홀 0 + mention 과차단 해소) ──
+# validator DENY (wrapper·따옴표 관용)
+case_ "del wrapper sudo rm tests/"      2 "sudo rm tests/"                               "$FEAT"
+case_ "del xargs rm test 파일"          2 "xargs rm src/foo.test.ts"                     "$FEAT"
+case_ "del 따옴표 rm -rf 'tests'"        2 "rm -rf 'tests'"                               "$FEAT"
+# 검증2차 회귀(HOLE-1): 파일패턴 $ 종단앵커가 glob/접미 트레일링을 놓치던 홀 — 비앵커 부분매치로 봉쇄
+case_ "del glob *Test.java*"            2 "rm *Test.java*"                               "$FEAT"
+case_ "del glob *_test.py*"             2 "rm *_test.py*"                                "$FEAT"
+case_ "del 접미 foo_test.py.bak"        2 "rm foo_test.py.bak"                           "$FEAT"
+case_ "del 접미 UserTest.java.orig"     2 "rm UserTest.java.orig"                        "$FEAT"
+# validator ALLOW (mention·--rm 플래그·유사경로 — 현행 과차단 해소)
+case_ "del mention echo rm tests/"      0 'echo "rm tests/"'                             "$FEAT"
+case_ "del docker --rm 플래그"          0 "docker run --rm tests/img"                    "$FEAT"
+case_ "del rm latest/ (유사경로)"        0 "rm latest/"                                   "$FEAT"
+case_ "del rm 무관파일 통과"            0 "rm build/output.log"                          "$FEAT"
+# npm DENY (wrapper·순서·=값)
+case_ "npm wrapper sudo -g"             2 "sudo npm install -g leftpad"                  "$FEAT"
+case_ "npm 순서 --global 먼저"          2 "npm --global install leftpad"                 "$FEAT"
+case_ "npm --global=true"               2 "npm install --global=true leftpad"           "$FEAT"
+# npm ALLOW (mention·ci·로컬)
+case_ "npm mention echo install -g"     0 'echo "npm install -g x"'                      "$FEAT"
+case_ "npm ci --global (비install)"     0 "npm ci --global"                              "$FEAT"
+case_ "npm install 로컬"                0 "npm install --save-dev jest"                  "$FEAT"
 
 # ── commit on 보호: DENY ──
 case_ "commit on main"                  2 "git commit -m x"                              "$MAIN"
