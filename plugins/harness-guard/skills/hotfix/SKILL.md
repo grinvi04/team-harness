@@ -104,12 +104,14 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 **`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 사람 승인 + CI + 머지만.
-충돌 시 hotfix 브랜치에 develop을 merge해 해소 후 재푸시.
+충돌 시 (hotfix 브랜치는 Phase 3에서 삭제됨) back-merge PR의 head인 `sync/backmerge-$FIX_NAME`에서 develop을 merge해 해소 후 재푸시.
 
 ```bash
-# 머지 완료 후 브랜치 정리
-git branch -d hotfix/$FIX_NAME
+# 머지 완료 후 브랜치 정리 (sync 브랜치에서 벗어난 뒤 로컬 삭제 — 원격 sync는 back-merge 머지 시 자동 삭제)
+git checkout develop && git pull origin develop
+git branch -d hotfix/$FIX_NAME 2>/dev/null || true
 git push origin --delete hotfix/$FIX_NAME 2>/dev/null || true
+git branch -d sync/backmerge-$FIX_NAME 2>/dev/null || true
 ```
 
 > ⚠️ develop 반영을 건너뛰면 다음 릴리즈 때 수정이 사라진다.
