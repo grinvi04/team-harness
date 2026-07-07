@@ -136,6 +136,18 @@ check "D2: 테스트파일 mv(리네임) 통과(≠rm)"     0 Bash "mv src/foo.t
 check "D2: 마이그레이션 cat(읽기) 통과(≠rm)"    0 Bash "cat db/migration/V1__init.sql"       "$FEAT"
 check "D2: npm install(로컬) 통과(≠-g)"         0 Bash "npm install"                         "$FEAT"
 check "D2: npm install --save-dev 통과"         0 Bash "npm install --save-dev jest"         "$FEAT"
+# #245: 전역설치 게이트 일반화 — npm 자체 누수(--location=global·결합 -gf) + pnpm·yarn
+check "245: npm --location=global 차단"        2 Bash "npm install --location=global x"     "$DEV"
+check "245: npm 결합플래그 -gf 차단"           2 Bash "npm install -gf x"                    "$DEV"
+check "245: pnpm add -g 차단"                  2 Bash "pnpm add -g typescript"               "$DEV"
+check "245: pnpm add --global 차단"            2 Bash "pnpm add --global typescript"         "$DEV"
+check "245: yarn global add 차단"              2 Bash "yarn global add typescript"           "$DEV"
+# #245 과차단 반증 — g-포함 롱플래그·g-없는 번들·로컬설치·비설치 서브커맨드는 통과
+check "245over: npm --legacy-peer-deps 통과"   0 Bash "npm install --legacy-peer-deps"       "$FEAT"
+check "245over: npm install -f 통과(g없음)"    0 Bash "npm install -f leftpad"               "$FEAT"
+check "245over: pnpm install 로컬 통과"        0 Bash "pnpm install"                         "$FEAT"
+check "245over: yarn add 로컬 통과"            0 Bash "yarn add leftpad"                     "$FEAT"
+check "245over: yarn global list 통과(비설치)" 0 Bash "yarn global list"                     "$FEAT"
 check "D2: git stash 통과"                      0 Bash "git stash"                           "$FEAT"
 check "D2: 테스트파일 cp(복사) 통과(≠rm)"       0 Bash "cp src/a.test.ts /backup/"           "$FEAT"
 

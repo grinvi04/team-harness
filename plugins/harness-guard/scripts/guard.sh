@@ -291,24 +291,36 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-
   set +f
 fi
 
-# npm 글로벌 패키지 설치 금지 (토큰 판정 — #220-A)
-# 세그먼트에 npm 토큰 + install-verb 토큰(install/i/add) + 글로벌 플래그 토큰(-g/--global[=v])이 모두
-# 있으면 순서 무관하게 차단. 토큰화로 순서(G3)·wrapper(sudo npm)·따옴표 무관, mention(echo "npm install
-# -g x"는 한 토큰) 통과. G2(echo -g && npm install)는 세그먼트 격리로 오탐 방지. category(b) — LITE에서도 유지.
-# 알려진 한계(검증 반영): pnpm/yarn 전역설치(`pnpm add -g`·`yarn global add`)는 미커버 — 이 게이트 범위는
-#   npm이다. (OLD 정규식은 `npm ` 부분문자열이 `pnpm `에 우연히 매치돼 pnpm만 비일관 차단·yarn은 못 잡았다.
-#   토큰판정은 npm을 정확히 봐 그 우연을 제거.) 전역오염 방지를 pnpm/yarn까지 넓힐지는 별도 정책 결정 대상.
+# 패키지매니저 전역설치 금지 (토큰 판정 — #220-A·#245)
+# 세그먼트에서 매니저 토큰(npm/pnpm/yarn) 존재 시 매니저별 전역설치 시그니처를 차단:
+#   npm/pnpm: install-verb(install/i/add) + 전역플래그(-g·--global[=v]·--location=global·g-포함 단일대시 번들 -gf)
+#   yarn(classic): `global` 서브커맨드 + `add` verb (`yarn global add`) — remove/list 등 비설치는 비대상.
+# 토큰화로 순서(G3)·wrapper(sudo)·따옴표 무관, mention(echo "npm install -g x"는 한 토큰) 통과.
+# G2(echo -g && npm install)는 세그먼트 격리로 오탐 방지. category(b) — LITE에서도 유지.
+# 과차단 방어(#245): g-번들은 **단일대시만** — `--legacy-peer-deps`류 g-포함 롱플래그는 `--*`로 먼저
+#   흡수해 제외. `npm ci`는 install-verb 아님(통과). 알려진 한계(타이트 스코프): `--location global`(공백형)·
+#   ANSI-C `$'...'`는 흔한 형태가 아니라 비대상 — 정본 강제는 계층0.
 while IFS= read -r NSEG; do
-  seg_has_token "$NSEG" "npm" || continue
+  _mgr=''
+  for _m in npm pnpm yarn; do seg_has_token "$NSEG" "$_m" && { _mgr="$_m"; break; }; done
+  [[ -n "$_mgr" ]] || continue
   _tok_into _nt "$NSEG"
-  _nv=0; _ng=0
+  _nv=0; _ng=0; _yglobal=0; _yadd=0
   for _tok in "${_nt[@]}"; do
     case "$_tok" in
-      install|i|add) _nv=1;;
-      -g|--global|--global=*) _ng=1;;
+      install|i) _nv=1;;
+      add) _nv=1; _yadd=1;;
+      global) _yglobal=1;;
+      -g|--global|--global=*|--location=global) _ng=1;;
+      --*) ;;                                   # 롱플래그(--legacy-peer-deps 등) — g-번들 판정에서 제외
+      -*g*) _ng=1;;                             # 단일대시 g-포함 번들(-gf·-fg)
     esac
   done
-  [[ $_nv -eq 1 && $_ng -eq 1 ]] && deny "npm install -g 금지 — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (npm install --save-dev 또는 npx)"
+  if [[ "$_mgr" == yarn ]]; then
+    [[ $_yglobal -eq 1 && $_yadd -eq 1 ]] && deny "패키지매니저 전역설치 금지(yarn global add) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (yarn add --dev 또는 npx)"
+  else
+    [[ $_nv -eq 1 && $_ng -eq 1 ]] && deny "패키지매니저 전역설치 금지($_mgr -g) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (--save-dev 또는 npx)"
+  fi
 done < <(split_segments "$COMMAND")
 
 exit 0

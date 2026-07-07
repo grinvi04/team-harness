@@ -143,6 +143,20 @@ case_ "npm --global=true"               2 "npm install --global=true leftpad"   
 case_ "npm mention echo install -g"     0 'echo "npm install -g x"'                      "$FEAT"
 case_ "npm ci --global (비install)"     0 "npm ci --global"                              "$FEAT"
 case_ "npm install 로컬"                0 "npm install --save-dev jest"                  "$FEAT"
+# ── #245 헌트: 전역설치 게이트 일반화 (npm 누수·pnpm·yarn) ──
+case_ "245 npm --location=global"       2 "npm install --location=global x"              "$FEAT"
+case_ "245 npm 결합 -gf"                2 "npm install -gf x"                            "$FEAT"
+case_ "245 npm 결합 -fg (순서무관)"     2 "npm i -fg x"                                  "$FEAT"
+case_ "245 pnpm add -g"                 2 "pnpm add -g typescript"                       "$FEAT"
+case_ "245 pnpm wrapper sudo add -g"    2 "sudo pnpm add -g typescript"                  "$FEAT"
+case_ "245 yarn global add"             2 "yarn global add typescript"                   "$FEAT"
+# #245 ALLOW 과차단 반증 (g-롱플래그·g-없는번들·로컬·비설치·mention·세그먼트격리)
+case_ "245 npm --legacy-peer-deps"      0 "npm install --legacy-peer-deps"               "$FEAT"
+case_ "245 npm -f (g없는 번들)"         0 "npm install -f leftpad"                       "$FEAT"
+case_ "245 pnpm install 로컬"           0 "pnpm install"                                 "$FEAT"
+case_ "245 yarn add 로컬"               0 "yarn add leftpad"                             "$FEAT"
+case_ "245 yarn global list (비설치)"   0 "yarn global list"                             "$FEAT"
+case_ "245 세그먼트격리 echo -g && pnpm i" 0 "echo -g && pnpm i"                         "$FEAT"
 
 # ── commit on 보호: DENY ──
 case_ "commit on main"                  2 "git commit -m x"                              "$MAIN"
