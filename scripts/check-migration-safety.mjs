@@ -121,11 +121,24 @@ for (const f of migrationFiles) {
 }
 const sorted = [...new Set(versions)].sort((a, b) => a - b)
 
-// 타임스탬프 버전(8자리 이상, 예: 20240101…)은 접두사 대역 규약이 아님 → 검사 A 비대상.
-// B2: **모든** 버전이 임계 이상일 때만 순수 타임스탬프로 본다(Math.min). 접두사 대역(1xxx..4xxx)에
-// 타임스탬프 하나만 섞이면(min<임계) 대역 검사를 계속 켜야 함 — Math.max면 하나로 검사 전체가 꺼져 false-pass.
-const TIMESTAMP_MIN = 1e7
-const isTimestamp = sorted.length > 0 && Math.min(...sorted) >= TIMESTAMP_MIN
+// 타임스탬프 버전(예: 20240101…)은 접두사 대역 규약이 아님 → 검사 A 비대상.
+// #219-3: 자릿수(과거 TIMESTAMP_MIN=1e7)가 아니라 **실제 날짜형식**으로 판정한다 — V10000001(월=00) 같은
+//   8자리 모듈 접두사 대역이 자릿수만으로 타임스탬프로 오판돼 대역검사가 꺼지던 false-pass 차단.
+//   8자리=yyyymmdd(월 1-12·일 1-31), 14자리=yyyymmddHHMMSS. 그 외 자릿수·범위밖은 날짜 아님.
+// B2 유지: **모든** 버전이 유효 날짜일 때만 순수 타임스탬프(every). 대역에 타임스탬프 하나만 섞여도(비-날짜 존재)
+//   대역 검사를 계속 켠다 — 하나로 검사 전체가 꺼지는 false-pass 방지.
+function isValidDate(n) {
+  const s = String(n)
+  if (s.length !== 8 && s.length !== 14) return false
+  const mo = +s.slice(4, 6), d = +s.slice(6, 8)
+  if (mo < 1 || mo > 12 || d < 1 || d > 31) return false
+  if (s.length === 14) {
+    const h = +s.slice(8, 10), mi = +s.slice(10, 12), se = +s.slice(12, 14)
+    if (h > 23 || mi > 59 || se > 59) return false
+  }
+  return true
+}
+const isTimestamp = sorted.length > 0 && sorted.every(isValidDate)
 
 // 대역 판정: 정렬된 버전 사이에 예약 점프(큰 갭)가 1개 이상 있으면 접두사 대역.
 // 단조 증가(…,3,4,5,…)는 큰 갭이 없어 단일 대역 → 안전.

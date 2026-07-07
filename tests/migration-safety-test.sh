@@ -42,6 +42,8 @@ check "대역 + '!(prod | staging)' 괄호부정 ooo:true → FAIL(#223-paren)" 
 check "대역 + 별도 application-staging.yml ooo:true → FAIL(#227)" 1 "$FIX/bad-staging-file"
 # B2: 대역 repo에 타임스탬프 버전 1개 혼입 — Math.max 오판으로 대역검사 꺼지던 false-pass 차단
 check "대역+타임스탬프 혼입 → FAIL(B2)"          1 "$FIX/bad-timestamp-mix"
+# #3: 8자리이나 유효 날짜 아님(V10000001 월00) — 자릿수만 보고 타임스탬프로 오판해 대역검사 꺼지던 false-pass 차단
+check "8자리 비-날짜 대역(10000001) → FAIL(#3)"  1 "$FIX/bad-8digit-band"
 # B3: 주석 처리된 out-of-order:true가 실제 false를 덮던 false-pass 차단
 check "대역+주석 ooo:true → FAIL(B3)"            1 "$FIX/bad-commented-ooo"
 # 대역 + out-of-order:true → 통과
