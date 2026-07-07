@@ -230,6 +230,19 @@ function scanOoo(groupConfigFiles) {
 //   막은 비운영·값 스푸핑 false-pass가 선언 경로로 재유입된다.
 const SCHEME_RE = /migration-safety:\s*scheme\s*=\s*([a-z][a-z-]*)/i
 const VALID_SCHEMES = new Set(['prefix-band', 'monotonic', 'timestamp'])
+// 따옴표 인식 주석 추출 — 첫 **비따옴표** `#` 뒤를 주석으로 본다(null=주석 없음). 순진한 indexOf('#')는
+//   값 문자열 안의 `#`(예: `note: "hotfix #1 … scheme=monotonic"`)를 주석 경계로 오인해 스푸핑 false-PASS를
+//   내므로(scanOoo는 안전측 오류지만 여기선 밴드검사를 *끄는* 불안전측이라) 따옴표 상태를 추적한다.
+function commentOf(line) {
+  let inS = false, inD = false
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i]
+    if (c === "'" && !inD) inS = !inS
+    else if (c === '"' && !inS) inD = !inD
+    else if (c === '#' && !inS && !inD) return line.slice(i + 1)
+  }
+  return null
+}
 function readScheme(groupConfigFiles) {
   const prodConfigFiles = groupConfigFiles.filter((cf) => !NONPROD_PROFILE_FILE_RE.test(basename(cf)))
   for (const cf of prodConfigFiles) {
@@ -242,9 +255,9 @@ function readScheme(groupConfigFiles) {
       const profileLine = codeLines.find((l) => ON_PROFILE_RE.test(l))
       if (profileLine && !isProdApplicable(profileLine.match(ON_PROFILE_RE)[1])) continue
       for (const raw of rawLines) {
-        const hash = raw.indexOf('#')
-        if (hash < 0) continue                       // 주석 없는 라인 무시 — 값 문자열 스푸핑 차단
-        const m = raw.slice(hash + 1).match(SCHEME_RE)
+        const comment = commentOf(raw)               // 따옴표 인식 — 값 안의 #는 주석 아님(스푸핑 차단)
+        if (comment === null) continue
+        const m = comment.match(SCHEME_RE)
         if (!m) continue
         const s = m[1].toLowerCase()
         if (VALID_SCHEMES.has(s)) return s
