@@ -79,7 +79,10 @@ case_ "reset --soft"                    0 "git reset --soft HEAD~1"             
 case_ "grep mention reset --hard"       0 "grep 'git reset --hard' notes.txt"           "$DEV"
 
 # ── #220-A 토큰 재설계 적대적 헌트 (reset = category(b) 무백스톱 — 신규 홀 0 반증) ──
-# 현행 정규식이 놓치던 난독화를 토큰판정이 닫음(엄격히 더 강함). 홀=막아야 하는데 통과.
+# 토큰판정이 현행 정규식이 놓치던 난독화(따옴표 벗김·백슬래시·wrapper·서브셸)를 닫는다.
+# 단 완결은 아님: ANSI-C `$'git' reset --hard`류는 여전히 통과한다(tokenize가 $'...'를 디코드 안 함).
+#   이는 **현행 정규식도 동일하게 통과**하던 것이라 회귀 아니며, `$'...'`는 의도적 셸 문법이지
+#   위협모델의 "혼란한 에이전트 반사적 형태"가 아니므로 category(b) "흔한 형태만" 원칙상 수용(정본 강제=계층0).
 case_ "reset wrapper xargs"             2 "xargs git reset --hard"                       "$DEV"
 case_ "reset wrapper nice"              2 "nice git reset --hard"                        "$DEV"
 case_ "reset 백슬래시 \\git 난독화"      2 "\\git reset --hard"                           "$DEV"

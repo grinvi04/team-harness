@@ -228,6 +228,9 @@ fi
 # time/#204) 무관하게 잡는다 — 토큰화가 이 변형들을 정규화하기 때문. `grep 'git reset --hard'`는 그게 한
 # 따옴표 토큰이라 standalone git 토큰이 없어 통과(mention 보호). `git reset --soft`는 --hard 토큰 부재로 통과.
 # category(b) 무백스톱 파괴가드 — LITE repo에서도 유지(안전측), under-block 편향 미적용.
+# 알려진 한계(보조 장치, 최종 강제는 계층0): ANSI-C `$'git' reset --hard`류는 tokenize가 $'...'를
+#   디코드하지 않아 통과한다 — 현행 정규식과 동일하고, `$'...'`는 의도적 셸 문법이지 흔한 반사형이
+#   아니라 위협모델상 수용(category(b)는 흔한 형태만 잡는다). 정밀 판정이 필요하면 계층0이 정본.
 while IFS= read -r RSEG; do
   [[ "$(git_subcommand_scan "$RSEG")" == reset ]] || continue
   if seg_has_token "$RSEG" "--hard"; then
