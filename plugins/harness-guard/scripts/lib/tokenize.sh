@@ -84,6 +84,31 @@ git_subcommand() {
   return 1
 }
 
+# git_subcommand_scan <segment>: **wrapper-tolerant** — 세그먼트 어디서든 첫 `git` 토큰을 찾아 그 서브커맨드를
+#   echo(전역옵션 스킵). git_subcommand와의 차이 = command-position 앵커가 아니라 **git 토큰 스캔**이라
+#   wrapper(sudo/time/env FOO=x)나 선행 토큰 뒤의 git도 잡는다. reset 게이트(category(b) safe-default,
+#   wrapper 뒤 파괴명령 차단)용. `git reset`이 따옴표 안 한 토큰(grep 'git reset --hard')이면 standalone
+#   git 토큰이 없어 매치 안 됨 → mention 보호 유지. (echo git reset류 overblock은 현행 bare-space 앵커와 동일.)
+git_subcommand_scan() {
+  local -a t; _tok_into t "$1"
+  local i=0 n=${#t[@]}
+  while (( i < n )); do
+    if [[ "${t[$i]}" == git ]]; then
+      ((i++))
+      while (( i < n )); do
+        case "${t[$i]}" in
+          -C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env) ((i+=2));;
+          -*) ((i++));;
+          *) printf '%s\n' "${t[$i]}"; return 0;;
+        esac
+      done
+      return 1
+    fi
+    ((i++))
+  done
+  return 1
+}
+
 # git_C_dir <segment>: 세그먼트에서 `-C <dir>` 값을 echo(없으면 rc=1). commit/force 게이트의 대상 repo 판정용.
 git_C_dir() {
   local -a t; _tok_into t "$1"

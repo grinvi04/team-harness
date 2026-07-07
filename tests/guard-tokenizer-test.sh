@@ -56,6 +56,12 @@ eq "H git_subcommand 비-git 빈값"   ""        "$(git_subcommand 'grep foo bar
 # git_C_dir: -C <dir> 추출(없으면 빈값)
 eq "H git_C_dir 추출"               "/p"      "$(git_C_dir 'git -C /p commit' || true)"
 eq "H git_C_dir 없으면 빈값"        ""        "$(git_C_dir 'git commit' || true)"
+# git_subcommand_scan: wrapper-tolerant — git 토큰을 스캔해 서브커맨드 반환(reset 게이트용)
+eq "H scan wrapper 뒤 reset"        "reset"   "$(git_subcommand_scan 'sudo git reset --hard' || true)"
+eq "H scan env 뒤 reset"            "reset"   "$(git_subcommand_scan 'env A=x git reset --hard' || true)"
+eq "H scan git -C reset"            "reset"   "$(git_subcommand_scan 'git -C . reset --hard' || true)"
+eq "H scan 따옴표 mention 미스캔"    ""        "$(git_subcommand_scan "grep 'git reset --hard' notes.txt" || true)"
+eq "H scan 비-git 빈값"             ""        "$(git_subcommand_scan 'rm -rf src' || true)"
 
 # ── AC-T6(bash 3.2)·AC-T7(파서 무의존)은 실행 환경 자체로 커버:
 #    이 테스트가 python3/jq 없이 순수 bash로 함수를 source·실행해 통과하면 두 AC 충족.

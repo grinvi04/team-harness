@@ -78,6 +78,19 @@ case_ "reset even in LITE"              2 "git reset --hard"                    
 case_ "reset --soft"                    0 "git reset --soft HEAD~1"                      "$FEAT"
 case_ "grep mention reset --hard"       0 "grep 'git reset --hard' notes.txt"           "$DEV"
 
+# ── #220-A 토큰 재설계 적대적 헌트 (reset = category(b) 무백스톱 — 신규 홀 0 반증) ──
+# 현행 정규식이 놓치던 난독화를 토큰판정이 닫음(엄격히 더 강함). 홀=막아야 하는데 통과.
+case_ "reset wrapper xargs"             2 "xargs git reset --hard"                       "$DEV"
+case_ "reset wrapper nice"              2 "nice git reset --hard"                        "$DEV"
+case_ "reset 백슬래시 \\git 난독화"      2 "\\git reset --hard"                           "$DEV"
+case_ "reset 따옴표 --h\"\"ard 난독화"    2 'git reset --h""ard'                           "$DEV"
+case_ "reset 서브셸 (…)"                2 "(git reset --hard)"                           "$DEV"
+case_ "reset 체인 && 뒤"                2 "echo hi && git reset --hard"                  "$DEV"
+case_ "reset 세미콜론 뒤"               2 "echo hi; git reset --hard"                    "$DEV"
+# 과차단 반증(정당한데 차단 금지) — mention·soft·다른세그먼트 --hard
+case_ "reset 따옴표 전체 mention"        0 'echo "git reset --hard"'                      "$DEV"
+case_ "reset soft + 딴세그 --hard mention" 0 'git reset --soft && echo "--hard"'          "$FEAT"
+
 # ── rm 코어/검증기: DENY ──
 case_ "rm -rf src"                      2 "rm -rf src"                                   "$DEV"
 case_ "rm -rf quoted src"               2 'rm -rf "src"'                                 "$DEV"
