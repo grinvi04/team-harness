@@ -112,6 +112,18 @@ LITE=0
 # 현재 코드 repo의 가드를 우회하는 교차오염 차단(#196).
 [[ -n "$_ORIG_ROOT" && -f "$_ORIG_ROOT/.harness-lite" ]] && LITE=1
 
+# 보호 브랜치 — 직접 커밋·force-push를 넛지 차단하는 git-flow 정본. **단일 출처**: 판정 3곳
+# (commit·force-push 명시 refspec·force-push bare)이 이 리스트를 공유한다(하드코딩 3곳 통합, #220-A).
+PROTECTED_BRANCHES="main develop"
+# 현재 브랜치가 보호 대상인지(정확 일치 — `== main || == develop`와 동일 의미).
+is_protected_branch() {
+  local b="$1" p
+  for p in $PROTECTED_BRANCHES; do [[ "$b" == "$p" ]] && return 0; done
+  return 1
+}
+# 명시 refspec 정규식용 alternation(main|develop) — force-push 목적지 매칭.
+PROTECTED_RE=$(printf '%s' "$PROTECTED_BRANCHES" | tr ' ' '|')
+
 # main/develop 직접 커밋 금지 — commit을 **서브커맨드 위치**로 좁혀 과차단 제거(A5:
 #   `git log --grep=commit`·`git help commit`·`grep "git commit"`는 통과). `git -C <dir> commit`이면
 #   후행 cd 우회와 무관하게 **그 -C dir** 기준으로 판정(A2: 커밋 dir ≠ 판정 dir 우회 차단).
@@ -129,7 +141,7 @@ if [[ "$LITE" != 1 && -n "$COMMIT_SEG" ]]; then
   else
     BRANCH=$(git branch --show-current 2>/dev/null)
   fi
-  if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]]; then
+  if is_protected_branch "$BRANCH"; then
     deny "main/develop 직접 커밋 금지" "feature/fix/hotfix/release 브랜치에서 작업 후 /feature-merge 사용"
   fi
 fi
@@ -157,9 +169,9 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--gi
     fi
     # 명시 refspec(remote + ref)이 있으면 현재 브랜치 무관 — bare push만 현재 브랜치가 대상(#204).
     HAS_REF=""; echo "$PSEG" | grep -qE "push([[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+[^-;&|[:space:]]+[[:space:]]+[^-;&|[:space:]]+" && HAS_REF=1
-    if echo "$PSEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?(main|develop)([[:space:]]|$)"; then
+    if echo "$PSEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?($PROTECTED_RE)([[:space:]]|$)"; then
       deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
-    elif [[ -z "$HAS_REF" && ( "$BRANCH" == "main" || "$BRANCH" == "develop" ) ]]; then
+    elif [[ -z "$HAS_REF" ]] && is_protected_branch "$BRANCH"; then
       deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
     fi
   done < <(echo "$COMMAND" | grep -oE "git[^;&|]*[[:space:]]push[^;&|]*")
