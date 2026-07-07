@@ -123,6 +123,18 @@ case_ "del mention echo rm tests/"      0 'echo "rm tests/"'                    
 case_ "del docker --rm 플래그"          0 "docker run --rm tests/img"                    "$FEAT"
 case_ "del rm latest/ (유사경로)"        0 "rm latest/"                                   "$FEAT"
 case_ "del rm 무관파일 통과"            0 "rm build/output.log"                          "$FEAT"
+# ── #245 헌트: 검증기-삭제 커버리지 확장 (jest·복수형 migrations·rspec) ──
+case_ "245 del __tests__/ (jest)"       2 "rm -rf __tests__/"                            "$FEAT"
+case_ "245 del wrapper sudo __tests__/" 2 "sudo rm -rf __tests__/"                       "$FEAT"
+case_ "245 del db/migrations/ (복수)"   2 "rm -rf db/migrations/"                        "$FEAT"
+case_ "245 del migrations/ (단독복수)"  2 "rm -rf migrations/"                           "$FEAT"
+case_ "245 del spec/ (rspec)"           2 "rm -rf spec/"                                 "$FEAT"
+case_ "245 del 따옴표 'spec'"            2 "rm -rf 'spec'"                                "$FEAT"
+# #245 ALLOW 과차단 반증 (접두경로·--rm·mention·유사)
+case_ "245 del myspec/ (접두 통과)"     0 "rm -rf myspec/"                               "$FEAT"
+case_ "245 del specs/ (비rspec 통과)"   0 "rm -rf specs/"                                "$FEAT"
+case_ "245 del docker --rm spec/"       0 "docker run --rm spec/img"                     "$FEAT"
+case_ "245 del mention __tests__"       0 'echo "rm __tests__/"'                         "$FEAT"
 # npm DENY (wrapper·순서·=값)
 case_ "npm wrapper sudo -g"             2 "sudo npm install -g leftpad"                  "$FEAT"
 case_ "npm 순서 --global 먼저"          2 "npm --global install leftpad"                 "$FEAT"
