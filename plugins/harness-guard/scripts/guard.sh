@@ -240,14 +240,23 @@ while IFS= read -r RSEG; do
   fi
 done < <(split_segments "$COMMAND")
 
-# 검증기(테스트·마이그레이션) 파일 삭제 금지 — 게이트 무력화 방지
+# 검증기(테스트·마이그레이션) 파일 삭제 금지 (토큰 판정 — #220-A) — 게이트 무력화 방지.
 # rm / git rm 으로 테스트(*Test.java·*.spec.*·*.test.*·test_*.py·*_test.py·tests/)나
 # 마이그레이션(db/migration/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
-# rm/git rm과 대상 경로를 **같은 명령 세그먼트**([^;&|]*)로 결합해 검사한다(G2) —
-# `rm x.log; grep foo tests/`처럼 무관한 rm과 다른 세그먼트의 테스트경로가 각각 있어도 차단하던 오탐 방지.
-if echo "$COMMAND" | grep -qE "(^|[^[:alnum:]_.-])(rm|git[[:space:]]+rm)[[:space:]][^;&|]*(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^[:space:]/]*\.py|[^[:space:]/]*_test\.py|tests?(/|[[:space:]]|[\"']|$)|db/migration(/|[[:space:]]|[\"']|$)|alembic/versions(/|[[:space:]]|[\"']|$)|prisma/migrations(/|[[:space:]]|[\"']|$))"; then
-  deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
-fi
+# 세그먼트에 `rm` 토큰(bare rm 또는 git rm)이 있고 그 세그먼트의 어떤 토큰이 검증기 경로면 차단.
+# 토큰화 이점: 따옴표 벗김(rm -rf "tests" 차단)·wrapper 관용(sudo rm tests/)·세그먼트 격리(G2:
+#   `rm x.log; grep foo tests/`는 seg2에 rm 토큰 없어 통과). mention 보호: `echo "rm tests/"`는 따옴표
+#   안 한 토큰이라 standalone rm 토큰 없음 → 통과. 부수 효과로 `docker run --rm tests/`(--rm은 rm 토큰
+#   아님)·`rm latest/`(경로 앵커 (^|/)) 같은 현행 과차단도 해소. category(b) 무백스톱 — LITE에서도 유지.
+while IFS= read -r DSEG; do
+  seg_has_token "$DSEG" "rm" || continue
+  _tok_into _dt "$DSEG"
+  for _tok in "${_dt[@]}"; do
+    if printf '%s' "$_tok" | grep -qE "(Test\.java$|\.(spec|test)\.[A-Za-z]|(^|/)test_[^/]*\.py$|_test\.py$|(^|/)tests?(/|$)|(^|/)db/migration(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
+      deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
+    fi
+  done
+done < <(split_segments "$COMMAND")
 
 # 프로젝트 핵심 디렉터리 rm -rf 금지 (PROJECT_ROOT, src, app, node_modules)
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
@@ -278,10 +287,21 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-
   set +f
 fi
 
-# npm 글로벌 패키지 설치 금지 — install-verb와 -g/--global을 **같은 npm 세그먼트**에서, 순서 무관하게 결합 검사.
-# G3: `npm --global install x`(플래그가 서브커맨드 앞) 우회 차단. G2: `echo -g && npm install x`(다른 세그먼트의 -g) 오탐 방지.
-if echo "$COMMAND" | grep -qE "npm[[:space:]]([^;&|]*[[:space:]])?(install|i|add)[[:space:]]([^;&|]*[[:space:]])?(-g|--global)(=[^;&|[:space:]]*)?([[:space:]]|$)|npm[[:space:]]([^;&|]*[[:space:]])?(-g|--global)(=[^;&|[:space:]]*)?[[:space:]]([^;&|]*[[:space:]])?(install|i|add)([[:space:]]|$)"; then
-  deny "npm install -g 금지 — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (npm install --save-dev 또는 npx)"
-fi
+# npm 글로벌 패키지 설치 금지 (토큰 판정 — #220-A)
+# 세그먼트에 npm 토큰 + install-verb 토큰(install/i/add) + 글로벌 플래그 토큰(-g/--global[=v])이 모두
+# 있으면 순서 무관하게 차단. 토큰화로 순서(G3)·wrapper(sudo npm)·따옴표 무관, mention(echo "npm install
+# -g x"는 한 토큰) 통과. G2(echo -g && npm install)는 세그먼트 격리로 오탐 방지. category(b) — LITE에서도 유지.
+while IFS= read -r NSEG; do
+  seg_has_token "$NSEG" "npm" || continue
+  _tok_into _nt "$NSEG"
+  _nv=0; _ng=0
+  for _tok in "${_nt[@]}"; do
+    case "$_tok" in
+      install|i|add) _nv=1;;
+      -g|--global|--global=*) _ng=1;;
+    esac
+  done
+  [[ $_nv -eq 1 && $_ng -eq 1 ]] && deny "npm install -g 금지 — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (npm install --save-dev 또는 npx)"
+done < <(split_segments "$COMMAND")
 
 exit 0

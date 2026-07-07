@@ -108,6 +108,25 @@ case_ "rm -rf ./build"                  0 "rm -rf ./build"                      
 case_ "rm build log"                    0 "rm build/output.log"                          "$FEAT"
 case_ "terraform -rf plan (word bound)" 0 "terraform -rf plan apply"                     "$DEV"
 
+# ── #220-A Slice2 헌트: validator-delete·npm (category(b) — 신규 홀 0 + mention 과차단 해소) ──
+# validator DENY (wrapper·따옴표 관용)
+case_ "del wrapper sudo rm tests/"      2 "sudo rm tests/"                               "$FEAT"
+case_ "del xargs rm test 파일"          2 "xargs rm src/foo.test.ts"                     "$FEAT"
+case_ "del 따옴표 rm -rf 'tests'"        2 "rm -rf 'tests'"                               "$FEAT"
+# validator ALLOW (mention·--rm 플래그·유사경로 — 현행 과차단 해소)
+case_ "del mention echo rm tests/"      0 'echo "rm tests/"'                             "$FEAT"
+case_ "del docker --rm 플래그"          0 "docker run --rm tests/img"                    "$FEAT"
+case_ "del rm latest/ (유사경로)"        0 "rm latest/"                                   "$FEAT"
+case_ "del rm 무관파일 통과"            0 "rm build/output.log"                          "$FEAT"
+# npm DENY (wrapper·순서·=값)
+case_ "npm wrapper sudo -g"             2 "sudo npm install -g leftpad"                  "$FEAT"
+case_ "npm 순서 --global 먼저"          2 "npm --global install leftpad"                 "$FEAT"
+case_ "npm --global=true"               2 "npm install --global=true leftpad"           "$FEAT"
+# npm ALLOW (mention·ci·로컬)
+case_ "npm mention echo install -g"     0 'echo "npm install -g x"'                      "$FEAT"
+case_ "npm ci --global (비install)"     0 "npm ci --global"                              "$FEAT"
+case_ "npm install 로컬"                0 "npm install --save-dev jest"                  "$FEAT"
+
 # ── commit on 보호: DENY ──
 case_ "commit on main"                  2 "git commit -m x"                              "$MAIN"
 case_ "commit on develop"               2 "git commit -m x"                              "$DEV"
