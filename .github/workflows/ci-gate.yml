@@ -40,6 +40,7 @@ jobs:
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
+          node --check scripts/check-destructive-ddl.mjs
           node --check templates/frontend/check-design-tokens.mjs
 
       - name: JSON 유효성 검사
@@ -80,6 +81,9 @@ jobs:
 
       - name: 마이그레이션 안전성 테스트
         run: bash tests/migration-safety-test.sh
+
+      - name: 파괴적 DDL 게이트 테스트
+        run: bash tests/destructive-ddl-test.sh
 
       - name: 드리프트 점검 테스트
         run: bash tests/repo-sync-test.sh

@@ -1,0 +1,1 @@
+INSERT INTO audit_log(msg) VALUES ('DROP TABLE payments');
