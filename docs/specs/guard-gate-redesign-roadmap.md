@@ -39,7 +39,7 @@
 | [H] 워크플로 핸드오프 | 🔄 부분 | plan mode·milestone 흡수됨. hasSpec 정밀화·spec 수명은 미확인 |
 | [I] 온보딩 반증-스모크 | 🔄 부분 | troubleshooting.md 신설(PR #222). 가드 실발동 assert·hooksPath 자동화 미완 |
 | [A] guard.sh shlex 재설계 | ❌ 미착수 | 정규식 7벌·PROTECTED_BRANCHES 2곳 하드코딩 여전 |
-| [B]/#219 migration 선언입력 재설계 | ❌ 미착수 | GAP_THRESHOLD=100·TIMESTAMP_MIN=1e7·greedy discovery 여전. 9회 패치는 재설계 아닌 safe-default |
+| [B]/#219 migration 선언입력 재설계 | ✅ **완료** | PR #243 merged (v0.29.26). #1 nearest-config 모듈 partition · #3 실제 날짜검증(isValidDate) · #2 선택적 scheme 선언(opt-in, ooo와 동일 신뢰 스코프·따옴표 인식). 하위호환(기존 21 테스트 GREEN), false-FAIL 0. spec: migration-declarative-scheme.md |
 | [K] 버전 롤백·canary | ❔ 확인 안 됨 | 관련 커밋 없음 |
 | [L] 시크릿 런북 + 파괴 DDL 게이트 | ❔ 확인 안 됨 | 관련 커밋 없음 |
 
@@ -49,7 +49,7 @@
 
 - **Phase 1 (전제, near-term):** `[D]` python3 degraded(✅ #239) + `[F]` break-glass 원자성(✅ #240) + repo-sync protection-on 검증(✅ #238+SKILL)
   → Phase 2 [A]의 안전 위임(force-push를 계층0에 넘김) 전제를 만든다. **✅ Phase 1 완료 — Phase 2 진입 가능.**
-- **Phase 2 (재설계, L-effort):** `[B]`/#219 → `[A]`. **각각 전용 `/plan`.**
+- **Phase 2 (재설계, L-effort):** `[B]`/#219(✅ #243) → `[A]`(⬜ 다음). **각각 전용 `/plan`.** [B] 완료 — 다음 = [A] guard.sh shlex 재설계.
 - **Phase 3 (안전망):** `[E]` 중앙 ship · `[F]` 후반 · `[K]` · `[L]` · `[I]` 잔여 — 병렬, 클러스터 범위.
 - **Phase 4 (문서위생):** `[G]`(포인터화·grep가드, 80KB 분할은 제외) · `[H]`.
 
