@@ -32,8 +32,8 @@
 | [C] 위협모델 명문화 + 계층 재라벨 | ✅ **완료** | PR #221 merged. guard.sh 헤더 9–27행 3분류(서버백스톱 넛지/로컬파괴/프로세스 넛지), decisions.md 169행 |
 | [J] 서브에이전트 훅 실발동 | ✅ **완료** | 비결함 확정(로그 53줄) |
 | [B응급] migration exit1→warn 강등 | ⛔ **하지 않음(결정)** | exit1(머지 차단) **유지**. safe-default 오발은 감수, 정밀 판정은 Phase 2 [B] 재설계로 해결 |
-| [D] python3 fail-closed 완화 | ❌ 미착수 | guard.sh 61–64행 여전히 fail-closed(exit 2). troubleshooting.md에 "검토 중" 언급만 |
-| [F] break-glass 원자성 | 🔄 부분 | solo-merge 스킬에 DELETE→merge→PATCH 있음. EXIT trap 원자성 래퍼는 미완 |
+| [D] python3 fail-closed 완화 | ✅ **완료** | PR #239 merged (v0.29.23). 스케치("degraded subset")가 아니라 **python3→jq 폴백**으로 구현 — jq로 전체 가드 그대로 작동(보호 축소 0), 둘 다 부재/실패일 때만 fail-closed. guard.sh 61–78행 |
+| [F] break-glass 원자성 | ✅ **완료** | PR #240 merged (v0.29.24). 원자 래퍼 `scripts/solo-merge.sh` — `trap … EXIT INT TERM HUP` 복구 보장 + pre-gate(DELETE 전 차단) + **fail-closed verify**(복구 실패 시 exit1 경보) + python3→jq 폴백. SKILL은 래퍼 호출로 축약 |
 | [E] audit 로그 | 🔄 부분 | 규약·마스킹·256KB 로테이션 완료(PR #171·#176). 중앙 ship 미확인 |
 | [G] 문서 단일출처 정합 | 🔄 부분 | ⚠️ **전제 낡음**: "decisions.md 80KB 분할" — 현재 ~8–10KB(181줄)라 분할 불필요. 포인터화·grep가드는 유효 |
 | [H] 워크플로 핸드오프 | 🔄 부분 | plan mode·milestone 흡수됨. hasSpec 정밀화·spec 수명은 미확인 |
@@ -47,8 +47,8 @@
 
 ## 실행 시퀀싱 (게이트 순서)
 
-- **Phase 1 (전제, near-term):** `[D]` python3 degraded + `[F]` break-glass 원자성 + repo-sync protection-on 검증
-  → Phase 2 [A]의 안전 위임(force-push를 계층0에 넘김) 전제를 만든다.
+- **Phase 1 (전제, near-term):** `[D]` python3 degraded(✅ #239) + `[F]` break-glass 원자성(✅ #240) + repo-sync protection-on 검증(⬜ 태스크1 잔여)
+  → Phase 2 [A]의 안전 위임(force-push를 계층0에 넘김) 전제를 만든다. **2/3 완료 — 태스크1만 남음.**
 - **Phase 2 (재설계, L-effort):** `[B]`/#219 → `[A]`. **각각 전용 `/plan`.**
 - **Phase 3 (안전망):** `[E]` 중앙 ship · `[F]` 후반 · `[K]` · `[L]` · `[I]` 잔여 — 병렬, 클러스터 범위.
 - **Phase 4 (문서위생):** `[G]`(포인터화·grep가드, 80KB 분할은 제외) · `[H]`.
@@ -62,12 +62,13 @@
 
 | # | 태스크 | 대상 파일 | 검증(exit 0) | 의존 | [P] |
 |---|---|---|---|---|---|
-| 1 | repo-sync에 branch-protection **protection-on 검증** 추가 — [A]가 force-push를 계층0에 위임하려면 "서버 보호가 실제 켜져 있음"이 전제 | `scripts/check-repo-sync.mjs`, `plugins/harness-guard/scripts/set-branch-protection.sh` | `bash tests/repo-sync-test.sh` | — | [P] |
-| 2 | `[D]` python3 부재/실패 시 **degraded 모드** — 전체 fail-closed 대신 로컬 파괴가드(reset --hard·rm -rf 코어)만 남기고 나머지 통과 + 경고 | `plugins/harness-guard/scripts/guard.sh` 61–70행 | `bash tests/guard-test.sh`(degraded 케이스 추가) | — | [P] |
-| 3 | `[F]` break-glass **원자성** — solo-merge의 DELETE→merge→PATCH를 `trap … EXIT`로 감싸 중단 시에도 protection 복구 보장 | `plugins/harness-guard/skills/solo-merge/SKILL.md` + 래퍼 | solo-merge 중단 주입 시 복구 assert | — | [P] |
+| 1 | ⬜ repo-sync에 branch-protection **protection-on 검증** 추가 — [A]가 force-push를 계층0에 위임하려면 "서버 보호가 실제 켜져 있음"이 전제 | `scripts/check-repo-sync.mjs`, `plugins/harness-guard/scripts/set-branch-protection.sh` | `bash tests/repo-sync-test.sh` | — | [P] |
+| 2 | ✅ `[D]` python3 부재/실패 시 **degraded** — (실구현: **jq 폴백** — 전체 가드 그대로 작동, 둘 다 부재면 fail-closed. 스케치의 "파괴가드만 남김"보다 보호 축소 0) | `plugins/harness-guard/scripts/guard.sh` 61–78행 | `bash tests/guard-test.sh` | — | PR #239 |
+| 3 | ✅ `[F]` break-glass **원자성** — solo-merge의 DELETE→merge→PATCH를 `trap … EXIT INT TERM HUP`로 감싸 중단에도 복구 보장 + pre-gate + fail-closed verify | `scripts/solo-merge.sh`(신규) + `skills/solo-merge/SKILL.md` | `bash tests/solo-merge-test.sh` | — | PR #240 |
 
 - 롤백: 세 태스크 모두 독립(`[P]`) — `git revert` 단독 가능. 파괴적 아님.
 - 버전 bump 필요(플러그인 동작 변경): guard.sh·solo-merge 변경 시 plugin.json + README 배지.
+- **진행: 태스크 2([D] #239)·3([F] #240) 완료. 태스크 1(repo-sync protection-on)만 남음 → Phase 2 착수 전 처리 권장.**
 
 ---
 
