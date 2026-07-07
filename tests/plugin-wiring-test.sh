@@ -97,6 +97,29 @@ else
   echo "FAIL: AC-3 스킵 — GUARD_PATH 미해석(AC-1/2 실패)"; FAIL=$((FAIL+1))
 fi
 
+# ── 섹션 B: 계층0.5 (git 네이티브 pre-commit → core.hooksPath) 배선 ───────────
+# AC-4: pre-commit 아티팩트 실존·실행권한 (CI·로컬 공통 — 소비자 대면 보장).
+PRECOMMIT="$ROOT/.githooks/pre-commit"
+if [ -x "$PRECOMMIT" ]; then
+  echo "PASS: AC-4 .githooks/pre-commit 실존·실행권한"; PASS=$((PASS+1))
+else
+  echo "FAIL: AC-4 .githooks/pre-commit 부재/비실행 ($PRECOMMIT)"; FAIL=$((FAIL+1))
+fi
+
+# AC-5·AC-6: core.hooksPath 배선. 설정돼 있으면 .githooks와 일치해야 한다(오설정=FAIL). 미설정이면
+# 로컬 개발자용 WARN 후 통과한다 — CI 체크아웃은 hooksPath를 걸지 않는 것이 정상이며(CI 방어는
+# branch protection + ci-gate이지 로컬 pre-commit이 아니다), 여기서 미설정을 FAIL로 처리하면
+# "CI가 로컬 hook 미설정을 잡는다"는 거짓 안전 주장을 새로 만드는 셈이라 하지 않는다.
+HP=$(git config --get core.hooksPath 2>/dev/null || true)
+if [ -z "$HP" ]; then
+  echo "WARN: core.hooksPath 미설정 — 로컬 pre-commit(계층0.5)이 침묵 통과한다."
+  echo "      해결(클론 후 1회): git config core.hooksPath .githooks"
+elif [ "$HP" = ".githooks" ]; then
+  echo "PASS: AC-5 core.hooksPath=.githooks 정합"; PASS=$((PASS+1))
+else
+  echo "FAIL: AC-5 core.hooksPath 오설정 — '$HP' (기대 '.githooks')"; FAIL=$((FAIL+1))
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
