@@ -35,4 +35,60 @@ extract_restore_payload() {
 
 [ -n "${SOLO_MERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
-# ── main (태스크2~3에서 구현) ──
+# ── main — 원자 break-glass: save→arm trap→DELETE→merge→restore→verify ──
+
+PR="${1:-$(gh pr view --json number --jq .number)}"
+OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+BASE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName --jq .baseRefName)
+# 머지는 형제 pr-merge.sh(게이트 재검증 후 머지)로 위임 — 테스트가 SOLO_MERGE_MERGE_CMD로 주입.
+MERGE_CMD="${SOLO_MERGE_MERGE_CMD:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/pr-merge.sh}"
+RPR_PATH="repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews"
+
+# save: 현재 승인요건 설정 전체 저장(복구용). 보호 없던 repo면 REVIEWS_CONFIG 빈값 → HAD_PROTECTION=no.
+REVIEWS_CONFIG=$(gh api "$RPR_PATH" 2>/dev/null || true)
+HAD_PROTECTION=$(printf '%s' "$REVIEWS_CONFIG" | had_protection)
+ORIG_COUNT=$(printf '%s' "$REVIEWS_CONFIG" | python3 -c "import sys,json; print(json.load(sys.stdin).get('required_approving_review_count',''))" 2>/dev/null || echo "?")
+
+# restore(trap 대상): 저장한 원본 설정을 PATCH로 되돌린다. 멱등(_restored 가드) — 명시 호출과 trap이
+#   겹쳐도 1회. HAD_PROTECTION=no면 no-op(요건 신규 생성 방지).
+_restored=0
+_restore() {
+  [ "$_restored" = 1 ] && return 0
+  [ "$HAD_PROTECTION" = yes ] || return 0
+  _restored=1
+  printf '%s' "$REVIEWS_CONFIG" | extract_restore_payload \
+    | gh api -X PATCH "$RPR_PATH" --input - >/dev/null 2>&1 \
+    || echo "  ⚠️ 승인요건 복구 PATCH 실패 — 수동으로 $BASE 보호에 승인요건 재설정 필요(count=$ORIG_COUNT)" >&2
+}
+
+# arm trap: 정상·에러(set -e)·시그널(INT/TERM/HUP) 어떤 종료 경로에서도 복구 보장. 시그널 핸들러는
+#   복구 후 관례적 코드로 exit(그 exit이 EXIT trap을 재발화해도 _restored 가드로 no-op). 보호 있을 때만 무장.
+#   ⚠️ SIGKILL·전원손실은 uncatchable — 2차 안전망 = repo-sync protection-on 검증.
+if [ "$HAD_PROTECTION" = yes ]; then
+  trap '_restore' EXIT
+  trap '_restore; exit 130' INT
+  trap '_restore; exit 143' TERM
+  trap '_restore; exit 129' HUP
+  echo "🔓 break-glass: $BASE 승인요건 일시 삭제(머지 후 복구)"
+  gh api -X DELETE "$RPR_PATH" >/dev/null 2>&1
+fi
+
+# merge — 실패 시 set -e로 스크립트 이탈 → EXIT trap이 복구. pr-merge가 CI·스레드·mergeable 재검증.
+bash "$MERGE_CMD" "$PR"
+
+# 정상 경로: 명시 복구 후 trap 해제(성공 확정).
+_restore
+trap - EXIT INT TERM HUP
+
+# verify: 머지됨 + 승인요건 원값 복원 확인.
+STATE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json state --jq .state 2>/dev/null || echo "?")
+if [ "$HAD_PROTECTION" = yes ]; then
+  RESTORED_COUNT=$(gh api "$RPR_PATH" --jq '.required_approving_review_count' 2>/dev/null || echo "?")
+  if [ "$RESTORED_COUNT" != "$ORIG_COUNT" ]; then
+    echo "❌ 복구 검증 실패 — 승인요건 count=$RESTORED_COUNT(원값 $ORIG_COUNT). 즉시 수동 재설정 필요: $BASE" >&2
+    exit 1
+  fi
+  echo "🔒 복구 확인: $BASE 승인요건 count=$RESTORED_COUNT"
+fi
+[ "$STATE" = "MERGED" ] || { echo "❌ 머지 상태 확인 실패: state=$STATE" >&2; exit 1; }
+echo "✅ solo-merge 완료 — PR #$PR MERGED"
