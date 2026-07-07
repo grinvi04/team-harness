@@ -47,8 +47,8 @@
 
 ## 실행 시퀀싱 (게이트 순서)
 
-- **Phase 1 (전제, near-term):** `[D]` python3 degraded(✅ #239) + `[F]` break-glass 원자성(✅ #240) + repo-sync protection-on 검증(⬜ 태스크1 잔여)
-  → Phase 2 [A]의 안전 위임(force-push를 계층0에 넘김) 전제를 만든다. **2/3 완료 — 태스크1만 남음.**
+- **Phase 1 (전제, near-term):** `[D]` python3 degraded(✅ #239) + `[F]` break-glass 원자성(✅ #240) + repo-sync protection-on 검증(✅ #238+SKILL)
+  → Phase 2 [A]의 안전 위임(force-push를 계층0에 넘김) 전제를 만든다. **✅ Phase 1 완료 — Phase 2 진입 가능.**
 - **Phase 2 (재설계, L-effort):** `[B]`/#219 → `[A]`. **각각 전용 `/plan`.**
 - **Phase 3 (안전망):** `[E]` 중앙 ship · `[F]` 후반 · `[K]` · `[L]` · `[I]` 잔여 — 병렬, 클러스터 범위.
 - **Phase 4 (문서위생):** `[G]`(포인터화·grep가드, 80KB 분할은 제외) · `[H]`.
@@ -62,13 +62,13 @@
 
 | # | 태스크 | 대상 파일 | 검증(exit 0) | 의존 | [P] |
 |---|---|---|---|---|---|
-| 1 | ⬜ repo-sync에 branch-protection **protection-on 검증** 추가 — [A]가 force-push를 계층0에 위임하려면 "서버 보호가 실제 켜져 있음"이 전제 | `scripts/check-repo-sync.mjs`, `plugins/harness-guard/scripts/set-branch-protection.sh` | `bash tests/repo-sync-test.sh` | — | [P] |
+| 1 | ✅ repo-sync에 branch-protection **protection-on 검증** — repo-sync SKILL 3단계가 `set-branch-protection.sh --check`를 오케스트레이션(#238이 `allow_force_pushes`/`deletions` 검증 추가 → [A] 전제 충족). mjs는 무의존 정적검사라 네트워크 점검은 의도적으로 분리(SKILL:30). SKILL에 force-push=[A]전제 명시 | `skills/repo-sync/SKILL.md`, `scripts/set-branch-protection.sh` | `bash tests/set-branch-protection-test.sh` | — | #238 + 본 PR |
 | 2 | ✅ `[D]` python3 부재/실패 시 **degraded** — (실구현: **jq 폴백** — 전체 가드 그대로 작동, 둘 다 부재면 fail-closed. 스케치의 "파괴가드만 남김"보다 보호 축소 0) | `plugins/harness-guard/scripts/guard.sh` 61–78행 | `bash tests/guard-test.sh` | — | PR #239 |
 | 3 | ✅ `[F]` break-glass **원자성** — solo-merge의 DELETE→merge→PATCH를 `trap … EXIT INT TERM HUP`로 감싸 중단에도 복구 보장 + pre-gate + fail-closed verify | `scripts/solo-merge.sh`(신규) + `skills/solo-merge/SKILL.md` | `bash tests/solo-merge-test.sh` | — | PR #240 |
 
 - 롤백: 세 태스크 모두 독립(`[P]`) — `git revert` 단독 가능. 파괴적 아님.
 - 버전 bump 필요(플러그인 동작 변경): guard.sh·solo-merge 변경 시 plugin.json + README 배지.
-- **진행: 태스크 2([D] #239)·3([F] #240) 완료. 태스크 1(repo-sync protection-on)만 남음 → Phase 2 착수 전 처리 권장.**
+- **진행: Phase 1 3개 태스크 전부 완료 — 태스크1(repo-sync protection-on, #238+SKILL) · 태스크2([D] #239) · 태스크3([F] #240). → Phase 2([B]/#219 → [A]) 진입 가능, 각기 전용 `/plan`.**
 
 ---
 
