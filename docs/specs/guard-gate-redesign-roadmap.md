@@ -37,7 +37,7 @@
 | [E] audit 로그 | 🔄 부분 | 규약·마스킹·256KB 로테이션 완료(PR #171·#176). 중앙 ship 미확인 |
 | [G] 문서 단일출처 정합 | 🔄 부분 | ⚠️ **전제 낡음**: "decisions.md 80KB 분할" — 현재 ~8–10KB(181줄)라 분할 불필요. 포인터화·grep가드는 유효 |
 | [H] 워크플로 핸드오프 | 🔄 부분 | plan mode·milestone 흡수됨. hasSpec 정밀화·spec 수명은 미확인 |
-| [I] 온보딩 반증-스모크 | 🔄 부분 | troubleshooting.md 신설(PR #222). 가드 실발동 assert·hooksPath 자동화 미완 |
+| [I] 온보딩 반증-스모크 | ✅ **완료** | 2026-07-08. `tests/plugin-wiring-test.sh` — hooks.json을 진실원본으로 삼아 배선 검증: 계층1(AC-1~3 matcher→guard.sh 경로해석+보호브랜치 차단 exit2 반증-구동)·계층0.5(AC-4~6 pre-commit 아티팩트+hooksPath 오설정FAIL/미설정WARN). ci-gate 등록. 반증 확정(guard 경로 깨면 FAIL). troubleshooting.md:33 거짓 "repo-sync가 점검" 교정(mjs 순수성 유지). onboarding §B 설정→검증·§C 스모크. 버전 bump 없음(소비-비대면). spec: onboarding-falsification-smoke.md |
 | [A] guard.sh shlex 재설계 | ✅ **완료** | v0.29.27. 순수 bash 토큰화(`scripts/lib/tokenize.sh`)로 monster global-opts 정규식 소멸(0곳)·PROTECTED_BRANCHES 단일화. commit·reset·force-push + gh-pr·validator-del·npm 이관, F5·rm-core는 보수(정규식 유지). 독립 적대적 검증 2회(reset 신규홀0 + validator `$`앵커 HOLE 발견·봉쇄). $'...'·pnpm·__tests__ 등 커버리지 확장은 동작보존 밖이라 후속이슈로 분리. guard-test 132+matrix 84+tokenizer 24=240 GREEN. spec: guard-shlex-tokenizer.md |
 | [B]/#219 migration 선언입력 재설계 | ✅ **완료** | PR #243 merged (v0.29.26). #1 nearest-config 모듈 partition · #3 실제 날짜검증(isValidDate) · #2 선택적 scheme 선언(opt-in, ooo와 동일 신뢰 스코프·따옴표 인식). 하위호환(기존 21 테스트 GREEN), false-FAIL 0. spec: migration-declarative-scheme.md |
 | [K] 버전 롤백·canary | ❔ 확인 안 됨 | 관련 커밋 없음 |
@@ -50,7 +50,7 @@
 - **Phase 1 (전제, near-term):** `[D]` python3 degraded(✅ #239) + `[F]` break-glass 원자성(✅ #240) + repo-sync protection-on 검증(✅ #238+SKILL)
   → Phase 2 [A]의 안전 위임(force-push를 계층0에 넘김) 전제를 만든다. **✅ Phase 1 완료 — Phase 2 진입 가능.**
 - **Phase 2 (재설계, L-effort):** `[B]`/#219(✅ #243) → `[A]`(✅ v0.29.27). **각각 전용 `/plan`.** **Phase 2 완료 — 심장부 재설계 종료.** 잔여 = Phase 3 안전망·Phase 4 문서위생 + [A] 커버리지 확장 후속이슈.
-- **Phase 3 (안전망):** `[L]`(✅ v0.29.28 시크릿 런북+파괴 DDL 게이트) 완료. 잔여 = `[E]` 중앙 ship · `[F]` 후반 · `[K]` · `[I]` — 병렬, 클러스터 범위.
+- **Phase 3 (안전망):** `[L]`(✅ v0.29.28 시크릿 런북+파괴 DDL 게이트) · `[I]`(✅ 2026-07-08 온보딩 배선 반증-스모크) 완료. 잔여 = `[E]` 중앙 ship · `[F]` 후반 · `[K]` — 병렬, 클러스터 범위.
 - **Phase 4 (문서위생):** `[G]`(포인터화·grep가드, 80KB 분할은 제외) · `[H]`.
 
 ---
