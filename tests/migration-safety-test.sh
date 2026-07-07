@@ -46,6 +46,14 @@ check "대역+타임스탬프 혼입 → FAIL(B2)"          1 "$FIX/bad-timestam
 check "8자리 비-날짜 대역(10000001) → FAIL(#3)"  1 "$FIX/bad-8digit-band"
 # #1: 멀티모듈 격리 — svcA(대역·ooo없음)가 무관 svcB(ooo:true)의 크레딧을 받아 통과하던 greedy false-pass 차단
 check "멀티모듈 svcA대역+svcB무관ooo:true → FAIL(#1)" 1 "$FIX/bad-multimodule-isolation"
+# #2-a(AC-5): 촘촘밴드(갭<100, 휴리스틱 미감지)를 scheme=prefix-band 선언으로 강제 밴드검사 → ooo없음 → FAIL
+check "scheme=prefix-band 선언 촘촘밴드 → FAIL(#2)"  1 "$FIX/bad-dense-band-declared"
+# #2-b(AC-6): 휴리스틱상 대역이나 scheme=monotonic 선언 → 강제 통과(false-FAIL escape hatch)
+check "scheme=monotonic 선언 → 통과(#2)"            0 "$FIX/good-monotonic-declared"
+# #2-c(AC-6): scheme=timestamp 선언 → 타임스탬프 취급 통과
+check "scheme=timestamp 선언 → 통과(#2)"            0 "$FIX/good-timestamp-declared"
+# #2-d(AC-8): 미인식 scheme 값 → 무시(휴리스틱 폴백)·크래시 없음 → 단조라 통과
+check "scheme=bogus(미인식) → 무시·통과(AC-8)"      0 "$FIX/good-scheme-invalid"
 # B3: 주석 처리된 out-of-order:true가 실제 false를 덮던 false-pass 차단
 check "대역+주석 ooo:true → FAIL(B3)"            1 "$FIX/bad-commented-ooo"
 # 대역 + out-of-order:true → 통과

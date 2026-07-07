@@ -1,0 +1,4 @@
+# migration-safety: scheme=bogus
+spring:
+  flyway:
+    enabled: true

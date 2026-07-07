@@ -1,0 +1,4 @@
+# migration-safety: scheme=timestamp
+spring:
+  flyway:
+    enabled: true

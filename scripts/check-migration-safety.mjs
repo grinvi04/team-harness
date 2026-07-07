@@ -219,6 +219,25 @@ function scanOoo(groupConfigFiles) {
   return oooState
 }
 
+// #219-2: 선택적 scheme 선언 — 지배 config의 주석 `# migration-safety: scheme=<x>`을 raw 스캔(주석제거 전).
+//   촘촘 밴드(갭<GAP_THRESHOLD)는 휴리스틱으로 단조와 구분 불가라, 선언이 있으면 그것을 신뢰한다(없으면 휴리스틱=하위호환).
+//   prefix-band→강제 대역 · monotonic→강제 비대역 · timestamp→타임스탬프 취급 · 미인식→무시+경고(휴리스틱 폴백).
+const SCHEME_RE = /migration-safety:\s*scheme\s*=\s*([a-z][a-z-]*)/i
+const VALID_SCHEMES = new Set(['prefix-band', 'monotonic', 'timestamp'])
+function readScheme(groupConfigFiles) {
+  for (const cf of groupConfigFiles) {
+    let text
+    try { text = readFileSync(cf, 'utf8') } catch { continue }
+    const m = text.match(SCHEME_RE)
+    if (!m) continue
+    const s = m[1].toLowerCase()
+    if (VALID_SCHEMES.has(s)) return s
+    console.error(`⚠ migration-safety: 미인식 scheme='${m[1]}' (${basename(cf)}) — 무시하고 휴리스틱으로 판정. 유효값: prefix-band|monotonic|timestamp`)
+    return null   // 선언은 됐으나 미인식 → 휴리스틱 폴백(AC-8)
+  }
+  return null
+}
+
 // ── 그룹핑: nearest-config 파티션(#219-1) ──────────────────
 // 발견 모드: 마이그레이션 파일마다 "가장 가까운(=deepest) 조상 설정 디렉터리"를 찾아 그 디렉터리가
 //   관장하는 그룹으로 묶는다. 같은 디렉터리의 설정 파일 전부가 그 그룹의 설정. 조상 설정 디렉터리가
@@ -257,12 +276,20 @@ for (const g of groups) {
     const m = basename(f).match(/^V(\d+)/i)
     if (m) versions.push(Number(m[1]))
   }
-  const { bands, isBanded, isTimestamp } = analyzeBand(versions)
+  const analysis = analyzeBand(versions)
+  const bands = analysis.bands
+  let { isBanded, isTimestamp } = analysis
+  // #219-2: 선언 override(휴리스틱보다 우선). 없으면 휴리스틱 그대로(하위호환).
+  const scheme = readScheme(g.configs)
+  if (scheme === 'prefix-band') isBanded = true
+  else if (scheme === 'monotonic') isBanded = false
+  else if (scheme === 'timestamp') { isTimestamp = true; isBanded = false }
   const label = g.dir ? ` [${g.dir}]` : ''
+  const schemeNote = scheme ? ` · scheme=${scheme}(선언)` : ''
 
   // 단조 증가 → 안전 (out-of-order:false여도 정상)
   if (!isBanded) {
-    console.log(`✓ 마이그레이션 안전성 게이트 통과${label} — 대상 ${g.migrations.length}개 · 대역 ${bands}개${isTimestamp ? ' · 타임스탬프 버전' : ''}`)
+    console.log(`✓ 마이그레이션 안전성 게이트 통과${label} — 대상 ${g.migrations.length}개 · 대역 ${bands}개${isTimestamp ? ' · 타임스탬프 버전' : ''}${schemeNote}`)
     console.log(isTimestamp
       ? '  타임스탬프 버전이라 접두사 대역 규약 비대상.'
       : '  단조 증가 번호 — 구조적 out-of-order 위험 없음.')
@@ -278,7 +305,7 @@ for (const g of groups) {
   }
 
   const oooState = scanOoo(g.configs)
-  const summary = `대상 ${g.migrations.length}개 · 대역 ${bands}개 · out-of-order=${oooState}`
+  const summary = `대상 ${g.migrations.length}개 · 대역 ${bands}개${schemeNote} · out-of-order=${oooState}`
 
   // 대역 + out-of-order 허용 → 통과
   if (oooState === 'true') {
