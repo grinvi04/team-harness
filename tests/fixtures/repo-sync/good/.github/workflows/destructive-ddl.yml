@@ -1,0 +1,6 @@
+name: destructive-ddl
+jobs:
+  destructive-ddl:
+    runs-on: ubuntu-latest
+    steps:
+      - run: node scripts/check-destructive-ddl.mjs

@@ -278,6 +278,22 @@ checks.push({
   detail: 'scripts/check-migration-safety.mjs (무의존 정적 검사)',
 })
 
+// 파괴적 DDL 게이트 — stack-agnostic(마이그레이션 없으면 self-skip)이라 전 repo applicable.
+checks.push({
+  asset: 'destructive-ddl 워크플로',
+  severity: 'error',
+  applicable: true,
+  status: sentinelStatus(/check-destructive-ddl/i, /destructive[-_]?ddl/i),
+  detail: '파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)',
+})
+checks.push({
+  asset: 'check-destructive-ddl.mjs',
+  severity: 'error',
+  applicable: true,
+  status: existsAnywhere(/^check-destructive-ddl\.mjs$/) ? 'OK' : 'MISSING',
+  detail: 'scripts/check-destructive-ddl.mjs (무의존 정적 검사)',
+})
+
 // Alembic 스택 — 다중 head 차단 CI 스텝
 checks.push({
   asset: 'alembic heads 스텝',
