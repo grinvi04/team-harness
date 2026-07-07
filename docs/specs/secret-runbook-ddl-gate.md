@@ -38,6 +38,8 @@
   - guard.sh 변경·Bash `psql -c 'DROP…'` 넛지(env-blind, 다른 위협모델) — 제외.
   - 파괴 DDL 전 클래스 완결(SQL은 정규언어 아님) — **흔한 데이터-손실 형태만**. 종단 우회는 계층0(리뷰) 소관.
   - DROP INDEX/VIEW/CONSTRAINT/TRIGGER 등 **비 데이터-손실** DROP — 차단 대상 아님.
+  - **Alembic Python DDL**(`op.drop_table()` 등, `.py` 파일) — 이 게이트는 `*.sql` 내용 전용이라 비대상.
+    migration-safety가 alembic 다중head를 `alembic-heads`로 분리한 것과 동일 원리(정직한 skip, `alembic.md` 소관).
   - 시크릿 스캐너 신규 도입(gitleaks 유지)·회전 자동화 도구 — 런북은 절차 문서만.
   - Postgres dollar-quoting(`$$…$$`)·다국어 유니코드 식별자 등 희귀 우회 — 한계로 명시, 흔한 형태만.
 
@@ -57,8 +59,8 @@
   the gate SHALL exit 0.
 - **AC-7 (문장 단위):** WHEN 한 파일에 승인 없는 파괴 문장 1개 + 안전 문장 여럿이면, the gate SHALL exit 1
   (파일 전체 사면 아님 — 문장 단위 판정).
-- **AC-8 (스택 무관):** `db/migration/`·`prisma/migrations/`·`alembic/versions/`·`supabase/migrations/` 하위
-  `*.sql`을 **모두** 스캔(Flyway `V###__` 명명 한정 아님 — 파괴성은 파일명 규약 무관).
+- **AC-8 (스택 무관):** `db/migration/`·`prisma/migrations/`·`supabase/migrations/` 하위 `*.sql`을 **모두**
+  스캔(Flyway `V###__` 명명 한정 아님 — 파괴성은 파일명 규약 무관). (Alembic은 DDL이 `.py`라 비대상 — Out 참조.)
 - **AC-9 (skip·오탐 금지):** IF 마이그레이션 `*.sql` 미발견이면, the gate SHALL exit 0(skip).
 - **AC-10 (usage):** `--help`는 exit 0. 인자 오류는 exit 2. (migration-safety 종료코드 규약과 일치.)
 
@@ -100,7 +102,7 @@ clone된 건 못 지움 → 2차") ④통지(SEV1 선언·#incident·키 소유 
 
 **B — DDL 게이트 (`scripts/check-destructive-ddl.mjs`, migration-safety 패턴 차용)**
 - **탐색**: `check-migration-safety.mjs`의 `walk()`·IGNORE 셋 패턴 재사용. 대상 = 경로에 마이그레이션 디렉터리
-  세그먼트(`db/migration`·`prisma/migrations`·`alembic/versions`·`supabase/migrations`)를 포함하는 `*.sql`.
+  세그먼트(`db/migration`·`prisma/migrations`·`supabase/migrations`)를 포함하는 `*.sql`.
   (migration-safety는 `V###__` 파일명 키 — 여기선 순서 아닌 **내용**이 문제라 디렉터리 앵커로 스택 무관 스캔.)
 - **파싱(반증 핵심)**: 파일을 **문장 단위**(따옴표·주석 인식 `;` 분할)로 쪼갠다. 각 문장에서:
   - *키워드 감지*: 주석(`--`, `/* */`)·문자열(`'…'`, `''` 이스케이프) **제거한** 텍스트에서 파괴 키워드 정규식 매칭.
