@@ -108,27 +108,43 @@ export function classifySolo(status, stderr = '') {
   return false
 }
 
+// solo 판정을 위해 branch protection을 조회할 대상 브랜치 — PR이 머지되는 **base**(develop/main)여야 한다.
+//   현재(feature) 브랜치를 조회하면 항상 비보호 404 → team repo도 solo 오분류돼 solo-merge(리뷰요건 해제)로
+//   오라우팅되던 버그(#181) 교정. openPR 없음(머지 대상 PR 없음)·base 불명이면 null → 호출측 team-safe(isSolo=false) 유지.
+export function soloProtectionRef({ openPR, prBase }) {
+  if (!openPR || !prBase) return null
+  return prBase
+}
+
+// committed 판정의 base 브랜치 — feature/fix는 develop에서 갈라져 develop로 PR되므로(pr-create과 정합) develop 우선.
+//   origin/main 기준이면 develop이 main보다 앞선 만큼 0-커밋 신규 feature 브랜치도 committed=true로 오판(#209).
+export function committedBaseRef(hasOriginDevelop, originHead) {
+  if (hasOriginDevelop) return 'origin/develop'
+  return originHead || 'origin/main'
+}
+
 function collectState(cwd, prompt) {
   const branch = ok(run('git', ['-C', cwd, 'branch', '--show-current'], cwd)) ?? ''
 
   const statusOut = ok(run('git', ['-C', cwd, 'status', '--porcelain'], cwd))
   const dirty = statusOut !== null && statusOut.length > 0
 
-  // committed: 기본 base(origin/HEAD)보다 앞선 커밋 수 — upstream 미설정과 무관하게 동작
+  // committed: 통합 base(develop 우선, 없으면 origin/HEAD)보다 앞선 커밋 수 — upstream 미설정과 무관하게 동작.
   let committed = false
-  let baseRef = ok(run('git', ['-C', cwd, 'rev-parse', '--abbrev-ref', 'origin/HEAD'], cwd))
-  if (!baseRef) baseRef = 'origin/main'
+  const hasDevelop = run('git', ['-C', cwd, 'rev-parse', '--verify', '--quiet', 'refs/remotes/origin/develop'], cwd).status === 0
+  const baseRef = committedBaseRef(hasDevelop, ok(run('git', ['-C', cwd, 'rev-parse', '--abbrev-ref', 'origin/HEAD'], cwd)))
   const aheadOut = ok(run('git', ['-C', cwd, 'rev-list', '--count', `${baseRef}..HEAD`], cwd))
   if (aheadOut !== null) committed = Number(aheadOut) > 0
 
-  // open PR — 반드시 현재 브랜치(--head)로 한정(무관한 repo PR 오탐 방지)
+  // open PR — 반드시 현재 브랜치(--head)로 한정(무관한 repo PR 오탐 방지). baseRefName도 함께 조회(solo 판정용).
   let openPR = 0
+  let prBase = ''
   if (branch) {
-    const prOut = ok(run('gh', ['pr', 'list', '--head', branch, '--state', 'open', '--json', 'number', '--limit', '1'], cwd))
+    const prOut = ok(run('gh', ['pr', 'list', '--head', branch, '--state', 'open', '--json', 'number,baseRefName', '--limit', '1'], cwd))
     if (prOut) {
       try {
         const prs = JSON.parse(prOut)
-        if (Array.isArray(prs) && prs.length > 0) openPR = prs[0].number
+        if (Array.isArray(prs) && prs.length > 0) { openPR = prs[0].number; prBase = prs[0].baseRefName ?? '' }
       } catch {}
     }
   }
@@ -140,13 +156,16 @@ function collectState(cwd, prompt) {
     if (existsSync(specDir)) hasSpec = readdirSync(specDir).some(f => f.endsWith('.md'))
   } catch {}
 
-  // isSolo: protection 조회가 404(보호 없음)일 때만 solo=true.
-  // 403/5xx/네트워크 등 '불확실'은 team으로 안전 기본값(solo-merge가 보호를 해제하려 시도하는 오판 방지).
+  // isSolo: PR이 머지되는 **base 브랜치**(develop/main)의 protection이 404(보호 없음)일 때만 solo=true.
+  //   (현재 feature 브랜치를 조회하면 항상 비보호 404라 team repo도 solo로 오분류돼 solo-merge로 오라우팅되던
+  //    버그#181 — base로 교정. soloProtectionRef가 조회 대상을 결정: openPR 없음/base 불명이면 team-safe.)
+  //   403/5xx/네트워크 등 '불확실'은 team으로 안전 기본값(solo-merge가 보호를 해제하려 시도하는 오판 방지).
   let isSolo = false
-  if (branch) {
+  const soloRef = soloProtectionRef({ openPR, prBase })
+  if (soloRef) {
     const repo = ok(run('gh', ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'], cwd))
     if (repo) {
-      const r = run('gh', ['api', `repos/${repo}/branches/${branch}/protection`], cwd)
+      const r = run('gh', ['api', `repos/${repo}/branches/${soloRef}/protection`], cwd)
       isSolo = classifySolo(r.status, r.stderr)   // 404=solo · 그 외 불확실=team(안전)
     }
   }

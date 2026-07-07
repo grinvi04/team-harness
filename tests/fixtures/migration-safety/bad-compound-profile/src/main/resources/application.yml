@@ -1,0 +1,14 @@
+# #214-compound: 복합식 'staging & !test'는 양의 비운영 항(staging)이 있어 운영 미적용 → 운영(prod) ooo:false → FAIL 이어야 한다.
+spring:
+  config:
+    activate:
+      on-profile: "staging & !test"
+  flyway:
+    out-of-order: true
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  flyway:
+    out-of-order: false

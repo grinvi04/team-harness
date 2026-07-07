@@ -157,9 +157,24 @@ const detected = Object.entries(stacks).filter(([, v]) => v).map(([k]) => k)
 
 // ── 워크플로 내용 수집 (sentinel 매칭용) ──────────────────
 const wfFiles = files.filter((f) => /(^|\/)\.github\/workflows\/.+\.ya?ml$/.test(f.rel))
+// sentinel 매칭 전 YAML 주석 제거 — 주석 처리된(비활성) 게이트가 존재 신호로 오인돼 드리프트가 미탐지되던 것 차단.
+//   #183(전체-라인 주석만) → #205(false MISSING로 원복 시도) → 둘 다 coarse했다. 올바른 판정은 **따옴표 인식**:
+//   진짜 YAML 주석(따옴표 밖 + 라인시작/공백 뒤 `#`)만 제거하고, 따옴표 문자열 안의 `#`(예: echo "issue #12
+//   allow-test-removal")는 보존한다. → (a) 전체-라인 주석 게이트=MISSING(#183) (b) 트레일링 주석 게이트=MISSING(제거된
+//   게이트 미탐 방지) (c) 따옴표 안 정당 sentinel=보존(#205 false MISSING 방지) 세 가지를 동시에 만족.
+const stripComments = (raw) => raw.split(/\r?\n/).map((l) => {
+  let inS = false, inD = false
+  for (let i = 0; i < l.length; i++) {
+    const c = l[i]
+    if (c === "'" && !inD) inS = !inS
+    else if (c === '"' && !inS) inD = !inD
+    else if (c === '#' && !inS && !inD && (i === 0 || /\s/.test(l[i - 1]))) return l.slice(0, i)
+  }
+  return l
+}).join('\n')
 const wfList = wfFiles.map((f) => {
   let text = ''
-  try { text = readFileSync(f.p, 'utf8') } catch { /* ignore */ }
+  try { text = stripComments(readFileSync(f.p, 'utf8')) } catch { /* ignore */ }
   return { name: f.name, rel: f.rel, text }
 })
 const wfText = wfList.map((w) => w.text).join('\n')
@@ -201,7 +216,7 @@ checks.push({
     (w) =>
       /ci-gate|^ci\.ya?ml$|quality/i.test(w.name) ||
       (/\b(lint|ruff|eslint|gradlew[^\n]*check)\b/i.test(w.text) &&
-        /\b(test|pytest|jest|vitest|gradlew[^\n]*test|npm[^\n]*test)\b/i.test(w.text)),
+        /\b(test|pytest|jest|vitest|gradlew[^\n]*(test|check)|npm[^\n]*test)\b/i.test(w.text)),
   )
     ? 'OK'
     : 'MISSING',

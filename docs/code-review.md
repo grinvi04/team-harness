@@ -11,7 +11,7 @@ feat(order): 월 주문 한도 검증 추가
 기준정보 모듈의 한도 설정을 참조한다.
 ```
 
-- 타입: `feat` `fix` `refactor` `test` `docs` `chore` `perf` / scope = **도메인 모듈명** (`order`, `inventory`)
+- 타입: `feat` `fix` `refactor` `perf` `test` `docs` `style` `chore` `ci` / scope = **도메인 모듈명** (`order`, `inventory`)
 - 제목 50자 내외, 마침표 없음 / 본문은 "무엇을·왜" (어떻게는 diff가 말한다)
 - breaking change는 `feat(order)!:` + 본문에 `BREAKING CHANGE:` 명시
 

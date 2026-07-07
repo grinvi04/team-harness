@@ -1,0 +1,17 @@
+name: ci-gate
+on: [push]
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - run: npm run lint
+      - run: npm test
+  test-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo allow-test-removal label check
+  commitlint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: wagoid/commitlint-github-action@v6
+  # secret-scan TODO: add gitleaks action here later (#183 재현 — sentinel이 주석에만 있음)

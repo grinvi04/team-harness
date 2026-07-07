@@ -120,5 +120,5 @@
 
 한국 정착 용어·마이크로카피(해요체)·폼 포맷(010-전화·도로명주소·사업자번호·원화·날짜 `YYYY.MM.DD`) 기준은
 **`docs/korean-ux.md`가 단일 출처.** AI가 영어 직역체("쇼핑 카트"·"Save" 버튼·"~하시겠습니까?")로 폴백하는 것을
-막는다. AI 작동 룰은 `.claude/rules/korean-ux.md`(path-scoped 자동 주입), advisory 점검은 `/qa` Agent C.
+막는다. AI 작동 룰은 `templates/rules/korean-ux.md`(소비 repo엔 `.claude/rules/`로 복사돼 path-scoped 자동 주입), advisory 점검은 `/qa` Agent C.
 (영어 UI 서비스에는 미적용 — 셋업 시 룰 삭제.)

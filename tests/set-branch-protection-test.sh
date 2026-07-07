@@ -9,10 +9,10 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SBP="$ROOT/plugins/harness-guard/scripts/set-branch-protection.sh"
 PASS=0; FAIL=0
 
-# desc, appr, adm, chk, want_verdict(ok|drift), want_rc, [expected(4번째 classify 인자, 기본""=정보성)]
+# desc, appr, adm, chk, want_verdict(ok|drift), want_rc, [expected(4번째 classify 인자, 기본""=정보성)], [strict(5번째, 기본""=무관)]
 chk_case() {
-  local desc="$1" appr="$2" adm="$3" chk="$4" wantv="$5" wantrc="$6" expected="${7:-}" out rc gotv
-  out=$(SBP_SOURCE_ONLY=1 bash -c 'source "$1"; classify_protection "$2" "$3" "$4" "$5"' _ "$SBP" "$appr" "$adm" "$chk" "$expected"); rc=$?
+  local desc="$1" appr="$2" adm="$3" chk="$4" wantv="$5" wantrc="$6" expected="${7:-}" strict="${8:-}" out rc gotv
+  out=$(SBP_SOURCE_ONLY=1 bash -c 'source "$1"; classify_protection "$2" "$3" "$4" "$5" "$6"' _ "$SBP" "$appr" "$adm" "$chk" "$expected" "$strict"); rc=$?
   gotv="ok"; case "$out" in drift:*) gotv="drift";; esac
   if [ "$gotv" = "$wantv" ] && [ "$rc" = "$wantrc" ]; then
     echo "PASS: $desc"; PASS=$((PASS+1))
@@ -47,6 +47,10 @@ chk_case "팀1: 승인0 → drift(미달)"        0    True  3    drift 1   1
 chk_case "팀1: None → drift(승인없음)"     None True  3    drift 1   1
 # 팀(--approvals 2): appr>=2
 chk_case "팀2: 승인1 → drift(미달)"        1    True  3    drift 1   2
+# #199: strict(up-to-date) 감사 — false면 stale-green 머지 허용 → drift(성공 은폐 금지)
+chk_case "strict=False → drift"            0    True  3    drift 1   ""   False
+chk_case "strict=True → ok"                0    True  3    ok    0    ""   True
+chk_case "strict='' (미지정) → 무관(chk가 판정)" 0 True 3    ok    0    ""   ""
 
 # --contexts 명시 등록: CSV → JSON 배열(공백 trim·빈 항목 제거) — 기존 repo 리메디에이션
 cj() { # desc, csv, want_json

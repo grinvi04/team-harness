@@ -149,6 +149,87 @@ check "LITE: npm -g 여전히 차단(안전유지)"        2 Bash "npm install -
 # 마커 없는 repo는 여전히 차단(회귀 방지 — 면제가 전역 누출 안 됨)
 check "非LITE: develop 커밋 여전히 차단"    2 Bash "git commit -m x"                "$DEV"
 
+# H2P: 2차 심층 헌트 — 가드 우회 잔여(형제 가드가 이미 막는 변형을 다른 가드가 비대칭 누락)
+# H1: reset --hard 를 공백·탭·인자후치·git -C·env-prefix 로 우회 (기존 리터럴 `git reset --hard`만 매칭)
+check "H1: reset 이중공백 차단"          2 Bash "git reset  --hard HEAD~1"          "$DEV"
+check "H1: reset 인자후치 차단"          2 Bash "git reset HEAD~1 --hard"           "$DEV"
+check "H1: reset 탭 차단"                2 Bash $'git reset\t--hard HEAD~1'         "$DEV"
+check "H1: reset git -C 차단"            2 Bash "git -C $DEV reset --hard HEAD~1"    "$FEAT"
+check "H1: reset env-prefix 차단"        2 Bash "X= git reset --hard HEAD~1"        "$DEV"
+check "H1over: reset --soft 통과 유지"   0 Bash "git reset  --soft HEAD~1"          "$FEAT"
+check "H1over: grep 'reset --hard' 통과" 0 Bash "grep 'git reset --hard' f.txt"     "$DEV"
+# H2: rm -rf . / .. 로 프로젝트 루트·상위 삭제 (정규화 case 가 맨몸 . / .. 토큰 누락)
+check "H2: rm -rf . (루트) 차단"         2 Bash "rm -rf ."                          "$DEV"
+check "H2: rm -rf .. (상위) 차단"        2 Bash "rm -rf .."                         "$DEV"
+check "H2over: rm -rf ./build 통과"      0 Bash "rm -rf ./build"                    "$FEAT"
+# M2: 핵심 디렉터리 rm 을 따옴표로 우회
+check "M2: rm -rf \"src\" 차단"          2 Bash 'rm -rf "src"'                      "$DEV"
+check "M2: rm -rf 'app' 차단"            2 Bash "rm -rf 'app'"                      "$DEV"
+# M5: 검증기 삭제 가드를 따옴표로 우회
+check "M5: rm -rf \"tests\" 차단"        2 Bash 'rm -rf "tests"'                    "$FEAT"
+# M1: main/develop 직접커밋을 env-prefix·선행공백으로 우회
+check "M1: X= git commit 차단"           2 Bash "X= git commit -m x"                "$DEV"
+check "M1: 선행공백 git commit 차단"     2 Bash "   git commit -m x"                "$DEV"
+check "M1: env A=1 B=2 commit 차단"      2 Bash "A=1 B=2 git commit -m x"           "$DEV"
+check "M1over: echo git commit 통과"     0 Bash "echo git commit"                   "$DEV"
+# M7: main/develop force push 를 git -C 로 우회 (commit 가드는 -C 잡는데 push는 비대칭 누락)
+check "M7: git -C push --force main 차단" 2 Bash "git -C $DEV push --force origin main" "$FEAT"
+check "M7: git -C push --force 암묵develop 차단" 2 Bash "git -C $DEV push --force"   "$FEAT"
+
+# 6: fail-closed — python3가 있으나 실행 실패 시(깨짐) 전 가드 우회 대신 차단
+FAKEBIN=$(mktemp -d); printf '#!/bin/sh\nexit 1\n' > "$FAKEBIN/python3"; chmod +x "$FAKEBIN/python3"
+_rc=$(cd "$DEV" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git reset --hard"}}' | PATH="$FAKEBIN:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+if [ "$_rc" = 2 ]; then echo "PASS: 6: 깨진 python3 fail-closed"; PASS=$((PASS+1)); else echo "FAIL: 6: 깨진 python3 fail-closed — got $_rc"; FAIL=$((FAIL+1)); fi
+rm -rf "$FAKEBIN"
+
+# 7: 감사로그 개행 위조 방지 — session_id 개행이 로그를 위조(추가 라인)하지 못함
+FHOME=$(mktemp -d); mkdir -p "$FHOME/.claude/hooks"
+printf '%s' '{"tool_name":"Bash","session_id":"a\nFORGED session=evil DENY x","cwd":"/x","tool_input":{"command":"git reset --hard"}}' | HOME="$FHOME" bash "$G" >/dev/null 2>&1
+_lines=$(wc -l < "$FHOME/.claude/hooks/guard-block.log" 2>/dev/null | tr -d ' ')
+if [ "$_lines" = 1 ]; then echo "PASS: 7: 감사로그 개행 위조 방지"; PASS=$((PASS+1)); else echo "FAIL: 7: 감사로그 개행 위조 — 로그 ${_lines:-0}줄(기대 1)"; FAIL=$((FAIL+1)); fi
+rm -rf "$FHOME"
+
+# #196: LITE 교차-repo 오염 방지 — 코드 repo(마커無)에서 실행하는 명령 뒤에 lite repo로 후행 cd해도 LITE-게이트 유지
+check "#196: develop 커밋 && cd lite → 차단 유지" 2 Bash "git commit -m x && cd $LITE_REPO"          "$DEV"
+check "#196: 무spec feature && cd lite → plan게이트 유지" 2 Bash "git checkout -b feature/evil && cd $LITE_REPO" "$DEV"
+check "#196: git -C code commit && cd lite → 차단 유지" 2 Bash "git -C $DEV commit -m x && cd $LITE_REPO" "$FEAT"
+# #196: npm 글로벌 =값 형태 우회 차단
+check "#196: npm install --global=true 차단" 2 Bash "npm install --global=true leftpad"              "$DEV"
+check "#196: npm --global=true install 차단" 2 Bash "npm --global=true install leftpad"              "$DEV"
+# REJ2: force-push 완전수식 refspec·non-origin remote 차단(로컬 가드 정본화)
+check "REJ2: force refs/heads/main 차단"     2 Bash "git push --force origin refs/heads/main"        "$FEAT"
+check "REJ2: force HEAD:refs/heads/develop 차단" 2 Bash "git push -f origin HEAD:refs/heads/develop" "$FEAT"
+check "REJ2: force upstream main 차단"       2 Bash "git push --force upstream main"                 "$FEAT"
+check "REJ2over: force origin featmain 통과(오탐)" 0 Bash "git push --force origin featmain"          "$FEAT"
+
+# #204: 자기-회귀 교정 — reset wrapper 우회 + force-push 과탐/명시refspec
+# #4 reset --hard가 wrapper 프리픽스로 우회되던 것 차단(무백스톱 파괴가드)
+check "#204: sudo git reset --hard 차단"       2 Bash "sudo git reset --hard HEAD~1"        "$DEV"
+check "#204: env FOO=x git reset --hard 차단"  2 Bash "env FOO=x git reset --hard"          "$DEV"
+check "#204: time git reset --hard 차단"       2 Bash "time git reset --hard"               "$DEV"
+check "#204over: sudo git reset --soft 통과"   0 Bash "sudo git reset --soft HEAD~1"         "$FEAT"
+# #1 force-push 목적지 판정을 push 세그먼트로 — rebase 인자·커밋메시지·주석의 main/develop 오탐 방지
+check "#204: rebase main && feature force 통과" 0 Bash "git rebase main && git push --force-with-lease origin feature/foo" "$FEAT"
+check "#204: 커밋메시지 main && feature force 통과" 0 Bash "git commit -m 'fix main' && git push --force origin feature/foo"   "$FEAT"
+check "#204: --follow-tags feature push 통과(비force)" 0 Bash "git push --follow-tags origin feature/foo" "$FEAT"
+# #5 명시 refspec feature force-push는 develop 체크아웃에서도 통과
+check "#204: develop서 명시 feature force 통과" 0 Bash "git push --force origin feature/x"    "$DEV"
+# 회귀 방지 — 여전히 차단되어야 하는 것
+check "#204: origin main force 여전히 차단"    2 Bash "git push --force origin main"         "$FEAT"
+check "#204: bare force(develop) 여전히 차단"  2 Bash "git push --force"                     "$DEV"
+
+# #208: 체인된 다중 push의 뒤쪽 세그먼트 main/develop force-push도 차단(head -1 우회 교정)
+check "#208: feat push && main force → 차단"   2 Bash "git push origin feature/x && git push --force origin main"     "$FEAT"
+check "#208: feat force && develop force → 차단" 2 Bash "git push -f origin feature/x && git push -f origin develop"    "$FEAT"
+check "#208: main force && feat push → 차단(순서무관)" 2 Bash "git push -f origin main && git push origin feature/x"    "$FEAT"
+check "#208over: feat && feat force 통과(과탐없음)" 0 Bash "git push origin feature/a && git push --force origin feature/b" "$FEAT"
+
+# #208: 감사로그 URL 크레덴셜 마스킹이 대문자 스킴(HTTPS://)도 처리 — 크레덴셜 평문 유출 방지
+FHOME2=$(mktemp -d); mkdir -p "$FHOME2/.claude/hooks"
+printf '%s' '{"tool_name":"Bash","session_id":"s","cwd":"/x","tool_input":{"command":"git reset --hard HTTPS://user:SECRETPASS@host/x"}}' | HOME="$FHOME2" bash "$G" >/dev/null 2>&1
+if grep -q "SECRETPASS" "$FHOME2/.claude/hooks/guard-block.log" 2>/dev/null; then echo "FAIL: #208 대문자 URL 크레덴셜 로그 유출"; FAIL=$((FAIL+1)); else echo "PASS: #208 대문자 URL 크레덴셜 마스킹"; PASS=$((PASS+1)); fi
+rm -rf "$FHOME2"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

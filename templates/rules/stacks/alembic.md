@@ -15,7 +15,7 @@ DYLD_LIBRARY_PATH=/opt/homebrew/opt/expat/lib \
 ```
 
 ## 절대 금지
-- `alembic downgrade base` — 전체 스키마 삭제 (hook이 차단)
+- `alembic downgrade base` — ⚠️ 전체 스키마 삭제 (가드 미차단 — AI·사람 모두 직접 실행 금지)
 - 마이그레이션 파일 직접 수정 — `alembic revision`으로만 생성
 - `text()` / `execute()` raw SQL — `sa.text()` + 파라미터 바인딩 사용
 

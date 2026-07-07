@@ -152,7 +152,12 @@ FIXED_FILES=[]    # 누적 수정 파일 목록
 
 ### Phase 2a — 단일 반복 실행 (`subagent_type: general-purpose`, `model: sonnet`, **foreground**)
 
-각 반복마다 아래 프롬프트로 에이전트를 spawn한다 (반드시 **foreground**, 이전 결과가 다음 프롬프트에 포함돼야 한다):
+각 반복마다 아래 프롬프트로 에이전트를 spawn한다 (반드시 **foreground**, 이전 결과가 다음 프롬프트에 포함돼야 한다).
+
+에이전트 spawn **직전** 오케스트레이터는 stuck 감지용 기준 지문(이번 반복 시작 시 워킹트리 상태)을 캡처한다:
+```bash
+TREE_BEFORE=$( { git status --porcelain=v1; git diff; } | shasum | awk '{print $1}' )
+```
 
 **프롬프트 (반복마다 갱신):**
 
@@ -189,8 +194,11 @@ FIXED_FILES=[]    # 누적 수정 파일 목록
 # 수정 파일 목록 확인
 CHANGED=$(git diff --name-only)
 
-# stuck 감지
-if [ -z "$CHANGED" ]; then
+# stuck 감지 — 커밋 여부와 무관하게 '이번 반복이 워킹트리를 실제로 바꿨는가'로 판정(#198).
+#   기존 `-z "$CHANGED"` 방식은 --no-commit 모드에서 미커밋 변경이 누적돼 `git diff`가 항상 non-empty →
+#   에이전트가 진전 없어도 stuck을 영영 못 잡았다. 반복 시작 지문(TREE_BEFORE) 대비 종료 지문을 비교한다.
+TREE_AFTER=$( { git status --porcelain=v1; git diff; } | shasum | awk '{print $1}' )
+if [ "$TREE_AFTER" = "$TREE_BEFORE" ]; then
   STUCK=$((STUCK+1))
   if [ "$STUCK" -ge 2 ]; then
     # Phase 3 (중단 — stuck)으로

@@ -32,6 +32,9 @@ require_develop_base() {
 classify_ci_gate() {
   local rc="$1" out="$2"
   if [ "$rc" -eq 0 ]; then echo green; return 0; fi
+  # 실제 체크 행(NAME<TAB>STATE<TAB>…)에 비-통과 상태가 있으면 API 접근 실패가 아니라 진짜 미통과 → fail.
+  #   에러토큰(GraphQL 등) 검사보다 **먼저** — 실패 체크의 '이름'에 GraphQL이 들어가도 fallback으로 오판하지 않게(#199).
+  if printf '%s' "$out" | awk -F'\t' 'NF>=2 && $2 ~ /^(fail|failing|failure|pending|error|cancel|cancelled|timed_out|action_required|expected|stale|queued|waiting|in_progress)$/{f=1} END{exit !f}'; then echo fail; return 1; fi
   if printf '%s' "$out" | grep -qiE "no checks|no required"; then echo none; return 0; fi
   if printf '%s' "$out" | grep -qiE "not accessible|GraphQL|Resource not accessible"; then echo fallback; return 0; fi
   echo fail; return 1

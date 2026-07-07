@@ -36,7 +36,7 @@ set -uo pipefail
 #     "N"(≥1) = 팀(appr>=N면 ok · None/미달=drift).
 #   echo "ok"(부합, rc0) 또는 "drift:<사유들>"(rc1).
 classify_protection() {
-  local appr="$1" adm="$2" chk="$3" expected="${4:-}" msg="" okappr=false okchk=false
+  local appr="$1" adm="$2" chk="$3" expected="${4:-}" strict="${5:-}" msg="" okappr=false okchk=false okstrict=true
   if [ -z "$expected" ]; then
     [ "$appr" != "?" ] && okappr=true                                   # 정보성: 파싱된 값이면 개수 무관 통과
   elif [ "$expected" = "0" ]; then
@@ -45,7 +45,10 @@ classify_protection() {
     [ "$appr" -ge "$expected" ] 2>/dev/null && okappr=true              # 팀: appr>=N (비숫자=fail-closed)
   fi
   [ "$chk" -gt 0 ] 2>/dev/null && okchk=true
-  if $okappr && [ "$adm" = "True" ] && $okchk; then echo "ok"; return 0; fi
+  # strict(=required_status_checks.strict, "브랜치가 base 최신일 때만 머지"): false면 stale-green 머지 허용
+  #   (대상이 base 최신이 아니어도 오래된 CI green으로 머지). 표준=true. 값이 주어졌고 true가 아니면 drift.
+  case "$strict" in ""|true|True) ;; *) okstrict=false;; esac
+  if $okappr && [ "$adm" = "True" ] && $okchk && $okstrict; then echo "ok"; return 0; fi
   if ! $okappr; then
     if [ -z "$expected" ];       then msg="$msg 승인요건 파싱실패=$appr"
     elif [ "$expected" = "0" ];  then msg="$msg 승인요건=$appr(솔로표준0·팀이면 --approvals N)"
@@ -53,6 +56,7 @@ classify_protection() {
   fi
   [ "$adm" = "True" ] || msg="$msg enforce_admins=$adm(표준=on · off면 CI red 머지 가능!)"
   $okchk || msg="$msg required_status_checks=${chk}개(표준 non-null · CI 이후 재적용 필요)"
+  $okstrict || msg="$msg strict=$strict(표준=true · false면 stale-green 머지 허용)"
   echo "drift:$msg"; return 1
 }
 
@@ -102,9 +106,11 @@ for branch in main develop; do
     adm=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('enforce_admins',{}).get('enabled'))" 2>/dev/null || echo "?")
     # B1: required_status_checks 개수 — -1=null(없음), 0=빈 목록(약한 보호), >0=정상.
     chk=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(len(r.get('contexts') or [c.get('context') for c in (r.get('checks') or [])]) if r else -1)" 2>/dev/null || echo "?")
+    # strict(up-to-date 필수) — false면 stale-green 머지 허용(#199). rsc null이면 ''(chk가 이미 drift로 잡음).
+    strict=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(r.get('strict') if r else '')" 2>/dev/null || echo "?")
     # 승인 baseline: main만 --approvals N으로 검증(develop은 승인0 유지라 정보성). 미지정=정보성(개수 무관).
     exp=""; [ "$branch" = "main" ] && exp="$APPROVALS"
-    verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp") || true
+    verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp" "$strict") || true
     if [ "$verdict" = "ok" ]; then
       echo "✓ $REPO:$branch — 보호 적용(승인$appr · enforce_admins=on · checks=$chk)"
     else

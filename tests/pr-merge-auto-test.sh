@@ -40,6 +40,11 @@ ci "CI 'no required' → none(통과)"          1 "no required checks"          
 ci "CI 'Resource not accessible' → fallback" 1 "Resource not accessible by integration" fallback
 ci "CI 'GraphQL' 403 → fallback"            1 "GraphQL: Resource not accessible"        fallback
 ci "CI 실패 출력 → fail(중단)"              1 "1 failing, 2 successful, 0 skipped"      fail
+# #199: 실패 체크의 '이름'에 GraphQL 등 에러토큰이 들어간 표 행 → fallback 오판 아니라 fail(상태컬럼 우선)
+ci "CI 실패 체크명 GraphQL(표 행) → fail"    1 "$(printf 'GraphQL schema check\tfail\t20s\thttp://x')" fail
+ci "CI pending 체크(표 행) → fail(미통과)"   1 "$(printf 'quality\tpending\t\thttp://x')"              fail
+# 실제 API 에러(표 행 아님)는 여전히 fallback
+ci "CI GraphQL 에러문(표 아님) → fallback"   1 "GraphQL: Resource not accessible by integration"      fallback
 
 # 미해결 스레드: "0"만 통과, 나머지(ERR·1+·빈값) fail-CLOSED
 grc "threads=0 → 통과"          gate_threads   0            0

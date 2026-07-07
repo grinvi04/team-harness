@@ -88,8 +88,14 @@ echo "✅ 태그: v$PATCH"
 ## Phase 4 — develop back-merge PR ← 반드시 실행 (오케스트레이터 직접 실행)
 
 develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **back-merge도 PR로**.
+단, `main`은 head로 PR 불가(pr-create가 base 브랜치를 head로 거부)이고 hotfix 브랜치는 Phase 3 머지로 이미 삭제됐다
+→ **main 기준 `sync/` 브랜치를 만들어 그것을 head로** develop에 PR한다.
 
 ```bash
+# main 최신을 담은 back-merge용 sync 브랜치 생성(sync/* 는 F5 plan-게이트 무관)
+git checkout main && git pull origin main
+git checkout -b sync/backmerge-$FIX_NAME
+git push -u origin sync/backmerge-$FIX_NAME
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
   --title "chore: hotfix/$FIX_NAME develop 반영" \
   --body "main PR과 동일 내용의 back-merge — main 머지·태그(v$PATCH) 완료 후 develop 반영.
@@ -98,12 +104,14 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 **`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 사람 승인 + CI + 머지만.
-충돌 시 hotfix 브랜치에 develop을 merge해 해소 후 재푸시.
+충돌 시 (hotfix 브랜치는 Phase 3에서 삭제됨) back-merge PR의 head인 `sync/backmerge-$FIX_NAME`에서 develop을 merge해 해소 후 재푸시.
 
 ```bash
-# 머지 완료 후 브랜치 정리
-git branch -d hotfix/$FIX_NAME
+# 머지 완료 후 브랜치 정리 (sync 브랜치에서 벗어난 뒤 로컬 삭제 — 원격 sync는 back-merge 머지 시 자동 삭제)
+git checkout develop && git pull origin develop
+git branch -d hotfix/$FIX_NAME 2>/dev/null || true
 git push origin --delete hotfix/$FIX_NAME 2>/dev/null || true
+git branch -d sync/backmerge-$FIX_NAME 2>/dev/null || true
 ```
 
 > ⚠️ develop 반영을 건너뛰면 다음 릴리즈 때 수정이 사라진다.

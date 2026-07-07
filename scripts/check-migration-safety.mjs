@@ -139,30 +139,66 @@ const isBanded = !isTimestamp && bands >= 2
 
 // ── 설정에서 out-of-order 상태 추출 ───────────────────────
 // Flyway: spring `out-of-order: true` (yaml) / `flyway.outOfOrder=true` (conf)
-// S1: out-of-order 크레딧은 **운영에 적용되는** 설정에서만 인정한다. test/dev/ci 등 비운영
-// 프로파일(application-test.yml 등)에만 true가 있고 운영 설정엔 없으면 운영 DB는 여전히
-// 기동 실패하므로, 그 프로파일의 true를 신뢰하면 안전게이트가 false-pass 한다.
-const NONPROD_PROFILE_RE = /application-(test|dev|ci|local|it|e2e|integration)\b/i
-const prodConfigFiles = configFiles.filter((cf) => !NONPROD_PROFILE_RE.test(basename(cf)))
+// S1: out-of-order 크레딧은 **운영에 적용되는** 설정에서만 인정한다. 비운영 프로파일 파일(application-test.yml 등)에만
+// true가 있고 운영 설정엔 없으면 운영 DB는 기동 실패하므로 그 true를 신뢰하면 false-pass 한다.
+//   **safe-default(#227)**: 하드코딩 nonprod 토큰 리스트는 본질적으로 불완전(staging/uat/qa/sandbox/… 누락 시 false-pass).
+//   그래서 `application-<profile>.<ext>`는 profile이 **prod/production일 때만** 운영 파일로 보고, 그 외 명명된 프로파일은
+//   비운영으로 제외한다(리스트 무관 — 임의 프로파일명 자동 처리). `application.<ext>`(프로파일無)·비-application 설정
+//   (flyway.conf 등)은 운영으로 취급. isProdApplicable(in-document)의 safe-default와 동일 원리.
+const NONPROD_PROFILE_FILE_RE = /^application-(?!prod(uction)?\b)[^.]+\.(ya?ml|properties|conf)$/i
+const prodConfigFiles = configFiles.filter((cf) => !NONPROD_PROFILE_FILE_RE.test(basename(cf)))
 const OOO_RE = /out[-_]?of[-_]?order\s*[:=]\s*["']?(true|false)/gi
+// S1b(#182): 단일 application.yml 안에 `---`로 구분된 다중 프로파일 문서에서, 비운영(test/dev/ci) 문서의
+//   out-of-order:true 가 운영 문서의 false/미설정을 덮어 게이트를 false-pass 시키던 것 차단. 파일명(basename)
+//   필터만으로는 프로파일 문서가 단일 파일에 합쳐진 경우를 못 걸러 — 문서 단위로 on-profile을 보고 비운영 문서를
+//   OOO 크레딧에서 제외한다(운영·프로파일無 문서만 신뢰). .properties/.conf 등 `---` 없는 파일은 단일 문서로 처리(무변경).
+const ON_PROFILE_RE = /(?:on-profile|spring\.profiles(?:\.active|\.include)?)\s*[:=]\s*(.+)/i
+// on-profile을 가진 문서가 '운영에 적용되는가'를 의미론적으로 판정. out-of-order 크레딧은 운영 적용 문서에서만 인정.
+//   **safe-default**: 하드코딩 비운영 토큰 리스트는 본질적으로 불완전(staging/uat/qa/sandbox/… 누락 시 false-pass, #214).
+//   그래서 '명시 on-profile을 가진 문서'는 **운영에 적용된다는 확실한 신호가 있을 때만** 크레딧한다:
+//     - `!prod`/`!production`(운영 제외 부정) → 미적용(false)
+//     - `prod`/`production` 토큰 포함(예: `test | prod`, `production-eu`) → 적용(true)
+//     - 표현식의 **모든 항이 부정(!X)**이면(예: `!test`, `!dev & !test`) prod가 배제되지 않아 적용(true)
+//     - **양의(비운영) 항이 하나라도** 있으면(예: `staging`, `staging & !test`, `qa,!smoke`) 그 항이 문서를
+//       비운영으로 스코프하므로 **미적용(false)** ← 리스트 무관, 복합식(`&`/`|`/`,`)도 정확, 안전측
+//   (프로파일 라인이 아예 없는 default 문서는 호출측이 isProdApplicable을 부르지 않고 그대로 스캔한다.)
+const isProdApplicable = (val) => {
+  const v = (val || '').toLowerCase()
+  // 괄호 그룹(예: `!(prod | staging)`)은 정규식+split로 안전 파싱 불가 — bare `prod` 토큰이 부정 안에 있어도
+  //   양의 prod로 오인해 위험한 false-pass가 난다. 안전측으로 **미적용(false)** 처리해 OOO 크레딧을 거부한다.
+  //   (드문 over-block(`!(test)`류 = 실제 운영적용인데 FAIL)을 감수하고 위험한 false-pass를 막는다 — 비가역>가역.
+  //    진짜 완전한 해법은 boolean 표현식 파서 #220-A. 이건 부분 교정이며 '전 클래스를 닫았다'고 주장하지 않는다.)
+  if (/[()]/.test(v)) return false
+  if (/![\s"']*prod(uction)?\b/.test(v)) return false   // !prod/!production → 운영 제외 → 미적용
+  if (/\bprod(uction)?\b/.test(v)) return true           // 양의 prod/production 토큰 포함(예: test|prod) → 적용
+  // 항 단위로 분해 — 모든 항이 부정(!X)이면 적용(부정은 배제만), 양의 비운영 항이 있으면 미적용.
+  const terms = v.replace(/["']/g, ' ').split(/[\s&|,]+/).filter(Boolean)
+  if (terms.length && terms.every((t) => t.startsWith('!'))) return true
+  return false                                           // 양의 비운영 항 존재 or 미인식 → 미적용(safe-default)
+}
 let oooState = 'absent' // 'true' | 'false' | 'absent'
 // B3: 라인 단위로 읽고 주석(`#` 이후)을 제거한 뒤 스캔 — 주석 처리된 `# out-of-order: true`가
 // 실제 false를 덮어 게이트를 false-pass 시키던 것 차단(yaml/conf/toml/ini 공통 주석문자 #).
+outer:
 for (const cf of prodConfigFiles) {
   let text
   try { text = readFileSync(cf, 'utf8') } catch { continue }
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.replace(/#.*$/, '') // 라인 내 주석 제거
-    let m
-    OOO_RE.lastIndex = 0
-    while ((m = OOO_RE.exec(line)) !== null) {
-      const v = m[1].toLowerCase()
-      if (v === 'true') { oooState = 'true'; break }
-      if (v === 'false') oooState = 'false'
+  for (const doc of text.split(/^\s*---\s*$/m)) {
+    const lines = doc.split(/\r?\n/).map((l) => l.replace(/#.*$/, '')) // 라인 내 주석 제거
+    // 이 문서가 비운영 프로파일 전용이면(on-profile: test 등) OOO 크레딧 대상에서 제외.
+    const profileLine = lines.find((l) => ON_PROFILE_RE.test(l))
+    if (profileLine && !isProdApplicable(profileLine.match(ON_PROFILE_RE)[1])) continue
+    for (const line of lines) {
+      let m
+      OOO_RE.lastIndex = 0
+      while ((m = OOO_RE.exec(line)) !== null) {
+        const v = m[1].toLowerCase()
+        if (v === 'true') { oooState = 'true'; break }
+        if (v === 'false') oooState = 'false'
+      }
+      if (oooState === 'true') break outer
     }
-    if (oooState === 'true') break
   }
-  if (oooState === 'true') break
 }
 
 // ── 판정 ──────────────────────────────────────────────────

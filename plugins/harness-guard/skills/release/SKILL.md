@@ -89,8 +89,14 @@ git push origin --tags
 ## Phase 4 — develop back-merge PR (오케스트레이터 직접 실행)
 
 develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **back-merge도 PR로**.
+단, `main`은 head로 PR 불가(pr-create가 base 브랜치를 head로 거부)이고 release 브랜치는 머지로 정리됐다
+→ **main 기준 `sync/` 브랜치를 만들어 그것을 head로** develop에 PR한다.
 
 ```bash
+# main 최신(태그·버전범프 포함)을 담은 back-merge용 sync 브랜치 생성(sync/* 는 F5 plan-게이트 무관)
+git checkout main && git pull origin main
+git checkout -b sync/backmerge-v$VERSION
+git push -u origin sync/backmerge-v$VERSION
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
   --title "chore: release/v$VERSION develop 반영" \
   --body "main PR과 동일 내용의 back-merge — 버전 범프 커밋을 develop에 반영.
@@ -99,11 +105,14 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 ```
 
 **`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 사람 승인 + CI + 머지만.
+충돌 시 (release 브랜치는 이미 정리됨) back-merge PR의 head인 `sync/backmerge-v$VERSION`에서 develop을 merge해 해소 후 재푸시.
 
 ```bash
-# 머지 완료 후 브랜치 정리
-git branch -d release/v$VERSION
+# 머지 완료 후 브랜치 정리 (sync 브랜치에서 벗어난 뒤 로컬 삭제 — 원격 sync는 back-merge 머지 시 자동 삭제)
+git checkout develop && git pull origin develop
+git branch -d release/v$VERSION 2>/dev/null || true
 git push origin --delete release/v$VERSION 2>/dev/null || true
+git branch -d sync/backmerge-v$VERSION 2>/dev/null || true
 ```
 
 ---

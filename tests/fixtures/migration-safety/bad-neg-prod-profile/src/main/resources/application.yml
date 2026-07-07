@@ -1,0 +1,14 @@
+# #197 재현: 부정 프로파일(!prod)의 out-of-order:true는 운영에 적용 안 됨 → 운영 문서는 ooo 미설정 → FAIL 이어야 한다.
+spring:
+  config:
+    activate:
+      on-profile: "!prod"
+  flyway:
+    out-of-order: true
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  flyway:
+    baseline-on-migrate: true

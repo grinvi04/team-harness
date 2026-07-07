@@ -52,8 +52,10 @@ git status --short   # 미커밋 변경 있으면 중단
   ① 대역 번호 규약 여부 ② out-of-order: true 설정 여부 ③ **기존 DB 증분 적용 관점**(빈 DB CI 통과 ≠ 운영 안전)
 - **적용된 마이그레이션 수정 금지 점검**: 기존(이전 릴리즈에 포함된) 마이그레이션 파일이 수정됐는지
   `git diff <마지막태그>..HEAD -- <마이그레이션 경로>` 로 확인 — 수정 발견 시 ❌
-- **forward-only 위반 점검**: 신규 마이그레이션에 down/rollback 스크립트가 포함됐는지 — 포함 시 ❌
-  (`db-standards.md`: 되돌릴 때도 새 forward 버전 추가)
+- **forward-only 위반 점검(Flyway 전용)**: Flyway에서 신규 마이그레이션에 **undo 스크립트(`U{n}__.sql`)**가
+  포함됐는지 — 포함 시 ❌ (`db-standards.md`: Flyway는 되돌릴 때도 새 forward 버전 추가, 별도 undo 파일 금지).
+  **Alembic은 대상 아님** — `revision --autogenerate`가 생성하는 인라인 `downgrade()`는 정상 구조이며,
+  금지되는 것은 `alembic downgrade base`(전체 삭제)뿐이다(`templates/rules/stacks/alembic.md`).
 - **소프트삭제 제외 테스트 점검**: 신규 소프트삭제 엔티티/모델에 **삭제 후 목록 제외 테스트**가 있는지 —
   없으면 ❌ (`db-standards.md`: 필터가 하위 타입에 미상속될 수 있어 엔티티별 검증 필수)
 - **하드삭제 신규 도입 점검**: 물리 삭제(`DELETE`·`hard delete`·물리 제거 쿼리) 신규 도입 여부 — 발견 시 사유 확인·리포트

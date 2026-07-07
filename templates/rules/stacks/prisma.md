@@ -16,7 +16,7 @@ npm run lint:check
 ```
 
 ## 절대 금지
-- `prisma migrate reset` — 전체 데이터 삭제 (hook이 차단)
+- `prisma migrate reset` — ⚠️ 전체 데이터 삭제 (가드 미차단 — AI·사람 모두 직접 실행 금지)
 - 마이그레이션 파일 직접 수정 — `prisma migrate dev`로만 생성
 - `$queryRawUnsafe()` — SQL 인젝션 위험, `Prisma.sql` 템플릿 사용
 

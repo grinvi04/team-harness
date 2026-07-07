@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.24.2-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.29.21-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -51,7 +51,7 @@
 | 가드·훅 | Bash (PreToolUse, UserPromptSubmit 훅) |
 | 의도 라우터 | Node.js (ES modules, `route-intent.mjs`) |
 | CI 게이트 | GitHub Actions (`templates/ci/`) |
-| 에이전트 | Claude Opus (`security-reviewer` 전용) |
+| 에이전트 | Claude Opus (`security-reviewer`·`verifier`) |
 | 테스트 | Bash 통합 테스트 (`tests/route-intent-test.sh`) |
 
 ## 🏗️ 아키텍처
@@ -117,6 +117,7 @@ flowchart TD
 | **머지·릴리즈 커맨드** | `/feature-merge` · `/hotfix` · `/release` · `/solo-merge` — git-flow 전 구간을 게이트 경유로 자동화 |
 | **스킬** `pr-review-gate` | PR 생성→머지의 표준 게이트 절차 **단일 출처** — AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
 | **에이전트** `security-reviewer` | 릴리즈 전 보안 검토(XSS·SQL 인젝션·하드코딩 시크릿·.env 추적) — 읽기 전용, opus |
+| **에이전트** `verifier` | 검증·연구·설계 판단 전용 — 계획·코드의 정확성을 다른 각도로 재검토, 누락·회귀·논리오류 보고(읽기 전용, opus) |
 
 ### git-flow와 커맨드의 관계
 
@@ -204,7 +205,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 ## 🧪 테스트
 
 ```bash
-bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (21 케이스)
+bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (30 케이스)
 ```
 
 ## 📁 repo 구조
@@ -251,6 +252,7 @@ team-harness/
 | [code-review.md](docs/code-review.md) | Conventional Commits(타입 영어+본문 한국어) · 리뷰어 배정 규칙 |
 | [ai-collaboration.md](docs/ai-collaboration.md) | AI 협업 책임 원칙 · 도구 공통 금지사항 |
 | [operations.md](docs/operations.md) | 장애 대응 · 로그 레벨 기준 · traceId 전파 (서비스 오픈 시 활성화) |
+| [troubleshooting.md](docs/troubleshooting.md) | 가드 차단 사유별 해법 · 훅 미발동 · 의존성 fail-closed · 감사/복구 |
 | [model-tiering.md](docs/model-tiering.md) | 모델 티어링 정책 — Haiku(단순)·Sonnet(빌드·메인 기본)·Opus(검증·설계·리서치) |
 | [decisions.md](docs/decisions.md) | 확정 결정의 단일 출처 — 결정·정본 문서·영향 문서 |
 | [harness-maintenance.md](docs/harness-maintenance.md) | 하네스 자체 변경 절차 · 플러그인 버전 정책 · 전파 방식 |
@@ -291,4 +293,4 @@ team-harness/
 
 ## 📄 라이선스
 
-Private — 팀 내부용.
+MIT — 2026-07 public 전환(decisions #73). 루트 [`LICENSE`](LICENSE) 참조.

@@ -9,7 +9,8 @@ PASS=0; FAIL=0
 # 이 테스트는 훅을 수십 회 호출한다 — 실 감사 로그(~/.claude/hooks/subagent-model.log)에
 # 쓰면 사용자의 진짜 감사 이력을 오염시킨다(2026-07 실제 사고: 레이스 재현 테스트가 그 로그를
 # 덮어써 당일 이력이 유실됨). HARNESS_SUBAGENT_MODEL_LOG로 임시 파일에 격리한다.
-export HARNESS_SUBAGENT_MODEL_LOG; HARNESS_SUBAGENT_MODEL_LOG="$(mktemp -t enforce-subagent-model-test-log)"
+# mktemp: GNU(Linux/CI)는 -t 템플릿에 X 3개 이상 요구, BSD(macOS)는 관대 — 양쪽 이식되는 완전경로 X 템플릿 사용
+export HARNESS_SUBAGENT_MODEL_LOG; HARNESS_SUBAGENT_MODEL_LOG="$(mktemp "${TMPDIR:-/tmp}/enforce-subagent-model-test-log.XXXXXX")"
 trap 'rm -f "$HARNESS_SUBAGENT_MODEL_LOG"' EXIT
 
 # subagent_type·(선택)model·(선택)tool_name 으로 hook 입력 JSON 생성 → hook 실행

@@ -2,7 +2,7 @@
 # 배경: 여러 브랜치가 각자 마이그레이션을 추가하면 down_revision 그래프에 head가 2개 이상 생긴다.
 # 다중 head 상태로 배포하면 `alembic upgrade head`가 모호해져 실패한다(CI 빈 DB는 종종 통과 — 운영에서 터짐).
 # Flyway 접두사-대역 정합성은 정적 게이트(migration-safety)가, Alembic 다중 head는 이 별도 CI 점검이 막는다
-# (decisions.md — "정적 게이트는 Flyway 전용, Alembic 다중 head는 별도 CI 점검"). 단일 출처: docs/alembic.md
+# (decisions.md — "정적 게이트는 Flyway 전용, Alembic 다중 head는 별도 CI 점검"). 단일 출처: templates/rules/stacks/alembic.md
 # 셋업: new-repo.sh가 alembic 스택에 이 파일을 복사하고 'alembic-heads'를 required check에 등록한다.
 # 트리거 패턴: migration-safety·integration-e2e와 동일하게 "항상 트리거 + 내부 skip" — on.paths 필터를 두지 않는다.
 #   (이유) required check + on.paths 필터를 함께 쓰면 마이그레이션 무관 PR에서 워크플로가 실행되지 않아

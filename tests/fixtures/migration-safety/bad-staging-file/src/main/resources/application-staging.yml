@@ -1,0 +1,4 @@
+# #227: 별도 비운영 프로파일 파일(application-staging.yml)의 ooo:true는 운영 미적용 → 운영 ooo없음 → FAIL.
+spring:
+  flyway:
+    out-of-order: true

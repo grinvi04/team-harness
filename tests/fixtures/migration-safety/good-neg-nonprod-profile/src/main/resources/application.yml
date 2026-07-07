@@ -1,0 +1,14 @@
+# #205 재현: 부정 비운영 프로파일(!test = test 아닐 때 활성 = 운영 포함)의 out-of-order:true는 운영에 적용됨 → PASS 이어야 한다.
+spring:
+  config:
+    activate:
+      on-profile: "!test"
+  flyway:
+    out-of-order: true
+---
+spring:
+  config:
+    activate:
+      on-profile: "test"
+  flyway:
+    out-of-order: false

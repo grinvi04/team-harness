@@ -1,0 +1,4 @@
+spring:
+  flyway:
+    enabled: true
+  # 운영 application.yml — out-of-order 미설정
