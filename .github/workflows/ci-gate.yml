@@ -22,6 +22,7 @@ jobs:
           bash -n plugins/harness-guard/scripts/pr-create.sh
           bash -n plugins/harness-guard/scripts/pr-merge.sh
           bash -n plugins/harness-guard/scripts/set-branch-protection.sh
+          bash -n plugins/harness-guard/scripts/solo-merge.sh
           bash -n templates/githooks/pre-commit
           bash -n .githooks/pre-commit
           bash -n tests/guard-test.sh
@@ -31,6 +32,7 @@ jobs:
           bash -n tests/pr-merge-auto-test.sh
           bash -n tests/pr-create-test.sh
           bash -n tests/set-branch-protection-test.sh
+          bash -n tests/solo-merge-test.sh
           bash -n tests/new-repo-test.sh
           bash -n tests/alembic-heads-test.sh
           bash -n tests/skill-discovery-test.sh
@@ -90,6 +92,9 @@ jobs:
 
       - name: set-branch-protection --check 판정 테스트
         run: bash tests/set-branch-protection-test.sh
+
+      - name: solo-merge break-glass 원자성 테스트
+        run: bash tests/solo-merge-test.sh
 
       - name: new-repo B4 게이트 테스트
         run: bash tests/new-repo-test.sh
