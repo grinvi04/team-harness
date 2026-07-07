@@ -44,6 +44,8 @@ check "대역 + 별도 application-staging.yml ooo:true → FAIL(#227)" 1 "$FIX/
 check "대역+타임스탬프 혼입 → FAIL(B2)"          1 "$FIX/bad-timestamp-mix"
 # #3: 8자리이나 유효 날짜 아님(V10000001 월00) — 자릿수만 보고 타임스탬프로 오판해 대역검사 꺼지던 false-pass 차단
 check "8자리 비-날짜 대역(10000001) → FAIL(#3)"  1 "$FIX/bad-8digit-band"
+# #1: 멀티모듈 격리 — svcA(대역·ooo없음)가 무관 svcB(ooo:true)의 크레딧을 받아 통과하던 greedy false-pass 차단
+check "멀티모듈 svcA대역+svcB무관ooo:true → FAIL(#1)" 1 "$FIX/bad-multimodule-isolation"
 # B3: 주석 처리된 out-of-order:true가 실제 false를 덮던 false-pass 차단
 check "대역+주석 ooo:true → FAIL(B3)"            1 "$FIX/bad-commented-ooo"
 # 대역 + out-of-order:true → 통과
