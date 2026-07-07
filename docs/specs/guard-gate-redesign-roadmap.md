@@ -33,8 +33,8 @@
 | [J] 서브에이전트 훅 실발동 | ✅ **완료** | 비결함 확정(로그 53줄) |
 | [B응급] migration exit1→warn 강등 | ⛔ **하지 않음(결정)** | exit1(머지 차단) **유지**. safe-default 오발은 감수, 정밀 판정은 Phase 2 [B] 재설계로 해결 |
 | [D] python3 fail-closed 완화 | ✅ **완료** | PR #239 merged (v0.29.23). 스케치("degraded subset")가 아니라 **python3→jq 폴백**으로 구현 — jq로 전체 가드 그대로 작동(보호 축소 0), 둘 다 부재/실패일 때만 fail-closed. guard.sh 61–78행 |
-| [F] break-glass 원자성 | ✅ **완료** | PR #240 merged (v0.29.24). 원자 래퍼 `scripts/solo-merge.sh` — `trap … EXIT INT TERM HUP` 복구 보장 + pre-gate(DELETE 전 차단) + **fail-closed verify**(복구 실패 시 exit1 경보) + python3→jq 폴백. SKILL은 래퍼 호출로 축약 |
-| [E] audit 로그 | 🔄 부분 | 규약·마스킹·256KB 로테이션 완료(PR #171·#176). 중앙 ship 미확인 |
+| [F] break-glass 원자성 | ✅ **완료** | PR #240 merged (v0.29.24). 원자 래퍼 `scripts/solo-merge.sh` — `trap … EXIT INT TERM HUP` 복구 보장 + pre-gate(DELETE 전 차단) + **fail-closed verify**(복구 실패 시 exit1 경보) + python3→jq 폴백. SKILL은 래퍼 호출로 축약. **(Phase 3 "[F] 후반"은 유령 라벨 — #220·스펙 모두 [F]=원자성만 정의, "후반" 스코프 무정의·무이슈. 원자성이 곧 [F] 전부, #240으로 종결. 2026-07-08 확정)** |
+| [E] audit 로그 | ✅ **해소(실질완료+재프레이밍)** | 2026-07-08 원본 재도출. 실질 배선 완료 — **규약**(deny() 단일경로→`~/.claude/hooks/guard-block.log`, v0.10.2) · **위조방지**(제어문자 정제 guard.sh:43) · **256KB 로테이션**(guard.sh:54, enforce-subagent-model.py:44). #220 정의가 "중앙 ship **또는 재프레이밍**"이라 **중앙 ship은 재프레이밍으로 종결**: 거버넌스 하네스는 런타임 서버·중앙 인프라 없음(AGENTS.md)이라 ship 대상 부재 + 솔로·로컬 소비 repo ~4개엔 로컬 사후감사 로그로 충분 → **로그는 by-design 로컬**. 중앙화는 팀 스케일 도달 시 재개(#172 org scale). 미세노트(저심각): 로테이션이 flock 아닌 size-tail이라 동시쓰기 유실 가능하나 best-effort·비 load-bearing이라 보강 보류 |
 | [G] 문서 단일출처 정합 | 🔄 부분 | ⚠️ **전제 낡음**: "decisions.md 80KB 분할" — 현재 ~8–10KB(181줄)라 분할 불필요. 포인터화·grep가드는 유효 |
 | [H] 워크플로 핸드오프 | 🔄 부분 | plan mode·milestone 흡수됨. hasSpec 정밀화·spec 수명은 미확인 |
 | [I] 온보딩 반증-스모크 | ✅ **완료** | 2026-07-08. `tests/plugin-wiring-test.sh` — hooks.json을 진실원본으로 삼아 배선 검증: 계층1(AC-1~3 matcher→guard.sh 경로해석+보호브랜치 차단 exit2 반증-구동)·계층0.5(AC-4~6 pre-commit 아티팩트+hooksPath 오설정FAIL/미설정WARN). ci-gate 등록. 반증 확정(guard 경로 깨면 FAIL). troubleshooting.md:33 거짓 "repo-sync가 점검" 교정(mjs 순수성 유지). onboarding §B 설정→검증·§C 스모크. 버전 bump 없음(소비-비대면). spec: onboarding-falsification-smoke.md |
@@ -50,7 +50,7 @@
 - **Phase 1 (전제, near-term):** `[D]` python3 degraded(✅ #239) + `[F]` break-glass 원자성(✅ #240) + repo-sync protection-on 검증(✅ #238+SKILL)
   → Phase 2 [A]의 안전 위임(force-push를 계층0에 넘김) 전제를 만든다. **✅ Phase 1 완료 — Phase 2 진입 가능.**
 - **Phase 2 (재설계, L-effort):** `[B]`/#219(✅ #243) → `[A]`(✅ v0.29.27). **각각 전용 `/plan`.** **Phase 2 완료 — 심장부 재설계 종료.** 잔여 = Phase 3 안전망·Phase 4 문서위생 + [A] 커버리지 확장 후속이슈.
-- **Phase 3 (안전망):** `[L]`(✅ v0.29.28 시크릿 런북+파괴 DDL 게이트) · `[I]`(✅ 2026-07-08 온보딩 배선 반증-스모크) · `[K]`(✅ 2026-07-08 해소(비결함) — 롤백은 revert+hotfix 배선·v0.16.1 실복구, canary는 pull-캐시 모델에 삽입점 부재=YAGNI) 완료. 잔여 = `[E]` 중앙 ship · `[F]` 후반 — 병렬, 클러스터 범위.
+- **Phase 3 (안전망): ✅ 종결(2026-07-08).** `[L]`(✅ v0.29.28 시크릿 런북+파괴 DDL 게이트) · `[I]`(✅ 온보딩 배선 반증-스모크) · `[K]`(✅ 해소(비결함) — 롤백은 revert+hotfix 배선·v0.16.1 실복구, canary는 pull-캐시 모델에 삽입점 부재=YAGNI) · `[E]`(✅ 실질완료+재프레이밍 — 규약·위조방지·로테이션 배선, 중앙 ship은 인프라 부재로 로컬 by-design, 팀 스케일 #172로 defer) · `[F]`(✅ #240, "후반"은 유령 라벨) 완료. **잔여 없음.**
 - **Phase 4 (문서위생):** `[G]`(포인터화·grep가드, 80KB 분할은 제외) · `[H]`.
 
 ---
