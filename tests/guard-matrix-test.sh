@@ -113,6 +113,11 @@ case_ "terraform -rf plan (word bound)" 0 "terraform -rf plan apply"            
 case_ "del wrapper sudo rm tests/"      2 "sudo rm tests/"                               "$FEAT"
 case_ "del xargs rm test 파일"          2 "xargs rm src/foo.test.ts"                     "$FEAT"
 case_ "del 따옴표 rm -rf 'tests'"        2 "rm -rf 'tests'"                               "$FEAT"
+# 검증2차 회귀(HOLE-1): 파일패턴 $ 종단앵커가 glob/접미 트레일링을 놓치던 홀 — 비앵커 부분매치로 봉쇄
+case_ "del glob *Test.java*"            2 "rm *Test.java*"                               "$FEAT"
+case_ "del glob *_test.py*"             2 "rm *_test.py*"                                "$FEAT"
+case_ "del 접미 foo_test.py.bak"        2 "rm foo_test.py.bak"                           "$FEAT"
+case_ "del 접미 UserTest.java.orig"     2 "rm UserTest.java.orig"                        "$FEAT"
 # validator ALLOW (mention·--rm 플래그·유사경로 — 현행 과차단 해소)
 case_ "del mention echo rm tests/"      0 'echo "rm tests/"'                             "$FEAT"
 case_ "del docker --rm 플래그"          0 "docker run --rm tests/img"                    "$FEAT"

@@ -252,7 +252,10 @@ while IFS= read -r DSEG; do
   seg_has_token "$DSEG" "rm" || continue
   _tok_into _dt "$DSEG"
   for _tok in "${_dt[@]}"; do
-    if printf '%s' "$_tok" | grep -qE "(Test\.java$|\.(spec|test)\.[A-Za-z]|(^|/)test_[^/]*\.py$|_test\.py$|(^|/)tests?(/|$)|(^|/)db/migration(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
+    # 파일 패턴은 **비앵커 부분매치**(OLD 정규식과 동일) — `rm *Test.java*`·`foo_test.py.bak`처럼 검증기
+    #   파일명에 트레일링(glob `*`·`.bak`)이 붙어도 잡는다($ 종단앵커는 이 형태를 놓쳐 홀이었음, 검증 반영).
+    #   디렉터리 패턴만 `(^|/)…(/|$)` 경로세그먼트 앵커 — `rm latest/`의 `test/` 부분매치 과차단만 방지.
+    if printf '%s' "$_tok" | grep -qE "(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^/]*\.py|_test\.py|(^|/)tests?(/|$)|(^|/)db/migration(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
       deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
     fi
   done
@@ -291,6 +294,9 @@ fi
 # 세그먼트에 npm 토큰 + install-verb 토큰(install/i/add) + 글로벌 플래그 토큰(-g/--global[=v])이 모두
 # 있으면 순서 무관하게 차단. 토큰화로 순서(G3)·wrapper(sudo npm)·따옴표 무관, mention(echo "npm install
 # -g x"는 한 토큰) 통과. G2(echo -g && npm install)는 세그먼트 격리로 오탐 방지. category(b) — LITE에서도 유지.
+# 알려진 한계(검증 반영): pnpm/yarn 전역설치(`pnpm add -g`·`yarn global add`)는 미커버 — 이 게이트 범위는
+#   npm이다. (OLD 정규식은 `npm ` 부분문자열이 `pnpm `에 우연히 매치돼 pnpm만 비일관 차단·yarn은 못 잡았다.
+#   토큰판정은 npm을 정확히 봐 그 우연을 제거.) 전역오염 방지를 pnpm/yarn까지 넓힐지는 별도 정책 결정 대상.
 while IFS= read -r NSEG; do
   seg_has_token "$NSEG" "npm" || continue
   _tok_into _nt "$NSEG"
