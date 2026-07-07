@@ -69,8 +69,13 @@ bash /path/to/team-harness/scripts/new-repo.sh
 git clone <repo>   # .claude/ 포함 — 커맨드·에이전트·권한 컨벤션 자동 적용
 cd <repo>
 git config core.hooksPath .githooks   # git 네이티브 가드 활성화 (1회)
+git config --get core.hooksPath        # → .githooks 확인 (빈 값이면 pre-commit이 침묵 통과한다)
 claude             # 첫 실행 시 marketplace/plugin 신뢰 확인 → 설치
 ```
+
+> 설정만 하고 끝내지 말고 **붙었는지 확인**한다 — `git config --get`이 빈 값이면 계층0.5(pre-commit)가
+> 침묵 통과한다. team-harness 자체를 클론했다면 `bash tests/plugin-wiring-test.sh`로 배선 전체
+> (guard 훅 실발동 + hooksPath 정합)를 통과가 아니라 **반증**으로 검증한다(§C).
 
 개인 설정은 `.claude/settings.local.json`에만 (gitignore됨).
 
@@ -82,6 +87,14 @@ claude             # 첫 실행 시 marketplace/plugin 신뢰 확인 → 설치
 /plugin install harness-guard@team-harness
 ```
 가드 동작 확인: main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
+
+### 배선 반증-스모크 (team-harness 자기 검증)
+```
+bash tests/plugin-wiring-test.sh
+```
+`hooks.json`을 진실원본으로 삼아 **guard 훅이 실제로 발동하는 배선**(계층1: PreToolUse→guard.sh 경로
+해석+차단 실발동)과 **hooksPath 정합**(계층0.5)을 검증한다. conformance-green이 아니라 반증 — hooks.json의
+guard 경로를 깨거나 `core.hooksPath`를 오설정하면 스모크가 FAIL한다. CI(`ci-gate` quality 잡)에도 등록돼 있다.
 
 ### 강제형 설정(managed settings) 로컬 시뮬레이션
 Team/Enterprise 없이도 파일 기반 managed settings로 본인 머신에서 테스트 가능:
