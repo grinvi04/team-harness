@@ -55,6 +55,9 @@ case "$args" in
   *"pr view"*"--json number"*) echo 42; exit 0 ;;
   *"pr view"*"--json baseRefName"*) echo main; exit 0 ;;
   *"pr view"*"--json state"*) echo MERGED; exit 0 ;;
+  *"pr view"*"--json mergeable"*) echo "${FAKE_MERGEABLE:-MERGEABLE}"; exit 0 ;;
+  *"pr checks"*) exit "${FAKE_CI_RC:-0}" ;;
+  *"api graphql"*reviewThreads*) echo "${FAKE_UNRESOLVED:-0}"; exit 0 ;;
 esac
 case "$args" in
   *"-X DELETE"*required_pull_request_reviews*) echo DELETE >> "$GH_LOG"; exit 0 ;;
@@ -70,6 +73,7 @@ run_e2e() { # merge_body, fake_config → 전역 L(로그경로)·RC 설정 (커
   E2E_N=$((E2E_N+1)); L="$E2E_DIR/log.$E2E_N"; local mc="$E2E_DIR/merge.$E2E_N.sh"
   : > "$L"; printf '#!/bin/sh\n%s\n' "$1" > "$mc"; chmod +x "$mc"
   PATH="$E2E_DIR:$PATH" GH_LOG="$L" FAKE_REVIEWS_CONFIG="$2" SOLO_MERGE_MERGE_CMD="$mc" \
+    FAKE_CI_RC="${FAKE_CI_RC:-0}" FAKE_UNRESOLVED="${FAKE_UNRESOLVED:-0}" FAKE_MERGEABLE="${FAKE_MERGEABLE:-MERGEABLE}" \
     bash "$SM" 42 >/dev/null 2>&1; RC=$?
 }
 ok() { [ "$1" = "$2" ] && { echo "PASS: $3"; PASS=$((PASS+1)); } || { echo "FAIL: $3 — want '$2' got '$1'"; FAIL=$((FAIL+1)); }; }
@@ -96,6 +100,25 @@ run_e2e 'exit 0' ""
 ok "$(grep -c '^DELETE' "$L")" 0 "AC-4 보호없음 — DELETE 0건"
 ok "$(grep -c '^PATCH'  "$L")" 0 "AC-4 보호없음 — PATCH 0건"
 ok "$RC" 0 "AC-4 보호없음 — RC 0(정상 머지)"
+
+# ── AC-6 pre-gate: 미달이면 DELETE 이전에 중단(보호 무손상) ──
+# solo_gate_decide 순수 판정 단위
+gate() { # desc, ci_rc, unresolved, mergeable, want_rc
+  local got; got=$(SOLO_MERGE_SOURCE_ONLY=1 bash -c 'source "$1"; if solo_gate_decide "$2" "$3" "$4" >/dev/null; then echo 0; else echo $?; fi' _ "$SM" "$2" "$3" "$4")
+  ok "$got" "$5" "AC-6 단위 — $1"
+}
+gate "전부 통과 → 0"        0 0 MERGEABLE     0
+gate "CI 미통과 → 1"        1 0 MERGEABLE     1
+gate "미해결 스레드>0 → 1"  0 2 MERGEABLE     1
+gate "mergeable 아님 → 1"   0 0 CONFLICTING   1
+# E2E: gate 미달 주입 시 DELETE·PATCH 0건(break-glass 창 안 엶) + RC≠0
+FAKE_CI_RC=1 run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^DELETE' "$L")" 0 "AC-6 CI미달 — DELETE 0건(창 안 엶)"
+[ "$RC" -ne 0 ] && { echo "PASS: AC-6 CI미달 — RC≠0(=$RC)"; PASS=$((PASS+1)); } || { echo "FAIL: AC-6 CI미달 — RC=$RC(기대≠0)"; FAIL=$((FAIL+1)); }
+FAKE_UNRESOLVED=3 run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^DELETE' "$L")" 0 "AC-6 스레드미달 — DELETE 0건"
+FAKE_MERGEABLE=CONFLICTING run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^DELETE' "$L")" 0 "AC-6 mergeable미달 — DELETE 0건"
 
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

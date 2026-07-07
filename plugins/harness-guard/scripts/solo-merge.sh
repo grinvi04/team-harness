@@ -33,6 +33,15 @@ extract_restore_payload() {
   python3 -c "import sys,json; c=json.load(sys.stdin); print(json.dumps({k:c[k] for k in ('required_approving_review_count','dismiss_stale_reviews','require_code_owner_reviews','require_last_push_approval') if k in c}))"
 }
 
+# solo_gate_decide: pre-gate 순수 판정(gh 값 주입) → rc0 통과 / rc1 + 사유 echo. 기준은 pr-merge.sh·SKILL과
+#   동일(CI required·미해결 스레드 0·mergeable). 이 판정이 DELETE *전에* 통과해야 break-glass 창을 연다(AC-6).
+solo_gate_decide() { # ci_rc unresolved_count mergeable → rc
+  [ "$1" = 0 ]         || { echo "CI required 미통과(rc=$1)"; return 1; }
+  [ "$2" = 0 ]         || { echo "미해결 리뷰 스레드 $2건(0이어야 함)"; return 1; }
+  [ "$3" = MERGEABLE ] || { echo "mergeable=$3(MERGEABLE 아님)"; return 1; }
+  return 0
+}
+
 [ -n "${SOLO_MERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
 # ── main — 원자 break-glass: save→arm trap→DELETE→merge→restore→verify ──
@@ -43,6 +52,18 @@ BASE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName --jq .baseRefNam
 # 머지는 형제 pr-merge.sh(게이트 재검증 후 머지)로 위임 — 테스트가 SOLO_MERGE_MERGE_CMD로 주입.
 MERGE_CMD="${SOLO_MERGE_MERGE_CMD:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/pr-merge.sh}"
 RPR_PATH="repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews"
+
+# pre-gate (보호 건드리기 *전*) — CI required·미해결 스레드 0·mergeable. 미달이면 DELETE 이전에 중단해
+#   break-glass 창을 아예 열지 않는다(AC-6). pr-merge가 머지 시 재검증하지만, 여기서 먼저 막는 게 최소 노출.
+if gh pr checks "$PR" --repo "$OWNER_REPO" --required >/dev/null 2>&1; then CI_RC=0; else CI_RC=1; fi
+UNRESOLVED=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:50){nodes{isResolved}}}}}' \
+  -F o="${OWNER_REPO%/*}" -F n="${OWNER_REPO#*/}" -F p="$PR" \
+  --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false)]|length' 2>/dev/null || echo "?")
+MERGEABLE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable 2>/dev/null || echo "?")
+if ! REASON=$(solo_gate_decide "$CI_RC" "$UNRESOLVED" "$MERGEABLE"); then
+  echo "⛔ pre-gate 미달 — 보호를 건드리지 않고 중단: $REASON" >&2
+  exit 1
+fi
 
 # save: 현재 승인요건 설정 전체 저장(복구용). 보호 없던 repo면 REVIEWS_CONFIG 빈값 → HAD_PROTECTION=no.
 REVIEWS_CONFIG=$(gh api "$RPR_PATH" 2>/dev/null || true)
