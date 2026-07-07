@@ -54,6 +54,16 @@ check "scheme=monotonic 선언 → 통과(#2)"            0 "$FIX/good-monotonic
 check "scheme=timestamp 선언 → 통과(#2)"            0 "$FIX/good-timestamp-declared"
 # #2-d(AC-8): 미인식 scheme 값 → 무시(휴리스틱 폴백)·크래시 없음 → 단조라 통과
 check "scheme=bogus(미인식) → 무시·통과(AC-8)"      0 "$FIX/good-scheme-invalid"
+# 리뷰 D1a: scheme 선언이 비운영 파일(application-test.yml)에만 — ooo:true와 동일 스코프로 무시 → 대역 FAIL(스푸핑 차단)
+check "scheme=monotonic 비운영파일 → 무시·대역 FAIL(D1)" 1 "$FIX/bad-scheme-nonprod-file"
+# 리뷰 D1b: scheme이 주석 아닌 값 문자열에 — 무시(주석만 인정) → 대역 FAIL(값 스푸핑 차단)
+check "scheme 값문자열 스푸핑 → 무시·대역 FAIL(D1)"  1 "$FIX/bad-scheme-value-spoof"
+# 리뷰 D2: 날짜형 8자리 대역(휴리스틱상 타임스탬프)도 scheme=prefix-band 선언으로 강제 밴드 → FAIL(escape hatch)
+check "날짜형8자리+scheme=prefix-band → FAIL(D2)"    1 "$FIX/bad-dateshaped-8digit-declared"
+# 리뷰 F3: 모듈 자체 config(ooo없음)가 조상 config(ooo:true)보다 우선(nearest 권위) → FAIL
+check "nearest-config 권위(모듈 ooo없음) → FAIL(F3)" 1 "$FIX/bad-nearest-config-authoritative"
+# 리뷰 F4: config가 조상 아님 → 미연결 그룹 skip+경고(오탐 금지) → 통과
+check "비-조상 config → skip 통과(F4)"              0 "$FIX/good-nonancestor-skip"
 # B3: 주석 처리된 out-of-order:true가 실제 false를 덮던 false-pass 차단
 check "대역+주석 ooo:true → FAIL(B3)"            1 "$FIX/bad-commented-ooo"
 # 대역 + out-of-order:true → 통과

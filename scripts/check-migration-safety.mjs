@@ -115,8 +115,10 @@ if (migrationFiles.length === 0) {
 
 // 타임스탬프 버전(예: 20240101…)은 접두사 대역 규약이 아님 → 검사 A 비대상.
 // #219-3: 자릿수(과거 TIMESTAMP_MIN=1e7)가 아니라 **실제 날짜형식**으로 판정한다 — V10000001(월=00) 같은
-//   8자리 모듈 접두사 대역이 자릿수만으로 타임스탬프로 오판돼 대역검사가 꺼지던 false-pass 차단.
+//   8자리 모듈 접두사 대역이 자릿수만으로 타임스탬프로 오판돼 대역검사가 꺼지던 false-pass의 **비-날짜 부분집합**을 차단.
 //   8자리=yyyymmdd(월 1-12·일 1-31), 14자리=yyyymmddHHMMSS. 그 외 자릿수·범위밖은 날짜 아님.
+//   ⚠ 한계: **날짜형(V10010101 등) 8자리 대역**은 형식만으론 타임스탬프와 구분 불가(잔여 모호) — 그런 repo는
+//   `# migration-safety: scheme=prefix-band` 선언으로 강제 밴드검사(선언 경로가 이 클래스의 정밀 해법).
 // B2 유지: **모든** 버전이 유효 날짜일 때만 순수 타임스탬프(every). 대역에 타임스탬프 하나만 섞여도(비-날짜 존재)
 //   대역 검사를 계속 켠다 — 하나로 검사 전체가 꺼지는 false-pass 방지.
 function isValidDate(n) {
@@ -219,21 +221,37 @@ function scanOoo(groupConfigFiles) {
   return oooState
 }
 
-// #219-2: 선택적 scheme 선언 — 지배 config의 주석 `# migration-safety: scheme=<x>`을 raw 스캔(주석제거 전).
+// #219-2: 선택적 scheme 선언 — 지배 config의 **주석** `# migration-safety: scheme=<x>`.
 //   촘촘 밴드(갭<GAP_THRESHOLD)는 휴리스틱으로 단조와 구분 불가라, 선언이 있으면 그것을 신뢰한다(없으면 휴리스틱=하위호환).
 //   prefix-band→강제 대역 · monotonic→강제 비대역 · timestamp→타임스탬프 취급 · 미인식→무시+경고(휴리스틱 폴백).
+//   ⚠ 선언(특히 monotonic/timestamp)은 밴드검사를 **끄는** 강한 신호라 ooo:true 크레딧과 **동일한 신뢰 스코프**를
+//   요구한다(scanOoo와 대칭): (1) 운영 config만(NONPROD 파일 제외) (2) 운영 적용 문서만(on-profile 비운영 제외)
+//   (3) **주석 라인 안에서만** 매칭(값 문자열 `changelog: "…scheme=monotonic…"` 스푸핑 차단). 안 그러면 #197..#227이
+//   막은 비운영·값 스푸핑 false-pass가 선언 경로로 재유입된다.
 const SCHEME_RE = /migration-safety:\s*scheme\s*=\s*([a-z][a-z-]*)/i
 const VALID_SCHEMES = new Set(['prefix-band', 'monotonic', 'timestamp'])
 function readScheme(groupConfigFiles) {
-  for (const cf of groupConfigFiles) {
+  const prodConfigFiles = groupConfigFiles.filter((cf) => !NONPROD_PROFILE_FILE_RE.test(basename(cf)))
+  for (const cf of prodConfigFiles) {
     let text
     try { text = readFileSync(cf, 'utf8') } catch { continue }
-    const m = text.match(SCHEME_RE)
-    if (!m) continue
-    const s = m[1].toLowerCase()
-    if (VALID_SCHEMES.has(s)) return s
-    console.error(`⚠ migration-safety: 미인식 scheme='${m[1]}' (${basename(cf)}) — 무시하고 휴리스틱으로 판정. 유효값: prefix-band|monotonic|timestamp`)
-    return null   // 선언은 됐으나 미인식 → 휴리스틱 폴백(AC-8)
+    for (const doc of text.split(/^\s*---\s*$/m)) {
+      const rawLines = doc.split(/\r?\n/)
+      const codeLines = rawLines.map((l) => l.replace(/#.*$/, ''))
+      // 비운영 프로파일 전용 문서면 이 문서의 선언 무시(운영 미적용)
+      const profileLine = codeLines.find((l) => ON_PROFILE_RE.test(l))
+      if (profileLine && !isProdApplicable(profileLine.match(ON_PROFILE_RE)[1])) continue
+      for (const raw of rawLines) {
+        const hash = raw.indexOf('#')
+        if (hash < 0) continue                       // 주석 없는 라인 무시 — 값 문자열 스푸핑 차단
+        const m = raw.slice(hash + 1).match(SCHEME_RE)
+        if (!m) continue
+        const s = m[1].toLowerCase()
+        if (VALID_SCHEMES.has(s)) return s
+        console.error(`⚠ migration-safety: 미인식 scheme='${m[1]}' (${basename(cf)}) — 무시하고 휴리스틱으로 판정. 유효값: prefix-band|monotonic|timestamp`)
+        return null   // 선언은 됐으나 미인식 → 휴리스틱 폴백(AC-8)
+      }
+    }
   }
   return null
 }

@@ -1,0 +1,4 @@
+# migration-safety: scheme=monotonic
+spring:
+  flyway:
+    out-of-order: true
