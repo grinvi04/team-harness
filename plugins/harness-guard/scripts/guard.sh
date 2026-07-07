@@ -58,16 +58,26 @@ deny() {
   exit 2
 }
 
-# 가드는 fail-closed — python3 부재 시 파싱 실패로 TOOL이 빈 값이 되어 전체 가드가 우회되므로 차단
-if ! command -v python3 >/dev/null 2>&1; then
-  deny "python3 없음 — 가드 실행 불가 (fail-closed)" ""
+# 가드 JSON 파싱 — python3 우선, 없거나 깨지면 jq 폴백. python3의 유일 용도가 JSON 파싱이라 jq로 전체 가드가
+# 그대로 작동한다(보호 축소 0). [D] #220: 이전엔 python3 부재 = 전체 fail-closed(Bash 전면 마비)라 폭발반경이 컸다
+# → 'python3·jq 둘 다 부재/실패'로 축소. 파서가 하나도 없으면 여전히 fail-closed(빈 COMMAND로 전 가드 우회 방지).
+# 복구: python3 또는 jq 설치(docs/troubleshooting.md).
+TOOL=""; COMMAND=""; _parsed=0
+if command -v python3 >/dev/null 2>&1; then
+  TOOL=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_name',''))" 2>/dev/null) \
+    && COMMAND=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null) \
+    && _parsed=1
 fi
-
-TOOL=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_name',''))" 2>/dev/null)
-# python3가 존재하나 실행 실패/입력 손상 시 파싱이 조용히 빈 값이 되어 전 가드가 우회되므로 차단(fail-closed).
-# (부재는 위 command -v 로, '있으나 깨짐'은 이 rc 검사로 — 둘 다 fail-closed.)
-if [[ $? -ne 0 ]]; then deny "가드 입력 파싱 실패 — python3 실행 불가/JSON 손상 (fail-closed)" ""; fi
-COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null)
+if [[ $_parsed -ne 1 ]] && command -v jq >/dev/null 2>&1; then
+  if printf '%s' "$INPUT" | jq -e . >/dev/null 2>&1; then   # 유효 JSON 확인(파싱 실패 감지 — 손상 입력은 fail-closed로)
+    # python3 브랜치와 대칭: 두 추출이 모두 성공해야 _parsed=1. 비객체 top-level·비객체 tool_input은
+    #   jq 인덱싱 에러(rc≠0)로 _parsed=0 → fail-closed(빈 COMMAND로 우회 방지). 유효 객체는 Bash/비Bash 모두 rc0.
+    TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null) \
+      && COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) \
+      && _parsed=1
+  fi
+fi
+if [[ $_parsed -ne 1 ]]; then deny "가드 JSON 파싱 불가 — python3·jq 모두 부재/실패 (fail-closed)" "python3 또는 jq 설치 후 재시도"; fi
 
 if [[ "$TOOL" != "Bash" ]]; then exit 0; fi
 

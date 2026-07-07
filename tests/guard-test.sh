@@ -182,6 +182,34 @@ _rc=$(cd "$DEV" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git
 if [ "$_rc" = 2 ]; then echo "PASS: 6: 깨진 python3 fail-closed"; PASS=$((PASS+1)); else echo "FAIL: 6: 깨진 python3 fail-closed — got $_rc"; FAIL=$((FAIL+1)); fi
 rm -rf "$FAKEBIN"
 
+# [D] #220: python3 부재/깨짐 시 jq 폴백 — python3의 유일 용도가 JSON 파싱이라 jq로 전체 가드 그대로 작동
+#   (fail-closed 폭발반경을 'python3 부재'→'python3·jq 둘 다 부재'로 축소). jq도 없으면 여전히 fail-closed(안전측).
+if command -v jq >/dev/null 2>&1; then
+  NOPY=$(mktemp -d); printf '#!/bin/sh\nexit 1\n' > "$NOPY/python3"; chmod +x "$NOPY/python3"  # python3만 깨뜨림(jq는 원 PATH에 존재)
+  # [D]a: 깨진 python3 + jq → 파괴가드 유지(reset --hard 차단) — 반증검증(degraded여도 load-bearing 유지)
+  _rc=$(cd "$DEV" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git reset --hard HEAD~1"}}' | PATH="$NOPY:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 2 ] && { echo "PASS: [D]a jq폴백 reset --hard 차단"; PASS=$((PASS+1)); } || { echo "FAIL: [D]a jq폴백 reset — got $_rc"; FAIL=$((FAIL+1)); }
+  # [D]b: 깨진 python3 + jq → 무해 명령 통과(전면 fail-closed 아님) — 핵심 RED→GREEN
+  _rc=$(cd "$FEAT" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | PATH="$NOPY:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 0 ] && { echo "PASS: [D]b jq폴백 무해명령 통과"; PASS=$((PASS+1)); } || { echo "FAIL: [D]b jq폴백 무해명령 — got $_rc(기대0)"; FAIL=$((FAIL+1)); }
+  # [D]c: 깨진 python3 + jq → git-flow 넛지도 유지(develop 직접 커밋 차단) — 전체 가드 작동 증명
+  _rc=$(cd "$DEV" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git commit -m x"}}' | PATH="$NOPY:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 2 ] && { echo "PASS: [D]c jq폴백 develop커밋 차단"; PASS=$((PASS+1)); } || { echo "FAIL: [D]c jq폴백 develop커밋 — got $_rc"; FAIL=$((FAIL+1)); }
+  # [D]e: 깨진 python3 + jq, valid-JSON이나 tool_input이 객체 아님(문자열) → jq command 추출 에러 → fail-closed.
+  #   python3 브랜치는 추출 rc로 이미 fail-closed였으나 jq 브랜치가 _parsed=1을 무조건 세워 빈 COMMAND로 우회
+  #   가능했던 대칭 결함(계약상 도달 불가하나 load-bearing 가드) 반증검증 — 위험명령이 통과(rc0)하면 안 됨.
+  _rc=$(cd "$FEAT" && printf '%s' '{"tool_name":"Bash","tool_input":"git reset --hard HEAD~1"}' | PATH="$NOPY:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 2 ] && { echo "PASS: [D]e jq 비객체 tool_input fail-closed"; PASS=$((PASS+1)); } || { echo "FAIL: [D]e jq 비객체 tool_input — got $_rc(기대2·우회)"; FAIL=$((FAIL+1)); }
+  rm -rf "$NOPY"
+  # [D]d: python3·jq 둘 다 깨짐 → fail-closed(무해 명령도 차단) — 파서 없으면 안전측(coreutils는 원 PATH 유지)
+  NONE=$(mktemp -d); for b in python3 jq; do printf '#!/bin/sh\nexit 1\n' > "$NONE/$b"; chmod +x "$NONE/$b"; done
+  _rc=$(cd "$FEAT" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | PATH="$NONE:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 2 ] && { echo "PASS: [D]d 파서無 fail-closed"; PASS=$((PASS+1)); } || { echo "FAIL: [D]d 파서無 fail-closed — got $_rc(기대2)"; FAIL=$((FAIL+1)); }
+  rm -rf "$NONE"
+else
+  echo "SKIP: [D] jq 폴백 테스트 (jq 미설치)"
+fi
+
 # 7: 감사로그 개행 위조 방지 — session_id 개행이 로그를 위조(추가 라인)하지 못함
 FHOME=$(mktemp -d); mkdir -p "$FHOME/.claude/hooks"
 printf '%s' '{"tool_name":"Bash","session_id":"a\nFORGED session=evil DENY x","cwd":"/x","tool_input":{"command":"git reset --hard"}}' | HOME="$FHOME" bash "$G" >/dev/null 2>&1
