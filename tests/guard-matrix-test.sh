@@ -123,6 +123,16 @@ case_ "del mention echo rm tests/"      0 'echo "rm tests/"'                    
 case_ "del docker --rm 플래그"          0 "docker run --rm tests/img"                    "$FEAT"
 case_ "del rm latest/ (유사경로)"        0 "rm latest/"                                   "$FEAT"
 case_ "del rm 무관파일 통과"            0 "rm build/output.log"                          "$FEAT"
+# ── #245 헌트: 검증기-삭제 커버리지 확장 (jest·복수형 migrations·rspec) ──
+case_ "245 del __tests__/ (jest)"       2 "rm -rf __tests__/"                            "$FEAT"
+case_ "245 del wrapper sudo __tests__/" 2 "sudo rm -rf __tests__/"                       "$FEAT"
+case_ "245 del db/migrations/ (복수)"   2 "rm -rf db/migrations/"                        "$FEAT"
+case_ "245 del migrations/ (단독복수)"  2 "rm -rf migrations/"                           "$FEAT"
+# #245 ALLOW 과차단 반증 (--rm·mention·F2 bare spec/ 는 검증기 아님)
+case_ "245 del docker --rm __tests__"   0 "docker run --rm __tests__/img"                "$FEAT"
+case_ "245 del mention __tests__"       0 'echo "rm __tests__/"'                         "$FEAT"
+case_ "245 F2 rm docs/spec/ (통과)"     0 "rm -rf docs/spec/api.md"                      "$FEAT"
+case_ "245 F2 rm openapi/spec/ (통과)"  0 "rm -rf openapi/spec/"                         "$FEAT"
 # npm DENY (wrapper·순서·=값)
 case_ "npm wrapper sudo -g"             2 "sudo npm install -g leftpad"                  "$FEAT"
 case_ "npm 순서 --global 먼저"          2 "npm --global install leftpad"                 "$FEAT"
@@ -131,6 +141,26 @@ case_ "npm --global=true"               2 "npm install --global=true leftpad"   
 case_ "npm mention echo install -g"     0 'echo "npm install -g x"'                      "$FEAT"
 case_ "npm ci --global (비install)"     0 "npm ci --global"                              "$FEAT"
 case_ "npm install 로컬"                0 "npm install --save-dev jest"                  "$FEAT"
+# ── #245 헌트: 전역설치 게이트 일반화 (npm 누수·pnpm·yarn) ──
+case_ "245 npm --location=global"       2 "npm install --location=global x"              "$FEAT"
+case_ "245 npm 결합 -gf"                2 "npm install -gf x"                            "$FEAT"
+case_ "245 npm 결합 -fg (순서무관)"     2 "npm i -fg x"                                  "$FEAT"
+case_ "245 pnpm add -g"                 2 "pnpm add -g typescript"                       "$FEAT"
+case_ "245 pnpm wrapper sudo add -g"    2 "sudo pnpm add -g typescript"                  "$FEAT"
+case_ "245 yarn global add"             2 "yarn global add typescript"                   "$FEAT"
+# F1 회귀: 패키지명이 다른 매니저 토큰(npm/pnpm)이어도 yarn global add 는 차단(오라우팅 홀 봉쇄)
+case_ "245 F1 yarn global add npm"      2 "yarn global add npm"                          "$FEAT"
+case_ "245 F1 yarn global add lodash npm" 2 "yarn global add lodash npm"                 "$FEAT"
+case_ "245 F1 yarn global add pnpm foo" 2 "yarn global add pnpm foo"                     "$FEAT"
+# F1 역방향 정상: yarn add npm(로컬, 패키지명 npm)은 통과 — 전역 아님
+case_ "245 F1 yarn add npm (로컬)"      0 "yarn add npm"                                 "$FEAT"
+# #245 ALLOW 과차단 반증 (g-롱플래그·g-없는번들·로컬·비설치·mention·세그먼트격리)
+case_ "245 npm --legacy-peer-deps"      0 "npm install --legacy-peer-deps"               "$FEAT"
+case_ "245 npm -f (g없는 번들)"         0 "npm install -f leftpad"                       "$FEAT"
+case_ "245 pnpm install 로컬"           0 "pnpm install"                                 "$FEAT"
+case_ "245 yarn add 로컬"               0 "yarn add leftpad"                             "$FEAT"
+case_ "245 yarn global list (비설치)"   0 "yarn global list"                             "$FEAT"
+case_ "245 세그먼트격리 echo -g && pnpm i" 0 "echo -g && pnpm i"                         "$FEAT"
 
 # ── commit on 보호: DENY ──
 case_ "commit on main"                  2 "git commit -m x"                              "$MAIN"

@@ -44,6 +44,13 @@ check "tests 디렉터리 rm 차단"        2 Bash "rm -rf backend/tests/"      
 check "git rm 테스트 삭제 차단"       2 Bash "git rm src/foo.test.tsx"          "$FEAT"
 check "마이그레이션 rm 차단(flyway)"  2 Bash "rm db/migration/V2__x.sql"        "$FEAT"
 check "마이그레이션 rm 차단(alembic)" 2 Bash "rm alembic/versions/abc_x.py"     "$FEAT"
+# #245: 검증기-삭제 커버리지 확장 — jest __tests__/·복수형 migrations·rspec spec/
+check "245: rm __tests__/ 차단(jest)"  2 Bash "rm -rf __tests__/"                 "$FEAT"
+check "245: rm db/migrations/ 차단"    2 Bash "rm -rf db/migrations/"             "$FEAT"
+check "245: rm migrations/ 차단(단독)" 2 Bash "rm -rf migrations/"                "$FEAT"
+# #245 과차단 반증 — mention·(F2)bare spec/ 는 검증기 아님(통과)
+check "245over: echo __tests__ 통과"   0 Bash 'echo "rm __tests__/"'              "$FEAT"
+check "245over: rm docs/spec/ 통과(F2)" 0 Bash "rm -rf docs/spec/api.md"          "$FEAT"
 check "일반 파일 rm 통과"             0 Bash "rm build/output.log"              "$FEAT"
 check "일반 명령 통과"                0 Bash "npm run build"                    "$DEV"
 check "비Bash 도구 통과"              0 Edit ""                                 "$DEV"
@@ -127,6 +134,18 @@ check "D2: 테스트파일 mv(리네임) 통과(≠rm)"     0 Bash "mv src/foo.t
 check "D2: 마이그레이션 cat(읽기) 통과(≠rm)"    0 Bash "cat db/migration/V1__init.sql"       "$FEAT"
 check "D2: npm install(로컬) 통과(≠-g)"         0 Bash "npm install"                         "$FEAT"
 check "D2: npm install --save-dev 통과"         0 Bash "npm install --save-dev jest"         "$FEAT"
+# #245: 전역설치 게이트 일반화 — npm 자체 누수(--location=global·결합 -gf) + pnpm·yarn
+check "245: npm --location=global 차단"        2 Bash "npm install --location=global x"     "$DEV"
+check "245: npm 결합플래그 -gf 차단"           2 Bash "npm install -gf x"                    "$DEV"
+check "245: pnpm add -g 차단"                  2 Bash "pnpm add -g typescript"               "$DEV"
+check "245: pnpm add --global 차단"            2 Bash "pnpm add --global typescript"         "$DEV"
+check "245: yarn global add 차단"              2 Bash "yarn global add typescript"           "$DEV"
+# #245 과차단 반증 — g-포함 롱플래그·g-없는 번들·로컬설치·비설치 서브커맨드는 통과
+check "245over: npm --legacy-peer-deps 통과"   0 Bash "npm install --legacy-peer-deps"       "$FEAT"
+check "245over: npm install -f 통과(g없음)"    0 Bash "npm install -f leftpad"               "$FEAT"
+check "245over: pnpm install 로컬 통과"        0 Bash "pnpm install"                         "$FEAT"
+check "245over: yarn add 로컬 통과"            0 Bash "yarn add leftpad"                     "$FEAT"
+check "245over: yarn global list 통과(비설치)" 0 Bash "yarn global list"                     "$FEAT"
 check "D2: git stash 통과"                      0 Bash "git stash"                           "$FEAT"
 check "D2: 테스트파일 cp(복사) 통과(≠rm)"       0 Bash "cp src/a.test.ts /backup/"           "$FEAT"
 
