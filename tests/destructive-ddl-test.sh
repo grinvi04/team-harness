@@ -30,6 +30,10 @@ check "DROP DATABASE 미승인 → FAIL(AC-1)"       1 "$FIX/bad-drop-database"
 check "DROP SCHEMA 미승인 → FAIL(AC-1)"         1 "$FIX/bad-drop-schema"
 # ── AC-7: 안전 문장 + 미승인 파괴 문장 혼재 → 파일 사면 아님(문장 단위) ──
 check "안전+미승인파괴 혼재 → FAIL(AC-7)"        1 "$FIX/bad-multi-statement"
+# ── AC-11: 블록주석으로 다중어 키워드 분리(DROP/*x*/TABLE)는 유효 SQL → 우회 차단(exit 1) ──
+#   반증: /* */ 는 SQL 토큰 구분자라 DROP/*x*/TABLE == DROP TABLE 로 실행된다.
+check "블록주석 분리 DROP TABLE → FAIL(AC-11)"   1 "$FIX/bad-block-comment-split-table"
+check "블록주석 분리 DROP COLUMN → FAIL(AC-11)"  1 "$FIX/bad-block-comment-split-column"
 # ── AC-5: 마커가 문자열 값 안(실제 주석 아님) → 크레딧 거부 → FAIL ──
 check "마커 문자열-값 스푸핑 → 무시·FAIL(AC-5)"  1 "$FIX/bad-marker-in-string"
 # ── AC-8: prisma 마이그레이션 디렉터리도 스캔 → 미승인 DROP FAIL ──
