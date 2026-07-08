@@ -51,6 +51,13 @@ check "245: rm migrations/ 차단(단독)" 2 Bash "rm -rf migrations/"          
 # #245 과차단 반증 — mention·(F2)bare spec/ 는 검증기 아님(통과)
 check "245over: echo __tests__ 통과"   0 Bash 'echo "rm __tests__/"'              "$FEAT"
 check "245over: rm docs/spec/ 통과(F2)" 0 Bash "rm -rf docs/spec/api.md"          "$FEAT"
+# rails-stack: rspec/minitest·ActiveRecord 마이그레이션 삭제-차단 (AC-12) — 접미-특정 .rb
+check "rails: rm rspec spec 차단(.rb)"  2 Bash "rm spec/models/user_spec.rb"       "$FEAT"
+check "rails: rm minitest test 차단(.rb)" 2 Bash "rm test/models/user_test.rb"     "$FEAT"
+check "rails: rm db/migrate 차단"        2 Bash "rm db/migrate/20260101_x.rb"       "$FEAT"
+check "rails: git rm AR 마이그레이션 차단" 2 Bash "git rm db/migrate/20260101_x.rb" "$FEAT"
+# rails 과차단 반증 — bare spec/ 디렉터리는 #245대로 미차단(비-.rb, OpenAPI spec/와 다의)
+check "rails: rm -rf spec/ 통과(#245)"   0 Bash "rm -rf spec/"                       "$FEAT"
 check "일반 파일 rm 통과"             0 Bash "rm build/output.log"              "$FEAT"
 check "일반 명령 통과"                0 Bash "npm run build"                    "$DEV"
 check "비Bash 도구 통과"              0 Edit ""                                 "$DEV"

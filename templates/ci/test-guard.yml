@@ -35,8 +35,8 @@ jobs:
           git fetch --quiet origin "$BASE"
 
           # 테스트 마커 총개수(스택 무관): JUnit @Test / JS·TS it()·test() / pytest def test_
-          # (rspec `it '...' do` 등은 프로젝트가 MARKER를 보강해 커버)
-          MARKER='@Test|(^|[^A-Za-z_])(it|test)[[:space:]]*\(|def[[:space:]]+test_'
+          # / rspec·minitest 블록 DSL(it/describe/context/test '...' do — 괄호 없이 공백+따옴표)
+          MARKER='@Test|(^|[^A-Za-z_])(it|test)[[:space:]]*\(|def[[:space:]]+test_|(^|[^A-Za-z_])(it|describe|context|specify|scenario|feature|test)[[:space:]]+["'"'"']'
           count() {
             git grep -hIE "$MARKER" "$1" 2>/dev/null | grep -cE "$MARKER" || true
           }
