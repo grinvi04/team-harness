@@ -42,3 +42,9 @@ alembic history        # 전체 이력
     fi
     echo "✓ Alembic 단일 head"
 ```
+
+- **파괴 DDL 차단(CI)**: 다중 head가 *순서*를 본다면, `check-alembic-destructive-ddl.mjs`(destructive-ddl.yml
+  2번째 스텝)는 *내용*을 본다 — `upgrade()` 본문의 `op.drop_table`·`op.drop_column`·`op.execute` 내 DROP/TRUNCATE를
+  차단한다(CI 빈 DB는 통과·운영에서만 비가역 손실). autogenerate가 `downgrade()`에 넣는 파괴 op는 정상이라
+  비대상(upgrade()만 스캔). 정당한 forward-only 2단계 배포의 컬럼 제거는 파괴 op와 **같은 문장**의 승인 주석
+  `# migration-safety: destructive-ok`로 통과. 지문(`from alembic import op` + `def upgrade(`) 없으면 self-skip.
