@@ -46,6 +46,15 @@ check "execute 블록주석 분리 DROP → FAIL(B2)"          1 "$FIX/bad-execu
 check "별칭 connection.drop_table → FAIL(수신자무관)"  1 "$FIX/bad-alias-drop"
 # ── 회귀: 세미콜론 결합 — 트레일링 마커가 앞 문장 사면하면 안 됨 → FAIL ──
 check "세미콜론 결합 마커 오귀속 → FAIL(B5)"           1 "$FIX/bad-semicolon-marker"
+# ── 적대적 재검증 발견(박제) — 아래는 초기 게이트가 뚫렸던 우회, 봉쇄 확인 ──
+# R1: =begin 블록 속 마커는 크레딧 거부(문자열/=begin 스푸핑) → FAIL(AC-5)
+check "=begin 속 마커 스푸핑 → FAIL(AC-5/R1)"          1 "$FIX/bad-begin-end-marker"
+# R2: heredoc raw SQL 속 MySQL '#' 라인주석 토큰-분리 DROP → FAIL
+check "heredoc '#' 주석 분리 DROP → FAIL(R2)"          1 "$FIX/bad-execute-heredoc-hash"
+# R3: exec_query 저수준 raw SQL DROP(execute 계열) → FAIL
+check "exec_query raw DROP → FAIL(R3)"                 1 "$FIX/bad-exec-query"
+# R4: def change 내 if-블록 속 drop(스코프 depth 추적) → FAIL
+check "if-블록 속 drop → FAIL(R4)"                     1 "$FIX/bad-drop-in-if"
 
 # ── AC-2: 파괴 op + 같은 줄(트레일링) 승인마커 → 통과 ──
 check "drop_table + 트레일링 마커 → 통과(AC-2)"        0 "$FIX/good-acknowledged"
