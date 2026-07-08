@@ -34,6 +34,9 @@ check "안전+미승인파괴 혼재 → FAIL(AC-7)"        1 "$FIX/bad-multi-st
 #   반증: /* */ 는 SQL 토큰 구분자라 DROP/*x*/TABLE == DROP TABLE 로 실행된다.
 check "블록주석 분리 DROP TABLE → FAIL(AC-11)"   1 "$FIX/bad-block-comment-split-table"
 check "블록주석 분리 DROP COLUMN → FAIL(AC-11)"  1 "$FIX/bad-block-comment-split-column"
+# ── 이슈 #258 backport(AR 봉쇄 형제 이식) — MySQL '#' 라인주석 토큰-분리 우회 차단 ──
+#   반증: MySQL '#' 은 라인주석이라 `DROP #x\nTABLE` == `DROP TABLE` 로 실행된다(FN 봉쇄).
+check "'#' 라인주석 분리 DROP TABLE → FAIL(#258)" 1 "$FIX/bad-hash-comment-split-table"
 # ── AC-5: 마커가 문자열 값 안(실제 주석 아님) → 크레딧 거부 → FAIL ──
 check "마커 문자열-값 스푸핑 → 무시·FAIL(AC-5)"  1 "$FIX/bad-marker-in-string"
 # ── AC-8: prisma 마이그레이션 디렉터리도 스캔 → 미승인 DROP FAIL ──
@@ -50,6 +53,9 @@ check "블록주석 속 DROP TABLE → 통과(AC-3)"      0 "$FIX/good-block-com
 check "문자열 속 DROP TABLE → 통과(AC-4)"        0 "$FIX/good-string-spoof"
 # 순수 안전 DDL → 통과
 check "CREATE/ADD COLUMN만 → 통과"              0 "$FIX/good-create-only"
+# ── 이슈 #258 backport — TRUNCATE(x,d) 수치함수 오탐 금지(FP 가드) ──
+#   반증: MySQL TRUNCATE(수,자릿수)는 절삭 함수(데이터-손실 아님). TRUNCATE TABLE(bad-truncate)은 여전히 차단.
+check "TRUNCATE() 수치함수 → 통과(#258 오탐가드)" 0 "$FIX/good-truncate-func"
 # ── AC-2+AC-8: prisma + 승인마커 → 통과 · supabase 스택 커버리지 ──
 check "prisma DROP + 승인마커 → 통과(AC-2,8)"    0 "$FIX/good-prisma-acknowledged"
 check "supabase TRUNCATE + 승인마커 → 통과"      0 "$FIX/good-supabase-acknowledged"

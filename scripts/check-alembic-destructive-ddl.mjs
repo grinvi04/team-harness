@@ -24,7 +24,7 @@
  * 반증(anti-spoof): 주석(#)·문자열 리터럴('..','".."','''..''',"""..""",r/b/f/u 접두)·docstring 안의 파괴
  *   키워드는 무시하고, 승인마커도 **실제 # 주석 안**일 때만 인정한다(문자열 값 스푸핑 차단). execute의 raw
  *   SQL은 SQL 블록주석·라인주석(--)·SQL 문자열 리터럴을 제거한 뒤 검사한다(블록주석 토큰-분리 우회 차단 — SQL판
- *   v0.31.0 봉쇄와 동형: DROP<블록주석>TABLE가 Postgres에서 유효 SQL). 검증은 통과가 아니라 우회 실패로 확정 —
+ *   v0.31.0 봉쇄와 동형: DROP<블록주석>TABLE가 Postgres에서 유효 SQL; MySQL '#' 라인주석도 동일 차단, #258). 검증은 통과가 아니라 우회 실패로 확정 —
  *   tests/alembic-destructive-ddl-test.sh의 스푸핑·우회 픽스처.
  *
  * ⚠ 적용 범위 — **Alembic 마이그레이션 .py 전용**(지문 기반, 경로 무관):
@@ -210,6 +210,7 @@ function normalizeSql(s) {
   while (i < n) {
     const c = s[i], c2 = s[i + 1]
     if (c === '-' && c2 === '-') { while (i < n && s[i] !== '\n') i++; out += ' '; continue }
+    if (c === '#') { while (i < n && s[i] !== '\n') i++; out += ' '; continue } // MySQL '#' 라인주석 토큰-분리 차단(DROP#x\nTABLE == DROP TABLE, #258). Python/SQL은 인터폴레이션 없어 단순 #→EOL로 충분(AR판 #{} 제외 불필요)
     if (c === '/' && c2 === '*') { i += 2; while (i < n && !(s[i] === '*' && s[i + 1] === '/')) i++; i = i < n ? i + 2 : n; out += ' '; continue }
     if (c === "'") { i++; while (i < n) { if (s[i] === "'" && s[i + 1] === "'") { i += 2; continue } if (s[i] === "'") { i++; break } i++ } out += ' '; continue }
     out += c; i++
@@ -229,7 +230,7 @@ const SQL_DESTRUCTIVE = [
   { label: 'execute: DROP TABLE', re: /\bDROP\s+TABLE\b/i },
   { label: 'execute: DROP DATABASE', re: /\bDROP\s+DATABASE\b/i },
   { label: 'execute: DROP SCHEMA', re: /\bDROP\s+SCHEMA\b/i },
-  { label: 'execute: TRUNCATE', re: /\bTRUNCATE\b/i },
+  { label: 'execute: TRUNCATE', re: /\bTRUNCATE\b(?!\s*\()/i }, // TRUNCATE(x,d) 수치함수 제외(오탐), TRUNCATE [TABLE] t는 차단(#258)
   { label: 'execute: DROP COLUMN', re: /\bDROP\s+COLUMN\b/i },
 ]
 const MARKER_RE = /migration-safety:\s*destructive-ok/i
