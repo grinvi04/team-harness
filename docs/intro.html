@@ -228,7 +228,7 @@
 
   <!-- 히어로 -->
   <section class="hero" id="top">
-    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.29.28</div>
+    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.31.0</div>
     <h1>team-harness</h1>
     <p class="lead">
       AI 코딩 에이전트를 팀에서 안전하게 쓰기 위한 거버넌스 레이어.<br>
@@ -579,6 +579,7 @@
   <p>스택 CI 위에, 모든 repo에 공통으로 배선되는 게이트. <code>new-repo.sh</code>가 자동 추가하고 <code>/repo-sync</code>가 기존 repo의 누락을 점검한다.</p>
   <div class="tpl-grid">
     <div class="tpl"><div class="tn">migration-safety</div><div class="tp">마이그레이션 정적 게이트 — out-of-order·forward-only 위반 차단</div></div>
+    <div class="tpl"><div class="tn">destructive-ddl</div><div class="tp">파괴 DDL 정적 게이트 — DROP TABLE·TRUNCATE·DROP COLUMN을 CI에서 차단(승인마커 예외). 주석·문자열 우회 봉쇄</div></div>
     <div class="tpl"><div class="tn">integration-e2e</div><div class="tp">실 IdP·실 백엔드 통합 e2e (env-gated required)</div></div>
     <div class="tpl"><div class="tn">test-guard</div><div class="tp">테스트 삭제·skip 회귀 감지</div></div>
     <div class="tpl"><div class="tn">commitlint</div><div class="tp">커밋 메시지 규약 강제</div></div>
