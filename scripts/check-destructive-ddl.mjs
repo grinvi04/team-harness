@@ -117,6 +117,7 @@ function parseStatements(sql) {
       let j = i + 2
       while (j < n && !(sql[j] === '*' && sql[j + 1] === '/')) j++
       comments += sql.slice(i + 2, j) + '\n'
+      code += ' ' // 토큰 병합 방지 — /* */ 는 SQL 토큰 구분자라 DROP/*x*/TABLE == DROP TABLE
       i = j < n ? j + 2 : n
       continue
     }
