@@ -32,9 +32,11 @@
  * ⚠ 적용 범위 — **ActiveRecord 마이그레이션 .rb 전용**(지문 기반, 경로 무관):
  *   `< ActiveRecord::Migration` **그리고** `def (change|up|down)` 지문을 가진 .rb만 대상. 지문 없는 .rb
  *   (앱 모델·헬퍼)는 비대상.
- *   - 한계(흔한 형태만·계층0 정본): def change/up 밖 헬퍼 함수로 숨긴 파괴 op·동적 SQL 조립·`%w[]`/`%q()`
- *     등 %리터럴 속 DROP·정규식 리터럴 속 키워드·change_table 블록의 `t.remove`(별칭)·`remove_reference`·
- *     `reversible do |dir| dir.up{…} end` 블록 방향은 미검출(난독화·간접호출=계층0).
+ *   - 한계(흔한 형태만·계층0 정본): def change/up 밖 헬퍼 함수로 숨긴 파괴 op·동적 SQL 조립·인접 문자열
+ *     리터럴 연접(`execute("DROP " "TABLE …")`)·`%w[]`/`%q()` 등 %리터럴 속 DROP·정규식 리터럴 속 키워드·
+ *     change_table 블록의 `t.remove`(별칭)·`remove_reference`·무공백 소문자 heredoc(`x<<foo`)은 미검출.
+ *   - reversible: `reversible do |dir| dir.up{…}; dir.down{…} end`의 dir.up 파괴는 미검출(FN), dir.down 파괴는
+ *     역방향이지만 def change 본문이라 오탐(FP)될 수 있다 — 정당한 dir.down 파괴엔 승인마커를 단다.
  *
  * 단일 출처: docs/db-standards.md · docs/specs/rails-stack-completion.md
  */
@@ -88,8 +90,9 @@ function walk(dir, onFile, depth = 0) {
 }
 
 // ActiveRecord 마이그레이션 지문: `< ActiveRecord::Migration` 상속 + change/up/down 메서드 정의.
+//   레거시 Rails 2.x/3.x 클래스-메서드 `def self.up`/`def self.down`도 지문·스코프에서 인식(self. 흡수).
 const HAS_AR = /<\s*ActiveRecord::Migration/
-const HAS_METHOD = /\bdef\s+(?:change|up|down)\b/
+const HAS_METHOD = /\bdef\s+(?:self\.)?(?:change|up|down)\b/
 
 const rbFiles = []
 for (const root of roots) {
@@ -206,7 +209,9 @@ function tokenize(src) {
     // heredoc 시작(<<~SQL 등) → 본문은 다음 줄부터. 지금은 식별자를 등록만 하고 code에서 제외.
     if (c === '<' && src[i + 1] === '<') {
       const m = HEREDOC_RE.exec(src.slice(i, i + 64))
-      if (m) {
+      // 진짜 heredoc만: <<~/<<- (스퀴글·대시) 또는 따옴표 식별자 또는 대문자 식별자.
+      //   무공백 소문자 bare `<<val`(append/좌시프트)을 heredoc으로 오판해 뒷줄(drop 포함)을 삼키는 것 방지.
+      if (m && (m[1] || m[2] || /^[A-Z]/.test(m[3]))) {
         pendingHeredocs.push({ term: m[3] })
         code += ' '
         i += m[0].length
@@ -256,7 +261,15 @@ function normalizeSql(s) {
   while (i < n) {
     const c = s[i], c2 = s[i + 1]
     if (c === '-' && c2 === '-') { while (i < n && s[i] !== '\n') i++; out += ' '; continue }
-    if (c === '#') { while (i < n && s[i] !== '\n') i++; out += ' '; continue } // MySQL '#' 라인주석 토큰-분리 차단
+    if (c === '#') {
+      if (c2 === '{') { // Ruby 인터폴레이션 #{…} — SQL 주석 아님. 균형 중괄호만 중립화(줄 끝까지 삭제 금지 → 뒤 DROP 보존).
+        i += 2
+        let bd = 1
+        while (i < n && bd > 0) { if (s[i] === '{') bd++; else if (s[i] === '}') bd--; i++ }
+        out += ' '; continue
+      }
+      while (i < n && s[i] !== '\n') i++; out += ' '; continue // MySQL '#' 라인주석 토큰-분리 차단
+    }
     if (c === '/' && c2 === '*') { i += 2; while (i < n && !(s[i] === '*' && s[i + 1] === '/')) i++; i = i < n ? i + 2 : n; out += ' '; continue }
     if (c === "'") { i++; while (i < n) { if (s[i] === "'" && s[i + 1] === "'") { i += 2; continue } if (s[i] === "'") { i++; break } i++ } out += ' '; continue }
     out += c; i++
@@ -278,11 +291,11 @@ const SQL_DESTRUCTIVE = [
   { label: 'execute: DROP TABLE', re: /\bDROP\s+TABLE\b/i },
   { label: 'execute: DROP DATABASE', re: /\bDROP\s+DATABASE\b/i },
   { label: 'execute: DROP SCHEMA', re: /\bDROP\s+SCHEMA\b/i },
-  { label: 'execute: TRUNCATE', re: /\bTRUNCATE\b/i },
+  { label: 'execute: TRUNCATE', re: /\bTRUNCATE\b(?!\s*\()/i }, // TRUNCATE(x,d) 수치함수 제외(오탐), TRUNCATE [TABLE] t는 차단
   { label: 'execute: DROP COLUMN', re: /\bDROP\s+COLUMN\b/i },
 ]
 const MARKER_RE = /migration-safety:\s*destructive-ok/i
-const DEF_RE = /^(?:private\s+|protected\s+|public\s+)?def\s+(\w+)/
+const DEF_RE = /^(?:private\s+|protected\s+|public\s+)?def\s+(?:self\.)?(\w+)/
 // def change/up 본문 스코프 추적용 — do/블록 키워드 openers, end closers.
 const OPENER_LEAD = /^(?:class|module|begin|case|if|unless|while|until|for)\b/
 const TRAILING_DO = /\bdo\b(?:\s*\|[^|]*\|)?\s*$/

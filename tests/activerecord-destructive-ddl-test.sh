@@ -55,6 +55,20 @@ check "heredoc '#' 주석 분리 DROP → FAIL(R2)"          1 "$FIX/bad-execute
 check "exec_query raw DROP → FAIL(R3)"                 1 "$FIX/bad-exec-query"
 # R4: def change 내 if-블록 속 drop(스코프 depth 추적) → FAIL
 check "if-블록 속 drop → FAIL(R4)"                     1 "$FIX/bad-drop-in-if"
+# ── 적대적 재검증 2차(opus verifier) 발견 — realistic 우회·오탐 봉쇄 ──
+# R5: 레거시 def self.up 만 있는 파일 스캔(지문·스코프 self. 흡수) → FAIL
+check "def self.up 레거시 → FAIL(R5)"                  1 "$FIX/bad-self-up"
+check "def self.up + def change 혼재 → FAIL(R5)"       1 "$FIX/bad-self-up-mixed"
+# R6: Ruby #{} 인터폴레이션이 같은 줄 뒤 DROP을 가리지 않음 → FAIL
+check "#{} 인터폴레이션+같은줄 DROP → FAIL(R6)"        1 "$FIX/bad-interpolation-drop"
+# R7: 무공백 << append가 뒤 drop_table을 삼키지 않음 → FAIL
+check "무공백 << 뒤 drop → FAIL(R7)"                   1 "$FIX/bad-shift-then-drop"
+# R8: TRUNCATE TABLE는 여전히 차단 → FAIL
+check "TRUNCATE TABLE → FAIL(R8)"                      1 "$FIX/bad-truncate-table"
+# R9(good): TRUNCATE(x,d) 수치함수 오탐 금지 → 통과
+check "TRUNCATE() 수치함수 → 통과(R9 오탐가드)"        0 "$FIX/good-truncate-func"
+# R10(good): self.down 만의 파괴(롤백) → 통과
+check "def self.down-only 파괴 → 통과(R10/AC-4)"       0 "$FIX/good-self-down-only"
 
 # ── AC-2: 파괴 op + 같은 줄(트레일링) 승인마커 → 통과 ──
 check "drop_table + 트레일링 마커 → 통과(AC-2)"        0 "$FIX/good-acknowledged"
