@@ -40,6 +40,7 @@ jobs:
           bash -n tests/skill-discovery-test.sh
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
+          bash -n tests/settings-deny-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
@@ -125,6 +126,9 @@ jobs:
 
       - name: 플러그인 배선 반증-스모크 (guard 실발동·hooksPath)
         run: bash tests/plugin-wiring-test.sh
+
+      - name: settings.json .env-리더 deny 커버리지 (#237)
+        run: bash tests/settings-deny-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
