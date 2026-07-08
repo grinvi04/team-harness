@@ -73,6 +73,13 @@ check "raw-string 이스케이프 desync → FAIL(T1)"       1 "$FIX/bad-raw-str
 check "multidb upgrade_engineN → FAIL(T4)"            1 "$FIX/bad-multidb"
 # T6: async def upgrade → FAIL(지문·스코프 async 인식)
 check "async def upgrade → FAIL(T6)"                  1 "$FIX/bad-async-upgrade"
+# ── 이슈 #258 backport(AR 봉쇄 형제 이식) ──
+# H1: op.execute 내 MySQL '#' 라인주석 토큰-분리 DROP → FAIL(FN 봉쇄, DROP#x\nTABLE == DROP TABLE)
+check "execute '#' 주석 분리 DROP → FAIL(#258)"      1 "$FIX/bad-exec-hash-comment"
+# H2: execute TRUNCATE TABLE → 여전히 차단(부정예측 추가가 TRUNCATE [TABLE]을 안 뚫는지 lock)
+check "execute TRUNCATE TABLE → FAIL(#258)"          1 "$FIX/bad-truncate-table"
+# H3(good): TRUNCATE(x,d) 수치함수 오탐 금지 → 통과
+check "execute TRUNCATE() 수치함수 → 통과(#258)"     0 "$FIX/good-truncate-func"
 # T3(good): 바로 앞 줄 승인마커 → 통과(자연스러운 스타일)
 check "바로 앞 줄 승인마커 → 통과(T3)"                0 "$FIX/good-preceding-marker"
 # FP 가드: execute SQL 문자열 값 속 DROP TABLE(데이터) → 통과

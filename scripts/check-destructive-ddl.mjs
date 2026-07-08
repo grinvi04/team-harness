@@ -13,7 +13,7 @@
  *   - forward-only 2단계 배포(db-standards.md §마이그레이션)의 정당한 DROP COLUMN은 **승인마커**로 통과:
  *       같은 문장에 실제 주석 `-- migration-safety: destructive-ok`.
  *
- * 반증(anti-spoof): 주석(라인 --, 블록)·문자열 리터럴(작은따옴표) 안의 파괴 키워드는 무시하고, 승인마커도
+ * 반증(anti-spoof): 주석(라인 --·MySQL #, 블록)·문자열 리터럴(작은따옴표) 안의 파괴 키워드는 무시하고, 승인마커도
  *   **실제 주석 안**일 때만 인정한다(문자열 값 스푸핑 차단). check-migration-safety.mjs의 따옴표-인식
  *   commentOf() 로직과 동형. 검증은 통과가 아니라 우회 실패로 확정 — tests/destructive-ddl-test.sh의 스푸핑 픽스처.
  *
@@ -114,6 +114,17 @@ function parseStatements(sql) {
       i = j
       continue
     }
+    // MySQL '#' 라인 주석 … EOL — 토큰-분리 우회 차단(DROP#x\nTABLE == DROP TABLE, #258).
+    //   `--` 와 동형으로 comments 채널에 담아 `# migration-safety` 마커도 MySQL에서 동일하게 인정.
+    //   한계(계층0): Postgres '#' 연산자(#>, 비트XOR)를 주석으로 오인해 줄 나머지를 제거할 수 있으나,
+    //   제거만 하므로 파괴 키워드를 새로 만들지 못한다(FP로 오차단 불가) — dialect-무관 best-effort.
+    if (c === '#') {
+      let j = i + 1
+      while (j < n && sql[j] !== '\n') j++
+      comments += sql.slice(i + 1, j) + '\n'
+      i = j
+      continue
+    }
     // 블록 주석 /* … */
     if (c === '/' && c2 === '*') {
       let j = i + 2
@@ -149,7 +160,7 @@ const DESTRUCTIVE = [
   { label: 'DROP TABLE', re: /\bDROP\s+TABLE\b/i },
   { label: 'DROP DATABASE', re: /\bDROP\s+DATABASE\b/i },
   { label: 'DROP SCHEMA', re: /\bDROP\s+SCHEMA\b/i },
-  { label: 'TRUNCATE', re: /\bTRUNCATE\b/i },
+  { label: 'TRUNCATE', re: /\bTRUNCATE\b(?!\s*\()/i }, // TRUNCATE(x,d) 수치함수 제외(오탐), TRUNCATE [TABLE] t는 차단(#258)
   { label: 'ALTER…DROP COLUMN', re: /\bDROP\s+COLUMN\b/i },
 ]
 const MARKER_RE = /migration-safety:\s*destructive-ok/i
