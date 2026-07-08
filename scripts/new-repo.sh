@@ -118,6 +118,8 @@ copy_once "$HARNESS_DIR/templates/commitlint.config.cjs"    commitlint.config.cj
 mkdir -p scripts
 copy_once "$HARNESS_DIR/templates/ci/destructive-ddl.yml"   .github/workflows/destructive-ddl.yml "destructive-ddl.yml (파괴 DDL 차단 게이트)"
 copy_once "$HARNESS_DIR/scripts/check-destructive-ddl.mjs"  scripts/check-destructive-ddl.mjs "scripts/check-destructive-ddl.mjs"
+# Alembic .py 축 — destructive-ddl.yml 2번째 스텝이 호출. 지문 없으면 self-skip이라 stack-agnostic 무조건 배선.
+copy_once "$HARNESS_DIR/scripts/check-alembic-destructive-ddl.mjs" scripts/check-alembic-destructive-ddl.mjs "scripts/check-alembic-destructive-ddl.mjs"
 
 # Flyway 스택 — 마이그레이션 안전성 게이트 워크플로 + 무의존 검사 스크립트
 if [[ "$HAS_FLYWAY" == true ]]; then

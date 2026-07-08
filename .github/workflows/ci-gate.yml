@@ -35,6 +35,7 @@ jobs:
           bash -n tests/solo-merge-test.sh
           bash -n tests/new-repo-test.sh
           bash -n tests/alembic-heads-test.sh
+          bash -n tests/alembic-destructive-ddl-test.sh
           bash -n tests/skill-discovery-test.sh
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
@@ -42,6 +43,7 @@ jobs:
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
+          node --check scripts/check-alembic-destructive-ddl.mjs
           node --check templates/frontend/check-design-tokens.mjs
 
       - name: JSON 유효성 검사
@@ -85,6 +87,9 @@ jobs:
 
       - name: 파괴적 DDL 게이트 테스트
         run: bash tests/destructive-ddl-test.sh
+
+      - name: Alembic 파괴 DDL 게이트 테스트
+        run: bash tests/alembic-destructive-ddl-test.sh
 
       - name: 드리프트 점검 테스트
         run: bash tests/repo-sync-test.sh

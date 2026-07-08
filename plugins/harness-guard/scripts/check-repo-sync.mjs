@@ -293,6 +293,14 @@ checks.push({
   status: existsAnywhere(/^check-destructive-ddl\.mjs$/) ? 'OK' : 'MISSING',
   detail: 'scripts/check-destructive-ddl.mjs (무의존 정적 검사)',
 })
+// Alembic .py 축 — destructive-ddl.yml 2번째 스텝이 호출(지문 없으면 self-skip)이라 전 repo applicable.
+checks.push({
+  asset: 'check-alembic-destructive-ddl.mjs',
+  severity: 'error',
+  applicable: true,
+  status: existsAnywhere(/^check-alembic-destructive-ddl\.mjs$/) ? 'OK' : 'MISSING',
+  detail: 'scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)',
+})
 
 // Alembic 스택 — 다중 head 차단 CI 스텝
 checks.push({
