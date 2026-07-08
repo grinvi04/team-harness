@@ -42,6 +42,17 @@ if echo "$OUT" | grep -q "nextjs, vue, alembic\|nextjs" && echo "$OUT" | grep -q
 else
   echo "FAIL: E2 nextjs·vue 감지+룰 점검"; FAIL=$((FAIL+1))
 fi
+# E3: rails 감지 — Gemfile → rails 스택, ruby.md 룰 + activerecord 파괴 DDL 게이트(3번째 스텝) 대칭.
+check "E3: rails 완비(ruby.md+AR게이트) → 통과"  0 "$FIX/rails-good"
+OUT=$(node "$GATE" --repo "$FIX/rails-good" --harness "$ROOT" 2>&1)
+if echo "$OUT" | grep -q "감지된 스택: rails" \
+   && echo "$OUT" | grep -q "룰: ruby.md" \
+   && echo "$OUT" | grep -q "activerecord destructive-ddl 스텝"; then
+  echo "PASS: E3 rails 감지+ruby.md+AR게이트 점검"; PASS=$((PASS+1))
+else
+  echo "FAIL: E3 rails 감지+ruby.md+AR게이트 점검"; FAIL=$((FAIL+1))
+fi
+
 # --help → 통과
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
 

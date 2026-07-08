@@ -40,7 +40,7 @@ if (args.includes('--help') || args.includes('-h')) {
   --help, -h         이 도움말
 
 동작:
-  1) 대상 repo의 파일 신호로 스택 감지 (java/flyway/typescript/nestjs/nextjs/vue/vite/python/prisma/alembic/supabase)
+  1) 대상 repo의 파일 신호로 스택 감지 (java/flyway/typescript/nestjs/nextjs/vue/vite/python/prisma/alembic/supabase/rails)
   2) 감지된 스택에 해당하는 표준 harness 자산(게이트·룰)이 sync 됐는지 점검
   3) 자산별 OK / WEAK / MISSING / WARN 표 + 요약 출력
 
@@ -121,6 +121,7 @@ const hasPython = hasFile(/^pyproject\.toml$/) || hasFile(/^requirements.*\.txt$
 const hasPrisma = hasDir(/(^|\/)prisma$/) || hasFile(/^schema\.prisma$/)
 const hasAlembic = hasFile(/^alembic\.ini$/) || hasDir(/(^|\/)alembic$/)
 const hasSupabase = hasDir(/(^|\/)supabase$/)
+const hasRails = hasFile(/^Gemfile$/)
 
 // 의존성 신호: nestjs=@nestjs/*, nextjs=next, vue=vue (한 번 순회로 세 스택 동시 감지)
 let isNest = false, isNext = false, isVue = false
@@ -152,6 +153,7 @@ const stacks = {
   prisma: hasPrisma,
   alembic: hasAlembic,
   supabase: hasSupabase,
+  rails: hasRails,
 }
 const detected = Object.entries(stacks).filter(([, v]) => v).map(([k]) => k)
 
@@ -311,6 +313,22 @@ checks.push({
   detail: 'scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)',
 })
 
+// ActiveRecord .rb 축 — destructive-ddl.yml 3번째 스텝이 호출(지문 없으면 self-skip)이라 전 repo applicable.
+checks.push({
+  asset: 'activerecord destructive-ddl 스텝',
+  severity: 'error',
+  applicable: true,
+  status: sentinelStatus(/check-activerecord-destructive-ddl/i, /destructive[-_]?ddl/i),
+  detail: 'destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)',
+})
+checks.push({
+  asset: 'check-activerecord-destructive-ddl.mjs',
+  severity: 'error',
+  applicable: true,
+  status: existsAnywhere(/^check-activerecord-destructive-ddl\.mjs$/) ? 'OK' : 'MISSING',
+  detail: 'scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)',
+})
+
 // Alembic 스택 — 다중 head 차단 CI 스텝
 checks.push({
   asset: 'alembic heads 스텝',
@@ -330,6 +348,7 @@ const ruleMap = [
   ['python', stacks.python],
   ['prisma', stacks.prisma],
   ['alembic', stacks.alembic],
+  ['ruby', stacks.rails],
 ]
 for (const [rule, applicable] of ruleMap) {
   const standardHas = existsSync(join(HARNESS, 'templates/rules/stacks', `${rule}.md`))

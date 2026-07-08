@@ -1,0 +1,6 @@
+name: test-guard
+jobs:
+  test-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "allow-test-removal 라벨 확인"
