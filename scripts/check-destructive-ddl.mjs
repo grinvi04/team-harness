@@ -20,7 +20,8 @@
  * ⚠ 적용 범위 — **마이그레이션 디렉터리 하위 `*.sql` 내용 전용**:
  *   db/migration/(Flyway) · prisma/migrations/ · supabase/migrations/. 파괴성은 파일명 규약 무관이라
  *   Flyway V### 한정이 아니다(check-migration-safety의 out-of-order와 다른 축).
- *   - Alembic: DDL이 `.py`(op.drop_table())라 이 SQL 게이트의 비대상 — alembic.md 별도 소관(정직한 skip).
+ *   - Alembic: DDL이 `.py`(op.drop_table())라 이 SQL 게이트의 비대상 — 형제 게이트
+ *     `check-alembic-destructive-ddl.mjs`가 upgrade() 파괴 op를 본다(destructive-ddl.yml 2번째 스텝).
  *   - 마이그레이션 디렉터리 밖 .sql(seed·스크립트)은 스캔 안 함(오탐 금지).
  *   - 한계(흔한 형태만): Postgres dollar-quoting($$…$$)·동적 SQL 문자열 조립은 미검출 — 계층0 정본.
  *
@@ -39,7 +40,8 @@ if (args.includes('--help') || args.includes('-h')) {
 파괴 판정: DROP TABLE · DROP DATABASE · DROP SCHEMA · TRUNCATE · ALTER…DROP COLUMN
 비대상   : DROP INDEX/VIEW/CONSTRAINT/TRIGGER (데이터-손실 아님)
 승인마커 : 파괴 문장과 같은 문장의 실제 주석 \`-- migration-safety: destructive-ok\` → 통과
-스캔대상 : db/migration/ · prisma/migrations/ · supabase/migrations/ 하위 *.sql (Alembic .py 비대상)
+스캔대상 : db/migration/ · prisma/migrations/ · supabase/migrations/ 하위 *.sql
+           (Alembic .py는 형제 게이트 check-alembic-destructive-ddl.mjs 소관)
 
 종료 코드:
   0  통과 또는 skip(마이그레이션 SQL 없음 — 오탐 금지)
