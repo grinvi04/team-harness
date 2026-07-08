@@ -241,10 +241,11 @@ while IFS= read -r RSEG; do
 done < <(split_segments "$COMMAND")
 
 # 검증기(테스트·마이그레이션) 파일 삭제 금지 (토큰 판정 — #220-A) — 게이트 무력화 방지.
-# rm / git rm 으로 테스트(*Test.java·*.spec.*·*.test.*·test_*.py·*_test.py·tests/·__tests__/)나
-# 마이그레이션(db/migration(s)/·migrations/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
+# rm / git rm 으로 테스트(*Test.java·*.spec.*·*.test.*·test_*.py·*_test.py·*_spec.rb·*_test.rb·tests/·__tests__/)나
+# 마이그레이션(db/migration(s)/·db/migrate/·migrations/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
 #   (#245: jest __tests__/·복수형 migrations 커버리지 확장 — 디렉터리는 경로세그먼트 앵커)
-#   bare spec/ 는 제외(#245 F2): OpenAPI·API `spec/`와 다의적이라 과차단 위험>이득(rspec은 비-소비스택 Ruby).
+#   (rails-stack: rspec `*_spec.rb`·minitest `*_test.rb`·ActiveRecord `db/migrate/` — 접미-특정 추가)
+#   bare spec/ 는 제외(#245 F2): OpenAPI·API `spec/`와 다의적이라 과차단 위험>이득. `*_spec.rb` 접미만 잡는다.
 #   .spec. 확장자 매치는 유지. 트레일링 glob(`__tests__*`)은 디렉터리 앵커 밖(선재 한계, =`tests*`).
 # 세그먼트에 `rm` 토큰(bare rm 또는 git rm)이 있고 그 세그먼트의 어떤 토큰이 검증기 경로면 차단.
 # 토큰화 이점: 따옴표 벗김(rm -rf "tests" 차단)·wrapper 관용(sudo rm tests/)·세그먼트 격리(G2:
@@ -258,7 +259,7 @@ while IFS= read -r DSEG; do
     # 파일 패턴은 **비앵커 부분매치**(OLD 정규식과 동일) — `rm *Test.java*`·`foo_test.py.bak`처럼 검증기
     #   파일명에 트레일링(glob `*`·`.bak`)이 붙어도 잡는다($ 종단앵커는 이 형태를 놓쳐 홀이었음, 검증 반영).
     #   디렉터리 패턴만 `(^|/)…(/|$)` 경로세그먼트 앵커 — `rm latest/`의 `test/` 부분매치 과차단만 방지.
-    if printf '%s' "$_tok" | grep -qE "(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^/]*\.py|_test\.py|(^|/)tests?(/|$)|(^|/)__tests__(/|$)|(^|/)db/migrations?(/|$)|(^|/)migrations(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
+    if printf '%s' "$_tok" | grep -qE "(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^/]*\.py|_test\.py|_spec\.rb|_test\.rb|(^|/)tests?(/|$)|(^|/)__tests__(/|$)|(^|/)db/migrations?(/|$)|(^|/)db/migrate(/|$)|(^|/)migrations(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
       deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
     fi
   done

@@ -10,6 +10,8 @@
 #   stack-agnostic — Flyway(db/migration)·Prisma(prisma/migrations)·Supabase(supabase/migrations) 공통.
 #   (Alembic .py DDL은 2번째 스텝 check-alembic-destructive-ddl.mjs가 본다 — upgrade() 파괴 op 차단,
 #   지문 없으면 self-skip. 다중 head 순서는 alembic-heads.yml 별도 소관.)
+#   (ActiveRecord db/migrate/*.rb DDL은 3번째 스텝 check-activerecord-destructive-ddl.mjs가 본다 —
+#   def change/up의 drop_table·remove_column·execute raw DROP 차단, 지문 없으면 self-skip.)
 name: destructive-ddl
 
 on:
@@ -33,3 +35,6 @@ jobs:
       # Alembic .py 축 — upgrade() 파괴 op(op.drop_table/column·op.execute DROP) 차단. 지문 없으면 self-skip.
       - name: Check destructive DDL (Alembic .py)
         run: node scripts/check-alembic-destructive-ddl.mjs
+      # ActiveRecord .rb 축 — def change/up 파괴 op(drop_table·remove_column·execute raw DROP) 차단. 지문 없으면 self-skip.
+      - name: Check destructive DDL (ActiveRecord .rb)
+        run: node scripts/check-activerecord-destructive-ddl.mjs

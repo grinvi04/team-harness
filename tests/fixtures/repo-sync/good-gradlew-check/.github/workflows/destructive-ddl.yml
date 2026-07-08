@@ -5,3 +5,4 @@ jobs:
     steps:
       - run: node scripts/check-destructive-ddl.mjs
       - run: node scripts/check-alembic-destructive-ddl.mjs
+      - run: node scripts/check-activerecord-destructive-ddl.mjs

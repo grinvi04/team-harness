@@ -82,11 +82,13 @@ updated_by  BIGINT      NOT NULL
   마이그레이션이 서로 독립이면(적용 순서가 무관하면) **도구의 out-of-order 허용을 켠다**(구체 설정명은
   스택 룰 파일 참조). forward-only는 그대로 유지
 - **파괴 DDL 정적 게이트(CI)**: 비가역 데이터-손실 DDL은 CI(빈 DB)는 통과하고 운영에서만 손실을 낸다 —
-  두 축이 배포 전 차단한다. **SQL**(Flyway·Prisma·Supabase의 `*.sql`)은 `check-destructive-ddl.mjs`가,
+  세 축이 배포 전 차단한다. **SQL**(Flyway·Prisma·Supabase의 `*.sql`)은 `check-destructive-ddl.mjs`가,
   **Alembic `.py`**(`op.drop_table`·`op.drop_column`·`op.execute` 내 DROP)는 `check-alembic-destructive-ddl.mjs`가
-  `upgrade()` 본문을 검사한다(정상 autogenerate의 `downgrade()` 파괴는 오탐이라 비대상). forward-only 2단계
-  배포의 정당한 컬럼 제거는 파괴 문장과 같은 문장의 승인마커로 통과 — SQL은 `-- migration-safety: destructive-ok`,
-  Alembic은 `# migration-safety: destructive-ok`.
+  `upgrade()` 본문을, **ActiveRecord `db/migrate/*.rb`**(`drop_table`·`drop_join_table`·`remove_column(s)`·
+  `execute` 계열 raw DROP/TRUNCATE)는 `check-activerecord-destructive-ddl.mjs`가 `def change`/`def up` 본문을
+  검사한다(정상 마이그레이션의 `downgrade()`/`def down` 역방향 파괴는 오탐이라 비대상). forward-only 2단계
+  배포의 정당한 컬럼 제거는 파괴 문장과 같은 문장(또는 바로 앞 줄)의 승인마커로 통과 — SQL은
+  `-- migration-safety: destructive-ok`, Alembic·ActiveRecord는 `# migration-safety: destructive-ok`.
 
 ## 테스트 격리
 
