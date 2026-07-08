@@ -48,11 +48,9 @@ check "마이그레이션 rm 차단(alembic)" 2 Bash "rm alembic/versions/abc_x.
 check "245: rm __tests__/ 차단(jest)"  2 Bash "rm -rf __tests__/"                 "$FEAT"
 check "245: rm db/migrations/ 차단"    2 Bash "rm -rf db/migrations/"             "$FEAT"
 check "245: rm migrations/ 차단(단독)" 2 Bash "rm -rf migrations/"                "$FEAT"
-check "245: rm spec/ 차단(rspec)"      2 Bash "rm -rf spec/"                      "$FEAT"
-# #245 과차단 반증 — 접두경로·--rm 플래그·mention 은 통과(앵커·토큰 격리)
-check "245over: rm myspec/ 통과"       0 Bash "rm -rf myspec/"                    "$FEAT"
-check "245over: docker --rm spec/ 통과" 0 Bash "docker run --rm spec/img"         "$FEAT"
+# #245 과차단 반증 — mention·(F2)bare spec/ 는 검증기 아님(통과)
 check "245over: echo __tests__ 통과"   0 Bash 'echo "rm __tests__/"'              "$FEAT"
+check "245over: rm docs/spec/ 통과(F2)" 0 Bash "rm -rf docs/spec/api.md"          "$FEAT"
 check "일반 파일 rm 통과"             0 Bash "rm build/output.log"              "$FEAT"
 check "일반 명령 통과"                0 Bash "npm run build"                    "$DEV"
 check "비Bash 도구 통과"              0 Edit ""                                 "$DEV"

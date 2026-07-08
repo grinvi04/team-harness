@@ -241,9 +241,11 @@ while IFS= read -r RSEG; do
 done < <(split_segments "$COMMAND")
 
 # 검증기(테스트·마이그레이션) 파일 삭제 금지 (토큰 판정 — #220-A) — 게이트 무력화 방지.
-# rm / git rm 으로 테스트(*Test.java·*.spec.*·*.test.*·test_*.py·*_test.py·tests/·__tests__/·spec/)나
+# rm / git rm 으로 테스트(*Test.java·*.spec.*·*.test.*·test_*.py·*_test.py·tests/·__tests__/)나
 # 마이그레이션(db/migration(s)/·migrations/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
-#   (#245: jest __tests__/·복수형 migrations·rspec spec/ 커버리지 확장 — 디렉터리는 경로세그먼트 앵커)
+#   (#245: jest __tests__/·복수형 migrations 커버리지 확장 — 디렉터리는 경로세그먼트 앵커)
+#   bare spec/ 는 제외(#245 F2): OpenAPI·API `spec/`와 다의적이라 과차단 위험>이득(rspec은 비-소비스택 Ruby).
+#   .spec. 확장자 매치는 유지. 트레일링 glob(`__tests__*`)은 디렉터리 앵커 밖(선재 한계, =`tests*`).
 # 세그먼트에 `rm` 토큰(bare rm 또는 git rm)이 있고 그 세그먼트의 어떤 토큰이 검증기 경로면 차단.
 # 토큰화 이점: 따옴표 벗김(rm -rf "tests" 차단)·wrapper 관용(sudo rm tests/)·세그먼트 격리(G2:
 #   `rm x.log; grep foo tests/`는 seg2에 rm 토큰 없어 통과). mention 보호: `echo "rm tests/"`는 따옴표
@@ -256,7 +258,7 @@ while IFS= read -r DSEG; do
     # 파일 패턴은 **비앵커 부분매치**(OLD 정규식과 동일) — `rm *Test.java*`·`foo_test.py.bak`처럼 검증기
     #   파일명에 트레일링(glob `*`·`.bak`)이 붙어도 잡는다($ 종단앵커는 이 형태를 놓쳐 홀이었음, 검증 반영).
     #   디렉터리 패턴만 `(^|/)…(/|$)` 경로세그먼트 앵커 — `rm latest/`의 `test/` 부분매치 과차단만 방지.
-    if printf '%s' "$_tok" | grep -qE "(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^/]*\.py|_test\.py|(^|/)tests?(/|$)|(^|/)__tests__(/|$)|(^|/)db/migrations?(/|$)|(^|/)migrations(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$)|(^|/)spec(/|$))"; then
+    if printf '%s' "$_tok" | grep -qE "(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^/]*\.py|_test\.py|(^|/)tests?(/|$)|(^|/)__tests__(/|$)|(^|/)db/migrations?(/|$)|(^|/)migrations(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
       deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
     fi
   done
@@ -301,9 +303,12 @@ fi
 #   흡수해 제외. `npm ci`는 install-verb 아님(통과). 알려진 한계(타이트 스코프): `--location global`(공백형)·
 #   ANSI-C `$'...'`는 흔한 형태가 아니라 비대상 — 정본 강제는 계층0.
 while IFS= read -r NSEG; do
-  _mgr=''
-  for _m in npm pnpm yarn; do seg_has_token "$NSEG" "$_m" && { _mgr="$_m"; break; }; done
-  [[ -n "$_mgr" ]] || continue
+  # 매니저별 시그니처를 **독립 평가**(first-token-wins 금지) — `yarn global add npm`처럼 패키지명이
+  #   다른 매니저 토큰이어도 오라우팅되지 않게(#245 F1 홀 봉쇄). seg_has_token은 위치 무관이라
+  #   npm/pnpm 브랜치는 전역플래그(-g류)를 요구하고 yarn 브랜치는 global+add를 요구 → 상호 배타.
+  _has_npmpnpm=0; seg_has_token "$NSEG" npm && _has_npmpnpm=1; seg_has_token "$NSEG" pnpm && _has_npmpnpm=1
+  _has_yarn=0; seg_has_token "$NSEG" yarn && _has_yarn=1
+  [[ $_has_npmpnpm -eq 1 || $_has_yarn -eq 1 ]] || continue
   _tok_into _nt "$NSEG"
   _nv=0; _ng=0; _yglobal=0; _yadd=0
   for _tok in "${_nt[@]}"; do
@@ -316,11 +321,10 @@ while IFS= read -r NSEG; do
       -*g*) _ng=1;;                             # 단일대시 g-포함 번들(-gf·-fg)
     esac
   done
-  if [[ "$_mgr" == yarn ]]; then
-    [[ $_yglobal -eq 1 && $_yadd -eq 1 ]] && deny "패키지매니저 전역설치 금지(yarn global add) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (yarn add --dev 또는 npx)"
-  else
-    [[ $_nv -eq 1 && $_ng -eq 1 ]] && deny "패키지매니저 전역설치 금지($_mgr -g) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (--save-dev 또는 npx)"
-  fi
+  # npm/pnpm: install-verb + 전역플래그
+  [[ $_has_npmpnpm -eq 1 && $_nv -eq 1 && $_ng -eq 1 ]] && deny "패키지매니저 전역설치 금지(npm/pnpm -g) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (--save-dev 또는 npx)"
+  # yarn(classic): global 서브커맨드 + add verb
+  [[ $_has_yarn -eq 1 && $_yglobal -eq 1 && $_yadd -eq 1 ]] && deny "패키지매니저 전역설치 금지(yarn global add) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (yarn add --dev 또는 npx)"
 done < <(split_segments "$COMMAND")
 
 exit 0

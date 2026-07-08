@@ -128,13 +128,11 @@ case_ "245 del __tests__/ (jest)"       2 "rm -rf __tests__/"                   
 case_ "245 del wrapper sudo __tests__/" 2 "sudo rm -rf __tests__/"                       "$FEAT"
 case_ "245 del db/migrations/ (복수)"   2 "rm -rf db/migrations/"                        "$FEAT"
 case_ "245 del migrations/ (단독복수)"  2 "rm -rf migrations/"                           "$FEAT"
-case_ "245 del spec/ (rspec)"           2 "rm -rf spec/"                                 "$FEAT"
-case_ "245 del 따옴표 'spec'"            2 "rm -rf 'spec'"                                "$FEAT"
-# #245 ALLOW 과차단 반증 (접두경로·--rm·mention·유사)
-case_ "245 del myspec/ (접두 통과)"     0 "rm -rf myspec/"                               "$FEAT"
-case_ "245 del specs/ (비rspec 통과)"   0 "rm -rf specs/"                                "$FEAT"
-case_ "245 del docker --rm spec/"       0 "docker run --rm spec/img"                     "$FEAT"
+# #245 ALLOW 과차단 반증 (--rm·mention·F2 bare spec/ 는 검증기 아님)
+case_ "245 del docker --rm __tests__"   0 "docker run --rm __tests__/img"                "$FEAT"
 case_ "245 del mention __tests__"       0 'echo "rm __tests__/"'                         "$FEAT"
+case_ "245 F2 rm docs/spec/ (통과)"     0 "rm -rf docs/spec/api.md"                      "$FEAT"
+case_ "245 F2 rm openapi/spec/ (통과)"  0 "rm -rf openapi/spec/"                         "$FEAT"
 # npm DENY (wrapper·순서·=값)
 case_ "npm wrapper sudo -g"             2 "sudo npm install -g leftpad"                  "$FEAT"
 case_ "npm 순서 --global 먼저"          2 "npm --global install leftpad"                 "$FEAT"
@@ -150,6 +148,12 @@ case_ "245 npm 결합 -fg (순서무관)"     2 "npm i -fg x"                   
 case_ "245 pnpm add -g"                 2 "pnpm add -g typescript"                       "$FEAT"
 case_ "245 pnpm wrapper sudo add -g"    2 "sudo pnpm add -g typescript"                  "$FEAT"
 case_ "245 yarn global add"             2 "yarn global add typescript"                   "$FEAT"
+# F1 회귀: 패키지명이 다른 매니저 토큰(npm/pnpm)이어도 yarn global add 는 차단(오라우팅 홀 봉쇄)
+case_ "245 F1 yarn global add npm"      2 "yarn global add npm"                          "$FEAT"
+case_ "245 F1 yarn global add lodash npm" 2 "yarn global add lodash npm"                 "$FEAT"
+case_ "245 F1 yarn global add pnpm foo" 2 "yarn global add pnpm foo"                     "$FEAT"
+# F1 역방향 정상: yarn add npm(로컬, 패키지명 npm)은 통과 — 전역 아님
+case_ "245 F1 yarn add npm (로컬)"      0 "yarn add npm"                                 "$FEAT"
 # #245 ALLOW 과차단 반증 (g-롱플래그·g-없는번들·로컬·비설치·mention·세그먼트격리)
 case_ "245 npm --legacy-peer-deps"      0 "npm install --legacy-peer-deps"               "$FEAT"
 case_ "245 npm -f (g없는 번들)"         0 "npm install -f leftpad"                       "$FEAT"

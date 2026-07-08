@@ -18,7 +18,7 @@
 
 - **In:**
   - **검증기-삭제 게이트**(guard.sh 검증기 grep 패턴, 현 258행): `__tests__/`(jest), 복수형
-    `migrations`·`db/migrations`, `spec/`(rspec) 경로 패턴 추가.
+    `migrations`·`db/migrations` 경로 패턴 추가. (rspec `spec/`는 F2 검증 결과 제외 — 아래 §6·Out 참조.)
   - **전역설치 게이트**(guard.sh npm-only 블록, 현 300–311행)를 **패키지매니저 전역오염 방지**로
     일반화:
     - npm 자체 누수: `--location=global`(npm7+ 정문법), 결합 단축플래그 `-gf`/`-fg`(g 포함 단일대시 번들).
@@ -31,6 +31,9 @@
   - **ANSI-C `$'...'` 디코드 금지**(YAGNI) — 혼란한 에이전트 반사형이 아닌 의도적 난독화. 디코드는
     [A]가 끝낸 whack-a-mole epicycle 재개 + 새 edge. 정본 강제는 계층0(branch protection·CI).
   - **`TESTS/` 대문자 금지**(YAGNI) — 희소. 대소문자무시는 `CONTESTS/`류 과차단 위험만 늘림.
+  - **bare `spec/` 디렉터리 앵커 금지**(F2 검증 후 제외) — OpenAPI·API `spec/`(`docs/spec/`·`openapi/spec/`)와
+    다의적이라 과차단(흔한 JS/TS 레이아웃)이 이득(rspec 디렉터리)보다 큼. rspec은 Ruby 관례라 이 org
+    소비 repo(JS/TS/Java) 비대상 + rspec 파일 `_spec.rb`는 `.spec.` 확장자 패턴에도 안 잡힘. `.spec.` 확장자 매치는 유지.
   - **F5 plan-gate·rm-core 경로정규화 로직 무관** — 냉동 계층(비가역·무백스톱), 건드리지 않는다.
   - category(a) 게이트(commit·force-push·gh-pr 등) 무관 — under-block 편향 유지.
   - `yarn global remove`/`list`, `pnpm remove -g` 등 **비설치** 서브커맨드는 차단 대상 아님(전역오염 없음).
@@ -43,11 +46,11 @@
   경로를 포함하면 THEN the system SHALL `exit 2`. (예: `rm -rf __tests__/` → 차단)
 - **AC-2 (복수형 migrations):** IF 인자 토큰이 `db/migrations/`(복수) 또는 standalone `migrations/`를
   포함하면 THEN `exit 2`. (현행 `db/migration` 단수는 유지 — 둘 다 잡음)
-- **AC-3 (rspec `spec/`):** IF 인자 토큰이 경로세그먼트 `spec/`를 포함하면 THEN `exit 2`.
-  (예: `rm -rf spec/` → 차단. `.spec.` 확장자 매치는 현행 유지.)
+- **AC-3 (rspec `spec/`) — F2 검증 후 제외:** bare `spec/` 디렉터리 앵커는 OpenAPI 과차단으로 채택 안 함
+  (Out 참조). `.spec.` 확장자 매치는 현행 유지. `rm -rf docs/spec/api.md`·`openapi/spec/`는 `exit 0`.
 - **AC-4 (검증기 과차단 없음 — 반증):** WHILE 다음이면 the system SHALL `exit 0`:
-  `rm myspec/`(비앵커 접두 아님), `rm -rf latest/`(현행 유지), `echo "rm __tests__/"`(mention),
-  `docker run --rm spec/img`(`--rm`은 rm 토큰 아님).
+  `rm -rf latest/`(현행 유지), `echo "rm __tests__/"`(mention), `docker run --rm __tests__/img`(`--rm`은 rm
+  토큰 아님), `rm -rf docs/spec/api.md`(bare spec/ 비대상).
 
 ### 전역설치 게이트 일반화
 
@@ -58,7 +61,9 @@
 - **AC-7 (pnpm 전역):** IF `pnpm` 토큰 + verb(`add`/`install`/`i`) + 전역플래그(`-g`/`--global`/g-번들)면
   THEN `exit 2`. (예: `pnpm add -g x`)
 - **AC-8 (yarn 전역):** IF `yarn` 토큰 + `global` 토큰 + `add` 토큰이 같은 세그먼트에 있으면 THEN
-  `exit 2`. (예: `yarn global add x`)
+  `exit 2`. (예: `yarn global add x`) **F1 봉쇄:** 패키지명이 다른 매니저 토큰이어도(`yarn global add npm`)
+  차단 — 매니저 시그니처를 first-token-wins가 아니라 **독립 평가**해 오라우팅 홀을 막는다. 역방향 `yarn add npm`
+  (로컬)은 `exit 0`.
 - **AC-9 (전역설치 과차단 없음 — 반증):** WHILE 다음이면 the system SHALL `exit 0`:
   `npm ci --global`(ci≠install verb, 현행 유지), `npm install --legacy-peer-deps`(g 없는 롱플래그 오탐
   방지), `npm install -f`(g 없는 번들), `pnpm install`(로컬), `yarn add x`(로컬),
@@ -90,7 +95,16 @@
 
 ## 6. Open Questions
 
-- (없음 — 스코프·YAGNI 제외·pnpm/yarn 확장·validator 3종 전부 사용자 승인 완료 2026-07-08.)
+- (없음 — 스코프·YAGNI 제외·pnpm/yarn 확장 사용자 승인 완료 2026-07-08. verifier 재검증 후 F1 수정·F2(spec/ 제외) 결정 반영.)
+
+### 알려진 한계 (verifier 재검증에서 확인, 의식적 수용)
+
+- **F3 — standalone `migrations/` 광역화(의도적):** `rm -rf data/migrations/`처럼 비-스키마 `migrations`
+  디렉터리도 차단된다. category(b) 안전측(과차단=가역)이라 수용 — DB 마이그레이션 보호가 목표.
+- **F4 — 트레일링 glob 미포착(선재 클래스):** 디렉터리 패턴은 `(/|$)` 앵커라 `rm -rf __tests__*`·
+  `rm -rf migrations*`는 통과(기존 `rm -rf tests*`와 동일 클래스, #245가 만든 회귀 아님). 파일 패턴은
+  비앵커(`*Test.java*` 포착)이나 디렉터리 앵커는 `rm latest/` 과차단 방지와의 트레이드오프. 정본 강제는 계층0.
+- **의도적 비대상(YAGNI):** ANSI-C `$'...'`, `--location global`(공백형), `TESTS/` 대문자.
 
 ---
 
@@ -114,16 +128,18 @@
 npm-only 루프를 **매니저-인식**으로 재작성(같은 세그먼트 순회 1벌, 토크나이저 술어 재사용):
 
 ```
-세그먼트별:
-  매니저 = seg_has_token(npm|pnpm|yarn) 중 존재하는 것
-  npm|pnpm:
-     verb = 토큰에 install|i|add 존재
-     global = 토큰에 -g | --global | --global=* | --location=global |
-              (단일대시 g-번들: [[ tok == -[!-]* && tok != --* && tok == *g* ]])
-     차단 IF verb && global
-  yarn:
-     차단 IF (global 토큰 존재) && (add 토큰 존재)      # yarn global add
+세그먼트별 (매니저 시그니처 **독립 평가** — first-token-wins 금지, F1 홀 봉쇄):
+  has_npmpnpm = seg_has_token(npm) || seg_has_token(pnpm)
+  has_yarn    = seg_has_token(yarn)
+  verb   = 토큰에 install|i|add 존재
+  global = 토큰에 -g | --global | --global=* | --location=global |
+           (단일대시 g-번들: case 순서로 `--*` 흡수 후 `-*g*`)
+  차단 IF has_npmpnpm && verb && global          # npm/pnpm 전역
+  차단 IF has_yarn && (global 서브커맨드) && (add) # yarn global add
 ```
+→ npm/pnpm 브랜치는 전역플래그를, yarn 브랜치는 `global`+`add`를 요구해 **상호 배타**. 패키지명이
+  다른 매니저 토큰(`yarn global add npm`)이어도 오라우팅되지 않는다(seg_has_token은 위치 무관이므로
+  first-wins로 매니저를 확정하면 홀이 생김 — verifier F1 발견).
 
 - **과차단 방어(핵심):** g-번들은 반드시 `--` 배제 + 단일대시 — `--legacy-peer-deps`(g 포함 롱플래그)
   오탐 방지(AC-9). `npm ci`는 verb 집합에 `ci` 없어 통과 유지. `-f`(g 없음) 통과.
