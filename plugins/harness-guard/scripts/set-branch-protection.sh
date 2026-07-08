@@ -36,7 +36,7 @@ set -uo pipefail
 #     "N"(≥1) = 팀(appr>=N면 ok · None/미달=drift).
 #   echo "ok"(부합, rc0) 또는 "drift:<사유들>"(rc1).
 classify_protection() {
-  local appr="$1" adm="$2" chk="$3" expected="${4:-}" strict="${5:-}" msg="" okappr=false okchk=false okstrict=true
+  local appr="$1" adm="$2" chk="$3" expected="${4:-}" strict="${5:-}" fpush="${6:-}" del="${7:-}" msg="" okappr=false okchk=false okstrict=true okfpush=true okdel=true
   if [ -z "$expected" ]; then
     [ "$appr" != "?" ] && okappr=true                                   # 정보성: 파싱된 값이면 개수 무관 통과
   elif [ "$expected" = "0" ]; then
@@ -48,7 +48,11 @@ classify_protection() {
   # strict(=required_status_checks.strict, "브랜치가 base 최신일 때만 머지"): false면 stale-green 머지 허용
   #   (대상이 base 최신이 아니어도 오래된 CI green으로 머지). 표준=true. 값이 주어졌고 true가 아니면 drift.
   case "$strict" in ""|true|True) ;; *) okstrict=false;; esac
-  if $okappr && [ "$adm" = "True" ] && $okchk && $okstrict; then echo "ok"; return 0; fi
+  # allow_force_pushes/allow_deletions: 표준=false(차단). true면 계층0 서버 백스톱이 force-push/삭제를 막지 않아
+  #   guard 재설계 [A]의 "force-push를 계층0에 위임" 전제가 붕괴한다. ""=미지정(무관) · "?"/None 등=fail-closed(drift).
+  case "$fpush" in ""|false|False) ;; *) okfpush=false;; esac
+  case "$del" in ""|false|False) ;; *) okdel=false;; esac
+  if $okappr && [ "$adm" = "True" ] && $okchk && $okstrict && $okfpush && $okdel; then echo "ok"; return 0; fi
   if ! $okappr; then
     if [ -z "$expected" ];       then msg="$msg 승인요건 파싱실패=$appr"
     elif [ "$expected" = "0" ];  then msg="$msg 승인요건=$appr(솔로표준0·팀이면 --approvals N)"
@@ -57,6 +61,8 @@ classify_protection() {
   [ "$adm" = "True" ] || msg="$msg enforce_admins=$adm(표준=on · off면 CI red 머지 가능!)"
   $okchk || msg="$msg required_status_checks=${chk}개(표준 non-null · CI 이후 재적용 필요)"
   $okstrict || msg="$msg strict=$strict(표준=true · false면 stale-green 머지 허용)"
+  $okfpush || msg="$msg allow_force_pushes=$fpush(표준=false · true면 계층0 force-push 차단 부재 → 재설계 [A] 위임 전제 붕괴)"
+  $okdel || msg="$msg allow_deletions=$del(표준=false · true면 브랜치 삭제 가능)"
   echo "drift:$msg"; return 1
 }
 
@@ -108,9 +114,12 @@ for branch in main develop; do
     chk=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(len(r.get('contexts') or [c.get('context') for c in (r.get('checks') or [])]) if r else -1)" 2>/dev/null || echo "?")
     # strict(up-to-date 필수) — false면 stale-green 머지 허용(#199). rsc null이면 ''(chk가 이미 drift로 잡음).
     strict=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(r.get('strict') if r else '')" 2>/dev/null || echo "?")
+    # allow_force_pushes/allow_deletions(표준=false) — 계층0이 force-push·삭제를 실제로 막는지. 재설계 [A] 전제.
+    fpush=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_force_pushes',{}).get('enabled'))" 2>/dev/null || echo "?")
+    del=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_deletions',{}).get('enabled'))" 2>/dev/null || echo "?")
     # 승인 baseline: main만 --approvals N으로 검증(develop은 승인0 유지라 정보성). 미지정=정보성(개수 무관).
     exp=""; [ "$branch" = "main" ] && exp="$APPROVALS"
-    verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp" "$strict") || true
+    verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp" "$strict" "$fpush" "$del") || true
     if [ "$verdict" = "ok" ]; then
       echo "✓ $REPO:$branch — 보호 적용(승인$appr · enforce_admins=on · checks=$chk)"
     else

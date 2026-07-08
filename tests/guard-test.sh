@@ -44,6 +44,13 @@ check "tests 디렉터리 rm 차단"        2 Bash "rm -rf backend/tests/"      
 check "git rm 테스트 삭제 차단"       2 Bash "git rm src/foo.test.tsx"          "$FEAT"
 check "마이그레이션 rm 차단(flyway)"  2 Bash "rm db/migration/V2__x.sql"        "$FEAT"
 check "마이그레이션 rm 차단(alembic)" 2 Bash "rm alembic/versions/abc_x.py"     "$FEAT"
+# #245: 검증기-삭제 커버리지 확장 — jest __tests__/·복수형 migrations·rspec spec/
+check "245: rm __tests__/ 차단(jest)"  2 Bash "rm -rf __tests__/"                 "$FEAT"
+check "245: rm db/migrations/ 차단"    2 Bash "rm -rf db/migrations/"             "$FEAT"
+check "245: rm migrations/ 차단(단독)" 2 Bash "rm -rf migrations/"                "$FEAT"
+# #245 과차단 반증 — mention·(F2)bare spec/ 는 검증기 아님(통과)
+check "245over: echo __tests__ 통과"   0 Bash 'echo "rm __tests__/"'              "$FEAT"
+check "245over: rm docs/spec/ 통과(F2)" 0 Bash "rm -rf docs/spec/api.md"          "$FEAT"
 check "일반 파일 rm 통과"             0 Bash "rm build/output.log"              "$FEAT"
 check "일반 명령 통과"                0 Bash "npm run build"                    "$DEV"
 check "비Bash 도구 통과"              0 Edit ""                                 "$DEV"
@@ -127,6 +134,18 @@ check "D2: 테스트파일 mv(리네임) 통과(≠rm)"     0 Bash "mv src/foo.t
 check "D2: 마이그레이션 cat(읽기) 통과(≠rm)"    0 Bash "cat db/migration/V1__init.sql"       "$FEAT"
 check "D2: npm install(로컬) 통과(≠-g)"         0 Bash "npm install"                         "$FEAT"
 check "D2: npm install --save-dev 통과"         0 Bash "npm install --save-dev jest"         "$FEAT"
+# #245: 전역설치 게이트 일반화 — npm 자체 누수(--location=global·결합 -gf) + pnpm·yarn
+check "245: npm --location=global 차단"        2 Bash "npm install --location=global x"     "$DEV"
+check "245: npm 결합플래그 -gf 차단"           2 Bash "npm install -gf x"                    "$DEV"
+check "245: pnpm add -g 차단"                  2 Bash "pnpm add -g typescript"               "$DEV"
+check "245: pnpm add --global 차단"            2 Bash "pnpm add --global typescript"         "$DEV"
+check "245: yarn global add 차단"              2 Bash "yarn global add typescript"           "$DEV"
+# #245 과차단 반증 — g-포함 롱플래그·g-없는 번들·로컬설치·비설치 서브커맨드는 통과
+check "245over: npm --legacy-peer-deps 통과"   0 Bash "npm install --legacy-peer-deps"       "$FEAT"
+check "245over: npm install -f 통과(g없음)"    0 Bash "npm install -f leftpad"               "$FEAT"
+check "245over: pnpm install 로컬 통과"        0 Bash "pnpm install"                         "$FEAT"
+check "245over: yarn add 로컬 통과"            0 Bash "yarn add leftpad"                     "$FEAT"
+check "245over: yarn global list 통과(비설치)" 0 Bash "yarn global list"                     "$FEAT"
 check "D2: git stash 통과"                      0 Bash "git stash"                           "$FEAT"
 check "D2: 테스트파일 cp(복사) 통과(≠rm)"       0 Bash "cp src/a.test.ts /backup/"           "$FEAT"
 
@@ -181,6 +200,34 @@ FAKEBIN=$(mktemp -d); printf '#!/bin/sh\nexit 1\n' > "$FAKEBIN/python3"; chmod +
 _rc=$(cd "$DEV" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git reset --hard"}}' | PATH="$FAKEBIN:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
 if [ "$_rc" = 2 ]; then echo "PASS: 6: 깨진 python3 fail-closed"; PASS=$((PASS+1)); else echo "FAIL: 6: 깨진 python3 fail-closed — got $_rc"; FAIL=$((FAIL+1)); fi
 rm -rf "$FAKEBIN"
+
+# [D] #220: python3 부재/깨짐 시 jq 폴백 — python3의 유일 용도가 JSON 파싱이라 jq로 전체 가드 그대로 작동
+#   (fail-closed 폭발반경을 'python3 부재'→'python3·jq 둘 다 부재'로 축소). jq도 없으면 여전히 fail-closed(안전측).
+if command -v jq >/dev/null 2>&1; then
+  NOPY=$(mktemp -d); printf '#!/bin/sh\nexit 1\n' > "$NOPY/python3"; chmod +x "$NOPY/python3"  # python3만 깨뜨림(jq는 원 PATH에 존재)
+  # [D]a: 깨진 python3 + jq → 파괴가드 유지(reset --hard 차단) — 반증검증(degraded여도 load-bearing 유지)
+  _rc=$(cd "$DEV" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git reset --hard HEAD~1"}}' | PATH="$NOPY:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 2 ] && { echo "PASS: [D]a jq폴백 reset --hard 차단"; PASS=$((PASS+1)); } || { echo "FAIL: [D]a jq폴백 reset — got $_rc"; FAIL=$((FAIL+1)); }
+  # [D]b: 깨진 python3 + jq → 무해 명령 통과(전면 fail-closed 아님) — 핵심 RED→GREEN
+  _rc=$(cd "$FEAT" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | PATH="$NOPY:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 0 ] && { echo "PASS: [D]b jq폴백 무해명령 통과"; PASS=$((PASS+1)); } || { echo "FAIL: [D]b jq폴백 무해명령 — got $_rc(기대0)"; FAIL=$((FAIL+1)); }
+  # [D]c: 깨진 python3 + jq → git-flow 넛지도 유지(develop 직접 커밋 차단) — 전체 가드 작동 증명
+  _rc=$(cd "$DEV" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git commit -m x"}}' | PATH="$NOPY:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 2 ] && { echo "PASS: [D]c jq폴백 develop커밋 차단"; PASS=$((PASS+1)); } || { echo "FAIL: [D]c jq폴백 develop커밋 — got $_rc"; FAIL=$((FAIL+1)); }
+  # [D]e: 깨진 python3 + jq, valid-JSON이나 tool_input이 객체 아님(문자열) → jq command 추출 에러 → fail-closed.
+  #   python3 브랜치는 추출 rc로 이미 fail-closed였으나 jq 브랜치가 _parsed=1을 무조건 세워 빈 COMMAND로 우회
+  #   가능했던 대칭 결함(계약상 도달 불가하나 load-bearing 가드) 반증검증 — 위험명령이 통과(rc0)하면 안 됨.
+  _rc=$(cd "$FEAT" && printf '%s' '{"tool_name":"Bash","tool_input":"git reset --hard HEAD~1"}' | PATH="$NOPY:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 2 ] && { echo "PASS: [D]e jq 비객체 tool_input fail-closed"; PASS=$((PASS+1)); } || { echo "FAIL: [D]e jq 비객체 tool_input — got $_rc(기대2·우회)"; FAIL=$((FAIL+1)); }
+  rm -rf "$NOPY"
+  # [D]d: python3·jq 둘 다 깨짐 → fail-closed(무해 명령도 차단) — 파서 없으면 안전측(coreutils는 원 PATH 유지)
+  NONE=$(mktemp -d); for b in python3 jq; do printf '#!/bin/sh\nexit 1\n' > "$NONE/$b"; chmod +x "$NONE/$b"; done
+  _rc=$(cd "$FEAT" && printf '%s' '{"tool_name":"Bash","tool_input":{"command":"ls -la"}}' | PATH="$NONE:$PATH" bash "$G" >/dev/null 2>&1; echo $?)
+  [ "$_rc" = 2 ] && { echo "PASS: [D]d 파서無 fail-closed"; PASS=$((PASS+1)); } || { echo "FAIL: [D]d 파서無 fail-closed — got $_rc(기대2)"; FAIL=$((FAIL+1)); }
+  rm -rf "$NONE"
+else
+  echo "SKIP: [D] jq 폴백 테스트 (jq 미설치)"
+fi
 
 # 7: 감사로그 개행 위조 방지 — session_id 개행이 로그를 위조(추가 라인)하지 못함
 FHOME=$(mktemp -d); mkdir -p "$FHOME/.claude/hooks"

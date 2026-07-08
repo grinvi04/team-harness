@@ -58,18 +58,35 @@ deny() {
   exit 2
 }
 
-# 가드는 fail-closed — python3 부재 시 파싱 실패로 TOOL이 빈 값이 되어 전체 가드가 우회되므로 차단
-if ! command -v python3 >/dev/null 2>&1; then
-  deny "python3 없음 — 가드 실행 불가 (fail-closed)" ""
+# 가드 JSON 파싱 — python3 우선, 없거나 깨지면 jq 폴백. python3의 유일 용도가 JSON 파싱이라 jq로 전체 가드가
+# 그대로 작동한다(보호 축소 0). [D] #220: 이전엔 python3 부재 = 전체 fail-closed(Bash 전면 마비)라 폭발반경이 컸다
+# → 'python3·jq 둘 다 부재/실패'로 축소. 파서가 하나도 없으면 여전히 fail-closed(빈 COMMAND로 전 가드 우회 방지).
+# 복구: python3 또는 jq 설치(docs/troubleshooting.md).
+TOOL=""; COMMAND=""; _parsed=0
+if command -v python3 >/dev/null 2>&1; then
+  TOOL=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_name',''))" 2>/dev/null) \
+    && COMMAND=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null) \
+    && _parsed=1
 fi
-
-TOOL=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_name',''))" 2>/dev/null)
-# python3가 존재하나 실행 실패/입력 손상 시 파싱이 조용히 빈 값이 되어 전 가드가 우회되므로 차단(fail-closed).
-# (부재는 위 command -v 로, '있으나 깨짐'은 이 rc 검사로 — 둘 다 fail-closed.)
-if [[ $? -ne 0 ]]; then deny "가드 입력 파싱 실패 — python3 실행 불가/JSON 손상 (fail-closed)" ""; fi
-COMMAND=$(echo "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('tool_input',{}).get('command',''))" 2>/dev/null)
+if [[ $_parsed -ne 1 ]] && command -v jq >/dev/null 2>&1; then
+  if printf '%s' "$INPUT" | jq -e . >/dev/null 2>&1; then   # 유효 JSON 확인(파싱 실패 감지 — 손상 입력은 fail-closed로)
+    # python3 브랜치와 대칭: 두 추출이 모두 성공해야 _parsed=1. 비객체 top-level·비객체 tool_input은
+    #   jq 인덱싱 에러(rc≠0)로 _parsed=0 → fail-closed(빈 COMMAND로 우회 방지). 유효 객체는 Bash/비Bash 모두 rc0.
+    TOOL=$(printf '%s' "$INPUT" | jq -r '.tool_name // ""' 2>/dev/null) \
+      && COMMAND=$(printf '%s' "$INPUT" | jq -r '.tool_input.command // ""' 2>/dev/null) \
+      && _parsed=1
+  fi
+fi
+if [[ $_parsed -ne 1 ]]; then deny "가드 JSON 파싱 불가 — python3·jq 모두 부재/실패 (fail-closed)" "python3 또는 jq 설치 후 재시도"; fi
 
 if [[ "$TOOL" != "Bash" ]]; then exit 0; fi
+
+# 셸 토크나이저 primitive 로드(순수 bash, #220-A) — commit·reset 게이트가 정규식 대신 토큰 술어로 판정한다.
+# 순수 bash라 python3·jq 불요([D] 폴백 보존). 부재/로드 실패 시 fail-closed(파싱 불능 → 안전측 차단).
+# BASH_SOURCE로 guard.sh 자기 위치 기준 경로 해석(캐시·워킹트리 양쪽 동작). Bash 도구일 때만 로드(비Bash 무영향).
+if ! source "${BASH_SOURCE[0]%/*}/lib/tokenize.sh" 2>/dev/null; then
+  deny "토크나이저 lib 로드 실패 (scripts/lib/tokenize.sh) — fail-closed" "플러그인 설치 무결성 확인 후 재시도"
+fi
 
 # LITE 면제는 명령이 실제로 실행되는 원래 repo(세션 cwd) 기준으로 판정한다 — 후행 cd/-C로 다른 .harness-lite
 # repo에 착지시켜 현재 코드 repo의 LITE-게이트 가드를 무장해제하는 교차오염(#196)을 막기 위해,
@@ -102,26 +119,38 @@ LITE=0
 # 현재 코드 repo의 가드를 우회하는 교차오염 차단(#196).
 [[ -n "$_ORIG_ROOT" && -f "$_ORIG_ROOT/.harness-lite" ]] && LITE=1
 
-# main/develop 직접 커밋 금지 — commit을 **서브커맨드 위치**로 좁혀 과차단 제거(A5:
-#   `git log --grep=commit`·`git help commit`·`grep "git commit"`는 통과). `git -C <dir> commit`이면
-#   후행 cd 우회와 무관하게 **그 -C dir** 기준으로 판정(A2: 커밋 dir ≠ 판정 dir 우회 차단).
-#   A5b(릴리즈 보안검토 회귀): commit 앞의 **임의 git 전역옵션**을 허용해야 우회 안 됨 — `-c name=val`·
-#   `--no-pager` 등이 git과 commit 사이에 오면 매치가 깨져 `git -c user.name=x commit`이 통과되던 구멍.
-#   전역옵션 = 값-분리 플래그(-C/-c/--git-dir/… <값>) 또는 임의 단일 플래그(-x/--flag[=v]). 서브커맨드가
-#   commit이어야 매치(log 등 다른 서브커맨드는 여전히 통과 → 과차단 유지 안 함).
-# 앵커에 선행공백(`^[[:space:]]*`)·env-var 프리픽스(`X= git commit`)를 허용 — 리터럴 앵커가 이들을 놓쳐 우회되던 구멍 교정.
-COMMIT_SEG=$(echo "$COMMAND" | grep -oE "(^[[:space:]]*|[;&|(][[:space:]]*)([A-Za-z_][A-Za-z0-9_]*=[^;&|[:space:]]*[[:space:]]+)*git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+commit([[:space:]]|$)" | head -1)
-if [[ "$LITE" != 1 && -n "$COMMIT_SEG" ]]; then
-  CDIR=$(echo "$COMMIT_SEG" | grep -oE "\-C[[:space:]]+[^;&|[:space:]]+" | sed -E 's/^-C[[:space:]]+//' | head -1)
-  if [[ -n "$CDIR" ]]; then
-    CDIR="${CDIR//\"/}"; CDIR="${CDIR//\'/}"; CDIR="${CDIR/#\~/$HOME}"
-    BRANCH=$(git -C "$CDIR" branch --show-current 2>/dev/null)
-  else
-    BRANCH=$(git branch --show-current 2>/dev/null)
-  fi
-  if [[ "$BRANCH" == "main" || "$BRANCH" == "develop" ]]; then
-    deny "main/develop 직접 커밋 금지" "feature/fix/hotfix/release 브랜치에서 작업 후 /feature-merge 사용"
-  fi
+# 보호 브랜치 — 직접 커밋·force-push를 넛지 차단하는 git-flow 정본. **단일 출처**: 판정 3곳
+# (commit·force-push 명시 refspec·force-push bare)이 이 리스트를 공유한다(하드코딩 3곳 통합, #220-A).
+PROTECTED_BRANCHES="main develop"
+# 현재 브랜치가 보호 대상인지(정확 일치 — `== main || == develop`와 동일 의미).
+is_protected_branch() {
+  local b="$1" p
+  for p in $PROTECTED_BRANCHES; do [[ "$b" == "$p" ]] && return 0; done
+  return 1
+}
+# 명시 refspec 정규식용 alternation(main|develop) — force-push 목적지 매칭.
+PROTECTED_RE=$(printf '%s' "$PROTECTED_BRANCHES" | tr ' ' '|')
+
+# main/develop 직접 커밋 금지 (토큰 판정 — #220-A, 기존 monster 정규식 대체)
+# 각 세그먼트의 git 서브커맨드가 commit이면 그 세그먼트의 -C dir(없으면 현재 cwd) 기준 브랜치를 보고
+# 보호 브랜치면 차단한다. git_subcommand는 **command-position 앵커**(선행 env-prefix만 스킵, git이 그
+# 자리에 와야 함) — 그래서 `git log --grep=commit`(서브커맨드=log)·`grep "git commit"`(token0=grep)·
+# `sudo git commit`/`echo git commit`(token0=wrapper, git 아님)은 통과 = category(a) under-block 보존.
+# `git -c user.name=x commit`은 -c 전역옵션을 스킵해 서브커맨드=commit → 차단(A5b). `git -C <dir> commit`은
+# 그 -C dir 기준 판정(A2, 후행 cd 우회 무관). **첫 commit 세그먼트만** 판정해 현행 head -1 under-block 보존.
+if [[ "$LITE" != 1 ]]; then
+  while IFS= read -r CSEG; do
+    [[ "$(git_subcommand "$CSEG")" == commit ]] || continue
+    CDIR=$(git_C_dir "$CSEG" || true)
+    if [[ -n "$CDIR" ]]; then
+      CDIR="${CDIR/#\~/$HOME}"
+      BRANCH=$(git -C "$CDIR" branch --show-current 2>/dev/null)
+    else
+      BRANCH=$(git branch --show-current 2>/dev/null)
+    fi
+    is_protected_branch "$BRANCH" && deny "main/develop 직접 커밋 금지" "feature/fix/hotfix/release 브랜치에서 작업 후 /feature-merge 사용"
+    break   # 첫 commit 세그먼트만 판정(현행 head -1 under-block 보존)
+  done < <(split_segments "$COMMAND")
 fi
 
 # main/develop force push 금지 (--force/-f, 결합 단축플래그 -fu, 또는 +refspec)
@@ -129,7 +158,10 @@ fi
 # plus-refspec(+HEAD:main)를 놓쳐 우회되던 것 교정(감사 A1). refspec 생략 시 현재 브랜치가 push 대상.
 # force 신호는 --force 또는 단일대시 결합(-f/-fu) 또는 +refspec만 — --follow-tags 같은 비파괴 롱플래그를 force로
 #   오탐하지 않게 결합플래그를 [[:space:]]-…f… 로 좁힌다(#204). refspec 생략 시 현재 브랜치가 push 대상.
-if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+push[^;&|]*(--force|[[:space:]]-[a-zA-Z]*f[a-zA-Z]*|[[:space:]]\+)"; then
+# #220-A: 외부 monster global-opts 정규식 조건을 제거했다 — 아래 내부 루프가 이미 각 push 세그먼트에서
+#   force를 재검사(비-force면 continue)하므로 외부 감지는 중복이었다. force-push는 category(a) frozen —
+#   내부 force/refspec/bare 판정 로직은 손대지 않는다(재작성 3회 이력, 서버 백스톱이 정본).
+if [[ "$LITE" != 1 ]]; then
   # 명령의 **모든** push 세그먼트를 개별 판정한다 — 체인된 다중 push에서 뒤쪽 세그먼트의 force-push를
   #   head -1이 놓쳐 우회되던 것 교정(#207 회귀: 무해한 첫 push 뒤에 main force-push를 붙이면 통과했음).
   #   목적지는 명령 전체가 아니라 각 push 세그먼트로 한정(#204: rebase 인자·커밋메시지의 오탐 방지).
@@ -147,9 +179,9 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git([[:space:]]+(-C|-c|--gi
     fi
     # 명시 refspec(remote + ref)이 있으면 현재 브랜치 무관 — bare push만 현재 브랜치가 대상(#204).
     HAS_REF=""; echo "$PSEG" | grep -qE "push([[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+[^-;&|[:space:]]+[[:space:]]+[^-;&|[:space:]]+" && HAS_REF=1
-    if echo "$PSEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?(main|develop)([[:space:]]|$)"; then
+    if echo "$PSEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?($PROTECTED_RE)([[:space:]]|$)"; then
       deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
-    elif [[ -z "$HAS_REF" && ( "$BRANCH" == "main" || "$BRANCH" == "develop" ) ]]; then
+    elif [[ -z "$HAS_REF" ]] && is_protected_branch "$BRANCH"; then
       deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
     fi
   done < <(echo "$COMMAND" | grep -oE "git[^;&|]*[[:space:]]push[^;&|]*")
@@ -172,42 +204,65 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git[[:space:]]+(checkout[[:
   fi
 fi
 
-# 맨손 gh pr create / gh pr merge 금지 — PR 생성·머지는 스킬(래퍼 스크립트) 경유만 허용.
-# 스킬은 scripts/pr-create.sh·pr-merge.sh를 호출하고, 그 안의 gh는 자식 프로세스라 이 PreToolUse 훅에
-# 걸리지 않는다(훅은 Claude의 Bash 도구 호출만 본다). raw gh pr create/merge를 직접 치는 반사적
-# 맨손질만 차단한다. (난독화 우회 — temp 스크립트에 gh 숨기기 — 는 plan에서 제외한 범위.)
-# 명령 *위치*에서만 매칭 — grep/echo 등의 "gh pr create" 문자열 언급은 통과(오탐 방지).
-# 분리자: 문자열 시작 `^`, `; & (`, 그리고 **공백 동반 파이프 `| `**(셸 파이프 — echo y | gh pr merge,
-#   cat body | gh pr create --body-file - 류 실재 호출을 잡는다). 무공백 `|gh`는 정규식 alternation
-#   (grep "a|gh pr create")일 확률이 높아 분리자로 보지 않는다(따옴표 인식 불가라 이 휴리스틱으로 절충).
-# 후행: 공백·끝·`) ; & |`(서브셸 닫힘 $(gh pr create)·체인·파이프아웃).
-# 알려진 한계(보조 장치, 최종 강제는 계층0): `echo y|gh pr merge`(무공백 파이프)·따옴표 안 명령·
-#   env-prefix·temp 스크립트 난독화는 못 잡는다.
-if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+create([[:space:]);&|]|$)"; then
-  deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다."
-fi
-if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "(^|[;&(]|\|[[:space:]])[[:space:]]*gh[[:space:]]+pr[[:space:]]+merge([[:space:]);&|]|$)"; then
-  deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다."
-fi
-
-# git reset --hard 금지 — reset 서브커맨드 + --hard 플래그를 순서·공백·git -C·env-prefix 무관하게 검사한다.
-# (기존 리터럴 `git reset --hard`는 이중공백·탭·인자후치·`git -C . reset --hard`를 놓쳐 우회됨. 형제 가드처럼
-#  명령 위치 앵커라 `grep 'git reset --hard'` 같은 문자열 언급은 통과 — 기존 과차단도 함께 제거.)
-# 앵커에 선행 공백([[:space:]])도 허용 — sudo/env/time/xargs/command/nice 등 wrapper 프리픽스 뒤 git을 잡는다(#204).
-#   git이 따옴표 바로 뒤(grep 'git reset --hard')면 공백이 직전이 아니라 여전히 미매치 → 문자열 언급 보호 유지.
-RESET_SEG=$(echo "$COMMAND" | grep -oE "(^[[:space:]]*|[;&|(][[:space:]]*|[[:space:]])([A-Za-z_][A-Za-z0-9_]*=[^;&|[:space:]]*[[:space:]]+)*git([[:space:]]+(-C|-c|--git-dir|--work-tree|--namespace|--exec-path|--attr-source|--config-env)[[:space:]]+[^;&|[:space:]]+|[[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+reset([[:space:]]|$)[^;&|]*" | head -1)
-if [[ -n "$RESET_SEG" ]] && echo "$RESET_SEG" | grep -qE "(^|[[:space:]])--hard([[:space:]]|$)"; then
-  deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (Claude가 대신 실행하지 않음)"
+# 맨손 gh pr create / gh pr merge 금지 (토큰 판정 — #220-A). PR 생성·머지는 스킬(래퍼 스크립트) 경유만 허용.
+# 스킬 내부 gh는 자식 프로세스라 이 훅에 안 걸린다 — raw gh pr create/merge 반사적 맨손질만 차단.
+# 각 세그먼트의 token0=gh·token1=pr·token2∈{create,merge}면 차단. 토큰화가 정규식 휴리스틱을 대체:
+#   - 따옴표 안 명령/alternation `grep -E 'foo|gh pr create'`는 `|`가 따옴표 안이라 세그먼트 분리 안 됨
+#     → token0=grep → 통과(기존 '무공백 |gh' 휴리스틱을 진짜 따옴표 인식으로 대체, 정밀↑).
+#   - echo/grep 등의 "gh pr create" 문자열 언급 → 따옴표 안이라 한 토큰 → token0≠gh → 통과.
+#   - 실 파이프 `echo y | gh pr merge`·서브셸 `$(gh pr create)`·체인 `&& gh pr create` → 각 세그먼트 token0=gh → 차단.
+# 알려진 한계(보조 장치, 최종 강제는 계층0): `sudo gh pr create`(wrapper 뒤 gh는 token0 아님 → category(a)
+#   under-block, 서버 백스톱이 정본)·env-prefix·temp 스크립트 난독화는 못 잡는다.
+if [[ "$LITE" != 1 ]]; then
+  while IFS= read -r GSEG; do
+    _tok_into _gt "$GSEG"
+    [[ "${_gt[0]:-}" == gh && "${_gt[1]:-}" == pr ]] || continue
+    case "${_gt[2]:-}" in
+      create) deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다." ;;
+      merge)  deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다." ;;
+    esac
+  done < <(split_segments "$COMMAND")
 fi
 
-# 검증기(테스트·마이그레이션) 파일 삭제 금지 — 게이트 무력화 방지
-# rm / git rm 으로 테스트(*Test.java·*.spec.*·*.test.*·test_*.py·*_test.py·tests/)나
-# 마이그레이션(db/migration/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
-# rm/git rm과 대상 경로를 **같은 명령 세그먼트**([^;&|]*)로 결합해 검사한다(G2) —
-# `rm x.log; grep foo tests/`처럼 무관한 rm과 다른 세그먼트의 테스트경로가 각각 있어도 차단하던 오탐 방지.
-if echo "$COMMAND" | grep -qE "(^|[^[:alnum:]_.-])(rm|git[[:space:]]+rm)[[:space:]][^;&|]*(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^[:space:]/]*\.py|[^[:space:]/]*_test\.py|tests?(/|[[:space:]]|[\"']|$)|db/migration(/|[[:space:]]|[\"']|$)|alembic/versions(/|[[:space:]]|[\"']|$)|prisma/migrations(/|[[:space:]]|[\"']|$))"; then
-  deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
-fi
+# git reset --hard 금지 (토큰 판정 — #220-A, 기존 monster 정규식 대체)
+# 각 세그먼트에서 git 서브커맨드를 **wrapper-tolerant 스캔**(git_subcommand_scan)해 reset이고 그 세그먼트에
+# --hard 토큰이 있으면 차단한다. 순서·이중공백·탭·인자후치·`git -C . reset`·env-prefix·wrapper(sudo/env/
+# time/#204) 무관하게 잡는다 — 토큰화가 이 변형들을 정규화하기 때문. `grep 'git reset --hard'`는 그게 한
+# 따옴표 토큰이라 standalone git 토큰이 없어 통과(mention 보호). `git reset --soft`는 --hard 토큰 부재로 통과.
+# category(b) 무백스톱 파괴가드 — LITE repo에서도 유지(안전측), under-block 편향 미적용.
+# 알려진 한계(보조 장치, 최종 강제는 계층0): ANSI-C `$'git' reset --hard`류는 tokenize가 $'...'를
+#   디코드하지 않아 통과한다 — 현행 정규식과 동일하고, `$'...'`는 의도적 셸 문법이지 흔한 반사형이
+#   아니라 위협모델상 수용(category(b)는 흔한 형태만 잡는다). 정밀 판정이 필요하면 계층0이 정본.
+while IFS= read -r RSEG; do
+  [[ "$(git_subcommand_scan "$RSEG")" == reset ]] || continue
+  if seg_has_token "$RSEG" "--hard"; then
+    deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (Claude가 대신 실행하지 않음)"
+  fi
+done < <(split_segments "$COMMAND")
+
+# 검증기(테스트·마이그레이션) 파일 삭제 금지 (토큰 판정 — #220-A) — 게이트 무력화 방지.
+# rm / git rm 으로 테스트(*Test.java·*.spec.*·*.test.*·test_*.py·*_test.py·tests/·__tests__/)나
+# 마이그레이션(db/migration(s)/·migrations/·alembic/versions/·prisma/migrations/)을 지우는 것을 차단한다.
+#   (#245: jest __tests__/·복수형 migrations 커버리지 확장 — 디렉터리는 경로세그먼트 앵커)
+#   bare spec/ 는 제외(#245 F2): OpenAPI·API `spec/`와 다의적이라 과차단 위험>이득(rspec은 비-소비스택 Ruby).
+#   .spec. 확장자 매치는 유지. 트레일링 glob(`__tests__*`)은 디렉터리 앵커 밖(선재 한계, =`tests*`).
+# 세그먼트에 `rm` 토큰(bare rm 또는 git rm)이 있고 그 세그먼트의 어떤 토큰이 검증기 경로면 차단.
+# 토큰화 이점: 따옴표 벗김(rm -rf "tests" 차단)·wrapper 관용(sudo rm tests/)·세그먼트 격리(G2:
+#   `rm x.log; grep foo tests/`는 seg2에 rm 토큰 없어 통과). mention 보호: `echo "rm tests/"`는 따옴표
+#   안 한 토큰이라 standalone rm 토큰 없음 → 통과. 부수 효과로 `docker run --rm tests/`(--rm은 rm 토큰
+#   아님)·`rm latest/`(경로 앵커 (^|/)) 같은 현행 과차단도 해소. category(b) 무백스톱 — LITE에서도 유지.
+while IFS= read -r DSEG; do
+  seg_has_token "$DSEG" "rm" || continue
+  _tok_into _dt "$DSEG"
+  for _tok in "${_dt[@]}"; do
+    # 파일 패턴은 **비앵커 부분매치**(OLD 정규식과 동일) — `rm *Test.java*`·`foo_test.py.bak`처럼 검증기
+    #   파일명에 트레일링(glob `*`·`.bak`)이 붙어도 잡는다($ 종단앵커는 이 형태를 놓쳐 홀이었음, 검증 반영).
+    #   디렉터리 패턴만 `(^|/)…(/|$)` 경로세그먼트 앵커 — `rm latest/`의 `test/` 부분매치 과차단만 방지.
+    if printf '%s' "$_tok" | grep -qE "(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^/]*\.py|_test\.py|(^|/)tests?(/|$)|(^|/)__tests__(/|$)|(^|/)db/migrations?(/|$)|(^|/)migrations(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
+      deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
+    fi
+  done
+done < <(split_segments "$COMMAND")
 
 # 프로젝트 핵심 디렉터리 rm -rf 금지 (PROJECT_ROOT, src, app, node_modules)
 PROJECT_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
@@ -238,10 +293,38 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-
   set +f
 fi
 
-# npm 글로벌 패키지 설치 금지 — install-verb와 -g/--global을 **같은 npm 세그먼트**에서, 순서 무관하게 결합 검사.
-# G3: `npm --global install x`(플래그가 서브커맨드 앞) 우회 차단. G2: `echo -g && npm install x`(다른 세그먼트의 -g) 오탐 방지.
-if echo "$COMMAND" | grep -qE "npm[[:space:]]([^;&|]*[[:space:]])?(install|i|add)[[:space:]]([^;&|]*[[:space:]])?(-g|--global)(=[^;&|[:space:]]*)?([[:space:]]|$)|npm[[:space:]]([^;&|]*[[:space:]])?(-g|--global)(=[^;&|[:space:]]*)?[[:space:]]([^;&|]*[[:space:]])?(install|i|add)([[:space:]]|$)"; then
-  deny "npm install -g 금지 — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (npm install --save-dev 또는 npx)"
-fi
+# 패키지매니저 전역설치 금지 (토큰 판정 — #220-A·#245)
+# 세그먼트에서 매니저 토큰(npm/pnpm/yarn) 존재 시 매니저별 전역설치 시그니처를 차단:
+#   npm/pnpm: install-verb(install/i/add) + 전역플래그(-g·--global[=v]·--location=global·g-포함 단일대시 번들 -gf)
+#   yarn(classic): `global` 서브커맨드 + `add` verb (`yarn global add`) — remove/list 등 비설치는 비대상.
+# 토큰화로 순서(G3)·wrapper(sudo)·따옴표 무관, mention(echo "npm install -g x"는 한 토큰) 통과.
+# G2(echo -g && npm install)는 세그먼트 격리로 오탐 방지. category(b) — LITE에서도 유지.
+# 과차단 방어(#245): g-번들은 **단일대시만** — `--legacy-peer-deps`류 g-포함 롱플래그는 `--*`로 먼저
+#   흡수해 제외. `npm ci`는 install-verb 아님(통과). 알려진 한계(타이트 스코프): `--location global`(공백형)·
+#   ANSI-C `$'...'`는 흔한 형태가 아니라 비대상 — 정본 강제는 계층0.
+while IFS= read -r NSEG; do
+  # 매니저별 시그니처를 **독립 평가**(first-token-wins 금지) — `yarn global add npm`처럼 패키지명이
+  #   다른 매니저 토큰이어도 오라우팅되지 않게(#245 F1 홀 봉쇄). seg_has_token은 위치 무관이라
+  #   npm/pnpm 브랜치는 전역플래그(-g류)를 요구하고 yarn 브랜치는 global+add를 요구 → 상호 배타.
+  _has_npmpnpm=0; seg_has_token "$NSEG" npm && _has_npmpnpm=1; seg_has_token "$NSEG" pnpm && _has_npmpnpm=1
+  _has_yarn=0; seg_has_token "$NSEG" yarn && _has_yarn=1
+  [[ $_has_npmpnpm -eq 1 || $_has_yarn -eq 1 ]] || continue
+  _tok_into _nt "$NSEG"
+  _nv=0; _ng=0; _yglobal=0; _yadd=0
+  for _tok in "${_nt[@]}"; do
+    case "$_tok" in
+      install|i) _nv=1;;
+      add) _nv=1; _yadd=1;;
+      global) _yglobal=1;;
+      -g|--global|--global=*|--location=global) _ng=1;;
+      --*) ;;                                   # 롱플래그(--legacy-peer-deps 등) — g-번들 판정에서 제외
+      -*g*) _ng=1;;                             # 단일대시 g-포함 번들(-gf·-fg)
+    esac
+  done
+  # npm/pnpm: install-verb + 전역플래그
+  [[ $_has_npmpnpm -eq 1 && $_nv -eq 1 && $_ng -eq 1 ]] && deny "패키지매니저 전역설치 금지(npm/pnpm -g) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (--save-dev 또는 npx)"
+  # yarn(classic): global 서브커맨드 + add verb
+  [[ $_has_yarn -eq 1 && $_yglobal -eq 1 && $_yadd -eq 1 ]] && deny "패키지매니저 전역설치 금지(yarn global add) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (yarn add --dev 또는 npx)"
+done < <(split_segments "$COMMAND")
 
 exit 0

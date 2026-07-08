@@ -30,12 +30,12 @@
 
 - 이 repo(team-harness)에서 훅·스킬을 발동시키려면 **`claude --plugin-dir ./plugins/harness-guard`**로 실행(워킹트리 라이브 로드). 미실행 시 플러그인 계층이 안 붙는다.
 - 소비 repo: 마켓플레이스 설치(`onboarding.md`) + `.claude/settings.json`의 `enabledPlugins` 확인.
-- pre-commit 훅(계층 0.5): 클론 후 1회 `git config core.hooksPath .githooks` 필요(미설정 시 침묵 통과 → repo-sync가 점검).
+- pre-commit 훅(계층 0.5): 클론 후 1회 `git config core.hooksPath .githooks` 필요(미설정 시 침묵 통과). team-harness 자체는 `bash tests/plugin-wiring-test.sh`(=`ci-gate` 등록)가 **오설정을 FAIL로 잡고 미설정을 WARN**한다 — CI 체크아웃은 hooksPath 미설정이 정상이라(방어는 branch protection+ci-gate이지 로컬 pre-commit이 아님) 미설정을 FAIL로 처리하지 않는다. 소비 repo의 hooksPath 런타임 점검은 아직 없다(클론 시 `git config --get core.hooksPath` 확인). *(check-repo-sync.mjs는 CI 워크플로 sentinel·branch protection만 보는 무의존 정적검사라 git-config는 점검하지 않는다.)*
 
 ## 4. 의존성 부재 (`fail-closed`)
 
-가드는 **python3**에 하드 의존한다(JSON 파싱). `python3 없음/실행 불가` → 가드가 **모든 Bash를 차단**(fail-closed, 우회 방지).
-- 해법: `python3` 설치·PATH 확인. (재설계 로드맵 #220-D: python3 부재 시 최소 파괴가드만 남기는 degraded 모드 검토 중.)
+가드는 JSON 파싱에 **python3 또는 jq**를 쓴다(#220-D). `python3`이 없거나 실행 실패면 **jq로 폴백**해 전체 가드가 그대로 작동한다(보호 축소 없음). **둘 다 없거나 실패**할 때만 `모든 Bash를 차단`(fail-closed, 빈 명령으로 전 가드 우회 방지).
+- 해법: `python3` **또는** `jq` 설치·PATH 확인. 하나만 있어도 가드는 정상 작동.
 - `node`·`gh` 부재는 라우터·PR 래퍼·검증기 기능만 저하(가드 자체는 동작).
 
 ## 5. 감사·복구

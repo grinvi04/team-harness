@@ -64,7 +64,7 @@ esac
 # + integration-e2e: "실 IdP 인증 + 실 백엔드 데이터 통합 e2e" 결정(decisions.md)을 자동 배선.
 #   job-level `if: vars.E2E_ENABLED` 라 미설정 repo는 잡이 skip → required여도 통과(머지 안 막힘).
 #   E2E_ENABLED=true 등록한 repo에서만 강제된다.
-STACK_CHECKS+=("test-guard" "commitlint" "integration-e2e")
+STACK_CHECKS+=("test-guard" "commitlint" "integration-e2e" "destructive-ddl")
 
 # Flyway 스택 — 마이그레이션 안전성 게이트(접두사 대역 + out-of-order 정합성)
 HAS_FLYWAY=false
@@ -113,6 +113,11 @@ copy_once "$HARNESS_DIR/templates/ci/test-guard.yml"        .github/workflows/te
 copy_once "$HARNESS_DIR/templates/ci/commitlint.yml"        .github/workflows/commitlint.yml "commitlint.yml (커밋 컨벤션 게이트)"
 copy_once "$HARNESS_DIR/templates/ci/integration-e2e.yml"   .github/workflows/integration-e2e.yml "integration-e2e.yml (실 IdP+실데이터 e2e 스캐폴드)" "⚠️ CUSTOMIZE + Settings→Variables에 E2E_ENABLED=true"
 copy_once "$HARNESS_DIR/templates/commitlint.config.cjs"    commitlint.config.cjs      "commitlint.config.cjs (Conventional Commits 규약)"
+
+# 파괴적 DDL 게이트 — stack-agnostic(Flyway·Prisma·Supabase 공통, 마이그레이션 없으면 self-skip)이라 무조건 배선.
+mkdir -p scripts
+copy_once "$HARNESS_DIR/templates/ci/destructive-ddl.yml"   .github/workflows/destructive-ddl.yml "destructive-ddl.yml (파괴 DDL 차단 게이트)"
+copy_once "$HARNESS_DIR/scripts/check-destructive-ddl.mjs"  scripts/check-destructive-ddl.mjs "scripts/check-destructive-ddl.mjs"
 
 # Flyway 스택 — 마이그레이션 안전성 게이트 워크플로 + 무의존 검사 스크립트
 if [[ "$HAS_FLYWAY" == true ]]; then

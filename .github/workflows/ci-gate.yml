@@ -22,6 +22,7 @@ jobs:
           bash -n plugins/harness-guard/scripts/pr-create.sh
           bash -n plugins/harness-guard/scripts/pr-merge.sh
           bash -n plugins/harness-guard/scripts/set-branch-protection.sh
+          bash -n plugins/harness-guard/scripts/solo-merge.sh
           bash -n templates/githooks/pre-commit
           bash -n .githooks/pre-commit
           bash -n tests/guard-test.sh
@@ -31,13 +32,16 @@ jobs:
           bash -n tests/pr-merge-auto-test.sh
           bash -n tests/pr-create-test.sh
           bash -n tests/set-branch-protection-test.sh
+          bash -n tests/solo-merge-test.sh
           bash -n tests/new-repo-test.sh
           bash -n tests/alembic-heads-test.sh
           bash -n tests/skill-discovery-test.sh
           bash -n tests/enforce-subagent-model-test.sh
+          bash -n tests/plugin-wiring-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
+          node --check scripts/check-destructive-ddl.mjs
           node --check templates/frontend/check-design-tokens.mjs
 
       - name: JSON 유효성 검사
@@ -79,6 +83,9 @@ jobs:
       - name: 마이그레이션 안전성 테스트
         run: bash tests/migration-safety-test.sh
 
+      - name: 파괴적 DDL 게이트 테스트
+        run: bash tests/destructive-ddl-test.sh
+
       - name: 드리프트 점검 테스트
         run: bash tests/repo-sync-test.sh
 
@@ -91,6 +98,9 @@ jobs:
       - name: set-branch-protection --check 판정 테스트
         run: bash tests/set-branch-protection-test.sh
 
+      - name: solo-merge break-glass 원자성 테스트
+        run: bash tests/solo-merge-test.sh
+
       - name: new-repo B4 게이트 테스트
         run: bash tests/new-repo-test.sh
 
@@ -102,6 +112,9 @@ jobs:
 
       - name: subagent 모델 강제 훅 테스트
         run: bash tests/enforce-subagent-model-test.sh
+
+      - name: 플러그인 배선 반증-스모크 (guard 실발동·hooksPath)
+        run: bash tests/plugin-wiring-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
