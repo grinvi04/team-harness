@@ -294,6 +294,15 @@ checks.push({
   detail: 'scripts/check-destructive-ddl.mjs (무의존 정적 검사)',
 })
 // Alembic .py 축 — destructive-ddl.yml 2번째 스텝이 호출(지문 없으면 self-skip)이라 전 repo applicable.
+// 스텝 sentinel + 스크립트 존재 둘 다 검사: copy_once가 기존 워크플로를 건너뛰므로(재동기화해도
+// 1-스텝 워크플로 잔존 가능) 스크립트만 보면 "게이트 배선됐으나 CI에서 안 돌음" 드리프트를 놓친다.
+checks.push({
+  asset: 'alembic destructive-ddl 스텝',
+  severity: 'error',
+  applicable: true,
+  status: sentinelStatus(/check-alembic-destructive-ddl/i, /destructive[-_]?ddl/i),
+  detail: 'destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)',
+})
 checks.push({
   asset: 'check-alembic-destructive-ddl.mjs',
   severity: 'error',

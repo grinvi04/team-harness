@@ -54,6 +54,32 @@ check "비-마이그레이션 .py → skip 통과(AC-11)"          0 "$FIX/good-
 # ── AC-8: 마이그레이션 .py 없음 → self-skip 통과 ──
 check "마이그레이션 없음 → skip 통과(AC-8)"             0 "$FIX/skip-empty"
 
+# ── 회귀(리뷰 반증 발견) — 우회 벡터 차단 ──
+# B1: batch_alter_table 컨텍스트 batch_op.drop_column (표준 Alembic 관용구) → FAIL
+check "batch_op.drop_column → FAIL(B1)"                1 "$FIX/bad-batch-alter"
+# B2: op.execute 블록주석 토큰-분리 DROP/*x*/TABLE (v0.31.0 재회귀) → FAIL
+check "execute 블록주석 분리 DROP → FAIL(B2)"          1 "$FIX/bad-exec-block-comment"
+# B3: 별칭 임포트 o.drop_table → FAIL(수신자 무관 탐지)
+check "별칭 o.drop_table → FAIL(B3)"                   1 "$FIX/bad-alias-drop"
+# B4: import alembic.op as op 지문 회피 → FAIL(지문 확장)
+check "import alembic.op 지문 → FAIL(B4)"              1 "$FIX/bad-module-import"
+# B5: 세미콜론 결합 — 마커가 두 drop 모두 사면하면 안 됨 → FAIL
+check "세미콜론 결합 마커 오귀속 → FAIL(B5)"          1 "$FIX/bad-semicolon-marker"
+# T2: triple-quote 다중행 execute (컬럼0 SQL 라인 본문절단 방지) → FAIL
+check "triple-quote 다중행 execute → FAIL(T2)"        1 "$FIX/bad-triple-quote-exec"
+# T1: raw-string 이스케이프 desync (뒤 op 삼킴 방지) → FAIL
+check "raw-string 이스케이프 desync → FAIL(T1)"       1 "$FIX/bad-raw-string"
+# T4: multidb 템플릿 upgrade_engineN 본문 → FAIL
+check "multidb upgrade_engineN → FAIL(T4)"            1 "$FIX/bad-multidb"
+# T6: async def upgrade → FAIL(지문·스코프 async 인식)
+check "async def upgrade → FAIL(T6)"                  1 "$FIX/bad-async-upgrade"
+# T3(good): 바로 앞 줄 승인마커 → 통과(자연스러운 스타일)
+check "바로 앞 줄 승인마커 → 통과(T3)"                0 "$FIX/good-preceding-marker"
+# FP 가드: execute SQL 문자열 값 속 DROP TABLE(데이터) → 통과
+check "execute SQL 문자열 값 DROP → 통과(FP가드)"     0 "$FIX/good-exec-sql-string"
+# FP 가드: batch context 비파괴 op만 → 통과
+check "batch 비파괴 op만 → 통과(FP가드)"              0 "$FIX/good-batch-safe"
+
 # ── AC-10: --help → 0 · 미인식 플래그 → 2 ──
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과(AC-10)"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
 node "$GATE" --bogus >/dev/null 2>&1; [ $? = 2 ] && { echo "PASS: 미인식 플래그 → exit 2(AC-10)"; PASS=$((PASS+1)); } || { echo "FAIL: 미인식 플래그 exit 2"; FAIL=$((FAIL+1)); }

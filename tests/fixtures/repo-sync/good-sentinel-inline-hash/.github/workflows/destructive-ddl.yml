@@ -4,3 +4,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: node scripts/check-destructive-ddl.mjs
+      - run: node scripts/check-alembic-destructive-ddl.mjs
