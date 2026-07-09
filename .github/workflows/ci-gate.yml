@@ -42,9 +42,11 @@ jobs:
           bash -n tests/plugin-wiring-test.sh
           bash -n tests/settings-deny-test.sh
           bash -n tests/codex-security-guidance-adapter-test.sh
+          bash -n tests/codex-harness-guard-patch-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
+          node --check plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
@@ -135,6 +137,9 @@ jobs:
 
       - name: Codex security-guidance adapter 테스트
         run: bash tests/codex-security-guidance-adapter-test.sh
+
+      - name: Codex harness-guard hook 호환 패치 테스트
+        run: bash tests/codex-harness-guard-patch-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
