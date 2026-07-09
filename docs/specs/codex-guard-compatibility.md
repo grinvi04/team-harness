@@ -37,11 +37,20 @@ harness-guard@team-harness                 installed, enabled  0.35.2
 codex-security@openai-curated              not installed
 ```
 
-2026-07-10 현재 Codex 로컬 설정(`~/.codex/config.toml`)에서는 반복되는 invalid PostToolUse JSON 오류를 멈추기
-위해 `security-guidance@claude-plugins-official`만 임시로 `enabled = false`로 바꿨고,
-`harness-guard@team-harness`는 `enabled = true`를 유지한다. 백업은
-`/private/tmp/codex-config.backup.20260710054153.toml`에 있다. 이는 최종 보안 대체가 아니라 #264의
-Codex-native security 평가 전까지의 로컬 compatibility workaround다.
+2026-07-10 05:41 KST에는 반복되는 invalid PostToolUse JSON 오류를 멈추기 위해 Codex 로컬 설정
+(`~/.codex/config.toml`)에서 `security-guidance@claude-plugins-official`만 임시로 `enabled = false`로
+바꿨고, `harness-guard@team-harness`는 `enabled = true`를 유지했다. 백업은
+`/private/tmp/codex-config.backup.20260710054153.toml`에 있다.
+
+이 임시 비활성화는 최종 상태가 아니다. 2026-07-10 후속 수정(v0.36.0)은
+`plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs`를 추가해 Claude
+`security-guidance`가 내보내는 `metrics`/`rewakeSummary` 같은 Claude-only 필드를 Codex-safe 출력으로
+정규화한다. 로컬 Codex 적용은
+`plugins/harness-guard/scripts/patch-codex-security-guidance.mjs`가 수행한다: Codex의
+`security-guidance@claude-plugins-official` 플러그인은 다시 `enabled = true`로 두고, 해당 플러그인의
+Codex cache `hooks/hooks.json` command만 adapter 경유로 패치한다. Codex는 hook 정의의 현재 hash를 신뢰
+상태로 기록하므로, command가 바뀐 뒤에는 새 hook hash를 `/hooks`에서 review/trust해야 실제 세션에서
+실행된다. Claude Code 전역 설정은 바꾸지 않는다.
 
 Conclusion: Codex에서 보안 리뷰를 원하면 `security-guidance@claude-plugins-official`을 그대로 신뢰하지 말고
 Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native 경계로 검토해야 한다.
@@ -164,9 +173,10 @@ For PostToolUse guidance, the same source emits:
 }
 ```
 
-Conclusion: Claude-only PostToolUse/Stop hooks should be disabled in Codex or wrapped by a Codex-specific adapter. Do not assume
-Claude hook JSON/output is portable. In Codex, `security-guidance@claude-plugins-official` and `codex-security@openai-curated`
-are different options with different contracts.
+Conclusion: Claude-only PostToolUse/Stop hooks should not be loaded raw in Codex. They must be wrapped by a Codex-specific
+adapter that preserves guidance while removing unsupported Claude-only fields. In Codex,
+`security-guidance@claude-plugins-official` and `codex-security@openai-curated` remain different options with different
+contracts.
 
 ## Proposed Boundary
 
@@ -186,7 +196,7 @@ Category(b) local destruction protection should be enforced by Codex sandbox/app
 - Preserve the `bash -lc "... && rm -rf tests"` finding as a regression fixture or documented unsupported hole.
 - Decide whether Codex should load `harness-guard` through plugin `hooks.json`, user config `[hooks]`, or both.
 - Map Codex hook payload and block semantics with fresh-session tests before changing `guard.sh`.
-- Disable or adapt Claude-only PostToolUse/Stop hooks in Codex.
+- Adapt Claude-only PostToolUse/Stop hooks in Codex instead of disabling `security-guidance`.
 - Decide whether to install and evaluate `codex-security@openai-curated` for Codex-native security scans/reviews.
 - Keep project state, decisions, backlog, and domain knowledge out of tool-local AI memory; record follow-up decisions in
   GitHub Issues, PRs, and `docs/decisions.md`.

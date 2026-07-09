@@ -41,7 +41,10 @@ jobs:
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
           bash -n tests/settings-deny-test.sh
+          bash -n tests/codex-security-guidance-adapter-test.sh
           bash -n scripts/new-repo.sh
+          node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
+          node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
@@ -129,6 +132,9 @@ jobs:
 
       - name: settings.json .env-리더 deny 커버리지 (#237)
         run: bash tests/settings-deny-test.sh
+
+      - name: Codex security-guidance adapter 테스트
+        run: bash tests/codex-security-guidance-adapter-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
