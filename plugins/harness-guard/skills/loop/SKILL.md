@@ -1,7 +1,7 @@
 ---
 name: loop
 description: 조건 기반 자율 수정 루프 — 통과 기준(명령 exit 0) 충족까지 반복. CI 수정·lint 클린업·테스트 수정·의존성 업데이트 등 반복 작업 자동화. 안전 장치(max·stuck·checkpoint) 내장
-argument-hint: "<작업 설명>" "<통과 기준 명령>" [--max <N=5>] [--no-commit]
+argument-hint: '"<작업 설명>" "<통과 기준 명령>" [--max <N=5>] [--no-commit]'
 effort: high
 ---
 

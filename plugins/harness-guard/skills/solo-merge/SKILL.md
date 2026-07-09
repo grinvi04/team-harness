@@ -1,7 +1,7 @@
 ---
 name: solo-merge
 description: 솔로 머지 — 품질 게이트는 통과시키고 '솔로라 불가능한 승인 요건'만 required_pull_request_reviews 일시 삭제로 우회·즉시 복구·검증 (원자 래퍼)
-argument-hint: "[PR번호]" (생략 시 현재 브랜치의 PR)
+argument-hint: '"[PR번호]" (생략 시 현재 브랜치의 PR)'
 effort: medium
 ---
 
