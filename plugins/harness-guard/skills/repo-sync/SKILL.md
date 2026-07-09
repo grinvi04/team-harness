@@ -1,7 +1,7 @@
 ---
 name: repo-sync
 description: 프로젝트 ↔ team-harness 표준 드리프트 점검 — check-repo-sync 실행·보고
-argument-hint: "[repo 경로 ...]" (생략 시 현재 작업 repo)
+argument-hint: '"[repo 경로 ...]" (생략 시 현재 작업 repo)'
 effort: low
 ---
 
