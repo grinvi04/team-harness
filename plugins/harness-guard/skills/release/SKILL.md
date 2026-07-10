@@ -7,6 +7,11 @@ effort: high
 
 # /release — 릴리즈 실행
 
+## Codex 실행
+
+Claude의 `subagent_type`·`model` 표기는 역할 경계 설명이다. Codex에서는 같은 CI/e2e/배포 헬스체크를 현재 agent
+또는 사용 가능한 reviewer로 수행하고, release branch·tag·develop back-merge 절차는 변경하지 않는다.
+
 **사용법**: `/release <version>`
 예) `/release 1.5.0`
 

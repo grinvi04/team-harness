@@ -45,6 +45,7 @@ jobs:
           bash -n tests/codex-harness-guard-patch-test.sh
           bash -n tests/codex-secret-egress-guard-test.sh
           bash -n tests/codex-semantic-parity-test.sh
+          bash -n tests/codex-skill-mapping-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
@@ -149,6 +150,9 @@ jobs:
 
       - name: Codex semantic parity matrix 완전성
         run: bash tests/codex-semantic-parity-test.sh
+
+      - name: Codex skill 실행 mapping
+        run: bash tests/codex-skill-mapping-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest

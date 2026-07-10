@@ -7,6 +7,11 @@ effort: medium
 
 # /solo-merge — 솔로 환경 안전 머지 (break-glass)
 
+## Codex 실행
+
+`/code-review` 참조는 Claude 전용 이름이다. Codex에서는 `pr-review-gate`의 Codex review 경로를 먼저 완료하고,
+동일한 CI·issue 처리·thread reply/resolve 게이트가 끝난 경우에만 이 break-glass wrapper를 실행한다.
+
 솔로 개발자는 자기 PR을 승인할 수 없다(GitHub 자기승인 불가). branch protection이 승인 1+를 요구하면 머지가 영구히 막힌다. 이 커맨드는 **CI·리뷰·스레드 resolve 등 품질 게이트는 그대로 통과시킨 뒤, 솔로라 충족 불가능한 승인 요건만** `required_pull_request_reviews`를 일시 삭제해 머지하고 **즉시 복구·검증**한다.
 
 > **언제 필요한가**: 브랜치 보호에 **승인요건(1+)이 걸린 repo**(팀 모드 / 리뷰어 합류로 재활성)에서만. **솔로 표준**(decisions "브랜치 보호 표준" — 승인요건 0·CI-gate·enforce_admins on)에선 우회할 승인요건이 없어 소유자가 바로 `pr-merge.sh`로 머지하므로 **이 커맨드가 불필요**하다. 즉 승인요건을 재활성했을 때의 **break-glass**다.

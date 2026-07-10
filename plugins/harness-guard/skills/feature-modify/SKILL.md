@@ -7,6 +7,12 @@ effort: high
 
 # /feature-modify — TDD 기반 기존 기능 수정
 
+## Codex 실행
+
+Claude의 `subagent_type`·`model`·`run_in_background` 표기는 역할 경계 설명이다. Codex에서는 그 문자열을
+명령으로 실행하지 말고, 변경분 RED→구현→회귀 GREEN 순서와 읽기/수정 권한 경계를 현재 agent 또는 사용 가능한
+Codex reviewer에 그대로 적용한다.
+
 **사용법**: `/feature-modify <feature-name> "<변경 설명>"`
 예) `/feature-modify chat "응답에 출처 링크 포함"`
 

@@ -5,6 +5,11 @@ description: PR 생성 후 머지까지의 표준 게이트 절차 — AI 리뷰
 
 # PR 리뷰·CI 게이트 (공통 절차)
 
+## Codex 실행
+
+Claude `/code-review` 대신 `codex review --base <PR base>`로 변경분을 검토한다. 그 뒤 인라인 코멘트 reply,
+review thread resolve, 사람 승인, CI와 외부 commit-status 확인은 이 문서의 동일한 GitHub gate를 따른다.
+
 `feature-merge`·`hotfix`·`release`가 PR 생성 후 머지 전까지 공통으로 따르는 단일 출처 절차다.
 커맨드별로 복붙하지 말고 이 절차를 참조한다. (복붙 드리프트 = 게이트 누락 사고의 원인)
 

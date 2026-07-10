@@ -7,6 +7,11 @@ effort: high
 
 # /hotfix — 운영 긴급 수정
 
+## Codex 실행
+
+Claude의 `subagent_type`·`model`·`run_in_background` 표기는 역할 경계 설명이다. Codex에서는 그 문자열을
+명령으로 실행하지 말고, 재현·회귀 테스트·수정·main/develop 양쪽 반영이라는 동일한 hotfix 계약을 수행한다.
+
 **사용법**: `/hotfix <fix-name> "<증상 설명>"`
 예) `/hotfix auth-cookie "로그인 후 쿠키가 발급되지 않는 문제"`
 

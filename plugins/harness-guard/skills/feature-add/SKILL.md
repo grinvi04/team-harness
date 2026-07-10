@@ -7,6 +7,12 @@ effort: high
 
 # /feature-add — TDD 기반 신규 기능 개발
 
+## Codex 실행
+
+Claude의 `subagent_type`·`model`·`run_in_background` 표기는 역할 경계 설명이다. Codex에서는 그 문자열을
+명령으로 실행하지 말고, 테스트 계약→구현→검증 순서와 읽기/수정 권한 경계를 현재 agent 또는 사용 가능한
+Codex reviewer에 그대로 적용한다.
+
 **사용법**: `/feature-add <feature-name> "<설명>"`
 예) `/feature-add bookmark "북마크 저장 기능"`
 
