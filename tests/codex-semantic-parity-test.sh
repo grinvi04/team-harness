@@ -8,7 +8,7 @@ FAIL=0
 
 check() {
   local label="$1" needle="$2"
-  if rg -Fq "$needle" "$MATRIX"; then
+  if grep -Fq "$needle" "$MATRIX"; then
     echo "PASS: $label"
   else
     echo "FAIL: matrix missing $label ($needle)"
