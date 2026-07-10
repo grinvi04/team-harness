@@ -32,13 +32,13 @@ effort: medium
 
 ## Phase 0 — 전제
 
-**전제: `pr-review-gate` 1~3단계(/code-review·이슈 처리·스레드 reply+resolve)가 이미 끝났을 것.**
+**전제: `pr-review-gate` 1~3단계(현재 도구의 AI review·이슈 처리·스레드 reply+resolve)가 이미 끝났을 것.**
 래퍼가 머지 직전 CI·미해결 스레드·mergeable을 **다시** 검증하지만(이중 게이트), 리뷰 처리 자체는 선행돼야 한다.
 
 ## Phase 1 — 원자 실행 (오케스트레이터 직접 실행)
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/solo-merge.sh <PR>
+bash ${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}/scripts/solo-merge.sh <PR>
 # PR 생략 시 현재 브랜치의 PR. base는 래퍼가 자동 감지.
 ```
 

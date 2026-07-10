@@ -7,8 +7,9 @@ description: 프론트엔드 QA — 디자인 토큰 준수 + WCAG 2.2 접근성
 
 ## Codex 실행
 
-Claude의 Explore/Haiku/background 표기는 역할 분리 설명이다. Codex에서는 디자인 토큰, WCAG, 한국어 UX 검사를
-같은 체크리스트와 검증 명령으로 수행하며, 병렬 agent 실행을 지원하지 않는 세션에서는 순차 실행한다.
+Claude의 Explore/Haiku/background 표기는 Claude 경로용 역할 분리다. Codex에서는 세 QA 축을
+`harness-explorer` (`gpt-5.6-terra`, medium) read-only subagent에 병렬 위임할 수 있고, 지원하지 않는
+세션에서는 현재 agent가 순차 수행한다. 수정은 QA 결과를 받은 주 agent만 수행한다.
 
 **사용법**: `/qa`
 UI 변경 후 디자인 시스템 준수와 접근성을 검증한다.
