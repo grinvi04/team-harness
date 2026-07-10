@@ -3,7 +3,7 @@
  * Replace unsupported Claude prompt hooks in the local Codex cache only.
  * Command hooks remain intact, and the Claude plugin source is never changed.
  */
-import { copyFileSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import path from 'node:path'
 
@@ -108,6 +108,37 @@ function quoteArgumentHints(cacheRoot) {
   return { changedFiles, fixed }
 }
 
+function installCodexAgents(cacheRoot) {
+  const sourceDir = path.join(cacheRoot, 'codex', 'agents')
+  if (!existsSync(sourceDir)) {
+    throw new Error(`Codex agent bundle not found: ${sourceDir}; reinstall harness-guard v0.42.0 or newer before patching`)
+  }
+
+  const agentFiles = readdirSync(sourceDir)
+    .filter((file) => /^harness-[a-z0-9-]+\.toml$/.test(file))
+    .sort()
+  if (agentFiles.length === 0) {
+    throw new Error(`Codex agent bundle is empty: ${sourceDir}`)
+  }
+
+  const destinationDir = path.join(homedir(), '.codex', 'agents')
+  let changedFiles = 0
+  for (const file of agentFiles) {
+    const sourcePath = path.join(sourceDir, file)
+    const destinationPath = path.join(destinationDir, file)
+    const source = readFileSync(sourcePath, 'utf8')
+    const destination = existsSync(destinationPath) ? readFileSync(destinationPath, 'utf8') : null
+    if (source === destination) continue
+    changedFiles += 1
+    if (!dryRun) {
+      mkdirSync(destinationDir, { recursive: true })
+      if (destination !== null) copyFileSync(destinationPath, `${destinationPath}.backup.${timestamp()}`)
+      writeFileSync(destinationPath, source)
+    }
+  }
+  return { changedFiles, agentDir: destinationDir, files: agentFiles }
+}
+
 const cache = findHarnessGuardCache()
 const pretoolGuardPath = path.join(cache.root, 'scripts', 'codex-pretool-guard.mjs')
 if (!existsSync(pretoolGuardPath)) {
@@ -117,4 +148,5 @@ console.log(JSON.stringify({
   dryRun,
   hooks: replacePromptHandlers(cache.hooksPath, pretoolGuardPath),
   skills: quoteArgumentHints(cache.root),
+  agents: installCodexAgents(cache.root),
 }, null, 2))

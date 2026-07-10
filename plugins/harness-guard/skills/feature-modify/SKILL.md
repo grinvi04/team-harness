@@ -9,9 +9,9 @@ effort: high
 
 ## Codex 실행
 
-Claude의 `subagent_type`·`model`·`run_in_background` 표기는 역할 경계 설명이다. Codex에서는 그 문자열을
-명령으로 실행하지 말고, 변경분 RED→구현→회귀 GREEN 순서와 읽기/수정 권한 경계를 현재 agent 또는 사용 가능한
-Codex reviewer에 그대로 적용한다.
+Claude의 `subagent_type`·`model`·`run_in_background` 표기는 Claude 경로용 역할 경계다. Codex에서는
+변경분 RED·구현·회귀 GREEN은 현재 agent가 **순차** 수행한다. 영향 범위 탐색은 `harness-explorer`
+(`gpt-5.6-terra`, medium), 최종 회귀 반증은 `harness-verifier` (`gpt-5.6-terra`, high)에만 위임한다.
 
 **사용법**: `/feature-modify <feature-name> "<변경 설명>"`
 예) `/feature-modify chat "응답에 출처 링크 포함"`

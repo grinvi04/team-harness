@@ -9,8 +9,9 @@ effort: high
 
 ## Codex 실행
 
-Claude의 `subagent_type`·`model` 표기는 역할 경계 설명이다. Codex에서는 같은 CI/e2e/배포 헬스체크를 현재 agent
-또는 사용 가능한 reviewer로 수행하고, release branch·tag·develop back-merge 절차는 변경하지 않는다.
+Claude의 `subagent_type`·`model` 표기는 Claude 경로용 역할 경계다. Codex에서는 CI/e2e·배포 헬스체크를
+현재 agent가 실행하고, 읽기 전용 사전/사후 검증만 `harness-explorer` 또는 `harness-verifier`에 위임한다.
+release branch·tag·develop back-merge는 주 agent만 수행한다.
 
 **사용법**: `/release <version>`
 예) `/release 1.5.0`
@@ -72,7 +73,7 @@ Phase 2(해당 시) ✅인 경우에만 진행.
 
 ```bash
 # 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base main \
+bash ${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}/scripts/pr-create.sh --base main \
   --title "release: v$VERSION" \
   --body "릴리즈 v$VERSION
 
@@ -102,7 +103,7 @@ develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **
 git checkout main && git pull origin main
 git checkout -b sync/backmerge-v$VERSION
 git push -u origin sync/backmerge-v$VERSION
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
+bash ${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}/scripts/pr-create.sh --base develop \
   --title "chore: release/v$VERSION develop 반영" \
   --body "main PR과 동일 내용의 back-merge — 버전 범프 커밋을 develop에 반영.
 
