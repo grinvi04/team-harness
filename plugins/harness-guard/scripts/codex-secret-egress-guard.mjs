@@ -15,8 +15,9 @@ try {
   process.exit(0)
 }
 
-if (hook?.tool_name !== 'Bash') process.exit(0)
-const command = hook?.tool_input?.command
+// The hook matcher chooses Bash executions. Codex uses `tool_input.cmd` for
+// exec while Claude uses `tool_input.command`, so do not gate on tool_name.
+const command = hook?.tool_input?.command ?? hook?.tool_input?.cmd
 if (typeof command !== 'string') process.exit(0)
 
 const hasSecretSource = /(?:\$\{?(?:[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*)\}?|\b(?:printenv|env)(?:\s+[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/])\.env(?:\.[A-Za-z0-9_-]+)?\b)/i.test(command)
