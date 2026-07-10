@@ -43,6 +43,7 @@ jobs:
           bash -n tests/settings-deny-test.sh
           bash -n tests/codex-security-guidance-adapter-test.sh
           bash -n tests/codex-harness-guard-patch-test.sh
+          bash -n tests/codex-semantic-parity-test.sh
           bash -n scripts/new-repo.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
@@ -140,6 +141,9 @@ jobs:
 
       - name: Codex harness-guard hook 호환 패치 테스트
         run: bash tests/codex-harness-guard-patch-test.sh
+
+      - name: Codex semantic parity matrix 완전성
+        run: bash tests/codex-semantic-parity-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
