@@ -4,8 +4,9 @@
 
 `harness-guard`가 Claude Code에서 제공하는 거버넌스와 보안 워크플로의 **의미**를 Codex에서도 유지한다.
 문법·UI·훅 payload가 다른 것을 같은 것으로 가장하지 않고, Codex-native 구현 또는 명시된 운영 통제로
-동일한 보호 결과를 낸다. **성공 기준: 각 harness 기능이 Claude와 Codex에서 동일한 수용기준을 충족하거나,
-동일 결과를 내는 Codex 대체 구현과 검증 근거를 가진다.**
+동일한 보호 결과를 낸다. Codex가 필요한 lifecycle event를 제공하지 않는 경우에는 동등성을 주장하지 않고
+명시된 운영 통제로 분류한다. **성공 기준: 각 harness 기능이 Claude와 Codex에서 동일한 수용기준을 충족하거나,
+동일 결과를 내는 Codex 대체 구현 또는 검증된 플랫폼 제한과 운영 통제를 가진다.**
 
 ## 2. Scope
 
@@ -30,9 +31,10 @@
 - **AC-2 (command guard):** WHEN Codex가 Bash 도구로 direct reset, protected-branch commit, test/migration
   삭제, bare `gh pr create/merge`를 실행할 때, the system SHALL Claude와 같은 deny 결과를 낸다. Shell wrapper
   안의 compound command는 별도 adversarial fixture로 다루고 Codex sandbox/approval이 최종 경계임을 검증한다.
-- **AC-3 (secret egress):** WHEN 명백한 시크릿 외부 전송 명령이 Codex에서 실행될 때, the system SHALL
-  Claude `prompt` hook의 목적과 동등한 deny 또는 사용자 승인 경계를 적용한다. 단순 `.env` 읽기, 로컬 git,
-  비네트워크 파괴 명령은 이 경로에서 deny하지 않는다.
+- **AC-3 (secret egress):** WHEN Codex가 `PreToolUse`를 발생시키는 simple Bash 호출에서 명백한 시크릿 외부
+  전송 명령이 실행될 때, the system SHALL Claude `prompt` hook의 목적과 동등한 deny를 적용한다. `unified_exec`
+  같이 event를 발생시키지 않는 경로는 Codex-native equivalent라고 주장하지 않고 #283에 기록된 운영 통제로
+  분류한다. 단순 `.env` 읽기, 로컬 git, 비네트워크 파괴 명령은 이 경로에서 deny하지 않는다.
 - **AC-4 (security guidance):** WHEN `security-guidance` PostToolUse 또는 Stop hook이 Codex에서 실행될 때,
   the system SHALL invalid hook JSON 오류 없이 guidance/block 결과를 전달한다. Claude `asyncRewake` UX가
   지원되지 않는 경우, 동일 보안 판단을 동기 Codex contract로 전달한다.
@@ -46,7 +48,8 @@
   hook command patch, hook hash review/trust 절차를 재현 가능하게 수행하고 Claude cache/source는 변경하지
   않는다.
 - **AC-8 (regression):** IF Codex 전용 패치가 command guard, route intent, 또는 security-guidance command를
-  제거·변경하려 하면 THEN CI SHALL fail한다.
+  제거·변경하려 하면 THEN CI SHALL fail한다. 이는 event가 발생하는 Codex 경로의 회귀만 검증하며,
+  `unified_exec` runtime enforcement를 증명하지 않는다.
 
 ## 4. 제약 / 비기능
 
@@ -64,7 +67,8 @@
 
 ## 6. Open Questions
 
-없음. Codex의 미지원 surface는 기능 누락이 아니라 명시적 대체 구현/운영 통제 대상으로 처리한다.
+`unified_exec`의 불완전한 PreToolUse interception(#283)이 현재 open이다. Codex upstream이 이 경로를
+intercept하면 fresh-session probe로 AC-3을 재평가한다.
 
 ## 7. 기술 접근 (HOW)
 
@@ -72,8 +76,9 @@
   Codex 경로, 보장 수준, fresh-session evidence, 자동 회귀 테스트를 가진다.
 - 공통인 bash guard, route intent, PR wrapper, skill prose는 원본을 공유한다. Claude-only contract는 원본을
   보존하고 Codex adapter/설정으로 분리한다.
-- `type: "prompt"` secret-egress guard는 Codex command hook과 Codex sandbox/approval의 조합으로 대체한다.
-  deny/allow fixtures는 Claude prompt의 좁은 threat model을 그대로 따른다.
+- `type: "prompt"` secret-egress guard는 Codex가 PreToolUse를 발생시키는 호출에서만 Codex command hook으로
+  대체한다. deny/allow fixtures는 Claude prompt의 좁은 threat model을 그대로 따르되, `unified_exec`에는
+  적용되지 않는다는 runtime 한계를 matrix와 #283에 유지한다.
 - security guidance는 #264의 범위로 계속 다룬다. `codex-security` 평가는 security-guidance 대체 여부가
   아니라 별도 coverage를 더하는지 판정한다.
 - Codex hook contract는 ephemeral fresh session에서 probe한다. cache patch 뒤에는 `/hooks` trust 상태와 실제
