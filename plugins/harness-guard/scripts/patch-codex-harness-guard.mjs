@@ -47,7 +47,7 @@ function findHarnessGuardCache() {
   return candidates.at(-1)
 }
 
-function replacePromptHandlers(hooksPath, cacheRoot) {
+function replacePromptHandlers(hooksPath, egressGuardPath) {
   const before = readFileSync(hooksPath, 'utf8')
   const data = JSON.parse(before)
   let removed = 0
@@ -61,7 +61,7 @@ function replacePromptHandlers(hooksPath, cacheRoot) {
         removed += 1
         return {
           type: 'command',
-          command: `node ${path.join(cacheRoot, 'scripts', 'codex-secret-egress-guard.mjs')}`,
+          command: `node ${egressGuardPath}`,
           timeout: handler.timeout,
           statusMessage: '시크릿 외부 전송 검사 중...',
         }
@@ -106,8 +106,12 @@ function quoteArgumentHints(cacheRoot) {
 }
 
 const cache = findHarnessGuardCache()
+const egressGuardPath = path.join(cache.root, 'scripts', 'codex-secret-egress-guard.mjs')
+if (!existsSync(egressGuardPath)) {
+  throw new Error(`Codex cache is missing ${egressGuardPath}; reinstall harness-guard v0.38.0 or newer before patching`)
+}
 console.log(JSON.stringify({
   dryRun,
-  hooks: replacePromptHandlers(cache.hooksPath, cache.root),
+  hooks: replacePromptHandlers(cache.hooksPath, egressGuardPath),
   skills: quoteArgumentHints(cache.root),
 }, null, 2))
