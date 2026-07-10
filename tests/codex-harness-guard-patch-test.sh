@@ -30,7 +30,7 @@ cat >"$AGENT_SOURCE/harness-verifier.toml" <<'TOML'
 name = "harness-verifier"
 description = "Read-only verification."
 model = "gpt-5.6-terra"
-model_reasoning_effort = "high"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = "Do not edit files."
 TOML
@@ -39,7 +39,7 @@ cat >"$AGENT_SOURCE/harness-security-reviewer.toml" <<'TOML'
 name = "harness-security-reviewer"
 description = "Read-only security review."
 model = "gpt-5.6-terra"
-model_reasoning_effort = "high"
+model_reasoning_effort = "medium"
 sandbox_mode = "read-only"
 developer_instructions = "Do not edit files."
 TOML
@@ -93,8 +93,8 @@ if (promptSubmit.length !== 1 || promptSubmit[0].command !== 'node route-intent.
 if (!fs.readFileSync(skillPath, 'utf8').includes('argument-hint: "\\\"[repo 경로 ...]\\\" (생략 시 현재 작업 repo)"')) fail('argument-hint was not YAML-quoted');
 for (const [file, model, effort] of [
   ['harness-explorer.toml', 'gpt-5.6-terra', 'medium'],
-  ['harness-verifier.toml', 'gpt-5.6-terra', 'high'],
-  ['harness-security-reviewer.toml', 'gpt-5.6-terra', 'high'],
+  ['harness-verifier.toml', 'gpt-5.6-terra', 'medium'],
+  ['harness-security-reviewer.toml', 'gpt-5.6-terra', 'medium'],
 ]) {
   const text = fs.readFileSync(`${agentDest}/${file}`, 'utf8');
   if (!text.includes(`model = "${model}"`) || !text.includes(`model_reasoning_effort = "${effort}"`) || !text.includes('sandbox_mode = "read-only"')) {

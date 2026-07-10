@@ -11,7 +11,7 @@ effort: high
 
 Claude의 `subagent_type`·`model`·`run_in_background` 표기는 Claude 경로용 역할 경계다. Codex에서는
 변경분 RED·구현·회귀 GREEN은 현재 agent가 **순차** 수행한다. 영향 범위 탐색은 `harness-explorer`
-(`gpt-5.6-terra`, medium), 최종 회귀 반증은 `harness-verifier` (`gpt-5.6-terra`, high)에만 위임한다.
+(`gpt-5.6-terra`, medium), 최종 회귀 반증은 `harness-verifier` (`gpt-5.6-terra`, medium)에만 위임한다.
 
 **사용법**: `/feature-modify <feature-name> "<변경 설명>"`
 예) `/feature-modify chat "응답에 출처 링크 포함"`

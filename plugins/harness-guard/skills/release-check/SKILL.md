@@ -9,8 +9,8 @@ effort: max
 ## Codex 실행
 
 Claude named agent와 `subagent_type` 표기는 Claude 경로용 역할 경계다. Codex에서는 품질·DB 검증 근거를
-`harness-explorer` (`gpt-5.6-terra`, medium), 보안 반증을 `harness-security-reviewer` (`gpt-5.6-terra`, high),
-종합 반증을 `harness-verifier` (`gpt-5.6-terra`, high) read-only subagent에 위임할 수 있다. Codex Security 평가는
+`harness-explorer` (`gpt-5.6-terra`, medium), 보안 반증을 `harness-security-reviewer` (`gpt-5.6-terra`, medium),
+종합 반증을 `harness-verifier` (`gpt-5.6-terra`, medium) read-only subagent에 위임할 수 있다. Codex Security 평가는
 #264의 별도 coverage이며 이 skill의 보안 검토를 침묵 대체하거나 생략하지 않는다.
 
 **사용법**: `/release-check`
