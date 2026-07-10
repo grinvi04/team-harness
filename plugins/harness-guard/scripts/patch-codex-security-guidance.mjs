@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /*
- * Patch the local Codex cache of claude-plugins-official/security-guidance so
- * Codex keeps the plugin enabled but runs its hook commands through the Codex
- * output adapter. This modifies ~/.codex only; Claude Code config is untouched.
+ * Patch Codex's local cache and marketplace snapshot of security-guidance so
+ * cache refreshes do not restore Claude-only hook commands. This modifies
+ * ~/.codex only; Claude Code config and cache are untouched.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
@@ -37,7 +37,7 @@ function compareVersions(a, b) {
   return a.localeCompare(b)
 }
 
-function findSecurityGuidanceHooks() {
+function findSecurityGuidanceHookPaths() {
   const root = path.join(
     homedir(),
     '.codex',
@@ -56,7 +56,21 @@ function findSecurityGuidanceHooks() {
   if (candidates.length === 0) {
     throw new Error(`security-guidance hooks.json not found under ${root}`)
   }
-  return candidates.at(-1).hooksPath
+  const cachePath = candidates.at(-1).hooksPath
+  const marketplacePath = path.join(
+    homedir(),
+    '.codex',
+    '.tmp',
+    'marketplaces',
+    'claude-plugins-official',
+    'plugins',
+    'security-guidance',
+    'hooks',
+    'hooks.json',
+  )
+  return existsSync(marketplacePath) && marketplacePath !== cachePath
+    ? [cachePath, marketplacePath]
+    : [cachePath]
 }
 
 function patchHookCommands(hooksPath) {
@@ -123,11 +137,15 @@ if (!existsSync(adapterPath)) {
   throw new Error(`adapter not found: ${adapterPath}`)
 }
 
-const hookResult = patchHookCommands(findSecurityGuidanceHooks())
+const hookResults = findSecurityGuidanceHookPaths().map(patchHookCommands)
 const configResult = enablePlugin()
 
 console.log(JSON.stringify({
   dryRun,
-  hooks: hookResult,
+  hooks: {
+    changed: hookResults.reduce((total, result) => total + result.changed, 0),
+    changedFiles: hookResults.filter((result) => result.changedFile).length,
+    paths: hookResults,
+  },
   config: configResult,
 }, null, 2))

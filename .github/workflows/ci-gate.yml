@@ -42,6 +42,7 @@ jobs:
           bash -n tests/plugin-wiring-test.sh
           bash -n tests/settings-deny-test.sh
           bash -n tests/codex-security-guidance-adapter-test.sh
+          bash -n tests/patch-codex-security-guidance-test.sh
           bash -n tests/codex-harness-guard-patch-test.sh
           bash -n tests/codex-secret-egress-guard-test.sh
           bash -n tests/codex-pretool-guard-test.sh
@@ -143,6 +144,9 @@ jobs:
 
       - name: Codex security-guidance adapter 테스트
         run: bash tests/codex-security-guidance-adapter-test.sh
+
+      - name: Codex security-guidance cache refresh 패치 테스트
+        run: bash tests/patch-codex-security-guidance-test.sh
 
       - name: Codex harness-guard hook 호환 패치 테스트
         run: bash tests/codex-harness-guard-patch-test.sh
