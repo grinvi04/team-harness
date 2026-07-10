@@ -9,6 +9,12 @@ effort: low
 **사용법**: `/pr-create`
 현재 브랜치가 `feature/*` 또는 `fix/*`인 상태에서 실행한다.
 
+## Codex 실행
+
+Codex에서는 현재 agent가 AGENTS.md 품질 명령과 아래 wrapper를 직접 실행한다. GitHub 상태 확인은
+read-only `harness-explorer`에 위임할 수 있지만, push·PR 생성은 주 agent만 수행한다. Claude의 slash-command
+표시가 아니라 동일한 wrapper와 PR review gate 결과가 계약이다.
+
 > 푸는 문제: **PR 생성을 맨손 `gh pr create`로 하던 노출**. `feature-merge`는 `--base develop` 하드코딩이라
 > develop 없는 main 기반 repo(team-harness 자체·develop 미사용 public repo)에서는 안 맞아 매번 맨손 gh로 샜다.
 > 이 스킬이 **base를 동적 감지**(develop 있으면 develop, 없으면 origin 기본 브랜치)해 **모든 repo에서 PR 생성을 한 경로로** 만든다.
@@ -41,7 +47,7 @@ effort: low
 > 스크립트가 base 자동 감지(develop 있으면 develop, 없으면 기본 브랜치) · push · `gh pr create`를 수행한다(내부 gh는 자식 프로세스라 guard에 안 걸린다).
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh \
+bash ${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}/scripts/pr-create.sh \
   --title "<타입(scope): 요약>" --body "<무엇을·왜·검증>"
 # base를 강제해야 하면(hotfix/release 등) --base <branch> 추가.
 ```

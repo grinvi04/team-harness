@@ -28,10 +28,19 @@ for path in \
   scripts/pr-create.sh \
   scripts/pr-merge.sh \
   scripts/solo-merge.sh \
+  codex/agents/harness-explorer.toml \
+  codex/agents/harness-verifier.toml \
+  codex/agents/harness-security-reviewer.toml \
   agents/security-reviewer.md \
   agents/verifier.md; do
   check "$path" "\`$path\`"
 done
+
+matrix_table=$(sed -n '/| 소유 surface |/,/^$/p' "$MATRIX")
+if grep -Fq '미검증' <<<"$matrix_table"; then
+  echo "FAIL: parity matrix에 미검증 surface가 남아 있음"
+  FAIL=1
+fi
 
 for skill in "$ROOT"/plugins/harness-guard/skills/*/SKILL.md; do
   rel="${skill#"$ROOT/plugins/harness-guard/"}"

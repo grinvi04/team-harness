@@ -9,8 +9,9 @@ effort: high
 
 ## Codex 실행
 
-Claude 내장 `/goal` 및 `subagent_type`·`model` 표기는 Codex 실행 계약이 아니다. Codex에서는 GitHub milestone,
-repo 스펙, 이슈를 정본으로 사용하고 기능 분해·진행률 집계·재분해의 같은 산출물을 현재 agent 또는 Codex reviewer로 만든다.
+GitHub milestone·repo 스펙·이슈가 정본이라는 계약은 Codex에서도 같다. Codex의 `/goal`은 현재 작업의
+지속 목표로 함께 쓸 수 있지만 milestone을 대체하지 않는다. 기능 분해·진행률 집계·재분해는 현재 agent가
+수행하고, 근거 수집만 `harness-explorer` (`gpt-5.6-terra`, medium)에 위임한다.
 
 **사용법 (3가지 모드)**
 
@@ -31,7 +32,7 @@ repo 스펙, 이슈를 정본으로 사용하고 기능 분해·진행률 집계
 > 하나의 Milestone → 여러 `/plan` 스펙(기능) → 여러 `/feature-add` 태스크 → GitHub PRs.
 > GitHub Milestone이 단일 출처 — PR에 마일스톤을 달면 자동으로 진행률이 집계된다.
 >
-> **Claude Code 내장 `/goal`과의 구분**: 내장 `/goal`은 현재 세션에서 Claude가 멈추기 전
+> **도구 내장 `/goal`과의 구분**: Codex와 Claude Code의 `/goal`은 현재 세션에서 멈추기 전
 > 체크할 stopping condition을 설정하는 도구다. `/milestone`은 제품 로드맵 추적 도구로
 > 완전히 다른 목적이다. 두 기능은 보완 관계이며 함께 쓴다.
 >
@@ -296,11 +297,11 @@ cat "docs/milestones/$SLUG.md"
 
 ```bash
 # PR 생성은 pr-create 래퍼 경유(맨손 gh pr create는 guard 차단) — 마일스톤은 --milestone로 전달
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --milestone "<slug>" --title "..." --body "..."
+bash ${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}/scripts/pr-create.sh --milestone "<slug>" --title "..." --body "..."
 gh pr edit <PR번호> --milestone "<slug>"
 ```
 
-### 내장 `/goal`과 함께 쓰는 패턴
+### 도구 내장 `/goal`과 함께 쓰는 패턴
 
 ```
 # 1. 제품 마일스톤 정의 (지속적 추적)
