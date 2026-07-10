@@ -47,7 +47,7 @@ function findHarnessGuardCache() {
   return candidates.at(-1)
 }
 
-function replacePromptHandlers(hooksPath, egressGuardPath) {
+function replacePromptHandlers(hooksPath, pretoolGuardPath) {
   const before = readFileSync(hooksPath, 'utf8')
   const data = JSON.parse(before)
   let removed = 0
@@ -56,15 +56,18 @@ function replacePromptHandlers(hooksPath, egressGuardPath) {
     if (!Array.isArray(groups)) continue
     for (const group of groups) {
       if (!Array.isArray(group.hooks)) continue
-      group.hooks = group.hooks.map((handler) => {
-        if (handler?.type !== 'prompt') return handler
-        removed += 1
-        return {
-          type: 'command',
-          command: `node ${egressGuardPath}`,
-          timeout: handler.timeout,
-          statusMessage: '시크릿 외부 전송 검사 중...',
+      if (group.matcher !== 'Bash') continue
+      group.hooks = group.hooks.flatMap((handler) => {
+        if (handler?.type === 'prompt') { removed += 1; return [] }
+        if (handler?.type === 'command' && handler.command?.includes('guard.sh')) {
+          return [{
+            type: 'command',
+            command: `node ${pretoolGuardPath}`,
+            timeout: handler.timeout,
+            statusMessage: '명령·시크릿 전송 검사 중...',
+          }]
         }
+        return [handler]
       })
     }
   }
@@ -106,12 +109,12 @@ function quoteArgumentHints(cacheRoot) {
 }
 
 const cache = findHarnessGuardCache()
-const egressGuardPath = path.join(cache.root, 'scripts', 'codex-secret-egress-guard.mjs')
-if (!existsSync(egressGuardPath)) {
-  throw new Error(`Codex cache is missing ${egressGuardPath}; reinstall harness-guard v0.38.0 or newer before patching`)
+const pretoolGuardPath = path.join(cache.root, 'scripts', 'codex-pretool-guard.mjs')
+if (!existsSync(pretoolGuardPath)) {
+  throw new Error(`Codex cache is missing ${pretoolGuardPath}; reinstall harness-guard v0.41.0 or newer before patching`)
 }
 console.log(JSON.stringify({
   dryRun,
-  hooks: replacePromptHandlers(cache.hooksPath, egressGuardPath),
+  hooks: replacePromptHandlers(cache.hooksPath, pretoolGuardPath),
   skills: quoteArgumentHints(cache.root),
 }, null, 2))
