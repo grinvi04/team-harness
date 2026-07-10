@@ -44,6 +44,7 @@ jobs:
           bash -n tests/codex-security-guidance-adapter-test.sh
           bash -n tests/codex-harness-guard-patch-test.sh
           bash -n tests/codex-secret-egress-guard-test.sh
+          bash -n tests/codex-pretool-guard-test.sh
           bash -n tests/codex-semantic-parity-test.sh
           bash -n tests/codex-skill-mapping-test.sh
           bash -n scripts/new-repo.sh
@@ -51,6 +52,7 @@ jobs:
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
           node --check plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
           node --check plugins/harness-guard/scripts/codex-secret-egress-guard.mjs
+          node --check plugins/harness-guard/scripts/codex-pretool-guard.mjs
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
@@ -147,6 +149,9 @@ jobs:
 
       - name: Codex 시크릿 외부 전송 가드 테스트
         run: bash tests/codex-secret-egress-guard-test.sh
+
+      - name: Codex PreToolUse 정규화 가드 테스트
+        run: bash tests/codex-pretool-guard-test.sh
 
       - name: Codex semantic parity matrix 완전성
         run: bash tests/codex-semantic-parity-test.sh
