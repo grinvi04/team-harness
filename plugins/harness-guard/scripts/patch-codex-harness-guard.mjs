@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
- * Remove unsupported Claude prompt hooks from the local Codex cache only.
+ * Replace unsupported Claude prompt hooks in the local Codex cache only.
  * Command hooks remain intact, and the Claude plugin source is never changed.
  */
 import { copyFileSync, existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs'
@@ -47,7 +47,7 @@ function findHarnessGuardCache() {
   return candidates.at(-1)
 }
 
-function removePromptHandlers(hooksPath) {
+function replacePromptHandlers(hooksPath, egressGuardPath) {
   const before = readFileSync(hooksPath, 'utf8')
   const data = JSON.parse(before)
   let removed = 0
@@ -56,9 +56,16 @@ function removePromptHandlers(hooksPath) {
     if (!Array.isArray(groups)) continue
     for (const group of groups) {
       if (!Array.isArray(group.hooks)) continue
-      const original = group.hooks.length
-      group.hooks = group.hooks.filter((handler) => handler?.type !== 'prompt')
-      removed += original - group.hooks.length
+      group.hooks = group.hooks.map((handler) => {
+        if (handler?.type !== 'prompt') return handler
+        removed += 1
+        return {
+          type: 'command',
+          command: `node ${egressGuardPath}`,
+          timeout: handler.timeout,
+          statusMessage: '시크릿 외부 전송 검사 중...',
+        }
+      })
     }
   }
 
@@ -99,8 +106,12 @@ function quoteArgumentHints(cacheRoot) {
 }
 
 const cache = findHarnessGuardCache()
+const egressGuardPath = path.join(cache.root, 'scripts', 'codex-secret-egress-guard.mjs')
+if (!existsSync(egressGuardPath)) {
+  throw new Error(`Codex cache is missing ${egressGuardPath}; reinstall harness-guard v0.38.0 or newer before patching`)
+}
 console.log(JSON.stringify({
   dryRun,
-  hooks: removePromptHandlers(cache.hooksPath),
+  hooks: replacePromptHandlers(cache.hooksPath, egressGuardPath),
   skills: quoteArgumentHints(cache.root),
 }, null, 2))

@@ -6,6 +6,12 @@ effort: max
 
 # /release-check — 릴리즈 사전 검증
 
+## Codex 실행
+
+Claude named agent와 `subagent_type` 표기는 역할 경계 설명이다. Codex에서는 품질·보안·DB 마이그레이션 검증을
+동일한 명령과 read-only review로 수행한다. Codex Security 평가는 #264의 별도 coverage이며 이 skill의 보안
+검토를 침묵 대체하거나 생략하지 않는다.
+
 **사용법**: `/release-check`
 develop 브랜치에서 실행한다. **전 항목 ✅여야 `/release` 진행 가능.**
 

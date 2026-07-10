@@ -7,6 +7,12 @@ effort: high
 
 # /loop — 조건 기반 자율 수정 루프
 
+## Codex 실행
+
+Claude의 `subagent_type`·`model` 표기와 내장 `ScheduleWakeup` 설명은 Codex 실행 계약이 아니다. Codex에서는
+동일 세션에서 max·stuck·checkpoint 안전장치를 지키며 통과 기준 명령이 exit 0이 될 때까지만 반복하고, 예약 재개는
+별도 자동화 기능으로 취급한다.
+
 **사용법**: `/loop "<작업 설명>" "<통과 기준 명령>" [--max <N>] [--no-commit]`
 
 예)

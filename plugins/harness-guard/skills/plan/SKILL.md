@@ -7,6 +7,11 @@ effort: high
 
 # /plan — AI 실행용 스펙·플랜 정리 (계획 전용, git 무관)
 
+## Codex 실행
+
+Codex에 Claude `EnterPlanMode`/`ExitPlanMode`가 있다고 가정하지 않는다. Phase 0부터 Phase 5 승인 전까지
+읽기·계획만 수행하고, 승인 전에는 브랜치·커밋·구현 파일을 변경하지 않는 동일한 계약을 지킨다.
+
 **사용법**: `/plan <feature-name> "<무엇을·왜>"`
 예) `/plan checkout "장바구니 결제 — 재고 차감·결제 연동·주문 생성"`
 

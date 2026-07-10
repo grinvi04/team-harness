@@ -7,6 +7,11 @@ effort: high
 
 # /milestone — 제품 마일스톤 추적
 
+## Codex 실행
+
+Claude 내장 `/goal` 및 `subagent_type`·`model` 표기는 Codex 실행 계약이 아니다. Codex에서는 GitHub milestone,
+repo 스펙, 이슈를 정본으로 사용하고 기능 분해·진행률 집계·재분해의 같은 산출물을 현재 agent 또는 Codex reviewer로 만든다.
+
 **사용법 (3가지 모드)**
 
 ```
