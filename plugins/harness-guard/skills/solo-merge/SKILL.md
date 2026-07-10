@@ -1,11 +1,16 @@
 ---
 name: solo-merge
 description: 솔로 머지 — 품질 게이트는 통과시키고 '솔로라 불가능한 승인 요건'만 required_pull_request_reviews 일시 삭제로 우회·즉시 복구·검증 (원자 래퍼)
-argument-hint: "[PR번호]" (생략 시 현재 브랜치의 PR)
+argument-hint: '"[PR번호]" (생략 시 현재 브랜치의 PR)'
 effort: medium
 ---
 
 # /solo-merge — 솔로 환경 안전 머지 (break-glass)
+
+## Codex 실행
+
+`/code-review` 참조는 Claude 전용 이름이다. Codex에서는 `pr-review-gate`의 Codex review 경로를 먼저 완료하고,
+동일한 CI·issue 처리·thread reply/resolve 게이트가 끝난 경우에만 이 break-glass wrapper를 실행한다.
 
 솔로 개발자는 자기 PR을 승인할 수 없다(GitHub 자기승인 불가). branch protection이 승인 1+를 요구하면 머지가 영구히 막힌다. 이 커맨드는 **CI·리뷰·스레드 resolve 등 품질 게이트는 그대로 통과시킨 뒤, 솔로라 충족 불가능한 승인 요건만** `required_pull_request_reviews`를 일시 삭제해 머지하고 **즉시 복구·검증**한다.
 

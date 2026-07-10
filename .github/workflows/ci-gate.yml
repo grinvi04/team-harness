@@ -35,13 +35,27 @@ jobs:
           bash -n tests/solo-merge-test.sh
           bash -n tests/new-repo-test.sh
           bash -n tests/alembic-heads-test.sh
+          bash -n tests/alembic-destructive-ddl-test.sh
+          bash -n tests/activerecord-destructive-ddl-test.sh
           bash -n tests/skill-discovery-test.sh
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
+          bash -n tests/settings-deny-test.sh
+          bash -n tests/codex-security-guidance-adapter-test.sh
+          bash -n tests/codex-harness-guard-patch-test.sh
+          bash -n tests/codex-secret-egress-guard-test.sh
+          bash -n tests/codex-semantic-parity-test.sh
+          bash -n tests/codex-skill-mapping-test.sh
           bash -n scripts/new-repo.sh
+          node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
+          node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
+          node --check plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
+          node --check plugins/harness-guard/scripts/codex-secret-egress-guard.mjs
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
+          node --check scripts/check-alembic-destructive-ddl.mjs
+          node --check scripts/check-activerecord-destructive-ddl.mjs
           node --check templates/frontend/check-design-tokens.mjs
 
       - name: JSON 유효성 검사
@@ -86,6 +100,12 @@ jobs:
       - name: 파괴적 DDL 게이트 테스트
         run: bash tests/destructive-ddl-test.sh
 
+      - name: Alembic 파괴 DDL 게이트 테스트
+        run: bash tests/alembic-destructive-ddl-test.sh
+
+      - name: ActiveRecord 파괴 DDL 게이트 테스트
+        run: bash tests/activerecord-destructive-ddl-test.sh
+
       - name: 드리프트 점검 테스트
         run: bash tests/repo-sync-test.sh
 
@@ -115,6 +135,24 @@ jobs:
 
       - name: 플러그인 배선 반증-스모크 (guard 실발동·hooksPath)
         run: bash tests/plugin-wiring-test.sh
+
+      - name: settings.json .env-리더 deny 커버리지 (#237)
+        run: bash tests/settings-deny-test.sh
+
+      - name: Codex security-guidance adapter 테스트
+        run: bash tests/codex-security-guidance-adapter-test.sh
+
+      - name: Codex harness-guard hook 호환 패치 테스트
+        run: bash tests/codex-harness-guard-patch-test.sh
+
+      - name: Codex 시크릿 외부 전송 가드 테스트
+        run: bash tests/codex-secret-egress-guard-test.sh
+
+      - name: Codex semantic parity matrix 완전성
+        run: bash tests/codex-semantic-parity-test.sh
+
+      - name: Codex skill 실행 mapping
+        run: bash tests/codex-skill-mapping-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest

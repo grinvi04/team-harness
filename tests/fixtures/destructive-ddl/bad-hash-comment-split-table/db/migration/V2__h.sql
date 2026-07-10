@@ -1,0 +1,2 @@
+DROP #x
+TABLE users;

@@ -7,6 +7,11 @@ effort: high
 
 # /plan — AI 실행용 스펙·플랜 정리 (계획 전용, git 무관)
 
+## Codex 실행
+
+Codex에 Claude `EnterPlanMode`/`ExitPlanMode`가 있다고 가정하지 않는다. Phase 0부터 Phase 5 승인 전까지
+읽기·계획만 수행하고, 승인 전에는 브랜치·커밋·구현 파일을 변경하지 않는 동일한 계약을 지킨다.
+
 **사용법**: `/plan <feature-name> "<무엇을·왜>"`
 예) `/plan checkout "장바구니 결제 — 재고 차감·결제 연동·주문 생성"`
 
@@ -18,7 +23,7 @@ effort: high
 > **흐름**: `/plan`(계획·승인, git 무관) → 개발: **`feature/<기능>` 한 브랜치**에서 태스크별 `/feature-add`(TDD·태스크당 원자적 커밋) → `/feature-merge`(한 PR). *한 기능 = 한 브랜치 = 한 PR.*
 
 > **스택 의존 값은 repo의 `AGENTS.md`에서 읽는다**(빌드·테스트 명령, 소스 디렉터리, 프론트 유무). 하드코딩 금지.
-> **비협상 규칙은 `CLAUDE.md` 4원칙**(단순함 우선·외과적 수정·목표기반 실행·생각 먼저)을 그대로 따른다 — 별도 constitution을 만들지 않는다.
+> **비협상 규칙은 전역 행동 지침(`CLAUDE.md`/`AGENTS.md`) 1~4원칙**(단순함 우선·외과적 수정·목표기반 실행·생각 먼저)을 그대로 따른다 — 별도 constitution을 만들지 않는다.
 
 ---
 

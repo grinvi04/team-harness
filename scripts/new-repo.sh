@@ -54,7 +54,7 @@ case "$STACK_CHOICE" in
   3) STACK_TEMPLATE="ci-gate-spring.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("java" "flyway") ;;
   4) STACK_TEMPLATE="ci-gate-spring-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan"); STACK_RULES=("java" "flyway" "typescript") ;;
   5) STACK_TEMPLATE="ci-gate-python.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("python" "alembic") ;;
-  6) STACK_TEMPLATE="ci-gate-rails.yml";            STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=() ;;
+  6) STACK_TEMPLATE="ci-gate-rails.yml";            STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("ruby") ;;
   7) STACK_TEMPLATE="ci-gate-nextjs.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript" "nextjs") ;;
   8) STACK_TEMPLATE="ci-gate-vue.yml";              STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript" "vue") ;;
   *) echo "❌ 잘못된 선택 — 1~8 중 입력하세요." >&2; exit 1 ;;
@@ -118,6 +118,10 @@ copy_once "$HARNESS_DIR/templates/commitlint.config.cjs"    commitlint.config.cj
 mkdir -p scripts
 copy_once "$HARNESS_DIR/templates/ci/destructive-ddl.yml"   .github/workflows/destructive-ddl.yml "destructive-ddl.yml (파괴 DDL 차단 게이트)"
 copy_once "$HARNESS_DIR/scripts/check-destructive-ddl.mjs"  scripts/check-destructive-ddl.mjs "scripts/check-destructive-ddl.mjs"
+# Alembic .py 축 — destructive-ddl.yml 2번째 스텝이 호출. 지문 없으면 self-skip이라 stack-agnostic 무조건 배선.
+copy_once "$HARNESS_DIR/scripts/check-alembic-destructive-ddl.mjs" scripts/check-alembic-destructive-ddl.mjs "scripts/check-alembic-destructive-ddl.mjs"
+# ActiveRecord .rb 축 — destructive-ddl.yml 3번째 스텝이 호출. 지문 없으면 self-skip이라 stack-agnostic 무조건 배선.
+copy_once "$HARNESS_DIR/scripts/check-activerecord-destructive-ddl.mjs" scripts/check-activerecord-destructive-ddl.mjs "scripts/check-activerecord-destructive-ddl.mjs"
 
 # Flyway 스택 — 마이그레이션 안전성 게이트 워크플로 + 무의존 검사 스크립트
 if [[ "$HAS_FLYWAY" == true ]]; then
