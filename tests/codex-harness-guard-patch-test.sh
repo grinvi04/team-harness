@@ -65,7 +65,7 @@ if HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/missing.out" 2>"$TMP/missing.err
   echo "FAIL: 구버전 cache의 누락된 egress guard를 허용함"
   exit 1
 fi
-if ! rg -Fq 'reinstall harness-guard v0.38.0 or newer' "$TMP/missing.err"; then
+if ! grep -Fq 'reinstall harness-guard v0.38.0 or newer' "$TMP/missing.err"; then
   echo "FAIL: cache refresh 안내가 없음"
   exit 1
 fi
