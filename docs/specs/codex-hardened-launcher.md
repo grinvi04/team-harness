@@ -4,7 +4,9 @@
 
 cmux CLI에서 Codex를 시작하기 전에 조건부 plugin 동기화와 `harness-guard`·`security-guidance` Codex cache patch를 적용한다.
 Codex marketplace refresh가 Claude-style hook을 되돌려도 CLI 새 세션은 adapter·skill 정규화를 거친 상태에서
-시작한다. **성공 기준: launcher가 두 patch를 성공한 뒤에만 Codex binary를 같은 인자로 실행한다.**
+시작한다. 또한 Codex 0.144.1에서 PreToolUse interception이 불완전한 `unified_exec`를 비활성화해 hook이
+지원되는 simple shell 경로를 사용한다. **성공 기준: launcher가 두 patch를 성공한 뒤에만 Codex binary를
+`--disable unified_exec`와 사용자가 준 인자로 실행한다.**
 
 ## 2. Scope
 
@@ -20,10 +22,14 @@ Codex marketplace refresh가 Claude-style hook을 되돌려도 CLI 새 세션은
   source SKILL.md와 Claude cache는 바뀌지 않는다.
 - **AC-4 (회귀):** IF Codex binary 실행 순서가 patch보다 앞서거나 security-guidance patch가 빠지면 THEN 테스트가
   실패한다.
+- **AC-5 (hook 경로):** WHEN launcher가 Codex binary를 시작하면 THEN `--disable unified_exec`를 주입하고 원래
+  사용자 인자는 그 뒤에 보존한다. fresh ephemeral probe에서 simple shell `pwd` 전에 PreToolUse가 발화해야 한다.
 
 ## 4. 제약 / 비기능
 
 - launcher는 cmux CLI용이며 Desktop App 직접 실행을 보호하지 않는다.
+- 사용자가 alias를 우회해 Codex binary를 직접 실행하거나 Desktop App을 쓰면 unified_exec 비활성화가 적용되지 않는다.
+- 트레이드오프: unified_exec의 richer streaming stdin/stdout 처리를 포기하고 PreToolUse 보안 경로를 우선한다.
 - alias는 사용자가 명시적으로 설치·제거하는 전역 shell 설정이다.
 - 기본 Codex `approval_policy = "untrusted"`는 유지한다.
 
@@ -40,7 +46,7 @@ Codex marketplace refresh가 Claude-style hook을 되돌려도 CLI 새 세션은
 ## 7. 기술 접근 (HOW)
 
 - launcher는 자신의 repository root를 기준으로 두 patch script를 Node로 실행한 뒤 `CODEX_BIN`(기본 `codex`)을
-  `exec`한다.
+  `--disable unified_exec`와 함께 `exec`한다.
 - `CODEX_BIN`은 테스트에서 fake binary로 주입해 patch 완료 뒤 실행되는 순서를 검증한다.
 - 테스트는 temporary HOME에 raw hooks와 plugin cache fixture를 만들고, fake binary가 실행된 시점의 patched
   artifacts와 전달 인자를 확인한다.

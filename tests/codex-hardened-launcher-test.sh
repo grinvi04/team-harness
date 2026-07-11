@@ -95,8 +95,8 @@ SH
 chmod +x "$TMP/fake-codex"
 
 HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version
-if [[ "$(cat "$TMP/invocation")" != "--version" ]]; then
-  echo "FAIL: launcher did not preserve Codex arguments"
+if [[ "$(cat "$TMP/invocation")" != $'--disable\nunified_exec\n--version' ]]; then
+  echo "FAIL: launcher did not disable unified_exec before preserving Codex arguments"
   exit 1
 fi
 if [[ "$(cat "$TMP/sync-invocation")" != "plugin list --json" ]]; then
