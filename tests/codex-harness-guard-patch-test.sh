@@ -103,6 +103,7 @@ if (recheck.skills.normalized !== 0) fail('Claude execution metadata normalizati
 if (dryRun.skills.attributions < 1 || result.skills.attributions < 1) fail('Claude co-author attribution was not detected');
 if (recheck.skills.attributions !== 0) fail('Claude co-author attribution normalization is not idempotent');
 if (result.skills.overlays !== 14 || recheck.skills.overlays !== 0) fail(`Codex overlays were not injected exactly once: result=${result.skills.overlays} recheck=${recheck.skills.overlays}`);
+if (recheck.skills.changedFiles !== 0) fail(`Codex skill patch is not idempotent: changed=${recheck.skills.changedFiles}`);
 if (!result.guard.changedFile || recheck.guard.changedFile) fail('Codex guard generation is not idempotent');
 if (dryRun.agents.changedFiles !== 3 || result.agents.changedFiles !== 3) fail('Codex agents were not installed');
 if (recheck.agents.changedFiles !== 0) fail('Codex agent install is not idempotent');
