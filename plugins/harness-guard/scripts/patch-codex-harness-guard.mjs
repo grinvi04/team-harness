@@ -83,11 +83,12 @@ function replacePromptHandlers(hooksPath, pretoolGuardPath) {
 
 function normalizeCodexSkills(cacheRoot) {
   const skillsRoot = path.join(cacheRoot, 'skills')
-  if (!existsSync(skillsRoot)) return { changedFiles: 0, fixed: 0, normalized: 0 }
+  if (!existsSync(skillsRoot)) return { changedFiles: 0, fixed: 0, normalized: 0, attributions: 0 }
 
   let changedFiles = 0
   let fixed = 0
   let normalized = 0
+  let attributions = 0
   for (const skill of readdirSync(skillsRoot)) {
     const skillPath = path.join(skillsRoot, skill, 'SKILL.md')
     if (!existsSync(skillPath)) continue
@@ -103,6 +104,10 @@ function normalizeCodexSkills(cacheRoot) {
       normalized += 1
       return ''
     })
+    after = after.replace(/^Co-Authored-By:\s+Claude\b[^\n]*(?:\n|$)/gm, () => {
+      attributions += 1
+      return ''
+    })
     if (after === before) continue
     changedFiles += 1
     if (!dryRun) {
@@ -110,7 +115,7 @@ function normalizeCodexSkills(cacheRoot) {
       writeFileSync(skillPath, after)
     }
   }
-  return { changedFiles, fixed, normalized }
+  return { changedFiles, fixed, normalized, attributions }
 }
 
 function installCodexAgents(cacheRoot) {
