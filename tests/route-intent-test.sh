@@ -70,6 +70,15 @@ else
   echo "FAIL: AC-2a: 진행해 → inject=true+skill=pr-review-gate 없음 | 출력: $out_2a"; FAIL=$((FAIL+1))
 fi
 
+# AC-2a-contract: Codex에는 별도 Skill tool이 없다. SKILL.md 적용 + 사용자 가시성 계약이어야 한다.
+if echo "$out_2a" | grep -q 'SKILL.md' \
+  && echo "$out_2a" | grep -q '적용 skill과 현재 phase' \
+  && ! echo "$out_2a" | grep -q 'Skill 도구'; then
+  echo "PASS: AC-2a-contract: 도구 중립 skill 실행·가시성 계약"; PASS=$((PASS+1))
+else
+  echo "FAIL: AC-2a-contract: 실행 불가능한 Skill tool 지시 또는 가시성 계약 누락 | 출력: $out_2a"; FAIL=$((FAIL+1))
+fi
+
 # AC-2b: "해줘" + openPR → inject=true AND skill=pr-review-gate
 out_2b=$(node "$SCRIPT" --explain --prompt "해줘" --branch "feature/x" --open-pr 5 2>/dev/null)
 if echo "$out_2b" | grep -q '"inject":true' && echo "$out_2b" | grep -q '"skill":"pr-review-gate"'; then
