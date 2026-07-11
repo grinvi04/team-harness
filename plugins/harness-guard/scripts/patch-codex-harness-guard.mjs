@@ -81,22 +81,27 @@ function replacePromptHandlers(hooksPath, pretoolGuardPath) {
   return { changedFile, hooksPath, removed }
 }
 
-function quoteArgumentHints(cacheRoot) {
+function normalizeCodexSkills(cacheRoot) {
   const skillsRoot = path.join(cacheRoot, 'skills')
-  if (!existsSync(skillsRoot)) return { changedFiles: 0, fixed: 0 }
+  if (!existsSync(skillsRoot)) return { changedFiles: 0, fixed: 0, normalized: 0 }
 
   let changedFiles = 0
   let fixed = 0
+  let normalized = 0
   for (const skill of readdirSync(skillsRoot)) {
     const skillPath = path.join(skillsRoot, skill, 'SKILL.md')
     if (!existsSync(skillPath)) continue
     const before = readFileSync(skillPath, 'utf8')
-    const after = before.replace(/^(argument-hint:\s*)(.+)$/m, (_, prefix, value) => {
+    let after = before.replace(/^(argument-hint:\s*)(.+)$/m, (_, prefix, value) => {
       const trimmed = value.trim()
       if (!/^["']/.test(trimmed)) return `${prefix}${trimmed}`
       if (/^(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')$/.test(trimmed)) return `${prefix}${trimmed}`
       fixed += 1
       return `${prefix}${JSON.stringify(trimmed)}`
+    })
+    after = after.replace(/[ \t]*\((?=[^\n)]*`subagent_type:)[^\n)]*\)/g, () => {
+      normalized += 1
+      return ''
     })
     if (after === before) continue
     changedFiles += 1
@@ -105,7 +110,7 @@ function quoteArgumentHints(cacheRoot) {
       writeFileSync(skillPath, after)
     }
   }
-  return { changedFiles, fixed }
+  return { changedFiles, fixed, normalized }
 }
 
 function installCodexAgents(cacheRoot) {
@@ -147,6 +152,6 @@ if (!existsSync(pretoolGuardPath)) {
 console.log(JSON.stringify({
   dryRun,
   hooks: replacePromptHandlers(cache.hooksPath, pretoolGuardPath),
-  skills: quoteArgumentHints(cache.root),
+  skills: normalizeCodexSkills(cache.root),
   agents: installCodexAgents(cache.root),
 }, null, 2))
