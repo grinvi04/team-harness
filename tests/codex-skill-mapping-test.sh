@@ -8,13 +8,25 @@ FAIL=0
 for skill in \
   feature-add feature-merge feature-modify hotfix loop milestone plan pr-create pr-review-gate qa release release-check repo-sync solo-merge; do
   path="$ROOT/plugins/harness-guard/skills/$skill/SKILL.md"
-  if grep -Fq '## Codex 실행' "$path" && grep -Fq 'Codex' "$path"; then
+  section=$(sed -n '/^## Codex 실행$/,/^## /p' "$path")
+  if grep -Fq '## Codex 실행' "$path" \
+    && grep -Fq 'Codex' <<<"$section" \
+    && ! grep -Fq 'Skill 도구' <<<"$section"; then
     echo "PASS: $skill Codex 실행 규칙"
   else
     echo "FAIL: $skill Codex 실행 규칙 누락"
     FAIL=1
   fi
 done
+
+if grep -Fq '적용 skill과 현재 phase' "$ROOT/AGENTS.md" \
+  && grep -Fq '적용 skill과 현재 phase' "$ROOT/templates/AGENTS.md" \
+  && ! grep -Fq 'Skill 도구로 실제 호출' "$ROOT/plugins/harness-guard/scripts/route-intent.mjs"; then
+  echo "PASS: Codex skill 실행 가시성·도구 중립 라우팅"
+else
+  echo "FAIL: Codex skill 실행 가시성·도구 중립 라우팅 누락"
+  FAIL=1
+fi
 
 for agent in harness-explorer harness-verifier harness-security-reviewer; do
   path="$ROOT/plugins/harness-guard/codex/agents/$agent.toml"

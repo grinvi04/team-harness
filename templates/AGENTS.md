@@ -24,6 +24,15 @@
 - PR 머지 전: CI 전체 통과 + 리뷰 스레드 전부 resolve + 승인 요건 충족 — **팀 모드**(리뷰어 有)는 사람 승인 1명 이상, **솔로**는 승인요건 0이라 CI-gate·enforce_admins=on이 우회불가 게이트를 대신한다
 - 테스트 스킵 플래그(-DskipTests 등) 사용 금지
 
+## Skill 실행 가시성
+
+- harness skill을 적용할 때 첫 작업 업데이트에 **적용 skill과 현재 phase**를 표시한다. Git flow 단계가
+  바뀌면 새 skill/phase도 짧게 알린다.
+- Claude Code는 slash skill surface를 사용할 수 있고, Codex는 로드된 `SKILL.md`를 현재 agent가 직접
+  수행할 수 있다. 별도 Skill tool-call이 보이지 않는다는 이유로 skill을 적용하지 않은 것으로 간주하지 않는다.
+- 도구 UI가 달라도 skill의 수용 기준·wrapper·CI/리뷰 게이트 결과는 같아야 한다. 존재하지 않는 도구 호출을
+  가장하지 않는다.
+
 ## 빌드·테스트 명령
 
 <!-- 프로젝트별로 채움 -->

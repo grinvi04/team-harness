@@ -45,7 +45,7 @@ function inject(skill) {
     inject: true,
     phase: skill,
     skill,
-    message: `[하네스] 현재=${skill}. 사용자 지시를 다음 단계로 해석: /${skill} 호출. 맨손 gh/git 대신 Skill 도구로 실제 호출하라.`,
+    message: `[하네스] 현재=${skill}. 사용자 지시를 다음 단계로 해석한다. ${skill}/SKILL.md를 읽고 그 절차와 wrapper를 적용하라. 별도 skill 호출 surface가 없는 도구는 현재 agent가 절차를 직접 수행한다. 사용자 업데이트에 적용 skill과 현재 phase를 표시하라.`,
   }
 }
 

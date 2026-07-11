@@ -37,6 +37,15 @@
 ## 기록 위치 (자기 정책 dogfood — `docs/ai-collaboration.md`)
 
 - 표준 = `docs/`, 결정·이유 = `docs/decisions.md`, 백로그·할 일 = **GitHub Issues**, 스펙 = `docs/specs/`, 작업로그 = git 히스토리·커밋.
+
+## Skill 실행 가시성
+
+- harness skill을 적용할 때 첫 작업 업데이트에 **적용 skill과 현재 phase**를 표시한다. Git flow 단계가
+  바뀌면 새 skill/phase도 짧게 알린다.
+- Claude Code는 slash skill surface를 사용할 수 있고, Codex는 로드된 `SKILL.md`를 현재 agent가 직접
+  수행할 수 있다. 별도 Skill tool-call이 보이지 않는다는 이유로 skill을 적용하지 않은 것으로 간주하지 않는다.
+- 도구 UI가 달라도 skill의 수용 기준·wrapper·CI/리뷰 게이트 결과는 같아야 한다. 존재하지 않는 도구 호출을
+  가장하지 않는다.
 - 도구 로컬 AI 메모리엔 프로젝트 상태·백로그·결정·도메인 지식을 두지 않는다(개인 작업습관만).
 
 ## 버전·릴리즈
