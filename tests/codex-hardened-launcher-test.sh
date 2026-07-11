@@ -12,10 +12,12 @@ HARNESS_ROOT="$TMP/.codex/plugins/cache/team-harness/harness-guard/$SOURCE_VERSI
 SECURITY_CACHE="$TMP/.codex/plugins/cache/claude-plugins-official/security-guidance/2.0.6/hooks/hooks.json"
 SECURITY_SNAPSHOT="$TMP/.codex/.tmp/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/hooks.json"
 
-mkdir -p "$HARNESS_ROOT/hooks" "$HARNESS_ROOT/scripts" "$HARNESS_ROOT/codex/agents"
+mkdir -p "$HARNESS_ROOT/hooks" "$HARNESS_ROOT/scripts" "$HARNESS_ROOT/codex/agents" "$HARNESS_ROOT/codex/skill-overlays"
 cp -R "$ROOT/plugins/harness-guard/skills" "$HARNESS_ROOT/"
 cp "$ROOT/plugins/harness-guard/scripts/codex-pretool-guard.mjs" "$HARNESS_ROOT/scripts/"
+cp "$ROOT/plugins/harness-guard/scripts/guard.sh" "$HARNESS_ROOT/scripts/"
 cp -R "$ROOT/plugins/harness-guard/codex/agents/." "$HARNESS_ROOT/codex/agents/"
+cp -R "$ROOT/plugins/harness-guard/codex/skill-overlays/." "$HARNESS_ROOT/codex/skill-overlays/"
 
 cat >"$HARNESS_ROOT/hooks/hooks.json" <<'JSON'
 {

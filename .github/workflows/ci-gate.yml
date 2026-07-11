@@ -48,6 +48,7 @@ jobs:
           bash -n tests/codex-pretool-guard-test.sh
           bash -n tests/codex-semantic-parity-test.sh
           bash -n tests/codex-skill-mapping-test.sh
+          bash -n tests/claude-surface-isolation-test.sh
           bash -n tests/codex-plugin-cache-sync-test.sh
           bash -n scripts/new-repo.sh
           bash -n scripts/codex-hardened.sh
@@ -165,6 +166,9 @@ jobs:
 
       - name: Codex skill 실행 mapping
         run: bash tests/codex-skill-mapping-test.sh
+
+      - name: Claude-facing source 격리
+        run: bash tests/claude-surface-isolation-test.sh
 
       - name: Codex hardened launcher cache repair
         run: bash tests/codex-hardened-launcher-test.sh

@@ -7,12 +7,6 @@ effort: high
 
 # /plan — AI 실행용 스펙·플랜 정리 (계획 전용, git 무관)
 
-## Codex 실행
-
-Claude `EnterPlanMode`/`ExitPlanMode` 문자열은 Codex 명령이 아니다. Codex에서는 `/plan`으로 계획 모드에
-들어가 Phase 5 승인 전까지 읽기·계획만 수행한다. 승인 전에는 브랜치·커밋·구현 파일을 변경하지 않으며,
-근거 수집은 `harness-explorer`, 계획 반증은 `harness-verifier` read-only subagent에만 위임한다.
-
 **사용법**: `/plan <feature-name> "<무엇을·왜>"`
 예) `/plan checkout "장바구니 결제 — 재고 차감·결제 연동·주문 생성"`
 
@@ -24,7 +18,7 @@ Claude `EnterPlanMode`/`ExitPlanMode` 문자열은 Codex 명령이 아니다. Co
 > **흐름**: `/plan`(계획·승인, git 무관) → 개발: **`feature/<기능>` 한 브랜치**에서 태스크별 `/feature-add`(TDD·태스크당 원자적 커밋) → `/feature-merge`(한 PR). *한 기능 = 한 브랜치 = 한 PR.*
 
 > **스택 의존 값은 repo의 `AGENTS.md`에서 읽는다**(빌드·테스트 명령, 소스 디렉터리, 프론트 유무). 하드코딩 금지.
-> **비협상 규칙은 전역 행동 지침(`CLAUDE.md`/`AGENTS.md`) 1~4원칙**(단순함 우선·외과적 수정·목표기반 실행·생각 먼저)을 그대로 따른다 — 별도 constitution을 만들지 않는다.
+> **비협상 규칙은 `CLAUDE.md` 4원칙**(단순함 우선·외과적 수정·목표기반 실행·생각 먼저)을 그대로 따른다 — 별도 constitution을 만들지 않는다.
 
 ---
 
@@ -51,7 +45,7 @@ Claude `EnterPlanMode`/`ExitPlanMode` 문자열은 Codex 명령이 아니다. Co
 
 1. 위 "언제 쓰는가"로 `/plan` 적합성 판정 — 생략 대상이면 `/feature-add` 안내 후 종료.
 2. `AGENTS.md`를 읽어 스택·디렉터리·프론트 유무·빌드/테스트 명령 파악.
-3. **현재 도구의 plan mode 진입** — Codex는 `/plan`, Claude Code는 해당 plan mode로 코드베이스를 읽기 전용으로 보호한다. Phase 5 사람 승인 전에는 편집 도구를 쓰지 않는다.
+3. **Claude Code plan mode 진입** — 코드베이스를 읽기 전용으로 보호하고 사람 승인 없이 편집 도구를 쓰지 못하게 한다. Plan mode는 Phase 5 사람 승인(ExitPlanMode)까지 유지된다.
 
 > ⛔ 브랜치를 만들지 않는다. `/plan`은 현재 위치(보통 develop)에서 **읽기·계획만** 한다.
 > Plan mode가 이를 메커니즘으로 강제한다 — prose 규칙이 아니다.
@@ -144,7 +138,7 @@ Claude `EnterPlanMode`/`ExitPlanMode` 문자열은 Codex 명령이 아니다. Co
 1. `[NEEDS CLARIFICATION]`가 남아 있으면 **사람에게 질문**하고 답을 스펙에 반영(0개가 될 때까지). 추측으로 채우지 않는다.
 2. 스펙(목표·Scope·수용기준)·태스크 목록을 요약 제시하고 **사람 승인을 받는다.**
    > 잘못된 방향으로 자율 실행되는 것을 막는 가장 싼 결함 차단 지점. 솔로도 **계획 1회 승인**은 필수(스텝별 승인은 과잉).
-3. 승인 시 현재 도구의 plan mode를 종료한다 — 이후 개발 단계(`/feature-add`)에서 편집 도구 사용이 허용된다.
+3. 승인 시 **Claude Code plan mode 종료(ExitPlanMode)** — 이후 개발 단계(`/feature-add`)에서 편집 도구 사용이 허용된다.
 4. `/plan`은 git을 건드리지 않고 **승인된 계획 산출물에서 종료**한다.
 
 > 스펙 파일(`docs/specs/<feature-name>.md`)은 계획 산출물 — **`/plan`은 커밋하지 않는다.** 개발 단계가 브랜치를 만들 때 코드와 함께 커밋한다.

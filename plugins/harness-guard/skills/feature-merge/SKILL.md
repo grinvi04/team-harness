@@ -9,13 +9,6 @@ effort: medium
 **사용법**: `/feature-merge`
 현재 브랜치가 `feature/*` 또는 `fix/*`인 상태에서 실행한다.
 
-## Codex 실행
-
-Codex에서는 현재 agent가 품질 검증과 wrapper 실행을 순차로 소유한다. PR diff 검토는
-`codex review --base develop`로 수행하고, 독립적인 근거 수집이나 회귀 재검토만
-`harness-explorer` 또는 `harness-verifier` read-only subagent에 위임한다. subagent에게
-PR 생성·머지·브랜치 변경을 위임하지 않는다.
-
 > 코드 확인 후 사용자가 직접 실행하는 커맨드.
 > 머지 전 품질 검증을 자동으로 수행한다.
 
@@ -50,7 +43,7 @@ git status --short
 PR 생성은 **래퍼 스크립트**로 한다(맨손 `gh pr create`는 guard 차단). §2에서 품질검증을 이미 했으므로, 스크립트가 base 자동감지(develop 기반이면 base=develop)·push·`gh pr create`를 수행한다(hotfix·release와 동일 경로):
 
 ```bash
-bash ${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}/scripts/pr-create.sh \
+bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh \
   --title "<타입(scope): 요약>" --body "<무엇을·왜·검증>"
 ```
 
