@@ -10,4 +10,6 @@ CODEX_BIN=${CODEX_BIN:-codex}
 "$NODE_BIN" "$ROOT/plugins/harness-guard/scripts/patch-codex-harness-guard.mjs"
 "$NODE_BIN" "$ROOT/plugins/harness-guard/scripts/patch-codex-security-guidance.mjs"
 
-exec "$CODEX_BIN" "$@"
+# Codex 0.144.1 does not reliably emit PreToolUse for unified_exec. Keep CLI
+# sessions on the intercepted simple-shell path until upstream closes that gap.
+exec "$CODEX_BIN" --disable unified_exec "$@"
