@@ -241,6 +241,8 @@ FHOME=$(mktemp -d); mkdir -p "$FHOME/.claude/hooks"
 printf '%s' '{"tool_name":"Bash","session_id":"a\nFORGED session=evil DENY x","cwd":"/x","tool_input":{"command":"git reset --hard"}}' | HOME="$FHOME" bash "$G" >/dev/null 2>&1
 _lines=$(wc -l < "$FHOME/.claude/hooks/guard-block.log" 2>/dev/null | tr -d ' ')
 if [ "$_lines" = 1 ]; then echo "PASS: 7: 감사로그 개행 위조 방지"; PASS=$((PASS+1)); else echo "FAIL: 7: 감사로그 개행 위조 — 로그 ${_lines:-0}줄(기대 1)"; FAIL=$((FAIL+1)); fi
+_out=$(printf '%s' '{"tool_name":"Bash","tool_input":{"command":"git reset --hard"}}' | HOME="$FHOME" bash "$G" 2>&1)
+if echo "$_out" | grep -q 'Claude가 대신 실행하지 않음'; then echo "PASS: 7b: Claude 기본 agent label 유지"; PASS=$((PASS+1)); else echo "FAIL: 7b: Claude 기본 agent label 변경"; FAIL=$((FAIL+1)); fi
 rm -rf "$FHOME"
 
 # #196: LITE 교차-repo 오염 방지 — 코드 repo(마커無)에서 실행하는 명령 뒤에 lite repo로 후행 cd해도 LITE-게이트 유지
