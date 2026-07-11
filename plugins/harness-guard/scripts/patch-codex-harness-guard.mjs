@@ -118,10 +118,10 @@ function normalizeCodexSkills(cacheRoot) {
       attributions += 1
       return closingQuote ? `${closingQuote}\n` : ''
     })
-    after = after.replaceAll(
+    after = after.split('\n').map((line) => line.includes('CODEX_PLUGIN_ROOT') ? line : line.replaceAll(
       '${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}',
       '${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}',
-    )
+    )).join('\n')
     const overlayPath = path.join(overlaysRoot, `${skill}.md`)
     if (!existsSync(overlayPath)) throw new Error(`Codex skill overlay missing: ${overlayPath}`)
     if (!after.includes('## Codex 실행')) {
