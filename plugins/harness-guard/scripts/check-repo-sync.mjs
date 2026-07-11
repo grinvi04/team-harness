@@ -210,6 +210,17 @@ function ruleExists(name) {
 // severity: 'error' → MISSING 시 exit 1 / 'warn' → 없어도 exit 0(약한 신호)
 const checks = []
 
+let agentsText = ''
+try { agentsText = readFileSync(join(REPO, 'AGENTS.md'), 'utf8') } catch { /* missing is handled below */ }
+
+checks.push({
+  asset: 'Codex stack-rule pointer',
+  severity: 'error',
+  applicable: detected.length > 0,
+  status: /\.claude\/rules\/\*\.md/.test(agentsText) ? 'OK' : 'MISSING',
+  detail: 'AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)',
+})
+
 // 전 스택 공통 게이트
 checks.push({
   asset: 'ci-gate 워크플로',

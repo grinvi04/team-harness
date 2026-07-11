@@ -33,6 +33,11 @@
 - 도구 UI가 달라도 skill의 수용 기준·wrapper·CI/리뷰 게이트 결과는 같아야 한다. 존재하지 않는 도구 호출을
   가장하지 않는다.
 
+## Stack Rule 전달
+
+- 작업 대상 stack과 관련된 `.claude/rules/*.md`를 작업 전에 읽는다. 이 경로는 Claude Code의 자동 로딩
+  위치이지만 rule 원문은 도구 공통이다. Codex/Gemini는 AGENTS의 이 지시에 따라 관련 파일을 명시적으로 읽는다.
+
 ## 빌드·테스트 명령
 
 <!-- 프로젝트별로 채움 -->

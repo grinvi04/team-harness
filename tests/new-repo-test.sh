@@ -18,6 +18,12 @@ exit_case "PROT_FAILED=0 → 성공(0)"        0   0
 exit_case "PROT_FAILED=1 → 실패반영(1)"    1   1
 exit_case "PROT_FAILED='' → 기본0·성공(0)" ""  0
 
+if grep -Fq '.claude/rules/*.md' "$ROOT/templates/AGENTS.md"; then
+  echo "PASS: AGENTS template → Codex stack-rule pointer"; PASS=$((PASS+1))
+else
+  echo "FAIL: AGENTS template → Codex stack-rule pointer 누락"; FAIL=$((FAIL+1))
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
