@@ -8,11 +8,13 @@ TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 HOOKS="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/hooks/hooks.json"
 SKILL="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/skills/repo-sync/SKILL.md"
+SKILLS_ROOT="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/skills"
 CACHE_GUARD="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/scripts/codex-pretool-guard.mjs"
 AGENT_SOURCE="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/codex/agents"
 AGENT_DEST="$TMP/.codex/agents"
 mkdir -p "$(dirname "$HOOKS")"
-mkdir -p "$(dirname "$SKILL")"
+mkdir -p "$SKILLS_ROOT"
+cp -R "$ROOT/plugins/harness-guard/skills/." "$SKILLS_ROOT/"
 mkdir -p "$(dirname "$CACHE_GUARD")"
 mkdir -p "$AGENT_SOURCE"
 printf '%s\n' '#!/usr/bin/env node' >"$CACHE_GUARD"
@@ -66,15 +68,17 @@ cat >"$SKILL" <<'MD'
 name: repo-sync
 argument-hint: "[repo 경로 ...]" (생략 시 현재 작업 repo)
 ---
+
+## Phase 1 — 탐색 (`subagent_type: general-purpose`, `model: sonnet`, `run_in_background: true`)
 MD
 
 HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/dry-run.json"
 HOME="$TMP" node "$PATCHER" >"$TMP/result.json"
 HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/recheck.json"
 
-node - "$HOOKS" "$SKILL" "$AGENT_DEST" "$TMP/dry-run.json" "$TMP/result.json" "$TMP/recheck.json" <<'NODE'
+node - "$HOOKS" "$SKILL" "$SKILLS_ROOT" "$AGENT_DEST" "$TMP/dry-run.json" "$TMP/result.json" "$TMP/recheck.json" <<'NODE'
 const fs = require('node:fs');
-const [hooksPath, skillPath, agentDest, dryRunPath, resultPath, recheckPath] = process.argv.slice(2);
+const [hooksPath, skillPath, skillsRoot, agentDest, dryRunPath, resultPath, recheckPath] = process.argv.slice(2);
 const fail = (message) => { console.error(`FAIL: ${message}`); process.exit(1); };
 const hooks = JSON.parse(fs.readFileSync(hooksPath, 'utf8'));
 const dryRun = JSON.parse(fs.readFileSync(dryRunPath, 'utf8'));
@@ -83,6 +87,8 @@ const recheck = JSON.parse(fs.readFileSync(recheckPath, 'utf8'));
 if (dryRun.hooks.removed !== 1 || !dryRun.hooks.changedFile) fail('dry run did not detect prompt handler');
 if (result.hooks.removed !== 1 || !result.hooks.changedFile) fail('patch did not remove prompt handler');
 if (dryRun.skills.fixed !== 1 || result.skills.fixed !== 1) fail('argument-hint fix was not detected');
+if (dryRun.skills.normalized < 1 || result.skills.normalized < 1) fail('Claude execution metadata was not detected');
+if (recheck.skills.normalized !== 0) fail('Claude execution metadata normalization is not idempotent');
 if (dryRun.agents.changedFiles !== 3 || result.agents.changedFiles !== 3) fail('Codex agents were not installed');
 if (recheck.agents.changedFiles !== 0) fail('Codex agent install is not idempotent');
 const preTool = hooks.hooks.PreToolUse[0].hooks;
@@ -90,7 +96,13 @@ if (preTool.length !== 1 || preTool[0].type !== 'command' || !preTool[0].command
 if (preTool[0].statusMessage !== '명령·시크릿 전송 검사 중...') fail('replacement status message missing');
 const promptSubmit = hooks.hooks.UserPromptSubmit[0].hooks;
 if (promptSubmit.length !== 1 || promptSubmit[0].command !== 'node route-intent.mjs') fail('other command hook changed');
-if (!fs.readFileSync(skillPath, 'utf8').includes('argument-hint: "\\\"[repo 경로 ...]\\\" (생략 시 현재 작업 repo)"')) fail('argument-hint was not YAML-quoted');
+const skill = fs.readFileSync(skillPath, 'utf8');
+if (!skill.includes('argument-hint: "\\\"[repo 경로 ...]\\\" (생략 시 현재 작업 repo)"')) fail('argument-hint was not YAML-quoted');
+if (skill.includes('subagent_type:') || skill.includes('run_in_background:')) fail('Claude execution metadata remained in Codex cache skill');
+for (const name of fs.readdirSync(skillsRoot)) {
+  const text = fs.readFileSync(`${skillsRoot}/${name}/SKILL.md`, 'utf8');
+  if (/\([^\n)]*`subagent_type:/.test(text)) fail(`${name} retained Claude execution metadata`);
+}
 for (const [file, model, effort] of [
   ['harness-explorer.toml', 'gpt-5.6-terra', 'medium'],
   ['harness-verifier.toml', 'gpt-5.6-terra', 'medium'],
@@ -102,6 +114,7 @@ for (const [file, model, effort] of [
   }
 }
 console.log('PASS: Codex cache에서 prompt를 egress command guard로 교체하고 command guard 유지');
+console.log('PASS: Claude 실행 메타데이터를 Codex cache skill에서만 제거');
 console.log('PASS: namespaced Codex read-only agents 설치');
 NODE
 
