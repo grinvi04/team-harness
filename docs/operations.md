@@ -129,6 +129,7 @@
 | 로그 | 위치 | 내용 |
 |---|---|---|
 | 가드 차단 | `~/.claude/hooks/guard-block.log` | deny된 명령·사유·session·cwd (시크릿 마스킹) |
+| Codex 가드 차단 | `~/.codex/hooks/guard-block.log` | Codex wrapper에서 deny된 명령·사유·session·cwd (Claude 로그와 격리) |
 | 모델 티어링 | `~/.claude/hooks/subagent-model.log` | 서브에이전트 타입별 force/skip 모델 결정 |
 
 - **읽는 법**: `grep 'cwd=.*/erp' ~/.claude/hooks/subagent-model.log`(특정 repo 스폰 모델 감사) · `grep DENY ~/.claude/hooks/guard-block.log`(차단 이력).
