@@ -56,8 +56,9 @@
 
 - Codex 실제 세션의 fresh-session probe가 없는 호환성 주장은 하지 않는다.
 - 최종 보안 통제선은 server-side branch protection/CI와 Codex sandbox·approval이다. Hook은 보조 통제다.
-- `unified_exec` 보완을 위해 `approval_policy = "untrusted"`를 쓰면 모든 비신뢰 명령에 사람이 승인해야 한다.
-  이는 사용자 정책 변경이며, 시크릿 전송만을 자동 차단하는 hook과 동등하지 않다.
+- interactive Codex의 `approval_policy = "untrusted"`는 사람 승인 경계지만, `codex exec` 0.144.1은 fresh probe에서
+  `approval: never`로 실행돼 같은 보장을 제공하지 않았다. hardened CLI launcher는 `--disable unified_exec`를
+  주입해 PreToolUse가 발화하는 simple shell 경로를 사용한다.
 - Codex 호환 변경은 Claude source runtime의 동작과 cache를 바꾸지 않는다.
 
 ## 5. 경계 / Do-Not
@@ -70,8 +71,9 @@
 
 ## 6. Open Questions
 
-`unified_exec`의 불완전한 PreToolUse interception(#283)이 현재 open이다. Codex upstream이 이 경로를
-intercept하면 fresh-session probe로 AC-3을 재평가한다.
+`unified_exec`의 불완전한 PreToolUse interception은 upstream 한계다. hardened CLI launcher는 이를 비활성화해
+우회하지만 Desktop App과 launcher를 거치지 않은 직접 실행은 여전히 비보장이다. Codex upstream이 이 경로를
+intercept하면 fresh-session probe로 비활성화 필요성을 재평가한다.
 
 ## 7. 기술 접근 (HOW)
 
@@ -81,8 +83,8 @@ intercept하면 fresh-session probe로 AC-3을 재평가한다.
   보존하고 Codex adapter/설정으로 분리한다.
 - `type: "prompt"` secret-egress guard는 Codex가 PreToolUse를 발생시키는 호출에서만 Codex command hook으로
   대체한다. deny/allow fixtures는 Claude prompt의 좁은 threat model을 그대로 따르되, `unified_exec`에는
-  적용되지 않아 `approval_policy = "untrusted"`를 사람 승인 경계로 둔다는 runtime 한계를 matrix와 #283에
-  유지한다.
+  적용되지 않는다. CLI launcher에서는 `--disable unified_exec`로 simple shell 경로를 강제하고, Desktop App과
+  launcher 우회 실행은 runtime 한계로 matrix에 유지한다.
 - security guidance는 #264의 범위로 계속 다룬다. `codex-security` 평가는 security-guidance 대체 여부가
   아니라 별도 coverage를 더하는지 판정한다.
 - Codex hook contract는 ephemeral fresh session에서 probe한다. cache patch 뒤에는 `/hooks` trust 상태와 실제
