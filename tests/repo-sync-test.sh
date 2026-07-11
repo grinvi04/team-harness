@@ -20,6 +20,14 @@ check() { # desc, expected_exit, repo_path
 
 # 자산 완비(java+flyway) → sync 통과
 check "good(자산 완비) → 통과"              0 "$FIX/good"
+# Codex rule pointer 누락 — rule 파일이 있어도 AGENTS가 읽으라고 하지 않으면 의미 전달 실패.
+check "bad(Codex stack-rule pointer 누락) → MISSING/FAIL" 1 "$FIX/bad-codex-rule-pointer"
+OUT=$(node "$GATE" --repo "$FIX/bad-codex-rule-pointer" --harness "$ROOT" 2>&1)
+if echo "$OUT" | grep -q "Codex stack-rule pointer" && echo "$OUT" | grep -q "MISSING"; then
+  echo "PASS: Codex stack-rule pointer 누락 원인 보고"; PASS=$((PASS+1))
+else
+  echo "FAIL: Codex stack-rule pointer 누락 원인 미보고"; FAIL=$((FAIL+1))
+fi
 # test-guard 게이트 누락 → 드리프트 차단
 check "bad(test-guard 누락) → MISSING/FAIL"  1 "$FIX/bad-missing-testguard"
 # #183: sentinel(gitleaks)이 주석에만 있는 비활성 게이트는 존재로 오인 안 됨 → MISSING/FAIL
