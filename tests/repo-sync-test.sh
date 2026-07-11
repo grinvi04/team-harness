@@ -54,11 +54,12 @@ else
 fi
 
 # Self-repo: 신규 repo templates와 test fixtures는 team-harness 자신의 런타임 스택이 아니다.
-OUT=$(node "$GATE" --repo "$ROOT" --harness "$ROOT" 2>&1)
-if echo "$OUT" | grep -q "감지된 스택: (없음)" && ! echo "$OUT" | grep -q "룰:"; then
-  echo "PASS: self-repo templates·fixtures 스택 오탐 없음"; PASS=$((PASS+1))
+if OUT=$(node "$GATE" --repo "$ROOT" --harness "$ROOT" 2>&1) &&
+   echo "$OUT" | grep -q "감지된 스택: (없음)" &&
+   ! echo "$OUT" | grep -qE "룰:|✗ MISSING"; then
+  echo "PASS: self-repo 스택 오탐·필수 자산 드리프트 없음"; PASS=$((PASS+1))
 else
-  echo "FAIL: self-repo templates·fixtures를 실제 스택으로 오인"; FAIL=$((FAIL+1))
+  echo "FAIL: self-repo 스택 오탐 또는 필수 자산 드리프트"; FAIL=$((FAIL+1))
 fi
 
 # --help → 통과
