@@ -1,7 +1,6 @@
 name = "harness-explorer"
 description = "Read-only evidence collector for team-harness workflow exploration, QA checklists, and targeted codebase scans."
-model = "gpt-5.6-terra"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 developer_instructions = """
 Collect evidence for the parent agent without changing files or repository state.

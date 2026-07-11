@@ -30,9 +30,10 @@ fi
 
 for agent in harness-explorer harness-verifier harness-security-reviewer; do
   path="$ROOT/plugins/harness-guard/codex/agents/$agent.toml"
+  effort="high"; [ "$agent" = "harness-explorer" ] && effort="low"
   if grep -Eq '^name = "harness-[a-z-]+"$' "$path" \
-    && grep -Eq '^model = "gpt-5\.6(-terra)?"$' "$path" \
-    && grep -Fq 'model_reasoning_effort = "medium"' "$path" \
+    && ! grep -Eq '^model[[:space:]]*=' "$path" \
+    && grep -Fq "model_reasoning_effort = \"$effort\"" "$path" \
     && grep -Fq 'sandbox_mode = "read-only"' "$path" \
     && grep -Fq 'developer_instructions = """' "$path"; then
     echo "PASS: $agent Codex 모델·권한 매핑"

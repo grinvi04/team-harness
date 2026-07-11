@@ -11,7 +11,7 @@ effort: high
 
 GitHub milestone·repo 스펙·이슈가 정본이라는 계약은 Codex에서도 같다. Codex의 `/goal`은 현재 작업의
 지속 목표로 함께 쓸 수 있지만 milestone을 대체하지 않는다. 기능 분해·진행률 집계·재분해는 현재 agent가
-수행하고, 근거 수집만 `harness-explorer` (`gpt-5.6-terra`, medium)에 위임한다.
+수행하고, 근거 수집만 `harness-explorer` (`부모 모델 상속`, low)에 위임한다.
 
 **사용법 (3가지 모드)**
 
