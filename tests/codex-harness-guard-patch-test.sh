@@ -70,6 +70,8 @@ argument-hint: "[repo 경로 ...]" (생략 시 현재 작업 repo)
 ---
 
 ## Phase 1 — 탐색 (`subagent_type: general-purpose`, `model: sonnet`, `run_in_background: true`)
+
+Co-Authored-By: Codex <noreply@openai.com>
 MD
 
 HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/dry-run.json"
@@ -89,6 +91,8 @@ if (result.hooks.removed !== 1 || !result.hooks.changedFile) fail('patch did not
 if (dryRun.skills.fixed !== 1 || result.skills.fixed !== 1) fail('argument-hint fix was not detected');
 if (dryRun.skills.normalized < 1 || result.skills.normalized < 1) fail('Claude execution metadata was not detected');
 if (recheck.skills.normalized !== 0) fail('Claude execution metadata normalization is not idempotent');
+if (dryRun.skills.attributions < 1 || result.skills.attributions < 1) fail('Claude co-author attribution was not detected');
+if (recheck.skills.attributions !== 0) fail('Claude co-author attribution normalization is not idempotent');
 if (dryRun.agents.changedFiles !== 3 || result.agents.changedFiles !== 3) fail('Codex agents were not installed');
 if (recheck.agents.changedFiles !== 0) fail('Codex agent install is not idempotent');
 const preTool = hooks.hooks.PreToolUse[0].hooks;
@@ -99,9 +103,11 @@ if (promptSubmit.length !== 1 || promptSubmit[0].command !== 'node route-intent.
 const skill = fs.readFileSync(skillPath, 'utf8');
 if (!skill.includes('argument-hint: "\\\"[repo 경로 ...]\\\" (생략 시 현재 작업 repo)"')) fail('argument-hint was not YAML-quoted');
 if (skill.includes('subagent_type:') || skill.includes('run_in_background:')) fail('Claude execution metadata remained in Codex cache skill');
+if (!skill.includes('Co-Authored-By: Codex <noreply@openai.com>')) fail('non-Claude co-author attribution was removed');
 for (const name of fs.readdirSync(skillsRoot)) {
   const text = fs.readFileSync(`${skillsRoot}/${name}/SKILL.md`, 'utf8');
   if (/\([^\n)]*`subagent_type:/.test(text)) fail(`${name} retained Claude execution metadata`);
+  if (/^Co-Authored-By: Claude\b/m.test(text)) fail(`${name} retained Claude co-author attribution`);
 }
 for (const [file, model, effort] of [
   ['harness-explorer.toml', 'gpt-5.6-terra', 'medium'],
@@ -115,8 +121,15 @@ for (const [file, model, effort] of [
 }
 console.log('PASS: Codex cache에서 prompt를 egress command guard로 교체하고 command guard 유지');
 console.log('PASS: Claude 실행 메타데이터를 Codex cache skill에서만 제거');
+console.log('PASS: Claude 공동작성 표기를 Codex cache skill에서만 제거');
 console.log('PASS: namespaced Codex read-only agents 설치');
 NODE
+
+if ! grep -Rqs '^Co-Authored-By: Claude\b' "$ROOT/plugins/harness-guard/skills"; then
+  echo "FAIL: Claude source skill의 공동작성 표기가 변경됨"
+  exit 1
+fi
+echo "PASS: Claude source skill 공동작성 표기 유지"
 
 node -e 'require("node:fs").unlinkSync(process.argv[1])' "$CACHE_GUARD"
 if HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/missing.out" 2>"$TMP/missing.err"; then
