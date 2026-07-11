@@ -48,6 +48,7 @@ jobs:
           bash -n tests/codex-pretool-guard-test.sh
           bash -n tests/codex-semantic-parity-test.sh
           bash -n tests/codex-skill-mapping-test.sh
+          bash -n tests/codex-plugin-cache-sync-test.sh
           bash -n scripts/new-repo.sh
           bash -n scripts/codex-hardened.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
@@ -56,6 +57,7 @@ jobs:
           node --check plugins/harness-guard/scripts/codex-secret-egress-guard.mjs
           node --check plugins/harness-guard/scripts/codex-pretool-guard.mjs
           node --check plugins/harness-guard/scripts/route-intent.mjs
+          node --check scripts/sync-codex-plugin-cache.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
           node --check scripts/check-alembic-destructive-ddl.mjs
@@ -166,6 +168,9 @@ jobs:
 
       - name: Codex hardened launcher cache repair
         run: bash tests/codex-hardened-launcher-test.sh
+
+      - name: Codex plugin cache 조건부 동기화
+        run: bash tests/codex-plugin-cache-sync-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
