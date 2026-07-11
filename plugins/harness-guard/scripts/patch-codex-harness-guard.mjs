@@ -104,9 +104,9 @@ function normalizeCodexSkills(cacheRoot) {
       normalized += 1
       return ''
     })
-    after = after.replace(/^Co-Authored-By:\s+Claude\b[^\n]*(?:\n|$)/gm, () => {
+    after = after.replace(/^Co-Authored-By:\s+Claude\b[^"\n]*(")?(?:\n|$)/gm, (_, closingQuote) => {
       attributions += 1
-      return ''
+      return closingQuote ? `${closingQuote}\n` : ''
     })
     if (after === before) continue
     changedFiles += 1
