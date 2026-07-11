@@ -22,8 +22,7 @@ printf '%s\n' '#!/usr/bin/env node' >"$CACHE_GUARD"
 cat >"$AGENT_SOURCE/harness-explorer.toml" <<'TOML'
 name = "harness-explorer"
 description = "Read-only evidence collection."
-model = "gpt-5.6-terra"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "low"
 sandbox_mode = "read-only"
 developer_instructions = "Do not edit files."
 TOML
@@ -31,8 +30,7 @@ TOML
 cat >"$AGENT_SOURCE/harness-verifier.toml" <<'TOML'
 name = "harness-verifier"
 description = "Read-only verification."
-model = "gpt-5.6-terra"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = "Do not edit files."
 TOML
@@ -40,8 +38,7 @@ TOML
 cat >"$AGENT_SOURCE/harness-security-reviewer.toml" <<'TOML'
 name = "harness-security-reviewer"
 description = "Read-only security review."
-model = "gpt-5.6-terra"
-model_reasoning_effort = "medium"
+model_reasoning_effort = "high"
 sandbox_mode = "read-only"
 developer_instructions = "Do not edit files."
 TOML
@@ -114,13 +111,13 @@ for (const name of fs.readdirSync(skillsRoot)) {
   if (/\([^\n)]*`subagent_type:/.test(text)) fail(`${name} retained Claude execution metadata`);
   if (/^Co-Authored-By: Claude\b/m.test(text)) fail(`${name} retained Claude co-author attribution`);
 }
-for (const [file, model, effort] of [
-  ['harness-explorer.toml', 'gpt-5.6-terra', 'medium'],
-  ['harness-verifier.toml', 'gpt-5.6-terra', 'medium'],
-  ['harness-security-reviewer.toml', 'gpt-5.6-terra', 'medium'],
+for (const [file, effort] of [
+  ['harness-explorer.toml', 'low'],
+  ['harness-verifier.toml', 'high'],
+  ['harness-security-reviewer.toml', 'high'],
 ]) {
   const text = fs.readFileSync(`${agentDest}/${file}`, 'utf8');
-  if (!text.includes(`model = "${model}"`) || !text.includes(`model_reasoning_effort = "${effort}"`) || !text.includes('sandbox_mode = "read-only"')) {
+  if (/^model\s*=/m.test(text) || !text.includes(`model_reasoning_effort = "${effort}"`) || !text.includes('sandbox_mode = "read-only"')) {
     fail(`${file} model or sandbox mapping missing`);
   }
 }
