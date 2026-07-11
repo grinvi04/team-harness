@@ -221,4 +221,6 @@
 
 | **Codex skill cache 경로 변환 멱등성 복구(v0.54.1)** — v0.54.0 runtime 적용 후 dry-run에서 8개 skill이 다시 변경 대상으로 잡혔다. 이미 생성된 `${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-...}}` 안의 Claude fallback을 다음 실행이 다시 감싸는 부분 문자열 치환이 원인이었다. **결정**: `CODEX_PLUGIN_ROOT`가 이미 있는 줄은 건너뛰고 아직 Claude 경로만 있는 줄만 변환한다. patch test는 두 번째 실행의 `skills.changedFiles === 0`을 강제한다. **버전정책**: 반복 launcher 실행의 cache 변형을 고치는 PATCH → **0.54.1**. | 2026-07-12 | plugins/harness-guard/scripts/patch-codex-harness-guard.mjs | tests/codex-harness-guard-patch-test.sh, plugin.json(0.54.1), README.md |
 
+| **Codex local surface managed hook 경로 강제(v0.55.0, #330)** — launcher의 `--disable unified_exec`만으로는 일반 CLI·cmux 직접 실행·Desktop을 통제하지 못했다. 공식 Codex managed configuration은 `/etc/codex/requirements.toml`의 `[features]`에서 `unified_exec=false`, `hooks=true`를 pin하며 CLI/config override보다 우선한다. **결정**: marker 소유 파일만 install/check/uninstall하는 fail-closed installer를 제공한다. 외부 requirements는 자동 병합·덮어쓰기·삭제하지 않는다. launcher flag는 cache 자동복구와 하위 버전 방어로 유지하지만 보안 의미는 system requirement가 소유한다. **버전정책**: 모든 local surface의 실행 경로 변경이므로 MINOR → **0.55.0**. | 2026-07-12 | scripts/install-codex-managed-requirements.sh | tests/codex-managed-requirements-test.sh, docs/specs/codex-managed-hook-enforcement.md, plugin.json(0.55.0), README.md |
+
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)

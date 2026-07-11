@@ -35,6 +35,7 @@ for path in \
   agents/verifier.md; do
   check "$path" "\`$path\`"
 done
+check "scripts/install-codex-managed-requirements.sh" '`scripts/install-codex-managed-requirements.sh`'
 
 matrix_table=$(sed -n '/| 소유 surface |/,/^$/p' "$MATRIX")
 if grep -Fq '미검증' <<<"$matrix_table"; then
