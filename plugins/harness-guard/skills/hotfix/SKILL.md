@@ -7,12 +7,6 @@ effort: high
 
 # /hotfix — 운영 긴급 수정
 
-## Codex 실행
-
-Claude의 `subagent_type`·`model`·`run_in_background` 표기는 Claude 경로용 역할 경계다. Codex에서는
-재현·회귀 테스트·수정·main/develop 양쪽 반영을 현재 agent가 순차 수행한다. 원인 탐색·수정 후 반증만
-`harness-explorer`/`harness-verifier` read-only subagent에 위임한다.
-
 **사용법**: `/hotfix <fix-name> "<증상 설명>"`
 예) `/hotfix auth-cookie "로그인 후 쿠키가 발급되지 않는 문제"`
 
@@ -67,7 +61,7 @@ Phase 2 ✅인 경우에만 진행.
 
 ```bash
 # 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
-bash ${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}/scripts/pr-create.sh --base main \
+bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base main \
   --title "fix($FIX_NAME): $DESCRIPTION" \
   --body "긴급 수정: $DESCRIPTION
 
@@ -102,7 +96,7 @@ develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **
 git checkout main && git pull origin main
 git checkout -b sync/backmerge-$FIX_NAME
 git push -u origin sync/backmerge-$FIX_NAME
-bash ${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}/scripts/pr-create.sh --base develop \
+bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
   --title "chore: hotfix/$FIX_NAME develop 반영" \
   --body "main PR과 동일 내용의 back-merge — main 머지·태그(v$PATCH) 완료 후 develop 반영.
 

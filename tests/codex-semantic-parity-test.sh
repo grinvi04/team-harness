@@ -47,6 +47,10 @@ for skill in "$ROOT"/plugins/harness-guard/skills/*/SKILL.md; do
   check "$rel" "\`$rel\`"
 done
 
+for overlay in "$ROOT"/plugins/harness-guard/codex/skill-overlays/*.md; do
+  check "${overlay##*/}" '`codex/skill-overlays/*.md`'
+done
+
 if [ "$FAIL" -ne 0 ]; then
   exit 1
 fi

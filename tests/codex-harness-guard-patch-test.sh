@@ -10,12 +10,18 @@ HOOKS="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/hooks/hooks.j
 SKILL="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/skills/repo-sync/SKILL.md"
 SKILLS_ROOT="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/skills"
 CACHE_GUARD="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/scripts/codex-pretool-guard.mjs"
+CACHE_SOURCE_GUARD="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/scripts/guard.sh"
+CODEX_GUARD="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/scripts/codex-guard.sh"
+OVERLAYS="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/codex/skill-overlays"
 AGENT_SOURCE="$TMP/.codex/plugins/cache/team-harness/harness-guard/0.37.0/codex/agents"
 AGENT_DEST="$TMP/.codex/agents"
 mkdir -p "$(dirname "$HOOKS")"
 mkdir -p "$SKILLS_ROOT"
 cp -R "$ROOT/plugins/harness-guard/skills/." "$SKILLS_ROOT/"
 mkdir -p "$(dirname "$CACHE_GUARD")"
+cp "$ROOT/plugins/harness-guard/scripts/guard.sh" "$CACHE_SOURCE_GUARD"
+mkdir -p "$OVERLAYS"
+cp -R "$ROOT/plugins/harness-guard/codex/skill-overlays/." "$OVERLAYS/"
 mkdir -p "$AGENT_SOURCE"
 printf '%s\n' '#!/usr/bin/env node' >"$CACHE_GUARD"
 
@@ -66,6 +72,8 @@ name: repo-sync
 argument-hint: "[repo 경로 ...]" (생략 시 현재 작업 repo)
 ---
 
+# /repo-sync
+
 ## Phase 1 — 탐색 (`subagent_type: general-purpose`, `model: sonnet`, `run_in_background: true`)
 
 Co-Authored-By: Codex <noreply@openai.com>
@@ -79,9 +87,9 @@ HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/dry-run.json"
 HOME="$TMP" node "$PATCHER" >"$TMP/result.json"
 HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/recheck.json"
 
-node - "$HOOKS" "$SKILL" "$SKILLS_ROOT" "$AGENT_DEST" "$TMP/dry-run.json" "$TMP/result.json" "$TMP/recheck.json" <<'NODE'
+node - "$HOOKS" "$SKILL" "$SKILLS_ROOT" "$AGENT_DEST" "$CODEX_GUARD" "$TMP/dry-run.json" "$TMP/result.json" "$TMP/recheck.json" <<'NODE'
 const fs = require('node:fs');
-const [hooksPath, skillPath, skillsRoot, agentDest, dryRunPath, resultPath, recheckPath] = process.argv.slice(2);
+const [hooksPath, skillPath, skillsRoot, agentDest, codexGuardPath, dryRunPath, resultPath, recheckPath] = process.argv.slice(2);
 const fail = (message) => { console.error(`FAIL: ${message}`); process.exit(1); };
 const hooks = JSON.parse(fs.readFileSync(hooksPath, 'utf8'));
 const dryRun = JSON.parse(fs.readFileSync(dryRunPath, 'utf8'));
@@ -89,11 +97,13 @@ const result = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
 const recheck = JSON.parse(fs.readFileSync(recheckPath, 'utf8'));
 if (dryRun.hooks.removed !== 1 || !dryRun.hooks.changedFile) fail('dry run did not detect prompt handler');
 if (result.hooks.removed !== 1 || !result.hooks.changedFile) fail('patch did not remove prompt handler');
-if (dryRun.skills.fixed !== 1 || result.skills.fixed !== 1) fail('argument-hint fix was not detected');
+if (dryRun.skills.fixed !== 1 || result.skills.fixed !== 1 || recheck.skills.fixed !== 0) fail('argument-hint fix was not applied idempotently');
 if (dryRun.skills.normalized < 1 || result.skills.normalized < 1) fail('Claude execution metadata was not detected');
 if (recheck.skills.normalized !== 0) fail('Claude execution metadata normalization is not idempotent');
 if (dryRun.skills.attributions < 1 || result.skills.attributions < 1) fail('Claude co-author attribution was not detected');
 if (recheck.skills.attributions !== 0) fail('Claude co-author attribution normalization is not idempotent');
+if (result.skills.overlays !== 14 || recheck.skills.overlays !== 0) fail(`Codex overlays were not injected exactly once: result=${result.skills.overlays} recheck=${recheck.skills.overlays}`);
+if (!result.guard.changedFile || recheck.guard.changedFile) fail('Codex guard generation is not idempotent');
 if (dryRun.agents.changedFiles !== 3 || result.agents.changedFiles !== 3) fail('Codex agents were not installed');
 if (recheck.agents.changedFiles !== 0) fail('Codex agent install is not idempotent');
 const preTool = hooks.hooks.PreToolUse[0].hooks;
@@ -108,9 +118,13 @@ if (!skill.includes('Co-Authored-By: Codex <noreply@openai.com>')) fail('non-Cla
 if (!skill.includes('git commit -m "subject\n\n"\n')) fail('closing quote was removed with Claude attribution');
 for (const name of fs.readdirSync(skillsRoot)) {
   const text = fs.readFileSync(`${skillsRoot}/${name}/SKILL.md`, 'utf8');
+  if ((text.match(/^## Codex 실행$/gm) || []).length !== 1) fail(`${name} Codex overlay count is not one`);
   if (/\([^\n)]*`subagent_type:/.test(text)) fail(`${name} retained Claude execution metadata`);
   if (/^Co-Authored-By: Claude\b/m.test(text)) fail(`${name} retained Claude co-author attribution`);
 }
+const codexGuard = fs.readFileSync(codexGuardPath, 'utf8');
+if (!codexGuard.includes('.codex/hooks/guard-block.log') || !codexGuard.includes('Codex가 대신 실행하지 않음')) fail('Codex guard runtime identity missing');
+if (codexGuard.includes('HARNESS_GUARD_LOG') || codexGuard.includes('HARNESS_AGENT_NAME')) fail('Codex guard depends on Claude source overrides');
 for (const [file, effort] of [
   ['harness-explorer.toml', 'low'],
   ['harness-verifier.toml', 'high'],
@@ -124,6 +138,7 @@ for (const [file, effort] of [
 console.log('PASS: Codex cache에서 prompt를 egress command guard로 교체하고 command guard 유지');
 console.log('PASS: Claude 실행 메타데이터를 Codex cache skill에서만 제거');
 console.log('PASS: Claude 공동작성 표기를 Codex cache skill에서만 제거');
+console.log('PASS: Codex overlay·guard를 cache에 한 번만 생성');
 console.log('PASS: namespaced Codex read-only agents 설치');
 NODE
 
@@ -138,8 +153,28 @@ if HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/missing.out" 2>"$TMP/missing.err
   echo "FAIL: 구버전 cache의 누락된 egress guard를 허용함"
   exit 1
 fi
-if ! grep -Fq 'reinstall harness-guard v0.41.0 or newer' "$TMP/missing.err"; then
+if ! grep -Fq 'reinstall harness-guard v0.54.0 or newer' "$TMP/missing.err"; then
   echo "FAIL: cache refresh 안내가 없음"
   exit 1
 fi
 echo "PASS: 구버전 cache는 egress guard 없이 patch하지 않음"
+
+printf '%s\n' '#!/usr/bin/env node' >"$CACHE_GUARD"
+cat >"$HOOKS" <<'JSON'
+{"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"bash guard.sh"},{"type":"prompt","prompt":"secret review"}]}]}}
+JSON
+HOOKS_BEFORE=$(cksum "$HOOKS")
+rm "$OVERLAYS/qa.md"
+if HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/overlay.out" 2>"$TMP/overlay.err"; then
+  echo "FAIL: 누락된 Codex skill overlay를 허용함"
+  exit 1
+fi
+if ! grep -Fq 'Codex skill overlay missing' "$TMP/overlay.err"; then
+  echo "FAIL: overlay 누락 원인 안내가 없음"
+  exit 1
+fi
+if [ "$(cksum "$HOOKS")" != "$HOOKS_BEFORE" ]; then
+  echo "FAIL: overlay preflight 실패 전에 live hooks가 변경됨"
+  exit 1
+fi
+echo "PASS: Codex skill overlay 누락은 fail-closed"
