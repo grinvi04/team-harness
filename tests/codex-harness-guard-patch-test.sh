@@ -72,6 +72,10 @@ argument-hint: "[repo 경로 ...]" (생략 시 현재 작업 repo)
 ## Phase 1 — 탐색 (`subagent_type: general-purpose`, `model: sonnet`, `run_in_background: true`)
 
 Co-Authored-By: Codex <noreply@openai.com>
+
+git commit -m "subject
+
+Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
 MD
 
 HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/dry-run.json"
@@ -104,6 +108,7 @@ const skill = fs.readFileSync(skillPath, 'utf8');
 if (!skill.includes('argument-hint: "\\\"[repo 경로 ...]\\\" (생략 시 현재 작업 repo)"')) fail('argument-hint was not YAML-quoted');
 if (skill.includes('subagent_type:') || skill.includes('run_in_background:')) fail('Claude execution metadata remained in Codex cache skill');
 if (!skill.includes('Co-Authored-By: Codex <noreply@openai.com>')) fail('non-Claude co-author attribution was removed');
+if (!skill.includes('git commit -m "subject\n\n"\n')) fail('closing quote was removed with Claude attribution');
 for (const name of fs.readdirSync(skillsRoot)) {
   const text = fs.readFileSync(`${skillsRoot}/${name}/SKILL.md`, 'utf8');
   if (/\([^\n)]*`subagent_type:/.test(text)) fail(`${name} retained Claude execution metadata`);

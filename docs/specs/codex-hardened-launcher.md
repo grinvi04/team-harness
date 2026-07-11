@@ -2,13 +2,13 @@
 
 ## 1. 목표 & Why
 
-cmux CLI에서 Codex를 시작하기 전에 `harness-guard`와 `security-guidance`의 Codex cache patch를 적용한다.
+cmux CLI에서 Codex를 시작하기 전에 조건부 plugin 동기화와 `harness-guard`·`security-guidance` Codex cache patch를 적용한다.
 Codex marketplace refresh가 Claude-style hook을 되돌려도 CLI 새 세션은 adapter·skill 정규화를 거친 상태에서
 시작한다. **성공 기준: launcher가 두 patch를 성공한 뒤에만 Codex binary를 같은 인자로 실행한다.**
 
 ## 2. Scope
 
-- **In:** `scripts/codex-hardened.sh`, 실행 순서 회귀 테스트, CLI alias 설치·제거 runbook.
+- **In:** `scripts/codex-hardened.sh`, 조건부 plugin 동기화, 실행 순서 회귀 테스트, CLI alias 설치·제거 runbook.
 - **Out (Non-goals):** Codex Desktop App 시작 전 patch 보장, `launchd` watcher 설치, Claude source/cache 변경.
 
 ## 3. 기능 요구사항 + 수용기준 (= 테스트 계약)
