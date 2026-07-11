@@ -40,7 +40,9 @@
 
 ## 5. 감사·복구
 
-- **차단 이력**: `~/.claude/hooks/guard-block.log`(session_id·cwd·사유·명령, 크레덴셜 마스킹). 멀티세션 위반 시도 추적. (로컬 write-only — 중앙 집계는 #220-E.)
+- **차단 이력**: Claude는 `~/.claude/hooks/guard-block.log`, Codex wrapper는
+  `~/.codex/hooks/guard-block.log`(session_id·cwd·사유·명령, 크레덴셜 마스킹). 멀티세션 위반 시도 추적.
+  (로컬 write-only — 중앙 집계는 #220-E.)
 - **머지 게이트 우회(솔로 승인요건)**: `/solo-merge`가 보호설정 저장→삭제→머지→복구. 중단 시 `set-branch-protection.sh`로 재적용.
 - **브랜치 보호 확인/재적용**: `bash plugins/harness-guard/scripts/set-branch-protection.sh <repo> --check`(드리프트 리포트) / 인자 없이(적용).
 - **드리프트 점검**: `/repo-sync` 또는 `node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <경로> --harness <team-harness>`.
