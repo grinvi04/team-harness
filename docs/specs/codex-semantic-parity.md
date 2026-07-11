@@ -33,8 +33,9 @@
   안의 compound command는 별도 adversarial fixture로 다루고 Codex sandbox/approval이 최종 경계임을 검증한다.
 - **AC-3 (secret egress):** WHEN Codex가 `PreToolUse`를 발생시키는 simple Bash 호출에서 명백한 시크릿 외부
   전송 명령이 실행될 때, the system SHALL Claude `prompt` hook의 목적과 동등한 deny를 적용한다. `unified_exec`
-  같이 event를 발생시키지 않는 경로는 Codex-native equivalent라고 주장하지 않고 #283에 기록된 운영 통제로
-  분류한다. 단순 `.env` 읽기, 로컬 git, 비네트워크 파괴 명령은 이 경로에서 deny하지 않는다.
+  같이 event를 발생시키지 않는 경로는 전역 `approval_policy = "untrusted"`의 사람 승인 경계로 운영하며,
+  Codex-native deterministic equivalent라고 주장하지 않는다(#283). 단순 `.env` 읽기, 로컬 git, 비네트워크
+  파괴 명령은 이 경로에서 deny하지 않는다.
 - **AC-4 (security guidance):** WHEN `security-guidance` PostToolUse 또는 Stop hook이 Codex에서 실행될 때,
   the system SHALL invalid hook JSON 오류 없이 guidance/block 결과를 전달한다. Claude `asyncRewake` UX가
   지원되지 않는 경우, 동일 보안 판단을 동기 Codex contract로 전달한다.
@@ -55,6 +56,8 @@
 
 - Codex 실제 세션의 fresh-session probe가 없는 호환성 주장은 하지 않는다.
 - 최종 보안 통제선은 server-side branch protection/CI와 Codex sandbox·approval이다. Hook은 보조 통제다.
+- `unified_exec` 보완을 위해 `approval_policy = "untrusted"`를 쓰면 모든 비신뢰 명령에 사람이 승인해야 한다.
+  이는 사용자 정책 변경이며, 시크릿 전송만을 자동 차단하는 hook과 동등하지 않다.
 - Codex 호환 변경은 Claude source runtime의 동작과 cache를 바꾸지 않는다.
 
 ## 5. 경계 / Do-Not
@@ -78,7 +81,8 @@ intercept하면 fresh-session probe로 AC-3을 재평가한다.
   보존하고 Codex adapter/설정으로 분리한다.
 - `type: "prompt"` secret-egress guard는 Codex가 PreToolUse를 발생시키는 호출에서만 Codex command hook으로
   대체한다. deny/allow fixtures는 Claude prompt의 좁은 threat model을 그대로 따르되, `unified_exec`에는
-  적용되지 않는다는 runtime 한계를 matrix와 #283에 유지한다.
+  적용되지 않아 `approval_policy = "untrusted"`를 사람 승인 경계로 둔다는 runtime 한계를 matrix와 #283에
+  유지한다.
 - security guidance는 #264의 범위로 계속 다룬다. `codex-security` 평가는 security-guidance 대체 여부가
   아니라 별도 coverage를 더하는지 판정한다.
 - Codex hook contract는 ephemeral fresh session에서 probe한다. cache patch 뒤에는 `/hooks` trust 상태와 실제
