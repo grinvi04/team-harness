@@ -8,11 +8,12 @@ FAIL=0
 for skill in \
   feature-add feature-merge feature-modify hotfix loop milestone plan pr-create pr-review-gate qa release release-check repo-sync solo-merge; do
   path="$ROOT/plugins/harness-guard/skills/$skill/SKILL.md"
-  section=$(sed -n '/^## Codex 실행$/,/^## /p' "$path")
-  if grep -Fq '## Codex 실행' "$path" \
-    && grep -Fq 'Codex' <<<"$section" \
-    && ! grep -Fq 'Skill 도구' <<<"$section"; then
-    echo "PASS: $skill Codex 실행 규칙"
+  overlay="$ROOT/plugins/harness-guard/codex/skill-overlays/$skill.md"
+  if ! grep -Fq '## Codex 실행' "$path" \
+    && ! grep -Fq 'CODEX_PLUGIN_ROOT' "$path" \
+    && grep -Fq '## Codex 실행' "$overlay" \
+    && grep -Fq 'Codex' "$overlay"; then
+    echo "PASS: $skill Claude 원본·Codex overlay 격리"
   else
     echo "FAIL: $skill Codex 실행 규칙 누락"
     FAIL=1

@@ -8,6 +8,11 @@ import { homedir } from 'node:os'
 import path from 'node:path'
 
 const dryRun = process.argv.includes('--dry-run')
+const GUARD_REPLACEMENTS = [
+  ['GUARD_LOG="${HOME}/.claude/hooks/guard-block.log"', 'GUARD_LOG="${HOME}/.codex/hooks/guard-block.log"\nmkdir -p "$(dirname "$GUARD_LOG")"'],
+  ['Claude가 대신 실행하지 않음', 'Codex가 대신 실행하지 않음'],
+  ['Claude가 대신 삭제하지 않음', 'Codex가 대신 삭제하지 않음'],
+]
 
 function versionParts(value) {
   return String(value).split('.').map((part) => Number.parseInt(part, 10) || 0)
@@ -83,12 +88,17 @@ function replacePromptHandlers(hooksPath, pretoolGuardPath) {
 
 function normalizeCodexSkills(cacheRoot) {
   const skillsRoot = path.join(cacheRoot, 'skills')
+  const overlaysRoot = path.join(cacheRoot, 'codex', 'skill-overlays')
+  if (!existsSync(overlaysRoot)) {
+    throw new Error(`Codex skill overlays not found: ${overlaysRoot}; reinstall harness-guard before patching`)
+  }
   if (!existsSync(skillsRoot)) return { changedFiles: 0, fixed: 0, normalized: 0, attributions: 0 }
 
   let changedFiles = 0
   let fixed = 0
   let normalized = 0
   let attributions = 0
+  let overlays = 0
   for (const skill of readdirSync(skillsRoot)) {
     const skillPath = path.join(skillsRoot, skill, 'SKILL.md')
     if (!existsSync(skillPath)) continue
@@ -108,6 +118,19 @@ function normalizeCodexSkills(cacheRoot) {
       attributions += 1
       return closingQuote ? `${closingQuote}\n` : ''
     })
+    after = after.replaceAll(
+      '${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}',
+      '${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}',
+    )
+    const overlayPath = path.join(overlaysRoot, `${skill}.md`)
+    if (!existsSync(overlayPath)) throw new Error(`Codex skill overlay missing: ${overlayPath}`)
+    if (!after.includes('## Codex 실행')) {
+      const overlay = readFileSync(overlayPath, 'utf8').trim()
+      const injected = after.replace(/^(# [^\n]+\n)/m, `$1\n${overlay}\n`)
+      if (injected === after) throw new Error(`Codex skill H1 not found: ${skillPath}`)
+      after = injected
+      overlays += 1
+    }
     if (after === before) continue
     changedFiles += 1
     if (!dryRun) {
@@ -115,7 +138,41 @@ function normalizeCodexSkills(cacheRoot) {
       writeFileSync(skillPath, after)
     }
   }
-  return { changedFiles, fixed, normalized, attributions }
+  return { changedFiles, fixed, normalized, attributions, overlays }
+}
+
+function generateCodexGuard(cacheRoot) {
+  const sourcePath = path.join(cacheRoot, 'scripts', 'guard.sh')
+  const destinationPath = path.join(cacheRoot, 'scripts', 'codex-guard.sh')
+  let output = readFileSync(sourcePath, 'utf8')
+  for (const [before, after] of GUARD_REPLACEMENTS) {
+    if (output.split(before).length !== 2) throw new Error(`Codex guard source contract changed: ${before}`)
+    output = output.replace(before, after)
+  }
+  const current = existsSync(destinationPath) ? readFileSync(destinationPath, 'utf8') : null
+  const changedFile = current !== output
+  if (changedFile && !dryRun) writeFileSync(destinationPath, output, { mode: 0o755 })
+  return { changedFile, guardPath: destinationPath }
+}
+
+function validateCodexCache(cacheRoot, pretoolGuardPath) {
+  if (!existsSync(pretoolGuardPath)) {
+    throw new Error(`Codex cache is missing ${pretoolGuardPath}; reinstall harness-guard v0.54.0 or newer before patching`)
+  }
+  const skillsRoot = path.join(cacheRoot, 'skills')
+  const overlaysRoot = path.join(cacheRoot, 'codex', 'skill-overlays')
+  if (!existsSync(skillsRoot) || !existsSync(overlaysRoot)) {
+    throw new Error(`Codex skill bundle is incomplete under ${cacheRoot}; reinstall harness-guard v0.54.0 or newer before patching`)
+  }
+  for (const skill of readdirSync(skillsRoot)) {
+    if (!existsSync(path.join(skillsRoot, skill, 'SKILL.md'))) continue
+    const overlayPath = path.join(overlaysRoot, `${skill}.md`)
+    if (!existsSync(overlayPath)) throw new Error(`Codex skill overlay missing: ${overlayPath}`)
+  }
+  const guard = readFileSync(path.join(cacheRoot, 'scripts', 'guard.sh'), 'utf8')
+  for (const [before] of GUARD_REPLACEMENTS) {
+    if (guard.split(before).length !== 2) throw new Error(`Codex guard source contract changed: ${before}`)
+  }
 }
 
 function installCodexAgents(cacheRoot) {
@@ -151,12 +208,11 @@ function installCodexAgents(cacheRoot) {
 
 const cache = findHarnessGuardCache()
 const pretoolGuardPath = path.join(cache.root, 'scripts', 'codex-pretool-guard.mjs')
-if (!existsSync(pretoolGuardPath)) {
-  throw new Error(`Codex cache is missing ${pretoolGuardPath}; reinstall harness-guard v0.41.0 or newer before patching`)
-}
+validateCodexCache(cache.root, pretoolGuardPath)
 console.log(JSON.stringify({
   dryRun,
   hooks: replacePromptHandlers(cache.hooksPath, pretoolGuardPath),
   skills: normalizeCodexSkills(cache.root),
+  guard: generateCodexGuard(cache.root),
   agents: installCodexAgents(cache.root),
 }, null, 2))

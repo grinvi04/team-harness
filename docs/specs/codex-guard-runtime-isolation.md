@@ -12,8 +12,9 @@ Codex wrapper가 공용 `guard.sh`를 실행해 판정은 재사용하지만 차
 
 - direct/Claude 실행 기본값: `~/.claude/hooks/guard-block.log`, agent label `Claude` (불변)
 - Codex wrapper: `~/.codex/hooks/guard-block.log`, agent label `Codex`
-- 판정, exit 2, 시크릿 마스킹, 로테이션 로직은 하나의 `guard.sh`를 공유한다.
-- override는 Codex wrapper가 명시적으로 준 경우에만 적용한다.
+- 판정, exit 2, 시크릿 마스킹, 로테이션 로직은 Claude 원본 `guard.sh`에서 결정적으로 생성한
+  cache 전용 `codex-guard.sh`가 공유한다.
+- Claude 원본에는 Codex용 override를 추가하지 않는다. 생성 시 예상 문자열이 없으면 fail-closed한다.
 
 ## 수용 기준
 
@@ -24,4 +25,4 @@ Codex wrapper가 공용 `guard.sh`를 실행해 판정은 재사용하지만 차
 
 ## 롤백
 
-override seam과 wrapper env 주입, 해당 tests/docs만 revert한다.
+cache guard 생성과 wrapper 경로 변경, 해당 tests/docs만 revert한다.
