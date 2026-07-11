@@ -65,7 +65,9 @@ const REPO = resolve(optVal('--repo') || '.')
 // 기본 harness = team-harness repo 루트.
 // 이 스크립트는 plugins/harness-guard/scripts/ 에 있으므로 세 단계 위가 루트다.
 // (플러그인으로 설치돼 templates/ 가 없으면 standardHas=false 로 graceful — detail 힌트만 생략.)
-const HARNESS = optVal('--harness') || join(__dirname, '../../..')
+const HARNESS = resolve(optVal('--harness') || join(__dirname, '../../..'))
+const IS_HARNESS_SELF = REPO === HARNESS
+const SELF_IGNORED_PREFIXES = ['templates', 'tests/fixtures']
 
 if (!existsSync(REPO)) {
   console.error(`✖ --repo 경로가 없습니다: ${REPO}`)
@@ -82,6 +84,8 @@ function walk(dir, onEntry, depth = 0) {
   for (const name of entries) {
     if (IGNORE.has(name)) continue
     const p = join(dir, name)
+    const rel = p.slice(REPO.length).replace(/\\/g, '/').replace(/^\/+/, '')
+    if (IS_HARNESS_SELF && SELF_IGNORED_PREFIXES.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`))) continue
     let s
     try { s = statSync(p) } catch { continue }
     if (s.isDirectory()) { onEntry(p, name, true); walk(p, onEntry, depth + 1) }
