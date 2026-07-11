@@ -49,6 +49,7 @@ jobs:
           bash -n tests/codex-semantic-parity-test.sh
           bash -n tests/codex-skill-mapping-test.sh
           bash -n scripts/new-repo.sh
+          bash -n scripts/codex-hardened.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
           node --check plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
@@ -162,6 +163,9 @@ jobs:
 
       - name: Codex skill 실행 mapping
         run: bash tests/codex-skill-mapping-test.sh
+
+      - name: Codex hardened launcher cache repair
+        run: bash tests/codex-hardened-launcher-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
