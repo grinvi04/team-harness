@@ -52,6 +52,8 @@ jobs:
           bash -n tests/codex-plugin-cache-sync-test.sh
           bash -n scripts/new-repo.sh
           bash -n scripts/codex-hardened.sh
+          bash -n scripts/install-codex-managed-requirements.sh
+          bash -n tests/codex-managed-requirements-test.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
           node --check plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
@@ -175,6 +177,9 @@ jobs:
 
       - name: Codex plugin cache 조건부 동기화
         run: bash tests/codex-plugin-cache-sync-test.sh
+
+      - name: Codex managed requirements 설치 계약
+        run: bash tests/codex-managed-requirements-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
