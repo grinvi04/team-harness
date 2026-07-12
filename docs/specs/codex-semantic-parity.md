@@ -31,11 +31,10 @@
 - **AC-2 (command guard):** WHEN Codex가 Bash 도구로 direct reset, protected-branch commit, test/migration
   삭제, bare `gh pr create/merge`를 실행할 때, the system SHALL Claude와 같은 deny 결과를 낸다. Shell wrapper
   안의 compound command는 별도 adversarial fixture로 다루고 Codex sandbox/approval이 최종 경계임을 검증한다.
-- **AC-3 (secret egress):** WHEN Codex가 `PreToolUse`를 발생시키는 simple Bash 호출에서 명백한 시크릿 외부
-  전송 명령이 실행될 때, the system SHALL Claude `prompt` hook의 목적과 동등한 deny를 적용한다. `unified_exec`
-  같이 event를 발생시키지 않는 경로는 전역 `approval_policy = "untrusted"`의 사람 승인 경계로 운영하며,
-  Codex-native deterministic equivalent라고 주장하지 않는다(#283). 단순 `.env` 읽기, 로컬 git, 비네트워크
-  파괴 명령은 이 경로에서 deny하지 않는다.
+- **AC-3 (secret egress):** WHEN Codex가 simple Bash 호출에서 명백한 시크릿 외부 전송 명령을 실행할 때,
+  the system SHALL Claude `prompt` hook의 목적과 동등한 deny를 적용한다. system requirements가
+  `unified_exec=false`, `hooks=true`를 pin해 지원되는 모든 local surface를 `PreToolUse` 경로로 강제한다.
+  단순 `.env` 읽기, 로컬 git, 비네트워크 파괴 명령은 egress guard가 deny하지 않는다.
 - **AC-4 (security guidance):** WHEN `security-guidance` PostToolUse 또는 Stop hook이 Codex에서 실행될 때,
   the system SHALL invalid hook JSON 오류 없이 guidance/block 결과를 전달한다. Claude `asyncRewake` UX가
   지원되지 않는 경우, 동일 보안 판단을 동기 Codex contract로 전달한다.
@@ -48,17 +47,17 @@
 - **AC-7 (installation):** WHEN Codex plugin cache가 갱신될 때, the system SHALL unsupported handler 제거,
   hook command patch, hook hash review/trust 절차를 재현 가능하게 수행하고 Claude cache/source는 변경하지
   않는다.
-- **AC-8 (regression):** IF Codex 전용 패치가 command guard, route intent, 또는 security-guidance command를
-  제거·변경하려 하면 THEN CI SHALL fail한다. 이는 event가 발생하는 Codex 경로의 회귀만 검증하며,
-  `unified_exec` runtime enforcement를 증명하지 않는다.
+- **AC-8 (regression):** IF Codex 전용 패치가 command guard, route intent, security-guidance command, 또는
+  managed requirements pin을 제거·변경하려 하면 THEN CI SHALL fail한다. runtime enforcement는 네 surface의
+  fresh-session probe로 별도 증명한다.
 
 ## 4. 제약 / 비기능
 
 - Codex 실제 세션의 fresh-session probe가 없는 호환성 주장은 하지 않는다.
 - 최종 보안 통제선은 server-side branch protection/CI와 Codex sandbox·approval이다. Hook은 보조 통제다.
 - interactive Codex의 `approval_policy = "untrusted"`는 사람 승인 경계지만, `codex exec` 0.144.1은 fresh probe에서
-  `approval: never`로 실행돼 같은 보장을 제공하지 않았다. hardened CLI launcher는 `--disable unified_exec`를
-  주입해 PreToolUse가 발화하는 simple shell 경로를 사용한다.
+  `approval: never`로 실행됐다. 따라서 승인에 의존하지 않고 system requirements와 hardened launcher가
+  PreToolUse가 발화하는 simple shell 경로를 강제한다.
 - Codex 호환 변경은 Claude source runtime의 동작과 cache를 바꾸지 않는다.
 
 ## 5. 경계 / Do-Not
@@ -71,9 +70,9 @@
 
 ## 6. Open Questions
 
-`unified_exec`의 불완전한 PreToolUse interception은 upstream 한계다. hardened CLI launcher는 이를 비활성화해
-우회하지만 Desktop App과 launcher를 거치지 않은 직접 실행은 여전히 비보장이다. Codex upstream이 이 경로를
-intercept하면 fresh-session probe로 비활성화 필요성을 재평가한다.
+`unified_exec`의 불완전한 PreToolUse interception은 upstream 한계다. system requirements가 모든 지원 local
+surface에서 이를 비활성화하고 hardened launcher도 중복 방어한다. Codex upstream이 이 경로를 intercept하면
+fresh-session probe로 비활성화 필요성을 재평가한다.
 
 ## 7. 기술 접근 (HOW)
 
@@ -82,9 +81,8 @@ intercept하면 fresh-session probe로 비활성화 필요성을 재평가한다
 - 공통인 bash guard, route intent, PR wrapper, skill prose는 원본을 공유한다. Claude-only contract는 원본을
   보존하고 Codex adapter/설정으로 분리한다.
 - `type: "prompt"` secret-egress guard는 Codex가 PreToolUse를 발생시키는 호출에서만 Codex command hook으로
-  대체한다. deny/allow fixtures는 Claude prompt의 좁은 threat model을 그대로 따르되, `unified_exec`에는
-  적용되지 않는다. CLI launcher에서는 `--disable unified_exec`로 simple shell 경로를 강제하고, Desktop App과
-  launcher 우회 실행은 runtime 한계로 matrix에 유지한다.
+  대체한다. deny/allow fixtures는 Claude prompt의 좁은 threat model을 그대로 따른다. system requirements와
+  CLI launcher가 simple shell 경로를 강제한다. 네 local surface는 각각 fresh-session probe로 검증한다.
 - security guidance는 #264의 범위로 계속 다룬다. `codex-security` 평가는 security-guidance 대체 여부가
   아니라 별도 coverage를 더하는지 판정한다.
 - Codex hook contract는 ephemeral fresh session에서 probe한다. cache patch 뒤에는 `/hooks` trust 상태와 실제

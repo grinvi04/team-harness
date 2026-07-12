@@ -27,8 +27,9 @@ Codex marketplace refresh가 Claude-style hook을 되돌려도 CLI 새 세션은
 
 ## 4. 제약 / 비기능
 
-- launcher는 cmux CLI용이며 Desktop App 직접 실행을 보호하지 않는다.
-- 사용자가 alias를 우회해 Codex binary를 직접 실행하거나 Desktop App을 쓰면 unified_exec 비활성화가 적용되지 않는다.
+- launcher는 cmux CLI용 cache 자동복구와 하위 버전 중복 방어를 담당한다.
+- system requirements 설치 전에는 직접 CLI와 Desktop에 unified_exec 비활성화가 적용되지 않는다. v0.55.0
+  이후에는 managed requirements가 모든 지원 local surface에 같은 pin을 강제한다.
 - 트레이드오프: unified_exec의 richer streaming stdin/stdout 처리를 포기하고 PreToolUse 보안 경로를 우선한다.
 - alias는 사용자가 명시적으로 설치·제거하는 전역 shell 설정이다.
 - 기본 Codex `approval_policy = "untrusted"`는 유지한다.
