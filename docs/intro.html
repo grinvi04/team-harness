@@ -258,7 +258,7 @@
   <p>강제력의 원천을 GitHub 서버까지 내려보낸다. 위 계층이 우회되어도 아래 계층이 막는다.</p>
 
   <h3>2. AI 중립성</h3>
-  <p>계층 0–1은 Claude Code, Codex, Cursor 등 <b>모든 도구에 동일하게 작용</b>한다. harness-guard 플러그인(계층 2–3)은 Claude Code 전용이지만, 핵심 거버넌스는 도구 무관이다.</p>
+  <p>계층 0–1은 Claude Code, Codex, Cursor 등 <b>모든 도구에 동일하게 작용</b>한다. harness-guard 플러그인(계층 2–3)도 Claude Code와 Codex에서 각 런타임에 맞는 경로로 작동한다.</p>
 
   <h3>3. 단일 출처</h3>
   <p>규약은 각 repo의 <code>AGENTS.md</code> 하나. 중복·복붙 없이 이 파일을 업데이트하면 AI가 따른다. 절차는 team-harness의 스킬 파일이 단일 출처 — 개별 repo에 복사하지 않는다.</p>
@@ -269,8 +269,8 @@
   <!-- 아키텍처 -->
   <h2 id="arch">아키텍처</h2>
   <div class="layers">
-    <div class="layer l3"><span class="lv">계층 3</span><span class="lw">역할별 에이전트 (security-reviewer 등)</span><span class="scope">Claude Code</span></div>
-    <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 14종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code</span></div>
+    <div class="layer l3"><span class="lv">계층 3</span><span class="lw">역할별 에이전트 (security-reviewer 등)</span><span class="scope">Claude Code · Codex</span></div>
+    <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 14종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code · Codex</span></div>
     <div class="layer l1"><span class="lv">계층 1</span><span class="lw">AGENTS.md + .claude/ 설정 (플러그인·rules)</span><span class="scope">clone한 전원</span></div>
     <div class="layer l05"><span class="lv">계층 0.5</span><span class="lw">git pre-commit hook (시크릿 검출)</span><span class="scope">전원</span></div>
     <div class="layer l0"><span class="lv">계층 0</span><span class="lw">branch protection + CI gate — 우회 불가</span><span class="scope">전원 · 모든 도구</span></div>
@@ -634,27 +634,27 @@
 
   <!-- Codex 호환성 -->
   <h2 id="codex">Codex 호환성</h2>
-  <p>team-harness는 Claude Code를 주 타깃으로 하되, 핵심 거버넌스는 Codex에서도 동작한다.</p>
+  <p>team-harness는 Claude Code 원본을 보존하면서 Codex에 전용 overlay·hook adapter·agent 설정을 적용해 동일한 거버넌스 의미를 제공한다.</p>
 
   <div class="skill-list" style="gap:.4rem">
     <div class="sk" style="border-color: rgba(63,185,80,.3)">
       <div class="name" style="color:var(--green)">✓ Codex 동작</div>
       <div class="badges"></div>
-      <div class="desc">AGENTS.md · CI (.github/workflows/) · git hooks (.githooks/) · rules/ 내용 · command hooks (guard.sh)</div>
+      <div class="desc">AGENTS.md · CI · git hooks · stack rules · skill 14종 · custom agents · command hooks</div>
     </div>
     <div class="sk" style="border-color: rgba(210,153,34,.3)">
-      <div class="name" style="color:var(--orange)">⚠ 부분 동작</div>
+      <div class="name" style="color:var(--orange)">⚠ 런타임 차이</div>
       <div class="badges"></div>
-      <div class="desc">prompt hooks — "not supported yet" (스킵됨). 시크릿 유출 탐지가 빠지지만 CI secret-scan이 보완.</div>
+      <div class="desc">Claude prompt hook의 핵심 guidance·known egress 차단을 Codex command hook·adapter로 매핑한다. 구현은 다르며 검증된 fixture의 보호 결과를 기준으로 한다.</div>
     </div>
     <div class="sk" style="border-color: rgba(248,81,73,.3)">
-      <div class="name" style="color:var(--red)">✗ Claude Code 전용</div>
+      <div class="name" style="color:var(--red)">✗ 미검증 도구</div>
       <div class="badges"></div>
-      <div class="desc">skills (슬래시 커맨드 시스템) · agents (subagent_type) · settings.json enabledPlugins</div>
+      <div class="desc">Cursor·Gemini 등은 plugin/hook parity를 검증하지 않았다. AGENTS.md·git hook·CI·branch protection 범위로 제한한다.</div>
     </div>
   </div>
   <div class="callout">
-    <b>결론</b> — Codex 사용 시 guard.sh·AGENTS.md·CI는 그대로 작동한다. /feature-add 같은 스킬은 자연어 요청으로 대체. Claude Code를 주 도구로 쓰는 팀에선 AGENTS.md 보강 없이 현 상태로 충분하다.
+    <b>결론</b> — Codex는 v0.55.0 이상 플러그인, managed requirements, hook trust가 준비되면 Team Harness skill·agent·보안 가드를 사용한다. 최종 강제는 도구와 무관한 branch protection·CI가 소유한다.
   </div>
 
 </main>
