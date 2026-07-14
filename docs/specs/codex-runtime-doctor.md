@@ -19,10 +19,11 @@
 - **AC-1 (정상):** WHEN fresh-session smoke를 실행하고 두 안전 fixture가 hook에 의해 차단되면, the system
   SHALL 파괴 fixture가 보존됐고 파괴 guard와 secret-egress guard가 모두 발화했음을 보고하며 exit 0을 반환한다.
 - **AC-2 (반증):** IF 파괴 명령이 실제 실행되거나 어느 guard의 차단 증거도 없으면 THEN the smoke SHALL
-  실패 원인을 보고하고 non-zero를 반환한다.
+  실패 원인을 보고하고 non-zero를 반환한다. 모델의 차단 주장 텍스트는 증거로 인정하지 않고 Codex tool
+  router가 기록한 차단 오류와 정확한 probe 명령을 확인한다.
 - **AC-3 (기본 doctor):** WHEN doctor를 실행하면, the system SHALL managed requirements, Codex/plugin
   버전, Codex harness cache patch 무드리프트, repo-sync, main/develop branch protection을 read-only로 점검하고
-  항목별 PASS/FAIL을 출력한다.
+  항목별 PASS/FAIL을 출력한다. main 또는 develop이 없거나 조회할 수 없으면 branch protection 실패로 판정한다.
 - **AC-4 (버전 경계):** IF 설치된 harness-guard 버전이 repo manifest와 다르거나 비활성화됐으면 THEN the
   doctor SHALL 실패한다.
 - **AC-5 (선택 probe):** WHEN doctor에 `--probe`를 주면, the system SHALL 기본 점검 뒤 fresh-session
