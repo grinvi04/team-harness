@@ -41,6 +41,11 @@ bash /path/to/team-harness/scripts/new-repo.sh
 
 > **팀(리뷰어 ≥1)**: 멤버 합류 후 `bash set-branch-protection.sh <owner/repo> --approvals 1`로 main에 승인 요건을 올린다(develop은 0 유지). 신규 repo 생성 시엔 걸지 않는다 — 소유자 1명이면 self-approve 불가로 첫 PR 데드락.
 
+> **초기 팀(기존 브랜치 규칙 없음)**: Team Harness 기본값을 첫 규칙으로 쓴다. main/develop
+> 직접 push 금지 + PR + required CI는 바로 적용하고, 승인자가 아직 없을 때는 승인 0명으로
+> 시작한다. 상호 리뷰할 멤버가 정해지면 main만 `--approvals 1`로 올린다. 즉 기존 사내
+> 브랜치 규칙이 선행 조건이 아니라, 이 기본선이 초기 규칙이다.
+
 ### 2. 수동 3단계 (스크립트 출력이 안내)
 
 - [ ] **ci-gate.yml 수정**: placeholder → 스택 맞는 lint·test·build 명령으로 교체
@@ -101,12 +106,26 @@ Team/Enterprise 없이도 파일 기반 managed settings로 본인 머신에서 
 - macOS: `/Library/Application Support/ClaudeCode/managed-settings.json` (관리자 권한)
 - 여기에 넣은 permissions.deny는 사용자 설정으로 우회 불가 — 조직 강제 시나리오 검증용
 
-## D. 다른 AI 도구를 쓰는 팀 (기획/마케팅 등)
+## D. Claude Code·Codex·기타 AI 도구
 
-- 규약은 `AGENTS.md` 하나만 보면 된다 — Codex는 네이티브로 읽음,
-  Gemini CLI는 contextFileName을 AGENTS.md로 설정
-- 가드 훅은 Claude Code 전용이지만, branch protection + CI(계층 0)는
-  도구와 무관하게 모두에게 강제된다
+- 규약의 단일 출처는 `AGENTS.md`다. Claude Code는 `CLAUDE.md`에서 import하고 Codex는
+  네이티브로 읽는다. Gemini CLI는 `contextFileName`을 `AGENTS.md`로 설정한다.
+- Claude Code와 Codex는 모두 harness skill·agent·hook을 지원한다. UI는 다르지만 같은 skill
+  수용 기준, PR wrapper, 리뷰·CI 게이트를 따른다.
+- Codex는 `harness-guard` v0.55.0 이상을 설치하고, 관리자가
+  `/path/to/team-harness/scripts/install-codex-managed-requirements.sh`로 `hooks=true`,
+  `unified_exec=false`를 머신에 고정한다.
+- 최초 설치와 plugin 갱신 뒤에는 Team Harness checkout에서 아래 두 patch를 모두 실행한 다음
+  `/hooks`의 변경 hash를 review/trust한다. 첫 patch가 skill overlay·command guard·custom agent를
+  설치하고, 둘째 patch가 `security-guidance`를 Codex adapter 경유로 유지한다.
+  ```bash
+  node plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
+  node plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
+  ```
+- Codex 설치·갱신·실측 절차의 정본은
+  [`specs/codex-guard-compatibility.md`](specs/codex-guard-compatibility.md)다.
+- 전용 plugin/hook 적합성을 검증하지 않은 기타 AI 도구는 `AGENTS.md` + git hook +
+  branch protection + CI 범위로 제한한다.
 
 ## E. 솔로 머지 권한 (auto-mode · 새 머신 1회 셋업)
 
