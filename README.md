@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.55.1-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.55.2-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -41,6 +41,7 @@
 | 🔍 PR 게이트 스킬 | `pr-review-gate` — AI 리뷰·사람 승인·CI·commit-status 단일 절차 |
 | 🔒 솔로 머지 | `/solo-merge` — 자기 PR 승인 불가 제약을 review 보호 일시 해제·복구로 처리 |
 | 📦 드리프트 점검 | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 감지 및 백필 PR 제안 |
+| 🩺 런타임 진단 | `harness-doctor.sh` — Codex 설정·플러그인·repo·branch protection 종합 점검 + 선택적 fresh-session probe |
 | 🏅 릴리즈 검증 | `/release-check` — 품질(A)·보안(B)·DB 마이그레이션(C) 병렬 검증 에이전트 |
 
 ## 🧱 기술 스택
@@ -202,10 +203,24 @@ AI 리뷰는 PR마다 `/code-review` 스킬(구독 포함, API 과금 없음)이
 
 main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 
+### 현재 상태 종합 점검
+
+```bash
+bash /path/to/team-harness/scripts/harness-doctor.sh --repo .
+```
+
+기본 실행은 모델을 호출하지 않고 managed requirements, Codex·harness-guard 버전, Codex cache patch 상태, `/repo-sync`,
+main/develop branch protection을 읽기 전용으로 확인한다. 실제 새 Codex 세션에서 파괴 명령과 가짜 시크릿
+전송이 `PreToolUse`에 차단되는지까지 확인하려면 명시적으로 `--probe`를 추가한다. probe는 throwaway
+디렉터리와 loopback 폐쇄 포트만 사용하고, 검토된 hook을 해당 invocation에서만 실행하도록 hook trust를
+일회성 우회한다(approval·sandbox는 유지). 인증된 Codex 세션의 모델 토큰을 소비하므로 CI에서는 실행하지 않는다.
+
 ## 🧪 테스트
 
 ```bash
 bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (30 케이스)
+bash tests/codex-fresh-session-smoke-test.sh
+bash tests/harness-doctor-test.sh
 ```
 
 ## 📁 repo 구조
@@ -216,6 +231,8 @@ team-harness/
 ├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
 ├── plugins/harness-guard/             플러그인 본체 (아래 상세)
 ├── scripts/new-repo.sh                신규 repo 셋업 자동화 (템플릿 복사 + branch protection)
+├── scripts/harness-doctor.sh          Codex·repo·GitHub 상태 종합 점검 (`--probe`로 실세션 검증)
+├── scripts/codex-fresh-session-smoke.sh  실제 ephemeral Codex hook 발화 검증
 ├── templates/                         신규 프로젝트에 복사하는 파일들
 │   ├── AGENTS.md · CLAUDE.md          규약 단일 출처 + Claude 전용 지침
 │   ├── settings.json                  .claude/settings.json (마켓플레이스·플러그인 선언)
