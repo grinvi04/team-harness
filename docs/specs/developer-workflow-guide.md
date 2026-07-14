@@ -42,7 +42,7 @@
 ## 7. 기술 접근 (HOW)
 
 - `docs/developer-workflow.md`를 task-oriented index로 추가한다.
-- `README.md`의 팀 표준 문서 목록에서 소개 페이지 다음에 연결한다.
+- `README.md`와 소비 repo용 `templates/AGENTS.md`의 팀 표준 문서 목록에서 연결한다.
 - 상대 링크가 실제 repo 파일을 가리키는지 검증하고 Markdown diff를 검토한다.
 
 ## 8. 태스크
@@ -51,6 +51,7 @@
 |---|---|---|---|---|---|
 | 1 | 개발자 워크플로 가이드 작성 | AC-1~5 | `docs/developer-workflow.md` | 로컬 링크 검증 | — |
 | 2 | README 문서 색인 연결 | AC-1, AC-5 | `README.md` | 링크 대상 존재 확인 | #1 |
+| 3 | 소비 repo 문서 색인 연결 | AC-1, AC-5 | `templates/AGENTS.md`, `tests/new-repo-test.sh` | `bash tests/new-repo-test.sh` | #1 |
 
 ## 9. 승인 게이트
 
