@@ -53,7 +53,11 @@ jobs:
           bash -n scripts/new-repo.sh
           bash -n scripts/codex-hardened.sh
           bash -n scripts/install-codex-managed-requirements.sh
+          bash -n scripts/codex-fresh-session-smoke.sh
+          bash -n scripts/harness-doctor.sh
           bash -n tests/codex-managed-requirements-test.sh
+          bash -n tests/codex-fresh-session-smoke-test.sh
+          bash -n tests/harness-doctor-test.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
           node --check plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
@@ -180,6 +184,12 @@ jobs:
 
       - name: Codex managed requirements 설치 계약
         run: bash tests/codex-managed-requirements-test.sh
+
+      - name: Codex fresh-session smoke 계약
+        run: bash tests/codex-fresh-session-smoke-test.sh
+
+      - name: team-harness doctor 종합 판정
+        run: bash tests/harness-doctor-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest
