@@ -44,6 +44,17 @@ run_check() {
   fi
 }
 
+run_branch_protection_check() {
+  local output="$TMP/check-branch-protection.out"
+  if bash "$ROOT/plugins/harness-guard/scripts/set-branch-protection.sh" "$1" --check >"$output" 2>&1 \
+    && ! grep -Eq '^skip .* \(브랜치 없음/비공개\)$' "$output"; then
+    pass 'branch protection'
+  else
+    fail 'branch protection'
+  fi
+  detail "$output"
+}
+
 echo "team-harness doctor — repo: $REPO"
 
 run_check 'managed requirements' \
@@ -114,8 +125,7 @@ run_check 'repo sync' \
 
 repo_name=$(cd "$REPO" && "$GH_BIN" repo view --json nameWithOwner --jq .nameWithOwner 2>"$TMP/gh.err")
 if [ -n "$repo_name" ]; then
-  run_check 'branch protection' \
-    bash "$ROOT/plugins/harness-guard/scripts/set-branch-protection.sh" "$repo_name" --check
+  run_branch_protection_check "$repo_name"
 else
   fail 'branch protection (GitHub repo unavailable)'
   detail "$TMP/gh.err"

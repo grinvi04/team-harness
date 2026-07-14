@@ -32,6 +32,11 @@ JS
 cat >"$FAKE_ROOT/plugins/harness-guard/scripts/set-branch-protection.sh" <<'SH'
 #!/usr/bin/env bash
 [ "${DOCTOR_FAIL:-}" != branch ] || exit 1
+if [ "${DOCTOR_FAIL:-}" = missing-branch ]; then
+  echo '✓ owner/repo:main — 보호 적용(승인0 · enforce_admins=on · checks=4)'
+  echo 'skip owner/repo:develop (브랜치 없음/비공개)'
+  exit 0
+fi
 echo 'OK branch protection'
 SH
 cat >"$FAKE_ROOT/scripts/codex-fresh-session-smoke.sh" <<'SH'
@@ -90,6 +95,13 @@ if DOCTOR_FAIL=branch bash "$DOCTOR" --repo "$ROOT" >"$TMP/branch.out" 2>&1; the
   exit 1
 fi
 grep -Fq 'FAIL  branch protection' "$TMP/branch.out"
+
+if DOCTOR_FAIL=missing-branch bash "$DOCTOR" --repo "$ROOT" >"$TMP/missing-branch.out" 2>&1; then
+  echo 'FAIL: doctor accepted a missing protected branch'
+  exit 1
+fi
+grep -Fq 'FAIL  branch protection' "$TMP/missing-branch.out"
+grep -Fq 'skip owner/repo:develop' "$TMP/missing-branch.out"
 
 if DOCTOR_FAIL=cache bash "$DOCTOR" --repo "$ROOT" >"$TMP/cache.out" 2>&1; then
   echo 'FAIL: doctor accepted unpatched Codex harness cache'
