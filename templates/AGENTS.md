@@ -67,6 +67,7 @@
 
 | 영역 | 문서 | 핵심 |
 |---|---|---|
+| 개발 워크플로 | developer-workflow.md | 기능 개발·수정·머지·hotfix·release 흐름과 가드에 막혔을 때의 다음 행동 |
 | API | api-standards.md | 공통 Envelope, 에러코드 체계, offset 페이지네이션 |
 | DB | db-standards.md | BIGINT PK+채번, 공통 감사 컬럼, forward-only 마이그레이션 |
 | 인증·인가 | auth-standards.md | Keycloak OIDC, RBAC 권한코드+데이터 스코프 |

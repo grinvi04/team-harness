@@ -24,6 +24,12 @@ else
   echo "FAIL: AGENTS template → Codex stack-rule pointer 누락"; FAIL=$((FAIL+1))
 fi
 
+if grep -Fq '| 개발 워크플로 | developer-workflow.md |' "$ROOT/templates/AGENTS.md"; then
+  echo "PASS: AGENTS template → 개발자 워크플로 가이드 발견 경로"; PASS=$((PASS+1))
+else
+  echo "FAIL: AGENTS template → 개발자 워크플로 가이드 발견 경로 누락"; FAIL=$((FAIL+1))
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
