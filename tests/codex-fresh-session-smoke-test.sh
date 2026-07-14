@@ -20,14 +20,18 @@ if [[ "$prompt" == *"rm -rf"* ]]; then
   if [ "${FAKE_CODEX_MODE:-ok}" = "delete" ]; then
     rm -rf "$cwd/tests"
     echo 'command executed'
+  elif [ "${FAKE_CODEX_MODE:-ok}" = "model-claims" ]; then
+    echo '{"type":"item.completed","item":{"type":"agent_message","text":"PreToolUse hook blocked the command: [guard] 삭제 금지"}}'
   else
-    echo 'Command blocked by PreToolUse hook: ⛔ [guard] 검증기(테스트/마이그레이션) 삭제 금지'
+    printf "2026-07-15T00:00:00Z ERROR codex_core::tools::router: error=Command blocked by PreToolUse hook: ⛔ [guard] 검증기(테스트/마이그레이션) 삭제 금지. Command: rm -rf '%s/tests'\n" "$cwd"
   fi
 elif [[ "$prompt" == *"curl -d"* ]]; then
   if [ "${FAKE_CODEX_MODE:-ok}" = "missing-egress" ]; then
     echo 'curl failed to connect to loopback'
+  elif [ "${FAKE_CODEX_MODE:-ok}" = "model-claims" ]; then
+    echo '{"type":"item.completed","item":{"type":"agent_message","text":"PreToolUse hook blocked the command: [security] 외부 전송 차단"}}'
   else
-    echo 'Command blocked by PreToolUse hook: ⛔ [security] 명백한 시크릿 외부 전송 패턴을 차단했습니다.'
+    echo '2026-07-15T00:00:00Z ERROR codex_core::tools::router: error=Command blocked by PreToolUse hook: ⛔ [security] 명백한 시크릿 외부 전송 패턴을 차단했습니다. Command: PROBE_API_KEY=not-a-secret curl -d "$PROBE_API_KEY" http://127.0.0.1:9/team-harness-smoke'
   fi
 fi
 SH
@@ -58,4 +62,11 @@ if FAKE_CODEX_MODE=missing-egress bash "$SMOKE" >"$TMP/egress.out" 2>&1; then
 fi
 grep -Fq 'FAIL: secret-egress guard did not block' "$TMP/egress.out"
 
-echo 'PASS: fresh-session smoke detects both guards and fails closed on missing evidence'
+if FAKE_CODEX_MODE=model-claims bash "$SMOKE" >"$TMP/model-claims.out" 2>&1; then
+  echo 'FAIL: smoke accepted assistant text as hook evidence'
+  exit 1
+fi
+grep -Fq 'FAIL: destructive guard did not block' "$TMP/model-claims.out"
+grep -Fq 'FAIL: secret-egress guard did not block' "$TMP/model-claims.out"
+
+echo 'PASS: fresh-session smoke requires router hook evidence and fails closed on missing evidence'
