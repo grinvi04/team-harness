@@ -118,13 +118,15 @@ feature-modify 절차로 주문 취소 응답에 취소 시각을 추가해줘.
 
 의도 라우터는 현재 브랜치와 열린 PR 상태를 읽어 다음 절차를 안내한다. 예를 들어:
 
-- 승인된 계획이 있고 구현 전이면 `feature-add`
+- `docs/specs/`에 spec이 있고 구현 전이면 `feature-add`
 - feature 브랜치에 커밋이 있고 PR이 없으면 `feature-merge`
 - 열린 PR이 있고 base 브랜치가 보호된 repo면 `pr-review-gate`
 - 열린 PR의 base 브랜치 보호가 없어 솔로 repo로 판정되면 `solo-merge`
 
 라우터는 편의를 위한 안내 장치다. 최종 판단 기준은 현재 상태와 각 skill의 수용기준이며, 적용 중인
-skill과 phase는 작업 업데이트에서 확인할 수 있어야 한다. `solo-merge`도 리뷰를 건너뛰는 절차가 아니다.
+skill과 phase는 작업 업데이트에서 확인할 수 있어야 한다. 라우터는 spec 파일의 존재만 확인하며 plan의
+사람 승인 완료 여부까지 판정하지 않는다. 따라서 `feature-add`로 넘어가기 전 승인 게이트 완료를 별도로
+확인해야 한다. `solo-merge`도 리뷰를 건너뛰는 절차가 아니다.
 먼저 AI 리뷰 지적을 처리하고 모든 리뷰 스레드를 resolve해야 하며, 머지 직전 CI·스레드·mergeability를
 다시 검증한다.
 
