@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.55.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.55.1-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -276,9 +276,10 @@ team-harness/
 
 ## 현재 제약 (2026-07 기준)
 
-- Team/Enterprise 플랜 없음 → 서버 managed settings 불가 → **계층 0이 유일한 하드 강제**
+- 조직 managed settings는 아직 미도입 → **계층 0(branch protection·CI)이 최종 하드 강제**
+  (Codex local hook 경로는 `/etc/codex/requirements.toml`로 머신별 고정)
 - 실험 기능(agent teams 등) 미사용
-- 팀별 단일 AI 도구: 개발팀 = Claude Code, 타 팀은 Codex/Gemini 가능 → 규약 공유는 AGENTS.md로
+- 개발 도구로 Claude Code와 Codex를 모두 지원하며, Gemini는 `AGENTS.md` + 계층 0 범위로 제한
 
 ## 로드맵
 
@@ -287,7 +288,7 @@ team-harness/
 - [x] 파일럿 리허설 — 온보딩 절차 풀 드릴, 발견 사항 반영
 - [x] GitHub push (개인 private repo, 임시) + 문서 체계 구축
 - [x] 팀 환경 정합화 — back-merge PR 절차, 사람 승인 게이트, AI 리뷰(`/code-review` 스킬) 연결
-- [ ] 첫 회사 프로젝트: 스택 확정 → 스캐폴드(AGENTS.md·CI 구체화) → 계층 0~2 풀 적용
+- [ ] 첫 회사 파일럿: 비민감 repo 1개에 스택 확정 → AGENTS.md·CI 구체화 → 계층 0~2 실측
 - [ ] 사내 git 호스팅으로 이전, 템플릿의 마켓 주소 교체
 - [ ] server-managed settings로 권한 강제 (Team/Enterprise 플랜 확보 시) / agent teams 재검토 (GA 시)
 
