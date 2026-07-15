@@ -62,6 +62,40 @@ else
   fail "Claude source에 Codex 실행 문단 없음"
 fi
 
+VERIFY_DIR="$ROOT/plugins/harness-guard/skills/verification-before-completion"
+VERIFY_SKILL="$VERIFY_DIR/SKILL.md"
+VERIFY_UI="$VERIFY_DIR/agents/openai.yaml"
+VERIFY_OVERLAY="$ROOT/plugins/harness-guard/codex/skill-overlays/verification-before-completion.md"
+
+echo ""
+echo "=== verification-before-completion ==="
+check_file "skill manifest 발견" "$VERIFY_SKILL"
+check_file "Codex UI metadata 발견" "$VERIFY_UI"
+check_file "Codex overlay 발견" "$VERIFY_OVERLAY"
+
+check_contains "metadata가 확인·검증·완료·PR·머지·릴리즈 trigger를 선언" "$VERIFY_SKILL" \
+  '^description: .*확인.*검증.*완료.*PR.*머지.*릴리즈'
+check_contains "완료 주장을 관찰 가능한 증거에 매핑" "$VERIFY_SKILL" '주장.*관찰 가능한 증거'
+check_contains "작업트리와 HEAD SHA를 구분" "$VERIFY_SKILL" '현재 작업트리.*HEAD SHA'
+check_contains "CI·배포 증거의 SHA 일치를 확인" "$VERIFY_SKILL" 'CI.*배포.*SHA.*일치'
+check_contains "적용 불가 검증은 사유와 함께 SKIP" "$VERIFY_SKILL" '적용 불가.*SKIP.*이유'
+check_contains "명령과 종료 코드를 새로 수집" "$VERIFY_SKILL" '명령.*종료 코드.*새로'
+check_contains "실패·미확인이면 완료 판정 차단" "$VERIFY_SKILL" '실패.*미확인.*완료.*판정하지'
+check_contains "직접 호출 실패는 무수정 중단" "$VERIFY_SKILL" '직접 호출.*파일을 수정하지.*중단'
+check_contains "호출 workflow가 최종 판정을 소유" "$VERIFY_SKILL" '호출 workflow.*최종 판정.*소유'
+check_contains "verifier는 선택적 독립 반증 역할" "$VERIFY_SKILL" 'verifier.*선택적.*독립.*반증'
+check_contains "verifier가 수정·커밋·머지하지 않음" "$VERIFY_SKILL" 'verifier.*수정.*커밋.*머지하지'
+check_contains "운영 변경을 검증으로 사용 금지" "$VERIFY_SKILL" '운영 DB.*운영 인프라.*변경하지'
+
+check_contains "UI default prompt가 skill을 명시" "$VERIFY_UI" \
+  'default_prompt:.*\$verification-before-completion'
+check_contains "Codex 실행 의미는 overlay에 격리" "$VERIFY_OVERLAY" '^## Codex 실행$'
+if [ -f "$VERIFY_SKILL" ] && ! grep -Fq '## Codex 실행' "$VERIFY_SKILL"; then
+  pass "Claude source에 Codex 실행 문단 없음"
+else
+  fail "Claude source에 Codex 실행 문단 없음"
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
