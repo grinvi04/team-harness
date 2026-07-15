@@ -30,6 +30,15 @@ check_contains() {
   fi
 }
 
+check_not_contains() {
+  local label=$1 path=$2 pattern=$3
+  if [ -f "$path" ] && ! grep -Eq "$pattern" "$path"; then
+    pass "$label"
+  else
+    fail "$label"
+  fi
+}
+
 DEBUG_DIR="$ROOT/plugins/harness-guard/skills/systematic-debugging"
 DEBUG_SKILL="$DEBUG_DIR/SKILL.md"
 DEBUG_UI="$DEBUG_DIR/agents/openai.yaml"
@@ -95,6 +104,37 @@ if [ -f "$VERIFY_SKILL" ] && ! grep -Fq '## Codex 실행' "$VERIFY_SKILL"; then
 else
   fail "Claude source에 Codex 실행 문단 없음"
 fi
+
+README="$ROOT/README.md"
+DEVELOPER_GUIDE="$ROOT/docs/developer-workflow.md"
+INTRO="$ROOT/docs/intro.html"
+DECISIONS="$ROOT/docs/decisions.md"
+MANIFEST="$ROOT/plugins/harness-guard/.claude-plugin/plugin.json"
+CI="$ROOT/.github/workflows/ci-gate.yml"
+
+echo ""
+echo "=== docs, CI, version ==="
+check_contains "plugin manifest v0.56.0" "$MANIFEST" '"version": "0\.56\.0"'
+check_contains "manifest가 두 대표 스킬을 설명" "$MANIFEST" \
+  'systematic-debugging.*verification-before-completion'
+check_contains "README badge v0.56.0" "$README" 'harness--guard_v0\.56\.0'
+check_contains "README가 systematic-debugging 안내" "$README" '/systematic-debugging'
+check_contains "README가 verification-before-completion 안내" "$README" \
+  '/verification-before-completion'
+check_contains "개발자 가이드가 systematic-debugging 안내" "$DEVELOPER_GUIDE" \
+  'systematic-debugging'
+check_contains "개발자 가이드가 verification-before-completion 안내" "$DEVELOPER_GUIDE" \
+  'verification-before-completion'
+check_contains "소개 페이지가 스킬 16종 안내" "$INTRO" '스킬 16종'
+check_not_contains "소개 페이지에 스킬 14종 잔재 없음" "$INTRO" '스킬 14종'
+check_contains "소개 페이지가 systematic-debugging 안내" "$INTRO" '/systematic-debugging'
+check_contains "소개 페이지가 verification-before-completion 안내" "$INTRO" \
+  '/verification-before-completion'
+check_contains "결정 기록이 v0.56.0과 두 스킬을 연결" "$DECISIONS" \
+  'systematic-debugging.*verification-before-completion.*0\.56\.0'
+check_contains "CI가 flagship test 구문 검사" "$CI" \
+  'bash -n tests/flagship-skills-test\.sh'
+check_contains "CI가 flagship test 실행" "$CI" 'run: bash tests/flagship-skills-test\.sh'
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
