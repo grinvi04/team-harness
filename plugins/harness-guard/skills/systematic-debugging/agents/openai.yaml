@@ -1,0 +1,4 @@
+interface:
+  display_name: "Systematic Debugging"
+  short_description: "재현·가설·증거로 근본 원인을 확정하는 체계적 디버깅"
+  default_prompt: "Use $systematic-debugging to reproduce the failure and prove the root cause before changing code."

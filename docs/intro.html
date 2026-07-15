@@ -208,7 +208,7 @@
     <a href="#arch">아키텍처</a>
 
     <div class="section-label">핵심 구성</div>
-    <a href="#skills">스킬 14종</a>
+    <a href="#skills">스킬 16종</a>
     <a href="#guard">가드 훅</a>
     <a href="#model">모델 티어링</a>
 
@@ -228,14 +228,14 @@
 
   <!-- 히어로 -->
   <section class="hero" id="top">
-    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.31.0</div>
+    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.56.0</div>
     <h1>team-harness</h1>
     <p class="lead">
       AI 코딩 에이전트를 팀에서 안전하게 쓰기 위한 거버넌스 레이어.<br>
       <b>규약은 AGENTS.md 하나, 강제는 서버에.</b>
     </p>
     <div class="stats">
-      <div class="stat"><div class="n">14</div><div class="l">Skills</div></div>
+      <div class="stat"><div class="n">16</div><div class="l">Skills</div></div>
       <div class="stat"><div class="n">5</div><div class="l">방어 계층</div></div>
       <div class="stat"><div class="n">8</div><div class="l">스택 템플릿</div></div>
       <div class="stat"><div class="n">7</div><div class="l">가드 규칙</div></div>
@@ -270,7 +270,7 @@
   <h2 id="arch">아키텍처</h2>
   <div class="layers">
     <div class="layer l3"><span class="lv">계층 3</span><span class="lw">역할별 에이전트 (security-reviewer 등)</span><span class="scope">Claude Code · Codex</span></div>
-    <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 14종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code · Codex</span></div>
+    <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 16종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code · Codex</span></div>
     <div class="layer l1"><span class="lv">계층 1</span><span class="lw">AGENTS.md + .claude/ 설정 (플러그인·rules)</span><span class="scope">clone한 전원</span></div>
     <div class="layer l05"><span class="lv">계층 0.5</span><span class="lw">git pre-commit hook (시크릿 검출)</span><span class="scope">전원</span></div>
     <div class="layer l0"><span class="lv">계층 0</span><span class="lw">branch protection + CI gate — 우회 불가</span><span class="scope">전원 · 모든 도구</span></div>
@@ -281,8 +281,8 @@
   </div>
 
   <!-- 스킬 -->
-  <h2 id="skills">스킬 14종</h2>
-  <p>모든 스킬은 <b>사용자가 명시적으로 호출</b>해야 실행된다 (<code>disable-model-invocation: true</code>). Claude가 자율 판단으로 릴리즈하거나 머지하는 일은 없다.</p>
+  <h2 id="skills">스킬 16종</h2>
+  <p>스킬은 요청과 현재 상태에 맞는 metadata trigger로 선택될 수 있다. 다만 스킬 선택은 새 권한을 만들지 않는다. 머지·릴리즈·운영 변경 같은 외부 상태 변경은 사용자가 맡긴 범위와 각 게이트를 그대로 따라야 한다.</p>
 
   <h3>개발 워크플로</h3>
   <div class="skill-list">
@@ -334,6 +334,16 @@
 
   <h3>공통 절차</h3>
   <div class="skill-list">
+    <div class="sk">
+      <div class="name">/systematic-debugging</div>
+      <div class="badges"><span class="badge auto">상황 기반 선택</span></div>
+      <div class="desc">실패·CI·빌드·런타임 오동작을 재현하고 사실과 가설을 분리해 근본 원인을 판별. 원인이 확정된 수정 요청만 RED → GREEN으로 연결.</div>
+    </div>
+    <div class="sk">
+      <div class="name">/verification-before-completion</div>
+      <div class="badges"><span class="badge auto">상황 기반 선택</span></div>
+      <div class="desc">완료·PR·머지·릴리즈 준비 주장을 현재 worktree·HEAD SHA의 새 증거로 검증. 실패·미확인은 완료로 판정하지 않는 fail-closed 게이트.</div>
+    </div>
     <div class="sk">
       <div class="name">/pr-review-gate</div>
       <div class="badges"><span class="badge auto">Claude 자동 가능</span></div>
@@ -640,7 +650,7 @@
     <div class="sk" style="border-color: rgba(63,185,80,.3)">
       <div class="name" style="color:var(--green)">✓ Codex 동작</div>
       <div class="badges"></div>
-      <div class="desc">AGENTS.md · CI · git hooks · stack rules · skill 14종 · custom agents · command hooks</div>
+      <div class="desc">AGENTS.md · CI · git hooks · stack rules · skill 16종 · custom agents · command hooks</div>
     </div>
     <div class="sk" style="border-color: rgba(210,153,34,.3)">
       <div class="name" style="color:var(--orange)">⚠ 런타임 차이</div>

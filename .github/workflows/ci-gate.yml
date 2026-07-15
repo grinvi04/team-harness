@@ -38,6 +38,7 @@ jobs:
           bash -n tests/alembic-destructive-ddl-test.sh
           bash -n tests/activerecord-destructive-ddl-test.sh
           bash -n tests/skill-discovery-test.sh
+          bash -n tests/flagship-skills-test.sh
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
           bash -n tests/settings-deny-test.sh
@@ -142,6 +143,9 @@ jobs:
 
       - name: 스킬 발견성(SKILL.md) 테스트
         run: bash tests/skill-discovery-test.sh
+
+      - name: 대표 디버깅·완료 검증 스킬 계약
+        run: bash tests/flagship-skills-test.sh
 
       - name: subagent 모델 강제 훅 테스트
         run: bash tests/enforce-subagent-model-test.sh

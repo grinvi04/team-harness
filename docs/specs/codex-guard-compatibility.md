@@ -109,6 +109,8 @@ Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native �
 | `skills/release/SKILL.md` | slash skill + wrappers | current agent + read-only evidence roles | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/repo-sync/SKILL.md` | slash skill + node script | explorer read-only collection + current-agent action | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/solo-merge/SKILL.md` | slash skill + wrapper | Codex review + same atomic wrapper | Codex-native mapping | `codex-skill-mapping-test.sh` |
+| `skills/systematic-debugging/SKILL.md` | slash skill + evidence workflow | current-agent diagnosis/fix + optional explorer/verifier read-only roles | Codex-native mapping | `flagship-skills-test.sh`, `codex-skill-mapping-test.sh` |
+| `skills/verification-before-completion/SKILL.md` | slash skill + completion gate | current-agent final verdict + optional verifier read-only role | Codex-native mapping | `flagship-skills-test.sh`, `codex-skill-mapping-test.sh` |
 | `agents/security-reviewer.md` | Claude named agent, `model: opus` | `codex/agents/harness-security-reviewer.toml` | Codex-native replacement | mapping + cache patch test |
 | `agents/verifier.md` | Claude named agent, `model: opus` | `codex/agents/harness-verifier.toml` | Codex-native replacement | mapping + cache patch test |
 | `codex/agents/harness-explorer.toml` | 해당 없음 | 부모 model 상속 + low, read-only evidence role | Codex-native | mapping + cache patch test |
