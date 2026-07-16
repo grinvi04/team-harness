@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="team-harness의 아키텍처, 스킬, 가드와 Git·CI 거버넌스를 한눈에 보는 소개">
 <title>team-harness 소개</title>
 <style>
   :root {
@@ -19,6 +20,13 @@
     font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", -apple-system, sans-serif;
     font-size: 16px; line-height: 1.7;
   }
+  .skip-link {
+    position: fixed; top: .75rem; left: .75rem; z-index: 100;
+    transform: translateY(-180%); background: var(--accent); color: var(--bg);
+    padding: .6rem .9rem; border-radius: 7px; font-weight: 800;
+  }
+  .skip-link:focus { transform: translateY(0); }
+  a:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; border-radius: 4px; }
 
   /* ── 레이아웃 ── */
   .layout { display: flex; min-height: 100vh; }
@@ -70,6 +78,12 @@
   .hero h1 { margin-bottom: 1.2rem; }
   .hero .lead { font-size: 1.2rem; color: var(--muted); line-height: 1.7; max-width: 620px; }
   .hero .lead b { color: var(--text); }
+  .hero-links { display: flex; flex-wrap: wrap; gap: .65rem; margin-top: 1.4rem; }
+  .hero-links a {
+    border: 1px solid var(--border2); border-radius: 8px; padding: .55rem .8rem;
+    background: var(--surface); font-size: .86rem; font-weight: 700;
+  }
+  .hero-links a.primary { border-color: var(--accent); background: rgba(88,166,255,.1); }
   .stats { display: flex; gap: 2.5rem; margin-top: 2.5rem; }
   .stat .n { font-size: 2rem; font-weight: 800; color: var(--accent); }
   .stat .l { font-size: .85rem; color: var(--muted); margin-top: .1rem; }
@@ -193,15 +207,29 @@
     main { padding: 2.5rem 1.8rem 5rem; }
     .tiers, .tpl-grid { grid-template-columns: repeat(2,1fr); }
   }
+  @media (max-width: 560px) {
+    main { padding: 2rem 1.1rem 4rem; }
+    h1 { font-size: 2.25rem; }
+    .stats { gap: 1.2rem; flex-wrap: wrap; }
+    .tiers, .tpl-grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition-duration: .01ms !important; }
+  }
 </style>
 </head>
 <body>
+<a class="skip-link" href="#main-content">본문으로 바로가기</a>
 <div class="layout">
 
 <!-- 사이드바 -->
 <aside>
   <div class="logo">team-harness</div>
-  <nav>
+  <nav aria-label="소개 페이지 목차">
+    <div class="section-label">개발자 문서</div>
+    <a href="developer-workflow.html">실행 가이드 열기 ↗</a>
+
     <div class="section-label">개요</div>
     <a href="#why">왜 만들었나</a>
     <a href="#principle">설계 원칙</a>
@@ -224,7 +252,7 @@
 </aside>
 
 <!-- 본문 -->
-<main>
+<main id="main-content">
 
   <!-- 히어로 -->
   <section class="hero" id="top">
@@ -234,6 +262,11 @@
       AI 코딩 에이전트를 팀에서 안전하게 쓰기 위한 거버넌스 레이어.<br>
       <b>규약은 AGENTS.md 하나, 강제는 서버에.</b>
     </p>
+    <div class="hero-links">
+      <a class="primary" href="developer-workflow.html">개발자 실행 가이드</a>
+      <a href="developer-workflow.md">Markdown 정본</a>
+      <a href="onboarding.md">설치·온보딩</a>
+    </div>
     <div class="stats">
       <div class="stat"><div class="n">16</div><div class="l">Skills</div></div>
       <div class="stat"><div class="n">5</div><div class="l">방어 계층</div></div>
@@ -664,7 +697,7 @@
     </div>
   </div>
   <div class="callout">
-    <b>결론</b> — Codex는 v0.55.0 이상 플러그인, managed requirements, hook trust가 준비되면 Team Harness skill·agent·보안 가드를 사용한다. 최종 강제는 도구와 무관한 branch protection·CI가 소유한다.
+    <b>현재 문서 기준 v0.56.0</b> — Codex는 managed requirements, hook trust, 최신 harness-guard cache가 준비되면 16개 skill·agent·보안 가드를 사용한다. 설치 상태는 <code>scripts/harness-doctor.sh --repo .</code>로 확인한다. 최종 강제는 도구와 무관한 branch protection·CI가 소유한다.
   </div>
 
 </main>

@@ -39,6 +39,7 @@ jobs:
           bash -n tests/activerecord-destructive-ddl-test.sh
           bash -n tests/skill-discovery-test.sh
           bash -n tests/flagship-skills-test.sh
+          bash -n tests/developer-docs-test.sh
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
           bash -n tests/settings-deny-test.sh
@@ -146,6 +147,9 @@ jobs:
 
       - name: 대표 디버깅·완료 검증 스킬 계약
         run: bash tests/flagship-skills-test.sh
+
+      - name: 개발자 문서 최신성·연결 계약
+        run: bash tests/developer-docs-test.sh
 
       - name: subagent 모델 강제 훅 테스트
         run: bash tests/enforce-subagent-model-test.sh

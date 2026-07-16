@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="team-harness를 사용하는 개발자를 위한 작업 상태별 실행 가이드">
+<title>개발자 실행 가이드 · team-harness</title>
+<style>
+  :root {
+    --canvas: #e9f0f6;
+    --paper: #ffffff;
+    --ink: #102a43;
+    --muted: #52677b;
+    --line: #c8d6e2;
+    --navy: #16324f;
+    --cyan: #0b7285;
+    --cyan-soft: #d9f0f2;
+    --green: #2f7d4a;
+    --green-soft: #e2f4e8;
+    --amber: #9a6700;
+    --amber-soft: #fff1c7;
+    --red: #b42318;
+    --red-soft: #fee4e2;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+    --display: "Avenir Next Condensed", "Arial Narrow", "Apple SD Gothic Neo", sans-serif;
+    --body: "Avenir Next", "Apple SD Gothic Neo", "Noto Sans KR", -apple-system, sans-serif;
+    --shadow: 0 18px 45px rgba(16, 42, 67, .09);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      linear-gradient(rgba(22, 50, 79, .045) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(22, 50, 79, .045) 1px, transparent 1px),
+      var(--canvas);
+    background-size: 28px 28px;
+    font-family: var(--body);
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  a { color: var(--cyan); text-underline-offset: 3px; }
+  a:hover { color: var(--navy); }
+  a:focus-visible, summary:focus-visible {
+    outline: 3px solid #f59f00;
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+  code {
+    padding: .12rem .35rem;
+    border: 1px solid #cbd8e3;
+    border-radius: 4px;
+    background: #eef4f8;
+    font-family: var(--mono);
+    font-size: .88em;
+  }
+  .skip-link {
+    position: fixed;
+    z-index: 100;
+    top: .75rem;
+    left: .75rem;
+    transform: translateY(-180%);
+    padding: .65rem .9rem;
+    border-radius: 6px;
+    background: var(--navy);
+    color: #fff;
+    font-weight: 800;
+  }
+  .skip-link:focus { transform: translateY(0); }
+
+  .shell { width: min(1180px, calc(100% - 2rem)); margin: 0 auto; }
+  .topbar {
+    position: sticky;
+    z-index: 20;
+    top: 0;
+    border-bottom: 1px solid rgba(200, 214, 226, .9);
+    background: rgba(233, 240, 246, .92);
+    backdrop-filter: blur(14px);
+  }
+  .topbar-inner {
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.25rem;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: .7rem;
+    color: var(--navy);
+    text-decoration: none;
+    font-family: var(--display);
+    font-size: 1.08rem;
+    font-weight: 900;
+    letter-spacing: .03em;
+  }
+  .brand-mark {
+    width: 1.65rem;
+    height: 1.65rem;
+    display: grid;
+    place-items: center;
+    border-radius: 5px;
+    background: var(--navy);
+    color: #fff;
+    font-family: var(--mono);
+    font-size: .72rem;
+  }
+  nav { display: flex; align-items: center; gap: .95rem; flex-wrap: wrap; }
+  nav a { color: var(--muted); text-decoration: none; font-size: .84rem; font-weight: 700; }
+  nav a[aria-current="page"] { color: var(--navy); }
+
+  .hero { padding: 5.5rem 0 3.25rem; }
+  .hero-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(280px, .7fr); gap: 3rem; align-items: end; }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: .55rem;
+    margin-bottom: 1rem;
+    color: var(--cyan);
+    font-family: var(--mono);
+    font-size: .78rem;
+    font-weight: 800;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+  .pulse { width: .58rem; height: .58rem; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 5px var(--green-soft); }
+  h1, h2, h3 { font-family: var(--display); color: var(--navy); }
+  h1 { max-width: 780px; margin: 0; font-size: clamp(3rem, 7vw, 5.9rem); line-height: .95; letter-spacing: -.045em; }
+  .hero-lead { max-width: 720px; margin: 1.5rem 0 0; color: var(--muted); font-size: clamp(1.05rem, 1.8vw, 1.25rem); }
+  .hero-lead strong { color: var(--ink); }
+  .version-card {
+    border: 1px solid var(--navy);
+    border-radius: 12px;
+    background: var(--navy);
+    color: #eaf4fb;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .version-card .label { padding: .6rem .9rem; border-bottom: 1px solid rgba(255,255,255,.16); font-family: var(--mono); font-size: .72rem; color: #a9c4d8; }
+  .version-card .body { padding: 1.2rem; }
+  .version { font-family: var(--display); font-size: 2.3rem; font-weight: 900; letter-spacing: -.02em; }
+  .version-meta { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; margin-top: 1rem; }
+  .version-meta div { padding-top: .55rem; border-top: 1px solid rgba(255,255,255,.15); }
+  .version-meta b { display: block; color: #fff; font-family: var(--mono); }
+  .version-meta span { color: #a9c4d8; font-size: .76rem; }
+  .version-card a { color: #8fe4ea; }
+  .version-card code { border-color: rgba(255,255,255,.24); background: rgba(255,255,255,.1); color: #fff; }
+
+  .role-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    margin: 0 0 4rem;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--paper);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .role { padding: 1.15rem 1.25rem; }
+  .role + .role { border-left: 1px solid var(--line); }
+  .role b { display: block; margin-bottom: .25rem; color: var(--navy); }
+  .role p { margin: 0; color: var(--muted); font-size: .88rem; }
+
+  section { scroll-margin-top: 86px; }
+  .section-head { display: grid; grid-template-columns: 120px 1fr; gap: 1.25rem; align-items: start; margin-bottom: 1.5rem; }
+  .section-code { color: var(--cyan); font-family: var(--mono); font-size: .78rem; font-weight: 800; letter-spacing: .08em; }
+  h2 { margin: 0; font-size: clamp(2rem, 4vw, 3.15rem); line-height: 1.05; letter-spacing: -.03em; }
+  .section-copy { max-width: 720px; margin: .75rem 0 0; color: var(--muted); }
+  .section-block { padding: 4rem 0; border-top: 1px solid rgba(22, 50, 79, .18); }
+
+  .route-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem; }
+  .route-card {
+    min-height: 185px;
+    padding: 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    box-shadow: 0 6px 18px rgba(16, 42, 67, .045);
+  }
+  .route-card.wide { grid-column: 1 / -1; min-height: auto; }
+  .route-top { display: flex; justify-content: space-between; gap: 1rem; align-items: start; }
+  .route-card h3 { margin: 0; font-size: 1.38rem; }
+  .signal { flex: 0 0 auto; padding: .22rem .5rem; border-radius: 999px; background: var(--cyan-soft); color: var(--cyan); font-family: var(--mono); font-size: .69rem; font-weight: 800; }
+  .route-card p { margin: .55rem 0 1rem; color: var(--muted); font-size: .9rem; }
+  .route-facts { display: grid; grid-template-columns: 1fr 1fr; gap: .65rem; }
+  .route-facts div { padding-top: .55rem; border-top: 1px solid #e2eaf0; }
+  .route-facts span { display: block; color: #71869a; font-size: .7rem; text-transform: uppercase; letter-spacing: .07em; }
+  .route-facts b { font-family: var(--mono); font-size: .8rem; }
+
+  .evidence-rail {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    border: 1px solid var(--navy);
+    border-radius: 12px;
+    background: var(--navy);
+    color: #dceaf3;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .rail-step { position: relative; min-height: 210px; padding: 1.25rem 1rem; }
+  .rail-step + .rail-step { border-left: 1px solid rgba(255,255,255,.15); }
+  .rail-step::after {
+    content: "";
+    position: absolute;
+    right: -5px;
+    top: 2rem;
+    z-index: 2;
+    width: 9px;
+    height: 9px;
+    border: 2px solid var(--navy);
+    border-radius: 50%;
+    background: #63d2dc;
+  }
+  .rail-step:last-child::after { display: none; }
+  .rail-no { color: #7edce3; font-family: var(--mono); font-size: .72rem; font-weight: 800; }
+  .rail-step h3 { margin: .7rem 0 .5rem; color: #fff; font-size: 1.18rem; }
+  .rail-step p { margin: 0; color: #afc4d3; font-size: .8rem; }
+  .rail-proof { display: block; margin-top: 1rem; color: #9ee6ba; font-family: var(--mono); font-size: .72rem; }
+
+  .dual { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .evidence-card { padding: 1.5rem; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+  .evidence-card.debug { border-top: 5px solid var(--amber); }
+  .evidence-card.verify { border-top: 5px solid var(--green); }
+  .evidence-card h3 { margin: 0 0 .55rem; font-size: 1.5rem; }
+  .evidence-card > p { color: var(--muted); }
+  .contract { margin: 1.15rem 0 0; padding: 0; list-style: none; counter-reset: contract; }
+  .contract li { counter-increment: contract; display: grid; grid-template-columns: 1.7rem 1fr; gap: .55rem; padding: .5rem 0; border-top: 1px solid #e3ebf1; font-size: .88rem; }
+  .contract li::before { content: counter(contract, decimal-leading-zero); color: var(--cyan); font-family: var(--mono); font-size: .7rem; font-weight: 800; padding-top: .17rem; }
+  .prompt {
+    margin-top: 1rem;
+    padding: .85rem 1rem;
+    border-radius: 7px;
+    background: #102a43;
+    color: #e5f0f7;
+    font-family: var(--mono);
+    font-size: .77rem;
+    overflow-wrap: anywhere;
+  }
+
+  .gate-line { display: grid; grid-template-columns: repeat(5, 1fr); border: 1px solid var(--line); border-radius: 10px; background: var(--paper); overflow: hidden; }
+  .gate { position: relative; padding: 1.15rem; min-height: 130px; }
+  .gate + .gate { border-left: 1px solid var(--line); }
+  .gate:not(:last-child)::after { content: "→"; position: absolute; top: 1rem; right: -.55rem; z-index: 2; width: 1.1rem; border-radius: 50%; background: var(--paper); color: var(--cyan); text-align: center; }
+  .gate b { display: block; margin-bottom: .35rem; font-size: .93rem; }
+  .gate span { color: var(--muted); font-size: .78rem; }
+  .release-note { margin-top: 1rem; padding: 1rem 1.2rem; border-left: 4px solid var(--amber); background: var(--amber-soft); color: #6b4b00; }
+
+  .recovery-table { width: 100%; border-collapse: collapse; border: 1px solid var(--line); background: var(--paper); font-size: .9rem; }
+  .recovery-table th, .recovery-table td { padding: .85rem 1rem; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  .recovery-table th { background: #dfe9f1; color: var(--navy); font-size: .76rem; letter-spacing: .06em; text-transform: uppercase; }
+  .recovery-table tr:last-child td { border-bottom: 0; }
+  .blocked { color: var(--red); font-family: var(--mono); font-size: .78rem; font-weight: 800; }
+  .next { color: var(--green); font-weight: 800; }
+
+  .tool-note { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .tool { padding: 1.2rem; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.65); }
+  .tool h3 { margin: 0; }
+  .tool p { margin-bottom: 0; color: var(--muted); font-size: .88rem; }
+
+  .done-panel { display: grid; grid-template-columns: .7fr 1.3fr; gap: 2rem; padding: 2rem; border-radius: 14px; background: var(--green-soft); border: 1px solid #acd6ba; }
+  .done-panel h2 { font-size: 2.5rem; }
+  .done-list { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; margin: 0; padding: 0; list-style: none; }
+  .done-list li { position: relative; padding: .7rem .8rem .7rem 2rem; border: 1px solid #b9dcc4; border-radius: 7px; background: rgba(255,255,255,.7); font-size: .84rem; }
+  .done-list li::before { content: "✓"; position: absolute; left: .75rem; color: var(--green); font-weight: 900; }
+
+  footer { margin-top: 5rem; padding: 2rem 0 3rem; border-top: 1px solid rgba(22, 50, 79, .2); color: var(--muted); font-size: .84rem; }
+  .footer-grid { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .footer-links { display: flex; gap: 1rem; flex-wrap: wrap; }
+
+  @media (max-width: 920px) {
+    .hero-grid, .done-panel { grid-template-columns: 1fr; }
+    .evidence-rail { grid-template-columns: repeat(3, 1fr); }
+    .rail-step:nth-child(4) { border-left: 0; border-top: 1px solid rgba(255,255,255,.15); }
+    .rail-step:nth-child(n+4) { border-top: 1px solid rgba(255,255,255,.15); }
+    .gate-line { grid-template-columns: 1fr; }
+    .gate + .gate { border-left: 0; border-top: 1px solid var(--line); }
+    .gate:not(:last-child)::after { content: "↓"; top: auto; bottom: -.55rem; right: 1rem; }
+  }
+  @media (max-width: 720px) {
+    .shell { width: min(100% - 1.2rem, 1180px); }
+    .topbar-inner { align-items: flex-start; flex-direction: column; padding: .75rem 0; }
+    nav { gap: .7rem; }
+    .hero { padding-top: 3.25rem; }
+    .role-strip, .route-grid, .dual, .tool-note { grid-template-columns: 1fr; }
+    .role + .role { border-left: 0; border-top: 1px solid var(--line); }
+    .route-card.wide { grid-column: auto; }
+    .section-head { grid-template-columns: 1fr; gap: .35rem; }
+    .evidence-rail { grid-template-columns: 1fr; }
+    .rail-step + .rail-step, .rail-step:nth-child(4) { border-left: 0; border-top: 1px solid rgba(255,255,255,.15); }
+    .rail-step { min-height: auto; }
+    .rail-step::after { top: auto; right: 1rem; bottom: -6px; }
+    .route-facts, .done-list { grid-template-columns: 1fr; }
+    .recovery-table, .recovery-table tbody, .recovery-table tr, .recovery-table td { display: block; }
+    .recovery-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .recovery-table tr { padding: .6rem 0; border-bottom: 1px solid var(--line); }
+    .recovery-table td { border: 0; padding: .35rem .8rem; }
+    .recovery-table td::before { content: attr(data-label); display: block; margin-bottom: .12rem; color: #71869a; font-size: .68rem; font-weight: 800; text-transform: uppercase; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main-content">본문으로 바로가기</a>
+
+<header class="topbar">
+  <div class="shell topbar-inner">
+    <a class="brand" href="intro.html"><span class="brand-mark">TH</span> team-harness</a>
+    <nav aria-label="개발자 실행 가이드 목차">
+      <a aria-current="page" href="#route">작업 찾기</a>
+      <a href="#flow">개발 흐름</a>
+      <a href="#evidence">진단·검증</a>
+      <a href="#recovery">막힘 복구</a>
+      <a href="#done">완료 기준</a>
+      <a href="developer-workflow.md">Markdown 정본 ↗</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main-content">
+  <div class="shell">
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow"><span class="pulse" aria-hidden="true"></span> Developer runbook / evidence first</div>
+          <h1 id="hero-title">개발 흐름은<br>증거로 닫힌다.</h1>
+          <p class="hero-lead">team-harness에서 개발자가 할 일은 스킬 이름을 외우는 것이 아니다. <strong>현재 상태를 확인하고, 다음 행동을 고르고, 실행 증거가 생겼을 때만 다음 게이트로 이동</strong>하는 것이다.</p>
+        </div>
+        <aside class="version-card" aria-label="현재 문서 기준">
+          <div class="label">CURRENT CONTRACT</div>
+          <div class="body">
+            <div class="version">v0.56.0</div>
+            <div class="version-meta">
+              <div><b>16</b><span>개 스킬</span></div>
+              <div><b>2</b><span>보호 브랜치</span></div>
+            </div>
+            <p>현재 16개 스킬의 정확한 문장은 <a href="developer-workflow.md">Markdown 정본</a>과 각 <code>SKILL.md</code>가 소유한다.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <div class="role-strip" aria-label="문서 역할">
+      <div class="role"><b>전체 구조가 궁금하다</b><p><a href="intro.html">intro.html</a>에서 방어 계층·가드·스킬을 본다.</p></div>
+      <div class="role"><b>지금 무엇을 할지 찾는다</b><p>이 페이지에서 현재 상태와 다음 스킬을 고른다.</p></div>
+      <div class="role"><b>정확한 계약을 확인한다</b><p><a href="developer-workflow.md">Markdown 정본</a>과 skill 원문을 읽는다.</p></div>
+    </div>
+
+    <section class="section-block" id="route" aria-labelledby="route-title">
+      <div class="section-head">
+        <div class="section-code">ROUTE / 01</div>
+        <div><h2 id="route-title">현재 상태에서 작업 찾기</h2><p class="section-copy">“무엇을 만들까?”보다 “지금 어느 경계에 있나?”를 먼저 확인한다. 시작 위치와 완료 증거가 다음 행동을 결정한다.</p></div>
+      </div>
+      <div class="route-grid">
+        <article class="route-card">
+          <div class="route-top"><h3>새 기능을 계획한다</h3><span class="signal">INTENT</span></div>
+          <p>해석이 갈릴 수 있는 요구사항을 수용기준과 작은 태스크로 고정한다.</p>
+          <div class="route-facts"><div><span>시작 위치</span><b>develop / git 없음</b></div><div><span>사용할 절차</span><b>plan</b></div><div><span>완료 증거</span><b>승인된 spec</b></div><div><span>다음</span><b>feature-add</b></div></div>
+        </article>
+        <article class="route-card">
+          <div class="route-top"><h3>기능을 구현한다</h3><span class="signal">BUILD</span></div>
+          <p>신규 기능은 RED→GREEN→Refactor, 기존 기능은 바뀔 동작만 RED로 만든다.</p>
+          <div class="route-facts"><div><span>시작 위치</span><b>develop / feature/*</b></div><div><span>사용할 절차</span><b>feature-add · feature-modify</b></div><div><span>완료 증거</span><b>tests green + commit</b></div><div><span>다음</span><b>verification</b></div></div>
+        </article>
+        <article class="route-card">
+          <div class="route-top"><h3>실패 원인을 찾는다</h3><span class="signal">DIAGNOSE</span></div>
+          <p>원인을 모르면 수정부터 하지 않는다. 재현하고 최대 3개 가설을 판별한다.</p>
+          <div class="route-facts"><div><span>시작 위치</span><b>현재 브랜치</b></div><div><span>사용할 절차</span><b>systematic-debugging</b></div><div><span>완료 증거</span><b>root cause / 미확정 근거</b></div><div><span>다음</span><b>feature-modify</b></div></div>
+        </article>
+        <article class="route-card">
+          <div class="route-top"><h3>완료 주장을 검증한다</h3><span class="signal">VERIFY</span></div>
+          <p>현재 worktree·HEAD·CI SHA에 대해 새로 실행한 명령으로만 완료를 판정한다.</p>
+          <div class="route-facts"><div><span>시작 위치</span><b>어느 브랜치든</b></div><div><span>사용할 절차</span><b>verification-before-completion</b></div><div><span>완료 증거</span><b>VERIFIED / NOT VERIFIED</b></div><div><span>다음</span><b>feature-merge</b></div></div>
+        </article>
+        <article class="route-card wide">
+          <div class="route-top"><h3>PR·릴리즈로 보낸다</h3><span class="signal">SHIP</span></div>
+          <p><code>feature-merge</code>는 develop까지, <code>release-check</code> → <code>release</code>는 main 태그와 develop back-merge까지 소유한다. 모든 PR은 review·CI·thread·status 게이트를 지난다.</p>
+          <div class="route-facts"><div><span>시작 위치</span><b>feature/* · fix/* · develop</b></div><div><span>사용할 절차</span><b>feature-merge · release-check · release</b></div><div><span>완료 증거</span><b>merged PR · tag · health</b></div><div><span>우회 금지</span><b>raw gh · direct push</b></div></div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-block" id="flow" aria-labelledby="flow-title">
+      <div class="section-head">
+        <div class="section-code">FLOW / 02</div>
+        <div><h2 id="flow-title">한 기능이 이동하는 레일</h2><p class="section-copy">각 칸은 실제 순서다. 앞 칸의 증거가 없으면 다음 칸으로 이동하지 않는다.</p></div>
+      </div>
+      <div class="evidence-rail" aria-label="기능 개발 증거 흐름">
+        <article class="rail-step"><span class="rail-no">01 / INTENT</span><h3>의도 고정</h3><p>무엇을·왜, 정상·예외·경계, 비범위를 승인한다.</p><span class="rail-proof">proof: docs/specs/*.md</span></article>
+        <article class="rail-step"><span class="rail-no">02 / RED</span><h3>실패 고정</h3><p>구현 전 테스트가 올바른 이유로 실패하는지 확인한다.</p><span class="rail-proof">proof: exact command + exit</span></article>
+        <article class="rail-step"><span class="rail-no">03 / GREEN</span><h3>최소 구현</h3><p>계약을 통과시키는 최소 변경 뒤 중복을 정리한다.</p><span class="rail-proof">proof: focused tests green</span></article>
+        <article class="rail-step"><span class="rail-no">04 / VERIFY</span><h3>현재 상태 검증</h3><p>전체 품질·diff·worktree·HEAD를 새 증거로 대조한다.</p><span class="rail-proof">proof: VERIFIED</span></article>
+        <article class="rail-step"><span class="rail-no">05 / REVIEW</span><h3>반증과 CI</h3><p>AI 리뷰, 사람 승인(팀), 스레드, required CI를 닫는다.</p><span class="rail-proof">proof: all gates green</span></article>
+        <article class="rail-step"><span class="rail-no">06 / SHIP</span><h3>머지·태그</h3><p>래퍼로 머지하고 릴리즈면 태그·back-merge·health까지 본다.</p><span class="rail-proof">proof: SHA continuity</span></article>
+      </div>
+    </section>
+
+    <section class="section-block" id="evidence" aria-labelledby="evidence-title">
+      <div class="section-head">
+        <div class="section-code">EVIDENCE / 03</div>
+        <div><h2 id="evidence-title">추측을 멈추는 두 스킬</h2><p class="section-copy">systematic-debugging은 “왜 실패했나”를, verification-before-completion은 “정말 끝났나”를 닫는다.</p></div>
+      </div>
+      <div class="dual">
+        <article class="evidence-card debug">
+          <h3>systematic-debugging</h3>
+          <p>진단 요청이면 작업트리를 바꾸지 않는다. 수정 요청이어도 근본 원인이 확인되기 전에는 패치하지 않는다.</p>
+          <ol class="contract"><li>기대값·실제값·재현 명령·종료 코드 고정</li><li>확인된 사실과 추론 분리</li><li>최대 3개 가설과 판별 실험</li><li>근본 원인 또는 미확정 경계 보고</li></ol>
+          <div class="prompt">systematic-debugging으로 이 CI 실패의 원인만 찾아줘. 아직 수정하지 마.</div>
+        </article>
+        <article class="evidence-card verify">
+          <h3>verification-before-completion</h3>
+          <p>실패·미실행·SHA 불일치는 완료가 아니다. 검증 스킬은 실패를 직접 고치거나 머지 권한을 만들지 않는다.</p>
+          <ol class="contract"><li>검증할 주장을 관찰 가능한 증거에 매핑</li><li>worktree와 HEAD SHA 구분</li><li>명령과 종료 코드를 새로 수집</li><li>VERIFIED / NOT VERIFIED로 fail-closed 판정</li></ol>
+          <div class="prompt">이 브랜치가 PR 준비됐다는 주장을 현재 HEAD의 새 증거로 검증해줘.</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section-block" id="merge" aria-labelledby="merge-title">
+      <div class="section-head">
+        <div class="section-code">GATES / 04</div>
+        <div><h2 id="merge-title">머지는 명령이 아니라 게이트다</h2><p class="section-copy">PR 생성과 머지는 저장소 래퍼가 소유한다. AI 리뷰가 사람 승인을 대신하지 않고, 체크런 성공이 미해결 스레드를 대신하지 않는다.</p></div>
+      </div>
+      <div class="gate-line" aria-label="PR 머지 게이트">
+        <div class="gate"><b>AI 리뷰</b><span>변경분을 반증하고 지적의 사실관계를 확인</span></div>
+        <div class="gate"><b>Thread 0</b><span>답변을 남기고 모든 review thread resolve</span></div>
+        <div class="gate"><b>사람 승인</b><span>팀 모드만 적용, 솔로 표준은 승인요건 0</span></div>
+        <div class="gate"><b>Required CI</b><span>quality · secret scan · project checks</span></div>
+        <div class="gate"><b>SHA 머지</b><span>외부 status와 HEAD 일치 뒤 pr-merge.sh</span></div>
+      </div>
+      <div class="release-note"><strong>릴리즈는 여기서 끝나지 않는다.</strong> <code>release-check</code> 품질·보안·DB 사전검증 → <code>release</code> main PR → 태그 → develop back-merge PR → 배포 후 health 순서다.</div>
+    </section>
+
+    <section class="section-block" id="recovery" aria-labelledby="recovery-title">
+      <div class="section-head">
+        <div class="section-code">RECOVERY / 05</div>
+        <div><h2 id="recovery-title">막혔을 때 우회하지 않기</h2><p class="section-copy">차단 메시지는 다음 행동을 알려주는 라우팅 정보다. 가드를 끄거나 테스트를 삭제하면 원인은 남는다.</p></div>
+      </div>
+      <table class="recovery-table">
+        <thead><tr><th>차단 메시지·증상</th><th>의미</th><th>다음 행동</th></tr></thead>
+        <tbody>
+          <tr><td data-label="차단"><span class="blocked">main/develop 직접 커밋 금지</span></td><td data-label="의미">보호 브랜치에서 변경 중</td><td data-label="다음 행동"><span class="next">feature/* 또는 fix/* 브랜치</span></td></tr>
+          <tr><td data-label="차단"><span class="blocked">feature 브랜치는 plan 필요</span></td><td data-label="의미">기능 의도와 수용기준 미승인</td><td data-label="다음 행동"><span class="next">plan으로 spec 작성·승인</span></td></tr>
+          <tr><td data-label="차단"><span class="blocked">raw gh pr create/merge 금지</span></td><td data-label="의미">PR 게이트 누락 방지</td><td data-label="다음 행동"><span class="next">pr-create · feature-merge · release</span></td></tr>
+          <tr><td data-label="증상"><span class="blocked">테스트 실패</span></td><td data-label="의미">현재 구현이 계약을 충족하지 않음</td><td data-label="다음 행동"><span class="next">systematic-debugging으로 원인 판별</span></td></tr>
+          <tr><td data-label="증상"><span class="blocked">CI 성공, 머지 불가</span></td><td data-label="의미">스레드·승인·mergeability 등 다른 게이트 미충족</td><td data-label="다음 행동"><span class="next">pr-review-gate 상태 확인</span></td></tr>
+          <tr><td data-label="증상"><span class="blocked">skill·hook이 보이지 않음</span></td><td data-label="의미">설치 cache·hook trust·repo sync 문제 가능</td><td data-label="다음 행동"><span class="next">harness-doctor.sh --repo .</span></td></tr>
+        </tbody>
+      </table>
+      <p><a href="troubleshooting.md">차단별 상세 복구법 보기</a></p>
+    </section>
+
+    <section class="section-block" id="tools" aria-labelledby="tools-title">
+      <div class="section-head">
+        <div class="section-code">TOOLS / 06</div>
+        <div><h2 id="tools-title">UI는 달라도 완료 조건은 같다</h2><p class="section-copy">스킬이 화면에서 어떻게 보이는지는 실행 표면의 차이다. 테스트·래퍼·CI·branch protection은 동일하다.</p></div>
+      </div>
+      <div class="tool-note">
+        <article class="tool"><h3>Claude Code</h3><p>slash skill과 역할별 agent가 명시적으로 보일 수 있다. hooks와 plugin 원본 계약을 사용한다.</p></article>
+        <article class="tool"><h3>Codex</h3><p>현재 agent가 읽은 <code>SKILL.md</code>를 직접 수행할 수 있다. overlay·adapter가 런타임 차이를 매핑한다.</p></article>
+      </div>
+      <p>설치·도구별 설정은 <a href="onboarding.md">온보딩</a>, 책임 경계는 <a href="ai-collaboration.md">AI 협업 가이드</a>, PR 기준은 <a href="code-review.md">코드리뷰 정본</a>을 따른다.</p>
+    </section>
+
+    <section class="section-block" id="done" aria-labelledby="done-title">
+      <div class="done-panel">
+        <div><div class="section-code">DONE / 07</div><h2 id="done-title">완료라고 말하기 전</h2><p>모두 체크할 수 없으면 작업은 끝나지 않았다.</p></div>
+        <ul class="done-list">
+          <li>요청한 범위만 변경했다</li><li>정상·예외·경계를 테스트했다</li><li>전체 품질 명령이 exit 0이다</li><li>현재 worktree와 HEAD를 구분했다</li><li>AI 리뷰 지적과 스레드를 닫았다</li><li>required CI와 승인 요건을 통과했다</li><li>CI·배포 SHA가 대상 HEAD와 같다</li><li>릴리즈면 태그·back-merge·health를 확인했다</li>
+        </ul>
+      </div>
+    </section>
+
+    <footer>
+      <div class="footer-grid">
+        <span>team-harness developer runbook · harness-guard v0.56.0</span>
+        <div class="footer-links"><a href="intro.html">전체 소개</a><a href="developer-workflow.md">Markdown 정본</a><a href="harness-maintenance.md">하네스 유지보수</a></div>
+      </div>
+    </footer>
+  </div>
+</main>
+</body>
+</html>
