@@ -95,6 +95,9 @@ const hooks = JSON.parse(fs.readFileSync(hooksPath, 'utf8'));
 const dryRun = JSON.parse(fs.readFileSync(dryRunPath, 'utf8'));
 const result = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
 const recheck = JSON.parse(fs.readFileSync(recheckPath, 'utf8'));
+const expectedOverlays = fs.readdirSync(skillsRoot)
+  .filter((name) => fs.existsSync(`${skillsRoot}/${name}/SKILL.md`))
+  .length;
 if (dryRun.hooks.removed !== 1 || !dryRun.hooks.changedFile) fail('dry run did not detect prompt handler');
 if (result.hooks.removed !== 1 || !result.hooks.changedFile) fail('patch did not remove prompt handler');
 if (dryRun.skills.fixed !== 1 || result.skills.fixed !== 1 || recheck.skills.fixed !== 0) fail('argument-hint fix was not applied idempotently');
@@ -102,7 +105,7 @@ if (dryRun.skills.normalized < 1 || result.skills.normalized < 1) fail('Claude e
 if (recheck.skills.normalized !== 0) fail('Claude execution metadata normalization is not idempotent');
 if (dryRun.skills.attributions < 1 || result.skills.attributions < 1) fail('Claude co-author attribution was not detected');
 if (recheck.skills.attributions !== 0) fail('Claude co-author attribution normalization is not idempotent');
-if (result.skills.overlays !== 14 || recheck.skills.overlays !== 0) fail(`Codex overlays were not injected exactly once: result=${result.skills.overlays} recheck=${recheck.skills.overlays}`);
+if (result.skills.overlays !== expectedOverlays || recheck.skills.overlays !== 0) fail(`Codex overlays were not injected exactly once: expected=${expectedOverlays} result=${result.skills.overlays} recheck=${recheck.skills.overlays}`);
 if (recheck.skills.changedFiles !== 0) fail(`Codex skill patch is not idempotent: changed=${recheck.skills.changedFiles}`);
 if (!result.guard.changedFile || recheck.guard.changedFile) fail('Codex guard generation is not idempotent');
 if (dryRun.agents.changedFiles !== 3 || result.agents.changedFiles !== 3) fail('Codex agents were not installed');

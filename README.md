@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.55.3-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.56.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -37,6 +37,8 @@
 |---|---|
 | 🛡️ 가드 훅 | main/develop 직접 커밋·force push·맨손 `gh pr` 차단 — 차단 시 audit 로그 기록 |
 | 📋 의도 라우터 | 캐주얼 지시("진행해/해줘") → 현재 git 상태에서 다음 하네스 스킬 자동 안내 |
+| 🧭 체계적 디버깅 | `/systematic-debugging` — 재현·가설·판별 실험으로 근본 원인을 확정한 뒤 최소 수정 |
+| ✅ 완료 증거 게이트 | `/verification-before-completion` — 현재 worktree·HEAD의 새 증거 없이는 완료 판정 차단 |
 | 🔄 git-flow 커맨드 | `/plan`·`/feature-add`·`/feature-merge`·`/release-check`·`/release`·`/hotfix` 전 구간 |
 | 🔍 PR 게이트 스킬 | `pr-review-gate` — AI 리뷰·사람 승인·CI·commit-status 단일 절차 |
 | 🔒 솔로 머지 | `/solo-merge` — 자기 PR 승인 불가 제약을 review 보호 일시 해제·복구로 처리 |
@@ -110,6 +112,8 @@ flowchart TD
 | **마일스톤 커맨드** | `/milestone` — 제품·마일스톤 정의→기능 분해→GitHub 마일스톤 생성→진행률 대시보드. `/plan` 위에 놓이는 목표 레이어. Claude Code 내장 `/goal`(세션 stopping condition)과 보완 관계 |
 | **계획 커맨드** | `/plan` — 스펙·플랜·태스크 분해(git 무관, `docs/specs/` 산출). 코드 전에 의도·수용기준 박제 |
 | **개발 커맨드** | `/feature-add` · `/feature-modify` — TDD(RED→GREEN→Refactor), 태스크당 원자적 커밋. 빌드·테스트 명령은 AGENTS.md에서 읽는다 |
+| **진단 스킬** | `/systematic-debugging` — 실패·CI·빌드·런타임 오동작을 재현하고 사실과 가설을 분리해 근본 원인을 증거로 확정. 수정 요청일 때만 RED→GREEN으로 연결 |
+| **완료 검증 스킬** | `/verification-before-completion` — 완료·PR·머지·릴리즈 준비 주장을 현재 worktree·HEAD SHA의 새 증거로 검증. 실패·미확인은 fail-closed |
 | **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 안전 장치(max·stuck·checkpoint) 안에서 자동화. 내장 `/loop`(ScheduleWakeup 비동기 예약)와 별개 |
 | **품질 커맨드** | `/qa` — 프론트엔드 QA: 디자인 토큰 준수 + WCAG 2.2 접근성 검증 (`/feature-add`의 TDD 로직과 직교한 비주얼·a11y 축) |
 | **릴리즈 검증** | `/release-check` — 릴리즈 전 품질(Agent A)·보안(Agent B)·DB 마이그레이션(Agent C) 병렬 검증 |

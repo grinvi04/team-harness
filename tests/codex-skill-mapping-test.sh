@@ -5,9 +5,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 FAIL=0
 
-for skill in \
-  feature-add feature-merge feature-modify hotfix loop milestone plan pr-create pr-review-gate qa release release-check repo-sync solo-merge; do
-  path="$ROOT/plugins/harness-guard/skills/$skill/SKILL.md"
+for path in "$ROOT"/plugins/harness-guard/skills/*/SKILL.md; do
+  skill=$(basename "$(dirname "$path")")
   overlay="$ROOT/plugins/harness-guard/codex/skill-overlays/$skill.md"
   if ! grep -Fq '## Codex 실행' "$path" \
     && ! grep -Fq 'CODEX_PLUGIN_ROOT' "$path" \
