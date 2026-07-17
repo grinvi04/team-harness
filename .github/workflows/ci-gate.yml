@@ -46,6 +46,7 @@ jobs:
           bash -n tests/flagship-skills-test.sh
           bash -n tests/product-direction-test.sh
           bash -n tests/public-safety-audit-test.sh
+          bash -n tests/platform-overlap-audit-test.sh
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
           bash -n tests/settings-deny-test.sh
@@ -171,6 +172,9 @@ jobs:
 
       - name: 오픈소스 공개 안전성 baseline 계약
         run: bash tests/public-safety-audit-test.sh
+
+      - name: 플랫폼 중복 감사 인벤토리 계약
+        run: bash tests/platform-overlap-audit-test.sh
 
       - name: subagent 모델 강제 훅 테스트
         run: bash tests/enforce-subagent-model-test.sh
