@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+# 커밋 메시지 정책: Conventional Commits 호환 + team-harness 한국어·가독성 규칙.
+set -u
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+CHECK="$ROOT/scripts/check-commit-message.cjs"
+PASS=0
+FAIL=0
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+case_message() { # 설명, 기대 종료코드, 메시지
+  local desc="$1" want="$2" message="$3" file="$TMP/message"
+  printf '%s\n' "$message" > "$file"
+  node "$CHECK" --file "$file" >/dev/null 2>&1
+  local got=$?
+  if [ "$got" = "$want" ]; then
+    echo "PASS: $desc"
+    PASS=$((PASS+1))
+  else
+    echo "FAIL: $desc — expected $want, got $got"
+    FAIL=$((FAIL+1))
+  fi
+}
+
+case_message "feat: 한국어 header+scope+이유" 0 $'feat(order): 주문 한도 검증 추가\n\n이유: 잘못된 주문의 결제를 방지'
+case_message "fix: 선택 영향·검증 필드" 0 $'fix(auth): 만료 토큰 재사용 차단\n\n이유: 만료된 세션이 다시 인증되는 문제 수정\n영향: 로그인 API\n검증: 인증 회귀 테스트 통과'
+case_message "docs: header만 허용" 0 'docs(guide): 설치 절차 설명 보완'
+case_message "build: 범용 타입 허용" 0 'build(ci): 리눅스 빌드 캐시 설정 추가'
+case_message "revert: 범용 타입 허용" 0 'revert(order): 주문 한도 변경 되돌림'
+case_message "breaking ! 단독 허용" 0 $'feat(api)!: 응답 필드 이름 변경\n\n이유: 공개 API 명칭을 도메인 용어와 통일'
+case_message "breaking footer 단독 허용" 0 $'feat(api): 응답 형식 변경\n\n이유: 중첩 응답 구조를 단순화\n\nBREAKING CHANGE: response.data가 response로 이동'
+case_message "Git merge 메시지 허용" 0 "Merge branch 'feature/order' into develop"
+case_message "Git revert 메시지 허용" 0 $'Revert "feat(order): 주문 기능 추가"\n\nThis reverts commit abcdef.'
+
+case_message "영어 요약 거부" 1 $'feat(order): add order limit\n\n이유: 주문 한도를 추가'
+case_message "코드 타입 scope 누락 거부" 1 $'fix: 주문 오류 수정\n\n이유: 잘못된 상태 코드를 바로잡음'
+case_message "필수 이유 누락 거부" 1 'refactor(order): 주문 검증기 분리'
+case_message "header 뒤 빈 줄 누락 거부" 1 $'perf(query): 조회 쿼리 단순화\n이유: 중복 조인을 제거'
+case_message "요약 마침표 거부" 1 'docs: 설치 설명 보완.'
+case_message "50자 초과 요약 거부" 1 "docs: $(printf '가%.0s' {1..51})"
+case_message "미등록 타입 거부" 1 'update(core): 설정 파일 갱신'
+case_message "형식 없는 메시지 거부" 1 '주문 검증 추가'
+
+if node - "$ROOT" <<'NODE'
+const root = process.argv[2]
+for (const configPath of [`${root}/commitlint.config.cjs`, `${root}/templates/commitlint.config.cjs`]) {
+  const config = require(configPath)
+  const rule = config.plugins?.[0]?.rules?.['team-harness-message']
+  if (typeof rule !== 'function' || config.rules?.['team-harness-message']?.[0] !== 2) process.exit(1)
+  const [valid] = rule({ raw: 'docs: 설치 설명 보완' })
+  if (!valid) process.exit(1)
+}
+NODE
+then
+  echo "PASS: root/template commitlint가 동일 custom rule 사용"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: commitlint custom rule 배선 누락"
+  FAIL=$((FAIL+1))
+fi
+
+for hook in "$ROOT/.githooks/commit-msg" "$ROOT/templates/githooks/commit-msg"; do
+  if [ -x "$hook" ] && bash -n "$hook" && grep -Fq 'check-commit-message.cjs' "$hook"; then
+    echo "PASS: ${hook#"$ROOT/"} 실행 배선"
+    PASS=$((PASS+1))
+  else
+    echo "FAIL: ${hook#"$ROOT/"} 실행 배선 누락"
+    FAIL=$((FAIL+1))
+  fi
+done
+
+echo
+echo "결과: PASS=$PASS FAIL=$FAIL"
+[ "$FAIL" -eq 0 ]

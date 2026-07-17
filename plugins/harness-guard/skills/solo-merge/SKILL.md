@@ -1,6 +1,6 @@
 ---
 name: solo-merge
-description: 솔로 머지 — 품질 게이트는 통과시키고 '솔로라 불가능한 승인 요건'만 required_pull_request_reviews 일시 삭제로 우회·즉시 복구·검증 (원자 래퍼)
+description: 솔로 repo에서 자기승인 불가능 조건만 원자적으로 해제·복구하며 PR을 머지할 때 사용. CI·리뷰 우회·팀 승인 우회·main 릴리즈는 제외
 argument-hint: "\"[PR번호]\" (생략 시 현재 브랜치의 PR)"
 effort: medium
 ---

@@ -198,6 +198,18 @@ function existsAnywhere(re) {
   return files.some((f) => re.test(f.name))
 }
 
+function fileContract(rel, contentRe, executable = false) {
+  const file = files.find((candidate) => candidate.rel === rel)
+  if (!file) return false
+  try {
+    if (!contentRe.test(readFileSync(file.p, 'utf8'))) return false
+    if (executable && (statSync(file.p).mode & 0o111) === 0) return false
+    return true
+  } catch {
+    return false
+  }
+}
+
 // 룰 문서 존재 — .claude/rules/<name>.md 또는 .claude/rules/stacks/<name>.md
 function ruleExists(name) {
   return (
@@ -259,6 +271,20 @@ checks.push({
   applicable: true,
   status: existsAnywhere(/^(commitlint\.config\.[cm]?[jt]s|\.commitlintrc(\.\w+)?)$/) ? 'OK' : 'MISSING',
   detail: '루트 commitlint.config.cjs (또는 .commitlintrc*)',
+})
+checks.push({
+  asset: 'commit-msg 훅',
+  severity: 'error',
+  applicable: true,
+  status: fileContract('.githooks/commit-msg', /check-commit-message\.cjs/, true) ? 'OK' : 'MISSING',
+  detail: '.githooks/commit-msg (실행 가능 + 공통 validator 호출)',
+})
+checks.push({
+  asset: '커밋 메시지 validator',
+  severity: 'error',
+  applicable: true,
+  status: fileContract('scripts/check-commit-message.cjs', /validateCommitMessage/) ? 'OK' : 'MISSING',
+  detail: 'scripts/check-commit-message.cjs (validateCommitMessage 정책 코어)',
 })
 checks.push({
   asset: 'secret-scan(gitleaks)',

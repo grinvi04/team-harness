@@ -1,6 +1,6 @@
 ---
 name: hotfix
-description: 운영 긴급 수정 — main 기준 hotfix 브랜치→PR→태그→develop back-merge PR
+description: 운영 장애를 긴급 수정해 main에 패치 배포할 때 사용. hotfix PR·태그·develop 역병합을 수행하며 일반 버그·정기 릴리즈·운영 인프라 직접 조작은 제외
 argument-hint: <fix-name> "<증상 설명>"
 effort: high
 ---
@@ -53,6 +53,14 @@ git checkout -b hotfix/$FIX_NAME
 
 완료 후 수정 파일 목록·전체 테스트 결과 리포트.
 
+검증된 수정은 표준 커밋으로 남긴다.
+
+```bash
+git add <변경 디렉터리>
+git commit -m "fix($FIX_NAME): <50자 이하 한국어 요약>" \
+  -m "이유: <운영 장애의 원인과 이 수정이 필요한 이유>"
+```
+
 ---
 
 ## Phase 3 — main PR 머지 + 태그 (오케스트레이터 직접 실행)
@@ -63,9 +71,7 @@ Phase 2 ✅인 경우에만 진행.
 # 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base main \
   --title "fix($FIX_NAME): $DESCRIPTION" \
-  --body "긴급 수정: $DESCRIPTION
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+  --body "긴급 수정: $DESCRIPTION"
 ```
 
 **`pr-review-gate` 스킬의 전체 절차(1~7단계)**를 따른다 — AI 리뷰 처리·사람 승인·CI·
@@ -98,9 +104,7 @@ git checkout -b sync/backmerge-$FIX_NAME
 git push -u origin sync/backmerge-$FIX_NAME
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
   --title "chore: hotfix/$FIX_NAME develop 반영" \
-  --body "main PR과 동일 내용의 back-merge — main 머지·태그(v$PATCH) 완료 후 develop 반영.
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+  --body "main PR과 동일 내용의 back-merge — main 머지·태그(v$PATCH) 완료 후 develop 반영."
 ```
 
 **`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 사람 승인 + CI + 머지만.

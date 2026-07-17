@@ -30,6 +30,14 @@ else
   echo "FAIL: AGENTS template → 개발자 워크플로 가이드 발견 경로 누락"; FAIL=$((FAIL+1))
 fi
 
+if grep -Fq 'check-commit-message.cjs' "$ROOT/scripts/new-repo.sh" \
+  && grep -Fq 'templates/githooks/commit-msg' "$ROOT/scripts/new-repo.sh" \
+  && grep -Fq 'chmod +x .githooks/commit-msg' "$ROOT/scripts/new-repo.sh"; then
+  echo "PASS: 신규 repo → commit validator·commit-msg hook 설치"; PASS=$((PASS+1))
+else
+  echo "FAIL: 신규 repo → commit validator·commit-msg hook 배선 누락"; FAIL=$((FAIL+1))
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

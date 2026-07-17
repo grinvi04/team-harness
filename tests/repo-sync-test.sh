@@ -7,6 +7,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GATE="$ROOT/scripts/check-repo-sync.mjs"
 FIX="$ROOT/tests/fixtures/repo-sync"
 PASS=0; FAIL=0
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
 
 check() { # desc, expected_exit, repo_path
   local desc="$1" want="$2" repo="$3"
@@ -20,6 +22,12 @@ check() { # desc, expected_exit, repo_path
 
 # 자산 완비(java+flyway) → sync 통과
 check "good(자산 완비) → 통과"              0 "$FIX/good"
+cp -R "$FIX/good/." "$TMP/missing-commit-msg"
+rm "$TMP/missing-commit-msg/.githooks/commit-msg"
+check "bad(commit-msg 훅 누락) → MISSING/FAIL" 1 "$TMP/missing-commit-msg"
+cp -R "$FIX/good/." "$TMP/empty-commit-msg"
+printf '#!/usr/bin/env bash\nexit 0\n' > "$TMP/empty-commit-msg/.githooks/commit-msg"
+check "bad(commit-msg 훅 내용 약화) → MISSING/FAIL" 1 "$TMP/empty-commit-msg"
 # Codex rule pointer 누락 — rule 파일이 있어도 AGENTS가 읽으라고 하지 않으면 의미 전달 실패.
 check "bad(Codex stack-rule pointer 누락) → MISSING/FAIL" 1 "$FIX/bad-codex-rule-pointer"
 OUT=$(node "$GATE" --repo "$FIX/bad-codex-rule-pointer" --harness "$ROOT" 2>&1)

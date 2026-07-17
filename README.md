@@ -2,14 +2,14 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.56.0-blue)
-![tool](https://img.shields.io/badge/Claude_Code-marketplace-orange)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.57.0-blue)
+![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
 5–10명이 각자의 방식으로 AI 코딩 도구를 쓰면, 코드 편차는 AI 도입 전보다 오히려 커진다.
 이 repo는 그 문제를 세 가지 축으로 푼다:
 
-1. **Claude Code 플러그인 마켓플레이스** — 가드·커맨드·절차를 버전 있는 플러그인으로 배포
+1. **Claude Code·Codex 플러그인 경로** — 가드·스킬·절차를 버전 있는 플러그인으로 배포
 2. **repo 커밋 설정** — 규약의 단일 출처(`AGENTS.md`)를 도구 무관하게 공유
 3. **git / CI 강제** — branch protection과 CI 게이트로 "지킬 수밖에 없는" 구조를 서버에 설치
 
@@ -37,6 +37,8 @@
 |---|---|
 | 🛡️ 가드 훅 | main/develop 직접 커밋·force push·맨손 `gh pr` 차단 — 차단 시 audit 로그 기록 |
 | 📋 의도 라우터 | 캐주얼 지시("진행해/해줘") → 현재 git 상태에서 다음 하네스 스킬 자동 안내 |
+| 🧠 맥락 기반 skill 선택 | 16개 description의 사용·제외 경계로 Claude Code·Codex implicit invocation 지원 |
+| ✍️ 커밋 메시지 계약 | Conventional Commits 호환 한국어 형식을 로컬 `commit-msg`와 CI에서 동일하게 강제 |
 | 🧭 체계적 디버깅 | `/systematic-debugging` — 재현·가설·판별 실험으로 근본 원인을 확정한 뒤 최소 수정 |
 | ✅ 완료 증거 게이트 | `/verification-before-completion` — 현재 worktree·HEAD의 새 증거 없이는 완료 판정 차단 |
 | 🔄 git-flow 커맨드 | `/plan`·`/feature-add`·`/feature-merge`·`/release-check`·`/release`·`/hotfix` 전 구간 |
@@ -50,11 +52,11 @@
 
 | 영역 | 스택 |
 |---|---|
-| 플러그인 배포 | Claude Code 마켓플레이스 (로컬 private 마켓) |
+| 플러그인 배포 | Claude Code marketplace + Codex plugin cache |
 | 가드·훅 | Bash (PreToolUse, UserPromptSubmit 훅) |
 | 의도 라우터 | Node.js (ES modules, `route-intent.mjs`) |
 | CI 게이트 | GitHub Actions (`templates/ci/`) |
-| 에이전트 | Claude Opus (`security-reviewer`·`verifier`) |
+| 에이전트 | Claude 역할별 모델 + Codex 현재 모델 상속·reasoning effort |
 | 테스트 | Bash 통합 테스트 (`tests/route-intent-test.sh`) |
 
 ## 🏗️ 아키텍처
@@ -72,7 +74,7 @@ flowchart TD
     L3["<b>계층 3 · 역할별 에이전트</b><br/>security-reviewer 등 — 검증 자동화"]
     L2["<b>계층 2 · harness-guard 플러그인</b><br/>가드 훅 · git-flow 커맨드 · 게이트 스킬"]
     L1["<b>계층 1 · repo 커밋 설정</b><br/>AGENTS.md(규약 단일 출처) + .claude/settings.json"]
-    L05["<b>계층 0.5 · git pre-commit 훅</b><br/>main/develop 직접 커밋 차단 (--no-verify로 우회 가능)"]
+    L05["<b>계층 0.5 · git hooks</b><br/>보호 브랜치 차단 + 커밋 메시지 즉시 검증 (--no-verify로 우회 가능)"]
     L0["<b>계층 0 · GitHub branch protection + CI 게이트</b><br/>PR 필수 · required checks(CI) · enforce_admins=on · (팀 모드) 승인 1+ — <b>우회 불가</b>"]
 
     L3 --> L2 --> L1 --> L05 --> L0
@@ -89,10 +91,10 @@ flowchart TD
 | 계층 | 강제 대상 | 위치 |
 |---|---|---|
 | 0 — branch protection + CI 게이트 | **모든 사람 · 모든 AI 도구** | GitHub (`templates/ci/`) |
-| 0.5 — git pre-commit 훅 | 모든 사람 · 모든 AI 도구 | 각 repo `.githooks/` (`templates/githooks/`) |
+| 0.5 — git pre-commit·commit-msg 훅 | 모든 사람 · 모든 AI 도구 | 각 repo `.githooks/` (`templates/githooks/`) |
 | 1 — AGENTS.md + `.claude/` 커밋 설정 | repo를 clone한 전원 | 각 프로젝트 repo (`templates/`) |
-| 2 — harness-guard 플러그인 | Claude Code 사용자 | 이 repo (`plugins/`) |
-| 3 — 역할별 named agents | Claude Code 사용자 | 플러그인 + 프로젝트 `.claude/agents/` |
+| 2 — harness-guard 플러그인 | Claude Code·Codex 사용자 | 이 repo (`plugins/`) |
+| 3 — 역할별 named agents | Claude Code·Codex 사용자 | 플러그인의 runtime별 agent 설정 |
 
 > Claude Code가 아닌 도구를 쓰는 팀(기획·마케팅 등)도 `AGENTS.md` 하나만 보면 된다 —
 > Codex는 네이티브로 읽고, Gemini CLI는 contextFileName 설정으로 읽는다.
@@ -108,21 +110,21 @@ flowchart TD
 |---|---|
 | **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, **검증기·마이그레이션 삭제**, 핵심 디렉터리 `rm -rf`, npm 글로벌 설치, **맨손 `gh pr create`·`gh pr merge`**(PR 생성·머지는 래퍼 스크립트=스킬 경유만 — 반사적 우회 차단) 차단 (`cd` 체인·서브셸·`git -C` 우회 포함, 보조 장치 — 최종 강제는 계층 0). **차단 시 `~/.claude/hooks/guard-block.log`에 session_id·cwd·명령(크레덴셜·토큰 마스킹) 기록**(멀티세션 위반 시도 감사). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
 | **PR 래퍼 스크립트** | `pr-create.sh`(base 자동감지·push·생성) · `pr-merge.sh`(CI·스레드·mergeable 게이트 후 머지) — guard가 맨손 gh를 막으므로 **PR 생성·머지의 유일 경로**. 스킬이 이 스크립트를 호출(내부 gh는 자식 프로세스라 훅에 안 걸림) |
-| **의도 라우터** (UserPromptSubmit) | `route-intent.mjs` — 매 프롬프트마다 git/PR 상태에서 현재 하네스 단계를 판정해, "진행해/해줘" 류 캐주얼 지시일 때 **다음 단계 스킬 호출을 컨텍스트에 주입**(열린 PR→`/pr-review-gate`·솔로면 `/solo-merge`, feature 브랜치+커밋→`/feature-merge` 등). 반사적 맨손 gh/git 대신 스킬을 쓰게 유도. read-only·fail-open(상태 불명확/비-actionable엔 무주입) |
+| **skill 자동 선택 + 의도 라우터** | 일반 자연어 작업은 16개 description의 사용·제외 경계로 runtime이 implicit selection. `route-intent.mjs`는 "진행해"처럼 이미 시작된 Git/PR 작업의 다음 상태만 결정한다. substring 키워드 주입과 권한 확대는 하지 않는다. |
 | **마일스톤 커맨드** | `/milestone` — 제품·마일스톤 정의→기능 분해→GitHub 마일스톤 생성→진행률 대시보드. `/plan` 위에 놓이는 목표 레이어. Claude Code 내장 `/goal`(세션 stopping condition)과 보완 관계 |
 | **계획 커맨드** | `/plan` — 스펙·플랜·태스크 분해(git 무관, `docs/specs/` 산출). 코드 전에 의도·수용기준 박제 |
 | **개발 커맨드** | `/feature-add` · `/feature-modify` — TDD(RED→GREEN→Refactor), 태스크당 원자적 커밋. 빌드·테스트 명령은 AGENTS.md에서 읽는다 |
 | **진단 스킬** | `/systematic-debugging` — 실패·CI·빌드·런타임 오동작을 재현하고 사실과 가설을 분리해 근본 원인을 증거로 확정. 수정 요청일 때만 RED→GREEN으로 연결 |
 | **완료 검증 스킬** | `/verification-before-completion` — 완료·PR·머지·릴리즈 준비 주장을 현재 worktree·HEAD SHA의 새 증거로 검증. 실패·미확인은 fail-closed |
-| **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 안전 장치(max·stuck·checkpoint) 안에서 자동화. 내장 `/loop`(ScheduleWakeup 비동기 예약)와 별개 |
+| **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 timeout·max·내용 기반 stuck·안전 checkpoint 안에서 자동화. 시간 예약 polling과 별개 |
 | **품질 커맨드** | `/qa` — 프론트엔드 QA: 디자인 토큰 준수 + WCAG 2.2 접근성 검증 (`/feature-add`의 TDD 로직과 직교한 비주얼·a11y 축) |
 | **릴리즈 검증** | `/release-check` — 릴리즈 전 품질(Agent A)·보안(Agent B)·DB 마이그레이션(Agent C) 병렬 검증 |
-| **드리프트 점검** | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 점검(`check-repo-sync`). 스택 감지 후 필수 자산(test-guard·commitlint·secret-scan·migration-safety·rules) 누락 리포트 |
+| **드리프트 점검** | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 점검(`check-repo-sync`). commit-msg·validator·CI·rules 등 필수 자산 누락 리포트 |
 | **PR 생성** | `/pr-create` — base 자동감지(develop 있으면 develop, 없으면 기본 브랜치) PR 생성 **단일 프리미티브**. 맨손 `gh pr create` 대체 — develop 없는 main 기반 repo도 한 경로로. `feature-merge`가 PR 생성 단계를 이 스킬에 위임 |
 | **머지·릴리즈 커맨드** | `/feature-merge` · `/hotfix` · `/release` · `/solo-merge` — git-flow 전 구간을 게이트 경유로 자동화 |
 | **스킬** `pr-review-gate` | PR 생성→머지의 표준 게이트 절차 **단일 출처** — AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
-| **에이전트** `security-reviewer` | 릴리즈 전 보안 검토(XSS·SQL 인젝션·하드코딩 시크릿·.env 추적) — 읽기 전용, opus |
-| **에이전트** `verifier` | 검증·연구·설계 판단 전용 — 계획·코드의 정확성을 다른 각도로 재검토, 누락·회귀·논리오류 보고(읽기 전용, opus) |
+| **에이전트** `security-reviewer` | 릴리즈 전 보안 검토 — 읽기 전용. Claude는 Opus 역할, Codex는 현재 모델 상속 + high reasoning |
+| **에이전트** `verifier` | 검증·연구·설계 판단 전용 — 읽기 전용. Claude는 Opus 역할, Codex는 현재 모델 상속 + high reasoning |
 
 ### git-flow와 커맨드의 관계
 

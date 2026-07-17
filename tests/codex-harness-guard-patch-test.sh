@@ -146,11 +146,11 @@ console.log('PASS: Codex overlay·guard를 cache에 한 번만 생성');
 console.log('PASS: namespaced Codex read-only agents 설치');
 NODE
 
-if ! grep -Rqs '^Co-Authored-By: Claude\b' "$ROOT/plugins/harness-guard/skills"; then
-  echo "FAIL: Claude source skill의 공동작성 표기가 변경됨"
+if grep -Rqs '^Co-Authored-By: Claude\b' "$ROOT/plugins/harness-guard/skills"; then
+  echo "FAIL: 공용 source skill에 특정 AI 공동작성 표기가 남음"
   exit 1
 fi
-echo "PASS: Claude source skill 공동작성 표기 유지"
+echo "PASS: 공용 source skill의 특정 AI 공동작성 하드코딩 없음"
 
 node -e 'require("node:fs").unlinkSync(process.argv[1])' "$CACHE_GUARD"
 if HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/missing.out" 2>"$TMP/missing.err"; then

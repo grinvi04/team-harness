@@ -1,6 +1,6 @@
 ---
 name: feature-add
-description: TDD로 신규 기능 개발 — 브랜치→테스트계약→구현→검증→커밋 (stack-agnostic)
+description: 승인된 스펙으로 새 기능을 TDD 구현할 때 사용. 브랜치·RED·GREEN·검증·커밋을 수행하며 기존 기능 변경·버그 수정·계획만 작성은 제외
 argument-hint: <feature-name> "<설명>"
 effort: high
 ---
@@ -147,7 +147,8 @@ Phase 2 spec을 **계약서**로 구현.
 3. 커밋 — 메시지 형식은 AGENTS.md `커밋 메시지` 규약을 따른다:
    ```bash
    git add <변경 디렉터리>
-   git commit -m "feat($FEATURE_NAME): $DESCRIPTION ..."
+   git commit -m "feat($FEATURE_NAME): <50자 이하 한국어 요약>" \
+     -m "이유: <이 변경이 필요한 이유>"
    ```
 
 브랜치는 develop에 머지하지 않는다 — 사용자 확인 후 `/feature-merge`. (`/plan`으로 여러 태스크로 분해된 기능이면 **모든 태스크 완료 후** 한 번에 `/feature-merge` — 한 기능=한 PR.)
