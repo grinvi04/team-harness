@@ -233,10 +233,11 @@ fi
 ```
 
 **통과(exit 0)**이면:
-- `PASS=true` → 루프 종료 후 Phase 3(성공)으로
+- `PASS=true` → Phase 2c에서 성공 체크포인트를 처리한 뒤 Phase 3(성공)으로
 
 **실패(exit non-0, timeout은 124)**이면:
-- `ITER >= MAX_ITER`이면 루프 종료 후 Phase 3(max 도달)으로
+- Phase 2c에서 현재 반복 체크포인트를 처리한 뒤 분기한다.
+- `ITER >= MAX_ITER`이면 Phase 3(max 도달)으로
 - 아니면 Phase 2a로 돌아간다
 
 ---
@@ -244,8 +245,9 @@ fi
 ### Phase 2c — 체크포인트 커밋 (오케스트레이터 직접 실행, `--no-commit`이 아니면)
 
 ```bash
-if [ -n "$(git status --porcelain=v1)" ] && [ "$NO_COMMIT" != "true" ]; then
-  git add -A -- .
+REPO_ROOT=$(git rev-parse --show-toplevel)
+if [ -n "$(git -C "$REPO_ROOT" status --porcelain=v1)" ] && [ "$NO_COMMIT" != "true" ]; then
+  git -C "$REPO_ROOT" add -A -- .
   if [ "$PASS" = "true" ]; then
     git commit -m "fix(loop): 반복 수정 완료" \
       -m "이유: $GOAL 통과 기준을 충족한 상태를 보존"
