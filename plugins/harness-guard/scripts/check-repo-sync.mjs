@@ -21,6 +21,7 @@
  * 단일 출처: docs/harness-maintenance.md · scripts/new-repo.sh(신규=대칭)
  */
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { join, basename, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -210,6 +211,26 @@ function fileContract(rel, contentRe, executable = false) {
   }
 }
 
+const BUNDLED_COMMIT_VALIDATOR_SHA256 = '372eba8c351a3075414c5704d58ae4758ae4c1f5b92bd7e0ec0ea61a34fb5767'
+
+function normalizedSha256(text) {
+  return createHash('sha256').update(text.replace(/\r\n?/g, '\n')).digest('hex')
+}
+
+function commitValidatorContract() {
+  const target = files.find((candidate) => candidate.rel === 'scripts/check-commit-message.cjs')
+  if (!target) return false
+  try {
+    const canonicalPath = join(HARNESS, 'scripts/check-commit-message.cjs')
+    const expected = existsSync(canonicalPath)
+      ? normalizedSha256(readFileSync(canonicalPath, 'utf8'))
+      : BUNDLED_COMMIT_VALIDATOR_SHA256
+    return normalizedSha256(readFileSync(target.p, 'utf8')) === expected
+  } catch {
+    return false
+  }
+}
+
 // 룰 문서 존재 — .claude/rules/<name>.md 또는 .claude/rules/stacks/<name>.md
 function ruleExists(name) {
   return (
@@ -283,8 +304,8 @@ checks.push({
   asset: '커밋 메시지 validator',
   severity: 'error',
   applicable: true,
-  status: fileContract('scripts/check-commit-message.cjs', /validateCommitMessage/) ? 'OK' : 'MISSING',
-  detail: 'scripts/check-commit-message.cjs (validateCommitMessage 정책 코어)',
+  status: commitValidatorContract() ? 'OK' : 'MISSING',
+  detail: 'scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)',
 })
 checks.push({
   asset: 'secret-scan(gitleaks)',
