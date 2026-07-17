@@ -11,7 +11,7 @@ const HEADER_RE = new RegExp(
 )
 const BODY_LABEL_RE = /^(이유|영향|검증):\s*(.*)$/
 const FOOTER_RE = /^(?:BREAKING CHANGE|[A-Za-z][A-Za-z0-9-]*)(?:: | #)\S/
-const MERGE_MESSAGE_RE = /^(?:Merge branch '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge branches '[^'\n]+'(?:, '[^'\n]+')* and '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge remote-tracking branch '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge pull request #[1-9]\d* from [A-Za-z0-9_.-]+\/[A-Za-z0-9._/-]+)$/
+const MERGE_MESSAGE_RE = /^(?:Merge branch '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge branch '[^'\n]+' of [^\s\n]+(?: into [A-Za-z0-9._/-]+)?|Merge branches '[^'\n]+'(?:, '[^'\n]+')* and '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge remote-tracking branch '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge pull request #[1-9]\d* from [A-Za-z0-9_.-]+\/[A-Za-z0-9._/-]+)$/
 const GIT_HASH_RE = '(?:[0-9a-f]{40}|[0-9a-f]{64})'
 const REVERT_MESSAGE_RE = new RegExp(
   `^Revert "[^\\n]+"\\n\\nThis reverts commit ${GIT_HASH_RE}(?:, reversing\\nchanges made to ${GIT_HASH_RE})?\\.$`,

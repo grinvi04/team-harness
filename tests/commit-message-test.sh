@@ -33,6 +33,8 @@ case_message "breaking ! 단독 허용" 0 $'feat(api)!: 응답 필드 이름 변
 case_message "breaking footer 단독 허용" 0 $'feat(api): 응답 형식 변경\n\n이유: 중첩 응답 구조를 단순화\n\nBREAKING CHANGE: response.data가 response로 이동'
 case_message "Git merge 메시지 허용" 0 "Merge branch 'feature/order' into develop"
 case_message "Git octopus merge 메시지 허용" 0 "Merge branches 'feature/order', 'feature/auth' and 'feature/search' into develop"
+case_message "Git pull merge 메시지 허용" 0 "Merge branch 'main' of https://github.com/acme/project"
+case_message "Git SSH pull merge 메시지 허용" 0 "Merge branch 'main' of git@github.com:acme/project.git"
 case_message "GitHub merge 메시지 허용" 0 'Merge pull request #347 from grinvi04/feature/order'
 case_message "Git revert 메시지 허용" 0 $'Revert "feat(order): 주문 기능 추가"\n\nThis reverts commit abcdef0123456789abcdef0123456789abcdef01.'
 
@@ -48,6 +50,7 @@ case_message "Revert 접두사 스푸핑 거부" 1 'Revert "규칙 우회"'
 case_message "Revert 단축 SHA 스푸핑 거부" 1 $'Revert "규칙 우회"\n\nThis reverts commit abcdef.'
 case_message "Merge 접두사 뒤 임의 내용 거부" 1 "Merge branch 'feature/order' into develop and bypass"
 case_message "Octopus merge 임의 접미사 거부" 1 "Merge branches 'feature/order' and 'feature/auth' into develop and bypass"
+case_message "Git pull merge 임의 접미사 거부" 1 "Merge branch 'main' of https://github.com/acme/project and bypass"
 case_message "Merge 메시지 임의 본문 거부" 1 $'Merge branch '\''feature/order'\'' into develop\n\n규칙 우회'
 
 if node - "$ROOT" <<'NODE'
