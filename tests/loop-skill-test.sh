@@ -102,6 +102,13 @@ if [ "$SPECIAL_RC" -eq 0 ]; then
 else
   fail "untracked special file fingerprint 종료코드=$SPECIAL_RC"
 fi
+if grep -Fq 'captureParentDirectories' "$FINGERPRINT" \
+  && [ "$(grep -Fc 'assertRegularPath' "$FINGERPRINT")" -ge 3 ] \
+  && grep -Fq 'realpathSync(absolutePath)' "$FINGERPRINT"; then
+  pass "untracked regular 파일 읽기 전·후 parent·실제 경로 재검증"
+else
+  fail "parent-directory symlink race 재검증 누락"
+fi
 
 grep -Fq -- '--timeout' "$SKILL" && pass "사용자 지정 timeout 옵션" || fail "timeout 옵션 누락"
 [ "$(grep -Fc 'run-with-timeout.mjs' "$SKILL")" -ge 2 ] && pass "초기·반복 검증 timeout 적용" || fail "timeout 적용 지점 부족"
