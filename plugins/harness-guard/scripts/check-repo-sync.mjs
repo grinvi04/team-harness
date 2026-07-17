@@ -204,7 +204,7 @@ const BUNDLED_COMMITLINT_SHA256 = [
   'e1766fa1f3a2715bd1ed79da54b161d56d4d9ac0af89d9ad0989120e6c8b5c4c',
   '49e9d0abdccc66f7447c95cc4fd010fd4282409f0c0f32d7bacf9681b4ef0ad6',
 ]
-const BUNDLED_COMMIT_MSG_HOOK_SHA256 = 'eaf0c9cdeaf02849b14fcf17c006dd3e5006f43832387e0f378d3ea8d4c7e51b'
+const BUNDLED_COMMIT_MSG_HOOK_SHA256 = '87408452d1e1f27d0d041ecee6717c7831d5291f5e0a9dea39a17eb5e043abf3'
 
 function normalizedSha256(text) {
   return createHash('sha256').update(text.replace(/\r\n?/g, '\n')).digest('hex')

@@ -8,6 +8,7 @@ PASS=0
 FAIL=0
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
+BASH_BIN="$(command -v bash)"
 
 case_message() { # 설명, 기대 종료코드, 메시지
   local desc="$1" want="$2" message="$3" file="$TMP/message"
@@ -73,6 +74,15 @@ for hook in "$ROOT/.githooks/commit-msg" "$ROOT/templates/githooks/commit-msg"; 
     PASS=$((PASS+1))
   else
     echo "FAIL: ${hook#"$ROOT/"} 실행 배선 누락"
+    FAIL=$((FAIL+1))
+  fi
+  mkdir -p "$TMP/no-node-bin"
+  if PATH="$TMP/no-node-bin" "$BASH_BIN" "$hook" "$TMP/message" 2>"$TMP/no-node.err" \
+    && grep -Fq 'CI' "$TMP/no-node.err"; then
+    echo "PASS: ${hook#"$ROOT/"} Node 없음 → 경고 후 CI 위임"
+    PASS=$((PASS+1))
+  else
+    echo "FAIL: ${hook#"$ROOT/"} Node 없음 처리"
     FAIL=$((FAIL+1))
   fi
 done

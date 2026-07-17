@@ -90,7 +90,8 @@ fix(auth): 만료 토큰 재사용 차단
 ```
 
 `feat|fix|refactor|perf`는 `이유:`가 필수이고, `영향:`·`검증:`은 필요한 경우에만 쓴다. `docs|chore|ci`
-같은 단순 변경은 한국어 헤더만으로 충분하다. 로컬 `commit-msg`와 PR commitlint가 같은 규칙을 검사한다.
+같은 단순 변경은 한국어 헤더만으로 충분하다. Node.js가 있으면 로컬 `commit-msg`가 즉시 검사하고 PR
+commitlint가 같은 규칙을 다시 검사한다. Node.js가 없는 non-Node 개발 환경은 로컬 경고 후 필수 CI가 강제한다.
 
 ### 3.4 결과를 이해한 뒤 PR로 보낸다
 
