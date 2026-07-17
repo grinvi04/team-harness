@@ -292,6 +292,7 @@ team-harness/
 | 문서 | 내용 |
 |---|---|
 | [product-direction.md](docs/product-direction.md) | 제품 정체성 · 소유/위임 경계 · 신규 기능 판단 게이트 · 우선순위 로드맵 |
+| [public-safety-audit.md](docs/public-safety-audit.md) | Git 히스토리 시크릿 · 공개 식별정보 · 라이선스/provenance 공개 안전성 감사 |
 | [intro.html](docs/intro.html) | 한눈에 보는 team-harness 소개 페이지 (아키텍처·스킬·가드·티어링·게이트 시각화) |
 | [developer-workflow.md](docs/developer-workflow.md) | 개발자의 일상 작업 가이드 — 기능·수정·머지·hotfix·release 흐름과 막혔을 때의 다음 행동 |
 | [onboarding.md](docs/onboarding.md) | 신규 프로젝트 셋업 · 팀원 온보딩 · managed settings 로컬 시뮬레이션 |
