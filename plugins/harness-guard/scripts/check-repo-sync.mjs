@@ -199,7 +199,7 @@ function existsAnywhere(re) {
   return files.some((f) => re.test(f.name))
 }
 
-const BUNDLED_COMMIT_VALIDATOR_SHA256 = '372eba8c351a3075414c5704d58ae4758ae4c1f5b92bd7e0ec0ea61a34fb5767'
+const BUNDLED_COMMIT_VALIDATOR_SHA256 = '407255858c0cf93e47587312e1ecd1e2f0978ceabbccc4a043cbb370cdf4185e'
 const BUNDLED_COMMITLINT_SHA256 = [
   'e1766fa1f3a2715bd1ed79da54b161d56d4d9ac0af89d9ad0989120e6c8b5c4c',
   '49e9d0abdccc66f7447c95cc4fd010fd4282409f0c0f32d7bacf9681b4ef0ad6',
