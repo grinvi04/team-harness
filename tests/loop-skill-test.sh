@@ -84,6 +84,23 @@ else
   fail "FIXED_FILES 누적 구현 누락"
 fi
 
+if python3 - "$SKILL" <<'PY'
+from pathlib import Path
+import sys
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+root = 'PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"'
+phase_0 = text.split("### 0-3.", 1)[1].split("---", 1)[0]
+phase_2a = text.split("### Phase 2a", 1)[1].split("### Phase 2b", 1)[0]
+phase_2b = text.split("### Phase 2b", 1)[1].split("### Phase 2c", 1)[0]
+assert all(root in phase for phase in (phase_0, phase_2a, phase_2b))
+PY
+then
+  pass "독립 shell phase마다 plugin root 복구"
+else
+  fail "phase 간 PLUGIN_ROOT 의존"
+fi
+
 echo
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

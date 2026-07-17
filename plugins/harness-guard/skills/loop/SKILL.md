@@ -160,6 +160,7 @@ FIXED_FILES=""    # 줄바꿈으로 구분한 누적 수정 파일 목록
 
 에이전트 spawn **직전** 오케스트레이터는 stuck 감지용 기준 지문(이번 반복 시작 시 워킹트리 상태)을 캡처한다:
 ```bash
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
 ITER=$((ITER+1))
 TREE_BEFORE=$(node "$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs" --repo .)
 ```
@@ -196,6 +197,8 @@ TREE_BEFORE=$(node "$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs" --repo .)
 ### Phase 2b — 반복 후 검증 (오케스트레이터 직접 실행)
 
 ```bash
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
+
 # 수정 파일 목록 확인
 CHANGED=$(git status --short)
 

@@ -126,6 +126,9 @@ for (const name of fs.readdirSync(skillsRoot)) {
   if (/\([^\n)]*`subagent_type:/.test(text)) fail(`${name} retained Claude execution metadata`);
   if (/^Co-Authored-By: Claude\b/m.test(text)) fail(`${name} retained Claude co-author attribution`);
 }
+const loopSkill = fs.readFileSync(`${skillsRoot}/loop/SKILL.md`, 'utf8');
+const codexRoot = '${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}';
+if (loopSkill.split(codexRoot).length - 1 !== 3) fail('loop phases did not receive Codex plugin root fallback');
 const codexGuard = fs.readFileSync(codexGuardPath, 'utf8');
 if (!codexGuard.includes('.codex/hooks/guard-block.log') || !codexGuard.includes('Codex가 대신 실행하지 않음')) fail('Codex guard runtime identity missing');
 if (codexGuard.includes('HARNESS_GUARD_LOG') || codexGuard.includes('HARNESS_AGENT_NAME')) fail('Codex guard depends on Claude source overrides');
