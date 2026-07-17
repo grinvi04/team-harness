@@ -39,7 +39,7 @@ gitleaks git --no-banner --redact=100 --log-opts="--all" \
 ## 조치 사항
 
 - 현재 문서의 구체적 사용자 홈 절대경로 4곳을 `$HOME` 또는 `~` 기반 표기로 교체했다.
-- 민감 파일·절대 홈 경로·MIT LICENSE·README 링크·CI full-fetch gitleaks 계약을
+- 민감 파일·절대 홈 경로·MIT LICENSE·README 링크·CI full-fetch gitleaks와 현재 배포 자산 2개의 정확한 목록을
   `tests/public-safety-audit-test.sh`로 고정했다.
 - README와 제품 로드맵에서 이 보고서를 찾을 수 있게 연결했다.
 - 플러그인과 소비 repo의 실행 동작은 바꾸지 않아 harness-guard 버전은 0.58.0을 유지한다.
@@ -51,7 +51,7 @@ gitleaks git --no-banner --redact=100 --log-opts="--all" \
 - 과거 절대경로 29회는 Git 히스토리에 남는다. 공개 handle 외 추가 비밀이 없고 repo가 이미 public이므로,
   효과가 제한적인 history rewrite와 force-push는 수행하지 않았다.
 - Git commit과 PNG 메타데이터만으로 두 다이어그램의 창작 과정을 완전히 증명할 수는 없다. 외부 출처의 자산을
-  추가할 때는 출처·라이선스·변경 여부를 같은 PR에 기록해야 한다.
+  추가할 때는 출처·라이선스·변경 여부를 같은 PR에 기록하고 baseline 자산 목록을 명시적으로 갱신해야 한다.
 - 감사 기준 이후 변경은 CI baseline과 향후 release-check로 다시 검증해야 한다.
 
 ## 최종 판정

@@ -61,7 +61,7 @@ else
   pass "민감 tracked 파일 0"
 fi
 
-HOME_PATH_PATTERN='(/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|/root(/|$)|[A-Za-z]:\\Users\\[A-Za-z0-9._-]+)'
+HOME_PATH_PATTERN='(/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|/root(/|$)|[A-Za-z]:[/\\]Users[/\\][A-Za-z0-9._-]+)'
 home_refs="$(git -C "$ROOT" grep -n -I -E "$HOME_PATH_PATTERN" -- . 2>/dev/null || true)"
 if [ -n "$home_refs" ]; then
   echo "$home_refs"
@@ -71,10 +71,12 @@ else
 fi
 
 root_probe="/""root/team-harness"
-if printf '%s\n' "$root_probe" | grep -Eq "$HOME_PATH_PATTERN"; then
-  pass "Linux root 홈 절대경로 탐지"
+windows_probe="C:/""Users/example/team-harness"
+if printf '%s\n' "$root_probe" | grep -Eq "$HOME_PATH_PATTERN" \
+  && printf '%s\n' "$windows_probe" | grep -Eq "$HOME_PATH_PATTERN"; then
+  pass "Linux root·Windows 슬래시 홈 절대경로 탐지"
 else
-  fail "Linux root 홈 절대경로 탐지 누락"
+  fail "Linux root 또는 Windows 슬래시 홈 절대경로 탐지 누락"
 fi
 
 if [ -f "$LICENSE" ] \
@@ -93,12 +95,20 @@ else
   fail "CI secret-scan이 전체 히스토리를 받지 않음"
 fi
 
-if contains "$REPORT" "docs/architecture.png" \
+expected_assets="$(printf '%s\n' \
+  'docs/architecture-gitflow.png' \
+  'docs/architecture.png')"
+tracked_assets="$(printf '%s\n' "$tracked_paths" \
+  | grep -Ei '\.(png|jpe?g|gif|webp|svg|pdf|zip|woff2?|ttf|otf)$' \
+  | sort || true)"
+if [ "$tracked_assets" = "$expected_assets" ] \
+  && contains "$REPORT" "docs/architecture.png" \
   && contains "$REPORT" "docs/architecture-gitflow.png" \
   && contains "$REPORT" "a6164f1"; then
-  pass "바이너리 자산 provenance 근거"
+  pass "tracked 배포 자산 목록과 provenance 근거"
 else
-  fail "바이너리 자산 provenance 기록 누락"
+  printf 'expected assets:\n%s\nactual assets:\n%s\n' "$expected_assets" "$tracked_assets"
+  fail "tracked 배포 자산 목록 변경 또는 provenance 기록 누락"
 fi
 
 if contains "$README" "docs/public-safety-audit.md" \
