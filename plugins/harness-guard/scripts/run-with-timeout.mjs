@@ -5,16 +5,20 @@ const args = process.argv.slice(2)
 const secondsIndex = args.indexOf('--seconds')
 const separatorIndex = args.indexOf('--')
 const seconds = Number(secondsIndex >= 0 ? args[secondsIndex + 1] : NaN)
-const command = separatorIndex >= 0 ? args.slice(separatorIndex + 1).join(' ') : ''
+const argvMode = separatorIndex >= 0 && args.slice(0, separatorIndex).includes('--argv')
+const commandArgs = separatorIndex >= 0 ? args.slice(separatorIndex + 1) : []
+const command = commandArgs.join(' ')
 
-if (!Number.isFinite(seconds) || seconds <= 0 || !command) {
-  console.error('사용법: run-with-timeout.mjs --seconds <양수> -- "<shell command>"')
+if (!Number.isFinite(seconds) || seconds <= 0 || commandArgs.length === 0) {
+  console.error('사용법: run-with-timeout.mjs --seconds <양수> [--argv] -- <명령> [인자...]')
   process.exit(2)
 }
 
 const shell = process.env.SHELL || '/bin/sh'
 const detached = process.platform !== 'win32'
-const child = spawn(shell, ['-lc', command], { stdio: 'inherit', detached })
+const child = argvMode
+  ? spawn(commandArgs[0], commandArgs.slice(1), { stdio: 'inherit', detached })
+  : spawn(shell, ['-lc', command], { stdio: 'inherit', detached })
 let timedOut = false
 
 function signalChild(signal) {

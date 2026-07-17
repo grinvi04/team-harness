@@ -159,6 +159,7 @@ node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" --
 ITER=0            # 현재 반복 횟수
 STUCK=0           # 연속 무변경 횟수
 PASS=false        # 통과 기준 달성 여부
+FINGERPRINT_ERROR="" # fingerprint 실패 위치·종료코드 (없으면 빈 문자열)
 FIXED_FILES=""    # 줄바꿈으로 구분한 누적 수정 파일 목록
 ```
 
@@ -175,11 +176,12 @@ FIXED_FILES=""    # 줄바꿈으로 구분한 누적 수정 파일 목록
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
 ITER=$((ITER+1))
 TREE_BEFORE=$(
-  node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" -- \
-    "node \"$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs\" --repo ."
+  node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" --argv -- \
+    node "$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs" --repo .
 )
 FINGERPRINT_EXIT=$?
 if [ "$FINGERPRINT_EXIT" -ne 0 ]; then
+  FINGERPRINT_ERROR="반복 전 fingerprint 종료코드=$FINGERPRINT_EXIT"
   echo "⛔ 반복 전 worktree fingerprint 실패 또는 timeout($FINGERPRINT_EXIT) — 안전한 stuck 판정 불가"
   break  # Phase 3 (중단)으로
 fi
@@ -223,11 +225,12 @@ PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
 CHANGED=$(git status --short)
 
 TREE_AFTER=$(
-  node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" -- \
-    "node \"$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs\" --repo ."
+  node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" --argv -- \
+    node "$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs" --repo .
 )
 FINGERPRINT_EXIT=$?
 if [ "$FINGERPRINT_EXIT" -ne 0 ]; then
+  FINGERPRINT_ERROR="반복 후 fingerprint 종료코드=$FINGERPRINT_EXIT"
   echo "⛔ 반복 후 worktree fingerprint 실패 또는 timeout($FINGERPRINT_EXIT) — 안전한 stuck 판정 불가"
   break  # Phase 3 (중단)으로
 fi
@@ -297,6 +300,20 @@ fi
 ## Phase 3 — 종료 처리 (오케스트레이터 직접 실행)
 
 루프 종료 사유에 따라 분기한다.
+
+### Fingerprint 실패 (`FINGERPRINT_ERROR`가 비어 있지 않음)
+
+안전한 stuck 판정을 만들 수 없으므로 추가 반복이나 체크포인트 없이 실패로 종료한다.
+
+```
+⛔ /loop 중단 — worktree fingerprint 실패
+  사유: $FINGERPRINT_ERROR
+  반복: $ITER / $MAX_ITER
+
+권장 조치:
+  1. 대용량·변경 중인 untracked 파일과 파일 권한을 확인한다.
+  2. 필요하면 --timeout 값을 조정한 뒤 /loop을 다시 실행한다.
+```
 
 ### 성공 (`PASS=true`)
 
