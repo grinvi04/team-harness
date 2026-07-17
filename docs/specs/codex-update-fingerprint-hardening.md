@@ -5,7 +5,7 @@
 Codex 플러그인 갱신 뒤 필요한 동기화·호환 패치·실세션 검증을 한 경로로 안내하고, `/loop`의
 worktree fingerprint가 큰 untracked 파일을 파일 크기만큼 메모리에 올리지 않도록 한다.
 **성공 기준: 사용자 문서가 단일 갱신 명령과 doctor probe를 공통으로 안내하고, fingerprint가 고정 크기
-청크로 파일 내용을 동일하게 해시한다.**
+청크로 파일 내용을 동일하게 해시하며 `/loop` timeout 안에서만 실행된다.**
 
 ## 2. Scope
 
@@ -26,11 +26,13 @@ worktree fingerprint가 큰 untracked 파일을 파일 크기만큼 메모리에
   감지와 no-follow·race 검증 계약을 모두 유지해야 한다.
 - **AC-5 (경계):** WHEN 빈 파일 또는 청크 경계보다 큰 파일을 fingerprint할 때, 정상 종료하고 내용 변경에
   따라 fingerprint가 달라져야 한다.
+- **AC-6 (가용성):** WHEN fingerprint가 대용량 또는 검사 중 변경되는 untracked 파일을 만날 때, `/loop`는
+  사용자 timeout 안에서 중단하고 초기 파일 크기·내용 metadata가 달라지면 fingerprint 생성을 거부해야 한다.
 
 ## 4. 제약 / 비기능
 
 - 파일 읽기용 메모리는 파일 크기가 아니라 고정 청크 크기에 비례해야 한다.
-- untracked 경로의 repo 내부 확인, symlink no-follow, 열기 전·후 inode 검증을 약화하지 않는다.
+- untracked 경로의 repo 내부 확인, symlink no-follow, 열기 전·후 inode·크기·mtime·ctime 검증을 약화하지 않는다.
 
 ## 5. 경계 / Do-Not
 
@@ -45,8 +47,9 @@ worktree fingerprint가 큰 untracked 파일을 파일 크기만큼 메모리에
 ## 7. 기술 접근 (HOW)
 
 - `worktree-fingerprint.mjs`에서 `readFileSync(fd)`를 제거하고 재사용 가능한 고정 크기 Buffer와
-  `readSync` 반복으로 내용을 순서대로 `hash.update`한다.
-- `loop-skill-test.sh`에 스트리밍 구현 계약과 빈 파일·다중 청크 내용 변경 회귀를 추가한다.
+  초기 크기만큼의 `readSync` 반복으로 내용을 순서대로 `hash.update`한다.
+- 반복 전·후 fingerprint도 `run-with-timeout.mjs`로 실행하고 실패·timeout이면 stuck 판정을 중단한다.
+- `loop-skill-test.sh`에 스트리밍·빈 파일·다중 청크·대용량 timeout·동시 크기 변경 회귀를 추가한다.
 - README, `docs/onboarding.md`, `docs/harness-maintenance.md`가 같은 Codex 갱신·검증 명령을 가리키고
   `docs/intro.html`의 현재 버전 표시를 manifest와 맞춘다.
 - plugin 동작 변경이므로 MINOR 버전을 올리고 `docs/decisions.md`에 이유와 검증 범위를 남긴다.
@@ -59,3 +62,4 @@ worktree fingerprint가 큰 untracked 파일을 파일 크기만큼 메모리에
 | 2 | 청크 기반 fingerprint 구현 | AC-3~5 | `plugins/harness-guard/scripts/worktree-fingerprint.mjs` | `bash tests/loop-skill-test.sh` | #1 | |
 | 3 | Codex 갱신·검증 문서 통일 | AC-1~2 | `README.md`, `docs/onboarding.md`, `docs/harness-maintenance.md`, `docs/intro.html` | 문서 계약 grep + 링크 검사 | — | [P] |
 | 4 | 버전·결정 기록과 전체 품질 검증 | AC-1~5 | `plugin.json`, `README.md`, `docs/decisions.md` | CI quality 로컬 재현 | #2,#3 | |
+| 5 | 릴리즈 보안검토에서 발견한 fingerprint 시간 경계 보강 | AC-6 | `loop/SKILL.md`, `worktree-fingerprint.mjs`, `tests/loop-skill-test.sh` | 대용량 timeout·동시 크기 변경 RED→GREEN | #2 | |

@@ -89,6 +89,34 @@ else
   fail "untracked 일반 파일이 전체 크기 Buffer를 사용"
 fi
 
+HUGE_REPO="$TMP/huge-repo"
+mkdir -p "$HUGE_REPO"
+git -C "$HUGE_REPO" init -q
+truncate -s 8g "$HUGE_REPO/huge.bin"
+HUGE_RC=0
+node "$TIMEOUT" --seconds 0.05 -- "node '$FINGERPRINT' --repo '$HUGE_REPO'" >/dev/null 2>&1 \
+  || HUGE_RC=$?
+if [ "$HUGE_RC" -eq 124 ]; then
+  pass "대용량 fingerprint를 timeout helper가 제한"
+else
+  fail "대용량 fingerprint timeout 종료코드=$HUGE_RC"
+fi
+
+RACE_REPO="$TMP/race-repo"
+mkdir -p "$RACE_REPO"
+git -C "$RACE_REPO" init -q
+truncate -s 8g "$RACE_REPO/growing.bin"
+( sleep 0.5; truncate -s 1 "$RACE_REPO/growing.bin" ) &
+RACE_MUTATOR=$!
+RACE_RC=0
+node "$FINGERPRINT" --repo "$RACE_REPO" >/dev/null 2>&1 || RACE_RC=$?
+wait "$RACE_MUTATOR"
+if [ "$RACE_RC" -eq 2 ]; then
+  pass "fingerprint 중 untracked 파일 크기 변경을 거부"
+else
+  fail "fingerprint 중 크기 변경 허용 종료코드=$RACE_RC"
+fi
+
 OUTSIDE_FILE="$TMP/outside-secret.txt"
 printf '외부 비밀 1\n' > "$OUTSIDE_FILE"
 ln -s "$OUTSIDE_FILE" "$REPO/untracked-link"
@@ -132,7 +160,22 @@ else
 fi
 
 grep -Fq -- '--timeout' "$SKILL" && pass "사용자 지정 timeout 옵션" || fail "timeout 옵션 누락"
-[ "$(grep -Fc 'run-with-timeout.mjs' "$SKILL")" -ge 2 ] && pass "초기·반복 검증 timeout 적용" || fail "timeout 적용 지점 부족"
+[ "$(grep -Fc 'run-with-timeout.mjs' "$SKILL")" -ge 4 ] && pass "검증·fingerprint timeout 적용" || fail "timeout 적용 지점 부족"
+if python3 - "$SKILL" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+for name in ("TREE_BEFORE", "TREE_AFTER"):
+    pattern = rf'{name}=\$\(\s*node "\$PLUGIN_ROOT/scripts/run-with-timeout\.mjs".{{0,400}}worktree-fingerprint\.mjs'
+    assert re.search(pattern, text, re.S), name
+PY
+then
+  pass "반복 전·후 fingerprint가 timeout helper 경유"
+else
+  fail "fingerprint timeout helper 배선 누락"
+fi
 grep -Fq 'worktree-fingerprint.mjs' "$SKILL" && pass "내용 기반 fingerprint 적용" || fail "fingerprint helper 누락"
 grep -Fq 'ITER=$((ITER+1))' "$SKILL" && pass "실제 반복 시작 시 count 증가" || fail "반복 count 교정 누락"
 if grep -Fq 'REPO_ROOT=$(git rev-parse --show-toplevel)' "$SKILL" \
