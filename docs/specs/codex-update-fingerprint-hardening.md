@@ -28,6 +28,8 @@ worktree fingerprint가 큰 untracked 파일을 파일 크기만큼 메모리에
   따라 fingerprint가 달라져야 한다.
 - **AC-6 (가용성):** WHEN fingerprint가 대용량 또는 검사 중 변경되는 untracked 파일을 만날 때, `/loop`는
   사용자 timeout 안에서 중단하고 초기 파일 크기·내용 metadata가 달라지면 fingerprint 생성을 거부해야 한다.
+- **AC-7 (명령 경계):** WHEN plugin 경로에 공백·`$` 등 shell 특수문자가 있을 때, fingerprint timeout 실행은
+  경로를 shell에서 다시 해석하지 않아야 하며 실패·timeout은 명시적인 Phase 3 실패 사유로 보고해야 한다.
 
 ## 4. 제약 / 비기능
 
@@ -48,8 +50,10 @@ worktree fingerprint가 큰 untracked 파일을 파일 크기만큼 메모리에
 
 - `worktree-fingerprint.mjs`에서 `readFileSync(fd)`를 제거하고 재사용 가능한 고정 크기 Buffer와
   초기 크기만큼의 `readSync` 반복으로 내용을 순서대로 `hash.update`한다.
-- 반복 전·후 fingerprint도 `run-with-timeout.mjs`로 실행하고 실패·timeout이면 stuck 판정을 중단한다.
-- `loop-skill-test.sh`에 스트리밍·빈 파일·다중 청크·대용량 timeout·동시 크기 변경 회귀를 추가한다.
+- 반복 전·후 fingerprint는 `run-with-timeout.mjs --argv`로 shell 재해석 없이 실행하고 실패·timeout이면
+  명시적인 fingerprint 오류 상태로 stuck 판정을 중단한다.
+- `loop-skill-test.sh`에 스트리밍·빈 파일·다중 청크·대용량 timeout·특수문자 경로와 size·mtime·ctime
+  독립 변경 회귀를 추가한다.
 - README, `docs/onboarding.md`, `docs/harness-maintenance.md`가 같은 Codex 갱신·검증 명령을 가리키고
   `docs/intro.html`의 현재 버전 표시를 manifest와 맞춘다.
 - plugin 동작 변경이므로 MINOR 버전을 올리고 `docs/decisions.md`에 이유와 검증 범위를 남긴다.
@@ -63,3 +67,4 @@ worktree fingerprint가 큰 untracked 파일을 파일 크기만큼 메모리에
 | 3 | Codex 갱신·검증 문서 통일 | AC-1~2 | `README.md`, `docs/onboarding.md`, `docs/harness-maintenance.md`, `docs/intro.html` | 문서 계약 grep + 링크 검사 | — | [P] |
 | 4 | 버전·결정 기록과 전체 품질 검증 | AC-1~5 | `plugin.json`, `README.md`, `docs/decisions.md` | CI quality 로컬 재현 | #2,#3 | |
 | 5 | 릴리즈 보안검토에서 발견한 fingerprint 시간 경계 보강 | AC-6 | `loop/SKILL.md`, `worktree-fingerprint.mjs`, `tests/loop-skill-test.sh` | 대용량 timeout·동시 크기 변경 RED→GREEN | #2 | |
+| 6 | 재검증에서 발견한 shell 재해석·종료상태·metadata 테스트 갭 보강 | AC-7 | `run-with-timeout.mjs`, `loop/SKILL.md`, `tests/loop-skill-test.sh` | 특수문자 경로·명시 실패 분기·독립 metadata 변경 RED→GREEN | #5 | |
