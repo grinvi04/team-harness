@@ -68,6 +68,41 @@ else
   fail "worktree fingerprint 변화 감지"
 fi
 
+OUTSIDE_FILE="$TMP/outside-secret.txt"
+printf '외부 비밀 1\n' > "$OUTSIDE_FILE"
+ln -s "$OUTSIDE_FILE" "$REPO/untracked-link"
+LINK_BEFORE=$(fp)
+printf '외부 비밀 2\n' > "$OUTSIDE_FILE"
+LINK_AFTER=$(fp)
+if [ "$LINK_BEFORE" = "$LINK_AFTER" ]; then
+  pass "untracked symlink는 repo 밖 대상 내용 대신 링크 문자열 hash"
+else
+  fail "untracked symlink가 repo 밖 대상 내용을 읽음"
+fi
+
+FIFO_TARGET="$TMP/fingerprint-target.pipe"
+mkfifo "$FIFO_TARGET"
+ln -sfn "$FIFO_TARGET" "$REPO/untracked-link"
+SYMLINK_FIFO_RC=0
+node "$TIMEOUT" --seconds 1 -- "node '$FINGERPRINT' --repo '$REPO'" >/dev/null 2>&1 \
+  || SYMLINK_FIFO_RC=$?
+if [ "$SYMLINK_FIFO_RC" -eq 0 ]; then
+  pass "FIFO 대상 symlink를 따라가지 않고 fingerprint 완료"
+else
+  fail "FIFO 대상 symlink fingerprint 종료코드=$SYMLINK_FIFO_RC"
+fi
+
+ln -sfn "$OUTSIDE_FILE" "$REPO/untracked-link"
+mkfifo "$REPO/untracked.pipe"
+SPECIAL_RC=0
+node "$TIMEOUT" --seconds 1 -- "node '$FINGERPRINT' --repo '$REPO'" >/dev/null 2>&1 \
+  || SPECIAL_RC=$?
+if [ "$SPECIAL_RC" -eq 0 ]; then
+  pass "untracked special file을 읽지 않고 fingerprint 완료"
+else
+  fail "untracked special file fingerprint 종료코드=$SPECIAL_RC"
+fi
+
 grep -Fq -- '--timeout' "$SKILL" && pass "사용자 지정 timeout 옵션" || fail "timeout 옵션 누락"
 [ "$(grep -Fc 'run-with-timeout.mjs' "$SKILL")" -ge 2 ] && pass "초기·반복 검증 timeout 적용" || fail "timeout 적용 지점 부족"
 grep -Fq 'worktree-fingerprint.mjs' "$SKILL" && pass "내용 기반 fingerprint 적용" || fail "fingerprint helper 누락"
