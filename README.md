@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.57.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.58.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -201,7 +201,7 @@ bash /path/to/team-harness/scripts/new-repo.sh
 AI 리뷰는 PR마다 `/code-review` 스킬(구독 포함, API 과금 없음)이 수행 — 외부 봇·시크릿 불필요.
 전체 절차: [`docs/onboarding.md`](docs/onboarding.md)
 
-### 로컬 테스트 (플랜 불필요)
+### Claude Code 로컬 테스트 (플랜 불필요)
 
 ```
 /plugin marketplace add /path/to/team-harness
@@ -209,6 +209,20 @@ AI 리뷰는 PR마다 `/code-review` 스킬(구독 포함, API 과금 없음)이
 ```
 
 main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
+
+### Codex 플러그인 갱신
+
+Codex marketplace와 `harness-guard`를 최초 설치한 뒤 또는 새 릴리스로 갱신할 때는 Team Harness checkout에서
+다음 한 경로를 사용한다.
+
+```bash
+bash /path/to/team-harness/scripts/codex-hardened.sh --version
+bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe
+```
+
+첫 명령은 설치 버전이 checkout보다 오래됐을 때 marketplace/plugin을 갱신하고 harness·security 호환
+캐시 패치를 함께 적용한다. 두 번째 명령은 실제 새 Codex 세션에서 destructive guard와 secret-egress guard
+차단까지 확인한다.
 
 ### 현재 상태 종합 점검
 

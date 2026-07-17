@@ -7,7 +7,7 @@ import {
   fstatSync,
   lstatSync,
   openSync,
-  readFileSync,
+  readSync,
   readlinkSync,
   realpathSync,
   statSync,
@@ -18,6 +18,8 @@ const args = process.argv.slice(2)
 const repoIndex = args.indexOf('--repo')
 const repo = realpathSync(resolve(repoIndex >= 0 ? args[repoIndex + 1] : '.'))
 const hash = createHash('sha256')
+const FILE_READ_CHUNK_SIZE = 64 * 1024
+const fileReadBuffer = Buffer.allocUnsafe(FILE_READ_CHUNK_SIZE)
 
 function git(gitArgs) {
   return execFileSync('git', ['-C', repo, ...gitArgs], { encoding: null, stdio: ['ignore', 'pipe', 'pipe'] })
@@ -96,16 +98,18 @@ function hashUntracked(relativePath) {
 
   const flags = constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0)
   const fd = openSync(absolutePath, flags)
-  let contents
   try {
     assertRegularPath(absolutePath, entry, fd, parents)
-    contents = readFileSync(fd)
+    hash.update('file\0')
+    while (true) {
+      const bytesRead = readSync(fd, fileReadBuffer, 0, fileReadBuffer.length, null)
+      if (bytesRead === 0) break
+      hash.update(fileReadBuffer.subarray(0, bytesRead))
+    }
     assertRegularPath(absolutePath, entry, fd, parents)
   } finally {
     closeSync(fd)
   }
-  hash.update('file\0')
-  hash.update(contents)
 }
 
 try {

@@ -137,4 +137,15 @@ if [[ -e "$FAIL_HOME/invocation" ]]; then
   exit 1
 fi
 
-echo "PASS: hardened launcher patches both Codex caches before exec and fails closed"
+for document in "$ROOT/README.md" "$ROOT/docs/onboarding.md" "$ROOT/docs/harness-maintenance.md"; do
+  if ! grep -Fq 'scripts/codex-hardened.sh --version' "$document"; then
+    echo "FAIL: Codex update command missing from ${document#"$ROOT"/}"
+    exit 1
+  fi
+  if ! grep -Fq 'scripts/harness-doctor.sh --repo . --probe' "$document"; then
+    echo "FAIL: Codex post-update probe missing from ${document#"$ROOT"/}"
+    exit 1
+  fi
+done
+
+echo "PASS: hardened launcher patches both Codex caches, fails closed, and has one documented update path"
