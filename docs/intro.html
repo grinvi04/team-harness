@@ -506,7 +506,7 @@
   <!-- Git Flow -->
   <h2 id="gitflow">Git Flow</h2>
   <p>모든 변경은 PR로만 흐른다. 직접 커밋·push 경로는 없다 — 시도하면 3겹(guard→pre-commit→branch protection)에서 차단된다.</p>
-  <div class="callout"><b>커밋도 검증 대상</b> — <code>feat(order): 주문 한도 검증 추가</code>처럼 영어 type·한국어 요약을 쓰고 코드 의미 변경에는 빈 줄 뒤 <code>이유:</code>를 남긴다. 로컬 <code>commit-msg</code>와 PR commitlint가 같은 validator를 사용한다.</div>
+  <div class="callout"><b>커밋도 검증 대상</b> — <code>feat(order): 주문 한도 검증 추가</code>처럼 영어 type·한국어 요약을 쓰고 코드 의미 변경에는 빈 줄 뒤 <code>이유:</code>를 남긴다. 로컬 <code>commit-msg</code>와 PR commitlint가 같은 validator를 사용하며, merge 예외는 실제 Git metadata로 확인한다.</div>
   <div class="flow">
     <div class="flow-row">
       <span class="fnode feat">feature/*<br>fix/*</span>

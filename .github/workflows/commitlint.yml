@@ -18,6 +18,11 @@ jobs:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+      - name: 커밋 metadata·메시지 provenance 검사
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA"
       # action 기본 경로(.mjs)에 맡기지 않고 repo 정본 .cjs를 지정해 PR의 모든 커밋 메시지를 검사한다.
       - uses: wagoid/commitlint-github-action@v6
         with:

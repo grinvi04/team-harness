@@ -163,7 +163,7 @@ const stacks = {
 const detected = Object.entries(stacks).filter(([, v]) => v).map(([k]) => k)
 
 // ── 워크플로 내용 수집 (sentinel 매칭용) ──────────────────
-const wfFiles = files.filter((f) => /(^|\/)\.github\/workflows\/.+\.ya?ml$/.test(f.rel))
+const wfFiles = files.filter((f) => /^\.github\/workflows\/[^/]+\.ya?ml$/.test(f.rel))
 // sentinel 매칭 전 YAML 주석 제거 — 주석 처리된(비활성) 게이트가 존재 신호로 오인돼 드리프트가 미탐지되던 것 차단.
 //   #183(전체-라인 주석만) → #205(false MISSING로 원복 시도) → 둘 다 coarse했다. 올바른 판정은 **따옴표 인식**:
 //   진짜 YAML 주석(따옴표 밖 + 라인시작/공백 뒤 `#`)만 제거하고, 따옴표 문자열 안의 `#`(예: echo "issue #12
@@ -194,42 +194,11 @@ function sentinelStatus(sentinelRe, filenameHintRe) {
   return 'MISSING'
 }
 
-function commitlintActionHasCanonicalConfig(text) {
-  const lines = text.split('\n')
-  for (let index = 0; index < lines.length; index++) {
-    const action = /^(\s*)-\s+uses:\s*wagoid\/commitlint-github-action@[^\s#]+/.exec(lines[index])
-    if (!action) continue
-
-    const stepIndent = action[1].length
-    let withIndent = null
-    for (let nested = index + 1; nested < lines.length; nested++) {
-      const line = lines[nested]
-      if (!line.trim()) continue
-      const indent = /^\s*/.exec(line)[0].length
-      if (indent <= stepIndent) break
-      if (withIndent !== null && indent <= withIndent) withIndent = null
-      if (line.trim() === 'with:') {
-        withIndent = indent
-        continue
-      }
-      if (
-        withIndent !== null &&
-        indent > withIndent &&
-        /^configFile:\s*['"]?\.\/commitlint\.config\.cjs['"]?$/.test(line.trim())
-      ) return true
-    }
-  }
-  return false
-}
-
 function commitlintWorkflowStatus() {
-  const actionWorkflows = wfList.filter((workflow) =>
-    /wagoid\/commitlint-github-action@/i.test(workflow.text),
-  )
-  if (actionWorkflows.length === 0) return 'MISSING'
-  return actionWorkflows.some((workflow) => commitlintActionHasCanonicalConfig(workflow.text))
-    ? 'OK'
-    : 'MISSING'
+  return canonicalWorkflowContract(
+    ['.github/workflows/commitlint.yml', 'templates/ci/commitlint.yml'],
+    BUNDLED_COMMITLINT_WORKFLOW_SHA256,
+  ) ? 'OK' : 'MISSING'
 }
 
 // 루트(또는 얕은 경로) 파일 존재 검사
@@ -237,15 +206,27 @@ function existsAnywhere(re) {
   return files.some((f) => re.test(f.name))
 }
 
-const BUNDLED_COMMIT_VALIDATOR_SHA256 = 'aaccbf08ed127e4019a8399f43b6f1b59222115adc5ce2ca51ace91ee561f12e'
+const BUNDLED_COMMITLINT_WORKFLOW_SHA256 = 'ad321f937d6b984b6be8acbfa341a5f6360d84ec80656fe7a4ce16b2ed4806bb'
+const BUNDLED_COMMIT_VALIDATOR_SHA256 = 'fc5a4e82601efe2f7b47bdf2f475de89a0ffba8fd9dc39ec54c61518b8a5fbe3'
 const BUNDLED_COMMITLINT_SHA256 = [
   '5fad6ec6655f12c62afcb8d538d7edad652ef5463fea49159a486d2cb6e8d43d',
   'c9db27e27848ea26a26f7eb0a6fa736978c6bbf9a75998d44ed5e449e1a9f4c2',
 ]
-const BUNDLED_COMMIT_MSG_HOOK_SHA256 = '87408452d1e1f27d0d041ecee6717c7831d5291f5e0a9dea39a17eb5e043abf3'
+const BUNDLED_COMMIT_MSG_HOOK_SHA256 = 'da6e5afc5cad7358bef48fcfd83b525091ff498185fd3d583e98ce0bbf3bc1e2'
 
 function normalizedSha256(text) {
   return createHash('sha256').update(text.replace(/\r\n?/g, '\n')).digest('hex')
+}
+
+function canonicalWorkflowContract(canonicalRels, bundledHashes) {
+  const expected = new Set(Array.isArray(bundledHashes) ? bundledHashes : [bundledHashes])
+  for (const rel of canonicalRels) {
+    const canonicalPath = join(HARNESS, rel)
+    if (existsSync(canonicalPath)) {
+      expected.add(normalizedSha256(stripComments(readFileSync(canonicalPath, 'utf8'))))
+    }
+  }
+  return wfList.some((workflow) => expected.has(normalizedSha256(workflow.text)))
 }
 
 function canonicalFileContract(targetRel, canonicalRels, bundledHashes, executable = false) {
@@ -317,7 +298,7 @@ checks.push({
   severity: 'error',
   applicable: true,
   status: commitlintWorkflowStatus(),
-  detail: 'wagoid/commitlint action + with.configFile=./commitlint.config.cjs',
+  detail: 'metadata provenance를 포함한 commitlint workflow 정본과 동일',
 })
 checks.push({
   asset: 'commitlint config',

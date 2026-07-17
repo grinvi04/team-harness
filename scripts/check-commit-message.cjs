@@ -2,6 +2,7 @@
 'use strict'
 
 const { readFileSync } = require('node:fs')
+const { execFileSync } = require('node:child_process')
 
 const TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'chore', 'ci', 'build', 'revert']
 const SCOPE_REQUIRED = new Set(['feat', 'fix', 'refactor', 'perf', 'test'])
@@ -11,24 +12,31 @@ const HEADER_RE = new RegExp(
 )
 const BODY_LABEL_RE = /^(이유|영향|검증):\s*(.*)$/
 const FOOTER_RE = /^(?:BREAKING CHANGE|[A-Za-z][A-Za-z0-9-]*)(?:: | #)\S/
-const MERGE_MESSAGE_RE = /^(?:Merge branch '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge branch '[^'\n]+' of [^\s\n]+(?: into [A-Za-z0-9._/-]+)?|Merge branches '[^'\n]+'(?:, '[^'\n]+')* and '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge remote-tracking branch '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge pull request #[1-9]\d* from [A-Za-z0-9_.-]+\/[A-Za-z0-9._/-]+)$/
+const MERGE_MESSAGE_RE = /^(?:Merge branch '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge branch '[^'\n]+' of [^\s\n]+(?: into [A-Za-z0-9._/-]+)?|Merge branches '[^'\n]+'(?:, '[^'\n]+')* and '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?|Merge remote-tracking branch '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?)$/
+const GITHUB_MERGE_MESSAGE_RE = /^Merge pull request #[1-9]\d* from [A-Za-z0-9_.-]+\/[A-Za-z0-9._/-]+(?:\n\n[\s\S]+)?$/
 const TAG_MERGE_MESSAGE_RE = /^Merge tag '[^'\n]+'(?: into [A-Za-z0-9._/-]+)?(?:\n\n[\s\S]+)?$/
-const GIT_HASH_RE = '(?:[0-9a-f]{40}|[0-9a-f]{64})'
-const REVERT_MESSAGE_RE = new RegExp(
-  `^Revert "[^\\n]+"\\n\\nThis reverts commit ${GIT_HASH_RE}(?:, reversing\\nchanges made to ${GIT_HASH_RE})?\\.$`,
-)
-
+const MERGE_CONFLICT_COMMENTS_RE = /\n\n# Conflicts:\n(?:#[ \t]+[^\n]+(?:\n|$))+$/
+const FULL_SHA_PATTERN = '[0-9a-f]{40}(?:[0-9a-f]{24})?'
+const FULL_SHA_RE = new RegExp(`^${FULL_SHA_PATTERN}$`)
+const RANGE_RE = new RegExp(`^${FULL_SHA_PATTERN}\\.\\.${FULL_SHA_PATTERN}$`)
 function isGitGenerated(input) {
   const message = String(input ?? '').replace(/\r\n?/g, '\n').replace(/\n+$/, '')
-  return MERGE_MESSAGE_RE.test(message) || TAG_MERGE_MESSAGE_RE.test(message) || REVERT_MESSAGE_RE.test(message)
+  const withoutConflictComments = message.replace(MERGE_CONFLICT_COMMENTS_RE, '')
+  return MERGE_MESSAGE_RE.test(withoutConflictComments)
+    || GITHUB_MERGE_MESSAGE_RE.test(message)
+    || TAG_MERGE_MESSAGE_RE.test(message)
 }
 
-function validateCommitMessage(input) {
+function validateCommitMessage(input, { allowGitGenerated = false } = {}) {
   const message = String(input ?? '').replace(/\r\n?/g, '\n').replace(/\n+$/, '')
   const errors = []
 
   if (!message.trim()) return { valid: false, errors: ['커밋 메시지가 비어 있습니다.'] }
-  if (isGitGenerated(message)) return { valid: true, errors: [] }
+  if (isGitGenerated(message)) {
+    return allowGitGenerated
+      ? { valid: true, errors: [] }
+      : { valid: false, errors: ['Git 생성 merge 메시지는 실제 merge provenance가 필요합니다.'] }
+  }
 
   const lines = message.split('\n')
   const header = lines[0]
@@ -97,26 +105,107 @@ function commitlintRule(parsed) {
   return [result.valid, result.errors.join(' ')]
 }
 
-function main(argv) {
-  const fileIndex = argv.indexOf('--file')
-  const file = fileIndex >= 0 ? argv[fileIndex + 1] : argv[0]
-  if (!file) {
-    console.error('사용법: node scripts/check-commit-message.cjs --file <commit-message-file>')
-    return 2
-  }
+function readCommitMetadata(commit) {
+  const git = (format) => execFileSync(
+    'git',
+    ['show', '-s', `--format=${format}`, commit],
+    { encoding: 'utf8' },
+  )
+  const parents = git('%P').trim().split(/\s+/).filter(Boolean)
+  return { message: git('%B'), allowGitGenerated: parents.length >= 2 }
+}
 
-  let message
-  try {
-    message = readFileSync(file, 'utf8')
-  } catch (error) {
-    console.error(`커밋 메시지 파일을 읽을 수 없습니다: ${error.message}`)
-    return 2
-  }
-
-  const result = validateCommitMessage(message)
-  if (result.valid) return 0
-  console.error('✖ 커밋 메시지 규칙 위반')
+function printValidationErrors(result, prefix = '✖ 커밋 메시지 규칙 위반') {
+  console.error(prefix)
   for (const error of result.errors) console.error(`  - ${error}`)
+}
+
+function main(argv) {
+  const rangeIndex = argv.indexOf('--range')
+  const commitIndex = argv.indexOf('--commit')
+  const fileIndex = argv.indexOf('--file')
+  let message
+  let allowGitGenerated = argv.includes('--allow-git-generated')
+
+  if (rangeIndex >= 0) {
+    const range = argv[rangeIndex + 1]
+    if (!RANGE_RE.test(range ?? '')) {
+      console.error('--range에는 <40/64자 SHA>..<40/64자 SHA> 형식이 필요합니다.')
+      return 2
+    }
+    let commits
+    try {
+      commits = execFileSync('git', ['rev-list', '--reverse', range], { encoding: 'utf8' })
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+    } catch (error) {
+      console.error(`commit range를 읽을 수 없습니다: ${error.message}`)
+      return 2
+    }
+    if (commits.length === 0) {
+      console.error('검사할 commit이 없는 range는 허용하지 않습니다.')
+      return 1
+    }
+
+    let invalid = false
+    for (const commit of commits) {
+      let metadata
+      try {
+        metadata = readCommitMetadata(commit)
+      } catch (error) {
+        console.error(`commit metadata를 읽을 수 없습니다: ${error.message}`)
+        return 2
+      }
+      const result = validateCommitMessage(metadata.message, metadata)
+      if (!result.valid) {
+        printValidationErrors(result, `✖ ${commit} 커밋 메시지 규칙 위반`)
+        invalid = true
+      }
+    }
+    if (invalid) {
+      console.error('예: feat(order): 주문 한도 검증 추가\n\n이유: 잘못된 주문의 결제를 방지')
+      return 1
+    }
+    return 0
+  } else if (commitIndex >= 0) {
+    const commit = argv[commitIndex + 1]
+    if (!FULL_SHA_RE.test(commit ?? '')) {
+      console.error('--commit에는 40자 또는 64자 전체 commit SHA가 필요합니다.')
+      return 2
+    }
+    try {
+      const metadata = readCommitMetadata(commit)
+      message = metadata.message
+      allowGitGenerated = metadata.allowGitGenerated
+    } catch (error) {
+      console.error(`commit metadata를 읽을 수 없습니다: ${error.message}`)
+      return 2
+    }
+  } else if (argv.includes('--stdin')) {
+    try {
+      message = readFileSync(0, 'utf8')
+    } catch (error) {
+      console.error(`표준 입력을 읽을 수 없습니다: ${error.message}`)
+      return 2
+    }
+  } else {
+    const file = fileIndex >= 0 ? argv[fileIndex + 1] : argv[0]
+    if (!file) {
+      console.error('사용법: node scripts/check-commit-message.cjs --file <파일> | --stdin | --commit <SHA> | --range <SHA>..<SHA>')
+      return 2
+    }
+    try {
+      message = readFileSync(file, 'utf8')
+    } catch (error) {
+      console.error(`커밋 메시지 파일을 읽을 수 없습니다: ${error.message}`)
+      return 2
+    }
+  }
+
+  const result = validateCommitMessage(message, { allowGitGenerated })
+  if (result.valid) return 0
+  printValidationErrors(result)
   console.error('예: feat(order): 주문 한도 검증 추가\n\n이유: 잘못된 주문의 결제를 방지')
   return 1
 }
