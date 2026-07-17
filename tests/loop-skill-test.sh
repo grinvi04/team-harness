@@ -9,7 +9,14 @@ FINGERPRINT="$ROOT/plugins/harness-guard/scripts/worktree-fingerprint.mjs"
 PASS=0
 FAIL=0
 TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
+SURVIVOR_PID=""
+cleanup() {
+  if [ -n "$SURVIVOR_PID" ] && kill -0 "$SURVIVOR_PID" 2>/dev/null; then
+    kill -KILL "$SURVIVOR_PID" 2>/dev/null || true
+  fi
+  rm -rf "$TMP"
+}
+trap cleanup EXIT
 
 pass() { echo "PASS: $1"; PASS=$((PASS+1)); }
 fail() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
@@ -17,6 +24,22 @@ fail() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
 node "$TIMEOUT" --seconds 1 -- "printf 완료" >/dev/null 2>&1 && pass "timeout helper 정상 명령" || fail "timeout helper 정상 명령"
 node "$TIMEOUT" --seconds 0.05 -- "sleep 1" >/dev/null 2>&1
 [ "$?" -eq 124 ] && pass "timeout helper가 124로 중단" || fail "timeout helper timeout 종료코드"
+
+DESCENDANT_PID_FILE="$TMP/timeout-descendant.pid"
+TIMEOUT_RC=0
+node "$TIMEOUT" --seconds 0.2 -- "sh -c 'trap \"\" TERM; printf \"%s\\n\" \"\$\$\" > \"$DESCENDANT_PID_FILE\"; while :; do sleep 1; done' & wait" \
+  >/dev/null 2>&1 || TIMEOUT_RC=$?
+if [ "$TIMEOUT_RC" -eq 124 ] && [ -s "$DESCENDANT_PID_FILE" ]; then
+  SURVIVOR_PID="$(head -n 1 "$DESCENDANT_PID_FILE")"
+  if kill -0 "$SURVIVOR_PID" 2>/dev/null; then
+    fail "timeout helper가 TERM 무시 descendant를 남김"
+  else
+    SURVIVOR_PID=""
+    pass "timeout helper가 TERM 무시 descendant까지 종료"
+  fi
+else
+  fail "timeout helper descendant 종료 계약 준비"
+fi
 
 REPO="$TMP/repo"
 mkdir -p "$REPO"
@@ -57,6 +80,24 @@ else
 fi
 if ! grep -Fq 'git add $(git diff' "$SKILL"; then pass "취약한 명령 치환 staging 제거"; else fail "취약한 staging 잔존"; fi
 if ! grep -Eq 'Co-Authored-By: Claude|Claude Sonnet' "$SKILL"; then pass "특정 AI attribution 하드코딩 제거"; else fail "특정 AI attribution 잔존"; fi
+
+if python3 - "$SKILL" <<'PY'
+from pathlib import Path
+import sys
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+argument_phase = text.split("### 0-0.", 1)[1].split("### 0-1.", 1)[0]
+branch_phase = text.split("### 0-1.", 1)[1].split("### 0-2.", 1)[0]
+assert "implicit invocation" in argument_phase
+assert "NO_COMMIT=true" in argument_phase
+assert "commit을 명시적으로 요청" in argument_phase
+assert '&& [ "$NO_COMMIT" != "true" ]' in branch_phase
+PY
+then
+  pass "commit 권한을 먼저 계산하고 보호 브랜치는 checkpoint일 때만 차단"
+else
+  fail "implicit no-commit보다 보호 브랜치 차단이 먼저 실행됨"
+fi
 
 if python3 - "$SKILL" <<'PY'
 from pathlib import Path

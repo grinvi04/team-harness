@@ -35,6 +35,7 @@ case_message "Git merge 메시지 허용" 0 "Merge branch 'feature/order' into d
 case_message "Git octopus merge 메시지 허용" 0 "Merge branches 'feature/order', 'feature/auth' and 'feature/search' into develop"
 case_message "Git pull merge 메시지 허용" 0 "Merge branch 'main' of https://github.com/acme/project"
 case_message "Git SSH pull merge 메시지 허용" 0 "Merge branch 'main' of git@github.com:acme/project.git"
+case_message "Git annotated tag merge 메시지 허용" 0 "Merge tag 'v1.0.0'"$'\n\nrelease 1.0.0'
 case_message "GitHub merge 메시지 허용" 0 'Merge pull request #347 from grinvi04/feature/order'
 case_message "Git revert 메시지 허용" 0 $'Revert "feat(order): 주문 기능 추가"\n\nThis reverts commit abcdef0123456789abcdef0123456789abcdef01.'
 
@@ -51,23 +52,37 @@ case_message "Revert 단축 SHA 스푸핑 거부" 1 $'Revert "규칙 우회"\n\n
 case_message "Merge 접두사 뒤 임의 내용 거부" 1 "Merge branch 'feature/order' into develop and bypass"
 case_message "Octopus merge 임의 접미사 거부" 1 "Merge branches 'feature/order' and 'feature/auth' into develop and bypass"
 case_message "Git pull merge 임의 접미사 거부" 1 "Merge branch 'main' of https://github.com/acme/project and bypass"
+case_message "Git tag merge 임의 접미사 거부" 1 "Merge tag 'v1.0.0' and bypass"
 case_message "Merge 메시지 임의 본문 거부" 1 $'Merge branch '\''feature/order'\'' into develop\n\n규칙 우회'
 
 if node - "$ROOT" <<'NODE'
+const { readFileSync } = require('node:fs')
 const root = process.argv[2]
 for (const configPath of [`${root}/commitlint.config.cjs`, `${root}/templates/commitlint.config.cjs`]) {
   const config = require(configPath)
   const rule = config.plugins?.[0]?.rules?.['team-harness-message']
   if (typeof rule !== 'function' || config.rules?.['team-harness-message']?.[0] !== 2) process.exit(1)
+  if (config.defaultIgnores !== false || !Array.isArray(config.ignores)) process.exit(1)
+  const ignored = (message) => config.ignores.some((ignore) => ignore(message))
+  if (!ignored("Merge branch 'feature/order' into develop")) process.exit(1)
+  if (!ignored('Revert "feat(order): 주문 기능 추가"\n\nThis reverts commit abcdef0123456789abcdef0123456789abcdef01.')) process.exit(1)
+  if (ignored('Revert "규칙 우회"') || ignored('v1.2.3')) process.exit(1)
   const [valid] = rule({ raw: 'docs: 설치 설명 보완' })
   if (!valid) process.exit(1)
 }
+
+for (const workflowPath of [`${root}/.github/workflows/commitlint.yml`, `${root}/templates/ci/commitlint.yml`]) {
+  const workflow = readFileSync(workflowPath, 'utf8')
+  if (!/- uses: wagoid\/commitlint-github-action@v6\n\s+with:\n\s+configFile: \.\/commitlint\.config\.cjs/m.test(workflow)) {
+    process.exit(1)
+  }
+}
 NODE
 then
-  echo "PASS: root/template commitlint가 동일 custom rule 사용"
+  echo "PASS: root/template commitlint action·ignore가 동일 custom validator 사용"
   PASS=$((PASS+1))
 else
-  echo "FAIL: commitlint custom rule 배선 누락"
+  echo "FAIL: commitlint action config 경로 또는 ignore 배선 누락"
   FAIL=$((FAIL+1))
 fi
 

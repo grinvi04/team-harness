@@ -116,7 +116,7 @@ flowchart TD
 | **개발 커맨드** | `/feature-add` · `/feature-modify` — TDD(RED→GREEN→Refactor), 태스크당 원자적 커밋. 빌드·테스트 명령은 AGENTS.md에서 읽는다 |
 | **진단 스킬** | `/systematic-debugging` — 실패·CI·빌드·런타임 오동작을 재현하고 사실과 가설을 분리해 근본 원인을 증거로 확정. 수정 요청일 때만 RED→GREEN으로 연결 |
 | **완료 검증 스킬** | `/verification-before-completion` — 완료·PR·머지·릴리즈 준비 주장을 현재 worktree·HEAD SHA의 새 증거로 검증. 실패·미확인은 fail-closed |
-| **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 timeout·max·내용 기반 stuck·안전 checkpoint 안에서 자동화. 시간 예약 polling과 별개 |
+| **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 timeout·max·내용 기반 stuck·안전 checkpoint 안에서 자동화. 맥락 자동 선택은 명시적 요청 없이 commit하지 않으며 시간 예약 polling과 별개 |
 | **품질 커맨드** | `/qa` — 프론트엔드 QA: 디자인 토큰 준수 + WCAG 2.2 접근성 검증 (`/feature-add`의 TDD 로직과 직교한 비주얼·a11y 축) |
 | **릴리즈 검증** | `/release-check` — 릴리즈 전 품질(Agent A)·보안(Agent B)·DB 마이그레이션(Agent C) 병렬 검증 |
 | **드리프트 점검** | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 점검(`check-repo-sync`). commit-msg·validator·CI·rules 등 필수 자산 누락 리포트 |
@@ -165,7 +165,8 @@ flowchart LR
 
 흐름: `/milestone`(목표·마일스톤 정의) → `/plan`(기능 단위 계획·승인, plan mode 강제) → **`feature/*` 한 브랜치**에서 태스크별 `/feature-add`(TDD) →
 `/feature-merge`(한 PR). *한 기능 = 한 브랜치 = 한 PR.*
-`/loop`: develop에서 CI·lint·테스트 등 반복 수정을 exit 0까지 동기 자율 실행.
+`/loop`: 작업 브랜치에서 CI·lint·테스트 등 반복 수정을 exit 0까지 동기 자율 실행. 자연어 맥락으로 자동
+선택되면 명시적 commit 요청이 없는 한 검증된 변경을 작업트리에 둔다.
 내장 `/goal`(세션 stopping condition)·`/loop`(ScheduleWakeup 비동기)는 별도 유지.
 
 모든 경로는 PR을 경유하고, 머지 전에 `pr-review-gate`의 게이트

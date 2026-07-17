@@ -2,9 +2,11 @@
 // Conventional Commits 문법 + team-harness 한국어·가독성 규칙. 단일 출처: docs/code-review.md
 // new-repo.sh가 repo 루트에 복사하고, ci/commitlint.yml 워크플로가 PR 커밋을 검사한다.
 // .cjs 확장자로 module type과 무관하게 CommonJS로 강제 — ESM 컨테이너/리포에서 module.exports 깨짐 방지.
-const { commitlintRule, TYPES } = require('./scripts/check-commit-message.cjs')
+const { commitlintRule, isGitGenerated, TYPES } = require('./scripts/check-commit-message.cjs')
 
 module.exports = {
+  defaultIgnores: false,
+  ignores: [isGitGenerated],
   extends: ['@commitlint/config-conventional'],
   plugins: [{ rules: { 'team-harness-message': commitlintRule } }],
   rules: {

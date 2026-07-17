@@ -194,15 +194,53 @@ function sentinelStatus(sentinelRe, filenameHintRe) {
   return 'MISSING'
 }
 
+function commitlintActionHasCanonicalConfig(text) {
+  const lines = text.split('\n')
+  for (let index = 0; index < lines.length; index++) {
+    const action = /^(\s*)-\s+uses:\s*wagoid\/commitlint-github-action@[^\s#]+/.exec(lines[index])
+    if (!action) continue
+
+    const stepIndent = action[1].length
+    let withIndent = null
+    for (let nested = index + 1; nested < lines.length; nested++) {
+      const line = lines[nested]
+      if (!line.trim()) continue
+      const indent = /^\s*/.exec(line)[0].length
+      if (indent <= stepIndent) break
+      if (withIndent !== null && indent <= withIndent) withIndent = null
+      if (line.trim() === 'with:') {
+        withIndent = indent
+        continue
+      }
+      if (
+        withIndent !== null &&
+        indent > withIndent &&
+        /^configFile:\s*['"]?\.\/commitlint\.config\.cjs['"]?$/.test(line.trim())
+      ) return true
+    }
+  }
+  return false
+}
+
+function commitlintWorkflowStatus() {
+  const actionWorkflows = wfList.filter((workflow) =>
+    /wagoid\/commitlint-github-action@/i.test(workflow.text),
+  )
+  if (actionWorkflows.length === 0) return 'MISSING'
+  return actionWorkflows.some((workflow) => commitlintActionHasCanonicalConfig(workflow.text))
+    ? 'OK'
+    : 'MISSING'
+}
+
 // 루트(또는 얕은 경로) 파일 존재 검사
 function existsAnywhere(re) {
   return files.some((f) => re.test(f.name))
 }
 
-const BUNDLED_COMMIT_VALIDATOR_SHA256 = '7abd5eaeeae3c9f9b6fe2504e9b5e011dba1d5c74eb7a21babcb7e81556f3e36'
+const BUNDLED_COMMIT_VALIDATOR_SHA256 = 'aaccbf08ed127e4019a8399f43b6f1b59222115adc5ce2ca51ace91ee561f12e'
 const BUNDLED_COMMITLINT_SHA256 = [
-  'e1766fa1f3a2715bd1ed79da54b161d56d4d9ac0af89d9ad0989120e6c8b5c4c',
-  '49e9d0abdccc66f7447c95cc4fd010fd4282409f0c0f32d7bacf9681b4ef0ad6',
+  '5fad6ec6655f12c62afcb8d538d7edad652ef5463fea49159a486d2cb6e8d43d',
+  'c9db27e27848ea26a26f7eb0a6fa736978c6bbf9a75998d44ed5e449e1a9f4c2',
 ]
 const BUNDLED_COMMIT_MSG_HOOK_SHA256 = '87408452d1e1f27d0d041ecee6717c7831d5291f5e0a9dea39a17eb5e043abf3'
 
@@ -278,8 +316,8 @@ checks.push({
   asset: 'commitlint 게이트',
   severity: 'error',
   applicable: true,
-  status: sentinelStatus(/wagoid\/commitlint|commitlint-github-action/i, /commitlint/i),
-  detail: '커밋 컨벤션 잡 (sentinel: wagoid/commitlint)',
+  status: commitlintWorkflowStatus(),
+  detail: 'wagoid/commitlint action + with.configFile=./commitlint.config.cjs',
 })
 checks.push({
   asset: 'commitlint config',

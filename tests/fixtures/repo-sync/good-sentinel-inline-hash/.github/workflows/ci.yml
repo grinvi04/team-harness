@@ -14,6 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: ./commitlint.config.cjs
   test-guard:
     runs-on: ubuntu-latest
     steps:

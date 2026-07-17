@@ -7,9 +7,11 @@ const { join } = require('node:path')
 const validatorPath = existsSync(join(__dirname, 'scripts/check-commit-message.cjs'))
   ? './scripts/check-commit-message.cjs'
   : '../scripts/check-commit-message.cjs'
-const { commitlintRule, TYPES } = require(validatorPath)
+const { commitlintRule, isGitGenerated, TYPES } = require(validatorPath)
 
 module.exports = {
+  defaultIgnores: false,
+  ignores: [isGitGenerated],
   extends: ['@commitlint/config-conventional'],
   plugins: [{ rules: { 'team-harness-message': commitlintRule } }],
   rules: {
