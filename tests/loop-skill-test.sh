@@ -68,6 +68,22 @@ else
   fail "stuck이 최신 통과 판정을 가림"
 fi
 
+if python3 - "$SKILL" <<'PY'
+from pathlib import Path
+import sys
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+phase = text.split("### Phase 2b", 1)[1].split("### Phase 2c", 1)[0]
+assert 'FILE_PATH="${STATUS_LINE#???}"' in phase
+assert 'grep -Fqx -- "$FILE_PATH"' in phase
+assert 'FIXED_FILES="${FIXED_FILES}${FIXED_FILES:+$\'\\n\'}${FILE_PATH}"' in phase
+PY
+then
+  pass "반복별 수정 파일을 중복 없이 누적"
+else
+  fail "FIXED_FILES 누적 구현 누락"
+fi
+
 echo
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

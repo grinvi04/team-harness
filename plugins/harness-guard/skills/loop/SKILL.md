@@ -147,7 +147,7 @@ node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" --
 ITER=0            # 현재 반복 횟수
 STUCK=0           # 연속 무변경 횟수
 PASS=false        # 통과 기준 달성 여부
-FIXED_FILES=[]    # 누적 수정 파일 목록
+FIXED_FILES=""    # 줄바꿈으로 구분한 누적 수정 파일 목록
 ```
 
 **루프 조건**: `PASS=false AND ITER < MAX_ITER`
@@ -218,7 +218,14 @@ if [ "$TREE_AFTER" = "$TREE_BEFORE" ]; then
   fi
 else
   STUCK=0
-  # CHANGED의 경로를 FIXED_FILES에 중복 없이 누적한다.
+  # git status --short의 상태 3문자를 제거하고 경로를 중복 없이 누적한다.
+  while IFS= read -r STATUS_LINE; do
+    [ -z "$STATUS_LINE" ] && continue
+    FILE_PATH="${STATUS_LINE#???}"
+    if ! printf '%s\n' "$FIXED_FILES" | grep -Fqx -- "$FILE_PATH"; then
+      FIXED_FILES="${FIXED_FILES}${FIXED_FILES:+$'\n'}${FILE_PATH}"
+    fi
+  done <<< "$CHANGED"
 fi
 ```
 
