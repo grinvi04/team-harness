@@ -18,6 +18,7 @@ prepare_good() {
   cp "$ROOT/scripts/check-commit-message.cjs" "$dest/scripts/check-commit-message.cjs"
   cp "$ROOT/templates/commitlint.config.cjs" "$dest/commitlint.config.cjs"
   cp "$ROOT/templates/githooks/commit-msg" "$dest/.githooks/commit-msg"
+  cp "$ROOT/templates/ci/commitlint.yml" "$dest/.github/workflows/commitlint.yml"
   chmod +x "$dest/.githooks/commit-msg"
   printf '%s\n' "$dest"
 }
@@ -60,6 +61,51 @@ printf '%s\n' \
   '      - run: echo no-lint' \
   > "$TMP/missing-commitlint-action/.github/workflows/commitlint.yml"
 check "bad(commitlint 파일만 있고 action 없음) → MISSING/FAIL" 1 "$TMP/missing-commitlint-action"
+cp -R "$GOOD/." "$TMP/disabled-commitlint-action"
+printf '%s\n' \
+  'name: commitlint' \
+  'jobs:' \
+  '  commitlint:' \
+  '    runs-on: ubuntu-latest' \
+  '    steps:' \
+  '      - uses: wagoid/commitlint-github-action@v6' \
+  '        if: false' \
+  '        with:' \
+  '          configFile: ./commitlint.config.cjs' \
+  > "$TMP/disabled-commitlint-action/.github/workflows/commitlint.yml"
+check "bad(commitlint action이 if:false로 비활성) → MISSING/FAIL" 1 "$TMP/disabled-commitlint-action"
+cp -R "$GOOD/." "$TMP/block-scalar-fake-action"
+printf '%s\n' \
+  'name: commitlint' \
+  'jobs:' \
+  '  commitlint:' \
+  '    runs-on: ubuntu-latest' \
+  '    steps:' \
+  '      - run: |' \
+  '          - uses: wagoid/commitlint-github-action@v6' \
+  '            with:' \
+  '              configFile: ./commitlint.config.cjs' \
+  > "$TMP/block-scalar-fake-action/.github/workflows/commitlint.yml"
+check "bad(block scalar 안 가짜 commitlint action) → MISSING/FAIL" 1 "$TMP/block-scalar-fake-action"
+cp -R "$GOOD/." "$TMP/fail-open-commitlint-action"
+printf '%s\n' \
+  'name: commitlint' \
+  'jobs:' \
+  '  commitlint:' \
+  '    runs-on: ubuntu-latest' \
+  '    steps:' \
+  '      - uses: wagoid/commitlint-github-action@v6' \
+  '        continue-on-error: true' \
+  '        with:' \
+  '          configFile: ./commitlint.config.cjs' \
+  '          failOnErrors: false' \
+  > "$TMP/fail-open-commitlint-action/.github/workflows/commitlint.yml"
+check "bad(commitlint action fail-open 옵션) → MISSING/FAIL" 1 "$TMP/fail-open-commitlint-action"
+cp -R "$GOOD/." "$TMP/nested-commitlint-workflow"
+mkdir -p "$TMP/nested-commitlint-workflow/.github/workflows/archive"
+mv "$TMP/nested-commitlint-workflow/.github/workflows/commitlint.yml" \
+  "$TMP/nested-commitlint-workflow/.github/workflows/archive/commitlint.yml"
+check "bad(GitHub가 실행하지 않는 하위 workflow) → MISSING/FAIL" 1 "$TMP/nested-commitlint-workflow"
 mkdir -p "$TMP/no-harness-source"
 if node "$GATE" --repo "$GOOD" --harness "$TMP/no-harness-source" >/dev/null 2>&1; then
   echo "PASS: 설치 plugin의 내장 커밋 계약 digest로 통과"; PASS=$((PASS+1))

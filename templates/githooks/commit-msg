@@ -7,4 +7,10 @@ if ! command -v node >/dev/null 2>&1; then
 fi
 
 ROOT="$(git rev-parse --show-toplevel)"
-node "$ROOT/scripts/check-commit-message.cjs" --file "$1"
+ARGS=(--stdin)
+GIT_DIR="$(git rev-parse --git-dir)"
+if [ -f "$GIT_DIR/MERGE_HEAD" ]; then
+  ARGS+=(--allow-git-generated)
+fi
+git stripspace --strip-comments < "$1" \
+  | node "$ROOT/scripts/check-commit-message.cjs" "${ARGS[@]}"
