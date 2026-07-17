@@ -7,7 +7,7 @@ import {
   fstatSync,
   lstatSync,
   openSync,
-  readFileSync,
+  readSync,
   readlinkSync,
   realpathSync,
   statSync,
@@ -18,6 +18,8 @@ const args = process.argv.slice(2)
 const repoIndex = args.indexOf('--repo')
 const repo = realpathSync(resolve(repoIndex >= 0 ? args[repoIndex + 1] : '.'))
 const hash = createHash('sha256')
+const FILE_READ_CHUNK_SIZE = 64 * 1024
+const fileReadBuffer = Buffer.allocUnsafe(FILE_READ_CHUNK_SIZE)
 
 function git(gitArgs) {
   return execFileSync('git', ['-C', repo, ...gitArgs], { encoding: null, stdio: ['ignore', 'pipe', 'pipe'] })
@@ -62,10 +64,16 @@ function assertRegularPath(absolutePath, expected, fd, parents) {
     !opened.isFile()
     || opened.dev !== expected.dev
     || opened.ino !== expected.ino
+    || opened.size !== expected.size
+    || opened.mtimeMs !== expected.mtimeMs
+    || opened.ctimeMs !== expected.ctimeMs
     || pathEntry.dev !== opened.dev
     || pathEntry.ino !== opened.ino
+    || pathEntry.size !== expected.size
+    || pathEntry.mtimeMs !== expected.mtimeMs
+    || pathEntry.ctimeMs !== expected.ctimeMs
   ) {
-    throw new Error(`untracked 파일 유형·경로가 검사 중 변경됨: ${absolutePath}`)
+    throw new Error(`untracked 파일 유형·경로·내용이 검사 중 변경됨: ${absolutePath}`)
   }
 }
 
@@ -96,16 +104,28 @@ function hashUntracked(relativePath) {
 
   const flags = constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0)
   const fd = openSync(absolutePath, flags)
-  let contents
   try {
     assertRegularPath(absolutePath, entry, fd, parents)
-    contents = readFileSync(fd)
+    hash.update('file\0')
+    let remainingBytes = entry.size
+    while (remainingBytes > 0) {
+      const bytesRead = readSync(
+        fd,
+        fileReadBuffer,
+        0,
+        Math.min(fileReadBuffer.length, remainingBytes),
+        null,
+      )
+      if (bytesRead === 0) {
+        throw new Error(`untracked 파일이 예상 크기보다 일찍 끝남: ${absolutePath}`)
+      }
+      hash.update(fileReadBuffer.subarray(0, bytesRead))
+      remainingBytes -= bytesRead
+    }
     assertRegularPath(absolutePath, entry, fd, parents)
   } finally {
     closeSync(fd)
   }
-  hash.update('file\0')
-  hash.update(contents)
 }
 
 try {

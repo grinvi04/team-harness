@@ -22,6 +22,13 @@ pass() { echo "PASS: $1"; PASS=$((PASS+1)); }
 fail() { echo "FAIL: $1"; FAIL=$((FAIL+1)); }
 
 node "$TIMEOUT" --seconds 1 -- "printf 완료" >/dev/null 2>&1 && pass "timeout helper 정상 명령" || fail "timeout helper 정상 명령"
+SPECIAL_ROOT="$TMP/literal-\$HOME with space"
+mkdir -p "$SPECIAL_ROOT"
+cp "$FINGERPRINT" "$SPECIAL_ROOT/fingerprint.mjs"
+mkdir -p "$SPECIAL_ROOT/repo"
+git -C "$SPECIAL_ROOT/repo" init -q
+node "$TIMEOUT" --seconds 1 --argv -- node "$SPECIAL_ROOT/fingerprint.mjs" --repo "$SPECIAL_ROOT/repo" \
+  >/dev/null 2>&1 && pass "argv mode가 특수문자 경로를 재해석하지 않음" || fail "argv mode 특수문자 경로 보존"
 node "$TIMEOUT" --seconds 0.05 -- "sleep 1" >/dev/null 2>&1
 [ "$?" -eq 124 ] && pass "timeout helper가 124로 중단" || fail "timeout helper timeout 종료코드"
 
@@ -68,6 +75,78 @@ else
   fail "worktree fingerprint 변화 감지"
 fi
 
+: > "$REPO/empty.bin"
+EMPTY=$(fp)
+dd if=/dev/zero of="$REPO/multi-chunk.bin" bs=65536 count=3 2>/dev/null
+MULTI_CHUNK_BEFORE=$(fp)
+printf 'x' | dd of="$REPO/multi-chunk.bin" bs=1 seek=131072 conv=notrunc 2>/dev/null
+MULTI_CHUNK_AFTER=$(fp)
+if [ -n "$EMPTY" ] && [ "$EMPTY" != "$MULTI_CHUNK_BEFORE" ] \
+  && [ "$MULTI_CHUNK_BEFORE" != "$MULTI_CHUNK_AFTER" ]; then
+  pass "빈 파일·다중 청크 파일 fingerprint 변화 감지"
+else
+  fail "빈 파일 또는 다중 청크 fingerprint 계약"
+fi
+
+if grep -Fq 'readSync' "$FINGERPRINT" \
+  && grep -Fq 'FILE_READ_CHUNK_SIZE' "$FINGERPRINT" \
+  && ! grep -Fq 'readFileSync(fd)' "$FINGERPRINT"; then
+  pass "untracked 일반 파일을 고정 크기 청크로 hash"
+else
+  fail "untracked 일반 파일이 전체 크기 Buffer를 사용"
+fi
+
+HUGE_REPO="$TMP/huge-repo"
+mkdir -p "$HUGE_REPO"
+git -C "$HUGE_REPO" init -q
+truncate -s 8g "$HUGE_REPO/huge.bin"
+HUGE_RC=0
+node "$TIMEOUT" --seconds 0.05 -- "node '$FINGERPRINT' --repo '$HUGE_REPO'" >/dev/null 2>&1 \
+  || HUGE_RC=$?
+if [ "$HUGE_RC" -eq 124 ]; then
+  pass "대용량 fingerprint를 timeout helper가 제한"
+else
+  fail "대용량 fingerprint timeout 종료코드=$HUGE_RC"
+fi
+
+RACE_REPO="$TMP/race-repo"
+mkdir -p "$RACE_REPO"
+git -C "$RACE_REPO" init -q
+truncate -s 8g "$RACE_REPO/growing.bin"
+( sleep 0.5; truncate -s 1 "$RACE_REPO/growing.bin" ) &
+RACE_MUTATOR=$!
+RACE_RC=0
+node "$FINGERPRINT" --repo "$RACE_REPO" >/dev/null 2>&1 || RACE_RC=$?
+wait "$RACE_MUTATOR"
+if [ "$RACE_RC" -eq 2 ]; then
+  pass "fingerprint 중 untracked 파일 크기 변경을 거부"
+else
+  fail "fingerprint 중 크기 변경 허용 종료코드=$RACE_RC"
+fi
+
+metadata_race() {
+  local label="$1"
+  local mutation="$2"
+  local repo="$TMP/race-$label"
+  mkdir -p "$repo"
+  git -C "$repo" init -q
+  truncate -s 8g "$repo/target.bin"
+  ( sleep 0.5; sh -c "$mutation" sh "$repo/target.bin" ) &
+  local mutator=$!
+  local rc=0
+  node "$FINGERPRINT" --repo "$repo" >/dev/null 2>&1 || rc=$?
+  wait "$mutator"
+  if [ "$rc" -eq 2 ]; then
+    pass "fingerprint 중 $label 변경을 독립 거부"
+  else
+    fail "fingerprint 중 $label 변경 허용 종료코드=$rc"
+  fi
+}
+
+metadata_race "same-size-write" 'printf x | dd of="$1" bs=1 seek=0 conv=notrunc 2>/dev/null'
+metadata_race "mtime" 'touch -m "$1"'
+metadata_race "ctime" 'chmod 600 "$1"'
+
 OUTSIDE_FILE="$TMP/outside-secret.txt"
 printf '외부 비밀 1\n' > "$OUTSIDE_FILE"
 ln -s "$OUTSIDE_FILE" "$REPO/untracked-link"
@@ -111,7 +190,29 @@ else
 fi
 
 grep -Fq -- '--timeout' "$SKILL" && pass "사용자 지정 timeout 옵션" || fail "timeout 옵션 누락"
-[ "$(grep -Fc 'run-with-timeout.mjs' "$SKILL")" -ge 2 ] && pass "초기·반복 검증 timeout 적용" || fail "timeout 적용 지점 부족"
+[ "$(grep -Fc 'run-with-timeout.mjs' "$SKILL")" -ge 4 ] && pass "검증·fingerprint timeout 적용" || fail "timeout 적용 지점 부족"
+if python3 - "$SKILL" <<'PY'
+from pathlib import Path
+import re
+import sys
+
+text = Path(sys.argv[1]).read_text(encoding="utf-8")
+for name in ("TREE_BEFORE", "TREE_AFTER"):
+    pattern = rf'{name}=\$\(\s*node "\$PLUGIN_ROOT/scripts/run-with-timeout\.mjs".{{0,200}}--argv --.{{0,200}}worktree-fingerprint\.mjs'
+    assert re.search(pattern, text, re.S), name
+PY
+then
+  pass "반복 전·후 fingerprint가 timeout helper 경유"
+else
+  fail "fingerprint timeout helper 배선 누락"
+fi
+if grep -Fq 'FINGERPRINT_ERROR="반복 전 fingerprint 종료코드=$FINGERPRINT_EXIT"' "$SKILL" \
+  && grep -Fq 'FINGERPRINT_ERROR="반복 후 fingerprint 종료코드=$FINGERPRINT_EXIT"' "$SKILL" \
+  && grep -Fq '### Fingerprint 실패 (`FINGERPRINT_ERROR`가 비어 있지 않음)' "$SKILL"; then
+  pass "fingerprint 실패 상태와 Phase 3 종료 분기"
+else
+  fail "fingerprint 실패 종료 계약 누락"
+fi
 grep -Fq 'worktree-fingerprint.mjs' "$SKILL" && pass "내용 기반 fingerprint 적용" || fail "fingerprint helper 누락"
 grep -Fq 'ITER=$((ITER+1))' "$SKILL" && pass "실제 반복 시작 시 count 증가" || fail "반복 count 교정 누락"
 if grep -Fq 'REPO_ROOT=$(git rev-parse --show-toplevel)' "$SKILL" \
