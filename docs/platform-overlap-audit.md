@@ -7,10 +7,12 @@
 
 - 기준일: 2026-07-18
 - 기준 브랜치: `develop`의 플랫폼 중복 감사 작업 시작 시점
-- 대상: skill 16개, agent 정의 5개, hook handler 4개, Codex 호환 실행 파일 9개. 합계 34개다.
+- 대상: skill 16개, agent 정의 5개, hook handler 4개, Codex 호환 실행 파일 10개. 합계 35개다.
 - 근거: 각 구현, 직접 호출자, 회귀 테스트, 결정 기록과 로컬 `codex-cli 0.144.5`의 read-only 출력.
 - 로컬 확인: `codex features list`에서 `hooks`, `plugins`, `multi_agent`가 stable이고 `codex plugin --help`가
   설치·목록·marketplace 관리 명령을 제공했다. 이는 이 버전의 시점 증거이며 향후 버전까지 보장하지 않는다.
+- 탐지: 파일명에 `codex`가 있거나 Codex CLI·호환 실행 파일을 직접 호출하는 script를 포함한다. 따라서 이름에
+  `codex`가 없는 `harness-doctor.sh`도 실행 표면으로 계산한다.
 - 제외: 문서·테스트·spec은 구현 표면 수에 넣지 않았다. Codex agent TOML은 agent로만 계산했다.
 
 판정의 의미는 다음과 같다.
@@ -74,6 +76,7 @@
 | `codex-file:plugins/harness-guard/scripts/patch-codex-security-guidance.mjs` | **위임** | 우선 제거 | 외부 plugin cache와 marketplace snapshot mutation은 장기 지원 API가 아니므로 제거한다. |
 | `codex-file:scripts/codex-fresh-session-smoke.sh` | **소유** | 유지 | 실제 새 세션에서 정책·시크릿 차단 결과를 검증하는 outcome parity 증거다. |
 | `codex-file:scripts/codex-hardened.sh` | **위임** | 우선 제거 후 doctor로 통합 | cache patch와 feature 강제 launcher 대신 공식 설치·managed policy·doctor 경로를 사용한다. |
+| `codex-file:scripts/harness-doctor.sh` | **연결** | 공식 surface 중심으로 유지 | Codex·plugin·managed policy 상태를 repo·GitHub 건강 증거와 합성하되 cache patch 의존은 제거한다. |
 | `codex-file:scripts/install-codex-managed-requirements.sh` | **연결** | 조건부 유지 | 공식 managed requirements에 조직 정책을 연결하되 지원 범위와 제거 절차를 명시한다. |
 | `codex-file:scripts/sync-codex-plugin-cache.mjs` | **연결** | installer·doctor에 통합 | 공식 `codex plugin` 명령을 호출하는 버전 확인만 남기고 cache 내부는 건드리지 않는다. |
 

@@ -60,9 +60,14 @@ for event, groups in hooks.items():
                 f"hook:{event}:{group_index}:{matcher}:{handler_index}:{handler['type']}"
             )
 
+codex_runtime_pattern = re.compile(
+    r"CODEX_BIN|codex (?:exec|plugin)|(?:install|patch|sync)-codex|codex-(?:fresh-session|hardened)",
+    re.IGNORECASE,
+)
 for base in (root / "plugins/harness-guard/scripts", root / "scripts"):
-    for path in sorted(p for p in base.iterdir() if p.is_file() and "codex" in p.name):
-        expected.append(f"codex-file:{path.relative_to(root).as_posix()}")
+    for path in sorted(p for p in base.iterdir() if p.is_file()):
+        if "codex" in path.name.lower() or codex_runtime_pattern.search(path.read_text(errors="ignore")):
+            expected.append(f"codex-file:{path.relative_to(root).as_posix()}")
 
 rows = re.findall(
     r"^\| `((?:skill|agent|hook|codex-file):[^`]+)` \| \*\*(소유|연결|위임)\*\* \| ([^|]+) \| ([^|]+) \|$",
@@ -79,8 +84,8 @@ if len([item for item in expected if item.startswith("agent:")]) != 5:
     errors.append("source agent count is not 5")
 if len([item for item in expected if item.startswith("hook:")]) != 4:
     errors.append("source hook count is not 4")
-if len([item for item in expected if item.startswith("codex-file:")]) != 9:
-    errors.append("source Codex compatibility file count is not 9")
+if len([item for item in expected if item.startswith("codex-file:")]) != 10:
+    errors.append("source Codex compatibility file count is not 10")
 if expected_counts != counts:
     errors.append(
         f"missing={sorted((expected_counts - counts).elements())} "
@@ -99,7 +104,7 @@ if errors:
 print(f"PASS: implementation inventory classified exactly once ({len(expected)} items)")
 PY
 then
-  pass "현재 구현 인벤토리 34개 전수 단일 판정"
+  pass "현재 구현 인벤토리 35개 전수 단일 판정"
 else
   fail "현재 구현 인벤토리와 감사 분류 불일치"
 fi
