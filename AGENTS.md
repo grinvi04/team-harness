@@ -14,6 +14,15 @@
 - **신규 repo 셋업 도구**(`templates/`, `scripts/new-repo.sh`, `plugins/harness-guard/scripts/set-branch-protection.sh`).
 - 소비 repo(erp·siku·webhook-service·drivertree)가 이 repo의 표준·플러그인을 상속한다.
 
+## 제품 방향 게이트
+
+- 제품 방향의 정본은 `docs/product-direction.md`다. 신규 기능·호환 계층·공용 workflow를 제안하거나 수정하기
+  전에 문서의 **신규 기능 판단 게이트**로 `소유 / 연결 / 위임` 중 하나를 먼저 판정한다.
+- Team Harness는 GitHub 정책·증거·감사·delivery 강제를 소유한다. skill 로딩, hook lifecycle, subagent,
+  sandbox·permission처럼 실행 플랫폼이 안정적으로 제공하는 기능은 native-first로 위임하고 필요한 결과 검증만 남긴다.
+- 특정 소비 repo 요구는 공용 하네스에 올리지 않는다. 플랫폼 기본 기능 복제나 장기 cache patch는 공식 surface로
+  대체할 수 있는지 먼저 확인하고, 유지 이유가 없으면 새 기능이 아니라 제거·축소 대상으로 분류한다.
+
 ## 스택
 
 - **bash** 스크립트(가드·훅·PR 래퍼·테스트), **Node ESM `.mjs`**(`route-intent`·`merge-permissions`·`check-migration-safety`·`check-repo-sync`), **Markdown** 표준 문서.
