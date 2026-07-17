@@ -44,31 +44,33 @@ import sys
 root = Path(sys.argv[1])
 report = Path(sys.argv[2]).read_text()
 
-expected = set()
+expected = []
 for path in sorted((root / "plugins/harness-guard/skills").glob("*/SKILL.md")):
-    expected.add(f"skill:{path.parent.name}")
+    expected.append(f"skill:{path.parent.name}")
 for base in (root / "plugins/harness-guard/agents", root / "plugins/harness-guard/codex/agents"):
     for path in sorted(p for p in base.iterdir() if p.is_file()):
-        expected.add(f"agent:{path.relative_to(root).as_posix()}")
+        expected.append(f"agent:{path.relative_to(root).as_posix()}")
 
 hooks = json.loads((root / "plugins/harness-guard/hooks/hooks.json").read_text())["hooks"]
 for event, groups in hooks.items():
-    for group in groups:
+    for group_index, group in enumerate(groups, 1):
         matcher = group.get("matcher", "*")
-        for handler in group.get("hooks", []):
-            expected.add(f"hook:{event}:{matcher}:{handler['type']}")
+        for handler_index, handler in enumerate(group.get("hooks", []), 1):
+            expected.append(
+                f"hook:{event}:{group_index}:{matcher}:{handler_index}:{handler['type']}"
+            )
 
 for base in (root / "plugins/harness-guard/scripts", root / "scripts"):
     for path in sorted(p for p in base.iterdir() if p.is_file() and "codex" in p.name):
-        expected.add(f"codex-file:{path.relative_to(root).as_posix()}")
+        expected.append(f"codex-file:{path.relative_to(root).as_posix()}")
 
 rows = re.findall(
     r"^\| `((?:skill|agent|hook|codex-file):[^`]+)` \| \*\*(소유|연결|위임)\*\* \| ([^|]+) \| ([^|]+) \|$",
     report,
     re.MULTILINE,
 )
+expected_counts = Counter(expected)
 counts = Counter(identifier for identifier, *_ in rows)
-actual = set(counts)
 
 errors = []
 if len([item for item in expected if item.startswith("skill:")]) != 16:
@@ -79,8 +81,11 @@ if len([item for item in expected if item.startswith("hook:")]) != 4:
     errors.append("source hook count is not 4")
 if len([item for item in expected if item.startswith("codex-file:")]) != 9:
     errors.append("source Codex compatibility file count is not 9")
-if expected != actual:
-    errors.append(f"missing={sorted(expected - actual)} extra={sorted(actual - expected)}")
+if expected_counts != counts:
+    errors.append(
+        f"missing={sorted((expected_counts - counts).elements())} "
+        f"extra={sorted((counts - expected_counts).elements())}"
+    )
 duplicates = sorted(identifier for identifier, count in counts.items() if count != 1)
 if duplicates:
     errors.append(f"duplicate identifiers={duplicates}")
@@ -116,7 +121,7 @@ else
   fail "공식 surface→동등성→전환→제거 순서 누락"
 fi
 
-route_line="$(grep -F 'hook:UserPromptSubmit:*:command' "$REPORT" 2>/dev/null || true)"
+route_line="$(grep -F 'hook:UserPromptSubmit:1:*:1:command' "$REPORT" 2>/dev/null || true)"
 if printf '%s' "$route_line" | grep -Fq "상태 기반" \
   && printf '%s' "$route_line" | grep -Fq "의미 분류기"; then
   pass "route-intent 상태 기반 경계 고정"

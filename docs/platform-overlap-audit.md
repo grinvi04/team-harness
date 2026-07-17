@@ -58,10 +58,10 @@
 
 | 식별자 | 판정 | 목표 상태 | 근거·후속 조치 |
 |---|---|---|---|
-| `hook:PreToolUse:Bash:command` | **연결** | 얇게 유지 | 명령을 서버 정책과 같은 규칙에 연결하는 조기 피드백이며 CI·GitHub가 최종 강제한다. |
-| `hook:PreToolUse:Bash:prompt` | **위임** | 제거 | LLM prompt 기반 시크릿 판정은 플랫폼 permission과 결정적 검사에 위임하고 서버 secret scan을 유지한다. |
-| `hook:PreToolUse:Agent:command` | **위임** | 제거 | subagent 생성·모델 선택·reasoning effort는 플랫폼 책임이며 고정 모델 주입을 중단한다. |
-| `hook:UserPromptSubmit:*:command` | **연결** | 좁게 유지 | `route-intent`는 Git/PR **상태 기반** 다음 단계만 연결하고 일반 자연어 **의미 분류기**로 확장하지 않는다. |
+| `hook:PreToolUse:1:Bash:1:command` | **연결** | 얇게 유지 | 명령을 서버 정책과 같은 규칙에 연결하는 조기 피드백이며 CI·GitHub가 최종 강제한다. |
+| `hook:PreToolUse:1:Bash:2:prompt` | **위임** | 제거 | LLM prompt 기반 시크릿 판정은 플랫폼 permission과 결정적 검사에 위임하고 서버 secret scan을 유지한다. |
+| `hook:PreToolUse:2:Agent:1:command` | **위임** | 제거 | subagent 생성·모델 선택·reasoning effort는 플랫폼 책임이며 고정 모델 주입을 중단한다. |
+| `hook:UserPromptSubmit:1:*:1:command` | **연결** | 좁게 유지 | `route-intent`는 Git/PR **상태 기반** 다음 단계만 연결하고 일반 자연어 **의미 분류기**로 확장하지 않는다. |
 
 ### Codex 호환 실행 파일
 
