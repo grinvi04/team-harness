@@ -126,6 +126,9 @@ for (const name of fs.readdirSync(skillsRoot)) {
   if (/\([^\n)]*`subagent_type:/.test(text)) fail(`${name} retained Claude execution metadata`);
   if (/^Co-Authored-By: Claude\b/m.test(text)) fail(`${name} retained Claude co-author attribution`);
 }
+const loopSkill = fs.readFileSync(`${skillsRoot}/loop/SKILL.md`, 'utf8');
+const codexRoot = '${CODEX_PLUGIN_ROOT:-${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}}';
+if (loopSkill.split(codexRoot).length - 1 !== 3) fail('loop phases did not receive Codex plugin root fallback');
 const codexGuard = fs.readFileSync(codexGuardPath, 'utf8');
 if (!codexGuard.includes('.codex/hooks/guard-block.log') || !codexGuard.includes('Codex가 대신 실행하지 않음')) fail('Codex guard runtime identity missing');
 if (codexGuard.includes('HARNESS_GUARD_LOG') || codexGuard.includes('HARNESS_AGENT_NAME')) fail('Codex guard depends on Claude source overrides');
@@ -146,11 +149,11 @@ console.log('PASS: Codex overlay·guard를 cache에 한 번만 생성');
 console.log('PASS: namespaced Codex read-only agents 설치');
 NODE
 
-if ! grep -Rqs '^Co-Authored-By: Claude\b' "$ROOT/plugins/harness-guard/skills"; then
-  echo "FAIL: Claude source skill의 공동작성 표기가 변경됨"
+if grep -Rqs '^Co-Authored-By: Claude\b' "$ROOT/plugins/harness-guard/skills"; then
+  echo "FAIL: 공용 source skill에 특정 AI 공동작성 표기가 남음"
   exit 1
 fi
-echo "PASS: Claude source skill 공동작성 표기 유지"
+echo "PASS: 공용 source skill의 특정 AI 공동작성 하드코딩 없음"
 
 node -e 'require("node:fs").unlinkSync(process.argv[1])' "$CACHE_GUARD"
 if HOME="$TMP" node "$PATCHER" --dry-run >"$TMP/missing.out" 2>"$TMP/missing.err"; then

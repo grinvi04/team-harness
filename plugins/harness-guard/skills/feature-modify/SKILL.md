@@ -1,6 +1,6 @@
 ---
 name: feature-modify
-description: TDD로 기존 기능 수정 — 변경분만 RED, 나머지 GREEN 유지 (stack-agnostic)
+description: 기존 기능 변경이나 버그 수정을 TDD로 구현할 때 사용. 변경분만 RED로 만들며 완전 신규 기능·원인만 분석·PR 머지는 제외
 argument-hint: <feature-name> "<변경 설명>"
 effort: high
 ---
@@ -116,7 +116,8 @@ git checkout -b <결정된 브랜치명>
 3. 커밋 — Phase 1에서 결정한 타입 + AGENTS.md `커밋 메시지` 규약:
    ```bash
    git add <변경 디렉터리>
-   git commit -m "<타입>($FEATURE_NAME): $DESCRIPTION ..."
+   git commit -m "<타입>($FEATURE_NAME): <50자 이하 한국어 요약>" \
+     -m "이유: <이 변경이 필요한 이유>"
    ```
 
 브랜치는 develop에 머지하지 않는다 — 사용자 확인 후 `/feature-merge`.

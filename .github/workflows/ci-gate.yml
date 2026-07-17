@@ -24,7 +24,9 @@ jobs:
           bash -n plugins/harness-guard/scripts/set-branch-protection.sh
           bash -n plugins/harness-guard/scripts/solo-merge.sh
           bash -n templates/githooks/pre-commit
+          bash -n templates/githooks/commit-msg
           bash -n .githooks/pre-commit
+          bash -n .githooks/commit-msg
           bash -n tests/guard-test.sh
           bash -n tests/guard-matrix-test.sh
           bash -n tests/route-intent-test.sh
@@ -38,6 +40,9 @@ jobs:
           bash -n tests/alembic-destructive-ddl-test.sh
           bash -n tests/activerecord-destructive-ddl-test.sh
           bash -n tests/skill-discovery-test.sh
+          bash -n tests/skill-trigger-contract-test.sh
+          bash -n tests/commit-message-test.sh
+          bash -n tests/loop-skill-test.sh
           bash -n tests/flagship-skills-test.sh
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
@@ -65,6 +70,9 @@ jobs:
           node --check plugins/harness-guard/scripts/codex-secret-egress-guard.mjs
           node --check plugins/harness-guard/scripts/codex-pretool-guard.mjs
           node --check plugins/harness-guard/scripts/route-intent.mjs
+          node --check plugins/harness-guard/scripts/run-with-timeout.mjs
+          node --check plugins/harness-guard/scripts/worktree-fingerprint.mjs
+          node --check scripts/check-commit-message.cjs
           node --check scripts/sync-codex-plugin-cache.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
@@ -104,6 +112,15 @@ jobs:
 
       - name: 의도 라우터 테스트
         run: bash tests/route-intent-test.sh
+
+      - name: skill 자동 선택 description 계약
+        run: bash tests/skill-trigger-contract-test.sh
+
+      - name: 커밋 메시지 로컬·CI 공통 계약
+        run: bash tests/commit-message-test.sh
+
+      - name: loop 실행 안전장치 계약
+        run: bash tests/loop-skill-test.sh
 
       - name: 권한 병합 테스트
         run: bash tests/merge-permissions-test.sh

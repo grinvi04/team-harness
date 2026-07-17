@@ -1,6 +1,6 @@
 ---
 name: pr-create
-description: 현재 feature/fix 브랜치를 올바른 base(develop 있으면 develop, 없으면 기본 브랜치=main)로 PR 생성 — 품질검증·push 후. 맨손 gh pr create 대체
+description: 현재 feature/fix 브랜치의 품질을 확인하고 올바른 base로 PR만 생성할 때 사용. 코드 수정·리뷰 처리·머지·릴리즈는 제외
 effort: low
 ---
 

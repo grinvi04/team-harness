@@ -1,6 +1,6 @@
 ---
 name: release-check
-description: 릴리즈 사전 검증 — 품질·보안·DB 마이그레이션을 병렬 검증. /release의 전제 조건
+description: 정식 릴리즈 직전에 품질·보안·DB 마이그레이션 준비를 검증할 때 사용. 실제 태그·배포·기능 PR 검증·버그 구현은 제외
 effort: max
 ---
 

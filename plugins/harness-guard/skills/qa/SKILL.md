@@ -1,6 +1,6 @@
 ---
 name: qa
-description: 프론트엔드 QA — 디자인 토큰 준수 + WCAG 2.2 접근성 검증 (stack-agnostic)
+description: 프론트엔드 디자인 토큰과 WCAG 2.2 접근성을 검증할 때 사용. 백엔드 로직·기능 테스트·원인 불명 버그 분석은 제외
 ---
 
 # /qa — 프론트엔드 디자인·접근성 QA

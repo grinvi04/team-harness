@@ -1,6 +1,6 @@
 ---
 name: pr-review-gate
-description: PR 생성 후 머지까지의 표준 게이트 절차 — AI 리뷰 처리(인라인 reply + resolveReviewThread), 사람 승인 확인, CI watch, 외부 배포 commit-status 검증. feature-merge·hotfix·release 커맨드가 공통으로 이 절차를 따른다. PR을 만들고 머지 전 게이트를 거쳐야 할 때 사용.
+description: 열린 PR의 AI 리뷰·사람 승인·CI·외부 배포 상태를 처리해 머지 준비를 확인할 때 사용. PR 없는 코드 개발·PR 생성만 수행·게이트 우회는 제외
 ---
 
 # PR 리뷰·CI 게이트 (공통 절차)

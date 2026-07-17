@@ -20,7 +20,8 @@
 ## 품질 게이트
 
 - 커밋 전: lint + test 통과 필수
-- 커밋 메시지: Conventional Commits(타입 영어 + 본문 한국어) — `commitlint`가 CI에서 강제 (`commitlint.config.cjs`)
+- 커밋 메시지: Conventional Commits + team-harness 한국어 형식 — 코드 의미 변경은 `이유:` 본문 필수.
+  `commit-msg`와 CI commitlint가 동일 validator로 강제 (`docs/code-review.md`)
 - PR 머지 전: CI 전체 통과 + 리뷰 스레드 전부 resolve + 승인 요건 충족 — **팀 모드**(리뷰어 有)는 사람 승인 1명 이상, **솔로**는 승인요건 0이라 CI-gate·enforce_admins=on이 우회불가 게이트를 대신한다
 - 테스트 스킵 플래그(-DskipTests 등) 사용 금지
 
@@ -72,7 +73,7 @@
 | DB | db-standards.md | BIGINT PK+채번, 공통 감사 컬럼, forward-only 마이그레이션 |
 | 인증·인가 | auth-standards.md | Keycloak OIDC, RBAC 권한코드+데이터 스코프 |
 | 코드 구조 | clean-architecture.md | 도메인 모듈 1차 경계, 모듈 간 api/·도메인 이벤트로만 통신 |
-| 리뷰·커밋 | code-review.md | Conventional Commits(타입 영어+본문 한국어), PR 규칙 |
+| 리뷰·커밋 | code-review.md | Conventional Commits 호환 한국어 형식, PR 규칙 |
 | AI 협업 | ai-collaboration.md | 책임 원칙, 금지사항, 기록 위치(스펙→docs/specs, 백로그→Issues/Milestone, 작업로그→git/CHANGELOG, 결정→docs/decisions.md, 로컬 메모리=개인 습관만) |
 | 운영·로깅 | operations.md | 로그 레벨 기준(ERROR=알람), traceId 전파 |
 | README | readme-standards.md | 루트 README 양식(섹션 순서·뱃지·mermaid·시작하기), `templates/README.template.md` |

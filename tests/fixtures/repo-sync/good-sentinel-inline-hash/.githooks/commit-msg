@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+node scripts/check-commit-message.cjs --file "$1"

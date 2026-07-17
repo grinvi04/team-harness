@@ -1,6 +1,6 @@
 ---
 name: release
-description: 릴리즈 실행 — release 브랜치→main 태그→develop back-merge PR→배포 헬스체크
+description: 사전 검증된 버전을 정식 릴리즈할 때 사용. release 브랜치·main 태그·develop 역병합·헬스체크를 수행하며 hotfix·일반 develop 머지·사전검증 없는 배포는 제외
 argument-hint: <version>
 effort: high
 ---
@@ -36,9 +36,7 @@ git checkout develop && git pull origin develop
 git checkout -b release/v$VERSION
 # AGENTS.md의 버전 범프 명령 실행 (예: npm version / gradle properties 갱신)
 git add .
-git commit -m "chore(release): v$VERSION 릴리즈 준비
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+git commit -m "chore(release): v$VERSION 릴리즈 준비"
 ```
 
 ---
@@ -69,9 +67,7 @@ Phase 2(해당 시) ✅인 경우에만 진행.
 # 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base main \
   --title "release: v$VERSION" \
-  --body "릴리즈 v$VERSION
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+  --body "릴리즈 v$VERSION"
 ```
 
 **`pr-review-gate` 스킬의 전체 절차(1~7단계)**를 따른다 — AI 리뷰 처리·사람 승인·CI·
@@ -99,9 +95,7 @@ git checkout -b sync/backmerge-v$VERSION
 git push -u origin sync/backmerge-v$VERSION
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
   --title "chore: release/v$VERSION develop 반영" \
-  --body "main PR과 동일 내용의 back-merge — 버전 범프 커밋을 develop에 반영.
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+  --body "main PR과 동일 내용의 back-merge — 버전 범프 커밋을 develop에 반영."
 ```
 
 **`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 사람 승인 + CI + 머지만.
