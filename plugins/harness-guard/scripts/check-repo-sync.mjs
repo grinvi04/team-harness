@@ -199,33 +199,28 @@ function existsAnywhere(re) {
   return files.some((f) => re.test(f.name))
 }
 
-function fileContract(rel, contentRe, executable = false) {
-  const file = files.find((candidate) => candidate.rel === rel)
-  if (!file) return false
-  try {
-    if (!contentRe.test(readFileSync(file.p, 'utf8'))) return false
-    if (executable && (statSync(file.p).mode & 0o111) === 0) return false
-    return true
-  } catch {
-    return false
-  }
-}
-
 const BUNDLED_COMMIT_VALIDATOR_SHA256 = '372eba8c351a3075414c5704d58ae4758ae4c1f5b92bd7e0ec0ea61a34fb5767'
+const BUNDLED_COMMITLINT_SHA256 = [
+  'e1766fa1f3a2715bd1ed79da54b161d56d4d9ac0af89d9ad0989120e6c8b5c4c',
+  '49e9d0abdccc66f7447c95cc4fd010fd4282409f0c0f32d7bacf9681b4ef0ad6',
+]
+const BUNDLED_COMMIT_MSG_HOOK_SHA256 = 'eaf0c9cdeaf02849b14fcf17c006dd3e5006f43832387e0f378d3ea8d4c7e51b'
 
 function normalizedSha256(text) {
   return createHash('sha256').update(text.replace(/\r\n?/g, '\n')).digest('hex')
 }
 
-function commitValidatorContract() {
-  const target = files.find((candidate) => candidate.rel === 'scripts/check-commit-message.cjs')
+function canonicalFileContract(targetRel, canonicalRels, bundledHashes, executable = false) {
+  const target = files.find((candidate) => candidate.rel === targetRel)
   if (!target) return false
   try {
-    const canonicalPath = join(HARNESS, 'scripts/check-commit-message.cjs')
-    const expected = existsSync(canonicalPath)
-      ? normalizedSha256(readFileSync(canonicalPath, 'utf8'))
-      : BUNDLED_COMMIT_VALIDATOR_SHA256
-    return normalizedSha256(readFileSync(target.p, 'utf8')) === expected
+    if (executable && (statSync(target.p).mode & 0o111) === 0) return false
+    const expected = new Set(Array.isArray(bundledHashes) ? bundledHashes : [bundledHashes])
+    for (const rel of canonicalRels) {
+      const canonicalPath = join(HARNESS, rel)
+      if (existsSync(canonicalPath)) expected.add(normalizedSha256(readFileSync(canonicalPath, 'utf8')))
+    }
+    return expected.has(normalizedSha256(readFileSync(target.p, 'utf8')))
   } catch {
     return false
   }
@@ -290,21 +285,34 @@ checks.push({
   asset: 'commitlint config',
   severity: 'error',
   applicable: true,
-  status: existsAnywhere(/^(commitlint\.config\.[cm]?[jt]s|\.commitlintrc(\.\w+)?)$/) ? 'OK' : 'MISSING',
-  detail: '루트 commitlint.config.cjs (또는 .commitlintrc*)',
+  status: canonicalFileContract(
+    'commitlint.config.cjs',
+    ['commitlint.config.cjs', 'templates/commitlint.config.cjs'],
+    BUNDLED_COMMITLINT_SHA256,
+  ) ? 'OK' : 'MISSING',
+  detail: '루트 commitlint.config.cjs (team-harness-message rule 연결)',
 })
 checks.push({
   asset: 'commit-msg 훅',
   severity: 'error',
   applicable: true,
-  status: fileContract('.githooks/commit-msg', /check-commit-message\.cjs/, true) ? 'OK' : 'MISSING',
-  detail: '.githooks/commit-msg (실행 가능 + 공통 validator 호출)',
+  status: canonicalFileContract(
+    '.githooks/commit-msg',
+    ['.githooks/commit-msg', 'templates/githooks/commit-msg'],
+    BUNDLED_COMMIT_MSG_HOOK_SHA256,
+    true,
+  ) ? 'OK' : 'MISSING',
+  detail: '.githooks/commit-msg (실행 가능 + 정본 hook과 동일)',
 })
 checks.push({
   asset: '커밋 메시지 validator',
   severity: 'error',
   applicable: true,
-  status: commitValidatorContract() ? 'OK' : 'MISSING',
+  status: canonicalFileContract(
+    'scripts/check-commit-message.cjs',
+    ['scripts/check-commit-message.cjs'],
+    BUNDLED_COMMIT_VALIDATOR_SHA256,
+  ) ? 'OK' : 'MISSING',
   detail: 'scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)',
 })
 checks.push({

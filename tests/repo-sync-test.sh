@@ -16,6 +16,9 @@ prepare_good() {
   cp -R "$FIX/$name/." "$dest"
   mkdir -p "$dest/scripts"
   cp "$ROOT/scripts/check-commit-message.cjs" "$dest/scripts/check-commit-message.cjs"
+  cp "$ROOT/templates/commitlint.config.cjs" "$dest/commitlint.config.cjs"
+  cp "$ROOT/templates/githooks/commit-msg" "$dest/.githooks/commit-msg"
+  chmod +x "$dest/.githooks/commit-msg"
   printf '%s\n' "$dest"
 }
 
@@ -39,9 +42,9 @@ check() { # desc, expected_exit, repo_path
 check "good(자산 완비) → 통과"              0 "$GOOD"
 mkdir -p "$TMP/no-harness-source"
 if node "$GATE" --repo "$GOOD" --harness "$TMP/no-harness-source" >/dev/null 2>&1; then
-  echo "PASS: 설치 plugin의 내장 validator digest로 통과"; PASS=$((PASS+1))
+  echo "PASS: 설치 plugin의 내장 커밋 계약 digest로 통과"; PASS=$((PASS+1))
 else
-  echo "FAIL: 설치 plugin의 내장 validator digest 불일치"; FAIL=$((FAIL+1))
+  echo "FAIL: 설치 plugin의 내장 커밋 계약 digest 불일치"; FAIL=$((FAIL+1))
 fi
 cp -R "$GOOD/." "$TMP/missing-commit-msg"
 rm "$TMP/missing-commit-msg/.githooks/commit-msg"
@@ -49,9 +52,16 @@ check "bad(commit-msg 훅 누락) → MISSING/FAIL" 1 "$TMP/missing-commit-msg"
 cp -R "$GOOD/." "$TMP/empty-commit-msg"
 printf '#!/usr/bin/env bash\nexit 0\n' > "$TMP/empty-commit-msg/.githooks/commit-msg"
 check "bad(commit-msg 훅 내용 약화) → MISSING/FAIL" 1 "$TMP/empty-commit-msg"
+cp -R "$GOOD/." "$TMP/comment-only-commit-msg"
+printf '#!/usr/bin/env bash\n# check-commit-message.cjs\nexit 0\n' > "$TMP/comment-only-commit-msg/.githooks/commit-msg"
+chmod +x "$TMP/comment-only-commit-msg/.githooks/commit-msg"
+check "bad(commit-msg 훅이 validator를 주석에만 언급) → MISSING/FAIL" 1 "$TMP/comment-only-commit-msg"
 cp -R "$GOOD/." "$TMP/noop-validator"
 printf '%s\n' '// validateCommitMessage fixture sentinel' > "$TMP/noop-validator/scripts/check-commit-message.cjs"
 check "bad(무동작 commit validator) → MISSING/FAIL" 1 "$TMP/noop-validator"
+cp -R "$GOOD/." "$TMP/legacy-commitlint"
+printf '%s\n' "module.exports = { extends: ['@commitlint/config-conventional'] }" > "$TMP/legacy-commitlint/commitlint.config.cjs"
+check "bad(commitlint가 공통 validator를 연결하지 않음) → MISSING/FAIL" 1 "$TMP/legacy-commitlint"
 # Codex rule pointer 누락 — rule 파일이 있어도 AGENTS가 읽으라고 하지 않으면 의미 전달 실패.
 check "bad(Codex stack-rule pointer 누락) → MISSING/FAIL" 1 "$FIX/bad-codex-rule-pointer"
 OUT=$(node "$GATE" --repo "$FIX/bad-codex-rule-pointer" --harness "$ROOT" 2>&1)
