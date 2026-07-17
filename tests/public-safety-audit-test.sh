@@ -61,12 +61,20 @@ else
   pass "민감 tracked 파일 0"
 fi
 
-home_refs="$(git -C "$ROOT" grep -n -I -E '(/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|[A-Za-z]:\\Users\\[A-Za-z0-9._-]+)' -- . 2>/dev/null || true)"
+HOME_PATH_PATTERN='(/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|/root(/|$)|[A-Za-z]:\\Users\\[A-Za-z0-9._-]+)'
+home_refs="$(git -C "$ROOT" grep -n -I -E "$HOME_PATH_PATTERN" -- . 2>/dev/null || true)"
 if [ -n "$home_refs" ]; then
   echo "$home_refs"
   fail "구체적인 사용자 홈 절대경로가 tracked text에 남음"
 else
   pass "구체적인 사용자 홈 절대경로 0"
+fi
+
+root_probe="/""root/team-harness"
+if printf '%s\n' "$root_probe" | grep -Eq "$HOME_PATH_PATTERN"; then
+  pass "Linux root 홈 절대경로 탐지"
+else
+  fail "Linux root 홈 절대경로 탐지 누락"
 fi
 
 if [ -f "$LICENSE" ] \
