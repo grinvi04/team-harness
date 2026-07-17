@@ -68,6 +68,27 @@ else
   fail "worktree fingerprint 변화 감지"
 fi
 
+: > "$REPO/empty.bin"
+EMPTY=$(fp)
+dd if=/dev/zero of="$REPO/multi-chunk.bin" bs=65536 count=3 2>/dev/null
+MULTI_CHUNK_BEFORE=$(fp)
+printf 'x' | dd of="$REPO/multi-chunk.bin" bs=1 seek=131072 conv=notrunc 2>/dev/null
+MULTI_CHUNK_AFTER=$(fp)
+if [ -n "$EMPTY" ] && [ "$EMPTY" != "$MULTI_CHUNK_BEFORE" ] \
+  && [ "$MULTI_CHUNK_BEFORE" != "$MULTI_CHUNK_AFTER" ]; then
+  pass "빈 파일·다중 청크 파일 fingerprint 변화 감지"
+else
+  fail "빈 파일 또는 다중 청크 fingerprint 계약"
+fi
+
+if grep -Fq 'readSync' "$FINGERPRINT" \
+  && grep -Fq 'FILE_READ_CHUNK_SIZE' "$FINGERPRINT" \
+  && ! grep -Fq 'readFileSync(fd)' "$FINGERPRINT"; then
+  pass "untracked 일반 파일을 고정 크기 청크로 hash"
+else
+  fail "untracked 일반 파일이 전체 크기 Buffer를 사용"
+fi
+
 OUTSIDE_FILE="$TMP/outside-secret.txt"
 printf '외부 비밀 1\n' > "$OUTSIDE_FILE"
 ln -s "$OUTSIDE_FILE" "$REPO/untracked-link"

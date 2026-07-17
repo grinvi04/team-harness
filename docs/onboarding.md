@@ -115,12 +115,13 @@ Team/Enterprise 없이도 파일 기반 managed settings로 본인 머신에서 
 - Codex는 `harness-guard` v0.55.0 이상을 설치하고, 관리자가
   `/path/to/team-harness/scripts/install-codex-managed-requirements.sh`로 `hooks=true`,
   `unified_exec=false`를 머신에 고정한다.
-- 최초 설치와 plugin 갱신 뒤에는 Team Harness checkout에서 아래 두 patch를 모두 실행한 다음
-  `/hooks`의 변경 hash를 review/trust한다. 첫 patch가 skill overlay·command guard·custom agent를
-  설치하고, 둘째 patch가 `security-guidance`를 Codex adapter 경유로 유지한다.
+- 최초 plugin 설치 뒤와 이후 갱신 때는 Team Harness checkout에서 아래 단일 launcher 명령을 실행한다.
+  launcher는 필요할 때만 marketplace/plugin을 갱신하고 skill overlay·command guard·custom agent와
+  `security-guidance` adapter 패치를 모두 적용한다. 이어서 doctor probe로 실제 새 세션의 두 guard 차단을
+  확인하고 `/hooks`의 변경 hash를 review/trust한다.
   ```bash
-  node plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
-  node plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
+  bash /path/to/team-harness/scripts/codex-hardened.sh --version
+  bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe
   ```
 - Codex 설치·갱신·실측 절차의 정본은
   [`specs/codex-guard-compatibility.md`](specs/codex-guard-compatibility.md)다.
