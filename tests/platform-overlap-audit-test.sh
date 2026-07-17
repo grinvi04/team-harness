@@ -61,9 +61,15 @@ for event, groups in hooks.items():
             )
 
 codex_runtime_pattern = re.compile(
-    r"CODEX_BIN|codex (?:exec|plugin)|(?:install|patch|sync)-codex|codex-(?:fresh-session|hardened)",
-    re.IGNORECASE,
+    r"CODEX_BIN|^[ \t]*(?:(?:exec|command)[ \t]+)?codex(?:[ \t]|$)|"
+    r"(?:install|patch|sync)-codex|codex-(?:fresh-session|hardened)",
+    re.IGNORECASE | re.MULTILINE,
 )
+for direct_invocation in ("codex features list", "codex --version", "exec codex plugin list"):
+    if not codex_runtime_pattern.search(direct_invocation):
+        raise SystemExit(f"FAIL: direct Codex CLI invocation not detected: {direct_invocation}")
+if codex_runtime_pattern.search("detail: Codex documentation pointer"):
+    raise SystemExit("FAIL: prose-only Codex mention treated as runtime invocation")
 for base in (root / "plugins/harness-guard/scripts", root / "scripts"):
     for path in sorted(p for p in base.iterdir() if p.is_file()):
         if "codex" in path.name.lower() or codex_runtime_pattern.search(path.read_text(errors="ignore")):
