@@ -64,10 +64,16 @@ function assertRegularPath(absolutePath, expected, fd, parents) {
     !opened.isFile()
     || opened.dev !== expected.dev
     || opened.ino !== expected.ino
+    || opened.size !== expected.size
+    || opened.mtimeMs !== expected.mtimeMs
+    || opened.ctimeMs !== expected.ctimeMs
     || pathEntry.dev !== opened.dev
     || pathEntry.ino !== opened.ino
+    || pathEntry.size !== expected.size
+    || pathEntry.mtimeMs !== expected.mtimeMs
+    || pathEntry.ctimeMs !== expected.ctimeMs
   ) {
-    throw new Error(`untracked 파일 유형·경로가 검사 중 변경됨: ${absolutePath}`)
+    throw new Error(`untracked 파일 유형·경로·내용이 검사 중 변경됨: ${absolutePath}`)
   }
 }
 
@@ -101,10 +107,20 @@ function hashUntracked(relativePath) {
   try {
     assertRegularPath(absolutePath, entry, fd, parents)
     hash.update('file\0')
-    while (true) {
-      const bytesRead = readSync(fd, fileReadBuffer, 0, fileReadBuffer.length, null)
-      if (bytesRead === 0) break
+    let remainingBytes = entry.size
+    while (remainingBytes > 0) {
+      const bytesRead = readSync(
+        fd,
+        fileReadBuffer,
+        0,
+        Math.min(fileReadBuffer.length, remainingBytes),
+        null,
+      )
+      if (bytesRead === 0) {
+        throw new Error(`untracked 파일이 예상 크기보다 일찍 끝남: ${absolutePath}`)
+      }
       hash.update(fileReadBuffer.subarray(0, bytesRead))
+      remainingBytes -= bytesRead
     }
     assertRegularPath(absolutePath, entry, fd, parents)
   } finally {

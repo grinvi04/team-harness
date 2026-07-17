@@ -43,7 +43,7 @@ effort: high
 |---|---|---|
 | `--max N` | 5 | 최대 반복 횟수. 도달 시 중단 후 잔여 이슈 리포트 |
 | stuck 감지 | 2회 연속 무변경 | 수정 없이 같은 결과가 반복되면 즉시 중단 |
-| 명령 timeout | 300초 | 검증 명령 하나가 멈춰 전체 루프를 무기한 점유하는 것을 차단 (`--timeout`) |
+| 명령 timeout | 300초 | 검증 명령과 worktree fingerprint가 멈춰 전체 루프를 무기한 점유하는 것을 차단 (`--timeout`) |
 | 체크포인트 커밋 | 명시적 `/loop`는 반복마다, implicit는 끔 | 각 반복 후 진행 상태 보존. implicit invocation은 현재 요청의 명시적 commit 허가가 있어야 활성화 |
 | 실패 임계 | max 도달 | 잔여 이슈 목록 + 권장 수동 조치 리포트 |
 
@@ -174,7 +174,15 @@ FIXED_FILES=""    # 줄바꿈으로 구분한 누적 수정 파일 목록
 ```bash
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
 ITER=$((ITER+1))
-TREE_BEFORE=$(node "$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs" --repo .)
+TREE_BEFORE=$(
+  node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" -- \
+    "node \"$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs\" --repo ."
+)
+FINGERPRINT_EXIT=$?
+if [ "$FINGERPRINT_EXIT" -ne 0 ]; then
+  echo "⛔ 반복 전 worktree fingerprint 실패 또는 timeout($FINGERPRINT_EXIT) — 안전한 stuck 판정 불가"
+  break  # Phase 3 (중단)으로
+fi
 ```
 
 **프롬프트 (반복마다 갱신):**
@@ -214,7 +222,15 @@ PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
 # 수정 파일 목록 확인
 CHANGED=$(git status --short)
 
-TREE_AFTER=$(node "$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs" --repo .)
+TREE_AFTER=$(
+  node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" -- \
+    "node \"$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs\" --repo ."
+)
+FINGERPRINT_EXIT=$?
+if [ "$FINGERPRINT_EXIT" -ne 0 ]; then
+  echo "⛔ 반복 후 worktree fingerprint 실패 또는 timeout($FINGERPRINT_EXIT) — 안전한 stuck 판정 불가"
+  break  # Phase 3 (중단)으로
+fi
 
 # 최신 통과 기준을 먼저 확인한다. 외부 CI 상태가 바뀐 경우 worktree가 같아도 성공할 수 있다.
 node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" -- "$EXIT_CMD"
