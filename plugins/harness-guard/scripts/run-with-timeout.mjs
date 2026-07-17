@@ -30,7 +30,8 @@ const timer = setTimeout(() => {
   timedOut = true
   console.error(`검증 명령 timeout: ${seconds}초`)
   signalChild('SIGTERM')
-  setTimeout(() => signalChild('SIGKILL'), 1000).unref()
+  // group leader가 먼저 끝나도 descendant 정리가 완료될 때까지 프로세스를 유지한다.
+  setTimeout(() => signalChild('SIGKILL'), 1000)
 }, seconds * 1000)
 
 for (const signal of ['SIGINT', 'SIGTERM']) {

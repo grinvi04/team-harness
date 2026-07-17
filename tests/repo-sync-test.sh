@@ -40,6 +40,26 @@ check() { # desc, expected_exit, repo_path
 
 # 자산 완비(java+flyway) → sync 통과
 check "good(자산 완비) → 통과"              0 "$GOOD"
+cp -R "$GOOD/." "$TMP/missing-commitlint-config-path"
+printf '%s\n' \
+  'name: commitlint' \
+  'jobs:' \
+  '  commitlint:' \
+  '    runs-on: ubuntu-latest' \
+  '    steps:' \
+  '      - uses: wagoid/commitlint-github-action@v6' \
+  > "$TMP/missing-commitlint-config-path/.github/workflows/commitlint.yml"
+check "bad(commitlint action이 .cjs 정본을 지정하지 않음) → MISSING/FAIL" 1 "$TMP/missing-commitlint-config-path"
+cp -R "$GOOD/." "$TMP/missing-commitlint-action"
+printf '%s\n' \
+  'name: commitlint' \
+  'jobs:' \
+  '  commitlint:' \
+  '    runs-on: ubuntu-latest' \
+  '    steps:' \
+  '      - run: echo no-lint' \
+  > "$TMP/missing-commitlint-action/.github/workflows/commitlint.yml"
+check "bad(commitlint 파일만 있고 action 없음) → MISSING/FAIL" 1 "$TMP/missing-commitlint-action"
 mkdir -p "$TMP/no-harness-source"
 if node "$GATE" --repo "$GOOD" --harness "$TMP/no-harness-source" >/dev/null 2>&1; then
   echo "PASS: 설치 plugin의 내장 커밋 계약 digest로 통과"; PASS=$((PASS+1))

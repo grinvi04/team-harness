@@ -14,4 +14,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: ./commitlint.config.cjs
   # secret-scan TODO: add gitleaks action here later (#183 재현 — sentinel이 주석에만 있음)
