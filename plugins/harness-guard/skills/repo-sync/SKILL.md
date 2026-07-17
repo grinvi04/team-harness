@@ -1,6 +1,6 @@
 ---
 name: repo-sync
-description: 프로젝트 ↔ team-harness 표준 드리프트 점검 — check-repo-sync 실행·보고
+description: 소비 프로젝트와 team-harness 표준 자산의 드리프트를 읽기 전용으로 점검할 때 사용. 앱 데이터 동기화·파일 자동 수정·브랜치 보호 적용은 제외
 argument-hint: "\"[repo 경로 ...]\" (생략 시 현재 작업 repo)"
 effort: low
 ---

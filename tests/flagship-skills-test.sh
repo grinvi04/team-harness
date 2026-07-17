@@ -114,10 +114,10 @@ CI="$ROOT/.github/workflows/ci-gate.yml"
 
 echo ""
 echo "=== docs, CI, version ==="
-check_contains "plugin manifest v0.56.0" "$MANIFEST" '"version": "0\.56\.0"'
+check_contains "plugin manifest v0.57.0" "$MANIFEST" '"version": "0\.57\.0"'
 check_contains "manifest가 두 대표 스킬을 설명" "$MANIFEST" \
   'systematic-debugging.*verification-before-completion'
-check_contains "README badge v0.56.0" "$README" 'harness--guard_v0\.56\.0'
+check_contains "README badge v0.57.0" "$README" 'harness--guard_v0\.57\.0'
 check_contains "README가 systematic-debugging 안내" "$README" '/systematic-debugging'
 check_contains "README가 verification-before-completion 안내" "$README" \
   '/verification-before-completion'

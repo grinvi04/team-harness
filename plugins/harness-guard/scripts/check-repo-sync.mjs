@@ -21,6 +21,7 @@
  * 단일 출처: docs/harness-maintenance.md · scripts/new-repo.sh(신규=대칭)
  */
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { join, basename, dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -162,7 +163,7 @@ const stacks = {
 const detected = Object.entries(stacks).filter(([, v]) => v).map(([k]) => k)
 
 // ── 워크플로 내용 수집 (sentinel 매칭용) ──────────────────
-const wfFiles = files.filter((f) => /(^|\/)\.github\/workflows\/.+\.ya?ml$/.test(f.rel))
+const wfFiles = files.filter((f) => /^\.github\/workflows\/[^/]+\.ya?ml$/.test(f.rel))
 // sentinel 매칭 전 YAML 주석 제거 — 주석 처리된(비활성) 게이트가 존재 신호로 오인돼 드리프트가 미탐지되던 것 차단.
 //   #183(전체-라인 주석만) → #205(false MISSING로 원복 시도) → 둘 다 coarse했다. 올바른 판정은 **따옴표 인식**:
 //   진짜 YAML 주석(따옴표 밖 + 라인시작/공백 뒤 `#`)만 제거하고, 따옴표 문자열 안의 `#`(예: echo "issue #12
@@ -193,9 +194,55 @@ function sentinelStatus(sentinelRe, filenameHintRe) {
   return 'MISSING'
 }
 
+function commitlintWorkflowStatus() {
+  return canonicalWorkflowContract(
+    ['.github/workflows/commitlint.yml', 'templates/ci/commitlint.yml'],
+    BUNDLED_COMMITLINT_WORKFLOW_SHA256,
+  ) ? 'OK' : 'MISSING'
+}
+
 // 루트(또는 얕은 경로) 파일 존재 검사
 function existsAnywhere(re) {
   return files.some((f) => re.test(f.name))
+}
+
+const BUNDLED_COMMITLINT_WORKFLOW_SHA256 = 'ad321f937d6b984b6be8acbfa341a5f6360d84ec80656fe7a4ce16b2ed4806bb'
+const BUNDLED_COMMIT_VALIDATOR_SHA256 = 'fc5a4e82601efe2f7b47bdf2f475de89a0ffba8fd9dc39ec54c61518b8a5fbe3'
+const BUNDLED_COMMITLINT_SHA256 = [
+  '5fad6ec6655f12c62afcb8d538d7edad652ef5463fea49159a486d2cb6e8d43d',
+  'c9db27e27848ea26a26f7eb0a6fa736978c6bbf9a75998d44ed5e449e1a9f4c2',
+]
+const BUNDLED_COMMIT_MSG_HOOK_SHA256 = 'da6e5afc5cad7358bef48fcfd83b525091ff498185fd3d583e98ce0bbf3bc1e2'
+
+function normalizedSha256(text) {
+  return createHash('sha256').update(text.replace(/\r\n?/g, '\n')).digest('hex')
+}
+
+function canonicalWorkflowContract(canonicalRels, bundledHashes) {
+  const expected = new Set(Array.isArray(bundledHashes) ? bundledHashes : [bundledHashes])
+  for (const rel of canonicalRels) {
+    const canonicalPath = join(HARNESS, rel)
+    if (existsSync(canonicalPath)) {
+      expected.add(normalizedSha256(stripComments(readFileSync(canonicalPath, 'utf8'))))
+    }
+  }
+  return wfList.some((workflow) => expected.has(normalizedSha256(workflow.text)))
+}
+
+function canonicalFileContract(targetRel, canonicalRels, bundledHashes, executable = false) {
+  const target = files.find((candidate) => candidate.rel === targetRel)
+  if (!target) return false
+  try {
+    if (executable && (statSync(target.p).mode & 0o111) === 0) return false
+    const expected = new Set(Array.isArray(bundledHashes) ? bundledHashes : [bundledHashes])
+    for (const rel of canonicalRels) {
+      const canonicalPath = join(HARNESS, rel)
+      if (existsSync(canonicalPath)) expected.add(normalizedSha256(readFileSync(canonicalPath, 'utf8')))
+    }
+    return expected.has(normalizedSha256(readFileSync(target.p, 'utf8')))
+  } catch {
+    return false
+  }
 }
 
 // 룰 문서 존재 — .claude/rules/<name>.md 또는 .claude/rules/stacks/<name>.md
@@ -250,15 +297,42 @@ checks.push({
   asset: 'commitlint 게이트',
   severity: 'error',
   applicable: true,
-  status: sentinelStatus(/wagoid\/commitlint|commitlint-github-action/i, /commitlint/i),
-  detail: '커밋 컨벤션 잡 (sentinel: wagoid/commitlint)',
+  status: commitlintWorkflowStatus(),
+  detail: 'metadata provenance를 포함한 commitlint workflow 정본과 동일',
 })
 checks.push({
   asset: 'commitlint config',
   severity: 'error',
   applicable: true,
-  status: existsAnywhere(/^(commitlint\.config\.[cm]?[jt]s|\.commitlintrc(\.\w+)?)$/) ? 'OK' : 'MISSING',
-  detail: '루트 commitlint.config.cjs (또는 .commitlintrc*)',
+  status: canonicalFileContract(
+    'commitlint.config.cjs',
+    ['commitlint.config.cjs', 'templates/commitlint.config.cjs'],
+    BUNDLED_COMMITLINT_SHA256,
+  ) ? 'OK' : 'MISSING',
+  detail: '루트 commitlint.config.cjs (team-harness-message rule 연결)',
+})
+checks.push({
+  asset: 'commit-msg 훅',
+  severity: 'error',
+  applicable: true,
+  status: canonicalFileContract(
+    '.githooks/commit-msg',
+    ['.githooks/commit-msg', 'templates/githooks/commit-msg'],
+    BUNDLED_COMMIT_MSG_HOOK_SHA256,
+    true,
+  ) ? 'OK' : 'MISSING',
+  detail: '.githooks/commit-msg (실행 가능 + 정본 hook과 동일)',
+})
+checks.push({
+  asset: '커밋 메시지 validator',
+  severity: 'error',
+  applicable: true,
+  status: canonicalFileContract(
+    'scripts/check-commit-message.cjs',
+    ['scripts/check-commit-message.cjs'],
+    BUNDLED_COMMIT_VALIDATOR_SHA256,
+  ) ? 'OK' : 'MISSING',
+  detail: 'scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)',
 })
 checks.push({
   asset: 'secret-scan(gitleaks)',

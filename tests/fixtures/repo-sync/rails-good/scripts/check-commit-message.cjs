@@ -1,0 +1,1 @@
+// validateCommitMessage fixture sentinel

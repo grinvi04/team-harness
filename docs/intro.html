@@ -228,7 +228,7 @@
 
   <!-- 히어로 -->
   <section class="hero" id="top">
-    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.56.0</div>
+    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.57.0</div>
     <h1>team-harness</h1>
     <p class="lead">
       AI 코딩 에이전트를 팀에서 안전하게 쓰기 위한 거버넌스 레이어.<br>
@@ -244,7 +244,7 @@
 
   <!-- 왜 -->
   <h2 id="why">왜 만들었나</h2>
-  <p>AI 코딩 에이전트는 속도를 높이지만, 팀의 <b>편차도 함께 증폭</b>한다. 10명이 각자의 방식으로 Claude를 쓰면 코드 일관성은 도입 전보다 나빠진다.</p>
+  <p>AI 코딩 에이전트는 속도를 높이지만, 팀의 <b>편차도 함께 증폭</b>한다. 10명이 각자의 방식으로 AI 도구를 쓰면 코드 일관성은 도입 전보다 나빠진다.</p>
   <p>또 하나의 문제: AI는 <b>부탁을 받았을 때만 규칙을 따른다.</b> 프롬프트에 "main에 직접 커밋하지 마"라고 써도, AI가 빠른 경로를 선택하면 순식간에 무너진다.</p>
   <div class="callout">
     <b>핵심 통찰</b> — 프롬프트 지침은 강제가 아니다. 우회할 수 없는 <b>구조</b>만이 강제다.<br>
@@ -272,7 +272,7 @@
     <div class="layer l3"><span class="lv">계층 3</span><span class="lw">역할별 에이전트 (security-reviewer 등)</span><span class="scope">Claude Code · Codex</span></div>
     <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 16종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code · Codex</span></div>
     <div class="layer l1"><span class="lv">계층 1</span><span class="lw">AGENTS.md + .claude/ 설정 (플러그인·rules)</span><span class="scope">clone한 전원</span></div>
-    <div class="layer l05"><span class="lv">계층 0.5</span><span class="lw">git pre-commit hook (시크릿 검출)</span><span class="scope">전원</span></div>
+    <div class="layer l05"><span class="lv">계층 0.5</span><span class="lw">git hooks (보호 브랜치·커밋 메시지 검증)</span><span class="scope">전원</span></div>
     <div class="layer l0"><span class="lv">계층 0</span><span class="lw">branch protection + CI gate — 우회 불가</span><span class="scope">전원 · 모든 도구</span></div>
   </div>
   <div class="callout ok">
@@ -282,33 +282,33 @@
 
   <!-- 스킬 -->
   <h2 id="skills">스킬 16종</h2>
-  <p>스킬은 요청과 현재 상태에 맞는 metadata trigger로 선택될 수 있다. 다만 스킬 선택은 새 권한을 만들지 않는다. 머지·릴리즈·운영 변경 같은 외부 상태 변경은 사용자가 맡긴 범위와 각 게이트를 그대로 따라야 한다.</p>
+  <p>Claude Code와 Codex는 자연어 요청을 16개 description의 <b>사용·제외 경계</b>와 맞춰 스킬을 자동 선택할 수 있다. <code>route-intent</code>는 “진행해” 같은 요청에서 현재 Git/PR 상태의 다음 단계만 안내한다. 어떤 자동 선택도 새 권한을 만들지 않는다.</p>
 
   <h3>개발 워크플로</h3>
   <div class="skill-list">
     <div class="sk">
       <div class="name">/plan</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-high">effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
       <div class="desc">기능 개발 전 스펙·태스크 분해. 의도·수용기준·롤백 가능한 태스크를 <code>docs/specs/</code>에 박제. git 없음 — 계획 전용.</div>
     </div>
     <div class="sk">
       <div class="name">/feature-add</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-high">effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
       <div class="desc">TDD 기반 신규 기능 개발. Red → Green → Refactor. 브랜치 생성·테스트 계약·구현·커밋까지. 스택 무관.</div>
     </div>
     <div class="sk">
       <div class="name">/feature-modify</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-high">effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
       <div class="desc">기존 기능 수정. 변경 대상만 RED, 나머지 GREEN 유지. 회귀 방지에 집중.</div>
     </div>
     <div class="sk">
       <div class="name">/pr-create</div>
-      <div class="badges"><span class="badge auto">Claude 자동 가능</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">base 자동감지(develop 있으면 develop, 없으면 기본 브랜치) PR 생성 단일 프리미티브. 맨손 <code>gh pr create</code> 대체 — develop 없는 main 기반 repo도 한 경로로. feature-merge·hotfix·release가 이 스크립트를 호출.</div>
     </div>
     <div class="sk">
       <div class="name">/feature-merge</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-med">effort: medium</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-med">Claude effort: medium</span></div>
       <div class="desc">feature/* · fix/* 브랜치를 develop에 머지. 품질 검증 → PR 생성 → pr-review-gate 절차 경유.</div>
     </div>
   </div>
@@ -317,17 +317,17 @@
   <div class="skill-list">
     <div class="sk">
       <div class="name">/release-check</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-max">effort: max</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-max">Claude effort: max</span></div>
       <div class="desc">릴리즈 전 병렬 검증. Agent A (품질·lint·test·build) · Agent B (보안 리뷰) · Agent C (DB 마이그레이션·표준) 동시 spawn. 전부 ✅여야 /release 진행 가능.</div>
     </div>
     <div class="sk">
       <div class="name">/release</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-high">effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
       <div class="desc">release-check 통과를 전제로 실행. release 브랜치 생성 → 버전 범프 → main PR → 태그 → develop back-merge PR → 배포 헬스체크.</div>
     </div>
     <div class="sk">
       <div class="name">/hotfix</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-high">effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
       <div class="desc">운영 긴급 수정. main 기준 hotfix 브랜치 → PR → 태그 → develop back-merge PR. git flow를 건너뛰지 않는다.</div>
     </div>
   </div>
@@ -346,17 +346,17 @@
     </div>
     <div class="sk">
       <div class="name">/pr-review-gate</div>
-      <div class="badges"><span class="badge auto">Claude 자동 가능</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">PR 머지 전 공통 게이트의 단일 출처. AI 리뷰 처리 · 스레드 reply+resolve · (팀 모드) 사람 승인 확인 · CI · 외부 배포 commit-status · 머지. feature-merge·hotfix·release가 참조.</div>
     </div>
     <div class="sk">
       <div class="name">/solo-merge</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-med">effort: medium</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-med">Claude effort: medium</span></div>
       <div class="desc">솔로 개발자 전용. 품질 게이트(CI·스레드·CI)를 통과시킨 뒤 자기승인 불가 요건만 우회하고 즉시 복구·검증.</div>
     </div>
     <div class="sk">
       <div class="name">/qa</div>
-      <div class="badges"><span class="badge auto">Claude 자동 가능</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">프론트엔드 QA. 디자인 토큰 준수 + WCAG 2.2 접근성 검증. /feature-add의 TDD(로직)와 직교한 축 — 비주얼·a11y 전용.</div>
     </div>
   </div>
@@ -365,24 +365,24 @@
   <div class="skill-list">
     <div class="sk">
       <div class="name">/milestone</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-high">effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
       <div class="desc">제품 목표 추적 레이어. 목표 정의 → 기능 분해 → GitHub Milestone(단일 출처) → 진행률 대시보드. <code>/plan</code>·<code>/feature-add</code> 위에 놓인다. (구 <code>/goal</code> — Claude Code 내장 <code>/goal</code>과 충돌 회피로 rename)</div>
     </div>
     <div class="sk">
       <div class="name">/loop</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-high">effort: high</span></div>
-      <div class="desc">조건 기반 자율 수정 루프. 통과 기준(명령 <code>exit 0</code>) 충족까지 반복 — CI 수정·lint 클린업·테스트 수정·의존성 업데이트 자동화. <code>max</code>·<code>stuck</code>·<code>checkpoint</code> 안전 장치 내장.</div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
+      <div class="desc">조건 기반 자율 수정 루프. 통과 기준(명령 <code>exit 0</code>) 충족까지 반복 — CI·lint·기존 테스트·의존성 정리. <code>timeout</code>·<code>max</code>·내용 기반 <code>stuck</code>·안전한 <code>checkpoint</code> 내장. 맥락 자동 선택은 명시적 요청 없이 commit하지 않는다.</div>
     </div>
     <div class="sk">
       <div class="name">/repo-sync</div>
-      <div class="badges"><span class="badge manual">수동 전용</span><span class="badge effort-med">effort: low</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-med">Claude effort: low</span></div>
       <div class="desc">프로젝트 ↔ team-harness 표준 <b>드리프트 점검</b>. <code>check-repo-sync</code>로 스택 감지 후 필수 자산(test-guard·commitlint·secret-scan·migration-safety·rules) 누락을 리포트 — 기존 repo가 새 표준에서 뒤처지는 것을 방지.</div>
     </div>
   </div>
 
   <!-- 가드 -->
   <h2 id="guard">가드 훅</h2>
-  <p>모든 Bash 명령 실행 전 <code>PreToolUse</code> 훅이 <code>guard.sh</code>를 실행한다. 차단 시 Claude가 멈추고 사유를 출력하며, <b>차단 이력을 <code>~/.claude/hooks/guard-block.log</code>(session_id·cwd·명령 — 크레덴셜·토큰은 마스킹)에 기록</b>해 멀티세션 위반 시도를 감사할 수 있다.</p>
+  <p>모든 Bash 명령 실행 전 런타임별 command hook이 <code>guard.sh</code> 의미를 적용한다. 차단 시 에이전트가 멈추고 사유를 출력한다. Claude Code 경로는 <b><code>~/.claude/hooks/guard-block.log</code></b>에 감사 기록을 남기며 Codex는 adapter·fixture로 같은 보호 결과를 검증한다.</p>
 
   <div class="guards">
     <div class="guard">
@@ -436,10 +436,10 @@
 
   <!-- 모델 티어링 -->
   <h2 id="model">모델 티어링</h2>
-  <p>작업 성격에 따라 세 모델을 분리 사용. 비용을 낮추면서 판단이 필요한 곳에 더 강한 모델을 투입한다. 정책의 단일 출처는 <code>docs/model-tiering.md</code>.</p>
+  <p>작업 난이도는 낮음·중간·높음으로 공통 분류하되 제어 방법은 런타임별로 다르다. 아래 모델명은 Claude Code 매핑이며, Codex는 현재 모델을 유지하고 <code>model_reasoning_effort</code>를 조절한다.</p>
   <div class="tiers">
     <div class="tier">
-      <div class="model haiku">Haiku</div>
+      <div class="model haiku">Claude · Haiku</div>
       <ul>
         <li>파일 스캔·읽기</li>
         <li>git diff 조회</li>
@@ -449,7 +449,7 @@
       </ul>
     </div>
     <div class="tier">
-      <div class="model sonnet">Sonnet</div>
+      <div class="model sonnet">Claude · Sonnet</div>
       <ul>
         <li>기능 구현·테스트</li>
         <li>품질 검증 (Agent A)</li>
@@ -459,29 +459,29 @@
       </ul>
     </div>
     <div class="tier">
-      <div class="model opus">Opus (security-reviewer)</div>
+      <div class="model opus">Claude · Opus</div>
       <ul>
         <li>보안 리뷰 (Agent B)</li>
         <li>XSS·SQLi 탐지</li>
         <li>시크릿 유출 패턴</li>
         <li>설계·다각도 검증</li>
         <li>오케스트레이션</li>
-        <li><i>(verifier·Plan·메인 세션 기본값)</i></li>
+        <li><i>(verifier·security-reviewer)</i></li>
       </ul>
     </div>
   </div>
   <div class="callout">
-    <b>타입이 곧 티어다 — 모델은 타입을 따라온다.</b> 판단 없는 read-only 작업(조회·헬스체크)은 <code>subagent_type: Explore</code>(읽기전용 도구 = 최소권한, Haiku). 파일을 <b>수정</b>하거나 빌드하면 <code>general-purpose</code>(Sonnet) — 단순 집계라도 파일을 쓰면 Explore 불가. <code>general-purpose</code>에 <code>haiku</code>를 붙이는 건 타입↔티어 불일치라 지양한다.
+    <b>Claude Code</b> — Explore→Haiku, general-purpose→Sonnet, verifier/security→Opus로 역할을 나눈다.<br><b>Codex</b> — agent TOML에 model을 고정하지 않고 현재 선택 모델을 상속하며 explorer는 low, verifier/security는 high reasoning effort를 쓴다.
   </div>
   <p style="margin-top:.8rem"><b>왜 Agent C는 Sonnet인가</b> — DB 마이그레이션 안전 감사(out-of-order·forward-only·증분 적용 관점)는 릴리즈 게이트의 <b>판단형</b> 작업이라 Haiku로 내리면 회귀. 반면 Phase 5 배포 후 헬스체크는 명령 실행·상태 확인뿐이라 Explore(Haiku)가 맞다.</p>
   <p style="margin-top:.8rem">release-check의 Agent A·B·C는 <b>동시에 spawn</b>된다 — 병렬 실행으로 전체 검증 시간을 단축.</p>
-  <p style="margin-top:.8rem"><b>비용 인식</b> — 읽기·검색은 최저 티어(<code>Explore</code>/Haiku), 빌드·구현은 Sonnet에 위임한다. 병렬성 있는 무거운 다단계는 <b>Workflow</b>가 stage별 모델을 결정론적으로 지정하고, 계획과 실행을 분리할 땐 <code>opusplan</code>(계획=Opus·실행=Sonnet)을 쓴다. <b>다만 가장 큰 비용 축은 모델 선택이 아니라 세션 길이다</b> — 긴 단일 세션은 누적 컨텍스트를 매 턴 캐시-리드해 Opus 비용을 키운다(실측상 최대 축). 페이즈 전환 시 <code>/clear</code>, 컨텍스트가 커지면 <code>/compact</code>로 리셋한다. 위임·세션 위생의 단일 출처는 <code>docs/model-tiering.md</code>.</p>
+  <p style="margin-top:.8rem"><b>공통 원칙</b> — 가장 낮은 추론량으로 시작하되 설계·보안·릴리즈처럼 누락 비용이 큰 작업은 높인다. Claude의 <code>effort:</code>와 Codex의 <code>model_reasoning_effort</code>는 서로 다른 런타임 설정이다. 단일 출처는 <code>docs/model-tiering.md</code>.</p>
 
   <h3 style="margin-top:1.8rem; font-size:1.05rem;">실측 검증 <span style="font-size:.8rem; color:var(--muted); font-weight:400;">— 강제가 실제로 먹히는지 측정했다</span></h3>
-  <div class="callout ok"><b>이 티어링은 "권장"이 아니라 실제 강제된다.</b> effort(스킬 frontmatter)와 모델(훅) 두 축을 측정으로 확인.</div>
+  <div class="callout ok"><b>Claude Code 경로의 강제는 실측됐다.</b> Codex 경로는 model 고정 대신 agent TOML의 reasoning effort·read-only sandbox를 테스트한다.</div>
   <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; margin:1rem 0;">
     <div class="tier">
-      <div style="font-weight:700; margin-bottom:.5rem;">① effort <span class="badge effort-max">frontmatter 강제</span></div>
+      <div style="font-weight:700; margin-bottom:.5rem;">① Claude effort <span class="badge effort-max">frontmatter 강제</span></div>
       <p style="font-size:.83rem; color:var(--muted); margin:0 0 .6rem;">동일 과제·동일 입력, 스킬 <code>effort:</code>만 다르게 → A/B 측정</p>
       <table style="width:100%; border-collapse:collapse; font-size:.82rem;">
         <tr style="color:var(--muted); text-align:left;"><th style="padding:.25rem .4rem;"></th><th style="padding:.25rem .4rem;">output tokens</th><th style="padding:.25rem .4rem;">cost</th></tr>
@@ -501,11 +501,12 @@
       <p style="font-size:.85rem; margin:.6rem 0 0;">실제 세션 로그에서 opus 메인 → <b>서브에이전트 haiku/sonnet 다운그레이드</b> 확인.</p>
     </div>
   </div>
-  <div class="callout"><b>관측성 차이</b> — effort는 <b>요청 파라미터</b>라 세션 로그엔 안 남아 A/B로만 검증(과거 소급 불가). 모델 티어링은 <b>훅이 결정을 로그로 남겨</b> 직접 감사 가능. 둘 다 실측으로 "실제 강제됨"을 확인했다.</div>
+  <div class="callout"><b>관측성 차이</b> — Claude effort는 A/B, Claude 역할 모델은 hook 로그, Codex 역할은 agent TOML과 mapping test로 확인한다. 런타임별 증거를 섞어 같은 강제라고 주장하지 않는다.</div>
 
   <!-- Git Flow -->
   <h2 id="gitflow">Git Flow</h2>
   <p>모든 변경은 PR로만 흐른다. 직접 커밋·push 경로는 없다 — 시도하면 3겹(guard→pre-commit→branch protection)에서 차단된다.</p>
+  <div class="callout"><b>커밋도 검증 대상</b> — <code>feat(order): 주문 한도 검증 추가</code>처럼 영어 type·한국어 요약을 쓰고 코드 의미 변경에는 빈 줄 뒤 <code>이유:</code>를 남긴다. 로컬 <code>commit-msg</code>와 PR commitlint가 같은 validator를 사용하며, merge 예외는 실제 Git metadata로 확인한다.</div>
   <div class="flow">
     <div class="flow-row">
       <span class="fnode feat">feature/*<br>fix/*</span>
@@ -592,7 +593,7 @@
     <div class="tpl"><div class="tn">destructive-ddl</div><div class="tp">파괴 DDL 정적 게이트 — DROP TABLE·TRUNCATE·DROP COLUMN을 CI에서 차단(승인마커 예외). 주석·문자열 우회 봉쇄</div></div>
     <div class="tpl"><div class="tn">integration-e2e</div><div class="tp">실 IdP·실 백엔드 통합 e2e (env-gated required)</div></div>
     <div class="tpl"><div class="tn">test-guard</div><div class="tp">테스트 삭제·skip 회귀 감지</div></div>
-    <div class="tpl"><div class="tn">commitlint</div><div class="tp">커밋 메시지 규약 강제</div></div>
+    <div class="tpl"><div class="tn">commit-msg + commitlint</div><div class="tp">동일 validator로 로컬·CI 커밋 메시지 규약 강제</div></div>
     <div class="tpl"><div class="tn">repo-sync</div><div class="tp">표준 드리프트 점검 (check-repo-sync)</div></div>
     <div class="tpl"><div class="tn">ci-gate</div><div class="tp">lint·test·build + secret-scan 통합 게이트</div></div>
   </div>
@@ -615,7 +616,7 @@
   <ol class="steps">
     <li><div class="st"><b>clone</b> — <code>git clone &lt;repo&gt; && cd &lt;repo&gt;</code></div></li>
     <li><div class="st"><b>git hook 연결</b> — <code>git config core.hooksPath .githooks</code></div></li>
-    <li><div class="st"><b>Claude Code 실행</b> — <code>claude</code> · 첫 실행 시 harness-guard 플러그인 신뢰 확인 → 완료</div></li>
+    <li><div class="st"><b>AI 도구 실행</b> — Claude Code 또는 Codex에서 harness-guard 플러그인·hook 신뢰 상태 확인 → 완료</div></li>
   </ol>
 
   <h3>신규 프로젝트 셋업 (리드, 1회)</h3>
@@ -638,13 +639,14 @@
       <div class="ok-line">✓ .claude/settings.json (harness-guard 플러그인)</div>
       <div class="ok-line">✓ .github/workflows/ci-gate.yml (FastAPI · pytest · ruff)</div>
       <div class="ok-line">✓ .githooks/pre-commit (시크릿 검출)</div>
+      <div class="ok-line">✓ .githooks/commit-msg (한국어 커밋 형식 검증)</div>
       <div class="ok-line">✓ rules/python.md · rules/alembic.md 복사</div>
     </div>
   </div>
 
   <!-- Codex 호환성 -->
   <h2 id="codex">Codex 호환성</h2>
-  <p>team-harness는 Claude Code 원본을 보존하면서 Codex에 전용 overlay·hook adapter·agent 설정을 적용해 동일한 거버넌스 의미를 제공한다.</p>
+  <p>team-harness는 Claude Code 원본을 보존하면서 Codex에 전용 overlay·hook adapter·agent 설정을 적용해 동일한 거버넌스 의미를 제공한다. 두 도구 모두 description 기반 implicit skill 선택을 사용하지만 모델 제어 방식은 다르다.</p>
 
   <div class="skill-list" style="gap:.4rem">
     <div class="sk" style="border-color: rgba(63,185,80,.3)">
@@ -664,7 +666,7 @@
     </div>
   </div>
   <div class="callout">
-    <b>결론</b> — Codex는 v0.55.0 이상 플러그인, managed requirements, hook trust가 준비되면 Team Harness skill·agent·보안 가드를 사용한다. 최종 강제는 도구와 무관한 branch protection·CI가 소유한다.
+    <b>결론</b> — Codex는 v0.57.0 플러그인, managed requirements, hook trust가 준비되면 Team Harness skill·agent·보안 가드를 사용한다. 현재 선택 모델을 상속하고 역할별 reasoning effort를 적용하며, 최종 강제는 도구와 무관한 branch protection·CI가 소유한다.
   </div>
 
 </main>

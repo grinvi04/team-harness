@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: ./commitlint.config.cjs
   secret-scan:
     runs-on: ubuntu-latest
     steps:

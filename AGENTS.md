@@ -32,7 +32,8 @@
 - **feature 브랜치는 `docs/specs/<name>.md`(=`/plan` 산출) 선행 필수**(guard.sh F5 게이트). trivial은 `HARNESS_TRIVIAL=1` 명시 면제.
 - 맨손 `gh pr create`/`gh pr merge` **금지** → 래퍼 `plugins/harness-guard/scripts/pr-create.sh`·`plugins/harness-guard/scripts/pr-merge.sh` 경유(내부 gh는 자식 프로세스라 훅 무관).
 - PR·머지·솔로/브랜치보호 정책의 **정본 = `docs/code-review.md`**. develop CI-green 자동머지는 `pr-merge.sh --auto`(같은 문서).
-- 커밋: **Conventional Commits**(타입 영어 + 본문 한국어) — `docs/code-review.md`.
+- 커밋: **Conventional Commits + team-harness 한국어 형식** — `docs/code-review.md`.
+  코드 의미 변경(`feat|fix|refactor|perf`)은 `이유:` 본문 필수이며 `commit-msg`와 CI가 동일 validator로 강제한다.
 
 ## 기록 위치 (자기 정책 dogfood — `docs/ai-collaboration.md`)
 

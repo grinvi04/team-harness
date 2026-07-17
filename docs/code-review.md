@@ -2,18 +2,33 @@
 
 머지 **절차**는 `pr-review-gate` 스킬(플러그인)이 단일 출처 — 이 문서는 **내용 기준**을 정한다.
 
-## 커밋 메시지 — Conventional Commits (타입 영어 + 본문 한국어, 확정)
+## 커밋 메시지 — Conventional Commits + team-harness 규칙
 
-```
+```text
 feat(order): 월 주문 한도 검증 추가
 
-한도 초과 시 ORDER_LIMIT_EXCEEDED(409) 반환.
-기준정보 모듈의 한도 설정을 참조한다.
+이유: 한도 초과 주문이 결제 단계까지 진행되는 것을 방지
+영향: 주문 생성 API
+검증: 주문 서비스 테스트 통과
 ```
 
-- 타입: `feat` `fix` `refactor` `perf` `test` `docs` `style` `chore` `ci` / scope = **도메인 모듈명** (`order`, `inventory`)
-- 제목 50자 내외, 마침표 없음 / 본문은 "무엇을·왜" (어떻게는 diff가 말한다)
-- breaking change는 `feat(order)!:` + 본문에 `BREAKING CHANGE:` 명시
+Conventional Commits 1.0.0의 `<type>[optional scope][!]: <description>` 구조를 유지하면서, AI와 사람이
+같이 읽기 쉽도록 다음 팀 규칙만 추가한다.
+
+- 타입: `feat` `fix` `refactor` `perf` `test` `docs` `style` `chore` `ci` `build` `revert`
+- `feat|fix|refactor|perf|test`는 scope 필수. scope는 `order`, `inventory`, `auth` 같은 짧은 도메인·모듈명이다.
+- 요약은 한글을 포함하고 50자 이하이며 마침표로 끝내지 않는다.
+- `feat|fix|refactor|perf`는 빈 줄 뒤 `이유:`가 필수다. `영향:`과 `검증:`은 실제로 전달할 정보가 있을 때만
+  `이유:` 다음에 이 순서로 추가한다. 구현 방법을 본문에 반복하지 않는다.
+- breaking change는 표준대로 `feat(api)!:` 또는 `BREAKING CHANGE:` footer 중 하나로 표시한다.
+  둘을 중복할 필요는 없다.
+- Git 기본 merge 메시지는 로컬 `MERGE_HEAD` 또는 CI의 2개 이상 parent commit으로 provenance가 확인될 때만
+  허용한다. 메시지 모양만 흉내 낸 일반 commit은 거부한다. 기본 `Revert "..."`는 1-parent 메시지만으로 실제
+  revert 여부를 증명할 수 없어 예외로 두지 않으며, `revert(order): 주문 한도 변경 되돌림`처럼 규약을 따른다.
+
+Node.js가 있는 환경에서는 `commit-msg` 훅이 로컬에서 즉시 검사하고, PR의 commitlint가 같은 validator로
+다시 검사한다. non-Node 소비 repo의 개발 환경에 Node.js가 없으면 훅은 경고 후 로컬 검사를 건너뛰며,
+PR의 필수 CI commitlint가 규칙을 강제한다. `--no-verify`로 로컬 훅을 건너뛰어도 CI 규칙은 그대로 남는다.
 
 ## 브랜치
 

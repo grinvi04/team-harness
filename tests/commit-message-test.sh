@@ -1,0 +1,213 @@
+#!/usr/bin/env bash
+# 커밋 메시지 정책: Conventional Commits 호환 + team-harness 한국어·가독성 규칙.
+set -u
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+CHECK="$ROOT/scripts/check-commit-message.cjs"
+PASS=0
+FAIL=0
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+BASH_BIN="$(command -v bash)"
+
+case_message() { # 설명, 기대 종료코드, 메시지, allow-generated(선택)
+  local desc="$1" want="$2" message="$3" allow="${4:-}" file="$TMP/message"
+  printf '%s\n' "$message" > "$file"
+  if [ "$allow" = "allow-generated" ]; then
+    node "$CHECK" --file "$file" --allow-git-generated >/dev/null 2>&1
+  else
+    node "$CHECK" --file "$file" >/dev/null 2>&1
+  fi
+  local got=$?
+  if [ "$got" = "$want" ]; then
+    echo "PASS: $desc"
+    PASS=$((PASS+1))
+  else
+    echo "FAIL: $desc — expected $want, got $got"
+    FAIL=$((FAIL+1))
+  fi
+}
+
+case_message "feat: 한국어 header+scope+이유" 0 $'feat(order): 주문 한도 검증 추가\n\n이유: 잘못된 주문의 결제를 방지'
+case_message "fix: 선택 영향·검증 필드" 0 $'fix(auth): 만료 토큰 재사용 차단\n\n이유: 만료된 세션이 다시 인증되는 문제 수정\n영향: 로그인 API\n검증: 인증 회귀 테스트 통과'
+case_message "docs: header만 허용" 0 'docs(guide): 설치 절차 설명 보완'
+case_message "build: 범용 타입 허용" 0 'build(ci): 리눅스 빌드 캐시 설정 추가'
+case_message "revert: 범용 타입 허용" 0 'revert(order): 주문 한도 변경 되돌림'
+case_message "breaking ! 단독 허용" 0 $'feat(api)!: 응답 필드 이름 변경\n\n이유: 공개 API 명칭을 도메인 용어와 통일'
+case_message "breaking footer 단독 허용" 0 $'feat(api): 응답 형식 변경\n\n이유: 중첩 응답 구조를 단순화\n\nBREAKING CHANGE: response.data가 response로 이동'
+case_message "Git merge는 provenance 없이 거부" 1 "Merge branch 'feature/order' into develop"
+case_message "Git merge 실제 context 허용" 0 "Merge branch 'feature/order' into develop" allow-generated
+case_message "Git 충돌 merge 주석은 provenance 없이 거부" 1 $'Merge branch \'feature/order\'\n\n# Conflicts:\n#\torder.txt'
+case_message "Git 충돌 merge 자동 주석 실제 context 허용" 0 $'Merge branch \'feature/order\'\n\n# Conflicts:\n#\torder.txt' allow-generated
+case_message "Git octopus merge 실제 context 허용" 0 "Merge branches 'feature/order', 'feature/auth' and 'feature/search' into develop" allow-generated
+case_message "Git pull merge 실제 context 허용" 0 "Merge branch 'main' of https://github.com/acme/project" allow-generated
+case_message "Git SSH pull merge 실제 context 허용" 0 "Merge branch 'main' of git@github.com:acme/project.git" allow-generated
+case_message "Git annotated tag merge 실제 context 허용" 0 "Merge tag 'v1.0.0'"$'\n\nrelease 1.0.0' allow-generated
+case_message "GitHub merge 실제 context 허용" 0 'Merge pull request #347 from grinvi04/feature/order' allow-generated
+case_message "GitHub merge PR 제목 본문은 provenance 없이 거부" 1 $'Merge pull request #348 from grinvi04/fix/release-security-gaps\n\nfix(workflow): 릴리즈 보안 우회 차단'
+case_message "GitHub merge PR 제목 본문 실제 context 허용" 0 $'Merge pull request #348 from grinvi04/fix/release-security-gaps\n\nfix(workflow): 릴리즈 보안 우회 차단' allow-generated
+case_message "Git 기본 revert는 provenance 불명이라 거부" 1 $'Revert "feat(order): 주문 기능 추가"\n\nThis reverts commit abcdef0123456789abcdef0123456789abcdef01.'
+
+case_message "영어 요약 거부" 1 $'feat(order): add order limit\n\n이유: 주문 한도를 추가'
+case_message "코드 타입 scope 누락 거부" 1 $'fix: 주문 오류 수정\n\n이유: 잘못된 상태 코드를 바로잡음'
+case_message "필수 이유 누락 거부" 1 'refactor(order): 주문 검증기 분리'
+case_message "header 뒤 빈 줄 누락 거부" 1 $'perf(query): 조회 쿼리 단순화\n이유: 중복 조인을 제거'
+case_message "요약 마침표 거부" 1 'docs: 설치 설명 보완.'
+case_message "50자 초과 요약 거부" 1 "docs: $(printf '가%.0s' {1..51})"
+case_message "미등록 타입 거부" 1 'update(core): 설정 파일 갱신'
+case_message "형식 없는 메시지 거부" 1 '주문 검증 추가'
+case_message "Revert 접두사 스푸핑 거부" 1 'Revert "규칙 우회"'
+case_message "Revert 단축 SHA 스푸핑 거부" 1 $'Revert "규칙 우회"\n\nThis reverts commit abcdef.'
+case_message "Merge 접두사 뒤 임의 내용 거부" 1 "Merge branch 'feature/order' into develop and bypass"
+case_message "Octopus merge 임의 접미사 거부" 1 "Merge branches 'feature/order' and 'feature/auth' into develop and bypass"
+case_message "Git pull merge 임의 접미사 거부" 1 "Merge branch 'main' of https://github.com/acme/project and bypass"
+case_message "Git tag merge 임의 접미사 거부" 1 "Merge tag 'v1.0.0' and bypass"
+case_message "Merge 메시지 임의 본문 거부" 1 $'Merge branch '\''feature/order'\'' into develop\n\n규칙 우회'
+
+if node - "$ROOT" <<'NODE'
+const { readFileSync } = require('node:fs')
+const root = process.argv[2]
+for (const configPath of [`${root}/commitlint.config.cjs`, `${root}/templates/commitlint.config.cjs`]) {
+  const config = require(configPath)
+  const rule = config.plugins?.[0]?.rules?.['team-harness-message']
+  if (typeof rule !== 'function' || config.rules?.['team-harness-message']?.[0] !== 2) process.exit(1)
+  if (config.defaultIgnores !== false || !Array.isArray(config.ignores)) process.exit(1)
+  const ignored = (message) => config.ignores.some((ignore) => ignore(message))
+  if (!ignored("Merge branch 'feature/order' into develop")) process.exit(1)
+  if (!ignored('Merge pull request #348 from grinvi04/fix/release-security-gaps\n\nfix(workflow): 릴리즈 보안 우회 차단')) process.exit(1)
+  if (ignored('Revert "feat(order): 주문 기능 추가"\n\nThis reverts commit abcdef0123456789abcdef0123456789abcdef01.')) process.exit(1)
+  if (ignored('Revert "규칙 우회"') || ignored('v1.2.3')) process.exit(1)
+  const [valid] = rule({ raw: 'docs: 설치 설명 보완' })
+  if (!valid) process.exit(1)
+}
+
+for (const workflowPath of [`${root}/.github/workflows/commitlint.yml`, `${root}/templates/ci/commitlint.yml`]) {
+  const workflow = readFileSync(workflowPath, 'utf8')
+  if (!/- uses: wagoid\/commitlint-github-action@v6\n\s+with:\n\s+configFile: \.\/commitlint\.config\.cjs/m.test(workflow)) {
+    process.exit(1)
+  }
+  if (!/check-commit-message\.cjs --range "\$BASE_SHA\.\.\$HEAD_SHA"/.test(workflow)) process.exit(1)
+  if (workflow.includes('< <(')) process.exit(1)
+}
+NODE
+then
+  echo "PASS: root/template commitlint action·ignore가 동일 custom validator 사용"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: commitlint action config 경로 또는 ignore 배선 누락"
+  FAIL=$((FAIL+1))
+fi
+
+for hook in "$ROOT/.githooks/commit-msg" "$ROOT/templates/githooks/commit-msg"; do
+  if [ -x "$hook" ] && bash -n "$hook" && grep -Fq 'check-commit-message.cjs' "$hook" \
+    && grep -Fq 'MERGE_HEAD' "$hook"; then
+    echo "PASS: ${hook#"$ROOT/"} 실행 배선"
+    PASS=$((PASS+1))
+  else
+    echo "FAIL: ${hook#"$ROOT/"} 실행 배선 누락"
+    FAIL=$((FAIL+1))
+  fi
+  mkdir -p "$TMP/no-node-bin"
+  if PATH="$TMP/no-node-bin" "$BASH_BIN" "$hook" "$TMP/message" 2>"$TMP/no-node.err" \
+    && grep -Fq 'CI' "$TMP/no-node.err"; then
+    echo "PASS: ${hook#"$ROOT/"} Node 없음 → 경고 후 CI 위임"
+    PASS=$((PASS+1))
+  else
+    echo "FAIL: ${hook#"$ROOT/"} Node 없음 처리"
+    FAIL=$((FAIL+1))
+  fi
+done
+
+PROVENANCE_REPO="$TMP/provenance-repo"
+mkdir -p "$PROVENANCE_REPO/scripts" "$PROVENANCE_REPO/.githooks"
+cp "$CHECK" "$PROVENANCE_REPO/scripts/check-commit-message.cjs"
+cp "$ROOT/templates/githooks/commit-msg" "$PROVENANCE_REPO/.githooks/commit-msg"
+chmod +x "$PROVENANCE_REPO/.githooks/commit-msg"
+git -C "$PROVENANCE_REPO" init -q
+git -C "$PROVENANCE_REPO" config user.name test
+git -C "$PROVENANCE_REPO" config user.email test@example.com
+git -C "$PROVENANCE_REPO" config core.hooksPath .githooks
+printf '기준\n' > "$PROVENANCE_REPO/file.txt"
+git -C "$PROVENANCE_REPO" add file.txt
+git -C "$PROVENANCE_REPO" commit -qm 'docs: 기준 커밋 추가'
+if GIT_EDITOR=true git -C "$PROVENANCE_REPO" commit --allow-empty --edit \
+  -m 'docs: 편집기 커밋 주석 제거 확인' >/dev/null; then
+  echo "PASS: commit-msg 훅이 Git 편집기 주석 제거 후 검사"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: commit-msg 훅이 Git 편집기 주석을 메시지로 오인"
+  FAIL=$((FAIL+1))
+fi
+git -C "$PROVENANCE_REPO" branch -M main
+git -C "$PROVENANCE_REPO" checkout -qb feature/order
+printf '기능\n' >> "$PROVENANCE_REPO/file.txt"
+git -C "$PROVENANCE_REPO" add file.txt
+git -C "$PROVENANCE_REPO" commit -qm 'docs: 기능 변경 추가'
+git -C "$PROVENANCE_REPO" checkout -q main
+if GIT_MERGE_AUTOEDIT=no git -C "$PROVENANCE_REPO" merge --no-ff feature/order \
+  -m "Merge branch 'feature/order' into main" >/dev/null \
+  && (cd "$PROVENANCE_REPO" && node "$CHECK" --commit "$(git rev-parse HEAD)") >/dev/null 2>&1; then
+  echo "PASS: 실제 merge state·2-parent commit만 Git 생성 메시지 허용"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: 실제 merge provenance 허용"
+  FAIL=$((FAIL+1))
+fi
+REAL_MERGE_SHA="$(git -C "$PROVENANCE_REPO" rev-parse HEAD)"
+
+if git -C "$PROVENANCE_REPO" commit --allow-empty -m "Merge branch 'fake' into main" >/dev/null 2>&1; then
+  echo "FAIL: 일반 commit이 merge 메시지 가장"
+  FAIL=$((FAIL+1))
+else
+  echo "PASS: 로컬 hook이 MERGE_HEAD 없는 merge 메시지 거부"
+  PASS=$((PASS+1))
+fi
+git -C "$PROVENANCE_REPO" -c core.hooksPath=/dev/null commit --allow-empty \
+  -m "Merge branch 'fake' into main" >/dev/null
+FAKE_SHA="$(git -C "$PROVENANCE_REPO" rev-parse HEAD)"
+COMMIT_CHECK_RC=0
+(cd "$PROVENANCE_REPO" && node "$CHECK" --commit "$FAKE_SHA") >/dev/null 2>&1 || COMMIT_CHECK_RC=$?
+if [ "$COMMIT_CHECK_RC" -eq 1 ]; then
+  echo "PASS: CI commit metadata가 1-parent merge 가장 거부"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: CI commit metadata 거부 종료코드 — expected 1, got $COMMIT_CHECK_RC"
+  FAIL=$((FAIL+1))
+fi
+
+RANGE_CHECK_RC=0
+(cd "$PROVENANCE_REPO" && node "$CHECK" --range "$REAL_MERGE_SHA..$FAKE_SHA") >/dev/null 2>&1 \
+  || RANGE_CHECK_RC=$?
+if [ "$RANGE_CHECK_RC" -eq 1 ]; then
+  echo "PASS: CI commit range가 one-parent merge 가장 거부"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: CI commit range 거부 종료코드 — expected 1, got $RANGE_CHECK_RC"
+  FAIL=$((FAIL+1))
+fi
+
+EMPTY_RANGE_RC=0
+(cd "$PROVENANCE_REPO" && node "$CHECK" --range "$FAKE_SHA..$FAKE_SHA") >/dev/null 2>&1 \
+  || EMPTY_RANGE_RC=$?
+if [ "$EMPTY_RANGE_RC" -ne 0 ]; then
+  echo "PASS: CI 빈 commit range fail-closed"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: CI 빈 commit range가 검사 없이 성공"
+  FAIL=$((FAIL+1))
+fi
+
+INVALID_RANGE_RC=0
+(cd "$PROVENANCE_REPO" && node "$CHECK" --range "0000000000000000000000000000000000000000..$FAKE_SHA") >/dev/null 2>&1 \
+  || INVALID_RANGE_RC=$?
+if [ "$INVALID_RANGE_RC" -ne 0 ]; then
+  echo "PASS: CI 해석 불가 commit range fail-closed"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: CI 해석 불가 commit range가 검사 없이 성공"
+  FAIL=$((FAIL+1))
+fi
+
+echo
+echo "결과: PASS=$PASS FAIL=$FAIL"
+[ "$FAIL" -eq 0 ]

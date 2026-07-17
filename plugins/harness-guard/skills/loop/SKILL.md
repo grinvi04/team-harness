@@ -1,13 +1,13 @@
 ---
 name: loop
-description: 조건 기반 자율 수정 루프 — 통과 기준(명령 exit 0) 충족까지 반복. CI 수정·lint 클린업·테스트 수정·의존성 업데이트 등 반복 작업 자동화. 안전 장치(max·stuck·checkpoint) 내장
-argument-hint: "\"<작업 설명>\" \"<통과 기준 명령>\" [--max <N=5>] [--no-commit]"
+description: 반복 수정으로 명령 exit 0을 달성해야 할 때 사용. CI·lint·기존 테스트·의존성 정리에 적합하며 신규 기능·불명확한 설계·시간 예약 polling은 제외
+argument-hint: "\"<작업 설명>\" \"<통과 기준 명령>\" [--max <N=5>] [--timeout <초=300>] [--no-commit]"
 effort: high
 ---
 
 # /loop — 조건 기반 자율 수정 루프
 
-**사용법**: `/loop "<작업 설명>" "<통과 기준 명령>" [--max <N>] [--no-commit]`
+**사용법**: `/loop "<작업 설명>" "<통과 기준 명령>" [--max <N>] [--timeout <초>] [--no-commit]`
 
 예)
 ```
@@ -26,6 +26,8 @@ effort: high
 > **`/loop`의 목적**: 반복 실행이 필요한 수정 작업을 자율적으로 처리한다.
 > 각 반복마다 ONE 타깃 수정 → 통과 기준 검증 → 체크포인트 커밋(기본값) → 다음 반복.
 > 기능 개발(Red→Green→Refactor)은 이 커맨드가 아니라 `/feature-add`가 담당한다.
+> 자연어 맥락에서 자동 선택된 **implicit invocation**은 commit 권한을 새로 만들지 않는다.
+> 사용자가 현재 요청에서 commit을 명시적으로 요청하지 않았다면 `--no-commit`과 동일하게 실행한다.
 >
 > **이 커맨드를 쓰지 말아야 할 때**:
 > - 새 기능 개발 → `/feature-add`
@@ -41,35 +43,32 @@ effort: high
 |---|---|---|
 | `--max N` | 5 | 최대 반복 횟수. 도달 시 중단 후 잔여 이슈 리포트 |
 | stuck 감지 | 2회 연속 무변경 | 수정 없이 같은 결과가 반복되면 즉시 중단 |
-| 체크포인트 커밋 | 반복마다 | 각 반복 후 진행 상태 보존 (`--no-commit`으로 생략 가능) |
+| 명령 timeout | 300초 | 검증 명령 하나가 멈춰 전체 루프를 무기한 점유하는 것을 차단 (`--timeout`) |
+| 체크포인트 커밋 | 명시적 `/loop`는 반복마다, implicit는 끔 | 각 반복 후 진행 상태 보존. implicit invocation은 현재 요청의 명시적 commit 허가가 있어야 활성화 |
 | 실패 임계 | max 도달 | 잔여 이슈 목록 + 권장 수동 조치 리포트 |
 
 ---
 
 ## Phase 0 — 사전 검증 (오케스트레이터 직접 실행)
 
-### 0-0. 작업 브랜치 확인 (K4)
-
-체크포인트 커밋은 `develop`/`main`에서 guard에 차단된다(진행 보존 불가). 루프는 **작업 브랜치(feature/fix/…)** 에서 돌려야 한다.
-
-```bash
-BR=$(git branch --show-current 2>/dev/null)
-if [ "$BR" = "develop" ] || [ "$BR" = "main" ]; then
-  echo "⛔ /loop 는 보호 브랜치($BR)에서 체크포인트 커밋을 못 한다. 작업 브랜치로 전환 후 재실행하거나 --no-commit 을 쓰세요."; exit 1
-fi
-```
-> `--no-commit`으로 돌리면 보호 브랜치에서도 실행 가능하나, 진행이 커밋으로 보존되지 않는다.
-
-### 0-1. 인수 파싱
+### 0-0. 인수 파싱·commit 권한 결정
 
 `$ARGUMENTS`에서:
 - `GOAL` ← 첫 번째 따옴표 문자열 (작업 설명)
 - `EXIT_CMD` ← 두 번째 따옴표 문자열 (통과 기준 명령)
 - `MAX_ITER` ← `--max` 뒤 숫자 (없으면 기본값 5)
+- `TIMEOUT_SECONDS` ← `--timeout` 뒤 숫자 (없으면 기본값 300)
 - `NO_COMMIT` ← `--no-commit` 플래그 유무
+
+호출 방식에 따라 commit 권한을 결정한다.
+- 사용자가 `/loop`를 명시적으로 호출하면 `--no-commit` 유무를 그대로 따른다.
+- 자연어 맥락으로 선택된 **implicit invocation이면**, 사용자가 현재 요청에서 commit을 명시적으로 요청하지
+  않은 한 `NO_COMMIT=true`로 둔다.
+- implicit invocation 도중 commit으로 전환하려면 첫 체크포인트 전에 멈추고 사용자에게 명시적 승인을 받는다.
 
 ```
 MAX_ITER 유효 범위: 1~20. 범위 초과 시 에러 출력 후 중단.
+TIMEOUT_SECONDS 유효 범위: 1~3600 정수. 범위 초과 시 에러 출력 후 중단.
 ```
 
 **`GOAL` 또는 `EXIT_CMD`가 없으면 즉시 중단**:
@@ -79,6 +78,20 @@ MAX_ITER 유효 범위: 1~20. 범위 초과 시 에러 출력 후 중단.
 예)   /loop "lint 에러 수정" "npm run lint"
 ```
 
+### 0-1. 작업 브랜치 확인 (K4)
+
+체크포인트 커밋은 `develop`/`main`에서 guard에 차단된다(진행 보존 불가). commit이 활성화된 루프는
+**작업 브랜치(feature/fix/…)** 에서 돌려야 한다.
+
+```bash
+BR=$(git branch --show-current 2>/dev/null)
+if { [ "$BR" = "develop" ] || [ "$BR" = "main" ]; } && [ "$NO_COMMIT" != "true" ]; then
+  echo "⛔ /loop 는 보호 브랜치($BR)에서 체크포인트 커밋을 못 한다. 작업 브랜치로 전환 후 재실행하거나 --no-commit 을 쓰세요."; exit 1
+fi
+```
+> `--no-commit` 또는 commit 권한 없는 implicit invocation은 보호 브랜치에서도 실행 가능하나, 진행이
+> 커밋으로 보존되지 않는다.
+
 ### 0-2. 초기 상태 점검
 
 ```bash
@@ -86,7 +99,7 @@ MAX_ITER 유효 범위: 1~20. 범위 초과 시 에러 출력 후 중단.
 git status --short
 ```
 
-미커밋 변경사항이 있으면 **사용자에게 확인**:
+미커밋 변경사항이 있으면 **사용자에게 확인**한다. 체크포인트가 활성화된 경우:
 ```
 ⚠️ 미커밋 변경사항이 있습니다.
   /loop는 반복마다 체크포인트 커밋을 생성합니다.
@@ -95,10 +108,13 @@ git status --short
 - 확인 시: 계속 진행
 - 거부 시: "먼저 커밋·stash 후 재실행하세요." 출력 후 중단
 
+`NO_COMMIT=true`이면 기존 변경을 커밋하지는 않지만, 루프 수정과 섞일 수 있음을 알리고 계속할지 확인한다.
+
 ### 0-3. 통과 기준 즉시 실행
 
 ```bash
-eval "$EXIT_CMD"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
+node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" -- "$EXIT_CMD"
 ```
 
 **이미 통과(exit 0)이면 즉시 종료**:
@@ -143,7 +159,7 @@ eval "$EXIT_CMD"
 ITER=0            # 현재 반복 횟수
 STUCK=0           # 연속 무변경 횟수
 PASS=false        # 통과 기준 달성 여부
-FIXED_FILES=[]    # 누적 수정 파일 목록
+FIXED_FILES=""    # 줄바꿈으로 구분한 누적 수정 파일 목록
 ```
 
 **루프 조건**: `PASS=false AND ITER < MAX_ITER`
@@ -156,7 +172,9 @@ FIXED_FILES=[]    # 누적 수정 파일 목록
 
 에이전트 spawn **직전** 오케스트레이터는 stuck 감지용 기준 지문(이번 반복 시작 시 워킹트리 상태)을 캡처한다:
 ```bash
-TREE_BEFORE=$( { git status --porcelain=v1; git diff; } | shasum | awk '{print $1}' )
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
+ITER=$((ITER+1))
+TREE_BEFORE=$(node "$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs" --repo .)
 ```
 
 **프롬프트 (반복마다 갱신):**
@@ -164,7 +182,7 @@ TREE_BEFORE=$( { git status --porcelain=v1; git diff; } | shasum | awk '{print $
 ```
 작업 목표: $GOAL
 통과 기준: $EXIT_CMD
-반복: $((ITER+1)) / $MAX_ITER
+반복: $ITER / $MAX_ITER
 
 ## 컨텍스트 (Phase 1 분석 결과)
 <Phase 1 결과 전체>
@@ -191,35 +209,47 @@ TREE_BEFORE=$( { git status --porcelain=v1; git diff; } | shasum | awk '{print $
 ### Phase 2b — 반복 후 검증 (오케스트레이터 직접 실행)
 
 ```bash
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
+
 # 수정 파일 목록 확인
-CHANGED=$(git diff --name-only)
+CHANGED=$(git status --short)
+
+TREE_AFTER=$(node "$PLUGIN_ROOT/scripts/worktree-fingerprint.mjs" --repo .)
+
+# 최신 통과 기준을 먼저 확인한다. 외부 CI 상태가 바뀐 경우 worktree가 같아도 성공할 수 있다.
+node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" -- "$EXIT_CMD"
+EXIT_CODE=$?
+if [ "$EXIT_CODE" -eq 0 ]; then
+  PASS=true
+fi
 
 # stuck 감지 — 커밋 여부와 무관하게 '이번 반복이 워킹트리를 실제로 바꿨는가'로 판정(#198).
-#   기존 `-z "$CHANGED"` 방식은 --no-commit 모드에서 미커밋 변경이 누적돼 `git diff`가 항상 non-empty →
-#   에이전트가 진전 없어도 stuck을 영영 못 잡았다. 반복 시작 지문(TREE_BEFORE) 대비 종료 지문을 비교한다.
-TREE_AFTER=$( { git status --porcelain=v1; git diff; } | shasum | awk '{print $1}' )
+# 성공 판정 뒤에 수행해 외부 상태 변화의 통과를 무변경 중단이 가리지 않게 한다.
 if [ "$TREE_AFTER" = "$TREE_BEFORE" ]; then
   STUCK=$((STUCK+1))
-  if [ "$STUCK" -ge 2 ]; then
+  if [ "$PASS" != "true" ] && [ "$STUCK" -ge 2 ]; then
     # Phase 3 (중단 — stuck)으로
     break
   fi
 else
   STUCK=0
-  FIXED_FILES+=$CHANGED
+  # git status --short의 상태 3문자를 제거하고 경로를 중복 없이 누적한다.
+  while IFS= read -r STATUS_LINE; do
+    [ -z "$STATUS_LINE" ] && continue
+    FILE_PATH="${STATUS_LINE#???}"
+    if ! printf '%s\n' "$FIXED_FILES" | grep -Fqx -- "$FILE_PATH"; then
+      FIXED_FILES="${FIXED_FILES}${FIXED_FILES:+$'\n'}${FILE_PATH}"
+    fi
+  done <<< "$CHANGED"
 fi
-
-# 통과 기준 실행
-eval "$EXIT_CMD"
-EXIT_CODE=$?
 ```
 
 **통과(exit 0)**이면:
-- `PASS=true` → 루프 종료 후 Phase 3(성공)으로
+- `PASS=true` → Phase 2c에서 성공 체크포인트를 처리한 뒤 Phase 3(성공)으로
 
-**실패(exit non-0)**이면:
-- `ITER=$((ITER+1))`
-- `ITER >= MAX_ITER`이면 루프 종료 후 Phase 3(max 도달)으로
+**실패(exit non-0, timeout은 124)**이면:
+- Phase 2c에서 현재 반복 체크포인트를 처리한 뒤 분기한다.
+- `ITER >= MAX_ITER`이면 Phase 3(max 도달)으로
 - 아니면 Phase 2a로 돌아간다
 
 ---
@@ -227,13 +257,21 @@ EXIT_CODE=$?
 ### Phase 2c — 체크포인트 커밋 (오케스트레이터 직접 실행, `--no-commit`이 아니면)
 
 ```bash
-if [ -n "$(git diff --name-only)" ] && [ "$NO_COMMIT" != "true" ]; then
-  git add $(git diff --name-only)
-  git commit -m "fix(loop): $GOAL — 반복 $ITER/$MAX_ITER 진행
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
+REPO_ROOT=$(git rev-parse --show-toplevel)
+if [ -n "$(git -C "$REPO_ROOT" status --porcelain=v1)" ] && [ "$NO_COMMIT" != "true" ]; then
+  git -C "$REPO_ROOT" add -A -- .
+  if [ "$PASS" = "true" ]; then
+    git commit -m "fix(loop): 반복 수정 완료" \
+      -m "이유: $GOAL 통과 기준을 충족한 상태를 보존"
+  else
+    git commit -m "fix(loop): 반복 수정 ${ITER}차 반영" \
+      -m "이유: $GOAL 통과 기준 달성을 위한 중간 상태를 보존"
+  fi
 fi
 ```
+
+공용 skill은 특정 AI 이름·모델의 `Co-Authored-By`를 만들지 않는다. 실행 도구가 실제 작성자 정보를
+제공한 경우에만 그 도구의 공식 trailer를 유지한다.
 
 > 체크포인트 커밋은 롤백 단위다 — 루프가 중간에 끊어져도 진행 상태가 보존된다.
 > `git revert <커밋>`으로 특정 반복의 수정만 되돌릴 수 있다.
@@ -246,14 +284,8 @@ fi
 
 ### 성공 (`PASS=true`)
 
-마지막 체크포인트 커밋 후:
-
-```bash
-git add $(git diff --name-only 2>/dev/null) 2>/dev/null || true
-[ -n "$(git diff --cached --name-only)" ] && git commit -m "fix(loop): $GOAL — 완료
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>"
-```
+마지막 반복에서 변경이 있었다면 Phase 2c가 성공 체크포인트를 이미 만들었다. `--no-commit` 또는 commit
+권한 없는 implicit invocation이면 검증된 변경을 작업트리에 그대로 둔다.
 
 출력:
 ```

@@ -113,6 +113,8 @@ copy_once "$HARNESS_DIR/templates/ci/test-guard.yml"        .github/workflows/te
 copy_once "$HARNESS_DIR/templates/ci/commitlint.yml"        .github/workflows/commitlint.yml "commitlint.yml (커밋 컨벤션 게이트)"
 copy_once "$HARNESS_DIR/templates/ci/integration-e2e.yml"   .github/workflows/integration-e2e.yml "integration-e2e.yml (실 IdP+실데이터 e2e 스캐폴드)" "⚠️ CUSTOMIZE + Settings→Variables에 E2E_ENABLED=true"
 copy_once "$HARNESS_DIR/templates/commitlint.config.cjs"    commitlint.config.cjs      "commitlint.config.cjs (Conventional Commits 규약)"
+mkdir -p scripts
+copy_once "$HARNESS_DIR/scripts/check-commit-message.cjs"   scripts/check-commit-message.cjs "scripts/check-commit-message.cjs (로컬·CI 공통 커밋 규칙)"
 
 # 파괴적 DDL 게이트 — stack-agnostic(Flyway·Prisma·Supabase 공통, 마이그레이션 없으면 self-skip)이라 무조건 배선.
 mkdir -p scripts
@@ -136,7 +138,9 @@ if [[ "$HAS_ALEMBIC" == true ]]; then
 fi
 
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
+copy_once "$HARNESS_DIR/templates/githooks/commit-msg"       .githooks/commit-msg       "commit-msg 훅 (커밋 메시지 즉시 검증)"
 chmod +x .githooks/pre-commit
+chmod +x .githooks/commit-msg
 
 copy_once "$HARNESS_DIR/templates/AGENTS.md"                 AGENTS.md                  "AGENTS.md"      "⚠️ 프로젝트 내용 채우기 (빌드·테스트 명령 섹션 필수)"
 copy_once "$HARNESS_DIR/templates/CLAUDE.md"                 CLAUDE.md                  "CLAUDE.md"
