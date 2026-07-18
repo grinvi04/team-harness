@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs` and replace this file with
 
 ## v0.60.0 - 2026-07-19
 
+- fix(release): changelog 종단 newline 정규화
 - fix(profile): 설치 provenance를 단일 SHA에 고정
 - fix(profile): symlink 경로 doctor 검증 보장
 - fix(release): bundle provenance를 단일 SHA에 고정
