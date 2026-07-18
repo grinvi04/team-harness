@@ -38,6 +38,8 @@ expect_ok "workflow-assisted doctor" node "$DOCTOR" --target "$TMP/workflow"
 expect_ok "workflow disable" node "$MANAGE" disable --unit workflow-pack --target "$TMP/workflow"
 node -e 'const s=require(process.argv[1]); process.exit(s.packages.find(p=>p.unit==="workflow-pack").enabled===false?0:1)' "$TMP/workflow/profile-state.json" \
   && pass "disable 상태 기록" || fail "disable 상태 기록"
+[ ! -d "$TMP/workflow/packages/harness-workflows" ] && [ -d "$TMP/workflow/disabled-packages/harness-workflows" ] \
+  && pass "disable이 package active view에서 제거" || fail "disable active view"
 expect_ok "disable 후 core doctor" node "$DOCTOR" --target "$TMP/workflow"
 expect_ok "workflow remove" node "$MANAGE" remove --unit workflow-pack --target "$TMP/workflow"
 [ ! -d "$TMP/workflow/packages/harness-workflows" ] && [ -d "$TMP/workflow/packages/harness-governance-core" ] \

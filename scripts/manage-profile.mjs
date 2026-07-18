@@ -174,13 +174,21 @@ function mutateUnit(options) {
     if (!entry) throw new Error(`unit not installed: ${options.unit}`)
     if (options.operation === 'disable') {
       if (entry.unit === 'governance-core') throw new Error('governance core cannot be disabled')
+      if (entry.enabled === false) throw new Error(`unit already disabled: ${entry.unit}`)
+      const disabledRoot = path.join(stage, 'disabled-packages')
+      mkdirSync(disabledRoot, { recursive: true })
+      renameSync(
+        path.join(stage, 'packages', entry.pluginName),
+        path.join(disabledRoot, entry.pluginName),
+      )
       entry.enabled = false
     } else {
       if (entry.unit === 'governance-core') throw new Error('core removal requires --all')
       if (entry.unit.endsWith('-adapter') && state.profile === 'workflow-assisted') {
         throw new Error('remove workflow-pack before adapter')
       }
-      rmSync(path.join(stage, 'packages', entry.pluginName), { recursive: true })
+      const packageArea = entry.enabled === false ? 'disabled-packages' : 'packages'
+      rmSync(path.join(stage, packageArea, entry.pluginName), { recursive: true })
       state.packages = state.packages.filter((candidate) => candidate.unit !== entry.unit)
       if (entry.unit === 'workflow-pack') state.profile = 'agent-governed'
       if (entry.unit.endsWith('-adapter')) {

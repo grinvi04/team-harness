@@ -62,7 +62,9 @@ export function inspectProfile(target, { quiet = false, expectedTarget = target 
 
   for (const entry of state.packages) {
     if (pluginNames.get(entry.unit) !== entry.pluginName) throw new Error(`package identity mismatch: ${entry.unit}`)
-    const packageRoot = path.join(target, 'packages', entry.pluginName)
+    if (typeof entry.enabled !== 'boolean') throw new Error(`package enabled state invalid: ${entry.unit}`)
+    const packageArea = entry.enabled ? 'packages' : 'disabled-packages'
+    const packageRoot = path.join(target, packageArea, entry.pluginName)
     if (!existsSync(packageRoot)) throw new Error(`package missing: ${entry.unit}`)
     if (lstatSync(packageRoot).isSymbolicLink()) throw new Error(`package root is symlinked: ${entry.unit}`)
     const metadata = readJson(path.join(packageRoot, 'harness-package.json'))
