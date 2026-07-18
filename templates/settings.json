@@ -3,11 +3,9 @@
     "_comment": "프로젝트 .claude/settings.json 템플릿 — repo에 커밋해서 팀원과 공유한다. dev 권한 단일출처는 이 파일이며 스택별 권한은 new-repo.sh가 병합한다. extraKnownMarketplaces는 공개 team-harness를 지목한다. Read(**/.env)와 allow된 cat·grep의 .env 열람은 deny한다. Bash 문자열 deny는 변수전개·명령치환 등을 완전히 해석하지 못하므로 시크릿 유출 훅과 secret-scan이 재검증한다. gh api는 읽기·mutation을 권한 매처가 구분하지 못하므로 광범위 자동허용하지 않으며, 보호 변경은 전용 wrapper에서만 수행한다.",
   "permissions": {
     "allow": [
-      "Bash(git *)",
       "Bash(gh pr *)",
       "Bash(gh repo view *)",
       "Bash(ls *)",
-      "Bash(find *)",
       "Bash(grep *)",
       "Bash(cat *)",
       "Bash(echo *)",
