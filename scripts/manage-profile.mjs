@@ -89,6 +89,33 @@ function managedGeneration(target) {
   return generation
 }
 
+function generationSnapshot(target) {
+  const generation = managedGeneration(target)
+  const identity = lstatSync(generation)
+  return { generation, dev: identity.dev, ino: identity.ino }
+}
+
+function sameGeneration(snapshot, location = snapshot.generation) {
+  if (!existsSync(location)) return false
+  const identity = lstatSync(location)
+  return identity.dev === snapshot.dev && identity.ino === snapshot.ino
+}
+
+function cleanupGeneration(snapshot) {
+  if (!sameGeneration(snapshot)) {
+    console.warn(`WARN old generation identity changed; cleanup skipped: ${snapshot.generation}`)
+    return
+  }
+  const quarantine = `${snapshot.generation}.cleanup-${process.pid}-${Date.now()}`
+  renameSync(snapshot.generation, quarantine)
+  if (!sameGeneration(snapshot, quarantine)) {
+    if (!existsSync(snapshot.generation)) renameSync(quarantine, snapshot.generation)
+    console.warn(`WARN old generation identity changed; cleanup skipped: ${snapshot.generation}`)
+    return
+  }
+  rmSync(quarantine, { recursive: true, force: true })
+}
+
 function buildStaging(options) {
   const catalog = JSON.parse(readFileSync(catalogFile, 'utf8'))
   const units = selectedUnits(options.profile, options.runtime)
@@ -143,8 +170,13 @@ function replaceTarget(target, stage, expectedGeneration = null) {
         if (readdirSync(target).length > 0) throw new Error('managed target must be a profile symlink')
         rmSync(target, { recursive: true })
       } else {
-        oldGeneration = managedGeneration(target)
-        if (expectedGeneration && oldGeneration !== expectedGeneration) {
+        oldGeneration = generationSnapshot(target)
+        if (
+          expectedGeneration &&
+          (oldGeneration.generation !== expectedGeneration.generation ||
+            oldGeneration.dev !== expectedGeneration.dev ||
+            oldGeneration.ino !== expectedGeneration.ino)
+        ) {
           throw new Error('managed generation changed during operation')
         }
       }
@@ -158,9 +190,9 @@ function replaceTarget(target, stage, expectedGeneration = null) {
   }
   if (oldGeneration) {
     try {
-      rmSync(oldGeneration, { recursive: true, force: true })
+      cleanupGeneration(oldGeneration)
     } catch (error) {
-      console.warn(`WARN committed profile; old generation cleanup pending: ${oldGeneration}: ${error.message}`)
+      console.warn(`WARN committed profile; old generation cleanup pending: ${oldGeneration.generation}: ${error.message}`)
     }
   }
 }
@@ -171,29 +203,37 @@ function installOrUpdate(options) {
     throw new Error('install target must be absent or empty')
   }
   if (options.operation === 'update' && !managed(options.target)) throw new Error('update requires managed target')
+  let generation = null
+  if (options.operation === 'update') {
+    generation = generationSnapshot(options.target)
+    inspectProfileOwnership(generation.generation, options.target)
+  }
   const stage = buildStaging(options)
-  replaceTarget(options.target, stage)
+  replaceTarget(options.target, stage, generation)
 }
 
 function mutateUnit(options) {
   if (!managed(options.target)) throw new Error('operation requires managed target')
   if (options.operation === 'remove' && options.all) {
-    inspectProfileOwnership(options.target)
-    const generation = managedGeneration(options.target)
+    const generation = generationSnapshot(options.target)
+    inspectProfileOwnership(generation.generation, options.target)
+    if (!sameGeneration(generation) || managedGeneration(options.target) !== generation.generation) {
+      throw new Error('managed generation changed during operation')
+    }
     unlinkSync(options.target)
     try {
-      rmSync(generation, { recursive: true, force: true })
+      cleanupGeneration(generation)
     } catch (error) {
-      console.warn(`WARN profile removed; generation cleanup pending: ${generation}: ${error.message}`)
+      console.warn(`WARN profile removed; generation cleanup pending: ${generation.generation}: ${error.message}`)
     }
     return
   }
   if (!options.unit) throw new Error('operation requires --unit')
-  const generation = managedGeneration(options.target)
+  const generation = generationSnapshot(options.target)
   const parent = path.dirname(options.target)
   const stage = mkdtempSync(path.join(parent, `.${path.basename(options.target)}.mutation-`))
   try {
-    cpSync(generation, stage, { recursive: true })
+    cpSync(generation.generation, stage, { recursive: true })
     inspectProfile(stage, { quiet: true, expectedTarget: options.target })
     const stateFile = path.join(stage, 'profile-state.json')
     const state = JSON.parse(readFileSync(stateFile, 'utf8'))

@@ -98,7 +98,14 @@ fi
 
 (
   sleep 0.25
-  ln -s "$TMP/consumer" "$TMP/late-parent" 2>/dev/null || true
+  mv "$TMP/late-parent" "$TMP/late-parent-held" 2>/dev/null || exit 0
+  ln -s "$TMP/consumer" "$TMP/late-parent"
+  for _ in $(seq 1 400); do
+    [[ -e "$TMP/consumer/late-report.json" ]] && break
+    sleep 0.05
+  done
+  rm "$TMP/late-parent"
+  mv "$TMP/late-parent-held" "$TMP/late-parent"
 ) &
 late_swap_pid=$!
 if node "$RUNNER" --repo "$TMP/consumer" --output "$TMP/late-parent/late-report.json" >"$TMP/out" 2>"$TMP/err"; then
@@ -131,6 +138,22 @@ then
   pass 'scp-style remote query·fragment 비노출'
 else
   fail 'scp-style remote query·fragment 비노출'
+fi
+
+git -C "$TMP/consumer" remote set-url origin "file://$TMP/private/token-secret/repo.git?token=hidden"
+if node "$RUNNER" --repo "$TMP/consumer" --output "$TMP/file-report.json" >"$TMP/out" 2>"$TMP/err" \
+  && node -e 'const r=require(process.argv[1]); process.exit(r.repo.remote === null && !JSON.stringify(r).includes("token-secret") ? 0 : 1)' "$TMP/file-report.json"; then
+  pass '비표준 remote가 로컬 경로·명령을 노출하지 않음'
+else
+  fail '비표준 remote 정보 비노출'
+fi
+
+git -C "$TMP/consumer" remote set-url origin "$TMP/private:token-secret/repo.git"
+if node "$RUNNER" --repo "$TMP/consumer" --output "$TMP/colon-path-report.json" >"$TMP/out" 2>"$TMP/err" \
+  && node -e 'const r=require(process.argv[1]); process.exit(r.repo.remote === null && !JSON.stringify(r).includes("token-secret") ? 0 : 1)' "$TMP/colon-path-report.json"; then
+  pass 'colon 포함 로컬 경로를 scp remote로 오인하지 않음'
+else
+  fail 'scp fallback hostname 검증'
 fi
 
 git -C "$TMP/consumer" checkout -q --detach

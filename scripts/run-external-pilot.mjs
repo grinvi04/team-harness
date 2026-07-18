@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { closeSync, existsSync, fstatSync, lstatSync, mkdirSync, mkdtempSync, openSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -62,9 +62,10 @@ function sanitizeRemote(value) {
   if (!value) return null
   try {
     const url = new URL(value)
+    if (!['http:', 'https:', 'ssh:', 'git:'].includes(url.protocol) || !url.hostname) return null
     return `${url.hostname}${url.pathname}`.replace(/\/$/, '')
   } catch {
-    const scp = /^(?:[^@]+@)?([^:]+):(.+)$/.exec(value)
+    const scp = /^(?:[^@\s]+@)?([A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?):([^\\\s]+)$/.exec(value)
     if (scp) return `${scp[1]}/${scp[2].replace(/[?#].*$/, '')}`.replace(/\/$/, '')
     return null
   }
@@ -128,6 +129,8 @@ function probeGuard(repo, isolatedHome) {
 
 let temporary = null
 let createdOutput = null
+let outputDescriptor = null
+let outputIdentity = null
 try {
   const options = parseArgs(process.argv.slice(2))
   const inside = git(options.repo, ['rev-parse', '--is-inside-work-tree'], true)
@@ -142,6 +145,9 @@ try {
   if (options.output === options.repo || options.output.startsWith(`${options.repo}${path.sep}`)) {
     throw new Error('output must be outside the pilot repository')
   }
+  outputDescriptor = openSync(options.output, 'wx', 0o600)
+  outputIdentity = fstatSync(outputDescriptor)
+  createdOutput = options.output
   const branch = git(options.repo, ['branch', '--show-current']).stdout.trim()
   if (!branch) throw new Error('attached branch required')
   const beforeHead = git(options.repo, ['rev-parse', 'HEAD']).stdout.trim()
@@ -197,19 +203,22 @@ try {
       'The pilot does not execute application tests, deployments, LLM sessions, or marketplace installation.',
     ],
   }
-  const stagedOutput = `${options.output}.tmp-${process.pid}`
-  writeFileSync(stagedOutput, `${JSON.stringify(report, null, 2)}\n`, { flag: 'wx' })
-  renameSync(stagedOutput, options.output)
-  createdOutput = options.output
+  writeFileSync(outputDescriptor, `${JSON.stringify(report, null, 2)}\n`)
+  closeSync(outputDescriptor)
+  outputDescriptor = null
   const finalHead = git(options.repo, ['rev-parse', 'HEAD']).stdout.trim()
   const finalStatus = git(options.repo, ['status', '--porcelain=v1', '--untracked-files=all']).stdout
   if (finalHead !== beforeHead || finalStatus !== beforeStatus) {
-    rmSync(createdOutput, { force: true })
-    createdOutput = null
     throw new Error('pilot repository changed while writing report')
   }
+  createdOutput = null
   console.log(`OK repo=${report.repo.name} installMs=${installMs} missing=${drift.missing} fp=${guard.sampleFalsePositives} fn=${guard.sampleFalseNegatives}`)
 } catch (error) {
+  if (outputDescriptor !== null) closeSync(outputDescriptor)
+  if (createdOutput && existsSync(createdOutput)) {
+    const current = lstatSync(createdOutput)
+    if (current.dev === outputIdentity.dev && current.ino === outputIdentity.ino) rmSync(createdOutput)
+  }
   usage()
   console.error(`external-pilot: ${error.message}`)
   process.exitCode = 1

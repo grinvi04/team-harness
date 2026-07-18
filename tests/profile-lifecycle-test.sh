@@ -54,6 +54,9 @@ expect_fail "core 단독 제거 거부" node "$MANAGE" remove --unit governance-
 
 expect_ok "동일 source update" node "$MANAGE" update --profile agent-governed --runtime codex --target "$TMP/agent"
 expect_ok "update 후 doctor" node "$DOCTOR" --target "$TMP/agent"
+node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.version="0.59.0"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/agent/profile-state.json"
+expect_ok "이전 version profile update" node "$MANAGE" update --profile agent-governed --runtime codex --target "$TMP/agent"
+expect_ok "version update 후 doctor" node "$DOCTOR" --target "$TMP/agent"
 before_update=$(state_digest "$TMP/agent")
 expect_fail "잘못된 profile update 거부" node "$MANAGE" update --profile unknown --runtime codex --target "$TMP/agent"
 after_update=$(state_digest "$TMP/agent")
@@ -109,6 +112,29 @@ elif [ -f "$TMP/race-victim/user.txt" ]; then
 else
   fail "mutation TOCTOU가 외부 경로 삭제"
 fi
+expect_ok "update ownership 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/update-target"
+mkdir "$TMP/.update-target.fake-generation"
+printf 'managed-by=team-harness\n' > "$TMP/.update-target.fake-generation/.team-harness-profile"
+printf '{}\n' > "$TMP/.update-target.fake-generation/profile-state.json"
+printf 'preserve\n' > "$TMP/.update-target.fake-generation/user.txt"
+rm "$TMP/update-target"
+ln -s .update-target.fake-generation "$TMP/update-target"
+expect_fail "update가 검증되지 않은 generation 거부" node "$MANAGE" update --profile repository-only --target "$TMP/update-target"
+[ -f "$TMP/.update-target.fake-generation/user.txt" ] && pass "update가 미검증 generation 보존" || fail "update가 미검증 generation 삭제"
+expect_fail "remove --all이 검증되지 않은 generation 거부" node "$MANAGE" remove --all --target "$TMP/update-target"
+[ -f "$TMP/.update-target.fake-generation/user.txt" ] && pass "remove --all이 미검증 generation 보존" || fail "remove --all이 미검증 generation 삭제"
+expect_ok "generation inode 경합 반례용 profile 설치" node "$MANAGE" install --profile workflow-assisted --runtime codex --target "$TMP/inode-target"
+inode_generation="$(realpath "$TMP/inode-target")"
+(
+  sleep 0.25
+  mv "$inode_generation" "$inode_generation.held"
+  mkdir "$inode_generation"
+  printf 'preserve\n' > "$inode_generation/user.txt"
+) &
+inode_swap_pid=$!
+node "$MANAGE" update --profile workflow-assisted --runtime codex --target "$TMP/inode-target" >"$TMP/out" 2>&1 || true
+wait "$inode_swap_pid"
+[ -f "$inode_generation/user.txt" ] && pass "update cleanup이 교체된 generation inode 보존" || fail "update cleanup이 교체된 generation inode 삭제"
 expect_ok "catalog mismatch 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/old-version"
 node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.version="0.59.0"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/old-version/profile-state.json"
 expect_fail "doctor가 catalog version mismatch 탐지" node "$DOCTOR" --target "$TMP/old-version"
