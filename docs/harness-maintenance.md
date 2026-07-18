@@ -36,6 +36,14 @@ node scripts/build-packages.mjs --check
 node scripts/build-packages.mjs --output /tmp/team-harness-packages
 ```
 
+정식 릴리즈 검토용 source·staged package bundle은 dirty worktree가 아닌 기록된 `HEAD`에서 만들고 checksum을
+검증한다. 이 명령은 태그·GitHub Release·marketplace publication을 수행하지 않는다.
+
+```bash
+node scripts/build-release-bundle.mjs --output /tmp/team-harness-release
+(cd /tmp/team-harness-release && shasum -a 256 -c SHA256SUMS)
+```
+
 생성된 `harness-package.json`의 `installable`이 `false`인 동안에는 marketplace에 등록하거나 기존
 `harness-guard`를 대체하지 않는다. v0.60.0부터 아래 명령으로 명시한 filesystem 대상에서 profile 수명주기를
 실측할 수 있지만 사용자 plugin cache/config는 변경하지 않는다.

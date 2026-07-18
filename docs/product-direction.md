@@ -82,7 +82,8 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
    [`product-boundaries.md`](product-boundaries.md)에 정의했다.
 4. [x] **배포 단순화:** package 정본·재현 build와 세 profile의 filesystem 설치·업데이트·비활성화·제거·doctor
    실측을 완료했다. 사용자 전역 marketplace 승격은 호환성 검증 뒤 별도 승인으로 남긴다.
-5. **오픈소스 제품화:** 영문 Quick Start, 지원 환경, SECURITY·CONTRIBUTING·CHANGELOG와 release artifact 정리.
+5. [x] **오픈소스 제품화:** 영문 Quick Start, 지원 환경, SECURITY·CONTRIBUTING·생성형 CHANGELOG와
+   기록된 `HEAD` 기반 release bundle·SHA-256 provenance를 정리했다. marketplace 공개는 호환성 검증 뒤다.
 6. **호환성 검증:** 다른 skill/plugin과 함께 설치한 clean-session 충돌·우선순위 테스트.
 7. **외부 파일럿:** 독립 프로젝트에서 설치 시간, 차단 오탐·누락, 유지보수 비용을 측정해 방향을 재검증.
 
