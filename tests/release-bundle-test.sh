@@ -76,6 +76,41 @@ else
   fail 'bundle version도 recorded HEAD에서 파생'
 fi
 
+mkdir "$TMP/git-bin"
+REAL_GIT="$(command -v git)"
+cat >"$TMP/git-bin/git" <<'SH'
+#!/usr/bin/env bash
+for argument in "$@"; do
+  if [[ "$argument" == HEAD ]]; then
+    if [[ -e "$GIT_CALL_STATE" ]]; then
+      printf '%040d\n' 0
+      exit 0
+    fi
+    : >"$GIT_CALL_STATE"
+    exec "$REAL_GIT" "$@"
+  fi
+done
+exec "$REAL_GIT" "$@"
+SH
+chmod +x "$TMP/git-bin/git"
+if PATH="$TMP/git-bin:$PATH" REAL_GIT="$REAL_GIT" GIT_CALL_STATE="$TMP/git-call-state" \
+  node "$ROOT/scripts/build-release-bundle.mjs" --output "$TMP/pinned-commit" >/dev/null 2>&1 \
+  && node - "$TMP/pinned-commit" <<'NODE'
+const fs = require('fs')
+const path = require('path')
+const root = process.argv[2]
+const manifest = JSON.parse(fs.readFileSync(path.join(root, 'RELEASE-MANIFEST.json')))
+const metadata = fs.readdirSync(path.join(root, 'packages')).map((name) =>
+  JSON.parse(fs.readFileSync(path.join(root, 'packages', name, 'harness-package.json'))),
+)
+if (metadata.some((entry) => entry.sourcePluginCommit !== manifest.sourceCommit)) process.exit(1)
+NODE
+then
+  pass '최초 commit SHA가 bundle·package provenance 전체에 고정'
+else
+  fail '단일 commit provenance 원자성'
+fi
+
 if node "$ROOT/scripts/build-release-bundle.mjs" --output "$TMP/one" >/dev/null 2>&1; then
   fail '기존 output 덮어쓰기 거부'
 else

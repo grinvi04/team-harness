@@ -165,8 +165,10 @@ function replaceTarget(target, stage, expectedGeneration = null) {
   const link = `${target}.link-${process.pid}-${Date.now()}`
   let oldGeneration = null
   try {
+    if (expectedGeneration && !existsSync(target)) throw new Error('managed target changed during operation')
     if (existsSync(target)) {
       if (!lstatSync(target).isSymbolicLink()) {
+        if (expectedGeneration) throw new Error('managed target changed during operation')
         if (readdirSync(target).length > 0) throw new Error('managed target must be a profile symlink')
         rmSync(target, { recursive: true })
       } else {
