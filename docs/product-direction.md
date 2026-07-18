@@ -78,7 +78,8 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
    [`public-safety-audit.md`](public-safety-audit.md)에 기록했다.
 2. [x] **플랫폼 중복 감사:** 현재 skill·hook·agent·Codex patch를 소유/연결/위임으로 전수 분류. 결과는
    [`platform-overlap-audit.md`](platform-overlap-audit.md)에 기록했다.
-3. **제품 경계 분리:** 서버 거버넌스 core와 선택적 workflow 편의 기능의 설치·운영 경계 정의.
+3. [x] **제품 경계 분리:** 서버 거버넌스 core, runtime adapter, 선택 workflow의 설치·운영 경계를
+   [`product-boundaries.md`](product-boundaries.md)에 정의했다.
 4. **배포 단순화:** 설치·업데이트·제거·doctor를 안정적인 단일 진입점으로 정리하고 공식 surface를 우선 사용.
 5. **오픈소스 제품화:** 영문 Quick Start, 지원 환경, SECURITY·CONTRIBUTING·CHANGELOG와 release artifact 정리.
 6. **호환성 검증:** 다른 skill/plugin과 함께 설치한 clean-session 충돌·우선순위 테스트.
