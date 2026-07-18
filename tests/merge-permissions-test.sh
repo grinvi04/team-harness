@@ -27,6 +27,11 @@ assert_out \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(npm run *)' in a else 1)" \
   --base "$FIX/base.json" --rules typescript --fragments "$FRAGS"
 
+assert_out \
+  "AC1b: --rules typescript → 임의 node 실행 자동허용 제외" \
+  "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(node *)' not in a else 1)" \
+  --base "$FIX/base.json" --rules typescript --fragments "$FRAGS"
+
 # AC2: python + alembic → python3·pytest·alembic 전부 포함
 assert_out \
   "AC2: --rules python,alembic → python3·pytest·alembic 전부 포함" \
