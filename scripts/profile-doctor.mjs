@@ -5,6 +5,13 @@ import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+const pluginNames = new Map([
+  ['governance-core', 'harness-governance-core'],
+  ['claude-adapter', 'harness-claude-adapter'],
+  ['codex-adapter', 'harness-codex-adapter'],
+  ['workflow-pack', 'harness-workflows'],
+])
+
 function readJson(file) {
   return JSON.parse(readFileSync(file, 'utf8'))
 }
@@ -36,6 +43,7 @@ export function inspectProfile(target, { quiet = false } = {}) {
   if (!installed.has('governance-core')) throw new Error('governance core missing from state')
 
   for (const entry of state.packages) {
+    if (pluginNames.get(entry.unit) !== entry.pluginName) throw new Error(`package identity mismatch: ${entry.unit}`)
     const packageRoot = path.join(target, 'packages', entry.pluginName)
     if (!existsSync(packageRoot)) throw new Error(`package missing: ${entry.unit}`)
     const metadata = readJson(path.join(packageRoot, 'harness-package.json'))

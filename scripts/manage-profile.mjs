@@ -130,6 +130,7 @@ function installOrUpdate(options) {
 
 function mutateUnit(options) {
   if (!managed(options.target)) throw new Error('operation requires managed target')
+  inspectProfile(options.target, { quiet: true })
   if (options.operation === 'remove' && options.all) {
     rmSync(options.target, { recursive: true })
     return
