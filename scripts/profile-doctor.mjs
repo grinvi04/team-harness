@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash } from 'node:crypto'
-import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs'
+import { existsSync, lstatSync, realpathSync, readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -120,7 +120,15 @@ export function inspectProfile(target, { quiet = false, expectedTarget = target 
   return state
 }
 
-const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)
+function canonicalPath(file) {
+  try {
+    return realpathSync(file)
+  } catch {
+    return null
+  }
+}
+
+const isMain = process.argv[1] && canonicalPath(process.argv[1]) === canonicalPath(fileURLToPath(import.meta.url))
 if (isMain) {
   const index = process.argv.indexOf('--target')
   if (index < 0 || !process.argv[index + 1] || process.argv.length !== 4) {
