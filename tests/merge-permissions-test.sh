@@ -27,6 +27,11 @@ assert_out \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(npm run *)' in a else 1)" \
   --base "$FIX/base.json" --rules typescript --fragments "$FRAGS"
 
+assert_out \
+  "AC1b: --rules typescript → 임의 node 실행 자동허용 제외" \
+  "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(node *)' not in a else 1)" \
+  --base "$FIX/base.json" --rules typescript --fragments "$FRAGS"
+
 # AC2: python + alembic → python3·pytest·alembic 전부 포함
 assert_out \
   "AC2: --rules python,alembic → python3·pytest·alembic 전부 포함" \
@@ -63,11 +68,11 @@ assert_out \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(npm run *)' in a else 1)" \
   --base "$FIX/base.json" --rules " typescript " --fragments "$FRAGS"
 
-# AC8: nextjs·vue rule → 실 템플릿 fragment 매핑(npx next·vue-tsc 포함) — 회귀 방지
+# AC8: 실 stack template은 자식 프로세스 가능한 Bash 명령을 자동허용하지 않는다.
 assert_out \
-  "AC8: --rules nextjs,vue → npx next·vue-tsc 포함 (실 템플릿)" \
-  "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if all(x in a for x in ['Bash(npx next *)','Bash(npx vue-tsc *)']) else 1)" \
-  --base "$FIX/base.json" --rules nextjs,vue --fragments "$ROOT/templates/permissions"
+  "AC8: 모든 실 stack profile → base allow 외 자동허용 없음" \
+  "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if a == ['Bash(git *)'] else 1)" \
+  --base "$FIX/base.json" --rules typescript,python,alembic,java,nextjs,prisma,vue --docker --fragments "$ROOT/templates/permissions"
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

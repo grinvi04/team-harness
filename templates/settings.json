@@ -1,15 +1,11 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
-  "_comment": "프로젝트 .claude/settings.json 템플릿 — repo에 커밋해서 팀원과 공유한다(권한은 repo가 이미 스택 노출하므로 커밋해도 무방, 비공개는 repo private). **dev 권한 단일출처 = 이 커밋 파일** — 공통 베이스라인은 여기에, 스택별(npm·python·docker 등)은 new-repo.sh가 templates/permissions/<스택>.json에서 병합한다. settings.local.json(개인 오버라이드)은 폐지 권장 — 진짜 머신-특정만. extraKnownMarketplaces: grinvi04/team-harness (2026-07 public 전환 — decisions #73, 토큰 없이 checkout 가능) — 사내 git 호스팅 확정 시 교체 가능. 프로젝트 고유 가드(DB 마이그레이션 보호 등)가 필요하면 최상위에 hooks 키를 추가한다 — harness-guard 플러그인 훅과 공존함. (hooks 객체 안에는 이벤트명 외 키 금지 — 스키마 위반) **위협모델(#237)**: ① Read(**/.env) deny는 Read 도구만 막고 allow된 Bash 리더(cat·grep)로 `cat .env` 우회 가능 → deny에 Bash(cat|grep *.env*) 추가(CC는 deny>allow, '*'가 공백·경로 포함 매칭). **best-effort 한계**: Bash 문자열 deny는 변수전개(`x=.env;cat $x`)·명령치환(`cat $(echo .env)`)·`grep -r`(파일명 미기재)·미-allow 리더(head·less·xxd·python -c)를 못 막는다 — 실질 통제선은 시크릿-유출 훅+secret-scan+시크릿 미커밋(계층0). ② extraKnownMarketplaces가 public repo 지목 = 공급망 표면(decisions #73 의도된 변경, repo write 권한이 통제선). ③ Bash(gh api *) 광범위 allow = solo-merge break-glass(branch protection DELETE)에 필요한 설계 — 좁히면 break-glass 파손이라 유지. 정본: docs/decisions.md #237 행.",
+    "_comment": "프로젝트 .claude/settings.json 템플릿 — repo에 커밋해서 팀원과 공유한다. dev 권한 단일출처는 이 파일이며 스택별 권한은 new-repo.sh가 병합한다. extraKnownMarketplaces는 공개 team-harness를 지목한다. Read(**/.env)와 allow된 cat·grep의 .env 열람은 deny한다. Bash 문자열 deny는 변수전개·명령치환 등을 완전히 해석하지 못하므로 시크릿 유출 훅과 secret-scan이 재검증한다. gh api는 읽기·mutation을 권한 매처가 구분하지 못하므로 광범위 자동허용하지 않으며, 보호 변경은 전용 wrapper에서만 수행한다.",
   "permissions": {
     "allow": [
-      "Bash(git *)",
       "Bash(gh pr *)",
-      "Bash(gh api *)",
       "Bash(gh repo view *)",
-      "Bash(bash * pr-merge.sh --auto *)",
       "Bash(ls *)",
-      "Bash(find *)",
       "Bash(grep *)",
       "Bash(cat *)",
       "Bash(echo *)",

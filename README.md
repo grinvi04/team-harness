@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.58.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.59.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -20,6 +20,7 @@
 ## 목차
 
 - [✨ 주요 기능](#-주요-기능)
+- [🧭 제품 방향](#-제품-방향)
 - [🧱 기술 스택](#-기술-스택)
 - [🏗️ 아키텍처](#️-아키텍처)
 - [harness-guard 플러그인](#harness-guard-플러그인)
@@ -28,6 +29,17 @@
 - [📁 repo 구조](#-repo-구조)
 - [📚 팀 표준 문서](#-팀-표준-문서-docs)
 - [📄 라이선스](#-라이선스)
+
+---
+
+## 🧭 제품 방향
+
+Team Harness는 코딩 에이전트나 개발 방법론을 새로 만드는 프로젝트가 아니다. 실행 플랫폼의 공식 기능을
+우선 사용하고, **GitHub 정책·검증 증거·감사·PR/릴리스 delivery 강제**를 연결하는 계층에 집중한다.
+
+신규 기능은 `소유 / 연결 / 위임`으로 판정한다. 서버 강제와 증거 계약은 직접 소유하고, skill·hook·subagent 등
+플랫폼이 안정적으로 제공하는 실행 기능은 복제하지 않는다. 상세 원칙과 로드맵의 정본은
+[`docs/product-direction.md`](docs/product-direction.md)다.
 
 ---
 
@@ -105,6 +117,15 @@ flowchart TD
 ## harness-guard 플러그인
 
 공식 플러그인이 제공하지 않는 **자체 정책만** 담는다.
+
+현재 설치 단위는 호환성을 위해 `harness-guard` 하나다. 다음 배포 단계에서 사용할 governance core,
+Claude·Codex adapter, 선택 workflow의 파일 소속과 manifest는 `packaging/packages.json`이 정본이며 아래 명령으로
+clean 디렉터리에 재현 가능한 staged artifact를 만들 수 있다. 이 artifact는 아직 marketplace 설치 대상이 아니다.
+
+```bash
+node scripts/build-packages.mjs --check
+node scripts/build-packages.mjs --output /tmp/team-harness-packages
+```
 
 | 구성 요소 | 내용 |
 |---|---|
@@ -251,6 +272,8 @@ team-harness/
 ├── .claude-plugin/marketplace.json    사내 마켓플레이스 카탈로그
 ├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
 ├── plugins/harness-guard/             플러그인 본체 (아래 상세)
+├── packaging/packages.json            core·adapter·workflow package 소속·호환성 정본
+├── scripts/build-packages.mjs         staged package artifact 검증·조립
 ├── scripts/new-repo.sh                신규 repo 셋업 자동화 (템플릿 복사 + branch protection)
 ├── scripts/harness-doctor.sh          Codex·repo·GitHub 상태 종합 점검 (`--probe`로 실세션 검증)
 ├── scripts/codex-fresh-session-smoke.sh  실제 ephemeral Codex hook 발화 검증
@@ -279,6 +302,10 @@ team-harness/
 
 | 문서 | 내용 |
 |---|---|
+| [product-direction.md](docs/product-direction.md) | 제품 정체성 · 소유/위임 경계 · 신규 기능 판단 게이트 · 우선순위 로드맵 |
+| [public-safety-audit.md](docs/public-safety-audit.md) | Git 히스토리 시크릿 · 공개 식별정보 · 라이선스/provenance 공개 안전성 감사 |
+| [platform-overlap-audit.md](docs/platform-overlap-audit.md) | skill · hook · agent · Codex 호환 계층의 소유/연결/위임 전수 분류 |
+| [product-boundaries.md](docs/product-boundaries.md) | governance core · runtime adapter · 선택 workflow의 설치·운영 경계 |
 | [intro.html](docs/intro.html) | 한눈에 보는 team-harness 소개 페이지 (아키텍처·스킬·가드·티어링·게이트 시각화) |
 | [developer-workflow.md](docs/developer-workflow.md) | 개발자의 일상 작업 가이드 — 기능·수정·머지·hotfix·release 흐름과 막혔을 때의 다음 행동 |
 | [onboarding.md](docs/onboarding.md) | 신규 프로젝트 셋업 · 팀원 온보딩 · managed settings 로컬 시뮬레이션 |
@@ -321,6 +348,9 @@ team-harness/
 - 개발 도구로 Claude Code와 Codex를 모두 지원하며, Gemini는 `AGENTS.md` + 계층 0 범위로 제한
 
 ## 로드맵
+
+제품 방향과 우선순위의 정본은 [`docs/product-direction.md`](docs/product-direction.md)다. 아래는 구축 이력과
+현재 운영 트리거만 유지한다.
 
 - [x] v0.1 스캐폴딩 — 마켓플레이스 + harness-guard(가드·게이트·커맨드·에이전트) + 템플릿 + 온보딩
 - [x] 로컬 마켓플레이스 설치·가드 실동작 검증 (cd 우회 차단, settings 키 포맷 스키마 대조)

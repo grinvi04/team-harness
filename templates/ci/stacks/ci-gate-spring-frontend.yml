@@ -44,9 +44,9 @@ jobs:
         working-directory: backend  # CUSTOMIZE
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
         with:
           java-version: '21'        # CUSTOMIZE: 17이면 '17'
           distribution: corretto
@@ -62,9 +62,9 @@ jobs:
         working-directory: frontend  # CUSTOMIZE
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: '22'  # CUSTOMIZE: .nvmrc 있으면 node-version-file: frontend/.nvmrc
           cache: npm
@@ -80,10 +80,10 @@ jobs:
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Organization repo는 GITLEAKS_LICENSE secret 필요 (개인 repo는 불필요)

@@ -36,7 +36,7 @@ set -uo pipefail
 #     "N"(≥1) = 팀(appr>=N면 ok · None/미달=drift).
 #   echo "ok"(부합, rc0) 또는 "drift:<사유들>"(rc1).
 classify_protection() {
-  local appr="$1" adm="$2" chk="$3" expected="${4:-}" strict="${5:-}" fpush="${6:-}" del="${7:-}" msg="" okappr=false okchk=false okstrict=true okfpush=true okdel=true
+  local appr="$1" adm="$2" chk="$3" expected="${4:-}" strict="${5:-}" fpush="${6:-}" del="${7:-}" conv="${8:-}" msg="" okappr=false okchk=false okstrict=true okfpush=true okdel=true okconv=true
   if [ -z "$expected" ]; then
     [ "$appr" != "?" ] && okappr=true                                   # 정보성: 파싱된 값이면 개수 무관 통과
   elif [ "$expected" = "0" ]; then
@@ -52,7 +52,8 @@ classify_protection() {
   #   guard 재설계 [A]의 "force-push를 계층0에 위임" 전제가 붕괴한다. ""=미지정(무관) · "?"/None 등=fail-closed(drift).
   case "$fpush" in ""|false|False) ;; *) okfpush=false;; esac
   case "$del" in ""|false|False) ;; *) okdel=false;; esac
-  if $okappr && [ "$adm" = "True" ] && $okchk && $okstrict && $okfpush && $okdel; then echo "ok"; return 0; fi
+  case "$conv" in ""|true|True) ;; *) okconv=false;; esac
+  if $okappr && [ "$adm" = "True" ] && $okchk && $okstrict && $okfpush && $okdel && $okconv; then echo "ok"; return 0; fi
   if ! $okappr; then
     if [ -z "$expected" ];       then msg="$msg 승인요건 파싱실패=$appr"
     elif [ "$expected" = "0" ];  then msg="$msg 승인요건=$appr(솔로표준0·팀이면 --approvals N)"
@@ -63,6 +64,7 @@ classify_protection() {
   $okstrict || msg="$msg strict=$strict(표준=true · false면 stale-green 머지 허용)"
   $okfpush || msg="$msg allow_force_pushes=$fpush(표준=false · true면 계층0 force-push 차단 부재 → 재설계 [A] 위임 전제 붕괴)"
   $okdel || msg="$msg allow_deletions=$del(표준=false · true면 브랜치 삭제 가능)"
+  $okconv || msg="$msg required_conversation_resolution=$conv(표준=true)"
   echo "drift:$msg"; return 1
 }
 
@@ -117,9 +119,10 @@ for branch in main develop; do
     # allow_force_pushes/allow_deletions(표준=false) — 계층0이 force-push·삭제를 실제로 막는지. 재설계 [A] 전제.
     fpush=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_force_pushes',{}).get('enabled'))" 2>/dev/null || echo "?")
     del=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_deletions',{}).get('enabled'))" 2>/dev/null || echo "?")
+    conv=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('required_conversation_resolution',{}).get('enabled'))" 2>/dev/null || echo "?")
     # 승인 baseline: main만 --approvals N으로 검증(develop은 승인0 유지라 정보성). 미지정=정보성(개수 무관).
     exp=""; [ "$branch" = "main" ] && exp="$APPROVALS"
-    verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp" "$strict" "$fpush" "$del") || true
+    verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp" "$strict" "$fpush" "$del" "$conv") || true
     if [ "$verdict" = "ok" ]; then
       echo "✓ $REPO:$branch — 보호 적용(승인$appr · enforce_admins=on · checks=$chk)"
     else

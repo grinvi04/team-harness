@@ -43,6 +43,42 @@ classify_ci_gate() {
 # 미해결 리뷰 스레드 게이트: "0"만 통과. ""·"ERR"·"1"+ 는 fail-CLOSED(쿼리 실패=검증 불가=중단).
 gate_threads() { [ "$1" = "0" ]; }
 
+thread_page_state() {
+  local cfg out; cfg=$(cat)
+  if command -v python3 >/dev/null 2>&1; then
+    out=$(printf '%s' "$cfg" | python3 -c 'import json,sys
+d=json.load(sys.stdin)["data"]["repository"]["pullRequest"]["reviewThreads"]
+count=sum(not n["isResolved"] for n in d["nodes"]); page=d["pageInfo"]
+assert isinstance(page["hasNextPage"], bool)
+print("%s|%s|%s" % (count, str(page["hasNextPage"]).lower(), page.get("endCursor") or ""))' 2>/dev/null) && [ -n "$out" ] && { printf '%s\n' "$out"; return 0; }
+  fi
+  if command -v jq >/dev/null 2>&1; then
+    out=$(printf '%s' "$cfg" | jq -er '.data.repository.pullRequest.reviewThreads | select(.pageInfo.hasNextPage | type == "boolean") | "\([.nodes[]|select(.isResolved==false)]|length)|\(.pageInfo.hasNextPage)|\(.pageInfo.endCursor // "")"' 2>/dev/null) && [ -n "$out" ] && { printf '%s\n' "$out"; return 0; }
+  fi
+  return 1
+}
+
+count_unresolved_threads() { # owner name pr
+  local owner="$1" name="$2" pr="$3" unresolved=0 cursor="" page state page_count has_next
+  while :; do
+    if [ -n "$cursor" ]; then
+      page=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!,$after:String){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100,after:$after){nodes{isResolved} pageInfo{hasNextPage endCursor}}}}}' \
+        -F o="$owner" -F n="$name" -F p="$pr" -f after="$cursor" 2>/dev/null) || return 1
+    else
+      page=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved} pageInfo{hasNextPage endCursor}}}}}' \
+        -F o="$owner" -F n="$name" -F p="$pr" 2>/dev/null) || return 1
+    fi
+    state=$(printf '%s' "$page" | thread_page_state) || return 1
+    IFS='|' read -r page_count has_next cursor <<EOF
+$state
+EOF
+    { [ "$has_next" = true ] || [ "$has_next" = false ]; } || return 1
+    unresolved=$((unresolved + page_count))
+    [ "$has_next" = true ] || { printf '%s\n' "$unresolved"; return 0; }
+    [ -n "$cursor" ] || return 1
+  done
+}
+
 # mergeable 게이트: "MERGEABLE"만 통과. UNKNOWN·CONFLICTING 등은 fail(충돌/계산 미완).
 gate_mergeable() { [ "$1" = "MERGEABLE" ]; }
 
@@ -121,9 +157,7 @@ else
 fi
 
 # 2) 미해결 리뷰 스레드 0 — fail-CLOSED(쿼리 실패=검증 불가 → 중단). CI·mergeable 게이트와 일관.
-UNRESOLVED=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100){nodes{isResolved}}}}}' \
-  -F o="$OWNER" -F n="$NAME" -F p="$PR" \
-  --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false)]|length' 2>/dev/null) || UNRESOLVED="ERR"
+UNRESOLVED=$(count_unresolved_threads "$OWNER" "$NAME" "$PR") || UNRESOLVED="ERR"
 if ! gate_threads "$UNRESOLVED"; then
   echo "  ⛔ 미해결 리뷰 스레드 미통과(값=$UNRESOLVED · ERR=API오류) — 머지 중단" >&2; exit 1
 fi

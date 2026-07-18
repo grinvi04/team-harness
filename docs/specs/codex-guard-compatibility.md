@@ -174,7 +174,7 @@ marketplace 네트워크 호출을 생략한다. `approval_policy = "untrusted"`
 현재 checkout을 최신 `develop`으로 갱신한 뒤, zsh에서 다음 alias를 명시적으로 설치할 수 있다.
 
 ```zsh
-alias codex='bash /Users/grinvi04/team-harness/scripts/codex-hardened.sh'
+alias codex='bash "$HOME/team-harness/scripts/codex-hardened.sh"'
 ```
 
 영구 설치는 `.zshrc`에 같은 alias를 넣고 새 shell을 열어 확인한다. 제거하려면 해당 alias 한 줄만 지운다.
@@ -291,7 +291,7 @@ PostToolUse hook (failed)
 The active hook source was:
 
 ```text
-/Users/grinvi04/.codex/plugins/cache/claude-plugins-official/security-guidance/2.0.6/hooks/hooks.json
+~/.codex/plugins/cache/claude-plugins-official/security-guidance/2.0.6/hooks/hooks.json
 ```
 
 That hook uses Claude Code fields and output assumptions:

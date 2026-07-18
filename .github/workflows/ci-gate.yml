@@ -14,7 +14,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: 쉘 구문 검사
         run: |
@@ -44,6 +44,14 @@ jobs:
           bash -n tests/commit-message-test.sh
           bash -n tests/loop-skill-test.sh
           bash -n tests/flagship-skills-test.sh
+          bash -n tests/product-direction-test.sh
+          bash -n tests/public-safety-audit-test.sh
+          bash -n tests/platform-overlap-audit-test.sh
+          bash -n tests/product-boundary-test.sh
+          bash -n tests/package-build-test.sh
+          bash -n tests/package-artifact-integrity-test.sh
+          bash -n tests/package-catalog-integrity-test.sh
+          bash -n tests/package-workflow-binding-test.sh
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
           bash -n tests/settings-deny-test.sh
@@ -64,6 +72,7 @@ jobs:
           bash -n tests/codex-managed-requirements-test.sh
           bash -n tests/codex-fresh-session-smoke-test.sh
           bash -n tests/harness-doctor-test.sh
+          bash -n tests/action-pin-test.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
           node --check plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
@@ -73,6 +82,7 @@ jobs:
           node --check plugins/harness-guard/scripts/run-with-timeout.mjs
           node --check plugins/harness-guard/scripts/worktree-fingerprint.mjs
           node --check scripts/check-commit-message.cjs
+          node --check scripts/build-packages.mjs
           node --check scripts/sync-codex-plugin-cache.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
@@ -89,6 +99,7 @@ jobs:
               "plugins/harness-guard/hooks/hooks.json",
               ".claude-plugin/marketplace.json",
               "templates/settings.json",
+              "packaging/packages.json",
           ] + sorted(glob.glob("templates/permissions/*.json"))
           for p in paths:
               json.load(open(p))
@@ -164,6 +175,30 @@ jobs:
       - name: 대표 디버깅·완료 검증 스킬 계약
         run: bash tests/flagship-skills-test.sh
 
+      - name: 제품 방향·신규 기능 판단 게이트 계약
+        run: bash tests/product-direction-test.sh
+
+      - name: 오픈소스 공개 안전성 baseline 계약
+        run: bash tests/public-safety-audit-test.sh
+
+      - name: 플랫폼 중복 감사 인벤토리 계약
+        run: bash tests/platform-overlap-audit-test.sh
+
+      - name: 제품 core·adapter·workflow 경계 계약
+        run: bash tests/product-boundary-test.sh
+
+      - name: 제품 package manifest·재현 build 계약
+        run: bash tests/package-build-test.sh
+
+      - name: package runtime binding·provenance 계약
+        run: bash tests/package-artifact-integrity-test.sh
+
+      - name: package catalog 검증·digest provenance 계약
+        run: bash tests/package-catalog-integrity-test.sh
+
+      - name: workflow pack→core runtime binding 계약
+        run: bash tests/package-workflow-binding-test.sh
+
       - name: subagent 모델 강제 훅 테스트
         run: bash tests/enforce-subagent-model-test.sh
 
@@ -212,12 +247,15 @@ jobs:
       - name: team-harness doctor 종합 판정
         run: bash tests/harness-doctor-test.sh
 
+      - name: GitHub Actions 공급망 SHA 고정
+        run: bash tests/action-pin-test.sh
+
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

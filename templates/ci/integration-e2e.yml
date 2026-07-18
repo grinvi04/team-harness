@@ -56,13 +56,13 @@ jobs:
       # CUSTOMIZE: 테스트 사용자/클라이언트 시크릿 등 (운영 시크릿 금지 — CI 전용 값)
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       # 1) realm·테스트 클라이언트·테스트 사용자 준비 (CUSTOMIZE: kcadm 또는 realm import)
       # - run: ./scripts/ci/keycloak-seed.sh
 
       # 2) 백엔드 기동 (실 DB·실 IdP 연결)
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
         with: { java-version: '21', distribution: corretto, cache: gradle }  # CUSTOMIZE
       - name: Start backend
         working-directory: backend   # CUSTOMIZE
@@ -73,7 +73,7 @@ jobs:
       # - run: ./scripts/ci/seed.sh   # CUSTOMIZE
 
       # 4) 프론트 + e2e (실 로그인 → 실 데이터 흐름)
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with: { node-version: 22, cache: npm, cache-dependency-path: frontend/package-lock.json }  # CUSTOMIZE
       - name: e2e
         working-directory: frontend  # CUSTOMIZE

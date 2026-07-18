@@ -26,10 +26,10 @@ jobs:
     # 활성화: repo(또는 org) Variables에 HARNESS_SYNC_ENABLED=true + Secrets에 HARNESS_RO_TOKEN(team-harness 읽기 PAT).
     if: ${{ vars.HARNESS_SYNC_ENABLED == 'true' }}
     steps:
-      - uses: actions/checkout@v5  # 대상 repo
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5  # 대상 repo
 
       - name: Checkout team-harness (표준 출처)
-        uses: actions/checkout@v5
+        uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           repository: grinvi04/team-harness   # CUSTOMIZE: 사내 호스팅 이전 시 교체
           ref: main                            # CUSTOMIZE: 태그/SHA로 핀 고정 권장
@@ -37,7 +37,7 @@ jobs:
           # team-harness가 private면 읽기 토큰 필요. public이면 이 줄 삭제:
           # token: ${{ secrets.HARNESS_RO_TOKEN }}
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22
 

@@ -45,9 +45,9 @@ jobs:
         working-directory: backend  # CUSTOMIZE
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version-file: backend/.nvmrc  # CUSTOMIZE: 없으면 node-version: 22
           cache: npm
@@ -71,9 +71,9 @@ jobs:
         working-directory: frontend  # CUSTOMIZE
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version-file: frontend/.nvmrc  # CUSTOMIZE: 없으면 node-version: 22
           cache: npm
@@ -89,7 +89,7 @@ jobs:
       # e2e가 있으면 아래 활성화
       # - run: npx playwright install chromium --with-deps
       # - run: npx playwright test
-      # - uses: actions/upload-artifact@v4
+      # - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
       #   if: failure()
       #   with:
       #     name: playwright-report
@@ -99,10 +99,10 @@ jobs:
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Organization repo는 GITLEAKS_LICENSE secret 필요 (개인 repo는 불필요)
