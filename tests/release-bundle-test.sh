@@ -3,7 +3,10 @@ set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
-trap 'rm -rf "$TMP"' EXIT
+SENTINEL_FILE="$ROOT/.release-bundle-dirty-sentinel-$$"
+SENTINEL_VALUE="dirty-$RANDOM-$$-$(date +%s)"
+trap 'rm -rf "$TMP"; rm -f "$SENTINEL_FILE"' EXIT
+printf '%s\n' "$SENTINEL_VALUE" >"$SENTINEL_FILE"
 PASS=0
 FAIL=0
 pass() { echo "PASS: $1"; PASS=$((PASS + 1)); }
@@ -42,7 +45,7 @@ else
   fail 'package 설치불가 경계 보존'
 fi
 
-if grep -Rq 'OPEN_SOURCE_BUNDLE_DIRTY_SENTINEL' "$TMP/one"; then
+if grep -Rq "$SENTINEL_VALUE" "$TMP/one"; then
   fail 'dirty worktree 내용이 bundle에 혼입'
 else
   pass 'dirty worktree 내용 격리'
