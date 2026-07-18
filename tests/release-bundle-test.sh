@@ -3,9 +3,12 @@ set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
+CATALOG="$ROOT/packaging/packages.json"
+CATALOG_BACKUP="$TMP/packages.json"
 SENTINEL_FILE="$ROOT/.release-bundle-dirty-sentinel-$$"
 SENTINEL_VALUE="dirty-$RANDOM-$$-$(date +%s)"
-trap 'rm -rf "$TMP"; rm -f "$SENTINEL_FILE"' EXIT
+cp "$CATALOG" "$CATALOG_BACKUP"
+trap 'cp "$CATALOG_BACKUP" "$CATALOG" 2>/dev/null || true; rm -rf "$TMP"; rm -f "$SENTINEL_FILE"' EXIT
 printf '%s\n' "$SENTINEL_VALUE" >"$SENTINEL_FILE"
 PASS=0
 FAIL=0
@@ -50,6 +53,21 @@ if grep -Rq "$SENTINEL_VALUE" "$TMP/one"; then
 else
   pass 'dirty worktree 내용 격리'
 fi
+
+node - "$CATALOG" <<'NODE'
+const fs = require('fs')
+const file = process.argv[2]
+const catalog = JSON.parse(fs.readFileSync(file))
+catalog.packages[0].description = 'DIRTY CATALOG MUST NOT ENTER RELEASE BUNDLE'
+fs.writeFileSync(file, `${JSON.stringify(catalog, null, 2)}\n`)
+NODE
+if node "$ROOT/scripts/build-release-bundle.mjs" --output "$TMP/dirty-catalog" >/dev/null 2>&1 \
+  && ! grep -Rq 'DIRTY CATALOG MUST NOT ENTER RELEASE BUNDLE' "$TMP/dirty-catalog/packages"; then
+  pass 'tracked dirty catalog가 recorded HEAD provenance에 혼입되지 않음'
+else
+  fail 'tracked dirty catalog provenance 격리'
+fi
+cp "$CATALOG_BACKUP" "$CATALOG"
 
 RECORDED_VERSION="$(git -C "$ROOT" show HEAD:plugins/harness-guard/.claude-plugin/plugin.json | node -e "let s='';process.stdin.on('data',d=>s+=d);process.stdin.on('end',()=>console.log(JSON.parse(s).version))")"
 if node -e "const m=require(process.argv[1]);process.exit(m.version===process.argv[2]?0:1)" "$TMP/one/RELEASE-MANIFEST.json" "$RECORDED_VERSION"; then

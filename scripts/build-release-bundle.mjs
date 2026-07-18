@@ -49,9 +49,14 @@ try {
       encoding: 'utf8',
     }),
   ).version
+  const catalog = path.join(temporary, 'packages.json')
+  writeFileSync(catalog, execFileSync('git', ['show', 'HEAD:packaging/packages.json'], { cwd: root }))
   const archive = `team-harness-v${version}-source.tar`
   execFileSync('git', ['archive', '--format=tar', `--prefix=team-harness-v${version}/`, '-o', path.join(temporary, archive), 'HEAD'], { cwd: root })
-  execFileSync(process.execPath, [path.join(root, 'scripts/build-packages.mjs'), '--output', path.join(temporary, 'packages')], { cwd: root, stdio: 'pipe' })
+  execFileSync(process.execPath, [
+    path.join(root, 'scripts/build-packages.mjs'), '--catalog', catalog, '--output', path.join(temporary, 'packages'),
+  ], { cwd: root, stdio: 'pipe' })
+  rmSync(catalog)
 
   const packageFiles = filesBelow(path.join(temporary, 'packages')).map((file) => ({
     path: `packages/${file}`,

@@ -54,6 +54,9 @@ expect_fail "core 단독 제거 거부" node "$MANAGE" remove --unit governance-
 
 expect_ok "동일 source update" node "$MANAGE" update --profile agent-governed --runtime codex --target "$TMP/agent"
 expect_ok "update 후 doctor" node "$DOCTOR" --target "$TMP/agent"
+node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.version="0.59.0"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/agent/profile-state.json"
+expect_ok "이전 version profile update" node "$MANAGE" update --profile agent-governed --runtime codex --target "$TMP/agent"
+expect_ok "version update 후 doctor" node "$DOCTOR" --target "$TMP/agent"
 before_update=$(state_digest "$TMP/agent")
 expect_fail "잘못된 profile update 거부" node "$MANAGE" update --profile unknown --runtime codex --target "$TMP/agent"
 after_update=$(state_digest "$TMP/agent")
@@ -82,6 +85,56 @@ external_before=$(node -e 'const f=require("fs"),c=require("crypto"); console.lo
 expect_fail "symlink state mutation 거부" node "$MANAGE" disable --unit workflow-pack --target "$TMP/symlinked"
 external_after=$(node -e 'const f=require("fs"),c=require("crypto"); console.log(c.createHash("sha256").update(f.readFileSync(process.argv[1])).digest("hex"))' "$TMP/external-state.json")
 [ "$external_before" = "$external_after" ] && pass "symlink state 외부 파일 보존" || fail "symlink state overwrite"
+expect_ok "mutation TOCTOU 반례용 profile 설치" node "$MANAGE" install --profile workflow-assisted --runtime codex --target "$TMP/race-target"
+race_generation="$(realpath "$TMP/race-target")"
+cp -R "$race_generation" "$TMP/.race-target.attacker-generation"
+mkdir "$TMP/race-victim"
+printf 'keep\n' > "$TMP/race-victim/user.txt"
+node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.packages.find(x=>x.unit==="workflow-pack").pluginName="../../race-victim"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/.race-target.attacker-generation/profile-state.json"
+cat >"$TMP/swap-realpath.mjs" <<'NODE'
+import fs from 'node:fs'
+import path from 'node:path'
+import { syncBuiltinESMExports } from 'node:module'
+const original = fs.realpathSync
+fs.realpathSync = function (value, ...args) {
+  if (path.resolve(String(value)) === path.resolve(process.env.HARNESS_RACE_TARGET)) {
+    return process.env.HARNESS_RACE_GENERATION
+  }
+  return original.call(this, value, ...args)
+}
+syncBuiltinESMExports()
+NODE
+if HARNESS_RACE_TARGET="$TMP/race-target" HARNESS_RACE_GENERATION="$TMP/.race-target.attacker-generation" \
+  NODE_OPTIONS="--import=$TMP/swap-realpath.mjs" node "$MANAGE" remove --unit workflow-pack --target "$TMP/race-target" >"$TMP/out" 2>&1; then
+  fail "검증 generation과 mutation generation 불일치 거부"
+elif [ -f "$TMP/race-victim/user.txt" ]; then
+  pass "mutation generation 교체가 외부 경로를 보존"
+else
+  fail "mutation TOCTOU가 외부 경로 삭제"
+fi
+expect_ok "update ownership 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/update-target"
+mkdir "$TMP/.update-target.fake-generation"
+printf 'managed-by=team-harness\n' > "$TMP/.update-target.fake-generation/.team-harness-profile"
+printf '{}\n' > "$TMP/.update-target.fake-generation/profile-state.json"
+printf 'preserve\n' > "$TMP/.update-target.fake-generation/user.txt"
+rm "$TMP/update-target"
+ln -s .update-target.fake-generation "$TMP/update-target"
+expect_fail "update가 검증되지 않은 generation 거부" node "$MANAGE" update --profile repository-only --target "$TMP/update-target"
+[ -f "$TMP/.update-target.fake-generation/user.txt" ] && pass "update가 미검증 generation 보존" || fail "update가 미검증 generation 삭제"
+expect_fail "remove --all이 검증되지 않은 generation 거부" node "$MANAGE" remove --all --target "$TMP/update-target"
+[ -f "$TMP/.update-target.fake-generation/user.txt" ] && pass "remove --all이 미검증 generation 보존" || fail "remove --all이 미검증 generation 삭제"
+expect_ok "generation inode 경합 반례용 profile 설치" node "$MANAGE" install --profile workflow-assisted --runtime codex --target "$TMP/inode-target"
+inode_generation="$(realpath "$TMP/inode-target")"
+(
+  sleep 0.25
+  mv "$inode_generation" "$inode_generation.held"
+  mkdir "$inode_generation"
+  printf 'preserve\n' > "$inode_generation/user.txt"
+) &
+inode_swap_pid=$!
+node "$MANAGE" update --profile workflow-assisted --runtime codex --target "$TMP/inode-target" >"$TMP/out" 2>&1 || true
+wait "$inode_swap_pid"
+[ -f "$inode_generation/user.txt" ] && pass "update cleanup이 교체된 generation inode 보존" || fail "update cleanup이 교체된 generation inode 삭제"
 expect_ok "catalog mismatch 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/old-version"
 node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.version="0.59.0"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/old-version/profile-state.json"
 expect_fail "doctor가 catalog version mismatch 탐지" node "$DOCTOR" --target "$TMP/old-version"

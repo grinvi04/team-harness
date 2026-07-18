@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process'
-import { existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from 'node:fs'
+import { closeSync, existsSync, fstatSync, lstatSync, mkdirSync, mkdtempSync, openSync, realpathSync, rmSync, writeFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -21,11 +21,22 @@ function parseArgs(argv) {
     } else throw new Error(`unknown or incomplete argument: ${argument}`)
   }
   if (!options.repo || !options.output) throw new Error('--repo and --output are required')
-  if (options.output === options.repo || options.output.startsWith(`${options.repo}${path.sep}`)) {
-    throw new Error('output must be outside the pilot repository')
-  }
   if (existsSync(options.output)) throw new Error(`output already exists: ${options.output}`)
   return options
+}
+
+function safeEnvironment(environment = process.env) {
+  return Object.fromEntries(Object.entries(environment).filter(([name]) => !name.startsWith('GIT_')))
+}
+
+function canonicalDestination(destination) {
+  const missing = []
+  let ancestor = path.dirname(destination)
+  while (!existsSync(ancestor)) {
+    missing.unshift(path.basename(ancestor))
+    ancestor = path.dirname(ancestor)
+  }
+  return path.join(realpathSync(ancestor), ...missing, path.basename(destination))
 }
 
 function run(command, args, { cwd = root, input = null, env = process.env } = {}) {
@@ -39,7 +50,10 @@ function run(command, args, { cwd = root, input = null, env = process.env } = {}
 }
 
 function git(repo, args, allowFailure = false) {
-  const result = run('git', args, { cwd: repo })
+  const result = run('git', ['-c', 'core.fsmonitor=false', ...args], {
+    cwd: repo,
+    env: { ...safeEnvironment(), GIT_OPTIONAL_LOCKS: '0' },
+  })
   if (!allowFailure && result.status !== 0) throw new Error(`git ${args[0]} failed: ${result.stderr.trim()}`)
   return result
 }
@@ -48,10 +62,11 @@ function sanitizeRemote(value) {
   if (!value) return null
   try {
     const url = new URL(value)
+    if (!['http:', 'https:', 'ssh:', 'git:'].includes(url.protocol) || !url.hostname) return null
     return `${url.hostname}${url.pathname}`.replace(/\/$/, '')
   } catch {
-    const scp = /^(?:[^@]+@)?([^:]+):(.+)$/.exec(value)
-    if (scp) return `${scp[1]}/${scp[2]}`.replace(/\/$/, '')
+    const scp = /^(?:[^@\s]+@)?([A-Za-z0-9](?:[A-Za-z0-9.-]*[A-Za-z0-9])?):([^\\\s]+)$/.exec(value)
+    if (scp) return `${scp[1]}/${scp[2].replace(/[?#].*$/, '')}`.replace(/\/$/, '')
     return null
   }
 }
@@ -113,10 +128,26 @@ function probeGuard(repo, isolatedHome) {
 }
 
 let temporary = null
+let createdOutput = null
+let outputDescriptor = null
+let outputIdentity = null
 try {
   const options = parseArgs(process.argv.slice(2))
   const inside = git(options.repo, ['rev-parse', '--is-inside-work-tree'], true)
   if (inside.status !== 0 || inside.stdout.trim() !== 'true') throw new Error('Git repository required')
+  options.repo = realpathSync(git(options.repo, ['rev-parse', '--show-toplevel']).stdout.trim())
+  const canonicalOutput = canonicalDestination(options.output)
+  if (canonicalOutput === options.repo || canonicalOutput.startsWith(`${options.repo}${path.sep}`)) {
+    throw new Error('output must be outside the pilot repository')
+  }
+  mkdirSync(path.dirname(canonicalOutput), { recursive: true })
+  options.output = path.join(realpathSync(path.dirname(canonicalOutput)), path.basename(canonicalOutput))
+  if (options.output === options.repo || options.output.startsWith(`${options.repo}${path.sep}`)) {
+    throw new Error('output must be outside the pilot repository')
+  }
+  outputDescriptor = openSync(options.output, 'wx', 0o600)
+  outputIdentity = fstatSync(outputDescriptor)
+  createdOutput = options.output
   const branch = git(options.repo, ['branch', '--show-current']).stdout.trim()
   if (!branch) throw new Error('attached branch required')
   const beforeHead = git(options.repo, ['rev-parse', 'HEAD']).stdout.trim()
@@ -172,12 +203,22 @@ try {
       'The pilot does not execute application tests, deployments, LLM sessions, or marketplace installation.',
     ],
   }
-  mkdirSync(path.dirname(options.output), { recursive: true })
-  const stagedOutput = `${options.output}.tmp-${process.pid}`
-  writeFileSync(stagedOutput, `${JSON.stringify(report, null, 2)}\n`, { flag: 'wx' })
-  renameSync(stagedOutput, options.output)
+  writeFileSync(outputDescriptor, `${JSON.stringify(report, null, 2)}\n`)
+  closeSync(outputDescriptor)
+  outputDescriptor = null
+  const finalHead = git(options.repo, ['rev-parse', 'HEAD']).stdout.trim()
+  const finalStatus = git(options.repo, ['status', '--porcelain=v1', '--untracked-files=all']).stdout
+  if (finalHead !== beforeHead || finalStatus !== beforeStatus) {
+    throw new Error('pilot repository changed while writing report')
+  }
+  createdOutput = null
   console.log(`OK repo=${report.repo.name} installMs=${installMs} missing=${drift.missing} fp=${guard.sampleFalsePositives} fn=${guard.sampleFalseNegatives}`)
 } catch (error) {
+  if (outputDescriptor !== null) closeSync(outputDescriptor)
+  if (createdOutput && existsSync(createdOutput)) {
+    const current = lstatSync(createdOutput)
+    if (current.dev === outputIdentity.dev && current.ino === outputIdentity.ino) rmSync(createdOutput)
+  }
   usage()
   console.error(`external-pilot: ${error.message}`)
   process.exitCode = 1
