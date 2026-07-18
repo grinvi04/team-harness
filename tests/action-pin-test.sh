@@ -7,9 +7,11 @@ pattern="(^|[,{[:space:]-])[\"']?uses[\"']?[[:space:]]*:"
 check_line() {
   local line="$1" content value ref
   content=${line#*:}; content=${content#*:}
+  content=${content##+([[:space:]])}
+  if [[ "$content" == \#* ]]; then content=${content#\#}; fi
+  content=${content%%#*}
   value=$(printf '%s\n' "$content" | sed -E "s/.*[\"']?uses[\"']?[[:space:]]*:[[:space:]]*//")
-  value=${value##+([[:space:]])}; value=${value%% #*}
-  value=${value%%,+([[:space:]])}; value=${value%%\}+([[:space:]])}
+  value=${value%%,*}; value=${value%%\}*}; value=${value##+([[:space:]])}; value=${value%%+([[:space:]])}
   case "$value" in \"*\") value=${value#\"}; value=${value%\"};; \'*\') value=${value#\'}; value=${value%\'};; esac
   case "$value" in ./*) return 0;; esac
   case "$value" in docker://*) [[ "$value" =~ @sha256:[0-9a-f]{64}$ ]] || bad="${bad}${bad:+$'\n'}$line"; return 0;; esac
@@ -26,6 +28,8 @@ check_line 'x:3:  - uses: "./local-action"'; [ "$bad" = "$before" ] || { echo "F
 check_line 'x:4:  - {uses: actions/checkout@v5}'; [ "$bad" != "$before" ] || { echo "FAIL: flow mapping uses 미탐"; exit 1; }; bad="$before"
 check_line 'x:5:  - uses: docker://alpine:3.8'; [ "$bad" != "$before" ] || { echo "FAIL: mutable docker image 미탐"; exit 1; }; bad="$before"
 check_line 'x:6:  - uses: docker://alpine@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'; [ "$bad" = "$before" ] || { echo "FAIL: digest-pinned docker image 오탐"; exit 1; }
+check_line 'x:7:  - uses: vendor/action@v1 # replaces uses: vendor/action@0123456789abcdef0123456789abcdef01234567'; [ "$bad" != "$before" ] || { echo "FAIL: comment 내부 uses로 가변 ref 우회"; exit 1; }; bad="$before"
+check_line 'x:8:  - {uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd, name: Checkout}'; [ "$bad" = "$before" ] || { echo "FAIL: 후속 flow mapping key 오탐"; exit 1; }
 if [ -n "$bad" ]; then
   echo "FAIL: 가변 또는 비-SHA Action 참조"
   echo "$bad"
