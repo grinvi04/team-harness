@@ -52,6 +52,7 @@ jobs:
           bash -n tests/package-artifact-integrity-test.sh
           bash -n tests/open-source-docs-test.sh
           bash -n tests/release-bundle-test.sh
+          bash -n tests/plugin-coexistence-test.sh
           bash -n tests/package-catalog-integrity-test.sh
           bash -n tests/package-workflow-binding-test.sh
           bash -n tests/profile-lifecycle-test.sh
@@ -88,6 +89,7 @@ jobs:
           node --check scripts/build-packages.mjs
           node --check scripts/build-release-bundle.mjs
           node --check scripts/generate-changelog.mjs
+          node --check scripts/check-plugin-coexistence.mjs
           node --check scripts/sync-codex-plugin-cache.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
@@ -212,6 +214,9 @@ jobs:
 
       - name: 릴리즈 bundle provenance·재현성 계약
         run: bash tests/release-bundle-test.sh
+
+      - name: plugin·skill clean-session 공존 계약
+        run: bash tests/plugin-coexistence-test.sh
 
       - name: subagent 모델 강제 훅 테스트
         run: bash tests/enforce-subagent-model-test.sh
