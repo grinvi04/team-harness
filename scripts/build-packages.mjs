@@ -25,8 +25,18 @@ const expectedUnits = new Map([
   ['workflow-pack', { kind: 'workflow', pluginName: 'harness-workflows' }],
 ])
 const legacyManifest = '.claude-plugin/plugin.json'
-const semverPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/
 const relativePathPattern = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))(?!.*\\)[^\0]+$/
+
+function isStrictSemver(value) {
+  const pattern =
+    /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-([0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*))?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/
+  const match = pattern.exec(value)
+  if (!match) return false
+  return (
+    !match[1] ||
+    match[1].split('.').every((part) => !/^\d+$/.test(part) || part === '0' || !part.startsWith('0'))
+  )
+}
 
 function usage() {
   console.error('usage: build-packages.mjs [--catalog <path>] (--check | --output <empty-dir>)')
@@ -101,7 +111,7 @@ function expectedCompatibility(version) {
 
 function validateCatalog(catalog) {
   if (catalog.schemaVersion !== 1) throw new Error('schemaVersion must be 1')
-  if (!semverPattern.test(catalog.version || '')) throw new Error('version must be strict semver')
+  if (!isStrictSemver(catalog.version || '')) throw new Error('version must be strict semver')
   if (catalog.sourcePlugin !== 'harness-guard') throw new Error('sourcePlugin must be harness-guard')
   if (!Array.isArray(catalog.packages) || catalog.packages.length !== expectedUnits.size) {
     throw new Error(`packages must contain exactly ${expectedUnits.size} units`)

@@ -61,6 +61,12 @@ elif operation.name == "traversal":
     packages["governance-core"]["sources"].append("../README.md")
 elif operation.name == "invalid-version":
     data["version"] = "0.59"
+elif operation.name in {"invalid-leading-zero", "invalid-prerelease"}:
+    version = "01.2.3" if operation.name == "invalid-leading-zero" else "1.2.3-alpha..1"
+    data["version"] = version
+    for package in data["packages"]:
+        for dependency in package["dependencies"]:
+            dependency["version"] = f">={version} <1.3.0"
 elif operation.name == "missing-source":
     packages["governance-core"]["sources"].append("scripts/does-not-exist.sh")
 else:
@@ -75,7 +81,7 @@ if [ -f "$CATALOG" ]; then pass "package catalog 존재"; else fail "package cat
 
 expect_ok "실제 source catalog 완전성" node "$BUILDER" --catalog "$CATALOG" --check
 
-for operation in duplicate missing reverse-dependency adapter-dependency traversal invalid-version missing-source; do
+for operation in duplicate missing reverse-dependency adapter-dependency traversal invalid-version invalid-leading-zero invalid-prerelease missing-source; do
   mutated="$TMP/$operation.json"
   if mutate_catalog "$mutated" "$operation"; then
     expect_fail "잘못된 catalog 거부: $operation" \
