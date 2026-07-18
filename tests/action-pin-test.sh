@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-set -u
+set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-mapfile_cmd() { rg --files "$ROOT/.github" "$ROOT/templates/ci" -g '*.yml' -g '*.yaml'; }
+workflow_files() { find "$ROOT/.github" "$ROOT/templates/ci" -type f \( -name '*.yml' -o -name '*.yaml' \); }
 
 ruby -ryaml -e '
 def refs(value, path = [], found = [])
@@ -27,7 +27,7 @@ end
 bad = []
 ARGV.each do |file|
   begin
-    doc = YAML.safe_load(File.read(file), [], [], true)
+    doc = YAML.safe_load(File.read(file), permitted_classes: [], permitted_symbols: [], aliases: true)
     refs(doc).each { |path, value| bad << "#{file}:#{path.join(".")}: #{value}" unless pinned?(value) }
   rescue Psych::Exception => error
     warn "FAIL: YAML parse #{file}: #{error.message}"
@@ -45,11 +45,11 @@ fixtures = {
   "escaped key" => [%("\\x75ses": actions/checkout@v5), false]
 }
 fixtures.each do |name, (yaml, expected)|
-  values = refs(YAML.safe_load(yaml)).map(&:last)
+  values = refs(YAML.safe_load(yaml, permitted_classes: [], permitted_symbols: [], aliases: false)).map(&:last)
   actual = values.length == 1 && pinned?(values.first)
   abort "FAIL: parser self-contract #{name}" unless actual == expected
 end
-alias_doc = YAML.safe_load("base: &step\n  uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd\ncopy: *step\n", [], [], true)
+alias_doc = YAML.safe_load("base: &step\n  uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd\ncopy: *step\n", permitted_classes: [], permitted_symbols: [], aliases: true)
 abort "FAIL: YAML alias Action 오탐" unless refs(alias_doc).all? { |_, value| pinned?(value) }
 
 unless bad.empty?
@@ -57,4 +57,4 @@ unless bad.empty?
   exit 1
 end
 puts "PASS: YAML AST 외부 Action 참조 full SHA 고정"
-' $(mapfile_cmd)
+' $(workflow_files)
