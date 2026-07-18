@@ -136,21 +136,37 @@ function mutateUnit(options) {
     return
   }
   if (!options.unit) throw new Error('operation requires --unit')
-  const stateFile = path.join(options.target, 'profile-state.json')
-  const state = JSON.parse(readFileSync(stateFile, 'utf8'))
-  const entry = state.packages.find((candidate) => candidate.unit === options.unit)
-  if (!entry) throw new Error(`unit not installed: ${options.unit}`)
-  if (options.operation === 'disable') {
-    if (entry.unit === 'governance-core') throw new Error('governance core cannot be disabled')
-    entry.enabled = false
+  const parent = path.dirname(options.target)
+  const stage = mkdtempSync(path.join(parent, `.${path.basename(options.target)}.mutation-`))
+  try {
+    cpSync(options.target, stage, { recursive: true })
+    const stateFile = path.join(stage, 'profile-state.json')
+    const state = JSON.parse(readFileSync(stateFile, 'utf8'))
+    const entry = state.packages.find((candidate) => candidate.unit === options.unit)
+    if (!entry) throw new Error(`unit not installed: ${options.unit}`)
+    if (options.operation === 'disable') {
+      if (entry.unit === 'governance-core') throw new Error('governance core cannot be disabled')
+      entry.enabled = false
+    } else {
+      if (entry.unit === 'governance-core') throw new Error('core removal requires --all')
+      if (entry.unit.endsWith('-adapter') && state.profile === 'workflow-assisted') {
+        throw new Error('remove workflow-pack before adapter')
+      }
+      rmSync(path.join(stage, 'packages', entry.pluginName), { recursive: true })
+      state.packages = state.packages.filter((candidate) => candidate.unit !== entry.unit)
+      if (entry.unit === 'workflow-pack') state.profile = 'agent-governed'
+      if (entry.unit.endsWith('-adapter')) {
+        state.profile = 'repository-only'
+        state.runtime = null
+      }
+    }
     writeJson(stateFile, state)
-  } else {
-    if (entry.unit === 'governance-core') throw new Error('core removal requires --all')
-    rmSync(path.join(options.target, 'packages', entry.pluginName), { recursive: true })
-    state.packages = state.packages.filter((candidate) => candidate.unit !== entry.unit)
-    writeJson(stateFile, state)
+    inspectProfile(stage, { quiet: true })
+    replaceTarget(options.target, stage)
+  } catch (error) {
+    rmSync(stage, { recursive: true, force: true })
+    throw error
   }
-  inspectProfile(options.target, { quiet: true })
 }
 
 try {

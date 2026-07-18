@@ -37,6 +37,12 @@ expect_ok "disable 후 core doctor" node "$DOCTOR" --target "$TMP/workflow"
 expect_ok "workflow remove" node "$MANAGE" remove --unit workflow-pack --target "$TMP/workflow"
 [ ! -d "$TMP/workflow/packages/harness-workflows" ] && [ -d "$TMP/workflow/packages/harness-governance-core" ] \
   && pass "선택 단위 제거 후 core 보존" || fail "선택 단위 제거 경계"
+node -e 'const s=require(process.argv[1]); process.exit(s.profile==="agent-governed"?0:1)' "$TMP/workflow/profile-state.json" \
+  && pass "workflow 제거 후 profile 전환" || fail "workflow profile 전환"
+expect_ok "adapter remove" node "$MANAGE" remove --unit claude-adapter --target "$TMP/workflow"
+node -e 'const s=require(process.argv[1]); process.exit(s.profile==="repository-only"&&s.runtime===null?0:1)' "$TMP/workflow/profile-state.json" \
+  && pass "adapter 제거 후 repository-only 전환" || fail "adapter profile 전환"
+expect_ok "선택 단위 제거 후 doctor" node "$DOCTOR" --target "$TMP/workflow"
 expect_fail "core 단독 제거 거부" node "$MANAGE" remove --unit governance-core --target "$TMP/workflow"
 
 expect_ok "동일 source update" node "$MANAGE" update --profile agent-governed --runtime codex --target "$TMP/agent"
@@ -72,6 +78,13 @@ external_after=$(node -e 'const f=require("fs"),c=require("crypto"); console.log
 expect_ok "catalog mismatch 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/old-version"
 node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.version="0.59.0"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/old-version/profile-state.json"
 expect_fail "doctor가 catalog version mismatch 탐지" node "$DOCTOR" --target "$TMP/old-version"
+expect_ok "composition 반례용 profile 설치" node "$MANAGE" install --profile workflow-assisted --runtime codex --target "$TMP/bad-composition"
+node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.packages=s.packages.filter(x=>x.unit!=="workflow-pack"); f.writeFileSync(p,JSON.stringify(s))' "$TMP/bad-composition/profile-state.json"
+rm -r "$TMP/bad-composition/packages/harness-workflows"
+expect_fail "doctor가 profile package 누락 탐지" node "$DOCTOR" --target "$TMP/bad-composition"
+expect_ok "binding 반례용 profile 설치" node "$MANAGE" install --profile agent-governed --runtime claude --target "$TMP/bad-binding"
+node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.packages.find(x=>x.unit==="claude-adapter").bindings=[]; f.writeFileSync(p,JSON.stringify(s))' "$TMP/bad-binding/profile-state.json"
+expect_fail "doctor가 runtime binding 누락 탐지" node "$DOCTOR" --target "$TMP/bad-binding"
 expect_ok "명시적 전체 제거" node "$MANAGE" remove --all --target "$TMP/repo-only"
 [ ! -e "$TMP/repo-only" ] && pass "전체 제거는 관리 대상만 삭제" || fail "전체 제거"
 

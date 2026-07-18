@@ -17,6 +17,15 @@ function readJson(file) {
   return JSON.parse(readFileSync(file, 'utf8'))
 }
 
+function expectedUnits(state) {
+  if (state.profile === 'repository-only' && state.runtime === null) return ['governance-core']
+  if (!['claude', 'codex'].includes(state.runtime)) throw new Error('invalid profile runtime')
+  const adapter = `${state.runtime}-adapter`
+  if (state.profile === 'agent-governed') return ['governance-core', adapter]
+  if (state.profile === 'workflow-assisted') return ['governance-core', adapter, 'workflow-pack']
+  throw new Error(`invalid profile: ${state.profile}`)
+}
+
 function treeDigest(root) {
   const hash = createHash('sha256')
   function visit(directory, prefix = '') {
@@ -45,8 +54,10 @@ export function inspectProfile(target, { quiet = false } = {}) {
   if (state.schemaVersion !== 1 || !Array.isArray(state.packages)) throw new Error('invalid profile state')
   const catalog = readJson(path.join(projectRoot, 'packaging', 'packages.json'))
   if (state.version !== catalog.version) throw new Error(`catalog version mismatch: installed=${state.version} current=${catalog.version}`)
-  const installed = new Set(state.packages.map((entry) => entry.unit))
-  if (!installed.has('governance-core')) throw new Error('governance core missing from state')
+  const actualUnits = state.packages.map((entry) => entry.unit).sort()
+  const requiredUnits = expectedUnits(state).sort()
+  if (JSON.stringify(actualUnits) !== JSON.stringify(requiredUnits)) throw new Error('profile package composition mismatch')
+  const installed = new Set(actualUnits)
 
   for (const entry of state.packages) {
     if (pluginNames.get(entry.unit) !== entry.pluginName) throw new Error(`package identity mismatch: ${entry.unit}`)
@@ -62,6 +73,13 @@ export function inspectProfile(target, { quiet = false } = {}) {
       JSON.stringify(metadata.dependencies) !== JSON.stringify(catalogUnit.dependencies)
     ) {
       throw new Error(`package metadata mismatch: ${entry.unit}`)
+    }
+    const expectedBindings = (catalogUnit.runtimeBindings || []).map((binding) => ({
+      ...binding,
+      resolvedTarget: path.join('packages', 'harness-governance-core', binding.target),
+    }))
+    if (JSON.stringify(entry.bindings || []) !== JSON.stringify(expectedBindings)) {
+      throw new Error(`runtime binding contract mismatch: ${entry.unit}`)
     }
     for (const dependency of metadata.dependencies || []) {
       if (!installed.has(dependency.id)) throw new Error(`dependency missing: ${entry.unit} -> ${dependency.id}`)
