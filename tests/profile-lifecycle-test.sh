@@ -85,6 +85,7 @@ external_after=$(node -e 'const f=require("fs"),c=require("crypto"); console.log
 expect_ok "catalog mismatch 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/old-version"
 node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.version="0.59.0"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/old-version/profile-state.json"
 expect_fail "doctor가 catalog version mismatch 탐지" node "$DOCTOR" --target "$TMP/old-version"
+expect_ok "stale profile 전체 제거" node "$MANAGE" remove --all --target "$TMP/old-version"
 expect_ok "composition 반례용 profile 설치" node "$MANAGE" install --profile workflow-assisted --runtime codex --target "$TMP/bad-composition"
 node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.packages=s.packages.filter(x=>x.unit!=="workflow-pack"); f.writeFileSync(p,JSON.stringify(s))' "$TMP/bad-composition/profile-state.json"
 rm -r "$TMP/bad-composition/packages/harness-workflows"

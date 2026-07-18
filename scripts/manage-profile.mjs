@@ -19,7 +19,7 @@ import {
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { inspectProfile, treeDigest } from './profile-doctor.mjs'
+import { inspectProfile, inspectProfileOwnership, treeDigest } from './profile-doctor.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const catalogFile = path.join(root, 'packaging', 'packages.json')
@@ -156,13 +156,19 @@ function installOrUpdate(options) {
 
 function mutateUnit(options) {
   if (!managed(options.target)) throw new Error('operation requires managed target')
-  inspectProfile(options.target, { quiet: true })
   if (options.operation === 'remove' && options.all) {
+    inspectProfileOwnership(options.target)
+    if (!lstatSync(options.target).isSymbolicLink()) throw new Error('managed target must be a profile symlink')
     const generation = realpathSync(options.target)
+    const expectedPrefix = `.${path.basename(options.target)}.`
+    if (path.dirname(generation) !== realpathSync(path.dirname(options.target)) || !path.basename(generation).startsWith(expectedPrefix)) {
+      throw new Error('managed generation path mismatch')
+    }
     unlinkSync(options.target)
     rmSync(generation, { recursive: true, force: true })
     return
   }
+  inspectProfile(options.target, { quiet: true })
   if (!options.unit) throw new Error('operation requires --unit')
   const parent = path.dirname(options.target)
   const stage = mkdtempSync(path.join(parent, `.${path.basename(options.target)}.mutation-`))
