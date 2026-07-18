@@ -81,7 +81,7 @@ REAL_GIT="$(command -v git)"
 cat >"$TMP/git-bin/git" <<'SH'
 #!/usr/bin/env bash
 for argument in "$@"; do
-  if [[ "$argument" == HEAD ]]; then
+  if [[ "$argument" == HEAD* ]]; then
     if [[ -e "$GIT_CALL_STATE" ]]; then
       printf '%040d\n' 0
       exit 0
@@ -95,6 +95,7 @@ SH
 chmod +x "$TMP/git-bin/git"
 if PATH="$TMP/git-bin:$PATH" REAL_GIT="$REAL_GIT" GIT_CALL_STATE="$TMP/git-call-state" \
   node "$ROOT/scripts/build-release-bundle.mjs" --output "$TMP/pinned-commit" >/dev/null 2>&1 \
+  && [[ -e "$TMP/git-call-state" ]] \
   && node - "$TMP/pinned-commit" <<'NODE'
 const fs = require('fs')
 const path = require('path')
