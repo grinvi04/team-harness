@@ -27,7 +27,7 @@ end
 bad = []
 ARGV.each do |file|
   begin
-    doc = YAML.safe_load(File.read(file), [], [], false)
+    doc = YAML.safe_load(File.read(file), [], [], true)
     refs(doc).each { |path, value| bad << "#{file}:#{path.join(".")}: #{value}" unless pinned?(value) }
   rescue Psych::Exception => error
     warn "FAIL: YAML parse #{file}: #{error.message}"
@@ -49,6 +49,8 @@ fixtures.each do |name, (yaml, expected)|
   actual = values.length == 1 && pinned?(values.first)
   abort "FAIL: parser self-contract #{name}" unless actual == expected
 end
+alias_doc = YAML.safe_load("base: &step\n  uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd\ncopy: *step\n", [], [], true)
+abort "FAIL: YAML alias Action 오탐" unless refs(alias_doc).all? { |_, value| pinned?(value) }
 
 unless bad.empty?
   warn "FAIL: 가변 또는 비-SHA Action 참조\n#{bad.join("\n")}"
