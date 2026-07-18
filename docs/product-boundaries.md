@@ -17,6 +17,8 @@ installer가 binding을 제공하고 doctor로 실측하기 전이라 `installab
 v0.60.0의 `manage-profile.mjs`와 `profile-doctor.mjs`는 명시한 filesystem 대상에서 세 profile의 수명주기와
 runtime binding을 실측한다. 사용자 plugin cache/config와 marketplace는 변경하지 않으며 기존 plugin 설치·업데이트·doctor
 경로도 그대로 유지한다. 이 결과는 독립 package의 공식 marketplace 공개가 아니라 승격 전 검증 surface다.
+`check-plugin-coexistence.mjs`는 같은 clean filesystem session의 외부 plugin을 실행하지 않고 두 runtime manifest
+identity, namespaced skill과 hook matcher overlap을 읽는다. overlap 순서는 플랫폼에 위임하며 승자를 정하지 않는다.
 
 ## 목표 제품 단위
 
@@ -136,12 +138,14 @@ workflow 세션 상태는 재생성 가능해야 한다. 제거 명령은 다른
    기존 monolith는 그대로 유지한다. build artifact는 설치 불가로 표시해 검증 전 노출을 막는다.
 3. **profile 설치·doctor 검증(완료):** clean 대상에서 세 profile의 설치·업데이트·비활성화·제거와 core 보존,
    파일 drift·binding·실패 원자성을 실측했다. 공식 loader 승격 전까지 filesystem 검증 surface로만 둔다.
-4. **호환 기간:** 최소 한 릴리스 동안 monolith를 deprecated alias로 유지하고 동일 결과·rollback 안내를 제공한다.
-5. **legacy 경로 제거:** 사용률과 doctor 증거가 기준을 충족한 뒤 cache patch·중복 agent·monolith manifest를
+4. **clean-session 공존 검증(완료):** 세 profile과 외부 plugin의 identity·skill namespace·hook overlap·파일
+   불변을 검사하고 malformed·symlink 입력을 fail-closed했다. 실제 hook 순서는 플랫폼에 위임한다.
+5. **호환 기간:** 최소 한 릴리스 동안 monolith를 deprecated alias로 유지하고 동일 결과·rollback 안내를 제공한다.
+6. **legacy 경로 제거:** 사용률과 doctor 증거가 기준을 충족한 뒤 cache patch·중복 agent·monolith manifest를
    제거한다. required CI와 branch protection drift가 있으면 제거를 중단한다.
 
-다음 단계는 로드맵 5번 오픈소스 제품화와 6번 clean-session 호환성 검증이다. profile을 공식 loader에 승격하는
-결정은 호환성 증거와 rollback 경로를 확인한 뒤 별도 승인한다.
+다음 단계는 독립 프로젝트 외부 파일럿이다. profile을 공식 loader나 marketplace에 승격하는 결정은 파일럿의
+설치 시간·오탐·누락·유지보수 비용과 rollback 경로를 확인한 뒤 별도 승인한다.
 
 ## 비목표와 재검토 조건
 

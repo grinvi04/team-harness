@@ -51,7 +51,11 @@ node scripts/build-release-bundle.mjs --output /tmp/team-harness-release
 ```bash
 node scripts/manage-profile.mjs install --profile agent-governed --runtime codex --target /tmp/harness-profile
 node scripts/profile-doctor.mjs --target /tmp/harness-profile
+node scripts/check-plugin-coexistence.mjs --profile /tmp/harness-profile --plugins /tmp/external-plugins --json
 ```
+
+공존 검사는 외부 plugin을 실행·수정하지 않고 manifest identity, `plugin:skill` namespace와 hook matcher 중첩만
+읽는다. hook lifecycle과 실행 순서는 Claude Code·Codex에 위임하며 보고서의 overlap은 우선순위 주장이 아니다.
 
 - **플러그인(가드·커맨드·스킬·에이전트)**: Claude Code와 Codex 모두 **캐시된 버전을 실행**하므로 버전 업 후
   갱신해야 실린다. Claude Code는 `/plugin marketplace update team-harness` 후 `/plugin` 메뉴에서

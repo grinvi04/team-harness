@@ -46,6 +46,19 @@ node scripts/manage-profile.mjs remove --target /tmp/team-harness-profile --all
 For a real repository rollout, follow [`onboarding.md`](onboarding.md). Keep branch protection and required CI as the
 final enforcement layer; local hooks are defense in depth, not the security boundary.
 
+To validate coexistence with other unpacked plugins without executing their hooks or changing a user cache:
+
+```bash
+node scripts/check-plugin-coexistence.mjs \
+  --profile /tmp/team-harness-profile \
+  --plugins /path/to/external-plugin-directory \
+  --json
+```
+
+Each direct child of `--plugins` must contain matching Claude and Codex plugin manifests. Repeated skill names are
+reported with `plugin:skill` identities. Hook matcher overlaps are reported as `delegated`; the tool does not invent a
+platform execution order or choose a winner.
+
 ## Build a release candidate bundle
 
 ```bash
