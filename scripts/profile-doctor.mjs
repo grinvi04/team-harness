@@ -88,6 +88,7 @@ export function inspectProfile(target, { quiet = false, expectedTarget = target 
       !catalogUnit ||
       metadata.unit !== entry.unit ||
       metadata.version !== state.version ||
+      metadata.sourcePluginCommit !== state.sourceCommit ||
       JSON.stringify(metadata.dependencies) !== JSON.stringify(catalogUnit.dependencies)
     ) {
       throw new Error(`package metadata mismatch: ${entry.unit}`)

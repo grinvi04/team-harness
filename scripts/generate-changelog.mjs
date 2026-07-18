@@ -33,4 +33,4 @@ for (let index = 0; index < tags.length; index += 1) {
   lines.push(`## ${tag} - ${date}`, '', ...entries.map((entry) => `- ${entry}`), '')
 }
 
-process.stdout.write(`${lines.join('\n')}\n`)
+process.stdout.write(`${lines.join('\n').trimEnd()}\n`)

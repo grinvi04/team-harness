@@ -5,6 +5,28 @@
 Generated from version tags and Conventional Commits (`feat` and `fix` only).
 Regenerate with `node scripts/generate-changelog.mjs` and replace this file with its output.
 
+## v0.60.0 - 2026-07-19
+
+- fix(release): changelog 종단 newline 정규화
+- fix(profile): 설치 provenance를 단일 SHA에 고정
+- fix(profile): symlink 경로 doctor 검증 보장
+- fix(release): bundle provenance를 단일 SHA에 고정
+- fix(security): 경합 대상 identity 고정
+- fix(security): 릴리즈 후보 경계 검증 강화
+- feat(pilot): 외부 repo 읽기 전용 측정 runner 추가
+- feat(compat): plugin clean-session 공존 검증 추가
+- fix(release): bundle dirty-worktree 반례 자기오탐 제거
+- feat(release): 오픈소스 공개 계약과 재현 bundle 추가
+- fix(profile): generation cleanup을 commit 결과와 분리
+- fix(profile): generation과 package 전수 경계 검증
+- fix(profile): stale 관리 profile 제거 허용
+- fix(profile): disable을 active package view에 반영
+- fix(profile): binding 해소와 generation 교체 보장
+- fix(profile): mutation 원자성과 profile 계약 검증
+- fix(profile): symlink state와 catalog drift 차단
+- fix(profile): 변조된 package 제거 경로 차단
+- feat(profile): 설치 수명주기와 doctor 추가
+
 ## v0.59.0 - 2026-07-18
 
 - fix(ci): Action pin 검사 런타임 호환
@@ -362,4 +384,3 @@ Regenerate with `node scripts/generate-changelog.mjs` and replace this file with
 - feat: git 네이티브 pre-commit 가드 추가 (계층 0.5)
 - fix(guard): cd 우회 차단 + 시크릿 prompt 훅 오탐 완화
 - feat: team-harness v0.1 스캐폴딩 — 마켓플레이스 + harness-guard 플러그인 + 템플릿
-
