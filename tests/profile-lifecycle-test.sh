@@ -172,6 +172,45 @@ expect_fail "doctor가 catalog version mismatch 탐지" node "$DOCTOR" --target 
 ln -s "$ROOT" "$TMP/harness-link"
 expect_fail "symlink ancestor 경로 doctor도 검증 실행" node "$TMP/harness-link/scripts/profile-doctor.mjs" --target "$TMP/old-version"
 expect_ok "stale profile 전체 제거" node "$MANAGE" remove --all --target "$TMP/old-version"
+mkdir "$TMP/profile-git-bin"
+REAL_GIT="$(command -v git)"
+cat >"$TMP/profile-git-bin/git" <<'SH'
+#!/usr/bin/env bash
+for argument in "$@"; do
+  if [[ "$argument" == HEAD* ]]; then
+    if [[ -e "$PROFILE_GIT_STATE" ]]; then
+      printf '%040d\n' 0
+      exit 0
+    fi
+    : >"$PROFILE_GIT_STATE"
+    exec "$REAL_GIT" "$@"
+  fi
+done
+exec "$REAL_GIT" "$@"
+SH
+chmod +x "$TMP/profile-git-bin/git"
+expect_ok "profile 단일 commit provenance 설치" env PATH="$TMP/profile-git-bin:$PATH" REAL_GIT="$REAL_GIT" \
+  PROFILE_GIT_STATE="$TMP/profile-git-state" node "$MANAGE" install --profile agent-governed --runtime codex --target "$TMP/pinned-profile"
+if [ -e "$TMP/profile-git-state" ] && node - "$TMP/pinned-profile" <<'NODE'
+const fs = require('fs')
+const path = require('path')
+const root = process.argv[2]
+const state = JSON.parse(fs.readFileSync(path.join(root, 'profile-state.json')))
+for (const entry of state.packages) {
+  const metadata = JSON.parse(fs.readFileSync(path.join(root, 'packages', entry.pluginName, 'harness-package.json')))
+  if (metadata.sourcePluginCommit !== state.sourceCommit) process.exit(1)
+}
+NODE
+then
+  pass "profile state·package provenance가 단일 commit"
+else
+  fail "profile 단일 commit provenance"
+fi
+expect_ok "profile provenance doctor" node "$DOCTOR" --target "$TMP/pinned-profile"
+cp "$TMP/pinned-profile/profile-state.json" "$TMP/pinned-profile-state.json"
+node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.sourceCommit="0000000000000000000000000000000000000000"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/pinned-profile/profile-state.json"
+expect_fail "doctor가 profile source provenance mismatch 탐지" node "$DOCTOR" --target "$TMP/pinned-profile"
+cp "$TMP/pinned-profile-state.json" "$TMP/pinned-profile/profile-state.json"
 expect_ok "composition 반례용 profile 설치" node "$MANAGE" install --profile workflow-assisted --runtime codex --target "$TMP/bad-composition"
 node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.packages=s.packages.filter(x=>x.unit!=="workflow-pack"); f.writeFileSync(p,JSON.stringify(s))' "$TMP/bad-composition/profile-state.json"
 rm -r "$TMP/bad-composition/packages/harness-workflows"

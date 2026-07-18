@@ -118,6 +118,11 @@ function cleanupGeneration(snapshot) {
 
 function buildStaging(options) {
   const catalog = JSON.parse(readFileSync(catalogFile, 'utf8'))
+  const sourceCommit = execFileSync(
+    'git',
+    ['--no-replace-objects', 'rev-parse', '--verify', 'HEAD^{commit}'],
+    { cwd: root, encoding: 'utf8' },
+  ).trim()
   const units = selectedUnits(options.profile, options.runtime)
   const parent = path.dirname(options.target)
   mkdirSync(parent, { recursive: true })
@@ -125,7 +130,11 @@ function buildStaging(options) {
   const artifacts = path.join(stage, '.artifacts')
   mkdirSync(artifacts)
   try {
-    execFileSync(process.execPath, [path.join(root, 'scripts', 'build-packages.mjs'), '--output', artifacts], { cwd: root, stdio: 'pipe' })
+    execFileSync(
+      process.execPath,
+      [path.join(root, 'scripts', 'build-packages.mjs'), '--revision', sourceCommit, '--output', artifacts],
+      { cwd: root, stdio: 'pipe' },
+    )
     const packageRoot = path.join(stage, 'packages')
     mkdirSync(packageRoot)
     const entries = []
@@ -149,7 +158,7 @@ function buildStaging(options) {
       profile: options.profile,
       runtime: options.runtime || null,
       version: catalog.version,
-      sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
+      sourceCommit,
       installRoot: options.target,
       packages: entries,
     })
