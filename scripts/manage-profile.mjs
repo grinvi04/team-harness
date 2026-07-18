@@ -6,10 +6,14 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  lstatSync,
   readFileSync,
+  realpathSync,
   readdirSync,
   renameSync,
   rmSync,
+  symlinkSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs'
 import os from 'node:os'
@@ -62,6 +66,19 @@ function writeJson(file, value) {
   writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`)
 }
 
+function resolveRuntimeBindings(packageRoot, unit, target) {
+  const coreRoot = path.join(target, 'packages', 'harness-governance-core')
+  for (const binding of unit.runtimeBindings || []) {
+    const consumer = path.join(packageRoot, binding.consumer)
+    const original = readFileSync(consumer, 'utf8')
+    const placeholder = `\${${binding.environment}}`
+    if (!original.includes(placeholder) && !original.includes(coreRoot)) {
+      throw new Error(`runtime binding placeholder missing: ${unit.id}:${binding.consumer}`)
+    }
+    writeFileSync(consumer, original.replaceAll(placeholder, coreRoot))
+  }
+}
+
 function buildStaging(options) {
   const catalog = JSON.parse(readFileSync(catalogFile, 'utf8'))
   const units = selectedUnits(options.profile, options.runtime)
@@ -81,6 +98,7 @@ function buildStaging(options) {
       const source = path.join(artifacts, unit.pluginName)
       const destination = path.join(packageRoot, unit.pluginName)
       cpSync(source, destination, { recursive: true, errorOnExist: true })
+      resolveRuntimeBindings(destination, unit, options.target)
       const bindings = (unit.runtimeBindings || []).map((binding) => ({
         ...binding,
         resolvedTarget: path.join('packages', 'harness-governance-core', binding.target),
@@ -95,9 +113,10 @@ function buildStaging(options) {
       runtime: options.runtime || null,
       version: catalog.version,
       sourceCommit: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
+      installRoot: options.target,
       packages: entries,
     })
-    inspectProfile(stage, { quiet: true })
+    inspectProfile(stage, { quiet: true, expectedTarget: options.target })
     return stage
   } catch (error) {
     rmSync(stage, { recursive: true, force: true })
@@ -106,14 +125,21 @@ function buildStaging(options) {
 }
 
 function replaceTarget(target, stage) {
-  const backup = `${target}.backup-${process.pid}`
+  const link = `${target}.link-${process.pid}-${Date.now()}`
+  let oldGeneration = null
   try {
-    if (existsSync(target)) renameSync(target, backup)
-    renameSync(stage, target)
-    rmSync(backup, { recursive: true, force: true })
+    if (existsSync(target)) {
+      if (!lstatSync(target).isSymbolicLink()) {
+        if (readdirSync(target).length > 0) throw new Error('managed target must be a profile symlink')
+        rmSync(target, { recursive: true })
+      } else oldGeneration = realpathSync(target)
+    }
+    symlinkSync(path.basename(stage), link, 'dir')
+    renameSync(link, target)
+    if (oldGeneration) rmSync(oldGeneration, { recursive: true, force: true })
   } catch (error) {
-    if (!existsSync(target) && existsSync(backup)) renameSync(backup, target)
-    rmSync(stage, { recursive: true, force: true })
+    if (existsSync(link)) unlinkSync(link)
+    if (!existsSync(target) || realpathSync(target) !== stage) rmSync(stage, { recursive: true, force: true })
     throw error
   }
 }
@@ -132,14 +158,16 @@ function mutateUnit(options) {
   if (!managed(options.target)) throw new Error('operation requires managed target')
   inspectProfile(options.target, { quiet: true })
   if (options.operation === 'remove' && options.all) {
-    rmSync(options.target, { recursive: true })
+    const generation = realpathSync(options.target)
+    unlinkSync(options.target)
+    rmSync(generation, { recursive: true, force: true })
     return
   }
   if (!options.unit) throw new Error('operation requires --unit')
   const parent = path.dirname(options.target)
   const stage = mkdtempSync(path.join(parent, `.${path.basename(options.target)}.mutation-`))
   try {
-    cpSync(options.target, stage, { recursive: true })
+    cpSync(realpathSync(options.target), stage, { recursive: true })
     const stateFile = path.join(stage, 'profile-state.json')
     const state = JSON.parse(readFileSync(stateFile, 'utf8'))
     const entry = state.packages.find((candidate) => candidate.unit === options.unit)
@@ -161,7 +189,7 @@ function mutateUnit(options) {
       }
     }
     writeJson(stateFile, state)
-    inspectProfile(stage, { quiet: true })
+    inspectProfile(stage, { quiet: true, expectedTarget: options.target })
     replaceTarget(options.target, stage)
   } catch (error) {
     rmSync(stage, { recursive: true, force: true })

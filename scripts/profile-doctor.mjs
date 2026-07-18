@@ -43,7 +43,7 @@ function treeDigest(root) {
   return `sha256:${hash.digest('hex')}`
 }
 
-export function inspectProfile(target, { quiet = false } = {}) {
+export function inspectProfile(target, { quiet = false, expectedTarget = target } = {}) {
   const stateFile = path.join(target, 'profile-state.json')
   const marker = path.join(target, '.team-harness-profile')
   if (!existsSync(marker) || !existsSync(stateFile)) throw new Error('managed profile marker/state missing')
@@ -52,6 +52,7 @@ export function inspectProfile(target, { quiet = false } = {}) {
   }
   const state = readJson(stateFile)
   if (state.schemaVersion !== 1 || !Array.isArray(state.packages)) throw new Error('invalid profile state')
+  if (state.installRoot !== path.resolve(expectedTarget)) throw new Error('profile install root mismatch')
   const catalog = readJson(path.join(projectRoot, 'packaging', 'packages.json'))
   if (state.version !== catalog.version) throw new Error(`catalog version mismatch: installed=${state.version} current=${catalog.version}`)
   const actualUnits = state.packages.map((entry) => entry.unit).sort()
@@ -91,6 +92,11 @@ export function inspectProfile(target, { quiet = false } = {}) {
         throw new Error(`runtime binding escapes profile: ${entry.unit}`)
       }
       if (!existsSync(resolvedTarget)) throw new Error(`runtime binding target missing: ${entry.unit}`)
+      const consumer = readFileSync(path.join(packageRoot, binding.consumer), 'utf8')
+      const effectiveCoreRoot = path.join(state.installRoot, 'packages', 'harness-governance-core')
+      if (!consumer.includes(effectiveCoreRoot) || consumer.includes(`\${${binding.environment}}`)) {
+        throw new Error(`runtime binding is not effective: ${entry.unit}`)
+      }
     }
   }
   if (!quiet) console.log(`RESULT healthy profile=${state.profile} packages=${state.packages.length}`)

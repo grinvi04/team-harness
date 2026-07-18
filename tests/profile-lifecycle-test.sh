@@ -28,6 +28,11 @@ expect_ok "agent-governed doctor" node "$DOCTOR" --target "$TMP/agent"
 
 expect_ok "workflow-assisted Claude 설치" node "$MANAGE" install --profile workflow-assisted --runtime claude --target "$TMP/workflow"
 [ "$(state_packages "$TMP/workflow")" = "claude-adapter,governance-core,workflow-pack" ] && pass "workflow-assisted package 경계" || fail "workflow-assisted package 경계"
+[ -L "$TMP/workflow" ] && pass "활성 profile은 원자 교체 symlink" || fail "profile generation pointer"
+hooks="$TMP/workflow/packages/harness-claude-adapter/hooks/hooks.json"
+binding_root=$(node -e 'console.log(require("path").resolve(process.argv[1],"packages","harness-governance-core"))' "$TMP/workflow")
+grep -Fq "$binding_root" "$hooks" && ! grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$hooks" \
+  && pass "runtime binding 실제 core 경로 해소" || fail "runtime binding 미해소"
 expect_ok "workflow-assisted doctor" node "$DOCTOR" --target "$TMP/workflow"
 
 expect_ok "workflow disable" node "$MANAGE" disable --unit workflow-pack --target "$TMP/workflow"
