@@ -61,6 +61,17 @@ printf 'keep\n' > "$TMP/victim/user.txt"
 node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.packages.find(x=>x.unit==="workflow-pack").pluginName="../../../victim"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/tampered/profile-state.json"
 expect_fail "변조된 package 경로 remove 거부" node "$MANAGE" remove --unit workflow-pack --target "$TMP/tampered"
 [ "$(cat "$TMP/victim/user.txt")" = keep ] && pass "state 경로 변조가 대상 밖을 보존" || fail "state 경로 순회"
+expect_ok "state symlink 반례용 profile 설치" node "$MANAGE" install --profile workflow-assisted --runtime codex --target "$TMP/symlinked"
+cp "$TMP/symlinked/profile-state.json" "$TMP/external-state.json"
+rm "$TMP/symlinked/profile-state.json"
+ln -s "$TMP/external-state.json" "$TMP/symlinked/profile-state.json"
+external_before=$(node -e 'const f=require("fs"),c=require("crypto"); console.log(c.createHash("sha256").update(f.readFileSync(process.argv[1])).digest("hex"))' "$TMP/external-state.json")
+expect_fail "symlink state mutation 거부" node "$MANAGE" disable --unit workflow-pack --target "$TMP/symlinked"
+external_after=$(node -e 'const f=require("fs"),c=require("crypto"); console.log(c.createHash("sha256").update(f.readFileSync(process.argv[1])).digest("hex"))' "$TMP/external-state.json")
+[ "$external_before" = "$external_after" ] && pass "symlink state 외부 파일 보존" || fail "symlink state overwrite"
+expect_ok "catalog mismatch 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/old-version"
+node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.version="0.59.0"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/old-version/profile-state.json"
+expect_fail "doctor가 catalog version mismatch 탐지" node "$DOCTOR" --target "$TMP/old-version"
 expect_ok "명시적 전체 제거" node "$MANAGE" remove --all --target "$TMP/repo-only"
 [ ! -e "$TMP/repo-only" ] && pass "전체 제거는 관리 대상만 삭제" || fail "전체 제거"
 

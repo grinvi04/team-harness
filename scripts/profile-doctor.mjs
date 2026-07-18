@@ -11,6 +11,7 @@ const pluginNames = new Map([
   ['codex-adapter', 'harness-codex-adapter'],
   ['workflow-pack', 'harness-workflows'],
 ])
+const projectRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 function readJson(file) {
   return JSON.parse(readFileSync(file, 'utf8'))
@@ -37,8 +38,13 @@ export function inspectProfile(target, { quiet = false } = {}) {
   const stateFile = path.join(target, 'profile-state.json')
   const marker = path.join(target, '.team-harness-profile')
   if (!existsSync(marker) || !existsSync(stateFile)) throw new Error('managed profile marker/state missing')
+  if (lstatSync(marker).isSymbolicLink() || lstatSync(stateFile).isSymbolicLink()) {
+    throw new Error('managed marker/state must not be symlinked')
+  }
   const state = readJson(stateFile)
   if (state.schemaVersion !== 1 || !Array.isArray(state.packages)) throw new Error('invalid profile state')
+  const catalog = readJson(path.join(projectRoot, 'packaging', 'packages.json'))
+  if (state.version !== catalog.version) throw new Error(`catalog version mismatch: installed=${state.version} current=${catalog.version}`)
   const installed = new Set(state.packages.map((entry) => entry.unit))
   if (!installed.has('governance-core')) throw new Error('governance core missing from state')
 
@@ -46,8 +52,15 @@ export function inspectProfile(target, { quiet = false } = {}) {
     if (pluginNames.get(entry.unit) !== entry.pluginName) throw new Error(`package identity mismatch: ${entry.unit}`)
     const packageRoot = path.join(target, 'packages', entry.pluginName)
     if (!existsSync(packageRoot)) throw new Error(`package missing: ${entry.unit}`)
+    if (lstatSync(packageRoot).isSymbolicLink()) throw new Error(`package root is symlinked: ${entry.unit}`)
     const metadata = readJson(path.join(packageRoot, 'harness-package.json'))
-    if (metadata.unit !== entry.unit || metadata.version !== state.version) {
+    const catalogUnit = catalog.packages.find((unit) => unit.id === entry.unit)
+    if (
+      !catalogUnit ||
+      metadata.unit !== entry.unit ||
+      metadata.version !== state.version ||
+      JSON.stringify(metadata.dependencies) !== JSON.stringify(catalogUnit.dependencies)
+    ) {
       throw new Error(`package metadata mismatch: ${entry.unit}`)
     }
     for (const dependency of metadata.dependencies || []) {
