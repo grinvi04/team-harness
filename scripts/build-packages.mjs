@@ -39,17 +39,20 @@ function isStrictSemver(value) {
 }
 
 function usage() {
-  console.error('usage: build-packages.mjs [--catalog <path>] (--check | --output <empty-dir>)')
+  console.error('usage: build-packages.mjs [--catalog <path>] [--revision <commit>] (--check | --output <empty-dir>)')
 }
 
 function parseArgs(argv) {
   let catalog = path.join(root, 'packaging', 'packages.json')
+  let revision = 'HEAD'
   let output = null
   let check = false
   for (let index = 0; index < argv.length; index += 1) {
     const argument = argv[index]
     if (argument === '--catalog' && argv[index + 1]) {
       catalog = path.resolve(argv[++index])
+    } else if (argument === '--revision' && argv[index + 1]) {
+      revision = argv[++index]
     } else if (argument === '--output' && argv[index + 1]) {
       output = path.resolve(argv[++index])
     } else if (argument === '--check') {
@@ -62,7 +65,7 @@ function parseArgs(argv) {
     }
   }
   if (check === Boolean(output)) throw new Error('choose exactly one of --check or --output')
-  return { catalog, output, check }
+  return { catalog, output, check, revision }
 }
 
 function readJson(file) {
@@ -77,10 +80,10 @@ function readJson(file) {
   }
 }
 
-function recordedSourceFiles() {
+function recordedSourceFiles(revision) {
   const output = execFileSync(
     'git',
-    ['ls-tree', '-rz', 'HEAD', '--', 'plugins/harness-guard'],
+    ['--no-replace-objects', 'ls-tree', '-rz', revision, '--', 'plugins/harness-guard'],
     {
       cwd: root,
       encoding: 'utf8',
@@ -97,8 +100,8 @@ function recordedSourceFiles() {
   return files
 }
 
-function recordedContent(file) {
-  return execFileSync('git', ['show', `HEAD:plugins/harness-guard/${file}`], {
+function recordedContent(file, revision) {
+  return execFileSync('git', ['--no-replace-objects', 'show', `${revision}:plugins/harness-guard/${file}`], {
     cwd: root,
     encoding: null,
   })
@@ -109,7 +112,7 @@ function expectedCompatibility(version) {
   return `>=${version} <${major}.${minor + 1}.0`
 }
 
-function validateCatalog(catalog) {
+function validateCatalog(catalog, revision) {
   if (catalog.schemaVersion !== 1) throw new Error('schemaVersion must be 1')
   if (!isStrictSemver(catalog.version || '')) throw new Error('version must be strict semver')
   if (catalog.sourcePlugin !== 'harness-guard') throw new Error('sourcePlugin must be harness-guard')
@@ -149,7 +152,7 @@ function validateCatalog(catalog) {
     }
   }
 
-  const recordedFiles = recordedSourceFiles()
+  const recordedFiles = recordedSourceFiles(revision)
   const allFiles = [...recordedFiles.keys()].sort()
   const owners = new Map()
   for (const unit of packages.values()) {
@@ -269,7 +272,7 @@ function applyRuntimeBindings(packageRoot, unit) {
   }
 }
 
-function build(catalog, validation, output, catalogDigest) {
+function build(catalog, validation, output, catalogDigest, revision) {
   if (existsSync(output) && readdirSync(output).length > 0) {
     throw new Error(`output directory is not empty: ${output}`)
   }
@@ -277,7 +280,7 @@ function build(catalog, validation, output, catalogDigest) {
   mkdirSync(parent, { recursive: true })
   const temporary = mkdtempSync(path.join(parent, `.${path.basename(output)}.tmp-`))
   try {
-    const sourceCommit = execFileSync('git', ['rev-parse', 'HEAD'], {
+    const sourceCommit = execFileSync('git', ['--no-replace-objects', 'rev-parse', '--verify', `${revision}^{commit}`], {
       cwd: root,
       encoding: 'utf8',
     }).trim()
@@ -287,7 +290,7 @@ function build(catalog, validation, output, catalogDigest) {
       for (const file of files) {
         const destination = path.join(packageRoot, file)
         mkdirSync(path.dirname(destination), { recursive: true })
-        writeFileSync(destination, recordedContent(file))
+        writeFileSync(destination, recordedContent(file, sourceCommit))
         chmodSync(destination, validation.modes.get(file) === '100755' ? 0o755 : 0o644)
       }
       applyRuntimeBindings(packageRoot, unit)
@@ -336,11 +339,15 @@ try {
   const options = parseArgs(process.argv.slice(2))
   const parsed = readJson(options.catalog)
   const catalog = parsed.value
-  const validation = validateCatalog(catalog)
+  const revision = execFileSync('git', ['--no-replace-objects', 'rev-parse', '--verify', `${options.revision}^{commit}`], {
+    cwd: root,
+    encoding: 'utf8',
+  }).trim()
+  const validation = validateCatalog(catalog, revision)
   if (options.check) {
     console.log(`OK packages=${validation.packages.size} files=${validation.files.length}`)
   } else {
-    build(catalog, validation, options.output, parsed.digest)
+    build(catalog, validation, options.output, parsed.digest, revision)
     console.log(`OK output=${options.output} packages=${validation.packages.size}`)
   }
 } catch (error) {

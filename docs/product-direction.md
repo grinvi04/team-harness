@@ -80,10 +80,14 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
    [`platform-overlap-audit.md`](platform-overlap-audit.md)에 기록했다.
 3. [x] **제품 경계 분리:** 서버 거버넌스 core, runtime adapter, 선택 workflow의 설치·운영 경계를
    [`product-boundaries.md`](product-boundaries.md)에 정의했다.
-4. **배포 단순화:** 설치·업데이트·제거·doctor를 안정적인 단일 진입점으로 정리하고 공식 surface를 우선 사용.
-   package 소속·호환성 정본과 재현 build는 완료했으며, 다음은 profile 설치·doctor 실측이다.
-5. **오픈소스 제품화:** 영문 Quick Start, 지원 환경, SECURITY·CONTRIBUTING·CHANGELOG와 release artifact 정리.
-6. **호환성 검증:** 다른 skill/plugin과 함께 설치한 clean-session 충돌·우선순위 테스트.
-7. **외부 파일럿:** 독립 프로젝트에서 설치 시간, 차단 오탐·누락, 유지보수 비용을 측정해 방향을 재검증.
+4. [x] **배포 단순화:** package 정본·재현 build와 세 profile의 filesystem 설치·업데이트·비활성화·제거·doctor
+   실측을 완료했다. 사용자 전역 marketplace 승격은 호환성 검증 뒤 별도 승인으로 남긴다.
+5. [x] **오픈소스 제품화:** 영문 Quick Start, 지원 환경, SECURITY·CONTRIBUTING·생성형 CHANGELOG와
+   기록된 `HEAD` 기반 release bundle·SHA-256 provenance를 정리했다. marketplace 공개는 호환성 검증 뒤다.
+6. [x] **호환성 검증:** 다른 plugin과 세 profile을 clean filesystem session에 함께 배치해 identity 충돌,
+   namespaced skill 공존, hook overlap 위임, 파일 불변과 malformed·symlink 거부를 검증했다.
+7. [x] **외부 파일럿:** DriveTree clean `develop`에서 profile 설치 952.225ms, doctor 38.883ms,
+   guard 표본 오탐·누락 0/9, repo-sync MISSING 11을 측정했다. 결과와 한계는
+   [`pilots/drivertree-v0.60.0.md`](pilots/drivertree-v0.60.0.md)에 기록했으며 marketplace 승격은 보류한다.
 
 로드맵 항목은 기능 수가 아니라 거버넌스 강제력, 증거 품질, 유지보수 감소로 성공 여부를 판단한다.

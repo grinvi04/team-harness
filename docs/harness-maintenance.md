@@ -36,8 +36,33 @@ node scripts/build-packages.mjs --check
 node scripts/build-packages.mjs --output /tmp/team-harness-packages
 ```
 
+정식 릴리즈 검토용 source·staged package bundle은 dirty worktree가 아닌 기록된 `HEAD`에서 만들고 checksum을
+검증한다. 이 명령은 태그·GitHub Release·marketplace publication을 수행하지 않는다.
+
+```bash
+node scripts/build-release-bundle.mjs --output /tmp/team-harness-release
+(cd /tmp/team-harness-release && shasum -a 256 -c SHA256SUMS)
+```
+
 생성된 `harness-package.json`의 `installable`이 `false`인 동안에는 marketplace에 등록하거나 기존
-`harness-guard`를 대체하지 않는다. profile 설치·doctor 검증과 rollback이 별도 스펙에서 통과한 뒤 승격한다.
+`harness-guard`를 대체하지 않는다. v0.60.0부터 아래 명령으로 명시한 filesystem 대상에서 profile 수명주기를
+실측할 수 있지만 사용자 plugin cache/config는 변경하지 않는다.
+
+```bash
+node scripts/manage-profile.mjs install --profile agent-governed --runtime codex --target /tmp/harness-profile
+node scripts/profile-doctor.mjs --target /tmp/harness-profile
+node scripts/check-plugin-coexistence.mjs --profile /tmp/harness-profile --plugins /tmp/external-plugins --json
+```
+
+공존 검사는 외부 plugin을 실행·수정하지 않고 manifest identity, `plugin:skill` namespace와 hook matcher 중첩만
+읽는다. hook lifecycle과 실행 순서는 Claude Code·Codex에 위임하며 보고서의 overlap은 우선순위 주장이 아니다.
+
+독립 소비 repo의 profile 설치 시간·repo-sync backlog·guard 표본을 변경 없이 측정할 때는 output을 대상 repo
+밖에 두고 아래 runner를 사용한다. dirty 또는 detached repo는 측정 전에 거부한다.
+
+```bash
+node scripts/run-external-pilot.mjs --repo /path/to/consumer --output /tmp/pilot.json
+```
 
 - **플러그인(가드·커맨드·스킬·에이전트)**: Claude Code와 Codex 모두 **캐시된 버전을 실행**하므로 버전 업 후
   갱신해야 실린다. Claude Code는 `/plugin marketplace update team-harness` 후 `/plugin` 메뉴에서
