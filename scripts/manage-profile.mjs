@@ -146,11 +146,17 @@ function replaceTarget(target, stage) {
     }
     symlinkSync(path.basename(stage), link, 'dir')
     renameSync(link, target)
-    if (oldGeneration) rmSync(oldGeneration, { recursive: true, force: true })
   } catch (error) {
     if (existsSync(link)) unlinkSync(link)
     if (!existsSync(target) || realpathSync(target) !== stage) rmSync(stage, { recursive: true, force: true })
     throw error
+  }
+  if (oldGeneration) {
+    try {
+      rmSync(oldGeneration, { recursive: true, force: true })
+    } catch (error) {
+      console.warn(`WARN committed profile; old generation cleanup pending: ${oldGeneration}: ${error.message}`)
+    }
   }
 }
 
@@ -170,7 +176,11 @@ function mutateUnit(options) {
     inspectProfileOwnership(options.target)
     const generation = managedGeneration(options.target)
     unlinkSync(options.target)
-    rmSync(generation, { recursive: true, force: true })
+    try {
+      rmSync(generation, { recursive: true, force: true })
+    } catch (error) {
+      console.warn(`WARN profile removed; generation cleanup pending: ${generation}: ${error.message}`)
+    }
     return
   }
   inspectProfile(options.target, { quiet: true })
