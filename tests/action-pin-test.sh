@@ -1,38 +1,60 @@
 #!/usr/bin/env bash
-set -u
-shopt -s extglob
+set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-bad=""
-pattern="(^|[,{[:space:]-])[\"']?uses[\"']?[[:space:]]*:"
-check_line() {
-  local line="$1" content value ref
-  content=${line#*:}; content=${content#*:}
-  content=${content##+([[:space:]])}
-  if [[ "$content" == \#* ]]; then content=${content#\#}; fi
-  content=${content%%#*}
-  value=$(printf '%s\n' "$content" | sed -E "s/.*[\"']?uses[\"']?[[:space:]]*:[[:space:]]*//")
-  value=${value%%,*}; value=${value%%\}*}; value=${value##+([[:space:]])}; value=${value%%+([[:space:]])}
-  case "$value" in \"*\") value=${value#\"}; value=${value%\"};; \'*\') value=${value#\'}; value=${value%\'};; esac
-  case "$value" in ./*) return 0;; esac
-  case "$value" in docker://*) [[ "$value" =~ @sha256:[0-9a-f]{64}$ ]] || bad="${bad}${bad:+$'\n'}$line"; return 0;; esac
-  ref=${value#*@}
-  [[ "$value" == *@* && "$ref" =~ ^[0-9a-f]{40}$ ]] || bad="${bad}${bad:+$'\n'}$line"
+workflow_files() { find "$ROOT/.github" "$ROOT/templates/ci" -type f \( -name '*.yml' -o -name '*.yaml' \); }
+
+ruby -ryaml -e '
+def refs(value, path = [], found = [])
+  case value
+  when Hash
+    value.each do |key, child|
+      found << [path, child] if key == "uses"
+      refs(child, path + [key.to_s], found)
+    end
+  when Array
+    value.each_with_index { |child, index| refs(child, path + [index.to_s], found) }
+  end
+  found
+end
+
+def pinned?(value)
+  return false unless value.is_a?(String)
+  return true if value.start_with?("./")
+  return !!(value =~ %r{\Adocker://.+@sha256:[0-9a-f]{64}\z}) if value.start_with?("docker://")
+  !!(value =~ /@[0-9a-f]{40}\z/)
+end
+
+bad = []
+ARGV.each do |file|
+  begin
+    doc = YAML.safe_load(File.read(file), permitted_classes: [], permitted_symbols: [], aliases: true)
+    refs(doc).each { |path, value| bad << "#{file}:#{path.join(".")}: #{value}" unless pinned?(value) }
+  rescue Psych::Exception => error
+    warn "FAIL: YAML parse #{file}: #{error.message}"
+    exit 1
+  end
+end
+
+fixtures = {
+  "quoted SHA" => ["uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd", true],
+  "movable tag" => ["uses: actions/checkout@v5", false],
+  "local action" => ["uses: ./local-action", true],
+  "flow mapping" => ["step: {uses: actions/checkout@v5}", false],
+  "mutable docker" => ["uses: docker://alpine:3.8", false],
+  "digest docker" => ["uses: docker://alpine@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", true],
+  "escaped key" => [%("\\x75ses": actions/checkout@v5), false]
 }
-while IFS= read -r line; do
-  check_line "$line"
-done < <(rg -n "$pattern" "$ROOT/.github" "$ROOT/templates/ci" --glob '*.yml' --glob '*.yaml' || true)
-# parser self-contract: quoted external SHA passes, quoted movable tag fails, quoted local action is skipped.
-before="$bad"; check_line 'x:1:  - uses: "actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd"'; [ "$bad" = "$before" ] || { echo "FAIL: quoted SHA value 오탐"; exit 1; }
-check_line 'x:2:  - "uses": actions/checkout@v5'; [ "$bad" != "$before" ] || { echo "FAIL: quoted uses key 미탐"; exit 1; }; bad="$before"
-check_line 'x:3:  - uses: "./local-action"'; [ "$bad" = "$before" ] || { echo "FAIL: quoted local action 오탐"; exit 1; }
-check_line 'x:4:  - {uses: actions/checkout@v5}'; [ "$bad" != "$before" ] || { echo "FAIL: flow mapping uses 미탐"; exit 1; }; bad="$before"
-check_line 'x:5:  - uses: docker://alpine:3.8'; [ "$bad" != "$before" ] || { echo "FAIL: mutable docker image 미탐"; exit 1; }; bad="$before"
-check_line 'x:6:  - uses: docker://alpine@sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'; [ "$bad" = "$before" ] || { echo "FAIL: digest-pinned docker image 오탐"; exit 1; }
-check_line 'x:7:  - uses: vendor/action@v1 # replaces uses: vendor/action@0123456789abcdef0123456789abcdef01234567'; [ "$bad" != "$before" ] || { echo "FAIL: comment 내부 uses로 가변 ref 우회"; exit 1; }; bad="$before"
-check_line 'x:8:  - {uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd, name: Checkout}'; [ "$bad" = "$before" ] || { echo "FAIL: 후속 flow mapping key 오탐"; exit 1; }
-if [ -n "$bad" ]; then
-  echo "FAIL: 가변 또는 비-SHA Action 참조"
-  echo "$bad"
+fixtures.each do |name, (yaml, expected)|
+  values = refs(YAML.safe_load(yaml, permitted_classes: [], permitted_symbols: [], aliases: false)).map(&:last)
+  actual = values.length == 1 && pinned?(values.first)
+  abort "FAIL: parser self-contract #{name}" unless actual == expected
+end
+alias_doc = YAML.safe_load("base: &step\n  uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd\ncopy: *step\n", permitted_classes: [], permitted_symbols: [], aliases: true)
+abort "FAIL: YAML alias Action 오탐" unless refs(alias_doc).all? { |_, value| pinned?(value) }
+
+unless bad.empty?
+  warn "FAIL: 가변 또는 비-SHA Action 참조\n#{bad.join("\n")}"
   exit 1
-fi
-echo "PASS: 외부 Action 참조 full SHA 고정"
+end
+puts "PASS: YAML AST 외부 Action 참조 full SHA 고정"
+' $(workflow_files)
