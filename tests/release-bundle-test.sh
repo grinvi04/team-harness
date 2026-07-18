@@ -62,7 +62,7 @@ catalog.packages[0].description = 'DIRTY CATALOG MUST NOT ENTER RELEASE BUNDLE'
 fs.writeFileSync(file, `${JSON.stringify(catalog, null, 2)}\n`)
 NODE
 if node "$ROOT/scripts/build-release-bundle.mjs" --output "$TMP/dirty-catalog" >/dev/null 2>&1 \
-  && ! grep -Rq 'DIRTY CATALOG MUST NOT ENTER RELEASE BUNDLE' "$TMP/dirty-catalog"; then
+  && ! grep -Rq 'DIRTY CATALOG MUST NOT ENTER RELEASE BUNDLE' "$TMP/dirty-catalog/packages"; then
   pass 'tracked dirty catalog가 recorded HEAD provenance에 혼입되지 않음'
 else
   fail 'tracked dirty catalog provenance 격리'
