@@ -78,30 +78,32 @@ fi
 
 mkdir "$TMP/git-bin"
 REAL_GIT="$(command -v git)"
-PINNED_COMMIT="$(git -C "$ROOT" rev-parse v0.59.0)"
 cat >"$TMP/git-bin/git" <<'SH'
 #!/usr/bin/env bash
 for argument in "$@"; do
-  if [[ "$argument" == HEAD* ]]; then
-    printf '%s\n' "$PINNED_COMMIT"
-    exit 0
+  if [[ "$argument" == HEAD ]]; then
+    if [[ -e "$GIT_CALL_STATE" ]]; then
+      printf '%040d\n' 0
+      exit 0
+    fi
+    : >"$GIT_CALL_STATE"
+    exec "$REAL_GIT" "$@"
   fi
 done
 exec "$REAL_GIT" "$@"
 SH
 chmod +x "$TMP/git-bin/git"
-if PATH="$TMP/git-bin:$PATH" REAL_GIT="$REAL_GIT" PINNED_COMMIT="$PINNED_COMMIT" \
+if PATH="$TMP/git-bin:$PATH" REAL_GIT="$REAL_GIT" GIT_CALL_STATE="$TMP/git-call-state" \
   node "$ROOT/scripts/build-release-bundle.mjs" --output "$TMP/pinned-commit" >/dev/null 2>&1 \
-  && node - "$TMP/pinned-commit" "$PINNED_COMMIT" <<'NODE'
+  && node - "$TMP/pinned-commit" <<'NODE'
 const fs = require('fs')
 const path = require('path')
 const root = process.argv[2]
-const expected = process.argv[3]
 const manifest = JSON.parse(fs.readFileSync(path.join(root, 'RELEASE-MANIFEST.json')))
 const metadata = fs.readdirSync(path.join(root, 'packages')).map((name) =>
   JSON.parse(fs.readFileSync(path.join(root, 'packages', name, 'harness-package.json'))),
 )
-if (manifest.sourceCommit !== expected || metadata.some((entry) => entry.sourcePluginCommit !== expected)) process.exit(1)
+if (metadata.some((entry) => entry.sourcePluginCommit !== manifest.sourceCommit)) process.exit(1)
 NODE
 then
   pass '최초 commit SHA가 bundle·package provenance 전체에 고정'
