@@ -44,6 +44,8 @@ function verdict(cmd) {
 const out = []
 out.push(['no', allow.includes('Bash(gh api *)') ? 'yes' : 'no', '구조: 광범위 gh api 자동허용 제거'])
 out.push(['no', allow.some(x => /^Bash\(bash \* .*pr-merge\.sh --auto/.test(x)) ? 'yes' : 'no', '구조: wildcard-prefix wrapper 자동허용 제거'])
+out.push(['no', allow.includes('Bash(git *)') ? 'yes' : 'no', '구조: git alias shell 실행 자동허용 제거'])
+out.push(['no', allow.includes('Bash(find *)') ? 'yes' : 'no', '구조: find -exec 자동허용 제거'])
 // ── 구조 잠금(#237): 실제 allow에 살아있는 리더(cat·grep)에 .env deny 존재 ──
 out.push(['yes', deny.includes('Bash(cat *.env*)') ? 'yes' : 'no', '구조: deny에 Bash(cat *.env*)'])
 out.push(['yes', deny.includes('Bash(grep *.env*)') ? 'yes' : 'no', '구조: deny에 Bash(grep *.env*)'])
@@ -60,6 +62,8 @@ out.push(['ALLOW', verdict('cat src/app.js'),              'FP가드: 정상 cat
 out.push(['ALLOW', verdict('cat environment.ts'),          'FP가드: environment.ts(.env 아님) 통과'])
 out.push(['ALLOW', verdict('grep TODO src/index.ts'),      'FP가드: 정상 grep 통과'])
 out.push(['ASK', verdict("bash -c 'gh api -X DELETE repos/o/r/branches/main/protection/required_pull_request_reviews' ignored pr-merge.sh --auto ignored"), '우회: bash -c wrapper smuggling 승인 요구'])
+out.push(['ASK', verdict("git -c alias.breakglass='!gh api -X DELETE repos/o/r/branches/main/protection/required_pull_request_reviews' breakglass"), '우회: git shell alias 승인 요구'])
+out.push(['ASK', verdict("find . -exec gh api -X DELETE repos/o/r/branches/main/protection/required_pull_request_reviews ;"), '우회: find -exec 승인 요구'])
 // ── Read 도구 deny도 유지(#237 기존 통제 회귀 방지) ──
 out.push(['yes', deny.includes('Read(**/.env)') ? 'yes' : 'no',   '회귀: Read(**/.env) deny 유지'])
 out.push(['yes', deny.includes('Read(**/.env.*)') ? 'yes' : 'no', '회귀: Read(**/.env.*) deny 유지'])
