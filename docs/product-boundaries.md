@@ -144,8 +144,9 @@ workflow 세션 상태는 재생성 가능해야 한다. 제거 명령은 다른
 6. **legacy 경로 제거:** 사용률과 doctor 증거가 기준을 충족한 뒤 cache patch·중복 agent·monolith manifest를
    제거한다. required CI와 branch protection drift가 있으면 제거를 중단한다.
 
-다음 단계는 독립 프로젝트 외부 파일럿이다. profile을 공식 loader나 marketplace에 승격하는 결정은 파일럿의
-설치 시간·오탐·누락·유지보수 비용과 rollback 경로를 확인한 뒤 별도 승인한다.
+DriveTree 외부 파일럿에서 filesystem 설치·doctor와 guard 표본은 통과했지만 repo-sync MISSING 11과 실제 공식
+loader session 미검증이 남았다. 따라서 독립 package의 `installable:false`를 유지하고 marketplace 승격은
+backlog 처리 비용·loader 증거·rollback 경로를 확인한 뒤 별도 승인한다.
 
 ## 비목표와 재검토 조건
 
