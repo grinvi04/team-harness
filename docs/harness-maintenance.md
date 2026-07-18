@@ -37,7 +37,13 @@ node scripts/build-packages.mjs --output /tmp/team-harness-packages
 ```
 
 생성된 `harness-package.json`의 `installable`이 `false`인 동안에는 marketplace에 등록하거나 기존
-`harness-guard`를 대체하지 않는다. profile 설치·doctor 검증과 rollback이 별도 스펙에서 통과한 뒤 승격한다.
+`harness-guard`를 대체하지 않는다. v0.60.0부터 아래 명령으로 명시한 filesystem 대상에서 profile 수명주기를
+실측할 수 있지만 사용자 plugin cache/config는 변경하지 않는다.
+
+```bash
+node scripts/manage-profile.mjs install --profile agent-governed --runtime codex --target /tmp/harness-profile
+node scripts/profile-doctor.mjs --target /tmp/harness-profile
+```
 
 - **플러그인(가드·커맨드·스킬·에이전트)**: Claude Code와 Codex 모두 **캐시된 버전을 실행**하므로 버전 업 후
   갱신해야 실린다. Claude Code는 `/plugin marketplace update team-harness` 후 `/plugin` 메뉴에서

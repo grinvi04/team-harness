@@ -52,6 +52,7 @@ jobs:
           bash -n tests/package-artifact-integrity-test.sh
           bash -n tests/package-catalog-integrity-test.sh
           bash -n tests/package-workflow-binding-test.sh
+          bash -n tests/profile-lifecycle-test.sh
           bash -n tests/enforce-subagent-model-test.sh
           bash -n tests/plugin-wiring-test.sh
           bash -n tests/settings-deny-test.sh
@@ -198,6 +199,9 @@ jobs:
 
       - name: workflow pack→core runtime binding 계약
         run: bash tests/package-workflow-binding-test.sh
+
+      - name: profile 설치·doctor 수명주기 계약
+        run: bash tests/profile-lifecycle-test.sh
 
       - name: subagent 모델 강제 훅 테스트
         run: bash tests/enforce-subagent-model-test.sh

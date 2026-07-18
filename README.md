@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.59.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.60.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -263,6 +263,7 @@ main/develop branch protection을 읽기 전용으로 확인한다. 실제 새 C
 bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (30 케이스)
 bash tests/codex-fresh-session-smoke-test.sh
 bash tests/harness-doctor-test.sh
+bash tests/profile-lifecycle-test.sh
 ```
 
 ## 📁 repo 구조
@@ -274,6 +275,8 @@ team-harness/
 ├── plugins/harness-guard/             플러그인 본체 (아래 상세)
 ├── packaging/packages.json            core·adapter·workflow package 소속·호환성 정본
 ├── scripts/build-packages.mjs         staged package artifact 검증·조립
+├── scripts/manage-profile.mjs         profile 설치·업데이트·비활성화·제거
+├── scripts/profile-doctor.mjs         staged profile 무결성 read-only 점검
 ├── scripts/new-repo.sh                신규 repo 셋업 자동화 (템플릿 복사 + branch protection)
 ├── scripts/harness-doctor.sh          Codex·repo·GitHub 상태 종합 점검 (`--probe`로 실세션 검증)
 ├── scripts/codex-fresh-session-smoke.sh  실제 ephemeral Codex hook 발화 검증
