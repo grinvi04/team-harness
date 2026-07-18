@@ -25,6 +25,8 @@
 - [🏗️ 아키텍처](#️-아키텍처)
 - [harness-guard 플러그인](#harness-guard-플러그인)
 - [🚀 빠른 시작](#-빠른-시작)
+- [🌐 English Quick Start](docs/quick-start.md)
+- [🧩 Supported environments](docs/support.md)
 - [🧪 테스트](#-테스트)
 - [📁 repo 구조](#-repo-구조)
 - [📚 팀 표준 문서](#-팀-표준-문서-docs)
@@ -198,6 +200,9 @@ flowchart LR
 ---
 
 ## 🚀 빠른 시작
+
+English-language onboarding is available in the [Quick Start](docs/quick-start.md). Before adopting Team Harness,
+check the [supported environments and validation levels](docs/support.md).
 
 ### 팀원 온보딩 (각자 1회, ~3분)
 
