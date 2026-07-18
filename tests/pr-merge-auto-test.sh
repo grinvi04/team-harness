@@ -59,6 +59,11 @@ tps() { # desc json want
 }
 tps "첫 페이지 100개 뒤 다음 cursor 보존" '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"isResolved":false},{"isResolved":true}],"pageInfo":{"hasNextPage":true,"endCursor":"c100"}}}}}}' '1|true|c100'
 tps "마지막 페이지 종료" '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"isResolved":false}],"pageInfo":{"hasNextPage":false,"endCursor":"c101"}}}}}}' '1|false|c101'
+if PRMERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | thread_page_state' _ "$GATE" '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[],"pageInfo":{"hasNextPage":null,"endCursor":null}}}}}}' >/dev/null 2>&1; then
+  echo "FAIL: null hasNextPage가 마지막 페이지로 통과"; FAIL=$((FAIL+1))
+else
+  echo "PASS: null hasNextPage fail-closed"; PASS=$((PASS+1))
+fi
 if command -v jq >/dev/null 2>&1; then
   D=$(mktemp -d); trap 'rm -rf "$D"' EXIT
   printf '#!/bin/sh\ncat >/dev/null\nexit 1\n' > "$D/python3"; chmod +x "$D/python3"

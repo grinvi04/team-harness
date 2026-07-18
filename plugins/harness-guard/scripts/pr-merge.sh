@@ -49,10 +49,11 @@ thread_page_state() {
     out=$(printf '%s' "$cfg" | python3 -c 'import json,sys
 d=json.load(sys.stdin)["data"]["repository"]["pullRequest"]["reviewThreads"]
 count=sum(not n["isResolved"] for n in d["nodes"]); page=d["pageInfo"]
+assert isinstance(page["hasNextPage"], bool)
 print("%s|%s|%s" % (count, str(page["hasNextPage"]).lower(), page.get("endCursor") or ""))' 2>/dev/null) && [ -n "$out" ] && { printf '%s\n' "$out"; return 0; }
   fi
   if command -v jq >/dev/null 2>&1; then
-    out=$(printf '%s' "$cfg" | jq -r '.data.repository.pullRequest.reviewThreads | "\([.nodes[]|select(.isResolved==false)]|length)|\(.pageInfo.hasNextPage)|\(.pageInfo.endCursor // "")"' 2>/dev/null) && [ -n "$out" ] && { printf '%s\n' "$out"; return 0; }
+    out=$(printf '%s' "$cfg" | jq -er '.data.repository.pullRequest.reviewThreads | select(.pageInfo.hasNextPage | type == "boolean") | "\([.nodes[]|select(.isResolved==false)]|length)|\(.pageInfo.hasNextPage)|\(.pageInfo.endCursor // "")"' 2>/dev/null) && [ -n "$out" ] && { printf '%s\n' "$out"; return 0; }
   fi
   return 1
 }
@@ -71,6 +72,7 @@ count_unresolved_threads() { # owner name pr
     IFS='|' read -r page_count has_next cursor <<EOF
 $state
 EOF
+    { [ "$has_next" = true ] || [ "$has_next" = false ]; } || return 1
     unresolved=$((unresolved + page_count))
     [ "$has_next" = true ] || { printf '%s\n' "$unresolved"; return 0; }
     [ -n "$cursor" ] || return 1
