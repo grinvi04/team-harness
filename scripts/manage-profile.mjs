@@ -79,6 +79,16 @@ function resolveRuntimeBindings(packageRoot, unit, target) {
   }
 }
 
+function managedGeneration(target) {
+  if (!lstatSync(target).isSymbolicLink()) throw new Error('managed target must be a profile symlink')
+  const generation = realpathSync(target)
+  const expectedPrefix = `.${path.basename(target)}.`
+  if (path.dirname(generation) !== realpathSync(path.dirname(target)) || !path.basename(generation).startsWith(expectedPrefix)) {
+    throw new Error('managed generation path mismatch')
+  }
+  return generation
+}
+
 function buildStaging(options) {
   const catalog = JSON.parse(readFileSync(catalogFile, 'utf8'))
   const units = selectedUnits(options.profile, options.runtime)
@@ -132,7 +142,7 @@ function replaceTarget(target, stage) {
       if (!lstatSync(target).isSymbolicLink()) {
         if (readdirSync(target).length > 0) throw new Error('managed target must be a profile symlink')
         rmSync(target, { recursive: true })
-      } else oldGeneration = realpathSync(target)
+      } else oldGeneration = managedGeneration(target)
     }
     symlinkSync(path.basename(stage), link, 'dir')
     renameSync(link, target)
@@ -158,12 +168,7 @@ function mutateUnit(options) {
   if (!managed(options.target)) throw new Error('operation requires managed target')
   if (options.operation === 'remove' && options.all) {
     inspectProfileOwnership(options.target)
-    if (!lstatSync(options.target).isSymbolicLink()) throw new Error('managed target must be a profile symlink')
-    const generation = realpathSync(options.target)
-    const expectedPrefix = `.${path.basename(options.target)}.`
-    if (path.dirname(generation) !== realpathSync(path.dirname(options.target)) || !path.basename(generation).startsWith(expectedPrefix)) {
-      throw new Error('managed generation path mismatch')
-    }
+    const generation = managedGeneration(options.target)
     unlinkSync(options.target)
     rmSync(generation, { recursive: true, force: true })
     return

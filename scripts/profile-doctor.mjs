@@ -64,6 +64,16 @@ export function inspectProfile(target, { quiet = false, expectedTarget = target 
   const requiredUnits = expectedUnits(state).sort()
   if (JSON.stringify(actualUnits) !== JSON.stringify(requiredUnits)) throw new Error('profile package composition mismatch')
   const installed = new Set(actualUnits)
+  const packageDirectory = path.join(target, 'packages')
+  if (!existsSync(packageDirectory) || lstatSync(packageDirectory).isSymbolicLink()) throw new Error('active package directory invalid')
+  const expectedActive = state.packages.filter((entry) => entry.enabled).map((entry) => entry.pluginName).sort()
+  const actualActive = readdirSync(packageDirectory).sort()
+  if (JSON.stringify(actualActive) !== JSON.stringify(expectedActive)) throw new Error('active package directory mismatch')
+  const disabledDirectory = path.join(target, 'disabled-packages')
+  const expectedDisabled = state.packages.filter((entry) => !entry.enabled).map((entry) => entry.pluginName).sort()
+  const actualDisabled = existsSync(disabledDirectory) ? readdirSync(disabledDirectory).sort() : []
+  if (existsSync(disabledDirectory) && lstatSync(disabledDirectory).isSymbolicLink()) throw new Error('disabled package directory invalid')
+  if (JSON.stringify(actualDisabled) !== JSON.stringify(expectedDisabled)) throw new Error('disabled package directory mismatch')
 
   for (const entry of state.packages) {
     if (pluginNames.get(entry.unit) !== entry.pluginName) throw new Error(`package identity mismatch: ${entry.unit}`)
