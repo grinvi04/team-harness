@@ -77,14 +77,15 @@ OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 BASE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName --jq .baseRefName)
 # 머지는 형제 pr-merge.sh(게이트 재검증 후 머지)로 위임 — 테스트가 SOLO_MERGE_MERGE_CMD로 주입.
 MERGE_CMD="${SOLO_MERGE_MERGE_CMD:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/pr-merge.sh}"
+GATE_LIB="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/pr-merge.sh"
 RPR_PATH="repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_reviews"
 
 # pre-gate (보호 건드리기 *전*) — CI required·미해결 스레드 0·mergeable. 미달이면 DELETE 이전에 중단해
 #   break-glass 창을 아예 열지 않는다(AC-6). pr-merge가 머지 시 재검증하지만, 여기서 먼저 막는 게 최소 노출.
 if gh pr checks "$PR" --repo "$OWNER_REPO" --required >/dev/null 2>&1; then CI_RC=0; else CI_RC=1; fi
-UNRESOLVED=$(gh api graphql --paginate --slurp -f query='query($o:String!,$n:String!,$p:Int!,$endCursor:String){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100,after:$endCursor){nodes{isResolved} pageInfo{hasNextPage endCursor}}}}}' \
-  -F o="${OWNER_REPO%/*}" -F n="${OWNER_REPO#*/}" -F p="$PR" \
-  --jq '[.[].data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false)]|length' 2>/dev/null || echo "?")
+PRMERGE_SOURCE_ONLY=1 source "$GATE_LIB"
+unset PRMERGE_SOURCE_ONLY
+UNRESOLVED=$(count_unresolved_threads "${OWNER_REPO%/*}" "${OWNER_REPO#*/}" "$PR" 2>/dev/null || echo "?")
 MERGEABLE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable 2>/dev/null || echo "?")
 if ! REASON=$(solo_gate_decide "$CI_RC" "$UNRESOLVED" "$MERGEABLE"); then
   echo "⛔ pre-gate 미달 — 보호를 건드리지 않고 중단: $REASON" >&2

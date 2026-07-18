@@ -65,7 +65,7 @@ query($owner:String!,$name:String!,$pr:Int!,$endCursor:String){
     pullRequest(number:$pr){ reviewThreads(first:100,after:$endCursor){ nodes{ id isResolved } pageInfo{hasNextPage endCursor} } }
   }
 }' -F owner="${OWNER_REPO%/*}" -F name="${OWNER_REPO#*/}" -F pr="$PR" \
-  --paginate --slurp --jq '.[].data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false) | .id' \
+  --paginate --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false) | .id' \
 | while IFS= read -r TID; do
     [ -z "$TID" ] && continue
     gh api graphql \
@@ -80,7 +80,7 @@ gh api graphql -f query='
 query($owner:String!,$name:String!,$pr:Int!,$endCursor:String){
   repository(owner:$owner,name:$name){ pullRequest(number:$pr){ reviewThreads(first:100,after:$endCursor){ nodes{ isResolved } pageInfo{hasNextPage endCursor} } } }
 }' -F owner="${OWNER_REPO%/*}" -F name="${OWNER_REPO#*/}" -F pr="$PR" \
-  --paginate --slurp --jq '[.[].data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false)] | length'
+  --paginate --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false) | .isResolved' | wc -l
 # → 0 이어야 다음 단계 진행
 ```
 

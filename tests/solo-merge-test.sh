@@ -59,7 +59,9 @@ case "$args" in
   *"pr view"*"--json state"*) echo MERGED; exit 0 ;;
   *"pr view"*"--json mergeable"*) echo "${FAKE_MERGEABLE:-MERGEABLE}"; exit 0 ;;
   *"pr checks"*) exit "${FAKE_CI_RC:-0}" ;;
-  *"api graphql"*reviewThreads*) echo "${FAKE_UNRESOLVED:-0}"; exit 0 ;;
+  *"api graphql"*reviewThreads*)
+    if [ "${FAKE_UNRESOLVED:-0}" = 0 ]; then nodes='[]'; else nodes='[{"isResolved":false}]'; fi
+    printf '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":%s,"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}' "$nodes"; exit 0 ;;
 esac
 cur=$(cat "$S" 2>/dev/null || echo present)
 case "$args" in
