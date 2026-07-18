@@ -135,6 +135,25 @@ inode_swap_pid=$!
 node "$MANAGE" update --profile workflow-assisted --runtime codex --target "$TMP/inode-target" >"$TMP/out" 2>&1 || true
 wait "$inode_swap_pid"
 [ -f "$inode_generation/user.txt" ] && pass "update cleanup이 교체된 generation inode 보존" || fail "update cleanup이 교체된 generation inode 삭제"
+expect_ok "target type 경합 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/type-target"
+(
+  sleep 0.25
+  rm "$TMP/type-target"
+  mkdir "$TMP/type-target"
+) &
+type_swap_pid=$!
+expect_fail "update가 target symlink→directory 교체 거부" node "$MANAGE" update --profile repository-only --target "$TMP/type-target"
+wait "$type_swap_pid"
+[ -d "$TMP/type-target" ] && [ ! -L "$TMP/type-target" ] && pass "update가 교체된 target directory 보존" || fail "update가 교체된 target directory 덮어씀"
+expect_ok "target deletion 경합 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/deleted-target"
+(
+  sleep 0.25
+  rm "$TMP/deleted-target"
+) &
+delete_swap_pid=$!
+expect_fail "update가 삭제된 target 거부" node "$MANAGE" update --profile repository-only --target "$TMP/deleted-target"
+wait "$delete_swap_pid"
+[ ! -e "$TMP/deleted-target" ] && pass "update가 삭제된 target을 재생성하지 않음" || fail "update가 삭제된 target을 덮어씀"
 expect_ok "catalog mismatch 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/old-version"
 node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.version="0.59.0"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/old-version/profile-state.json"
 expect_fail "doctor가 catalog version mismatch 탐지" node "$DOCTOR" --target "$TMP/old-version"

@@ -42,19 +42,22 @@ mkdirSync(parent, { recursive: true })
 const temporary = mkdtempSync(path.join(parent, '.team-harness-release-'))
 
 try {
-  const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()
+  const commit = execFileSync('git', ['--no-replace-objects', 'rev-parse', '--verify', 'HEAD^{commit}'], {
+    cwd: root,
+    encoding: 'utf8',
+  }).trim()
   const version = JSON.parse(
-    execFileSync('git', ['show', 'HEAD:plugins/harness-guard/.claude-plugin/plugin.json'], {
+    execFileSync('git', ['--no-replace-objects', 'show', `${commit}:plugins/harness-guard/.claude-plugin/plugin.json`], {
       cwd: root,
       encoding: 'utf8',
     }),
   ).version
   const catalog = path.join(temporary, 'packages.json')
-  writeFileSync(catalog, execFileSync('git', ['show', 'HEAD:packaging/packages.json'], { cwd: root }))
+  writeFileSync(catalog, execFileSync('git', ['--no-replace-objects', 'show', `${commit}:packaging/packages.json`], { cwd: root }))
   const archive = `team-harness-v${version}-source.tar`
-  execFileSync('git', ['archive', '--format=tar', `--prefix=team-harness-v${version}/`, '-o', path.join(temporary, archive), 'HEAD'], { cwd: root })
+  execFileSync('git', ['--no-replace-objects', 'archive', '--format=tar', `--prefix=team-harness-v${version}/`, '-o', path.join(temporary, archive), commit], { cwd: root })
   execFileSync(process.execPath, [
-    path.join(root, 'scripts/build-packages.mjs'), '--catalog', catalog, '--output', path.join(temporary, 'packages'),
+    path.join(root, 'scripts/build-packages.mjs'), '--catalog', catalog, '--revision', commit, '--output', path.join(temporary, 'packages'),
   ], { cwd: root, stdio: 'pipe' })
   rmSync(catalog)
 
