@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "version": "0.59.0",
+  "version": "0.60.0",
   "sourcePlugin": "harness-guard",
   "packages": [
     {
@@ -39,7 +39,7 @@
       "dependencies": [
         {
           "id": "governance-core",
-          "version": ">=0.59.0 <0.60.0"
+          "version": ">=0.60.0 <0.61.0"
         }
       ],
       "runtimeBindings": [
@@ -70,7 +70,7 @@
       "dependencies": [
         {
           "id": "governance-core",
-          "version": ">=0.59.0 <0.60.0"
+          "version": ">=0.60.0 <0.61.0"
         }
       ],
       "sources": [
@@ -90,7 +90,7 @@
       "dependencies": [
         {
           "id": "governance-core",
-          "version": ">=0.59.0 <0.60.0"
+          "version": ">=0.60.0 <0.61.0"
         }
       ],
       "runtimeBindings": [
