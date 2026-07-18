@@ -75,6 +75,64 @@ else
 fi
 rm "$TMP/consumer/untracked.txt"
 
+printf '#!/usr/bin/env bash\nprintf exploited >%q\n' "$TMP/fsmonitor-executed" >"$TMP/fsmonitor.sh"
+chmod +x "$TMP/fsmonitor.sh"
+git -C "$TMP/consumer" config core.fsmonitor "$TMP/fsmonitor.sh"
+if node "$RUNNER" --repo "$TMP/consumer" --output "$TMP/fsmonitor.json" >"$TMP/out" 2>"$TMP/err" \
+  && [[ ! -e "$TMP/fsmonitor-executed" ]]; then
+  pass 'pilot git 조회가 repo-local fsmonitor를 실행하지 않음'
+else
+  fail 'repo-local core.fsmonitor 실행 차단'
+fi
+rm -f "$TMP/fsmonitor.json" "$TMP/fsmonitor-executed"
+git -C "$TMP/consumer" config --unset core.fsmonitor
+
+mkdir -p "$TMP/consumer/subdir"
+if node "$RUNNER" --repo "$TMP/consumer/subdir" --output "$TMP/consumer/pilot-report.json" >"$TMP/out" 2>"$TMP/err"; then
+  fail 'canonical Git root 내부 output 거부'
+elif [[ ! -e "$TMP/consumer/pilot-report.json" ]]; then
+  pass 'canonical Git root 내부 output 거부'
+else
+  fail 'canonical Git root 내부 output 미생성'
+fi
+
+(
+  sleep 0.25
+  ln -s "$TMP/consumer" "$TMP/late-parent" 2>/dev/null || true
+) &
+late_swap_pid=$!
+if node "$RUNNER" --repo "$TMP/consumer" --output "$TMP/late-parent/late-report.json" >"$TMP/out" 2>"$TMP/err"; then
+  wait "$late_swap_pid"
+  if [[ -f "$TMP/late-parent/late-report.json" ]] && [[ ! -L "$TMP/late-parent" ]] \
+    && [[ ! -e "$TMP/consumer/late-report.json" ]] && [[ -z "$(git -C "$TMP/consumer" status --porcelain=v1 --untracked-files=all)" ]]; then
+    pass 'output parent를 canonical 경로로 고정해 pilot repo를 보존'
+  else
+    fail 'output parent symlink 경합이 pilot repo를 변경'
+  fi
+else
+  wait "$late_swap_pid"
+  if [[ ! -e "$TMP/consumer/late-report.json" ]] && [[ -z "$(git -C "$TMP/consumer" status --porcelain=v1 --untracked-files=all)" ]]; then
+    pass 'output parent symlink 경합이 pilot repo를 보존'
+  else
+    fail 'output parent symlink 경합이 pilot repo를 변경'
+  fi
+fi
+rm -f "$TMP/consumer/late-report.json"
+
+git -C "$TMP/consumer" remote set-url origin 'git@example.invalid:org/pilot-consumer.git?token=hidden#fragment'
+if node "$RUNNER" --repo "$TMP/consumer" --output "$TMP/scp-report.json" >"$TMP/out" 2>"$TMP/err" \
+  && node - "$TMP/scp-report.json" <<'NODE'
+const fs = require('fs')
+const report = JSON.parse(fs.readFileSync(process.argv[2]))
+if (report.repo.remote !== 'example.invalid/org/pilot-consumer.git') process.exit(1)
+if (/token=hidden|fragment/.test(JSON.stringify(report))) process.exit(1)
+NODE
+then
+  pass 'scp-style remote query·fragment 비노출'
+else
+  fail 'scp-style remote query·fragment 비노출'
+fi
+
 git -C "$TMP/consumer" checkout -q --detach
 if node "$RUNNER" --repo "$TMP/consumer" --output "$TMP/detached.json" >"$TMP/out" 2>"$TMP/err"; then
   fail 'detached HEAD 사전 거부'

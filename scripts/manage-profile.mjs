@@ -134,7 +134,7 @@ function buildStaging(options) {
   }
 }
 
-function replaceTarget(target, stage) {
+function replaceTarget(target, stage, expectedGeneration = null) {
   const link = `${target}.link-${process.pid}-${Date.now()}`
   let oldGeneration = null
   try {
@@ -142,7 +142,12 @@ function replaceTarget(target, stage) {
       if (!lstatSync(target).isSymbolicLink()) {
         if (readdirSync(target).length > 0) throw new Error('managed target must be a profile symlink')
         rmSync(target, { recursive: true })
-      } else oldGeneration = managedGeneration(target)
+      } else {
+        oldGeneration = managedGeneration(target)
+        if (expectedGeneration && oldGeneration !== expectedGeneration) {
+          throw new Error('managed generation changed during operation')
+        }
+      }
     }
     symlinkSync(path.basename(stage), link, 'dir')
     renameSync(link, target)
@@ -183,24 +188,29 @@ function mutateUnit(options) {
     }
     return
   }
-  inspectProfile(options.target, { quiet: true })
   if (!options.unit) throw new Error('operation requires --unit')
+  const generation = managedGeneration(options.target)
   const parent = path.dirname(options.target)
   const stage = mkdtempSync(path.join(parent, `.${path.basename(options.target)}.mutation-`))
   try {
-    cpSync(realpathSync(options.target), stage, { recursive: true })
+    cpSync(generation, stage, { recursive: true })
+    inspectProfile(stage, { quiet: true, expectedTarget: options.target })
     const stateFile = path.join(stage, 'profile-state.json')
     const state = JSON.parse(readFileSync(stateFile, 'utf8'))
     const entry = state.packages.find((candidate) => candidate.unit === options.unit)
     if (!entry) throw new Error(`unit not installed: ${options.unit}`)
+    const catalog = JSON.parse(readFileSync(catalogFile, 'utf8'))
+    const unit = catalog.packages.find((candidate) => candidate.id === options.unit)
+    if (!unit || entry.pluginName !== unit.pluginName) throw new Error(`unit package mismatch: ${options.unit}`)
+    const pluginName = unit.pluginName
     if (options.operation === 'disable') {
       if (entry.unit === 'governance-core') throw new Error('governance core cannot be disabled')
       if (entry.enabled === false) throw new Error(`unit already disabled: ${entry.unit}`)
       const disabledRoot = path.join(stage, 'disabled-packages')
       mkdirSync(disabledRoot, { recursive: true })
       renameSync(
-        path.join(stage, 'packages', entry.pluginName),
-        path.join(disabledRoot, entry.pluginName),
+        path.join(stage, 'packages', pluginName),
+        path.join(disabledRoot, pluginName),
       )
       entry.enabled = false
     } else {
@@ -209,7 +219,7 @@ function mutateUnit(options) {
         throw new Error('remove workflow-pack before adapter')
       }
       const packageArea = entry.enabled === false ? 'disabled-packages' : 'packages'
-      rmSync(path.join(stage, packageArea, entry.pluginName), { recursive: true })
+      rmSync(path.join(stage, packageArea, pluginName), { recursive: true })
       state.packages = state.packages.filter((candidate) => candidate.unit !== entry.unit)
       if (entry.unit === 'workflow-pack') state.profile = 'agent-governed'
       if (entry.unit.endsWith('-adapter')) {
@@ -219,7 +229,7 @@ function mutateUnit(options) {
     }
     writeJson(stateFile, state)
     inspectProfile(stage, { quiet: true, expectedTarget: options.target })
-    replaceTarget(options.target, stage)
+    replaceTarget(options.target, stage, generation)
   } catch (error) {
     rmSync(stage, { recursive: true, force: true })
     throw error

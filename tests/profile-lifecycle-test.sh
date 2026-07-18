@@ -82,6 +82,33 @@ external_before=$(node -e 'const f=require("fs"),c=require("crypto"); console.lo
 expect_fail "symlink state mutation 거부" node "$MANAGE" disable --unit workflow-pack --target "$TMP/symlinked"
 external_after=$(node -e 'const f=require("fs"),c=require("crypto"); console.log(c.createHash("sha256").update(f.readFileSync(process.argv[1])).digest("hex"))' "$TMP/external-state.json")
 [ "$external_before" = "$external_after" ] && pass "symlink state 외부 파일 보존" || fail "symlink state overwrite"
+expect_ok "mutation TOCTOU 반례용 profile 설치" node "$MANAGE" install --profile workflow-assisted --runtime codex --target "$TMP/race-target"
+race_generation="$(realpath "$TMP/race-target")"
+cp -R "$race_generation" "$TMP/.race-target.attacker-generation"
+mkdir "$TMP/race-victim"
+printf 'keep\n' > "$TMP/race-victim/user.txt"
+node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.packages.find(x=>x.unit==="workflow-pack").pluginName="../../race-victim"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/.race-target.attacker-generation/profile-state.json"
+cat >"$TMP/swap-realpath.mjs" <<'NODE'
+import fs from 'node:fs'
+import path from 'node:path'
+import { syncBuiltinESMExports } from 'node:module'
+const original = fs.realpathSync
+fs.realpathSync = function (value, ...args) {
+  if (path.resolve(String(value)) === path.resolve(process.env.HARNESS_RACE_TARGET)) {
+    return process.env.HARNESS_RACE_GENERATION
+  }
+  return original.call(this, value, ...args)
+}
+syncBuiltinESMExports()
+NODE
+if HARNESS_RACE_TARGET="$TMP/race-target" HARNESS_RACE_GENERATION="$TMP/.race-target.attacker-generation" \
+  NODE_OPTIONS="--import=$TMP/swap-realpath.mjs" node "$MANAGE" remove --unit workflow-pack --target "$TMP/race-target" >"$TMP/out" 2>&1; then
+  fail "검증 generation과 mutation generation 불일치 거부"
+elif [ -f "$TMP/race-victim/user.txt" ]; then
+  pass "mutation generation 교체가 외부 경로를 보존"
+else
+  fail "mutation TOCTOU가 외부 경로 삭제"
+fi
 expect_ok "catalog mismatch 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/old-version"
 node -e 'const f=require("fs"),p=process.argv[1],s=JSON.parse(f.readFileSync(p)); s.version="0.59.0"; f.writeFileSync(p,JSON.stringify(s))' "$TMP/old-version/profile-state.json"
 expect_fail "doctor가 catalog version mismatch 탐지" node "$DOCTOR" --target "$TMP/old-version"
