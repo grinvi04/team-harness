@@ -17,6 +17,16 @@ state_packages() {
 state_digest() {
   node -e 'const f=require("fs"),c=require("crypto"); console.log(c.createHash("sha256").update(f.readFileSync(process.argv[1])).digest("hex"))' "$1/profile-state.json"
 }
+wait_for_new_stage() {
+  local target="$1" existing="$2" candidate
+  for _ in $(seq 1 1000); do
+    for candidate in "$TMP"/.$(basename "$target").stage-*; do
+      [ -d "$candidate" ] && [ "$candidate" != "$existing" ] && return 0
+    done
+    sleep 0.01
+  done
+  return 1
+}
 
 expect_ok "repository-only 설치" node "$MANAGE" install --profile repository-only --target "$TMP/repo-only"
 [ "$(state_packages "$TMP/repo-only")" = "governance-core" ] && pass "repository-only는 core만 포함" || fail "repository-only package 경계"
@@ -126,7 +136,7 @@ expect_fail "remove --all이 검증되지 않은 generation 거부" node "$MANAG
 expect_ok "generation inode 경합 반례용 profile 설치" node "$MANAGE" install --profile workflow-assisted --runtime codex --target "$TMP/inode-target"
 inode_generation="$(realpath "$TMP/inode-target")"
 (
-  sleep 0.25
+  wait_for_new_stage "$TMP/inode-target" "$inode_generation" || exit 1
   mv "$inode_generation" "$inode_generation.held"
   mkdir "$inode_generation"
   printf 'preserve\n' > "$inode_generation/user.txt"
@@ -136,8 +146,9 @@ node "$MANAGE" update --profile workflow-assisted --runtime codex --target "$TMP
 wait "$inode_swap_pid"
 [ -f "$inode_generation/user.txt" ] && pass "update cleanup이 교체된 generation inode 보존" || fail "update cleanup이 교체된 generation inode 삭제"
 expect_ok "target type 경합 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/type-target"
+type_generation="$(realpath "$TMP/type-target")"
 (
-  sleep 0.25
+  wait_for_new_stage "$TMP/type-target" "$type_generation" || exit 1
   rm "$TMP/type-target"
   mkdir "$TMP/type-target"
 ) &
@@ -146,8 +157,9 @@ expect_fail "update가 target symlink→directory 교체 거부" node "$MANAGE" 
 wait "$type_swap_pid"
 [ -d "$TMP/type-target" ] && [ ! -L "$TMP/type-target" ] && pass "update가 교체된 target directory 보존" || fail "update가 교체된 target directory 덮어씀"
 expect_ok "target deletion 경합 반례용 profile 설치" node "$MANAGE" install --profile repository-only --target "$TMP/deleted-target"
+delete_generation="$(realpath "$TMP/deleted-target")"
 (
-  sleep 0.25
+  wait_for_new_stage "$TMP/deleted-target" "$delete_generation" || exit 1
   rm "$TMP/deleted-target"
 ) &
 delete_swap_pid=$!
