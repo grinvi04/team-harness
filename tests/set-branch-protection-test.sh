@@ -12,7 +12,8 @@ PASS=0; FAIL=0
 # desc, appr, adm, chk, want_verdict(ok|drift), want_rc, [expected(4번째 classify 인자, 기본""=정보성)], [strict(5번째, 기본""=무관)], [fpush(6번째, 기본""=무관)], [del(7번째, 기본""=무관)]
 chk_case() {
   local desc="$1" appr="$2" adm="$3" chk="$4" wantv="$5" wantrc="$6" expected="${7:-}" strict="${8:-}" fpush="${9:-}" del="${10:-}" out rc gotv
-  out=$(SBP_SOURCE_ONLY=1 bash -c 'source "$1"; classify_protection "$2" "$3" "$4" "$5" "$6" "$7" "$8"' _ "$SBP" "$appr" "$adm" "$chk" "$expected" "$strict" "$fpush" "$del"); rc=$?
+  local conv="${11:-}"
+  out=$(SBP_SOURCE_ONLY=1 bash -c 'source "$1"; classify_protection "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"' _ "$SBP" "$appr" "$adm" "$chk" "$expected" "$strict" "$fpush" "$del" "$conv"); rc=$?
   gotv="ok"; case "$out" in drift:*) gotv="drift";; esac
   if [ "$gotv" = "$wantv" ] && [ "$rc" = "$wantrc" ]; then
     echo "PASS: $desc"; PASS=$((PASS+1))
@@ -62,6 +63,8 @@ chk_case "fpush='?'(파싱실패) → drift"          0 True 3 drift 1 "" True "
 chk_case "fpush='' (미지정) → 무관(ok)"         0 True 3 ok    0 "" True ""
 chk_case "del=True(삭제 허용) → drift"          0 True 3 drift 1 "" True False True
 chk_case "del=False(삭제 차단) → ok"            0 True 3 ok    0 "" True False False
+chk_case "conversation=False → drift"          0 True 3 drift 1 "" True False False False
+chk_case "conversation=True → ok"              0 True 3 ok    0 "" True False False True
 
 # --contexts 명시 등록: CSV → JSON 배열(공백 trim·빈 항목 제거) — 기존 repo 리메디에이션
 cj() { # desc, csv, want_json

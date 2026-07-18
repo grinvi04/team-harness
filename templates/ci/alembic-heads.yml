@@ -21,8 +21,8 @@ jobs:
   alembic-heads:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12'
       # 자기-스킵: alembic.ini(루트) 없으면(비-alembic·셋업 이전·모노레포는 workflow 조정) 통과.

@@ -51,6 +51,34 @@ grc "threads=0 → 통과"          gate_threads   0            0
 grc "threads=1 → 중단"          gate_threads   1            1
 grc "threads=ERR → 중단(fail-closed)" gate_threads ERR      1
 grc "threads='' → 중단(fail-closed)"  gate_threads ""       1
+# GraphQL 페이지 응답은 미해결 수·다음 cursor·계속 여부를 손실 없이 반환한다.
+tps() { # desc json want
+  local desc="$1" json="$2" want="$3" got
+  got=$(PRMERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | thread_page_state' _ "$GATE" "$json")
+  if [ "$got" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want '$want' got '$got'"; FAIL=$((FAIL+1)); fi
+}
+tps "첫 페이지 100개 뒤 다음 cursor 보존" '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"isResolved":false},{"isResolved":true}],"pageInfo":{"hasNextPage":true,"endCursor":"c100"}}}}}}' '1|true|c100'
+tps "마지막 페이지 종료" '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"isResolved":false}],"pageInfo":{"hasNextPage":false,"endCursor":"c101"}}}}}}' '1|false|c101'
+if PRMERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | thread_page_state' _ "$GATE" '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[],"pageInfo":{"hasNextPage":null,"endCursor":null}}}}}}' >/dev/null 2>&1; then
+  echo "FAIL: null hasNextPage가 마지막 페이지로 통과"; FAIL=$((FAIL+1))
+else
+  echo "PASS: null hasNextPage fail-closed"; PASS=$((PASS+1))
+fi
+if command -v jq >/dev/null 2>&1; then
+  D=$(mktemp -d); trap 'rm -rf "$D"' EXIT
+  printf '#!/bin/sh\ncat >/dev/null\nexit 1\n' > "$D/python3"; chmod +x "$D/python3"
+  got=$(PATH="$D:$PATH" PRMERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | thread_page_state' _ "$GATE" '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"isResolved":false}],"pageInfo":{"hasNextPage":false,"endCursor":"c101"}}}}}}')
+  [ "$got" = '1|false|c101' ] && { echo "PASS: python 소비실패 후 jq fallback은 원 입력 재사용"; PASS=$((PASS+1)); } || { echo "FAIL: parser fallback fail-open — '$got'"; FAIL=$((FAIL+1)); }
+fi
+# 실제 cursor loop: 첫 100개 뒤 c100을 전달하고 101번째 미해결을 합산한다.
+LOOP_STATE=$(mktemp); printf 0 > "$LOOP_STATE"
+loopout=$(PRMERGE_SOURCE_ONLY=1 bash -c '
+source "$1"; first="$2"; second="$3"; state_file="$4"
+gh(){ calls=$(cat "$state_file"); calls=$((calls+1)); printf %s "$calls" > "$state_file"; if [ "$calls" = 1 ]; then printf "%s" "$first"; else case "$*" in *"after=c100"*) printf "%s" "$second";; *) return 1;; esac; fi; }
+count_unresolved_threads o r 42
+' _ "$GATE" '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[],"pageInfo":{"hasNextPage":true,"endCursor":"c100"}}}}}}' '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":[{"isResolved":false}],"pageInfo":{"hasNextPage":false,"endCursor":"c101"}}}}}}' "$LOOP_STATE")
+rm -f "$LOOP_STATE"
+[ "$loopout" = 1 ] && { echo "PASS: 101번째 미해결 스레드 cursor 합산"; PASS=$((PASS+1)); } || { echo "FAIL: 2페이지 합산 — '$loopout'"; FAIL=$((FAIL+1)); }
 # mergeable: "MERGEABLE"만 통과
 grc "mergeable=MERGEABLE → 통과"   gate_mergeable MERGEABLE   0
 grc "mergeable=CONFLICTING → 중단" gate_mergeable CONFLICTING 1

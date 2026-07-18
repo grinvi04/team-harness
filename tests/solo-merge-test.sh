@@ -14,7 +14,7 @@ hp() { # desc, config_json, want
   got=$(SOLO_MERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | had_protection' _ "$SM" "$cfg")
   if [ "$got" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want '$want' got '$got'"; FAIL=$((FAIL+1)); fi
 }
-FULL='{"url":"https://api.github.com/x","required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":false,"require_last_push_approval":false}'
+FULL='{"url":"https://api.github.com/x","required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":false,"require_last_push_approval":false,"dismissal_restrictions":{"users":[{"login":"lead"}],"teams":[],"apps":[]},"bypass_pull_request_allowances":{"users":[],"teams":[{"slug":"release"}],"apps":[]}}'
 hp "빈 설정 → no(보호 없음)"                 ""                                              no
 hp "요건 없는 설정 → no"                       '{"url":"https://api.github.com/x"}'            no
 hp "요건 있는 설정 → yes"                      "$FULL"                                         yes
@@ -27,8 +27,8 @@ erp() { # desc, config_json, want_json
   if [ "$got" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want '$want' got '$got'"; FAIL=$((FAIL+1)); fi
 }
 # 4필드만 남기고 url 등 비관련 필드는 드롭. 키 순서 = 추출 튜플 순서(결정론적).
-erp "4필드 추출·비관련 필드 드롭" "$FULL" \
-  '{"required_approving_review_count": 1, "dismiss_stale_reviews": true, "require_code_owner_reviews": false, "require_last_push_approval": false}'
+erp "전체 쓰기필드 추출·비관련 필드 드롭" "$FULL" \
+  '{"required_approving_review_count": 1, "dismiss_stale_reviews": true, "require_code_owner_reviews": false, "require_last_push_approval": false, "dismissal_restrictions": {"users": ["lead"], "teams": [], "apps": []}, "bypass_pull_request_allowances": {"users": [], "teams": ["release"], "apps": []}}'
 # 값 보존: count·bool 원값 유지(복구가 원 상태로 되돌리는지 — 잘못된 값이면 보호 변형)
 erp "값 보존(전 필드 원값 유지)" \
   '{"required_approving_review_count":2,"dismiss_stale_reviews":false,"require_code_owner_reviews":true,"require_last_push_approval":true}' \
@@ -59,7 +59,9 @@ case "$args" in
   *"pr view"*"--json state"*) echo MERGED; exit 0 ;;
   *"pr view"*"--json mergeable"*) echo "${FAKE_MERGEABLE:-MERGEABLE}"; exit 0 ;;
   *"pr checks"*) exit "${FAKE_CI_RC:-0}" ;;
-  *"api graphql"*reviewThreads*) echo "${FAKE_UNRESOLVED:-0}"; exit 0 ;;
+  *"api graphql"*reviewThreads*)
+    if [ "${FAKE_UNRESOLVED:-0}" = 0 ]; then nodes='[]'; else nodes='[{"isResolved":false}]'; fi
+    printf '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":%s,"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}' "$nodes"; exit 0 ;;
 esac
 cur=$(cat "$S" 2>/dev/null || echo present)
 case "$args" in
@@ -134,7 +136,7 @@ ok "$(grep -c '^DELETE' "$L")" 0 "AC-6 mergeable미달 — DELETE 0건"
 # R2 파서(python3·jq) 둘 다 부재/실패 → 복구 payload 생성 불가. 기존엔 ORIG/RESTORED 둘 다 "?"로 degrade해
 #   [?!=?]=false → 조용한 성공 + 보호 삭제 방치(silent catastrophic). 그 회귀를 fail-closed로 봉쇄한다.
 run_e2e 'exit 0' "$FULL" "$NOPARSE"
-ok "$(grep -c '^DELETE' "$L")" 1 "R2 파서無 — DELETE 발생(보호 삭제됨)"
+ok "$(grep -c '^DELETE' "$L")" 0 "R2 파서無 — DELETE 전 fail-closed"
 ok "$(grep -c '^PATCH'  "$L")" 0 "R2 파서無 — 빈 PATCH 안 보냄"
 [ "$RC" -ne 0 ] && { echo "PASS: R2 파서無 — fail-closed RC≠0(조용한 성공 아님)"; PASS=$((PASS+1)); } || { echo "FAIL: R2 파서無 — RC=$RC(기대≠0·silent success 회귀!)"; FAIL=$((FAIL+1)); }
 
@@ -150,7 +152,7 @@ if command -v jq >/dev/null 2>&1; then
   ok "$RC" 0 "R1 jq폴백 — 정상 성공(RC0)"
   # R1b: jq-branch payload 값 보존(bool 포함) 정확 검증 — python3 셰도로 jq 경로 강제(값 어서션, grep 아님)
   JQOUT=$(PATH="$PYSTUB:$PATH" SOLO_MERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | extract_restore_payload' _ "$SM" "$FULL")
-  ok "$JQOUT" '{"required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":false,"require_last_push_approval":false}' "R1b jq-branch payload 4필드 값 보존"
+  ok "$JQOUT" '{"required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":false,"require_last_push_approval":false,"dismissal_restrictions":{"users":["lead"],"teams":[],"apps":[]},"bypass_pull_request_allowances":{"users":[],"teams":["release"],"apps":[]}}' "R1b jq-branch payload 전체 필드 값 보존"
   # R1c: _json_field jq-branch — count=0(falsy)이 sentinel로 오독되지 않음
   JF=$(PATH="$PYSTUB:$PATH" SOLO_MERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "{\"required_approving_review_count\":0}" | _json_field required_approving_review_count' _ "$SM")
   ok "$JF" "0" "R1c jq-branch count=0 보존(sentinel 오독 없음)"
