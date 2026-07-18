@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.58.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.59.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -117,6 +117,15 @@ flowchart TD
 ## harness-guard 플러그인
 
 공식 플러그인이 제공하지 않는 **자체 정책만** 담는다.
+
+현재 설치 단위는 호환성을 위해 `harness-guard` 하나다. 다음 배포 단계에서 사용할 governance core,
+Claude·Codex adapter, 선택 workflow의 파일 소속과 manifest는 `packaging/packages.json`이 정본이며 아래 명령으로
+clean 디렉터리에 재현 가능한 staged artifact를 만들 수 있다. 이 artifact는 아직 marketplace 설치 대상이 아니다.
+
+```bash
+node scripts/build-packages.mjs --check
+node scripts/build-packages.mjs --output /tmp/team-harness-packages
+```
 
 | 구성 요소 | 내용 |
 |---|---|
@@ -263,6 +272,8 @@ team-harness/
 ├── .claude-plugin/marketplace.json    사내 마켓플레이스 카탈로그
 ├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
 ├── plugins/harness-guard/             플러그인 본체 (아래 상세)
+├── packaging/packages.json            core·adapter·workflow package 소속·호환성 정본
+├── scripts/build-packages.mjs         staged package artifact 검증·조립
 ├── scripts/new-repo.sh                신규 repo 셋업 자동화 (템플릿 복사 + branch protection)
 ├── scripts/harness-doctor.sh          Codex·repo·GitHub 상태 종합 점검 (`--probe`로 실세션 검증)
 ├── scripts/codex-fresh-session-smoke.sh  실제 ephemeral Codex hook 발화 검증

@@ -10,8 +10,12 @@
 **전환기 monolith**다. marketplace manifest도 하나이고 사용자는 구성 요소를 독립적으로 설치하거나 제거할 수
 없다. 아래 세 단위는 **목표 제품 경계**이며 아직 독립 설치 단위가 아니다.
 
-이 구분은 현재 동작을 바꾸지 않는다. 물리 분리 전까지 기존 plugin 설치·업데이트·doctor 경로와 버전 0.58.0을
-유지한다. 목표 이름을 현재 사용할 수 있는 package나 명령처럼 안내하지 않는다.
+v0.59.0부터 `packaging/packages.json`과 `scripts/build-packages.mjs`가 네 단위의 파일 소속·호환 범위를
+검증하고 staged artifact를 물리 디렉터리로 조립한다. source는 중복하지 않고 기록된 Git `HEAD`에서 결정적으로
+복사한다. adapter가 core 실행 파일을 호출하는 지점은 runtime binding으로 명시하며, 새 artifact는 profile
+installer가 binding을 제공하고 doctor로 실측하기 전이라 `installable: false`이고 marketplace에 노출하지 않는다.
+기존 plugin 설치·업데이트·doctor 경로는 그대로 유지한다. 목표 이름을 현재 사용할 수 있는 package나 명령처럼
+안내하지 않는다.
 
 ## 목표 제품 단위
 
@@ -127,20 +131,20 @@ workflow 세션 상태는 재생성 가능해야 한다. 제거 명령은 다른
 ## 물리 분리 전환 순서
 
 1. **계약 잠금:** 이 문서와 동적 skill 경계 테스트를 먼저 배포한다. rollback은 문서 완료 표시를 되돌리는 것이다.
-2. **manifest/package 분리:** core, runtime adapter, workflow pack manifest와 버전 호환 범위를 추가하되 기존
-   monolith는 그대로 유지한다. 새 package 설치가 실패하면 기존 경로로 돌아간다.
+2. **manifest/package 분리(완료):** core, runtime adapter, workflow pack manifest와 버전 호환 범위를 추가하되
+   기존 monolith는 그대로 유지한다. build artifact는 설치 불가로 표시해 검증 전 노출을 막는다.
 3. **profile 설치·doctor 검증:** clean repo에서 세 profile의 설치·업데이트·비활성화·제거를 실측하고, adapter
    없이도 server-backed gate가 작동하는지 반증한다. 실패하면 새 profile을 기본으로 승격하지 않는다.
 4. **호환 기간:** 최소 한 릴리스 동안 monolith를 deprecated alias로 유지하고 동일 결과·rollback 안내를 제공한다.
 5. **legacy 경로 제거:** 사용률과 doctor 증거가 기준을 충족한 뒤 cache patch·중복 agent·monolith manifest를
    제거한다. required CI와 branch protection drift가 있으면 제거를 중단한다.
 
-물리 분리는 로드맵 4번 배포 단순화에서 별도 승인 스펙으로 구현한다. 단위를 나누는 것 자체가 목적이 아니라
-기본 설치의 강제력을 유지하면서 runtime 호환 비용과 선택 workflow 결합을 줄이는 것이 성공 기준이다.
+다음 단계는 로드맵 4번의 profile 설치·doctor 실측이다. 단위를 나누는 것 자체가 목적이 아니라 기본 설치의
+강제력을 유지하면서 runtime 호환 비용과 선택 workflow 결합을 줄이는 것이 성공 기준이다.
 
 ## 비목표와 재검토 조건
 
-- 이번 단계에서 실제 plugin·marketplace source, 설치 명령, 기본 활성 skill을 바꾸지 않는다.
+- staged package는 실제 plugin·marketplace source, 설치 명령, 기본 활성 skill을 바꾸지 않는다.
 - workflow-pack을 별도 범용 방법론 제품으로 확장하지 않는다.
 - adapter가 플랫폼 sandbox·permission·agent runtime을 재구현하지 않는다.
 - core를 설치하지 않은 standalone adapter나 workflow-pack은 지원하지 않는다.
