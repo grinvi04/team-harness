@@ -206,7 +206,7 @@ function existsAnywhere(re) {
   return files.some((f) => re.test(f.name))
 }
 
-const BUNDLED_COMMITLINT_WORKFLOW_SHA256 = 'ad321f937d6b984b6be8acbfa341a5f6360d84ec80656fe7a4ce16b2ed4806bb'
+const BUNDLED_COMMITLINT_WORKFLOW_SHA256 = '111ca0162e27c0f180ab6518d3737ef38fde1f4da54d1e739e3d76133a83a99d'
 const BUNDLED_COMMIT_VALIDATOR_SHA256 = 'fc5a4e82601efe2f7b47bdf2f475de89a0ffba8fd9dc39ec54c61518b8a5fbe3'
 const BUNDLED_COMMITLINT_SHA256 = [
   '5fad6ec6655f12c62afcb8d538d7edad652ef5463fea49159a486d2cb6e8d43d',

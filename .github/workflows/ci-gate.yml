@@ -14,7 +14,7 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
       - name: 쉘 구문 검사
         run: |
@@ -72,6 +72,7 @@ jobs:
           bash -n tests/codex-managed-requirements-test.sh
           bash -n tests/codex-fresh-session-smoke-test.sh
           bash -n tests/harness-doctor-test.sh
+          bash -n tests/action-pin-test.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
           node --check plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
@@ -246,12 +247,15 @@ jobs:
       - name: team-harness doctor 종합 판정
         run: bash tests/harness-doctor-test.sh
 
+      - name: GitHub Actions 공급망 SHA 고정
+        run: bash tests/action-pin-test.sh
+
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

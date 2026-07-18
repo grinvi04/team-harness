@@ -83,7 +83,7 @@ for (const configPath of [`${root}/commitlint.config.cjs`, `${root}/templates/co
 
 for (const workflowPath of [`${root}/.github/workflows/commitlint.yml`, `${root}/templates/ci/commitlint.yml`]) {
   const workflow = readFileSync(workflowPath, 'utf8')
-  if (!/- uses: wagoid\/commitlint-github-action@v6\n\s+with:\n\s+configFile: \.\/commitlint\.config\.cjs/m.test(workflow)) {
+  if (!/- uses: wagoid\/commitlint-github-action@[0-9a-f]{40} # v6\n\s+with:\n\s+configFile: \.\/commitlint\.config\.cjs/m.test(workflow)) {
     process.exit(1)
   }
   if (!/check-commit-message\.cjs --range "\$BASE_SHA\.\.\$HEAD_SHA"/.test(workflow)) process.exit(1)

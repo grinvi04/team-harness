@@ -42,6 +42,7 @@ function verdict(cmd) {
 }
 
 const out = []
+out.push(['no', allow.includes('Bash(gh api *)') ? 'yes' : 'no', '구조: 광범위 gh api 자동허용 제거'])
 // ── 구조 잠금(#237): 실제 allow에 살아있는 리더(cat·grep)에 .env deny 존재 ──
 out.push(['yes', deny.includes('Bash(cat *.env*)') ? 'yes' : 'no', '구조: deny에 Bash(cat *.env*)'])
 out.push(['yes', deny.includes('Bash(grep *.env*)') ? 'yes' : 'no', '구조: deny에 Bash(grep *.env*)'])

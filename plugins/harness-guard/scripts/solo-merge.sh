@@ -28,18 +28,21 @@ had_protection() {
   fi
 }
 
-# extract_restore_payload: stdin=설정 JSON → 복구 PATCH 본문(4필드만: required_approving_review_count·
-#   dismiss_stale_reviews·require_code_owner_reviews·require_last_push_approval). count만 복구하면 나머지
-#   필드가 유실돼 base 보호가 매 실행 영구 약화(K1)되므로 전체 필드를 보존한다. 없는 필드는 생략.
+# extract_restore_payload: stdin=설정 JSON → GitHub API의 쓰기 가능한 리뷰 보호 필드만 정규화한다.
 #   python3 우선, 부재/실패 시 jq 폴백(guard.sh와 동일 정책 — python3-degraded 박스에서도 복구 작동).
 #   둘 다 없거나 실패면 rc1·빈 출력 → 호출부가 빈 payload로 PATCH하지 않고 fail-closed 경보.
 extract_restore_payload() {
   local cfg; cfg=$(cat)
   if command -v python3 >/dev/null 2>&1; then
-    printf '%s' "$cfg" | python3 -c "import sys,json; c=json.load(sys.stdin); print(json.dumps({k:c[k] for k in ('required_approving_review_count','dismiss_stale_reviews','require_code_owner_reviews','require_last_push_approval') if k in c}))" 2>/dev/null && return 0
+    printf '%s' "$cfg" | python3 -c "import sys,json
+c=json.load(sys.stdin); out={k:c[k] for k in ('required_approving_review_count','dismiss_stale_reviews','require_code_owner_reviews','require_last_push_approval') if k in c}
+for key in ('dismissal_restrictions','bypass_pull_request_allowances'):
+ if key in c:
+  r=c[key]; out[key]={'users':[x.get('login',x) if isinstance(x,dict) else x for x in r.get('users',[])],'teams':[x.get('slug',x) if isinstance(x,dict) else x for x in r.get('teams',[])],'apps':[x.get('slug',x) if isinstance(x,dict) else x for x in r.get('apps',[])]}
+print(json.dumps(out))" 2>/dev/null && return 0
   fi
   if command -v jq >/dev/null 2>&1; then
-    printf '%s' "$cfg" | jq -ce '{required_approving_review_count,dismiss_stale_reviews,require_code_owner_reviews,require_last_push_approval}|with_entries(select(.value!=null))' 2>/dev/null && return 0
+    printf '%s' "$cfg" | jq -ce 'def norm: {users:[(.users[]? | .login // .)],teams:[(.teams[]? | .slug // .)],apps:[(.apps[]? | .slug // .)]}; . as $c | ({required_approving_review_count,dismiss_stale_reviews,require_code_owner_reviews,require_last_push_approval}|with_entries(select(.value!=null))) + (if $c|has("dismissal_restrictions") then {dismissal_restrictions:($c.dismissal_restrictions|norm)} else {} end) + (if $c|has("bypass_pull_request_allowances") then {bypass_pull_request_allowances:($c.bypass_pull_request_allowances|norm)} else {} end)' 2>/dev/null && return 0
   fi
   return 1
 }
@@ -79,9 +82,9 @@ RPR_PATH="repos/$OWNER_REPO/branches/$BASE/protection/required_pull_request_revi
 # pre-gate (보호 건드리기 *전*) — CI required·미해결 스레드 0·mergeable. 미달이면 DELETE 이전에 중단해
 #   break-glass 창을 아예 열지 않는다(AC-6). pr-merge가 머지 시 재검증하지만, 여기서 먼저 막는 게 최소 노출.
 if gh pr checks "$PR" --repo "$OWNER_REPO" --required >/dev/null 2>&1; then CI_RC=0; else CI_RC=1; fi
-UNRESOLVED=$(gh api graphql -f query='query($o:String!,$n:String!,$p:Int!){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:50){nodes{isResolved}}}}}' \
+UNRESOLVED=$(gh api graphql --paginate --slurp -f query='query($o:String!,$n:String!,$p:Int!,$endCursor:String){repository(owner:$o,name:$n){pullRequest(number:$p){reviewThreads(first:100,after:$endCursor){nodes{isResolved} pageInfo{hasNextPage endCursor}}}}}' \
   -F o="${OWNER_REPO%/*}" -F n="${OWNER_REPO#*/}" -F p="$PR" \
-  --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false)]|length' 2>/dev/null || echo "?")
+  --jq '[.[].data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false)]|length' 2>/dev/null || echo "?")
 MERGEABLE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable 2>/dev/null || echo "?")
 if ! REASON=$(solo_gate_decide "$CI_RC" "$UNRESOLVED" "$MERGEABLE"); then
   echo "⛔ pre-gate 미달 — 보호를 건드리지 않고 중단: $REASON" >&2
@@ -92,7 +95,12 @@ fi
 REVIEWS_CONFIG=$(gh api "$RPR_PATH" 2>/dev/null || true)
 HAD_PROTECTION=$(printf '%s' "$REVIEWS_CONFIG" | had_protection)
 ORIG_COUNT=$(printf '%s' "$REVIEWS_CONFIG" | _json_field required_approving_review_count 2>/dev/null || echo "?")
+ORIG_PAYLOAD=$(printf '%s' "$REVIEWS_CONFIG" | extract_restore_payload 2>/dev/null || echo "?")
 [ -n "$ORIG_COUNT" ] || ORIG_COUNT="?"   # 빈 값(파서 실패)도 sentinel로 — verify가 fail-closed 판정
+if [ "$HAD_PROTECTION" = yes ] && { [ "$ORIG_PAYLOAD" = "?" ] || [ -z "$ORIG_PAYLOAD" ] || [ "$ORIG_PAYLOAD" = "{}" ]; }; then
+  echo "⛔ 리뷰 보호 복구 payload를 만들 수 없어 DELETE 전에 중단" >&2
+  exit 1
+fi
 
 # restore(trap 대상): 저장한 원본 설정을 PATCH로 되돌린다. 멱등(_restored 가드) — 명시 호출과 trap이
 #   겹쳐도 1회. HAD_PROTECTION=no면 no-op(요건 신규 생성 방지).
@@ -134,9 +142,11 @@ trap - EXIT INT TERM HUP
 #   판정(복구 실패를 조용히 통과시키지 않는다). 복구가 어떤 이유로든(파서 부재·PATCH 5xx) 안 됐으면 여기서 경보.
 STATE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json state --jq .state 2>/dev/null || echo "?")
 if [ "$HAD_PROTECTION" = yes ]; then
-  RESTORED_COUNT=$(gh api "$RPR_PATH" --jq '.required_approving_review_count' 2>/dev/null || echo "?")
-  if [ "$ORIG_COUNT" = "?" ] || [ -z "$RESTORED_COUNT" ] || [ "$RESTORED_COUNT" = "?" ] || [ "$RESTORED_COUNT" != "$ORIG_COUNT" ]; then
-    echo "❌ 복구 검증 실패 — 승인요건 count=$RESTORED_COUNT(원값 $ORIG_COUNT). 즉시 수동 재설정 필요: $BASE (set-branch-protection.sh --check로 확인)" >&2
+  RESTORED_CONFIG=$(gh api "$RPR_PATH" 2>/dev/null || echo "?")
+  RESTORED_PAYLOAD=$(printf '%s' "$RESTORED_CONFIG" | extract_restore_payload 2>/dev/null || echo "?")
+  RESTORED_COUNT=$(printf '%s' "$RESTORED_CONFIG" | _json_field required_approving_review_count 2>/dev/null || echo "?")
+  if [ "$ORIG_PAYLOAD" = "?" ] || [ "$RESTORED_PAYLOAD" = "?" ] || [ "$RESTORED_PAYLOAD" != "$ORIG_PAYLOAD" ]; then
+    echo "❌ 복구 검증 실패 — 리뷰 보호 전체 정책이 원값과 다름(count=$RESTORED_COUNT, 원값 $ORIG_COUNT). 즉시 수동 재설정 필요: $BASE" >&2
     exit 1
   fi
   echo "🔒 복구 확인: $BASE 승인요건 count=$RESTORED_COUNT"

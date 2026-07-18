@@ -9,7 +9,7 @@ cd3b2b8bffbede88332ed0e1778ef04c1c72984263de77c3eacf0875907df1cd  plugins/harnes
 a21753c924df3845046b55089cdc52d899b304a1bf3f203098bf80eb145fdae3  plugins/harness-guard/skills/milestone/SKILL.md
 dd0ae3c253d58d1e67c4e28081d452a5266e4a61cfed630d5165ea53ba82bbe4  plugins/harness-guard/skills/plan/SKILL.md
 6820231fe2cf012ef805689238b301e4e4742aaf816e51a483b19793e2def9fb  plugins/harness-guard/skills/pr-create/SKILL.md
-30523c456cd545543d52db3cadc614b1f328f8e283e17276547f794922fa9fa1  plugins/harness-guard/skills/pr-review-gate/SKILL.md
+3dfcf91c72d692237c1c5568606f61cab992e1aa39fce875a155ca9116fd86c0  plugins/harness-guard/skills/pr-review-gate/SKILL.md
 e8e1b9fb8710427a2c73d7aaed4865f3395d81c6689ac4bf605cdd3acd9c0b86  plugins/harness-guard/skills/qa/SKILL.md
 b3c3c4611d294fce09064e266a12fc09effd37890e0219a3c5cd0744acb2b887  plugins/harness-guard/skills/release-check/SKILL.md
 959c7613e5a0f65f36036a221e227d4db9a3672e4e34846bdeb3dfce0538c6c4  plugins/harness-guard/skills/release/SKILL.md

@@ -41,9 +41,9 @@ jobs:
       # CUSTOMIZE: 추가 env
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
-      - uses: ruby/setup-ruby@v1
+      - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1
         with:
           ruby-version: .ruby-version  # CUSTOMIZE: 없으면 ruby-version: '3.4'
           bundler-cache: true           # Gemfile.lock 기반 bundle install + 캐시 자동화
@@ -60,10 +60,10 @@ jobs:
   secret-scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # Organization repo는 GITLEAKS_LICENSE secret 필요 (개인 repo는 불필요)
