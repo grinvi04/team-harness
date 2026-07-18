@@ -1,0 +1,127 @@
+{
+  "schemaVersion": 1,
+  "version": "0.59.0",
+  "sourcePlugin": "harness-guard",
+  "packages": [
+    {
+      "id": "governance-core",
+      "pluginName": "harness-governance-core",
+      "kind": "core",
+      "description": "Team Harness의 GitHub delivery 정책, 증거, 감사와 복구 core",
+      "dependencies": [],
+      "sources": [
+        "skills/feature-merge",
+        "skills/hotfix",
+        "skills/pr-create",
+        "skills/pr-review-gate",
+        "skills/release-check",
+        "skills/release",
+        "skills/repo-sync",
+        "skills/solo-merge",
+        "skills/verification-before-completion",
+        "scripts/check-repo-sync.mjs",
+        "scripts/guard.sh",
+        "scripts/lib/tokenize.sh",
+        "scripts/pr-create.sh",
+        "scripts/pr-merge.sh",
+        "scripts/route-intent.mjs",
+        "scripts/run-with-timeout.mjs",
+        "scripts/set-branch-protection.sh",
+        "scripts/solo-merge.sh",
+        "scripts/worktree-fingerprint.mjs"
+      ]
+    },
+    {
+      "id": "claude-adapter",
+      "pluginName": "harness-claude-adapter",
+      "kind": "adapter",
+      "description": "Claude Code 공식 hook과 agent surface를 governance core에 연결하는 adapter",
+      "dependencies": [
+        {
+          "id": "governance-core",
+          "version": ">=0.59.0 <0.60.0"
+        }
+      ],
+      "runtimeBindings": [
+        {
+          "consumer": "hooks/hooks.json",
+          "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
+          "unit": "governance-core",
+          "target": "scripts/guard.sh"
+        },
+        {
+          "consumer": "hooks/hooks.json",
+          "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
+          "unit": "governance-core",
+          "target": "scripts/route-intent.mjs"
+        }
+      ],
+      "sources": [
+        "agents",
+        "hooks",
+        "scripts/enforce-subagent-model.py"
+      ]
+    },
+    {
+      "id": "codex-adapter",
+      "pluginName": "harness-codex-adapter",
+      "kind": "adapter",
+      "description": "Codex 공식 plugin과 hook surface를 governance core에 연결하는 adapter",
+      "dependencies": [
+        {
+          "id": "governance-core",
+          "version": ">=0.59.0 <0.60.0"
+        }
+      ],
+      "sources": [
+        "codex",
+        "scripts/codex-pretool-guard.mjs",
+        "scripts/codex-secret-egress-guard.mjs",
+        "scripts/codex-security-guidance-adapter.mjs",
+        "scripts/patch-codex-harness-guard.mjs",
+        "scripts/patch-codex-security-guidance.mjs"
+      ]
+    },
+    {
+      "id": "workflow-pack",
+      "pluginName": "harness-workflows",
+      "kind": "workflow",
+      "description": "계획, TDD, 반복 수정, milestone, QA와 디버깅을 제공하는 선택 workflow",
+      "dependencies": [
+        {
+          "id": "governance-core",
+          "version": ">=0.59.0 <0.60.0"
+        }
+      ],
+      "runtimeBindings": [
+        {
+          "consumer": "skills/loop/SKILL.md",
+          "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
+          "unit": "governance-core",
+          "target": "scripts/run-with-timeout.mjs"
+        },
+        {
+          "consumer": "skills/loop/SKILL.md",
+          "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
+          "unit": "governance-core",
+          "target": "scripts/worktree-fingerprint.mjs"
+        },
+        {
+          "consumer": "skills/milestone/SKILL.md",
+          "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
+          "unit": "governance-core",
+          "target": "scripts/pr-create.sh"
+        }
+      ],
+      "sources": [
+        "skills/feature-add",
+        "skills/feature-modify",
+        "skills/loop",
+        "skills/milestone",
+        "skills/plan",
+        "skills/qa",
+        "skills/systematic-debugging"
+      ]
+    }
+  ]
+}

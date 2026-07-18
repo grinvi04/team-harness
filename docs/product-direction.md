@@ -81,6 +81,7 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
 3. [x] **제품 경계 분리:** 서버 거버넌스 core, runtime adapter, 선택 workflow의 설치·운영 경계를
    [`product-boundaries.md`](product-boundaries.md)에 정의했다.
 4. **배포 단순화:** 설치·업데이트·제거·doctor를 안정적인 단일 진입점으로 정리하고 공식 surface를 우선 사용.
+   package 소속·호환성 정본과 재현 build는 완료했으며, 다음은 profile 설치·doctor 실측이다.
 5. **오픈소스 제품화:** 영문 Quick Start, 지원 환경, SECURITY·CONTRIBUTING·CHANGELOG와 release artifact 정리.
 6. **호환성 검증:** 다른 skill/plugin과 함께 설치한 clean-session 충돌·우선순위 테스트.
 7. **외부 파일럿:** 독립 프로젝트에서 설치 시간, 차단 오탐·누락, 유지보수 비용을 측정해 방향을 재검증.
