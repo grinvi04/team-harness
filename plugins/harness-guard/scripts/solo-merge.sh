@@ -109,15 +109,20 @@ _restored=0
 _restore() {
   [ "$_restored" = 1 ] && return 0
   [ "$HAD_PROTECTION" = yes ] || return 0
-  _restored=1
-  local payload; payload=$(printf '%s' "$REVIEWS_CONFIG" | extract_restore_payload 2>/dev/null || true)
+  local payload attempt; payload=$(printf '%s' "$REVIEWS_CONFIG" | extract_restore_payload 2>/dev/null || true)
   if [ -z "$payload" ] || [ "$payload" = "{}" ]; then   # payload 생성 실패/빈 객체 → PATCH 안 보냄
     # 빈 PATCH나 {} PATCH는 no-op/필드 리셋 위험 → 보내지 않고 경보. verify가 fail-closed로 재확인.
     echo "  ⚠️ 복구 payload 생성 실패/공백(python3·jq 부재·실패) — $BASE 승인요건 수동 재설정 필요(count=$ORIG_COUNT)." >&2
-    return 0
+    return 1
   fi
-  printf '%s' "$payload" | gh api -X PATCH "$RPR_PATH" --input - >/dev/null 2>&1 \
-    || echo "  ⚠️ 승인요건 복구 PATCH 실패 — 수동으로 $BASE 보호에 승인요건 재설정 필요(count=$ORIG_COUNT)" >&2
+  for attempt in 1 2 3; do
+    if printf '%s' "$payload" | gh api -X PATCH "$RPR_PATH" --input - >/dev/null 2>&1; then
+      _restored=1
+      return 0
+    fi
+  done
+  echo "  ⚠️ 승인요건 복구 PATCH 3회 실패 — 수동으로 $BASE 보호에 승인요건 재설정 필요(count=$ORIG_COUNT)" >&2
+  return 1
 }
 
 # arm trap: 정상·에러(set -e)·시그널(INT/TERM/HUP) 어떤 종료 경로에서도 복구 보장. 시그널 핸들러는
