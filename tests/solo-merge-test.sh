@@ -143,6 +143,7 @@ ok "$(grep -c '^PATCH'  "$L")" 0 "R2 파서無 — 빈 PATCH 안 보냄"
 # R3 PATCH 실패(python3 존재) → 복원 안 됨 → verify가 sentinel 감지해 fail-closed(정상 경로 복구실패도 조용히 통과 안 함)
 FAKE_PATCH_RC=1 run_e2e 'exit 0' "$FULL"
 [ "$RC" -ne 0 ] && { echo "PASS: R3 PATCH실패 — verify fail-closed RC≠0"; PASS=$((PASS+1)); } || { echo "FAIL: R3 PATCH실패 — RC=$RC(기대≠0)"; FAIL=$((FAIL+1)); }
+[ "$(grep -c '^PATCH-FAIL' "$L")" -ge 2 ] && { echo "PASS: R3 PATCH실패 — trap 포함 복구 재시도"; PASS=$((PASS+1)); } || { echo "FAIL: R3 PATCH실패 — 복구 재시도 없음"; FAIL=$((FAIL+1)); }
 
 # R1 jq 폴백(python3만 깨짐, jq 존재) → jq로 복구 payload 생성·PATCH 발생, 정상 성공(#239 일관)
 if command -v jq >/dev/null 2>&1; then

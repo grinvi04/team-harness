@@ -6,7 +6,6 @@
       "Bash(git *)",
       "Bash(gh pr *)",
       "Bash(gh repo view *)",
-      "Bash(bash * pr-merge.sh --auto *)",
       "Bash(ls *)",
       "Bash(find *)",
       "Bash(grep *)",
