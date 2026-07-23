@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(release): 태그 후 changelog byte 재현 보장
 - fix(release): pipeand와 후보 날짜 재현성 보강
 - fix(security): 경로 포함 env 원격복사 차단
 - fix(security): builtin egress dispatcher 차단
