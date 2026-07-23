@@ -4,6 +4,10 @@
  * It blocks only explicit secret-egress shapes; ambiguous commands remain for
  * Codex sandbox/approval, matching the intentionally narrow Claude prompt policy.
  */
+import { createHash } from 'node:crypto'
+import { appendFileSync, chmodSync, mkdirSync } from 'node:fs'
+import path from 'node:path'
+
 let input = ''
 for await (const chunk of process.stdin) input += chunk
 
@@ -81,6 +85,9 @@ function logicalShellCommands(value) {
     for (const tokens of shellSegments(current)) {
       const index = commandIndex(tokens)
       if (!['ash', 'bash', 'csh', 'dash', 'fish', 'ksh', 'mksh', 'sh', 'tcsh', 'yash', 'zsh'].includes(baseName(tokens[index]))) continue
+      for (const initCommand of shellInitCommandOperands(tokens, index)) {
+        pending.push(collapseLineContinuations(initCommand))
+      }
       const operand = shellCommandOperand(tokens, index)
       if (operand !== undefined) pending.push(collapseLineContinuations(operand))
     }
@@ -242,10 +249,16 @@ function shellParts(value) {
   while (index < value.length) {
     const char = value[index]
     if (quote) {
-      if (char === quote) {
+      const closingQuote = quote === 'ansi' ? "'" : quote
+      if (char === closingQuote) {
         quote = ''
         wordStarted = true
         index += 1
+      } else if (quote === 'ansi' && char === '\\' && index + 1 < value.length) {
+        const escaped = decodeAnsiC(value, index)
+        word += escaped.value
+        wordStarted = true
+        index = escaped.nextIndex
       } else if (quote === '"' && char === '\\' && index + 1 < value.length) {
         word += value[index + 1]
         wordStarted = true
@@ -258,7 +271,15 @@ function shellParts(value) {
       continue
     }
 
-    if (char === "'" || char === '"') {
+    if (char === '$' && value[index + 1] === "'") {
+      quote = 'ansi'
+      wordStarted = true
+      index += 2
+    } else if (char === '$' && value[index + 1] === '"') {
+      quote = '"'
+      wordStarted = true
+      index += 2
+    } else if (char === "'" || char === '"') {
       quote = char
       wordStarted = true
       index += 1
@@ -287,6 +308,27 @@ function shellParts(value) {
   }
   pushSegment()
   return parts
+}
+
+function decodeAnsiC(value, index) {
+  const marker = value[index + 1]
+  const controls = {
+    a: '\x07', b: '\b', e: '\x1b', E: '\x1b', f: '\f',
+    n: '\n', r: '\r', t: '\t', v: '\v', '\\': '\\', "'": "'", '"': '"',
+  }
+  if (Object.hasOwn(controls, marker)) return { value: controls[marker], nextIndex: index + 2 }
+
+  const remaining = value.slice(index + 1)
+  const encoded = remaining.match(/^(?:x([0-9A-Fa-f]{1,2})|u([0-9A-Fa-f]{4})|U([0-9A-Fa-f]{8})|([0-7]{1,3}))/)
+  if (encoded) {
+    const digits = encoded.slice(1).find(Boolean)
+    const radix = encoded[4] ? 8 : 16
+    const codePoint = Number.parseInt(digits, radix)
+    if (Number.isSafeInteger(codePoint) && codePoint <= 0x10ffff) {
+      return { value: String.fromCodePoint(codePoint), nextIndex: index + 1 + encoded[0].length }
+    }
+  }
+  return { value: marker, nextIndex: index + 2 }
 }
 
 function baseName(value) {
@@ -416,6 +458,24 @@ function shellCommandOperand(tokens, shellIndex) {
     else break
   }
   return undefined
+}
+
+function shellInitCommandOperands(tokens, shellIndex) {
+  if (baseName(tokens[shellIndex]) !== 'fish') return []
+  const commands = []
+  for (let index = shellIndex + 1; index < tokens.length; index += 1) {
+    const option = tokens[index]
+    if (option === '--') break
+    if (option === '-C' || option === '--init-command') {
+      if (tokens[index + 1] !== undefined) commands.push(tokens[index + 1])
+      index += 1
+    } else if (option.startsWith('--init-command=')) {
+      commands.push(option.slice('--init-command='.length))
+    } else if (/^-C.+/.test(option)) {
+      commands.push(option.slice(2))
+    }
+  }
+  return commands
 }
 
 function isRemoteTarget(token) {
@@ -574,6 +634,7 @@ function hasCurlUpload(tokens, index) {
     if (shortOption) {
       const value = shortOption.consumesNext ? (tokens[offset + 1] || '') : shortOption.value
       if (['d', 'F', 'T'].includes(shortOption.name)) return true
+      if (shortOption.name === 'K' && (value === '-' || hasSecretSource(value))) return true
       if (shortOption.name === 'X' && /^(POST|PUT|PATCH)$/i.test(value)) return true
       if (['u', 'U'].includes(shortOption.name) && value.length > 0) return true
       if (shortOption.name === 'H' && (isAuthorizationHeader(value) || hasSecretSource(value))) return true
@@ -582,6 +643,11 @@ function hasCurlUpload(tokens, index) {
     if (
       /^--(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json)(?:=|$)/.test(option)
     ) return true
+    if (option === '--config' && ((tokens[offset + 1] || '') === '-' || hasSecretSource(tokens[offset + 1] || ''))) return true
+    if (/^--config=/.test(option)) {
+      const value = option.slice(option.indexOf('=') + 1)
+      if (value === '-' || hasSecretSource(value)) return true
+    }
     if (option === '--request' && /^(POST|PUT|PATCH)$/i.test(tokens[offset + 1] || '')) return true
     if (/^--request=(?:POST|PUT|PATCH)$/i.test(option)) return true
     if (
@@ -651,12 +717,31 @@ function hasSecretSource(value) {
   })
 }
 
+function auditEgressBlock() {
+  const log = process.env.HARNESS_GUARD_LOG
+  if (!log) return
+  const sanitize = (value, limit) => Array.from(String(value ?? ''))
+    .map((char) => (/[\p{Cc}]/u.test(char) ? ' ' : char))
+    .join('')
+    .slice(0, limit)
+  const fingerprint = createHash('sha256').update(command).digest('hex')
+  const line = `${new Date().toISOString()} session=${sanitize(hook?.session_id, 80) || '?'} cwd=${sanitize(hook?.cwd, 256) || '?'} DENY 시크릿 외부 전송 차단 | cmd=sha256:${fingerprint}\n`
+  try {
+    mkdirSync(path.dirname(log), { recursive: true, mode: 0o700 })
+    appendFileSync(log, line, { encoding: 'utf8', mode: 0o600 })
+    chmodSync(log, 0o600)
+  } catch {
+    process.stderr.write('Codex secret-egress audit log write failed\n')
+  }
+}
+
 const logicalCommands = logicalShellCommands(command)
 const blocked = logicalCommands.truncated || logicalCommands.commands.some((logicalCommand) => {
   return hasSecretSource(logicalCommand) && hasUpload(logicalCommand)
 })
 
 if (blocked) {
+  auditEgressBlock()
   process.stderr.write('⛔ [security] 명백한 시크릿 외부 전송 패턴을 차단했습니다. 네트워크 전송이 필요하면 시크릿을 제거하고 사용자 승인을 받으세요.\n')
   process.exit(2)
 }
