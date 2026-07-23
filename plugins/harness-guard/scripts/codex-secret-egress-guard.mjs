@@ -284,7 +284,7 @@ function hasUpload(value) {
     ) return true
     if (
       ['scp', 'rsync'].includes(executable) &&
-      tokens.slice(index + 1).some((token) => /^\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token)) &&
+      tokens.slice(index + 1).some((token) => /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token)) &&
       tokens.slice(index + 1).some((token) => /^[A-Za-z0-9._-]+@[^\s:]+:/.test(token))
     ) return true
   }
