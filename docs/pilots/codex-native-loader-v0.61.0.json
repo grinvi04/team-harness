@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-23T16:53:33.180Z",
+  "observedAt": "2026-07-23T17:28:09.381Z",
   "evidence": {
     "mode": "live"
   },
@@ -10,13 +10,19 @@
     "binary": {
       "name": "codex",
       "path": "$HOME/.codex/packages/standalone/releases/0.144.6-aarch64-apple-darwin/bin/codex",
-      "digest": "sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff"
+      "digest": "sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff",
+      "signature": {
+        "verified": true,
+        "platform": "darwin",
+        "teamIdentifier": "2DC432GLL2",
+        "authority": "Developer ID Application: OpenAI OpCo, LLC (2DC432GLL2)"
+      }
     }
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "a1b411afe3123e00ecba1e53d05318d68aa5a66a",
-    "tree": "69310965b7676904a22cf9401e70cec81fa8e571"
+    "revision": "440fe58bd512513c0bc94977c28ac8934fe0e80a",
+    "tree": "1b877baee23939d5c950045ce741244d0d0eac2a"
   },
   "loader": {
     "installed": true,
@@ -29,11 +35,11 @@
     "evidence": {
       "guardTranscript": {
         "file": "codex-native-loader-v0.61.0.guard.txt",
-        "digest": "sha256:bc1bf1d45a2af553c959bfeb3d2f295ad7d48c5b579cbf2c777a957cb7b73284"
+        "digest": "sha256:9f79665b617cad77c7ea731f1555f465104b9dbef7d4d081262f45b8927c8fcb"
       },
       "routingTranscript": {
         "file": "codex-native-loader-v0.61.0.routing.jsonl",
-        "digest": "sha256:a3ba5f07934fdc6a632da69f09c46073177637816c2cfda563eff1f1de615ce5"
+        "digest": "sha256:e655e1d59420020aafe6f0384f4a7cbc03909744484484d62ad2181641513636"
       }
     }
   },
