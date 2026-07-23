@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): URL userinfo와 Authorization egress 차단
 - fix(security): literal curl credential egress 차단
 - fix(security): curl auth option 감사로그 마스킹
 - fix(security): fish command option egress 우회 차단
