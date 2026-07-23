@@ -66,13 +66,76 @@ function collapseLineContinuations(value) {
 
 function logicalShellCommands(value) {
   const outer = collapseLineContinuations(value)
-  const commands = [outer]
+  const commands = []
+  const pending = [outer]
+  const seen = new Set()
 
-  for (const tokens of shellSegments(outer)) {
-    const index = commandIndex(tokens)
-    if (!['bash', 'sh', 'zsh'].includes(baseName(tokens[index]))) continue
-    const operand = shellCommandOperand(tokens, index)
-    if (operand !== undefined) commands.push(collapseLineContinuations(operand))
+  while (pending.length > 0 && commands.length < 32) {
+    const current = pending.shift()
+    if (seen.has(current)) continue
+    seen.add(current)
+    commands.push(current)
+
+    for (const nested of backtickShellCommands(current)) pending.push(nested)
+    for (const tokens of shellSegments(current)) {
+      const index = commandIndex(tokens)
+      if (!['bash', 'sh', 'zsh'].includes(baseName(tokens[index]))) continue
+      const operand = shellCommandOperand(tokens, index)
+      if (operand !== undefined) pending.push(collapseLineContinuations(operand))
+    }
+  }
+  return commands
+}
+
+function backtickShellCommands(value) {
+  const commands = []
+  let quote = ''
+  let index = 0
+
+  while (index < value.length) {
+    const char = value[index]
+    if (quote === "'") {
+      if (char === "'") quote = ''
+      index += 1
+      continue
+    }
+    if (char === '\\' && index + 1 < value.length) {
+      index += 2
+      continue
+    }
+    if (!quote && char === "'") {
+      quote = "'"
+      index += 1
+      continue
+    }
+    if (char === '"') {
+      quote = quote === '"' ? '' : '"'
+      index += 1
+      continue
+    }
+    if (char !== '`') {
+      index += 1
+      continue
+    }
+
+    let nested = ''
+    let closed = false
+    index += 1
+    while (index < value.length) {
+      const nestedChar = value[index]
+      if (nestedChar === '\\' && index + 1 < value.length) {
+        nested += nestedChar + value[index + 1]
+        index += 2
+      } else if (nestedChar === '`') {
+        closed = true
+        index += 1
+        break
+      } else {
+        nested += nestedChar
+        index += 1
+      }
+    }
+    if (closed) commands.push(collapseLineContinuations(nested))
   }
   return commands
 }
