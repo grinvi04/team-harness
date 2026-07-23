@@ -64,6 +64,13 @@ function resolveExecutable(command) {
   throw new Error(`Codex binary is not an executable regular file: ${command}`)
 }
 
+function evidenceExecutablePath(executable) {
+  const home = realpathSync(os.homedir())
+  if (executable === home) return '$HOME'
+  if (executable.startsWith(`${home}${path.sep}`)) return `$HOME${executable.slice(home.length)}`
+  return executable
+}
+
 function run(program, args, options = {}) {
   const result = spawnSync(program, args, {
     cwd: options.cwd,
@@ -194,7 +201,7 @@ try {
     throw new Error('source repository must be clean before pilot execution')
   }
   const codexExecutable = resolveExecutable(codexBin)
-  report.codex.binary.path = codexExecutable
+  report.codex.binary.path = evidenceExecutablePath(codexExecutable)
   report.codex.binary.digest = digest(readFileSync(codexExecutable))
   report.codex.version = codex(['--version'], userEnvironment, 'Codex version').trim()
   if (!fixtureMode) {

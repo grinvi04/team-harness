@@ -30,7 +30,8 @@ if (report.evidence?.mode !== 'live') fail('committed pilot is not live evidence
 if (
   report.codex?.binary?.name !== 'codex' ||
   typeof report.codex?.binary?.path !== 'string' ||
-  !path.isAbsolute(report.codex.binary.path) ||
+  !(path.isAbsolute(report.codex.binary.path) || report.codex.binary.path.startsWith('$HOME/')) ||
+  report.codex.binary.path.includes('..') ||
   !sha256.test(report.codex?.binary?.digest || '')
 ) {
   fail('verified Codex binary evidence missing')
