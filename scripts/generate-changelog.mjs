@@ -8,24 +8,45 @@ function git(args) {
   return execFileSync('git', args, { cwd: root, encoding: 'utf8' }).trim()
 }
 
+function releaseCandidate(argv) {
+  if (argv.length === 0) return ''
+  if (argv.length !== 2 || argv[0] !== '--release' || !/^v\d+\.\d+\.\d+$/.test(argv[1])) {
+    process.stderr.write('사용: node scripts/generate-changelog.mjs [--release vMAJOR.MINOR.PATCH]\n')
+    process.exit(2)
+  }
+  return argv[1]
+}
+
+const candidate = releaseCandidate(process.argv.slice(2))
 const tags = git(['tag', '--list', 'v*', '--sort=-version:refname'])
   .split('\n')
   .filter(Boolean)
+if (candidate && tags.includes(candidate)) {
+  process.stderr.write(`이미 존재하는 tag는 release candidate로 생성할 수 없습니다: ${candidate}\n`)
+  process.exit(2)
+}
 const lines = [
   '# Changelog',
   '',
   '<!-- Generated file. Do not edit release entries manually. -->',
   '',
-  'Generated from version tags and Conventional Commits (`feat` and `fix` only).',
-  'Regenerate with `node scripts/generate-changelog.mjs` and replace this file with its output.',
+  candidate
+    ? 'Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).'
+    : 'Generated from version tags and Conventional Commits (`feat` and `fix` only).',
+  candidate
+    ? `Regenerate with \`node scripts/generate-changelog.mjs --release ${candidate}\` and replace this file with its output.`
+    : 'Regenerate with `node scripts/generate-changelog.mjs` and replace this file with its output.',
   '',
 ]
 
-for (let index = 0; index < tags.length; index += 1) {
-  const tag = tags[index]
-  const older = tags[index + 1]
-  const range = older ? `${older}..${tag}` : tag
-  const date = git(['log', '-1', '--format=%cs', tag])
+const releases = [
+  ...(candidate ? [{ tag: candidate, ref: 'HEAD', older: tags[0] }] : []),
+  ...tags.map((tag, index) => ({ tag, ref: tag, older: tags[index + 1] })),
+]
+
+for (const { tag, ref, older } of releases) {
+  const range = older ? `${older}..${ref}` : ref
+  const date = git(['log', '-1', '--format=%cs', ref])
   const entries = git(['log', '--format=%s', range])
     .split('\n')
     .filter((subject) => /^(feat|fix)(\([^)]+\))?!?: /.test(subject))

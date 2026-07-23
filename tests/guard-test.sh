@@ -294,6 +294,20 @@ printf '%s' '{"tool_name":"Bash","session_id":"s","cwd":"/x","tool_input":{"comm
 if grep -q "SECRETPASS" "$FHOME2/.claude/hooks/guard-block.log" 2>/dev/null; then echo "FAIL: #208 대문자 URL 크레덴셜 로그 유출"; FAIL=$((FAIL+1)); else echo "PASS: #208 대문자 URL 크레덴셜 마스킹"; PASS=$((PASS+1)); fi
 rm -rf "$FHOME2"
 
+# v0.61 release-check: 차단 명령의 secret-like 환경변수 대입값도 감사로그에 평문으로 남기지 않는다.
+FHOME3=$(mktemp -d); mkdir -p "$FHOME3/.claude/hooks"
+mk Bash 'API_KEY=fixture-not-a-secret git reset --hard' | HOME="$FHOME3" bash "$G" >/dev/null 2>&1
+mk Bash 'DEPLOY_TOKEN="fixture secret value" git reset --hard' | HOME="$FHOME3" bash "$G" >/dev/null 2>&1
+if grep -Eq "fixture-not-a-secret|fixture secret value" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null; then
+  echo "FAIL: v0.61 secret-like 환경변수 감사로그 유출"; FAIL=$((FAIL+1))
+elif grep -q "API_KEY=\\*\\*\\*" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null &&
+     grep -q "DEPLOY_TOKEN=\\*\\*\\*" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null; then
+  echo "PASS: v0.61 secret-like 환경변수 감사로그 마스킹"; PASS=$((PASS+1))
+else
+  echo "FAIL: v0.61 secret-like 환경변수 마스킹 증거 없음"; FAIL=$((FAIL+1))
+fi
+rm -rf "$FHOME3"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
