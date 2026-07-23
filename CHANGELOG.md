@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): 변수 확장 원격 sink 차단
 - fix(security): 최종 release-check 경계 차단
 - fix(security): timeout wrapper egress 차단
 - fix(security): 중첩 명령 탐색을 fail-closed 처리
