@@ -530,6 +530,27 @@ function wgetTargets(tokens, index) {
   return targets
 }
 
+function isAuthorizationHeader(value) {
+  return /(?:^|\b)(?:proxy-)?authorization:\s*(?:basic|bearer|digest|negotiate|ntlm)\s+\S+/i.test(value)
+}
+
+function hasLiteralCurlCredential(tokens, index) {
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    const shortOption = curlShortValueOption(option)
+    if (shortOption) {
+      const optionValue = shortOption.consumesNext ? (tokens[offset + 1] || '') : shortOption.value
+      if (['u', 'U'].includes(shortOption.name) && optionValue.length > 0) return true
+      if (shortOption.name === 'H' && isAuthorizationHeader(optionValue)) return true
+    }
+    if (['--oauth2-bearer', '--proxy-user', '--user'].includes(option) && (tokens[offset + 1] || '').length > 0) return true
+    if (/^--(?:oauth2-bearer|proxy-user|user)=.+/.test(option)) return true
+    if (['--header', '--proxy-header'].includes(option) && isAuthorizationHeader(tokens[offset + 1] || '')) return true
+    if (/^--(?:header|proxy-header)=/.test(option) && isAuthorizationHeader(option.slice(option.indexOf('=') + 1))) return true
+  }
+  return false
+}
+
 function hasCurlUpload(tokens, index) {
   const targets = curlTargets(tokens, index)
   if (!hasRemoteTarget(targets)) return false
@@ -541,7 +562,9 @@ function hasCurlUpload(tokens, index) {
       const value = shortOption.consumesNext ? (tokens[offset + 1] || '') : shortOption.value
       if (['d', 'F', 'T'].includes(shortOption.name)) return true
       if (shortOption.name === 'X' && /^(POST|PUT|PATCH)$/i.test(value)) return true
-      if (['A', 'H', 'U', 'b', 'e', 'u'].includes(shortOption.name) && hasSecretSource(value)) return true
+      if (['u', 'U'].includes(shortOption.name) && value.length > 0) return true
+      if (shortOption.name === 'H' && (isAuthorizationHeader(value) || hasSecretSource(value))) return true
+      if (['A', 'b', 'e'].includes(shortOption.name) && hasSecretSource(value)) return true
     }
     if (
       /^--(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json)(?:=|$)/.test(option)
@@ -549,11 +572,26 @@ function hasCurlUpload(tokens, index) {
     if (option === '--request' && /^(POST|PUT|PATCH)$/i.test(tokens[offset + 1] || '')) return true
     if (/^--request=(?:POST|PUT|PATCH)$/i.test(option)) return true
     if (
-      /^(?:--header|--proxy-header|--user|--proxy-user|--oauth2-bearer|--cookie|--referer|--user-agent|--url-query|--request-target)$/.test(option) &&
+      /^(?:--user|--proxy-user|--oauth2-bearer)$/.test(option) &&
+      (tokens[offset + 1] || '').length > 0
+    ) return true
+    if (
+      /^--(?:user|proxy-user|oauth2-bearer)=.+/.test(option)
+    ) return true
+    if (
+      /^(?:--header|--proxy-header)$/.test(option) &&
+      (isAuthorizationHeader(tokens[offset + 1] || '') || hasSecretSource(tokens[offset + 1] || ''))
+    ) return true
+    if (
+      /^--(?:header|proxy-header)=/.test(option) &&
+      (isAuthorizationHeader(option.slice(option.indexOf('=') + 1)) || hasSecretSource(option.slice(option.indexOf('=') + 1)))
+    ) return true
+    if (
+      /^(?:--cookie|--referer|--user-agent|--url-query|--request-target)$/.test(option) &&
       hasSecretSource(tokens[offset + 1] || '')
     ) return true
     if (
-      /^(?:--header|--proxy-header|--user|--proxy-user|--oauth2-bearer|--cookie|--referer|--user-agent|--url-query|--request-target)=/.test(option) &&
+      /^--(?:cookie|referer|user-agent|url-query|request-target)=/.test(option) &&
       hasSecretSource(option.slice(option.indexOf('=') + 1))
     ) return true
   }
@@ -593,7 +631,11 @@ const secretSourcePattern = new RegExp(
 )
 
 function hasSecretSource(value) {
-  return secretSourcePattern.test(value)
+  if (secretSourcePattern.test(value)) return true
+  return shellParts(value).some(({ tokens }) => {
+    const index = commandIndex(tokens)
+    return baseName(tokens[index]) === 'curl' && hasLiteralCurlCredential(tokens, index)
+  })
 }
 
 const logicalCommands = logicalShellCommands(command)
