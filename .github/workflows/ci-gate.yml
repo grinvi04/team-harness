@@ -66,6 +66,7 @@ jobs:
           bash -n tests/patch-codex-security-guidance-test.sh
           bash -n tests/codex-native-loader-test.sh
           bash -n tests/codex-native-loader-pilot-test.sh
+          bash -n tests/codex-native-loader-report-test.sh
           bash -n tests/codex-secret-egress-guard-test.sh
           bash -n tests/codex-pretool-guard-test.sh
           bash -n tests/codex-semantic-parity-test.sh
@@ -254,6 +255,9 @@ jobs:
 
       - name: Codex native loader pilot 격리·보고 계약
         run: bash tests/codex-native-loader-pilot-test.sh
+
+      - name: Codex native loader 실측 보고서 계약
+        run: bash tests/codex-native-loader-report-test.sh
 
       - name: Codex 시크릿 외부 전송 가드 테스트
         run: bash tests/codex-secret-egress-guard-test.sh

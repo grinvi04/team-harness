@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "status": "pass",
+  "observedAt": "2026-07-23T13:24:33.091Z",
+  "codex": {
+    "version": "codex-cli 0.144.6"
+  },
+  "harness": {
+    "version": "0.61.0",
+    "revision": "c7b9fb53c5c0c33348607806beff5f40fe66a1e3"
+  },
+  "loader": {
+    "installed": true,
+    "nativeSkills": 16
+  },
+  "session": {
+    "destructiveGuard": true,
+    "secretEgressGuard": true,
+    "routing": "feature-add"
+  },
+  "userState": {
+    "before": {
+      "marketplaces": "sha256:b132a5f6d66f18ba2cdf51a689d6c496115721705d39553f83948f1ed9109d1f",
+      "plugins": "sha256:c579af2c991102f4b65fc4ab10c0eefb23a2aa89ce278da07c60cc8c8f6a9ab3"
+    },
+    "after": {
+      "marketplaces": "sha256:b132a5f6d66f18ba2cdf51a689d6c496115721705d39553f83948f1ed9109d1f",
+      "plugins": "sha256:c579af2c991102f4b65fc4ab10c0eefb23a2aa89ce278da07c60cc8c8f6a9ab3"
+    },
+    "unchanged": true
+  },
+  "sourceState": {
+    "unchanged": true
+  },
+  "auth": {
+    "copied": true
+  },
+  "cleanup": {
+    "isolatedHomeRemoved": true
+  },
+  "splitPackages": {
+    "promoted": false,
+    "reason": "monolith native loader pilot only"
+  }
+}
