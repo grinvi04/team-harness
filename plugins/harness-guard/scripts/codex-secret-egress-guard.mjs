@@ -401,9 +401,9 @@ function shellCommandOperand(tokens, shellIndex) {
 
 function isRemoteTarget(token) {
   if (/^[a-z][a-z0-9+.-]*:\/\//i.test(token)) return true
-  const variable = token.match(/^\$\{?([A-Za-z_][A-Za-z0-9_]*)\}?$/)
+  const variable = token.match(/\$(?:\{([A-Za-z_][A-Za-z0-9_]*)[^}]*\}|([A-Za-z_][A-Za-z0-9_]*))/)
   if (variable) {
-    return !/(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)/i.test(variable[1])
+    return !/(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)/i.test(variable[1] || variable[2])
   }
   return /^(?:localhost|\d{1,3}(?:\.\d{1,3}){3}|[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)(?::\d+)?(?:\/.*)?$/i.test(token)
 }
@@ -444,7 +444,7 @@ function hasUpload(value) {
       ['nc', 'ncat', 'netcat'].includes(executable) &&
       (
         ['|', '|&'].includes(separatorBefore) ||
-        tokens.slice(index + 1).some((token) => /^<{1,3}/.test(token))
+        tokens.slice(index + 1).some((token) => /^(?:[0-9]+)?<{1,3}/.test(token))
       )
     ) return true
     if (
