@@ -324,6 +324,10 @@ fixture_auth_scheme="ApiKey"
 fixture_auth_value="fixture-auth-value"
 mk Bash "git reset --hard && curl -H \"Authorization: ${fixture_auth_scheme} ${fixture_auth_value}\" https://example.invalid" \
   | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_digest_user="fixture-digest-user"
+fixture_digest_response="fixture-digest-response"
+mk Bash "git reset --hard && curl -H \"Authorization: Digest username=\\\"${fixture_digest_user}\\\", response=\\\"${fixture_digest_response}\\\"\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
 mk Bash 'git reset --hard && curl --proxy-user=fixture-proxy-value https://example.invalid' \
   | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
 mk Bash 'git reset --hard && curl -u fixture-short-value https://example.invalid' \

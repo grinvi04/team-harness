@@ -69,7 +69,7 @@ deny() {
     | sed -E -e 's#([Hh][Tt][Tt][Pp][Ss]?://)[^@ ]*@#\1***@#g' \
              -e 's#gh[pousr]_[A-Za-z0-9]{20,}#gh_***#g' \
              -e 's#github_pat_[A-Za-z0-9_]{20,}#github_pat_***#g' \
-             -e "s#((([Pp][Rr][Oo][Xx][Yy]-)?[Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]):[[:space:]]*)[^\"';|&]+#\1***#g" \
+             -e "s#((([Pp][Rr][Oo][Xx][Yy]-)?[Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]):[[:space:]]*).*#\1***#g" \
              -e "s#((--oauth2-bearer|--proxy-user|--user)(=|[[:space:]]+))(\"[^\"]*\"|'[^']*'|[^\"'[:space:];|&]+)#\1***#g" \
              -e "s#(^|[[:space:]])(-[A-Za-z]*[uU][[:space:]]+)(\"[^\"]*\"|'[^']*'|[^\"'[:space:];|&]+)#\1\2***#g" \
              -e "s#(^|[[:space:]])(-[A-Za-z]*[uU])([^\"'[:space:];|&]+)#\1\2***#g" \
