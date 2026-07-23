@@ -314,6 +314,16 @@ rm -rf "$FHOME3"
 FHOME4=$(mktemp -d); mkdir -p "$FHOME4/.claude/hooks"
 printf '%s' '{"tool_name":"Bash","session_id":"good\u001b[2J\u0085FORGED","cwd":"/x","tool_input":{"command":"git reset --hard -H \"Authorization: Bearer fixture-bearer-value\""}}' \
   | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+mk Bash 'git reset --hard && curl --oauth2-bearer fixture-oauth-value https://example.invalid' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_user="fixture-user"
+fixture_pass="fixture-pass"
+mk Bash "git reset --hard && curl --user \"${fixture_user}:${fixture_pass}\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+mk Bash 'git reset --hard && curl --proxy-user=fixture-proxy-value https://example.invalid' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+mk Bash 'git reset --hard && curl -u fixture-short-value https://example.invalid' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
 GUARD_LOG4="$FHOME4/.claude/hooks/guard-block.log"
 control_count=$(python3 - "$GUARD_LOG4" <<'PY'
 import sys
@@ -323,7 +333,7 @@ value = open(sys.argv[1], encoding="utf-8").read()
 print(sum(unicodedata.category(char) == "Cc" and char != "\n" for char in value))
 PY
 )
-if grep -Fq "fixture-bearer-value" "$GUARD_LOG4" 2>/dev/null \
+if grep -Eq "fixture-(bearer-value|oauth-value|user|pass|proxy-value|short-value)" "$GUARD_LOG4" 2>/dev/null \
   || [ "$control_count" -ne 0 ]; then
   echo "FAIL: v0.61 Bearer·제어문자 감사로그 유출"; FAIL=$((FAIL+1))
 elif [ "$(stat -f '%Lp' "$GUARD_LOG4" 2>/dev/null || stat -c '%a' "$GUARD_LOG4" 2>/dev/null)" = 600 ]; then
