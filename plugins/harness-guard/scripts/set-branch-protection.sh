@@ -14,7 +14,8 @@
 #     new-repo.sh(신규)는 STACK_CHECKS로 자동 등록하므로 불필요.
 #   ※ --approvals: 멤버 합류 후 팀 모드로 올릴 때. main에만 승인 N(+ dismiss_stale_reviews)을 걸고
 #     develop은 승인0 유지(pr-merge.sh --auto 무프롬프트 머지 보존). --check와 함께 주면 그 N을 baseline으로
-#     검증(미지정 시 승인 개수는 정보성 — 아래 classify_protection). new-repo.sh(신규)는 항상 솔로(승인0):
+#     검증(main 미지정 시 승인 개수는 정보성, develop은 항상 승인0 엄격 검증 — 아래 classify_protection).
+#     new-repo.sh(신규)는 항상 솔로(승인0):
 #     day-1 소유자 1명이 승인1이면 self-approve 불가로 데드락이라, 팀 승인은 이 스크립트로 나중에 올린다.
 #
 # 표준 config(솔로 기본, decisions "브랜치 보호 표준"):
@@ -25,8 +26,9 @@
 #   ※ 긴급 break-glass(드묾: CI 인프라 자체 장애)는 required_status_checks를 일시 완화 — 통상은 CI를 고쳐 머지.
 set -uo pipefail
 
-# ── 드리프트 판정(순수) — (승인수, enforce_admins, status-check 개수, 기대승인)만 받아 판정. gh/python과
-#    분리해 테스트가 주입 검증(tests/set-branch-protection-test.sh). 판정 로직 단일 출처 = 이 함수. ──
+# ── 드리프트 판정(순수) — 승인·admin·status checks·strict·force/delete·conversation·stale-review를
+#    받아 판정. gh/python과 분리해 테스트가 주입 검증(tests/set-branch-protection-test.sh).
+#    판정 로직 단일 출처 = 이 함수. ──
 #   appr: 승인요건 개수("0"/"None"=승인없음, "?"=파싱실패=fail-closed). adm: enforce_admins.enabled("True"=on).
 #   chk : required status check 개수(-1=null/없음, 0=빈목록=약한 보호, >0=정상). "?"=파싱실패=fail-closed.
 #   expected(4번째, 기본""): 승인 축 검증 모드.
@@ -36,7 +38,7 @@ set -uo pipefail
 #     "N"(≥1) = 팀(appr>=N면 ok · None/미달=drift).
 #   echo "ok"(부합, rc0) 또는 "drift:<사유들>"(rc1).
 classify_protection() {
-  local appr="$1" adm="$2" chk="$3" expected="${4:-}" strict="${5:-}" fpush="${6:-}" del="${7:-}" conv="${8:-}" msg="" okappr=false okchk=false okstrict=true okfpush=true okdel=true okconv=true
+  local appr="$1" adm="$2" chk="$3" expected="${4:-}" strict="${5:-}" fpush="${6:-}" del="${7:-}" conv="${8:-}" dismiss="${9:-}" msg="" okappr=false okchk=false okstrict=true okfpush=true okdel=true okconv=true okdismiss=true
   if [ -z "$expected" ]; then
     [ "$appr" != "?" ] && okappr=true                                   # 정보성: 파싱된 값이면 개수 무관 통과
   elif [ "$expected" = "0" ]; then
@@ -53,7 +55,11 @@ classify_protection() {
   case "$fpush" in ""|false|False) ;; *) okfpush=false;; esac
   case "$del" in ""|false|False) ;; *) okdel=false;; esac
   case "$conv" in ""|true|True) ;; *) okconv=false;; esac
-  if $okappr && [ "$adm" = "True" ] && $okchk && $okstrict && $okfpush && $okdel && $okconv; then echo "ok"; return 0; fi
+  # 승인요건이 있으면 새 push 뒤 stale 승인을 무효화해야 한다. 승인0에서는 review 설정 자체가 없으므로 무관.
+  if [ "$appr" -ge 1 ] 2>/dev/null && [ -n "$dismiss" ]; then
+    case "$dismiss" in true|True) ;; *) okdismiss=false;; esac
+  fi
+  if $okappr && [ "$adm" = "True" ] && $okchk && $okstrict && $okfpush && $okdel && $okconv && $okdismiss; then echo "ok"; return 0; fi
   if ! $okappr; then
     if [ -z "$expected" ];       then msg="$msg 승인요건 파싱실패=$appr"
     elif [ "$expected" = "0" ];  then msg="$msg 승인요건=$appr(솔로표준0·팀이면 --approvals N)"
@@ -65,6 +71,7 @@ classify_protection() {
   $okfpush || msg="$msg allow_force_pushes=$fpush(표준=false · true면 계층0 force-push 차단 부재 → 재설계 [A] 위임 전제 붕괴)"
   $okdel || msg="$msg allow_deletions=$del(표준=false · true면 브랜치 삭제 가능)"
   $okconv || msg="$msg required_conversation_resolution=$conv(표준=true)"
+  $okdismiss || msg="$msg dismiss_stale_reviews=$dismiss(승인요건 1+ 표준=true)"
   echo "drift:$msg"; return 1
 }
 
@@ -120,9 +127,10 @@ for branch in main develop; do
     fpush=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_force_pushes',{}).get('enabled'))" 2>/dev/null || echo "?")
     del=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_deletions',{}).get('enabled'))" 2>/dev/null || echo "?")
     conv=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('required_conversation_resolution',{}).get('enabled'))" 2>/dev/null || echo "?")
-    # 승인 baseline: main만 --approvals N으로 검증(develop은 승인0 유지라 정보성). 미지정=정보성(개수 무관).
-    exp=""; [ "$branch" = "main" ] && exp="$APPROVALS"
-    verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp" "$strict" "$fpush" "$del" "$conv") || true
+    dismiss=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_pull_request_reviews'); print(r.get('dismiss_stale_reviews') if r else '')" 2>/dev/null || echo "?")
+    # 승인 baseline: main은 --approvals 미지정 시 정보성, develop은 팀/솔로 모두 정확히 0.
+    exp="$APPROVALS"; [ "$branch" = "develop" ] && exp=0
+    verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp" "$strict" "$fpush" "$del" "$conv" "$dismiss") || true
     if [ "$verdict" = "ok" ]; then
       echo "✓ $REPO:$branch — 보호 적용(승인$appr · enforce_admins=on · checks=$chk)"
     else
