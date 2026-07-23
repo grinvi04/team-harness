@@ -163,6 +163,17 @@ cli_check_case "CLI exact contexts 순서·중복 정규화 → exit 0" ok 0 "co
 cli_check_case "CLI exact contexts 누락 → exit nonzero" missing-context 1 "quality,secret-scan,test-guard,commitlint"
 cli_check_case "CLI repo/branch 조회 실패 → exit nonzero" missing-branch 1
 
+set +e
+apply_out=$(FAKE_GH_SCENARIO=missing-branch PATH="$FAKEBIN:$PATH" \
+  bash "$SBP" o/r --approvals 1 --contexts "quality,secret-scan,test-guard,commitlint" 2>&1)
+apply_rc=$?
+set -e
+if [ "$apply_rc" = 1 ]; then
+  echo "PASS: CLI apply-mode repo/branch 조회 실패 → exit nonzero"; PASS=$((PASS+1))
+else
+  echo "FAIL: CLI apply-mode repo/branch 조회 실패 — want rc1 got rc$apply_rc ($apply_out)"; FAIL=$((FAIL+1))
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

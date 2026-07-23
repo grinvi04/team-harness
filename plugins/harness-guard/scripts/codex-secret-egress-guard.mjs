@@ -80,7 +80,7 @@ function logicalShellCommands(value) {
     for (const nested of dollarParenShellCommands(current)) pending.push(nested)
     for (const tokens of shellSegments(current)) {
       const index = commandIndex(tokens)
-      if (!['bash', 'sh', 'zsh'].includes(baseName(tokens[index]))) continue
+      if (!['ash', 'bash', 'csh', 'dash', 'fish', 'ksh', 'mksh', 'sh', 'tcsh', 'yash', 'zsh'].includes(baseName(tokens[index]))) continue
       const operand = shellCommandOperand(tokens, index)
       if (operand !== undefined) pending.push(collapseLineContinuations(operand))
     }
@@ -407,12 +407,29 @@ function hasRemoteTarget(tokens) {
   return tokens.some(isRemoteTarget)
 }
 
+const curlShortValueOptions = new Set([
+  'A', 'C', 'D', 'E', 'F', 'H', 'K', 'P', 'Q', 'T', 'U', 'X', 'Y',
+  'b', 'c', 'd', 'e', 'h', 'm', 'o', 'r', 't', 'u', 'w', 'x', 'y', 'z',
+])
+
+function curlShortValueOption(token) {
+  if (!/^-[^-]/.test(token)) return undefined
+  const options = token.slice(1)
+  for (let offset = 0; offset < options.length; offset += 1) {
+    const name = options[offset]
+    if (!curlShortValueOptions.has(name)) continue
+    return {
+      name,
+      value: options.slice(offset + 1),
+      consumesNext: offset === options.length - 1,
+    }
+  }
+  return undefined
+}
+
 function curlTargets(tokens, index) {
   const targets = []
   const valueOptions = new Set([
-    '-A', '-C', '-D', '-E', '-F', '-H', '-K', '-P', '-Q', '-T', '-U', '-X',
-    '-Y', '-b', '-c', '-d', '-e', '-h', '-m', '-o', '-r', '-t', '-u', '-w',
-    '-x', '-y', '-z',
     '--abstract-unix-socket', '--alt-svc', '--aws-sigv4', '--cacert', '--capath',
     '--cert', '--cert-type', '--ciphers', '--config', '--connect-timeout',
     '--connect-to', '--continue-at', '--cookie', '--cookie-jar',
@@ -461,11 +478,16 @@ function curlTargets(tokens, index) {
       targets.push(token.slice('--url='.length))
       continue
     }
+    const shortOption = curlShortValueOption(token)
+    if (shortOption) {
+      if (shortOption.consumesNext) offset += 1
+      continue
+    }
     if (valueOptions.has(token)) {
       offset += 1
       continue
     }
-    if (/^-(?:A|C|D|E|F|H|K|P|Q|T|U|X|Y|b|c|d|e|h|m|o|r|t|u|w|x|y|z).+/.test(token) || token.startsWith('-')) continue
+    if (token.startsWith('-')) continue
     targets.push(token)
   }
   return targets
@@ -498,17 +520,31 @@ function wgetTargets(tokens, index) {
 }
 
 function hasCurlUpload(tokens, index) {
-  if (!hasRemoteTarget(curlTargets(tokens, index))) return false
+  const targets = curlTargets(tokens, index)
+  if (!hasRemoteTarget(targets)) return false
+  if (targets.some(hasSecretSource)) return true
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
+    const shortOption = curlShortValueOption(option)
+    if (shortOption) {
+      const value = shortOption.consumesNext ? (tokens[offset + 1] || '') : shortOption.value
+      if (['d', 'F', 'T'].includes(shortOption.name)) return true
+      if (shortOption.name === 'X' && /^(POST|PUT|PATCH)$/i.test(value)) return true
+      if (['A', 'H', 'U', 'b', 'e', 'u'].includes(shortOption.name) && hasSecretSource(value)) return true
+    }
     if (
-      option === '-d' || option.startsWith('-d') ||
-      option === '-F' || option.startsWith('-F') ||
-      option === '-T' || option.startsWith('-T') ||
       /^--(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json)(?:=|$)/.test(option)
     ) return true
-    if (['-X', '--request'].includes(option) && /^(POST|PUT|PATCH)$/i.test(tokens[offset + 1] || '')) return true
-    if (/^(?:-X|--request=)(?:POST|PUT|PATCH)$/i.test(option)) return true
+    if (option === '--request' && /^(POST|PUT|PATCH)$/i.test(tokens[offset + 1] || '')) return true
+    if (/^--request=(?:POST|PUT|PATCH)$/i.test(option)) return true
+    if (
+      /^(?:--header|--proxy-header|--user|--proxy-user|--oauth2-bearer|--cookie|--referer|--user-agent|--url-query|--request-target)$/.test(option) &&
+      hasSecretSource(tokens[offset + 1] || '')
+    ) return true
+    if (
+      /^(?:--header|--proxy-header|--user|--proxy-user|--oauth2-bearer|--cookie|--referer|--user-agent|--url-query|--request-target)=/.test(option) &&
+      hasSecretSource(option.slice(option.indexOf('=') + 1))
+    ) return true
   }
   return false
 }
@@ -539,10 +575,19 @@ function hasUpload(value) {
   return false
 }
 
+const secretName = String.raw`(?:[A-Z0-9_]*(?:API[_-]?KEY|ACCESS[_-]?KEY|PRIVATE[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*|(?:[A-Z0-9_]+_)?PAT(?:_[A-Z0-9_]+)?)`
+const secretSourcePattern = new RegExp(
+  String.raw`(?:\$\{?${secretName}\}?|\b(?:printenv|env)(?:\s+${secretName}\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/<])\.env(?:\.[A-Za-z0-9_-]+)?\b)`,
+  'i',
+)
+
+function hasSecretSource(value) {
+  return secretSourcePattern.test(value)
+}
+
 const logicalCommands = logicalShellCommands(command)
 const blocked = logicalCommands.truncated || logicalCommands.commands.some((logicalCommand) => {
-  const hasSecretSource = /(?:\$\{?(?:[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*)\}?|\b(?:printenv|env)(?:\s+[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/<])\.env(?:\.[A-Za-z0-9_-]+)?\b)/i.test(logicalCommand)
-  return hasSecretSource && hasUpload(logicalCommand)
+  return hasSecretSource(logicalCommand) && hasUpload(logicalCommand)
 })
 
 if (blocked) {

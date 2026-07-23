@@ -82,14 +82,17 @@ fi
 
 HOOK_TMP=$(mktemp -d)
 mkdir -p "$HOOK_TMP/bin"
+git -C "$HOOK_TMP" init -q
+git -C "$HOOK_TMP" checkout -q -b fix/pre-commit-fixture
 cat >"$HOOK_TMP/bin/gitleaks" <<'SH'
 #!/bin/sh
 printf '%s\n' "$*" >"$GITLEAKS_ARGS"
 exit "${FAKE_GITLEAKS_RC:-0}"
 SH
 chmod +x "$HOOK_TMP/bin/gitleaks"
-GITLEAKS_ARGS="$HOOK_TMP/args" FAKE_GITLEAKS_RC=1 PATH="$HOOK_TMP/bin:$PATH" \
-  sh "$PRE_COMMIT" >/dev/null 2>&1
+(cd "$HOOK_TMP" && \
+  GITLEAKS_ARGS="$HOOK_TMP/args" FAKE_GITLEAKS_RC=1 PATH="$HOOK_TMP/bin:$PATH" \
+    sh "$PRE_COMMIT" >/dev/null 2>&1)
 hook_rc=$?
 if [ "$hook_rc" -eq 1 ] \
   && grep -Fq -- "git --pre-commit --staged --redact=100" "$HOOK_TMP/args"; then
