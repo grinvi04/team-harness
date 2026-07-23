@@ -298,7 +298,8 @@ rm -rf "$FHOME2"
 FHOME3=$(mktemp -d); mkdir -p "$FHOME3/.claude/hooks"
 mk Bash 'API_KEY=fixture-not-a-secret git reset --hard' | HOME="$FHOME3" bash "$G" >/dev/null 2>&1
 mk Bash 'DEPLOY_TOKEN="fixture secret value" git reset --hard' | HOME="$FHOME3" bash "$G" >/dev/null 2>&1
-if grep -Eq "fixture-not-a-secret|fixture secret value" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null; then
+mk Bash 'API_KEY=fixture\ escaped-secret git reset --hard' | HOME="$FHOME3" bash "$G" >/dev/null 2>&1
+if grep -Eq "fixture-not-a-secret|fixture secret value|escaped-secret" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null; then
   echo "FAIL: v0.61 secret-like 환경변수 감사로그 유출"; FAIL=$((FAIL+1))
 elif grep -q "API_KEY=\\*\\*\\*" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null &&
      grep -q "DEPLOY_TOKEN=\\*\\*\\*" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null; then

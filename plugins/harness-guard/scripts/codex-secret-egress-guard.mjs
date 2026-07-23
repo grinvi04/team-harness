@@ -78,12 +78,17 @@ function logicalShellCommands(value) {
 }
 
 function shellSegments(value) {
-  const segments = []
+  return shellParts(value).map(({ tokens }) => tokens)
+}
+
+function shellParts(value) {
+  const parts = []
   let tokens = []
   let word = ''
   let wordStarted = false
   let quote = ''
   let index = 0
+  let separatorBefore = ''
 
   const pushWord = () => {
     if (!wordStarted) return
@@ -91,10 +96,13 @@ function shellSegments(value) {
     word = ''
     wordStarted = false
   }
-  const pushSegment = () => {
+  const pushSegment = (separatorAfter = '') => {
     pushWord()
-    if (tokens.length > 0) segments.push(tokens)
-    tokens = []
+    if (tokens.length > 0) {
+      parts.push({ tokens, separatorBefore })
+      tokens = []
+    }
+    separatorBefore = separatorAfter
   }
 
   while (index < value.length) {
@@ -124,9 +132,13 @@ function shellSegments(value) {
       word += value[index + 1]
       wordStarted = true
       index += 2
-    } else if (char === '\n' || ';|&()'.includes(char)) {
-      pushSegment()
+    } else if (char === '\n' || ';()'.includes(char)) {
+      pushSegment(char)
       index += 1
+    } else if ('|&'.includes(char)) {
+      const doubled = value[index + 1] === char
+      pushSegment(doubled ? `${char}${char}` : char)
+      index += doubled ? 2 : 1
     } else if (/\s/.test(char)) {
       pushWord()
       index += 1
@@ -137,7 +149,7 @@ function shellSegments(value) {
     }
   }
   pushSegment()
-  return segments
+  return parts
 }
 
 function baseName(value) {
@@ -248,7 +260,7 @@ function hasCurlUpload(tokens, index) {
 }
 
 function hasUpload(value) {
-  for (const tokens of shellSegments(value)) {
+  for (const { tokens, separatorBefore } of shellParts(value)) {
     const index = commandIndex(tokens)
     const executable = baseName(tokens[index])
     if (executable === 'curl' && hasCurlUpload(tokens, index)) return true
@@ -259,7 +271,7 @@ function hasUpload(value) {
     ) return true
     if (
       ['nc', 'ncat', 'netcat'].includes(executable) &&
-      value.includes('|')
+      separatorBefore === '|'
     ) return true
     if (
       ['scp', 'rsync'].includes(executable) &&
