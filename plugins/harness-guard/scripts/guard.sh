@@ -90,7 +90,7 @@ if ! source "${BASH_SOURCE[0]%/*}/lib/tokenize.sh" 2>/dev/null; then
   deny "토크나이저 lib 로드 실패 (scripts/lib/tokenize.sh) — fail-closed" "플러그인 설치 무결성 확인 후 재시도"
 fi
 
-# 실제 셸이 실행 전에 제거하는 backslash+개행을 동일하게 논리행으로 합친 뒤 모든 판정에 사용한다.
+# 실제 Unix 셸이 실행 전에 제거하는 backslash+LF를 동일하게 논리행으로 합친 뒤 모든 판정에 사용한다.
 # 이 정규화가 없으면 split_segments의 줄 출력과 while-read 경계가 continuation을 별도 세그먼트로 오인해
 # `rm \`+LF+`-rf tests` 같은 동일 argv 파괴 명령을 놓친다.
 COMMAND=$(collapse_line_continuations "$COMMAND")

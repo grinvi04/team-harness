@@ -37,7 +37,7 @@ check "핵심 디렉터리 재귀 삭제 차단"  2 Bash "rm -rf src/"          
 check "rm 단어경계 — terraform 오탐 없음" 0 Bash "terraform -rf plan 적용"      "$DEV"
 check "reset --hard 차단"             2 Bash "git reset --hard HEAD~1"          "$DEV"
 check "LF 줄 연속 rm -rf tests 차단"  2 Bash $'rm \\\n-rf tests'                 "$FEAT"
-check "CRLF 줄 연속 rm -rf tests 차단" 2 Bash $'rm \\\r\n-rf tests'               "$FEAT"
+check "CRLF는 Unix shell continuation 아님" 0 Bash $'rm \\\r\n-rf tests'             "$FEAT"
 check "LF 줄 연속 reset --hard 차단"  2 Bash $'git reset \\\n--hard'             "$FEAT"
 check "LF 줄 연속 npm -g 차단"        2 Bash $'npm install \\\n-g some-pkg'      "$FEAT"
 check "single-quoted rm continuation mention 통과" 0 Bash \

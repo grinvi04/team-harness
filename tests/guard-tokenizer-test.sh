@@ -44,7 +44,8 @@ eq "T5 다중 env-prefix"          "A=1|B=2|git|commit"      "$(toks 'A=1 B=2 gi
 
 # ── AC-T8: 셸 line continuation을 논리행으로 정규화 ──
 eq "T8 backslash+LF 제거"   "rm -rf tests" "$(collapse_line_continuations $'rm \\\n-rf tests')"
-eq "T8 backslash+CRLF 제거" "rm -rf tests" "$(collapse_line_continuations $'rm \\\r\n-rf tests')"
+T8_CRLF=$'rm \\\r\n-rf tests'
+eq "T8 backslash+CRLF 보존" "$T8_CRLF" "$(collapse_line_continuations "$T8_CRLF")"
 T8_SINGLE="'rm \\"$'\n'"-rf src'"
 T8_EVEN='rm \\'$'\n''-rf tests'
 eq "T8 single-quoted literal 보존" "$T8_SINGLE" "$(collapse_line_continuations "$T8_SINGLE")"

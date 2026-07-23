@@ -42,10 +42,9 @@ function collapseLineContinuations(value) {
       }
       const next = value[index]
       const isLf = next === '\n'
-      const isCrlf = next === '\r' && value[index + 1] === '\n'
-      if (run % 2 === 1 && (isLf || isCrlf)) {
+      if (run % 2 === 1 && isLf) {
         output += '\\'.repeat(run - 1)
-        index += isCrlf ? 2 : 1
+        index += 1
         continue
       }
       output += '\\'.repeat(run)

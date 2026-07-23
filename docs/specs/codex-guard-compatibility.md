@@ -135,11 +135,11 @@ CI/branch protection은 runtime egress를 대신 차단하지 않는다. 로컬 
 
 Codex CLI runtime은 Claude-style `tool_input.command` 대신 `tool_input.cmd`를 전달할 수 있다. replacement
 guard는 hook matcher가 이미 Bash 실행을 한정하므로 tool name을 다시 판정하지 않고 두 필드를 모두 검사한다.
-검사 전에 실제 셸이 제거하는 backslash+LF/CRLF continuation을 논리행으로 합쳐 direct command와
+검사 전에 Unix 셸이 실제 제거하는 backslash+LF continuation을 논리행으로 합쳐 direct command와
 `sh -lc`/`zsh -lc` exec-shaped wrapper 안의 명백한 upload 패턴을 같은 방식으로 판정한다. 일반 compound
 shell을 완전 해석한다는 의미는 아니다. quote 상태와 연속 backslash 홀짝을 추적해 single-quoted literal과
-짝수 backslash 뒤 개행을 결합하지 않는다. `codex-secret-egress-guard-test.sh`는 Claude-shaped payload와
-Codex exec-shaped payload, direct/nested escaped-newline 및 과차단 반례를 함께 고정한다.
+짝수 backslash 뒤 LF, CRLF를 결합하지 않는다. `codex-secret-egress-guard-test.sh`는 Claude-shaped
+payload와 Codex exec-shaped payload, direct/nested escaped-newline 및 과차단 반례를 함께 고정한다.
 
 ## Codex Native Refresh Runbook
 

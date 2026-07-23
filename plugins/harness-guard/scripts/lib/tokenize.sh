@@ -13,12 +13,12 @@
 # 한계(의도적): 셸 확장(glob·변수·명령치환)은 하지 않는다 — 가드는 확장 전 리터럴 명령을 판정한다.
 #   heredoc·프로세스치환 같은 다중행 구문은 범위 밖(가드는 흔한 형태만, 정본 강제는 계층0).
 
-# collapse_line_continuations <cmdline>: 셸이 실제 제거하는 backslash+LF/CRLF만 논리행으로 합친다.
-#   single quote 안의 literal과 짝수 backslash run 뒤 개행은 continuation이 아니므로 그대로 보존한다.
+# collapse_line_continuations <cmdline>: Unix 셸이 실제 제거하는 backslash+LF만 논리행으로 합친다.
+#   CRLF, single quote 안의 literal, 짝수 backslash run 뒤 LF는 continuation이 아니므로 그대로 보존한다.
 #   따옴표 자체도 보존돼 mention 토큰 경계가 넓어지지 않는다.
 collapse_line_continuations() {
   local s="$1"
-  local i=0 n=${#s} c next next2 q='' out='' run=0 j=0
+  local i=0 n=${#s} c next q='' out='' run=0 j=0
   while (( i < n )); do
     c="${s:i:1}"
 
@@ -36,11 +36,10 @@ collapse_line_continuations() {
         ((i++))
       done
       next="${s:i:1}"
-      next2="${s:i+1:1}"
-      if (( run % 2 == 1 )) && { [[ "$next" == $'\n' ]] || [[ "$next" == $'\r' && "$next2" == $'\n' ]]; }; then
+      if (( run % 2 == 1 )) && [[ "$next" == $'\n' ]]; then
         j=1
         while (( j < run )); do out+=\\; ((j++)); done
-        if [[ "$next" == $'\r' ]]; then ((i+=2)); else ((i++)); fi
+        ((i++))
         continue
       fi
       j=0
