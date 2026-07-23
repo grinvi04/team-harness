@@ -13,6 +13,10 @@ import {
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+const OPENAI_REQUIREMENT =
+  '=anchor apple generic and certificate leaf[subject.OU] = "2DC432GLL2" and identifier "codex"'
+const scriptRoot = path.dirname(fileURLToPath(import.meta.url))
+
 export function digestFile(file) {
   return `sha256:${createHash('sha256').update(readFileSync(file)).digest('hex')}`
 }
@@ -33,7 +37,7 @@ export function resolveExecutable(command, env = process.env) {
   throw new Error(`Codex binary is not an executable regular file: ${command}`)
 }
 
-export function captureExecutableIdentity(executable, expectedDigest) {
+export function captureExecutableIdentity(executable, expectedDigest, expectedCdHash = null) {
   const stat = statSync(executable)
   const identity = {
     path: executable,
@@ -41,6 +45,7 @@ export function captureExecutableIdentity(executable, expectedDigest) {
     inode: stat.ino,
     size: stat.size,
     digest: digestFile(executable),
+    cdHash: expectedCdHash,
   }
   if (identity.digest !== expectedDigest) {
     throw new Error('Codex executable changed after trust verification')
@@ -77,7 +82,28 @@ export function runVerifiedExecutable(identity, args, options = {}) {
       stdio: options.stdio,
     }
     if (!options.stdio) spawnOptions.encoding = 'utf8'
-    result = spawnSync(identity.path, args, spawnOptions)
+    if (identity.cdHash) {
+      if (process.platform !== 'darwin') {
+        throw new Error('atomic Codex execution requires macOS dynamic code verification')
+      }
+      result = spawnSync(
+        '/usr/bin/python3',
+        [
+          path.join(scriptRoot, 'spawn-verified-executable.py'),
+          '--path',
+          identity.path,
+          '--cdhash',
+          identity.cdHash,
+          '--requirement',
+          OPENAI_REQUIREMENT,
+          '--',
+          ...args,
+        ],
+        spawnOptions,
+      )
+    } else {
+      result = spawnSync(identity.path, args, spawnOptions)
+    }
   } finally {
     assertExecutableIdentity(identity)
   }
@@ -88,11 +114,9 @@ export function verifyOpenAICodeSignature(executable) {
   if (process.platform !== 'darwin') {
     throw new Error(`live Codex binary lacks verified OpenAI code signature on ${process.platform}`)
   }
-  const requirement =
-    '=anchor apple generic and certificate leaf[subject.OU] = "2DC432GLL2" and identifier "codex"'
   const verification = spawnSync(
     'codesign',
-    ['--verify', '--deep', '--strict', '--requirement', requirement, executable],
+    ['--verify', '--deep', '--strict', '--requirement', OPENAI_REQUIREMENT, executable],
     { encoding: 'utf8' },
   )
   if (verification.error || verification.status !== 0) {
@@ -102,15 +126,17 @@ export function verifyOpenAICodeSignature(executable) {
   const output = `${details.stdout || ''}\n${details.stderr || ''}`
   const teamIdentifier = output.match(/^TeamIdentifier=(.+)$/m)?.[1]
   const authority = output.match(/^Authority=(Developer ID Application: .+)$/m)?.[1]
+  const cdHash = output.match(/^CDHash=([a-f0-9]+)$/m)?.[1]
   if (
     details.error ||
     details.status !== 0 ||
     teamIdentifier !== '2DC432GLL2' ||
-    authority !== 'Developer ID Application: OpenAI OpCo, LLC (2DC432GLL2)'
+    authority !== 'Developer ID Application: OpenAI OpCo, LLC (2DC432GLL2)' ||
+    !cdHash
   ) {
     throw new Error('live Codex binary lacks verified OpenAI code signature')
   }
-  return { verified: true, platform: 'darwin', teamIdentifier, authority }
+  return { verified: true, platform: 'darwin', teamIdentifier, authority, cdHash }
 }
 
 export function establishCodexTrust({
@@ -142,7 +168,7 @@ export function establishCodexTrust({
     signature = verifyOpenAICodeSignature(executable)
   }
 
-  const identity = captureExecutableIdentity(executable, binaryDigest)
+  const identity = captureExecutableIdentity(executable, binaryDigest, signature.cdHash || null)
   let version = null
   if (!fixtureMode) {
     const result = runVerifiedExecutable(identity, ['--version'], { env })
@@ -197,6 +223,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         path: trust.path,
         digest: trust.digest,
         version: trust.version,
+        cdHash: trust.identity.cdHash,
         fixture: args.fixtureMode,
       })}\n`)
     }

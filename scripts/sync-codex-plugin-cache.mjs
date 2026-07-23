@@ -16,8 +16,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const manifestPath = path.join(root, 'plugins', 'harness-guard', '.codex-plugin', 'plugin.json')
 const codexBin = process.env.CODEX_BIN || 'codex'
 const expectedCodexDigest = process.env.HARNESS_CODEX_EXPECTED_DIGEST
+const expectedCodexCdHash = process.env.HARNESS_CODEX_EXPECTED_CDHASH || null
 const codexIdentity = expectedCodexDigest
-  ? captureExecutableIdentity(resolveExecutable(codexBin), expectedCodexDigest)
+  ? captureExecutableIdentity(resolveExecutable(codexBin), expectedCodexDigest, expectedCodexCdHash)
   : null
 
 function versionParts(version) {

@@ -29,7 +29,12 @@ const trust = JSON.parse(process.argv[1])
 if (!/^sha256:[a-f0-9]{64}$/.test(trust.digest)) process.exit(1)
 process.stdout.write(trust.digest)
 ' "$TRUST_JSON")
-export CODEX_BIN HARNESS_CODEX_EXPECTED_DIGEST
+HARNESS_CODEX_EXPECTED_CDHASH=$("$NODE_BIN" -e '
+const trust = JSON.parse(process.argv[1])
+if (trust.cdHash !== null && !/^[a-f0-9]{40,64}$/.test(trust.cdHash)) process.exit(1)
+process.stdout.write(trust.cdHash || "")
+' "$TRUST_JSON")
+export CODEX_BIN HARNESS_CODEX_EXPECTED_DIGEST HARNESS_CODEX_EXPECTED_CDHASH
 TRUSTED_PLUGIN_ROOT="$ROOT/plugins/harness-guard"
 EXPECTED_VERSION=$("$NODE_BIN" -e '
 const fs = require("node:fs")

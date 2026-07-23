@@ -197,6 +197,41 @@ else
   TRUST_FAILURES=$((TRUST_FAILURES + 1))
 fi
 
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  SIGNED_FIXTURE="$TMP/signed-fixture"
+  cp /bin/echo "$SIGNED_FIXTURE"
+  EXPECTED_CDHASH=$(codesign -dv --verbose=4 "$SIGNED_FIXTURE" 2>&1 | sed -n 's/^CDHash=//p')
+  cat >"$TMP/swap-before-suspended-spawn" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+cp "$ATOMIC_REPLACEMENT" "$ATOMIC_TARGET"
+chmod +x "$ATOMIC_TARGET"
+SH
+  chmod +x "$TMP/swap-before-suspended-spawn"
+  rm -f "$TMP/atomic-replacement-calls"
+  set +e
+  HARNESS_ATOMIC_SPAWN_FIXTURE=1 \
+    ATOMIC_TARGET="$SIGNED_FIXTURE" ATOMIC_REPLACEMENT="$TMP/untrusted-codex" \
+    UNTRUSTED_CALLS="$TMP/atomic-replacement-calls" \
+    python3 "$ROOT/scripts/spawn-verified-executable.py" \
+      --path "$SIGNED_FIXTURE" --cdhash "$EXPECTED_CDHASH" \
+      --requirement '=anchor apple and identifier "com.apple.echo"' \
+      --fixture-before-spawn "$TMP/swap-before-suspended-spawn" \
+      -- atomic-window >"$TMP/atomic-window.out" 2>"$TMP/atomic-window.err"
+  atomic_window_rc=$?
+  set -e
+  if [ "$atomic_window_rc" -ne 0 ] &&
+    [ ! -e "$TMP/atomic-replacement-calls" ] &&
+    grep -Fq 'spawn-verified-executable: dynamic code identity mismatch' "$TMP/atomic-window.err"; then
+    echo "PASS: check-to-spawn replacement is suspended and rejected before execution"
+  else
+    echo "FAIL: check-to-spawn replacement was not atomically rejected (rc=$atomic_window_rc)"
+    TRUST_FAILURES=$((TRUST_FAILURES + 1))
+  fi
+else
+  echo "PASS: atomic suspended-spawn test is macOS-only"
+fi
+
 for document in "$ROOT/README.md" "$ROOT/docs/onboarding.md" "$ROOT/docs/harness-maintenance.md"; do
   grep -Fq 'scripts/codex-hardened.sh --version' "$document" || { echo "FAIL: update command missing from ${document#"$ROOT"/}"; exit 1; }
   grep -Fq 'scripts/harness-doctor.sh --repo . --probe' "$document" || { echo "FAIL: post-update probe missing from ${document#"$ROOT"/}"; exit 1; }

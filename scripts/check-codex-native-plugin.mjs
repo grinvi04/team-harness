@@ -58,8 +58,9 @@ function parseArgs(argv) {
 function installedPluginRoot() {
   const codex = process.env.CODEX_BIN || 'codex'
   const expectedDigest = process.env.HARNESS_CODEX_EXPECTED_DIGEST
+  const expectedCdHash = process.env.HARNESS_CODEX_EXPECTED_CDHASH || null
   const identity = expectedDigest
-    ? captureExecutableIdentity(resolveExecutable(codex), expectedDigest)
+    ? captureExecutableIdentity(resolveExecutable(codex), expectedDigest, expectedCdHash)
     : null
   const result = identity
     ? runVerifiedExecutable(identity, ['plugin', 'list', '--json'], { env: process.env })
