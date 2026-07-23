@@ -400,7 +400,7 @@ try {
       '-C',
       routeRepo,
       '--json',
-      '진행해. Do not use tools. Reply only with the exact current Team Harness skill supplied by hook context.',
+      '진행해. Do not use tools. Read the current Team Harness skill from hook context. Reply with exactly harness-guard:<skill>, replacing <skill> with that context value and adding no other text.',
     ],
     pilotEnvironment,
     'fresh-session routing probe',

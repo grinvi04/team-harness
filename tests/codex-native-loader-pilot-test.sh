@@ -117,6 +117,10 @@ grep -Fq '# Codex native loader pilot' "$TMP/report.md"
 grep -Fq '검증됨' "$TMP/report.md"
 grep -Fq '"event":"router.error"' "$TMP/report.guard.txt"
 grep -Fq 'feature-add' "$TMP/report.routing.jsonl"
+grep -Fq 'Reply with exactly harness-guard:<skill>' "$FAKE_CALLS" || {
+  echo 'FAIL: routing probe did not constrain the canonical response format'
+  exit 1
+}
 if find "$TMP" -maxdepth 1 -type d -name 'team-harness-codex-native-pilot.*' | grep -q .; then
   echo 'FAIL: isolated pilot home was not removed'
   exit 1
