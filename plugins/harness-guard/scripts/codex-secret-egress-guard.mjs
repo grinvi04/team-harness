@@ -400,7 +400,7 @@ function shellCommandOperand(tokens, shellIndex) {
 }
 
 function isRemoteTarget(token) {
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(token)) return true
+  if (/^(?:dict|ftps?|gophers?|https?|imaps?|ipfs|ipns|ldaps?|mqtt|pop3s?|rtmps?|rtsp|scp|sftp|smbs?|smtps?|telnet|tftp|wss?):\/\//i.test(token)) return true
   const variable = token.match(/\$(?:\{([A-Za-z_][A-Za-z0-9_]*)[^}]*\}|([A-Za-z_][A-Za-z0-9_]*))/)
   if (variable) {
     return !/(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)/i.test(variable[1] || variable[2])
