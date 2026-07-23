@@ -24,13 +24,11 @@ check "prompt router" '`hooks/hooks.json:UserPromptSubmit`'
 for path in \
   scripts/codex-security-guidance-adapter.mjs \
   scripts/patch-codex-security-guidance.mjs \
-  scripts/patch-codex-harness-guard.mjs \
   scripts/pr-create.sh \
   scripts/pr-merge.sh \
   scripts/solo-merge.sh \
-  codex/agents/harness-explorer.toml \
-  codex/agents/harness-verifier.toml \
-  codex/agents/harness-security-reviewer.toml \
+  codex/hooks/hooks.json \
+  codex/skills/*.md \
   agents/security-reviewer.md \
   agents/verifier.md; do
   check "$path" "\`$path\`"
@@ -48,9 +46,8 @@ for skill in "$ROOT"/plugins/harness-guard/skills/*/SKILL.md; do
   check "$rel" "\`$rel\`"
 done
 
-for overlay in "$ROOT"/plugins/harness-guard/codex/skill-overlays/*.md; do
-  check "${overlay##*/}" '`codex/skill-overlays/*.md`'
-done
+check "native manifest" '`.codex-plugin/plugin.json`'
+check "native contract checker" '`scripts/check-codex-native-plugin.mjs`'
 
 if [ "$FAIL" -ne 0 ]; then
   exit 1

@@ -3,7 +3,7 @@
 # hooks/hooks.json 에서 ${CLAUDE_PLUGIN_ROOT}/scripts/guard.sh 로 호출된다.
 # 스택/프로젝트별 추가 가드는 각 프로젝트의 .claude/settings.json hooks에 별도 추가한다 (플러그인 훅과 공존).
 #
-# 주의: 이 가드는 Claude Code 사용자만 막는 보조 장치다.
+# 주의: 이 가드는 Claude Code와 Codex 사용자에게 적용되는 보조 장치다.
 # load-bearing 강제는 GitHub branch protection + CI 게이트(계층 0)가 담당한다.
 #
 # ── 판정 철학 (decisions.md "가드/게이트 판정 철학" · #220) ─────────────────────────
@@ -31,7 +31,8 @@
 
 INPUT=$(cat)
 COMMAND=""
-GUARD_LOG="${HOME}/.claude/hooks/guard-block.log"
+GUARD_LOG="${HARNESS_GUARD_LOG:-${HOME}/.claude/hooks/guard-block.log}"
+HARNESS_AGENT_NAME="${HARNESS_AGENT_NAME:-Claude}"
 
 # 차단 단일 경로: 이력 로그 + ⛔ 메시지(+해결 안내) + exit 2.
 # $1 = 사유 라벨, $2 = 해결 안내(선택). session_id·cwd는 payload에서 추출(없으면 ?).
@@ -50,6 +51,7 @@ deny() {
              -e 's#gh[pousr]_[A-Za-z0-9]{20,}#gh_***#g' \
              -e 's#github_pat_[A-Za-z0-9_]{20,}#github_pat_***#g' \
     | cut -c1-200)
+  mkdir -p "$(dirname "$GUARD_LOG")" 2>/dev/null || true
   # 로그 로테이션: 256KB 초과 시 최근 절반만 보존(무한 증가 방지)
   { [ -f "$GUARD_LOG" ] && [ "$(wc -c <"$GUARD_LOG" 2>/dev/null || echo 0)" -gt 262144 ] && tail -n "$(( $(wc -l <"$GUARD_LOG" 2>/dev/null || echo 0)/2 ))" "$GUARD_LOG" > "$GUARD_LOG.tmp" && mv "$GUARD_LOG.tmp" "$GUARD_LOG"; } 2>/dev/null
   { printf '%s session=%s cwd=%s DENY %s | cmd=%s\n' "${ts:-?}" "${sid:-?}" "${cwd:-?}" "$reason" "$cmd1" >> "$GUARD_LOG"; } 2>/dev/null
@@ -236,7 +238,7 @@ fi
 while IFS= read -r RSEG; do
   [[ "$(git_subcommand_scan "$RSEG")" == reset ]] || continue
   if seg_has_token "$RSEG" "--hard"; then
-    deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (Claude가 대신 실행하지 않음)"
+    deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (${HARNESS_AGENT_NAME}가 대신 실행하지 않음)"
   fi
 done < <(split_segments "$COMMAND")
 
@@ -260,7 +262,7 @@ while IFS= read -r DSEG; do
     #   파일명에 트레일링(glob `*`·`.bak`)이 붙어도 잡는다($ 종단앵커는 이 형태를 놓쳐 홀이었음, 검증 반영).
     #   디렉터리 패턴만 `(^|/)…(/|$)` 경로세그먼트 앵커 — `rm latest/`의 `test/` 부분매치 과차단만 방지.
     if printf '%s' "$_tok" | grep -qE "(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^/]*\.py|_test\.py|_spec\.rb|_test\.rb|(^|/)tests?(/|$)|(^|/)__tests__(/|$)|(^|/)db/migrations?(/|$)|(^|/)db/migrate(/|$)|(^|/)migrations(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
-      deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
+      deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (${HARNESS_AGENT_NAME}가 대신 삭제하지 않음)"
     fi
   done
 done < <(split_segments "$COMMAND")

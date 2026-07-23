@@ -1,7 +1,7 @@
 # 모델·추론 티어링 — Claude Code와 Codex
 
 작업 난이도는 공통으로 분류하되, 제어 방법은 런타임별로 분리한다. Claude의 모델명·skill `effort`를
-Codex에도 적용된다고 표현하지 않고, Codex agent에 특정 model slug를 고정하지 않는다.
+Codex에도 적용된다고 표현하지 않고, Codex agent 생성·모델·reasoning effort는 플랫폼에 위임한다.
 
 ## 공통 난이도
 
@@ -29,15 +29,16 @@ Codex에도 적용된다고 표현하지 않고, Codex agent에 특정 model slu
 
 ## Codex 매핑
 
-Codex agent TOML은 `model`을 지정하지 않아 현재 세션에서 사용자가 선택한 모델을 상속한다. 역할 차이는
-`model_reasoning_effort`와 읽기 전용 sandbox로 표현한다.
+Team Harness는 Codex 전용 agent TOML이나 model slug를 배포하지 않는다. 현재 task와 native agent가 사용할
+모델·reasoning effort·sandbox는 Codex의 지원 surface와 사용자 설정이 결정한다. 하네스 skill은 필요한 경우
+읽기 전용 증거 수집·보안 검토·반증 수용기준만 전달한다.
 
 | 역할 | model | model_reasoning_effort | 권한 |
 |---|---|---|---|
-| `harness-explorer` | 현재 모델 상속 | low | read-only |
+| native 탐색 역할 | Codex 선택 | Codex 선택 | read-only 요청 |
 | 일반 구현·오케스트레이션 | 현재 모델 유지 | 작업에 맞는 기본값 | 현재 task 권한 |
-| `harness-verifier` | 현재 모델 상속 | high | read-only |
-| `harness-security-reviewer` | 현재 모델 상속 | high | read-only |
+| native verifier 역할 | Codex 선택 | 높은 반증 추론 요청 | read-only 요청 |
+| native security reviewer 역할 | Codex 선택 | 높은 보안 추론 요청 | read-only 요청 |
 
 Claude 전용 `effort:`가 Codex에서 강제된다고 가정하지 않는다. Codex에서는 현재 모델의 reasoning effort를
 낮음·중간·높음으로 조절하고, 모델 slug 변경이 필요하면 사용자가 선택한다.
@@ -46,10 +47,10 @@ Claude 전용 `effort:`가 Codex에서 강제된다고 가정하지 않는다. C
 
 | 단계 | 공통 난이도 | Claude Code | Codex |
 |---|---|---|---|
-| 영향 범위 탐색 | 낮음 | Explore / Haiku / low | explorer / 현재 모델 / low |
+| 영향 범위 탐색 | 낮음 | Explore / Haiku / low | native explorer / 플랫폼 선택 |
 | RED·GREEN 구현 | 중간 | general-purpose / Sonnet / high | 현재 모델 / 작업 기본 effort |
-| 보안·릴리즈 사전 검증 | 높음 | security-reviewer / Opus / max | security reviewer / 현재 모델 / high |
-| 완료 주장 반증 | 높음 | verifier / Opus / high | verifier / 현재 모델 / high |
+| 보안·릴리즈 사전 검증 | 높음 | security-reviewer / Opus / max | native security reviewer / 플랫폼 선택 |
+| 완료 주장 반증 | 높음 | verifier / Opus / high | native verifier / 플랫폼 선택 |
 
 정확한 현재 계약은 Claude Code의 skill·model 문서와 Codex의 skill·agent 설정 문서를 확인한다. 저장소에서는
 `tests/enforce-subagent-model-test.sh`와 `tests/codex-skill-mapping-test.sh`가 위 매핑의 회귀를 막는다.

@@ -1,0 +1,125 @@
+#!/usr/bin/env node
+
+import { spawnSync } from 'node:child_process'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import path from 'node:path'
+
+const pluginId = 'harness-guard@team-harness'
+const expectedSkills = [
+  'feature-add',
+  'feature-merge',
+  'feature-modify',
+  'hotfix',
+  'loop',
+  'milestone',
+  'plan',
+  'pr-create',
+  'pr-review-gate',
+  'qa',
+  'release',
+  'release-check',
+  'repo-sync',
+  'solo-merge',
+  'systematic-debugging',
+  'verification-before-completion',
+]
+
+function fail(message) {
+  throw new Error(message)
+}
+
+function readJson(file) {
+  try {
+    return JSON.parse(readFileSync(file, 'utf8'))
+  } catch (error) {
+    fail(`invalid JSON ${file}: ${error.message}`)
+  }
+}
+
+function parseArgs(argv) {
+  let root = null
+  let expectedVersion = null
+  for (let index = 0; index < argv.length; index += 1) {
+    if (argv[index] === '--root' && argv[index + 1]) root = path.resolve(argv[++index])
+    else if (argv[index] === '--expected-version' && argv[index + 1]) expectedVersion = argv[++index]
+    else fail(`unknown or incomplete argument: ${argv[index]}`)
+  }
+  return { root, expectedVersion }
+}
+
+function installedPluginRoot() {
+  const codex = process.env.CODEX_BIN || 'codex'
+  const result = spawnSync(codex, ['plugin', 'list', '--json'], { encoding: 'utf8', env: process.env })
+  if (result.error) fail(result.error.message)
+  if (result.status !== 0) fail(result.stderr.trim() || `codex plugin list failed: exit ${result.status}`)
+  let data
+  try {
+    data = JSON.parse(result.stdout)
+  } catch {
+    fail('codex plugin list returned invalid JSON')
+  }
+  const plugin = data.installed?.find((entry) => entry.pluginId === pluginId)
+  if (!plugin) fail(`${pluginId} is not installed`)
+  if (plugin.enabled !== true) fail(`${pluginId} is disabled`)
+  const root = plugin.source?.path
+  if (typeof root !== 'string' || !path.isAbsolute(root)) fail(`${pluginId} source.path is unavailable`)
+  return { root, installedVersion: plugin.version }
+}
+
+function validate(root, expectedVersion, installedVersion) {
+  const manifestPath = path.join(root, '.codex-plugin', 'plugin.json')
+  const manifest = readJson(manifestPath)
+  if (manifest.name !== 'harness-guard') fail('native manifest name mismatch')
+  if (manifest.skills !== './codex/skills/' || manifest.hooks !== './codex/hooks/hooks.json') {
+    fail('native manifest skill/hook paths mismatch')
+  }
+  if (expectedVersion && manifest.version !== expectedVersion) {
+    fail(`native manifest version mismatch: ${manifest.version} != ${expectedVersion}`)
+  }
+  if (installedVersion && manifest.version !== installedVersion) {
+    fail(`installed source version mismatch: ${manifest.version} != ${installedVersion}`)
+  }
+
+  const hooks = readJson(path.join(root, 'codex', 'hooks', 'hooks.json')).hooks
+  const preTool = hooks?.PreToolUse
+  const prompt = hooks?.UserPromptSubmit
+  if (!Array.isArray(preTool) || preTool.length !== 1 || preTool[0].matcher !== 'Bash') {
+    fail('native PreToolUse Bash matcher mismatch')
+  }
+  if (!Array.isArray(prompt) || prompt.length !== 1 || 'matcher' in prompt[0]) {
+    fail('native UserPromptSubmit matcher mismatch')
+  }
+  const handlers = [...(preTool[0].hooks || []), ...(prompt[0].hooks || [])]
+  if (handlers.length !== 2 || handlers.some((handler) => handler.type !== 'command')) {
+    fail('native hooks must contain exactly two command handlers')
+  }
+  if (!preTool[0].hooks[0].command.includes('${PLUGIN_ROOT}/scripts/codex-pretool-guard.mjs')) {
+    fail('native PreToolUse command mismatch')
+  }
+  if (!prompt[0].hooks[0].command.includes('${PLUGIN_ROOT}/scripts/route-intent.mjs')) {
+    fail('native UserPromptSubmit command mismatch')
+  }
+
+  const skillsRoot = path.join(root, 'codex', 'skills')
+  const skills = existsSync(skillsRoot)
+    ? readdirSync(skillsRoot).filter((name) => existsSync(path.join(skillsRoot, name, 'SKILL.md'))).sort()
+    : []
+  if (JSON.stringify(skills) !== JSON.stringify(expectedSkills)) fail('native skill inventory mismatch')
+  for (const skill of skills) {
+    const wrapper = readFileSync(path.join(skillsRoot, skill, 'SKILL.md'), 'utf8')
+    if (!wrapper.includes(`../../../skills/${skill}/SKILL.md`) || !wrapper.includes('## Codex 실행')) {
+      fail(`${skill}: native wrapper contract mismatch`)
+    }
+  }
+  return manifest.version
+}
+
+try {
+  const args = parseArgs(process.argv.slice(2))
+  const installed = args.root ? { root: args.root, installedVersion: null } : installedPluginRoot()
+  const version = validate(installed.root, args.expectedVersion, installed.installedVersion)
+  console.log(`native harness-guard ${version}: manifest, hooks, ${expectedSkills.length} skills`)
+} catch (error) {
+  console.error(`check-codex-native-plugin: ${error.message}`)
+  process.exit(1)
+}

@@ -89,5 +89,9 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
 7. [x] **외부 파일럿:** DriveTree clean `develop`에서 profile 설치 952.225ms, doctor 38.883ms,
    guard 표본 오탐·누락 0/9, repo-sync MISSING 11을 측정했다. 결과와 한계는
    [`pilots/drivertree-v0.60.0.md`](pilots/drivertree-v0.60.0.md)에 기록했으며 marketplace 승격은 보류한다.
+8. [x] **Codex 공식 loader 전환:** monolith에 native manifest·command hooks·16개 skill wrapper를 직접 싣고
+   harness cache patch·overlay·custom agent 복사·unified exec 비활성화를 제거했다. 격리 loader와 실제 새 세션
+   결과는 [`pilots/codex-native-loader-v0.61.0.md`](pilots/codex-native-loader-v0.61.0.md)에 기록한다. 이 증거는
+   monolith 전환만 승인하며 split package의 `installable:false`와 marketplace 승격 보류는 유지한다.
 
 로드맵 항목은 기능 수가 아니라 거버넌스 강제력, 증거 품질, 유지보수 감소로 성공 여부를 판단한다.

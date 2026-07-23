@@ -1,0 +1,16 @@
+{
+  "name": "harness-guard",
+  "version": "0.61.0",
+  "description": "Team Harness GitHub-native delivery governance for Codex",
+  "author": {
+    "name": "grinvi04"
+  },
+  "license": "MIT",
+  "keywords": [
+    "team-harness",
+    "governance",
+    "github"
+  ],
+  "skills": "./codex/skills/",
+  "hooks": "./codex/hooks/hooks.json"
+}

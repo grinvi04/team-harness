@@ -1,0 +1,29 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/scripts/codex-pretool-guard.mjs\"",
+            "timeout": 10,
+            "statusMessage": "명령·시크릿 전송 검사 중..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${PLUGIN_ROOT}/scripts/route-intent.mjs\"",
+            "timeout": 15,
+            "statusMessage": "하네스 단계 판정 중..."
+          }
+        ]
+      }
+    ]
+  }
+}
