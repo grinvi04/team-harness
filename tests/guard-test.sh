@@ -341,10 +341,18 @@ value = open(sys.argv[1], encoding="utf-8").read()
 print(sum(unicodedata.category(char) == "Cc" and char != "\n" for char in value))
 PY
 )
+guard_log_mode=$(python3 - "$GUARD_LOG4" <<'PY'
+import os
+import stat
+import sys
+
+print(f"{stat.S_IMODE(os.stat(sys.argv[1]).st_mode):03o}")
+PY
+)
 if grep -Fq "fixture-" "$GUARD_LOG4" 2>/dev/null \
   || [ "$control_count" -ne 0 ]; then
   echo "FAIL: v0.61 Bearer·제어문자 감사로그 유출"; FAIL=$((FAIL+1))
-elif [ "$(stat -f '%Lp' "$GUARD_LOG4" 2>/dev/null || stat -c '%a' "$GUARD_LOG4" 2>/dev/null)" = 600 ]; then
+elif [ "$guard_log_mode" = 600 ]; then
   echo "PASS: v0.61 Bearer·제어문자 마스킹과 로그 0600"; PASS=$((PASS+1))
 else
   echo "FAIL: v0.61 감사로그 권한이 0600이 아님"; FAIL=$((FAIL+1))
