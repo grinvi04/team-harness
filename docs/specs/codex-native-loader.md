@@ -46,13 +46,17 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   판정한다.
 - **AC-10 (회귀):** WHEN 전체 quality gate를 실행하면, the system SHALL Claude 경로와 기존 governance
   테스트를 포함해 exit 0으로 완료한다.
+- **AC-11 (provenance·fail-closed):** WHEN hardened launcher와 live pilot이 native hook을 검증하면,
+  the system SHALL trusted checkout과 installed critical surface의 version·content·hook command를 exact하게
+  대조하고, clean Git tree·검증한 Codex binary digest·실제 session transcript digest를 revision에 결합한다.
+  fixture binary는 live 증거로 승격하지 않으며 malformed·불완전 PreToolUse payload는 차단한다.
 
 ## 4. 제약 / 비기능
 
 - Codex 0.144.6의 설치된 CLI help와 2026-07-22 최신 공식 Codex manual을 구현 시점 계약으로 기록하고,
   버전 차이는 report의 한계로 남긴다.
 - loader/session 실측은 OS 임시 디렉터리와 disposable Git repo만 작업 대상으로 사용한다.
-- plugin 동작과 소비자 설치 경로 변경이므로 manifest·README 배지를 MINOR 버전으로 함께 올린다.
+- plugin 동작과 소비자 설치 경로 변경이므로 Claude·Codex manifest와 README 배지를 MINOR 버전으로 함께 올린다.
 
 ## 5. 경계 / Do-Not
 

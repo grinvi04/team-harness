@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 const PLUGIN_ID = 'harness-guard@team-harness'
 const MARKETPLACE = 'team-harness'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const manifestPath = path.join(root, 'plugins', 'harness-guard', '.claude-plugin', 'plugin.json')
+const manifestPath = path.join(root, 'plugins', 'harness-guard', '.codex-plugin', 'plugin.json')
 const codexBin = process.env.CODEX_BIN || 'codex'
 
 function versionParts(version) {
@@ -49,9 +49,15 @@ try {
   const installed = list.installed?.find((plugin) => plugin.pluginId === PLUGIN_ID)
   const previousVersion = installed?.version || '0.0.0'
 
-  if (compareVersions(previousVersion, sourceVersion) >= 0) {
+  const comparison = compareVersions(previousVersion, sourceVersion)
+  if (comparison === 0) {
     console.log(JSON.stringify({ changed: false, sourceVersion, installedVersion: previousVersion }))
     process.exit(0)
+  }
+  if (comparison > 0) {
+    throw new Error(
+      `installed plugin ${previousVersion} is newer than trusted source ${sourceVersion}; update the checkout first`,
+    )
   }
 
   const upgrade = runJson(['plugin', 'marketplace', 'upgrade', MARKETPLACE, '--json'])
@@ -60,7 +66,7 @@ try {
   }
 
   const added = runJson(['plugin', 'add', PLUGIN_ID, '--json'])
-  if (added.pluginId !== PLUGIN_ID || compareVersions(added.version, sourceVersion) < 0) {
+  if (added.pluginId !== PLUGIN_ID || added.version !== sourceVersion) {
     throw new Error(`plugin install returned stale or unexpected version: ${added.pluginId}@${added.version}`)
   }
 

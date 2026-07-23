@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process'
-import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs'
 import path from 'node:path'
 
 const pluginId = 'harness-guard@team-harness'
@@ -39,12 +40,14 @@ function readJson(file) {
 function parseArgs(argv) {
   let root = null
   let expectedVersion = null
+  let trustedRoot = null
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--root' && argv[index + 1]) root = path.resolve(argv[++index])
     else if (argv[index] === '--expected-version' && argv[index + 1]) expectedVersion = argv[++index]
+    else if (argv[index] === '--trusted-root' && argv[index + 1]) trustedRoot = path.resolve(argv[++index])
     else fail(`unknown or incomplete argument: ${argv[index]}`)
   }
-  return { root, expectedVersion }
+  return { root, expectedVersion, trustedRoot }
 }
 
 function installedPluginRoot() {
@@ -93,10 +96,10 @@ function validate(root, expectedVersion, installedVersion) {
   if (handlers.length !== 2 || handlers.some((handler) => handler.type !== 'command')) {
     fail('native hooks must contain exactly two command handlers')
   }
-  if (!preTool[0].hooks[0].command.includes('${PLUGIN_ROOT}/scripts/codex-pretool-guard.mjs')) {
+  if (preTool[0].hooks[0].command !== 'node "${PLUGIN_ROOT}/scripts/codex-pretool-guard.mjs"') {
     fail('native PreToolUse command mismatch')
   }
-  if (!prompt[0].hooks[0].command.includes('${PLUGIN_ROOT}/scripts/route-intent.mjs')) {
+  if (prompt[0].hooks[0].command !== 'node "${PLUGIN_ROOT}/scripts/route-intent.mjs"') {
     fail('native UserPromptSubmit command mismatch')
   }
 
@@ -111,14 +114,51 @@ function validate(root, expectedVersion, installedVersion) {
       fail(`${skill}: native wrapper contract mismatch`)
     }
   }
-  return manifest.version
+  return {
+    version: manifest.version,
+    criticalFiles: [
+      '.codex-plugin/plugin.json',
+      'codex/hooks/hooks.json',
+      'codex/native-runtime.md',
+      ...skills.map((skill) => `codex/skills/${skill}/SKILL.md`),
+      'scripts/codex-pretool-guard.mjs',
+      'scripts/codex-secret-egress-guard.mjs',
+      'scripts/guard.sh',
+      'scripts/lib/tokenize.sh',
+      'scripts/route-intent.mjs',
+    ],
+  }
+}
+
+function fileDigest(root, relative) {
+  const file = path.join(root, relative)
+  let stat
+  try {
+    stat = lstatSync(file)
+  } catch {
+    fail(`critical file missing: ${relative}`)
+  }
+  if (!stat.isFile() || stat.isSymbolicLink()) fail(`critical file is not a regular file: ${relative}`)
+  return createHash('sha256').update(readFileSync(file)).digest('hex')
+}
+
+function compareTrusted(installedRoot, trustedRoot, criticalFiles) {
+  for (const relative of criticalFiles) {
+    if (fileDigest(installedRoot, relative) !== fileDigest(trustedRoot, relative)) {
+      fail(`trusted source mismatch: ${relative}`)
+    }
+  }
 }
 
 try {
   const args = parseArgs(process.argv.slice(2))
   const installed = args.root ? { root: args.root, installedVersion: null } : installedPluginRoot()
-  const version = validate(installed.root, args.expectedVersion, installed.installedVersion)
-  console.log(`native harness-guard ${version}: manifest, hooks, ${expectedSkills.length} skills`)
+  const result = validate(installed.root, args.expectedVersion, installed.installedVersion)
+  if (args.trustedRoot) {
+    const trusted = validate(args.trustedRoot, args.expectedVersion, null)
+    compareTrusted(installed.root, args.trustedRoot, trusted.criticalFiles)
+  }
+  console.log(`native harness-guard ${result.version}: manifest, hooks, ${expectedSkills.length} skills`)
 } catch (error) {
   console.error(`check-codex-native-plugin: ${error.message}`)
   process.exit(1)

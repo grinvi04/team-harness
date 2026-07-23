@@ -6,17 +6,31 @@ JSON="$ROOT/docs/pilots/codex-native-loader-v0.61.0.json"
 REPORT="$ROOT/docs/pilots/codex-native-loader-v0.61.0.md"
 MANIFEST="$ROOT/plugins/harness-guard/.codex-plugin/plugin.json"
 
-node - "$JSON" "$MANIFEST" <<'NODE'
+node - "$JSON" "$MANIFEST" "$ROOT" <<'NODE'
+const { execFileSync } = require('node:child_process')
 const fs = require('node:fs')
-const [reportPath, manifestPath] = process.argv.slice(2)
+const [reportPath, manifestPath, root] = process.argv.slice(2)
 const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'))
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
 const fail = (message) => { console.error(`FAIL: ${message}`); process.exit(1) }
+const sha256 = /^sha256:[0-9a-f]{64}$/
 if (report.status !== 'pass' || report.harness?.version !== manifest.version) fail('status/version mismatch')
 if (!/^[0-9a-f]{40}$/.test(report.harness?.revision || '')) fail('source revision missing')
+const expectedTree = execFileSync('git', ['rev-parse', `${report.harness.revision}^{tree}`], {
+  cwd: root,
+  encoding: 'utf8',
+}).trim()
+if (report.harness?.tree !== expectedTree) fail('tested tree is not bound to source revision')
+if (report.evidence?.mode !== 'live') fail('committed pilot is not live evidence')
+if (report.codex?.binary?.name !== 'codex' || !sha256.test(report.codex?.binary?.digest || '')) {
+  fail('verified Codex binary evidence missing')
+}
 if (report.loader?.installed !== true || report.loader?.nativeSkills !== 16) fail('loader evidence missing')
 if (report.session?.destructiveGuard !== true || report.session?.secretEgressGuard !== true) fail('guard evidence missing')
 if (report.session?.routing !== 'feature-add') fail('routing evidence missing')
+for (const key of ['guardTranscript', 'routingTranscript']) {
+  if (!sha256.test(report.session?.evidence?.[key] || '')) fail(`${key} digest missing`)
+}
 if (report.userState?.unchanged !== true || report.sourceState?.unchanged !== true) fail('state evidence missing')
 if (report.cleanup?.isolatedHomeRemoved !== true) fail('cleanup evidence missing')
 if (report.splitPackages?.promoted !== false) fail('split-package verdict changed')
@@ -25,6 +39,7 @@ NODE
 grep -Fq -- '- 판정: **PASS**' "$REPORT"
 grep -Fq '## 검증됨' "$REPORT"
 grep -Fq '## 판정·한계' "$REPORT"
+grep -Fq '실행 증거: live' "$REPORT"
 grep -Fq 'session-network-unavailable' "$REPORT"
 grep -Fq 'split package 승격: **아니오**' "$REPORT"
 if rg -n 'auth\.json|github_pat_|gh[pousr]_|sk-[A-Za-z0-9]' "$JSON" "$REPORT"; then
