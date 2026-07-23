@@ -187,6 +187,15 @@ function commandIndex(tokens) {
       continue
     }
 
+    if (executable === 'builtin') {
+      let nested = index + 1
+      while (tokens[nested] === '--') nested += 1
+      if (['command', 'exec'].includes(baseName(tokens[nested]))) {
+        index = nested
+        continue
+      }
+    }
+
     if (executable === 'command') {
       index += 1
       while (tokens[index]?.startsWith('-')) index += 1
