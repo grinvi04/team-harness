@@ -138,6 +138,7 @@ grep -Fq 'HARNESS_PILOT_FIXTURE=1' "$TMP/untrusted-binary.err" || {
 }
 
 cp "$TMP/fake-codex" "$TMP/codex"
+path_shadow_calls_before=$(wc -l <"$FAKE_CALLS")
 if env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$RUNNER" --source "$SOURCE_ROOT" \
   --json-report "$TMP/path-shadow.json" --markdown-report "$TMP/path-shadow.md" \
   >"$TMP/path-shadow.out" 2>"$TMP/path-shadow.err"; then
@@ -146,6 +147,11 @@ if env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$RUNNER" --s
 fi
 grep -Fq 'Codex binary digest is not trusted' "$TMP/path-shadow.err" || {
   echo 'FAIL: PATH-shadowed Codex rejection lacked trusted-binary evidence'
+  exit 1
+}
+path_shadow_calls_after=$(wc -l <"$FAKE_CALLS")
+[ "$path_shadow_calls_after" = "$path_shadow_calls_before" ] || {
+  echo 'FAIL: PATH-shadowed untrusted Codex executed before trust verification'
   exit 1
 }
 
@@ -161,6 +167,7 @@ fs.writeFileSync(file, `${JSON.stringify(trust, null, 2)}\n`)
 NODE
 git -C "$SELF_TRUST_SOURCE" add docs/pilots/codex-native-loader-trusted-binaries.json
 git -C "$SELF_TRUST_SOURCE" commit -qm 'test: self-trust fake codex'
+self_trust_calls_before=$(wc -l <"$FAKE_CALLS")
 if env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$RUNNER" --source "$SELF_TRUST_SOURCE" \
   --json-report "$TMP/self-trust.json" --markdown-report "$TMP/self-trust.md" \
   >"$TMP/self-trust.out" 2>"$TMP/self-trust.err"; then
@@ -169,6 +176,11 @@ if env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$RUNNER" --s
 fi
 grep -Fq 'verified OpenAI code signature' "$TMP/self-trust.err" || {
   echo 'FAIL: self-trusted fake Codex rejection lacked independent signature evidence'
+  exit 1
+}
+self_trust_calls_after=$(wc -l <"$FAKE_CALLS")
+[ "$self_trust_calls_after" = "$self_trust_calls_before" ] || {
+  echo 'FAIL: unsigned self-trusted Codex executed before signature verification'
   exit 1
 }
 

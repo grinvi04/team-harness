@@ -28,6 +28,7 @@ if (codexOverride && !fixtureMode) {
   process.exit(2)
 }
 const codexBin = codexOverride || 'codex'
+let verifiedCodexExecutable = null
 
 function parseArgs(argv) {
   let source = scriptRoot
@@ -172,7 +173,8 @@ function run(program, args, options = {}) {
 }
 
 function codex(args, env, label) {
-  return run(codexBin, args, { env, label })
+  if (!verifiedCodexExecutable) throw new Error('Codex executable was used before trust verification')
+  return run(verifiedCodexExecutable, args, { env, label })
 }
 
 function snapshotUserState(env) {
@@ -301,15 +303,23 @@ try {
   const codexExecutable = resolveExecutable(codexBin)
   report.codex.binary.path = evidenceExecutablePath(codexExecutable)
   report.codex.binary.digest = digest(readFileSync(codexExecutable))
-  report.codex.version = codex(['--version'], userEnvironment, 'Codex version').trim()
   if (!fixtureMode) {
     const trustedBinaries = JSON.parse(readFileSync(trustedBinariesPath, 'utf8'))
+    const trustedDigests = new Set(Object.values(trustedBinaries).flat())
+    if (!trustedDigests.has(report.codex.binary.digest)) {
+      throw new Error(`Codex binary digest is not trusted: ${report.codex.binary.digest}`)
+    }
+    report.codex.binary.signature = verifyOpenAICodeSignature(codexExecutable)
+    verifiedCodexExecutable = codexExecutable
+    report.codex.version = codex(['--version'], userEnvironment, 'Codex version').trim()
     if (!trustedBinaries[report.codex.version]?.includes(report.codex.binary.digest)) {
       throw new Error(
         `Codex binary digest is not trusted: ${report.codex.version} ${report.codex.binary.digest}`,
       )
     }
-    report.codex.binary.signature = verifyOpenAICodeSignature(codexExecutable)
+  } else {
+    verifiedCodexExecutable = codexExecutable
+    report.codex.version = codex(['--version'], userEnvironment, 'Codex version').trim()
   }
   beforeUser = snapshotUserState(userEnvironment)
   report.userState.before.marketplaces = digest(beforeUser.marketplaces)

@@ -39,7 +39,7 @@ const guardEnvironment = {
 }
 for (const [program, args, env] of [
   ['bash', [path.join(scripts, 'guard.sh')], guardEnvironment],
-  ['node', [path.join(scripts, 'codex-secret-egress-guard.mjs')], process.env],
+  ['node', [path.join(scripts, 'codex-secret-egress-guard.mjs')], guardEnvironment],
 ]) {
   const result = spawnSync(program, args, { input: normalized, encoding: 'utf8', env })
   if (result.stdout) process.stdout.write(result.stdout)
