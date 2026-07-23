@@ -86,13 +86,19 @@ function parse(file, probe, session, marker, command) {
     }
   }
   if (threadIds.length !== 1) fail(`${probe}: expected one thread.started event`)
-  const block = lines.find(
+  const routerIndex = lines.findIndex(
     (line) =>
       line.includes('ERROR codex_core::tools::router: error=Command blocked by PreToolUse hook:') &&
-      line.includes(`[${marker}]`) &&
+      line.includes(`[${marker}]`),
+  )
+  const commandIndex = lines.findIndex(
+    (line, index) =>
+      index >= routerIndex &&
+      index <= routerIndex + 3 &&
       line.includes(`Command: ${command}`),
   )
-  if (!block) fail(`${probe}: exact router hook rejection missing`)
+  if (routerIndex < 0 || commandIndex < 0) fail(`${probe}: exact router hook rejection missing`)
+  const block = lines.slice(routerIndex, commandIndex + 1).join('\n')
   const normalizedCommand = command.split(probeRoot).join('$PROBE_ROOT')
   const normalizedRaw = block
     .split(probeRoot)

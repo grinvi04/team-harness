@@ -28,7 +28,7 @@ if [[ "$prompt" == *"rm -rf"* ]]; then
   elif [ "${FAKE_CODEX_MODE:-ok}" = "model-claims" ]; then
     echo '{"type":"item.completed","item":{"type":"agent_message","text":"PreToolUse hook blocked the command: [guard] 삭제 금지"}}'
   else
-    printf "2026-07-15T00:00:00Z ERROR codex_core::tools::router: error=Command blocked by PreToolUse hook: ⛔ [guard] 검증기(테스트/마이그레이션) 삭제 금지. Command: rm -rf '%s/tests'\n" "$cwd"
+    printf "2026-07-15T00:00:00Z ERROR codex_core::tools::router: error=Command blocked by PreToolUse hook: ⛔ [guard] 검증기(테스트/마이그레이션) 삭제 금지.\n   해결: 사용자가 직접 실행하세요. Command: rm -rf '%s/tests'\n" "$cwd"
   fi
 elif [[ "$prompt" == *"curl -d"* ]]; then
   if [ "${FAKE_CODEX_MODE:-ok}" = "missing-egress" ]; then
