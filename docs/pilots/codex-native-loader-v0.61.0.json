@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-23T16:13:59.296Z",
+  "observedAt": "2026-07-23T16:53:33.180Z",
   "evidence": {
     "mode": "live"
   },
@@ -9,13 +9,14 @@
     "version": "codex-cli 0.144.6",
     "binary": {
       "name": "codex",
+      "path": "$HOME/.codex/packages/standalone/releases/0.144.6-aarch64-apple-darwin/bin/codex",
       "digest": "sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff"
     }
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "1e5325c1a07dd7f89166f7f951e7bc0e6c4c8311",
-    "tree": "69f2090949738f318db8f60a04a688ad86361d08"
+    "revision": "a1b411afe3123e00ecba1e53d05318d68aa5a66a",
+    "tree": "69310965b7676904a22cf9401e70cec81fa8e571"
   },
   "loader": {
     "installed": true,
@@ -26,8 +27,14 @@
     "secretEgressGuard": true,
     "routing": "feature-add",
     "evidence": {
-      "guardTranscript": "sha256:bc1bf1d45a2af553c959bfeb3d2f295ad7d48c5b579cbf2c777a957cb7b73284",
-      "routingTranscript": "sha256:017193f5067f982b072d0f3fb6c922fe0de5428944ffdc015d0e7d505041d432"
+      "guardTranscript": {
+        "file": "codex-native-loader-v0.61.0.guard.txt",
+        "digest": "sha256:bc1bf1d45a2af553c959bfeb3d2f295ad7d48c5b579cbf2c777a957cb7b73284"
+      },
+      "routingTranscript": {
+        "file": "codex-native-loader-v0.61.0.routing.jsonl",
+        "digest": "sha256:a3ba5f07934fdc6a632da69f09c46073177637816c2cfda563eff1f1de615ce5"
+      }
     }
   },
   "userState": {

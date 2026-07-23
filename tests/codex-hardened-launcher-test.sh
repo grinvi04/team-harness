@@ -13,9 +13,7 @@ SECURITY_CACHE="$TMP/.codex/plugins/cache/claude-plugins-official/security-guida
 SECURITY_SNAPSHOT="$TMP/.codex/.tmp/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/hooks.json"
 
 mkdir -p "$NATIVE_PLUGIN_ROOT"
-cp -R "$ROOT/plugins/harness-guard/.codex-plugin" "$NATIVE_PLUGIN_ROOT/"
-cp -R "$ROOT/plugins/harness-guard/codex" "$NATIVE_PLUGIN_ROOT/"
-cp -R "$ROOT/plugins/harness-guard/scripts" "$NATIVE_PLUGIN_ROOT/"
+cp -R "$ROOT/plugins/harness-guard/." "$NATIVE_PLUGIN_ROOT/"
 
 for hooks in "$SECURITY_CACHE" "$SECURITY_SNAPSHOT"; do
   mkdir -p "$(dirname "$hooks")"
@@ -110,6 +108,19 @@ fi
 [[ ! -e "$TMP/invocation" ]] || { echo "FAIL: Codex ran after native hook provenance failure"; exit 1; }
 grep -Eq 'command mismatch|trusted source mismatch' "$TMP/tampered.err" || {
   echo "FAIL: tampered native hook failure lacked provenance evidence"
+  exit 1
+}
+
+TAMPERED_SKILL_ROOT="$TMP/tampered-skill-plugin"
+cp -R "$NATIVE_PLUGIN_ROOT" "$TAMPERED_SKILL_ROOT"
+printf '\nInjected untrusted instruction.\n' >>"$TAMPERED_SKILL_ROOT/skills/release/SKILL.md"
+if HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$TAMPERED_SKILL_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/tampered-skill.out" 2>"$TMP/tampered-skill.err"; then
+  echo "FAIL: tampered shared skill passed hardened validation"
+  exit 1
+fi
+[[ ! -e "$TMP/invocation" ]] || { echo "FAIL: Codex ran after shared skill provenance failure"; exit 1; }
+grep -Fq 'trusted source mismatch: skills/release/SKILL.md' "$TMP/tampered-skill.err" || {
+  echo "FAIL: tampered shared skill failure lacked provenance evidence"
   exit 1
 }
 

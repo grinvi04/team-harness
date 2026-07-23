@@ -64,6 +64,13 @@ function resolveExecutable(command) {
   throw new Error(`Codex binary is not an executable regular file: ${command}`)
 }
 
+function evidenceExecutablePath(executable) {
+  const home = realpathSync(os.homedir())
+  if (executable === home) return '$HOME'
+  if (executable.startsWith(`${home}${path.sep}`)) return `$HOME${executable.slice(home.length)}`
+  return executable
+}
+
 function run(program, args, options = {}) {
   const result = spawnSync(program, args, {
     cwd: options.cwd,
@@ -102,7 +109,7 @@ function markdown(report) {
 - 시각: ${report.observedAt}
 - Codex: ${report.codex.version || '확인 실패'}
 - 실행 증거: ${report.evidence.mode}
-- Codex binary: ${report.codex.binary?.name || '확인 실패'} (${report.codex.binary?.digest || '확인 실패'})
+- Codex binary: ${report.codex.binary?.name || '확인 실패'} @ ${report.codex.binary?.path || '확인 실패'} (${report.codex.binary?.digest || '확인 실패'})
 - Team Harness: ${report.harness.version || '확인 실패'} @ ${report.harness.revision || '확인 실패'}
 - Git tree: ${report.harness.tree || '확인 실패'}
 
@@ -113,6 +120,8 @@ function markdown(report) {
 - 파괴 명령 차단·sentinel 보존: ${mark(report.session.destructiveGuard)}
 - 시크릿 외부 전송 차단: ${mark(report.session.secretEgressGuard)}
 - UserPromptSubmit 라우팅: ${report.session.routing || 'FAIL'}
+- guard transcript: ${report.session.evidence.guardTranscript?.file || '확인 실패'} (${report.session.evidence.guardTranscript?.digest || '확인 실패'})
+- routing transcript: ${report.session.evidence.routingTranscript?.file || '확인 실패'} (${report.session.evidence.routingTranscript?.digest || '확인 실패'})
 - 사용자 marketplace/plugin 상태 byte-equivalent: ${mark(report.userState.unchanged)}
 - 격리 CODEX_HOME 삭제: ${mark(report.cleanup.isolatedHomeRemoved)}
 
@@ -121,6 +130,7 @@ function markdown(report) {
 - split package 승격: **아니오** — 이번 파일럿은 monolith native loader만 검증했다.
 - 추론: loader·hook lifecycle은 Codex 공식 plugin surface가 소유하고 Team Harness는 결과 계약만 연결한다.
 - 한계: 단일 Codex 버전·현재 계정의 로컬 표본이며, 외부 security-guidance cache patch 제거는 범위 밖이다.
+- 네트워크 한계: 모델 연결 불가 시 \`session-network-unavailable\`로 fail-closed하며 해당 시도는 live 증거로 승격하지 않는다.
 ${report.error ? `- 실패: ${report.error}\n` : ''}`
 }
 
@@ -140,8 +150,15 @@ try {
 }
 
 const sourceManifest = path.join(args.source, 'plugins', 'harness-guard', '.codex-plugin', 'plugin.json')
+const trustedBinariesPath = path.join(args.source, 'docs', 'pilots', 'codex-native-loader-trusted-binaries.json')
 const userCodexHome = path.resolve(process.env.CODEX_HOME || path.join(os.homedir(), '.codex'))
 const userEnvironment = { ...process.env, CODEX_HOME: userCodexHome }
+const reportStem = args.jsonReport.endsWith('.json') ? args.jsonReport.slice(0, -5) : args.jsonReport
+const transcriptPaths = {
+  guard: `${reportStem}.guard.txt`,
+  routing: `${reportStem}.routing.jsonl`,
+}
+const transcriptContent = { guard: null, routing: null }
 let pilotHome = null
 let beforeUser = null
 let beforeSource = null
@@ -151,14 +168,17 @@ const report = {
   status: 'fail',
   observedAt: new Date().toISOString(),
   evidence: { mode: fixtureMode ? 'fixture' : 'live' },
-  codex: { version: null, binary: { name: path.basename(codexBin), digest: null } },
+  codex: { version: null, binary: { name: path.basename(codexBin), path: null, digest: null } },
   harness: { version: null, revision: null, tree: null },
   loader: { installed: false, nativeSkills: 0 },
   session: {
     destructiveGuard: false,
     secretEgressGuard: false,
     routing: null,
-    evidence: { guardTranscript: null, routingTranscript: null },
+    evidence: {
+      guardTranscript: { file: path.basename(transcriptPaths.guard), digest: null },
+      routingTranscript: { file: path.basename(transcriptPaths.routing), digest: null },
+    },
   },
   userState: {
     before: { marketplaces: null, plugins: null },
@@ -181,8 +201,17 @@ try {
     throw new Error('source repository must be clean before pilot execution')
   }
   const codexExecutable = resolveExecutable(codexBin)
+  report.codex.binary.path = evidenceExecutablePath(codexExecutable)
   report.codex.binary.digest = digest(readFileSync(codexExecutable))
   report.codex.version = codex(['--version'], userEnvironment, 'Codex version').trim()
+  if (!fixtureMode) {
+    const trustedBinaries = JSON.parse(readFileSync(trustedBinariesPath, 'utf8'))
+    if (!trustedBinaries[report.codex.version]?.includes(report.codex.binary.digest)) {
+      throw new Error(
+        `Codex binary digest is not trusted: ${report.codex.version} ${report.codex.binary.digest}`,
+      )
+    }
+  }
   beforeUser = snapshotUserState(userEnvironment)
   report.userState.before.marketplaces = digest(beforeUser.marketplaces)
   report.userState.before.plugins = digest(beforeUser.plugins)
@@ -204,10 +233,20 @@ try {
   if (installed.pluginId !== 'harness-guard@team-harness' || installed.version !== source.version) {
     throw new Error('native plugin install identity/version mismatch')
   }
-  run(process.execPath, [path.join(args.source, 'scripts', 'check-codex-native-plugin.mjs')], {
-    env: pilotEnvironment,
-    label: 'native plugin contract',
-  })
+  run(
+    process.execPath,
+    [
+      path.join(args.source, 'scripts', 'check-codex-native-plugin.mjs'),
+      '--expected-version',
+      source.version,
+      '--trusted-root',
+      path.join(args.source, 'plugins', 'harness-guard'),
+    ],
+    {
+      env: pilotEnvironment,
+      label: 'native plugin contract',
+    },
+  )
   report.loader.installed = true
   report.loader.nativeSkills = 16
 
@@ -217,7 +256,8 @@ try {
   })
   if (smokeResult.error) throw new Error('fresh-session guard smoke failed to start')
   const smoke = `${smokeResult.stdout || ''}\n${smokeResult.stderr || ''}`
-  report.session.evidence.guardTranscript = digest(smoke)
+  transcriptContent.guard = smoke
+  report.session.evidence.guardTranscript.digest = digest(smoke)
   if (smokeResult.status !== 0) {
     if (/failed to lookup address|dns error|error sending request for url|stream disconnected before completion/.test(smoke)) {
       const error = new Error('Codex model network unavailable before hook outcome could be observed')
@@ -255,7 +295,8 @@ try {
     pilotEnvironment,
     'fresh-session routing probe',
   )
-  report.session.evidence.routingTranscript = digest(routeOutput)
+  transcriptContent.routing = routeOutput
+  report.session.evidence.routingTranscript.digest = digest(routeOutput)
   if (!routeOutput.includes('feature-add')) throw new Error('feature-add routing context was not model-visible')
   report.session.routing = 'feature-add'
 } catch (error) {
@@ -301,6 +342,12 @@ try {
   if (!report.cleanup.isolatedHomeRemoved && !failure) failure = new Error('isolated Codex home cleanup failed')
   report.status = failure ? 'fail' : 'pass'
   if (failure && !report.error) report.error = failure.message
+  for (const [kind, content] of Object.entries(transcriptContent)) {
+    if (content !== null) {
+      mkdirSync(path.dirname(transcriptPaths[kind]), { recursive: true })
+      writeFileSync(transcriptPaths[kind], content)
+    }
+  }
   writeReports(args, report)
 }
 

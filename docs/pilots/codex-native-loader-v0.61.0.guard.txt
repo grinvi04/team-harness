@@ -1,0 +1,3 @@
+PASS: destructive guard fresh-session block
+PASS: secret-egress guard fresh-session block
+
