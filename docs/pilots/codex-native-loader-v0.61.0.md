@@ -1,12 +1,12 @@
 # Codex native loader pilot
 
 - 판정: **PASS**
-- 시각: 2026-07-23T20:35:38.607Z
+- 시각: 2026-07-23T20:41:16.872Z
 - Codex: codex-cli 0.144.6
 - 실행 증거: live
 - Codex binary: codex @ $HOME/.codex/packages/standalone/releases/0.144.6-aarch64-apple-darwin/bin/codex (sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff)
-- Team Harness: 0.61.0 @ a879721331e255cb563b2beddb8eeb39e6c94c26
-- Git tree: 25dc85c48a1d77103c79bc6b6c3ba949625fe2fc
+- Team Harness: 0.61.0 @ be4acb6865b70a1adca1467a60e75f6a6f6fe3d2
+- Git tree: c0146480eaeb12fb541c79a54a21c5c64b3af531
 
 ## 검증됨
 
