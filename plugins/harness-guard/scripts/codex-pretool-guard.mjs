@@ -11,11 +11,15 @@ let hook
 try {
   hook = JSON.parse(raw)
 } catch {
-  process.exit(0)
+  process.stderr.write('Codex pretool guard failed: invalid hook JSON\n')
+  process.exit(2)
 }
 
 const command = hook?.tool_input?.command ?? hook?.tool_input?.cmd
-if (typeof command !== 'string') process.exit(0)
+if (typeof command !== 'string') {
+  process.stderr.write('Codex pretool guard failed: command is required\n')
+  process.exit(2)
+}
 
 const normalized = JSON.stringify({
   ...hook,

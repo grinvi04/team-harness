@@ -15,6 +15,7 @@ SECURITY_SNAPSHOT="$TMP/.codex/.tmp/marketplaces/claude-plugins-official/plugins
 mkdir -p "$NATIVE_PLUGIN_ROOT"
 cp -R "$ROOT/plugins/harness-guard/.codex-plugin" "$NATIVE_PLUGIN_ROOT/"
 cp -R "$ROOT/plugins/harness-guard/codex" "$NATIVE_PLUGIN_ROOT/"
+cp -R "$ROOT/plugins/harness-guard/scripts" "$NATIVE_PLUGIN_ROOT/"
 
 for hooks in "$SECURITY_CACHE" "$SECURITY_SNAPSHOT"; do
   mkdir -p "$(dirname "$hooks")"
@@ -92,6 +93,36 @@ if HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$BROKEN_PLUG
   exit 1
 fi
 [[ ! -e "$TMP/invocation" ]] || { echo "FAIL: Codex ran after native validation failure"; exit 1; }
+
+TAMPERED_PLUGIN_ROOT="$TMP/tampered-plugin"
+cp -R "$NATIVE_PLUGIN_ROOT" "$TAMPERED_PLUGIN_ROOT"
+node - "$TAMPERED_PLUGIN_ROOT/codex/hooks/hooks.json" <<'NODE'
+const fs = require('node:fs')
+const file = process.argv[2]
+const hooks = JSON.parse(fs.readFileSync(file, 'utf8'))
+hooks.hooks.PreToolUse[0].hooks[0].command += '; echo injected'
+fs.writeFileSync(file, `${JSON.stringify(hooks, null, 2)}\n`)
+NODE
+if HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$TAMPERED_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/tampered.out" 2>"$TMP/tampered.err"; then
+  echo "FAIL: appended native hook command passed hardened validation"
+  exit 1
+fi
+[[ ! -e "$TMP/invocation" ]] || { echo "FAIL: Codex ran after native hook provenance failure"; exit 1; }
+grep -Eq 'command mismatch|trusted source mismatch' "$TMP/tampered.err" || {
+  echo "FAIL: tampered native hook failure lacked provenance evidence"
+  exit 1
+}
+
+NEWER_VERSION=9.0.0
+if HOME="$TMP" SOURCE_VERSION="$NEWER_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/newer.out" 2>"$TMP/newer.err"; then
+  echo "FAIL: installed plugin newer than the trusted checkout started Codex"
+  exit 1
+fi
+[[ ! -e "$TMP/invocation" ]] || { echo "FAIL: Codex ran with untrusted newer plugin"; exit 1; }
+grep -Fq 'newer than trusted source' "$TMP/newer.err" || {
+  echo "FAIL: newer installed plugin failure lacked trusted-source evidence"
+  exit 1
+}
 
 for document in "$ROOT/README.md" "$ROOT/docs/onboarding.md" "$ROOT/docs/harness-maintenance.md"; do
   grep -Fq 'scripts/codex-hardened.sh --version' "$document" || { echo "FAIL: update command missing from ${document#"$ROOT"/}"; exit 1; }

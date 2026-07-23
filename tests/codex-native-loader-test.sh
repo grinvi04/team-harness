@@ -46,11 +46,11 @@ const handlers = [...preTool[0].hooks, ...prompt[0].hooks]
 if (handlers.length !== 2 || handlers.some((handler) => handler.type !== 'command')) {
   fail('Codex hooks must contain exactly two command handlers')
 }
-if (!preTool[0].hooks[0].command.includes('${PLUGIN_ROOT}/scripts/codex-pretool-guard.mjs')) {
-  fail('PreToolUse does not resolve the native guard through PLUGIN_ROOT')
+if (preTool[0].hooks[0].command !== 'node "${PLUGIN_ROOT}/scripts/codex-pretool-guard.mjs"') {
+  fail('PreToolUse command is not the exact native guard invocation')
 }
-if (!prompt[0].hooks[0].command.includes('${PLUGIN_ROOT}/scripts/route-intent.mjs')) {
-  fail('UserPromptSubmit does not resolve route-intent through PLUGIN_ROOT')
+if (prompt[0].hooks[0].command !== 'node "${PLUGIN_ROOT}/scripts/route-intent.mjs"') {
+  fail('UserPromptSubmit command is not the exact route-intent invocation')
 }
 
 const sharedRoot = path.join(plugin, 'skills')

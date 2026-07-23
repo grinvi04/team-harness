@@ -3,12 +3,16 @@
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import {
+  accessSync,
   chmodSync,
+  constants as fsConstants,
   copyFileSync,
   existsSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  realpathSync,
   rmSync,
   writeFileSync,
 } from 'node:fs'
@@ -17,7 +21,13 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const codexBin = process.env.CODEX_BIN || 'codex'
+const codexOverride = process.env.CODEX_BIN
+const fixtureMode = process.env.HARNESS_PILOT_FIXTURE === '1'
+if (codexOverride && !fixtureMode) {
+  console.error('run-codex-native-loader-pilot: CODEX_BIN requires HARNESS_PILOT_FIXTURE=1')
+  process.exit(2)
+}
+const codexBin = codexOverride || 'codex'
 
 function parseArgs(argv) {
   let source = scriptRoot
@@ -36,6 +46,22 @@ function parseArgs(argv) {
 
 function digest(value) {
   return `sha256:${createHash('sha256').update(value).digest('hex')}`
+}
+
+function resolveExecutable(command) {
+  const candidates = command.includes(path.sep)
+    ? [path.resolve(command)]
+    : (process.env.PATH || '').split(path.delimiter).filter(Boolean).map((directory) => path.join(directory, command))
+  for (const candidate of candidates) {
+    try {
+      accessSync(candidate, fsConstants.X_OK)
+      const resolved = realpathSync(candidate)
+      if (lstatSync(resolved).isFile()) return resolved
+    } catch {
+      // Try the next PATH entry.
+    }
+  }
+  throw new Error(`Codex binary is not an executable regular file: ${command}`)
 }
 
 function run(program, args, options = {}) {
@@ -63,6 +89,7 @@ function snapshotUserState(env) {
 function snapshotSource(source) {
   return {
     head: run('git', ['rev-parse', 'HEAD'], { cwd: source, label: 'source HEAD snapshot' }).trim(),
+    tree: run('git', ['rev-parse', 'HEAD^{tree}'], { cwd: source, label: 'source tree snapshot' }).trim(),
     status: run('git', ['status', '--porcelain=v1', '-uall'], { cwd: source, label: 'source status snapshot' }),
   }
 }
@@ -74,7 +101,10 @@ function markdown(report) {
 - 판정: **${report.status.toUpperCase()}**
 - 시각: ${report.observedAt}
 - Codex: ${report.codex.version || '확인 실패'}
+- 실행 증거: ${report.evidence.mode}
+- Codex binary: ${report.codex.binary?.name || '확인 실패'} (${report.codex.binary?.digest || '확인 실패'})
 - Team Harness: ${report.harness.version || '확인 실패'} @ ${report.harness.revision || '확인 실패'}
+- Git tree: ${report.harness.tree || '확인 실패'}
 
 ## 검증됨
 
@@ -117,13 +147,19 @@ let beforeUser = null
 let beforeSource = null
 let failure = null
 const report = {
-  schemaVersion: 1,
+  schemaVersion: 2,
   status: 'fail',
   observedAt: new Date().toISOString(),
-  codex: { version: null },
-  harness: { version: null, revision: null },
+  evidence: { mode: fixtureMode ? 'fixture' : 'live' },
+  codex: { version: null, binary: { name: path.basename(codexBin), digest: null } },
+  harness: { version: null, revision: null, tree: null },
   loader: { installed: false, nativeSkills: 0 },
-  session: { destructiveGuard: false, secretEgressGuard: false, routing: null },
+  session: {
+    destructiveGuard: false,
+    secretEgressGuard: false,
+    routing: null,
+    evidence: { guardTranscript: null, routingTranscript: null },
+  },
   userState: {
     before: { marketplaces: null, plugins: null },
     after: { marketplaces: null, plugins: null },
@@ -138,12 +174,18 @@ const report = {
 try {
   const source = JSON.parse(readFileSync(sourceManifest, 'utf8'))
   report.harness.version = source.version
+  beforeSource = snapshotSource(args.source)
+  report.harness.revision = beforeSource.head
+  report.harness.tree = beforeSource.tree
+  if (beforeSource.status !== '') {
+    throw new Error('source repository must be clean before pilot execution')
+  }
+  const codexExecutable = resolveExecutable(codexBin)
+  report.codex.binary.digest = digest(readFileSync(codexExecutable))
   report.codex.version = codex(['--version'], userEnvironment, 'Codex version').trim()
   beforeUser = snapshotUserState(userEnvironment)
   report.userState.before.marketplaces = digest(beforeUser.marketplaces)
   report.userState.before.plugins = digest(beforeUser.plugins)
-  beforeSource = snapshotSource(args.source)
-  report.harness.revision = beforeSource.head
 
   pilotHome = mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'team-harness-codex-native-pilot.'))
   const authSource = path.join(userCodexHome, 'auth.json')
@@ -175,6 +217,7 @@ try {
   })
   if (smokeResult.error) throw new Error('fresh-session guard smoke failed to start')
   const smoke = `${smokeResult.stdout || ''}\n${smokeResult.stderr || ''}`
+  report.session.evidence.guardTranscript = digest(smoke)
   if (smokeResult.status !== 0) {
     if (/failed to lookup address|dns error|error sending request for url|stream disconnected before completion/.test(smoke)) {
       const error = new Error('Codex model network unavailable before hook outcome could be observed')
@@ -212,6 +255,7 @@ try {
     pilotEnvironment,
     'fresh-session routing probe',
   )
+  report.session.evidence.routingTranscript = digest(routeOutput)
   if (!routeOutput.includes('feature-add')) throw new Error('feature-add routing context was not model-visible')
   report.session.routing = 'feature-add'
 } catch (error) {
@@ -228,15 +272,15 @@ try {
     }
   }
   try {
-    const afterUser = snapshotUserState(userEnvironment)
-    report.userState.after.marketplaces = digest(afterUser.marketplaces)
-    report.userState.after.plugins = digest(afterUser.plugins)
-    report.userState.unchanged = Boolean(
-      beforeUser &&
-        afterUser.marketplaces === beforeUser.marketplaces &&
-        afterUser.plugins === beforeUser.plugins,
-    )
-    if (!report.userState.unchanged && !failure) failure = new Error('user Codex plugin/marketplace state drifted')
+    if (beforeUser) {
+      const afterUser = snapshotUserState(userEnvironment)
+      report.userState.after.marketplaces = digest(afterUser.marketplaces)
+      report.userState.after.plugins = digest(afterUser.plugins)
+      report.userState.unchanged = Boolean(
+        afterUser.marketplaces === beforeUser.marketplaces && afterUser.plugins === beforeUser.plugins,
+      )
+      if (!report.userState.unchanged && !failure) failure = new Error('user Codex plugin/marketplace state drifted')
+    }
   } catch {
     report.userState.unchanged = false
     if (!failure) failure = new Error('user Codex state restoration could not be verified')
@@ -244,7 +288,10 @@ try {
   try {
     const afterSource = snapshotSource(args.source)
     report.sourceState.unchanged = Boolean(
-      beforeSource && afterSource.head === beforeSource.head && afterSource.status === beforeSource.status,
+      beforeSource &&
+        afterSource.head === beforeSource.head &&
+        afterSource.tree === beforeSource.tree &&
+        afterSource.status === beforeSource.status,
     )
     if (!report.sourceState.unchanged && !failure) failure = new Error('source repository changed during pilot')
   } catch {
