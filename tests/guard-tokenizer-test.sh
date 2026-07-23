@@ -1,5 +1,5 @@
 #!/bin/bash
-# tests/guard-tokenizer-test.sh — 토크나이저 primitive 단위 테스트 (guard-shlex-tokenizer 태스크2, AC-T1~T7)
+# tests/guard-tokenizer-test.sh — 토크나이저 primitive 단위 테스트 (guard-shlex-tokenizer 태스크2, AC-T1~T8)
 # lib/tokenize.sh의 순수 함수를 source해 토큰/세그먼트/판정헬퍼 출력을 직접 단언한다.
 #   guard-test(시나리오)·guard-matrix(계약)와 상보 — 이쪽은 파싱 primitive의 정확성을 격리 검증한다.
 # 로컬·CI 동일: bash tests/guard-tokenizer-test.sh
@@ -41,6 +41,10 @@ eq "T4 mention token0=grep"      "grep"  "$(firsttok "grep 'git reset --hard' no
 # ── AC-T5: env-prefix 인식 (선행 VAR=val 토큰 노출) ──
 eq "T5 X= 빈값 env-prefix"       "X=|git|commit|-m|x"     "$(toks 'X= git commit -m x')"
 eq "T5 다중 env-prefix"          "A=1|B=2|git|commit"      "$(toks 'A=1 B=2 git commit')"
+
+# ── AC-T8: 셸 line continuation을 논리행으로 정규화 ──
+eq "T8 backslash+LF 제거"   "rm -rf tests" "$(collapse_line_continuations $'rm \\\n-rf tests')"
+eq "T8 backslash+CRLF 제거" "rm -rf tests" "$(collapse_line_continuations $'rm \\\r\n-rf tests')"
 
 # ── 판정 헬퍼 (task3 게이트가 의존) ──
 # git_subcommand: **command-position 앵커** — 선행 env-prefix만 스킵하고 git이 그 자리에 와야 한다.

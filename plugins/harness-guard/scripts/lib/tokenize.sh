@@ -13,6 +13,26 @@
 # 한계(의도적): 셸 확장(glob·변수·명령치환)은 하지 않는다 — 가드는 확장 전 리터럴 명령을 판정한다.
 #   heredoc·프로세스치환 같은 다중행 구문은 범위 밖(가드는 흔한 형태만, 정본 강제는 계층0).
 
+# collapse_line_continuations <cmdline>: backslash+LF/CRLF를 논리행으로 합친다.
+#   직접 명령뿐 아니라 `sh -lc '<inner command>'`에 전달되는 중첩 명령도 inner shell에서 continuation을
+#   제거하므로 quote depth와 무관하게 정규화한다. 따옴표 자체는 보존돼 mention 토큰 경계는 유지된다.
+collapse_line_continuations() {
+  local s="$1"
+  local i=0 n=${#s} c next next2 out=''
+  while (( i < n )); do
+    c="${s:i:1}"
+    if [[ "$c" == \\ ]]; then
+      next="${s:i+1:1}"
+      next2="${s:i+2:1}"
+      if [[ "$next" == $'\n' ]]; then ((i+=2)); continue; fi
+      if [[ "$next" == $'\r' && "$next2" == $'\n' ]]; then ((i+=3)); continue; fi
+    fi
+    out+="$c"
+    ((i++))
+  done
+  printf '%s' "$out"
+}
+
 # split_segments <cmdline>: 명령줄을 셸 연산자(; && || | ( ))에서 분리한다(따옴표 인식).
 #   1줄=1세그먼트로 출력. 따옴표 안의 연산자·서브셸 문자는 리터럴로 취급해 분리하지 않는다.
 split_segments() {

@@ -55,6 +55,10 @@
   (bash 3.2 함정) THEN `local` 선언을 분리한다.
 - **AC-T7 (파서 무의존):** WHILE `python3`은 없고 `jq`만 있는 환경([D] 폴백)일 때, the system SHALL
   토큰화된 게이트가 그대로 작동한다(토크나이저는 순수 bash라 JSON 파싱 이후 단계엔 외부 파서 불요).
+- **AC-T8 (논리행 정규화 — v0.61.0 release-check hardening):** WHEN 셸 입력에 backslash+LF 또는
+  backslash+CRLF continuation이 있으면, the system SHALL 실제 셸처럼 이를 제거한 논리행을
+  `split_segments`·`tokenize`와 모든 게이트 판정에 사용한다. 따옴표 자체는 보존해 mention 경계를
+  넓히지 않는다.
 
 ### git구조 게이트 이관 (commit·force-push·reset)
 
@@ -90,6 +94,8 @@
   exit 0이고 HOLES·OVERBLOCKS 섹션이 **비어 있다**.
 - **AC-B3 (신규 홀 0 — 반증):** WHEN 카테고리(b) 적대적 헌트 케이스(신규 추가)를 실행하면, the system
   SHALL 현행 정규식이 막던 것을 전부 계속 막는다(reset·rm·npm·validator-del 변형에서 신규 통과=0).
+  특히 `rm \`+LF/CRLF+`-rf tests`, `git reset \`+LF/CRLF+`--hard`, `npm install \`+LF/CRLF+`-g`
+  는 같은 단일행 명령과 동일하게 exit 2다.
 - **AC-B4 (fail-closed 유지):** WHILE `python3`·`jq` 둘 다 부재/실패일 때 the system SHALL JSON 파싱
   단계에서 fail-closed(exit 2) — 토크나이저 도입이 이 안전측을 바꾸지 않는다.
 
@@ -120,9 +126,10 @@
 
 ### 토크나이저 설계 (프로토타입 검증됨 — `scratchpad/tok-proto.sh`)
 
-두 순수-bash 함수(각 ~25줄), 외부 프로세스·`python3`/`jq` 불요:
+세 순수-bash 함수, 외부 프로세스·`python3`/`jq` 불요:
 
 ```
+collapse_line_continuations "$cmd" # backslash+LF/CRLF 제거, 셸 논리행과 동일화
 split_segments "$cmd"   # ; && || | ( ) 에서 분리(따옴표 인식). 1줄=1세그먼트.
 tokenize "$seg"          # 세그먼트→단어. 따옴표 벗김·백슬래시 이스케이프·공백 collapse. 1줄=1토큰.
 ```

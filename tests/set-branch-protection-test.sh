@@ -101,6 +101,56 @@ arg_case "값없는 --approvals → exit 2"  2  o/r --approvals
 arg_case "값없는 --contexts → exit 2"   2  o/r --contexts
 arg_case "미지정 인자 → exit 2"         2  o/r --nope
 
+# --check --approvals 1 공개 CLI 계약: main은 승인≥1 + stale 승인 무효화,
+# develop은 자동머지를 위해 승인 정확히 0이어야 한다. gh는 fixture로 대체해 네트워크를 호출하지 않는다.
+CLI_TMP=$(mktemp -d)
+FAKEBIN="$CLI_TMP/bin"
+mkdir -p "$FAKEBIN"
+trap 'rm -rf "$CLI_TMP"' EXIT
+cat > "$FAKEBIN/gh" <<'SH'
+#!/usr/bin/env bash
+set -u
+[ "${1:-}" = "api" ] || exit 70
+case "${2:-}" in
+  repos/o/r/branches/main|repos/o/r/branches/develop)
+    printf '{}\n'
+    ;;
+  repos/o/r/branches/main/protection)
+    if [ "${FAKE_GH_SCENARIO:-ok}" = "main-dismiss-false" ]; then
+      reviews='{"required_approving_review_count":2,"dismiss_stale_reviews":false}'
+    else
+      reviews='{"required_approving_review_count":2,"dismiss_stale_reviews":true}'
+    fi
+    printf '{"required_status_checks":{"strict":true,"contexts":["quality"]},"enforce_admins":{"enabled":true},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":false},"allow_deletions":{"enabled":false},"required_conversation_resolution":{"enabled":true}}\n' "$reviews"
+    ;;
+  repos/o/r/branches/develop/protection)
+    if [ "${FAKE_GH_SCENARIO:-ok}" = "develop-approval-one" ]; then
+      reviews='{"required_approving_review_count":1,"dismiss_stale_reviews":true}'
+    else
+      reviews='null'
+    fi
+    printf '{"required_status_checks":{"strict":true,"contexts":["quality"]},"enforce_admins":{"enabled":true},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":false},"allow_deletions":{"enabled":false},"required_conversation_resolution":{"enabled":true}}\n' "$reviews"
+    ;;
+  *)
+    exit 71
+    ;;
+esac
+SH
+chmod +x "$FAKEBIN/gh"
+
+cli_check_case() { # desc, fixture scenario, expected exit
+  local desc="$1" scenario="$2" wantrc="$3" out rc
+  out=$(FAKE_GH_SCENARIO="$scenario" PATH="$FAKEBIN:$PATH" bash "$SBP" o/r --check --approvals 1 2>&1); rc=$?
+  if [ "$rc" = "$wantrc" ]; then
+    echo "PASS: $desc"; PASS=$((PASS+1))
+  else
+    echo "FAIL: $desc — want rc$wantrc got rc$rc ($out)"; FAIL=$((FAIL+1))
+  fi
+}
+cli_check_case "CLI 팀1: main 승인2+dismiss, develop 승인0 → exit 0" ok 0
+cli_check_case "CLI 팀1: main dismiss_stale=false → exit nonzero" main-dismiss-false 1
+cli_check_case "CLI 팀1: develop 승인1 → exit nonzero" develop-approval-one 1
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

@@ -90,6 +90,11 @@ if ! source "${BASH_SOURCE[0]%/*}/lib/tokenize.sh" 2>/dev/null; then
   deny "토크나이저 lib 로드 실패 (scripts/lib/tokenize.sh) — fail-closed" "플러그인 설치 무결성 확인 후 재시도"
 fi
 
+# 실제 셸이 실행 전에 제거하는 backslash+개행을 동일하게 논리행으로 합친 뒤 모든 판정에 사용한다.
+# 이 정규화가 없으면 split_segments의 줄 출력과 while-read 경계가 continuation을 별도 세그먼트로 오인해
+# `rm \`+LF+`-rf tests` 같은 동일 argv 파괴 명령을 놓친다.
+COMMAND=$(collapse_line_continuations "$COMMAND")
+
 # LITE 면제는 명령이 실제로 실행되는 원래 repo(세션 cwd) 기준으로 판정한다 — 후행 cd/-C로 다른 .harness-lite
 # repo에 착지시켜 현재 코드 repo의 LITE-게이트 가드를 무장해제하는 교차오염(#196)을 막기 위해,
 # 아래 TARGET_DIR 추종 cd **이전**에 원래 repo 루트를 캡처한다.
