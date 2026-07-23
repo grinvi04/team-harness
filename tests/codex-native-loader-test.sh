@@ -94,6 +94,14 @@ grep -Fq 'native hook event inventory mismatch' "$TMP/extra-event.err" || {
   fail 'unexpected hook event rejection lacked exact-inventory evidence'
 }
 
+ln -s "$PLUGIN" "$TMP/plugin-root-link"
+if node "$CHECKER" --root "$TMP/plugin-root-link" >"$TMP/root-link.out" 2>"$TMP/root-link.err"; then
+  fail 'symlink plugin root passed native validation'
+fi
+grep -Fq 'plugin root must be a non-symlink directory' "$TMP/root-link.err" || {
+  fail 'symlink plugin root rejection lacked root-identity evidence'
+}
+
 git init -q -b main "$TMP/repo"
 git -C "$TMP/repo" config user.name tester
 git -C "$TMP/repo" config user.email tester@example.com

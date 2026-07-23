@@ -51,12 +51,14 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   대조하고, clean Git tree·검증한 Codex binary digest·실제 session transcript digest를 revision에 결합한다.
   fixture binary는 live 증거로 승격하지 않으며 malformed·불완전 PreToolUse payload는 차단한다.
 - **AC-12 (live evidence trust anchor):** WHEN live pilot을 실행하면, the system SHALL repo에 승인된 Codex
-  binary version·digest만 허용하고 검증한 realpath를 사용자 홈 비식별 형태로 기록한다. guard·routing 원문 transcript artifact의
-  digest는 보고서 검증 시 재계산하며 pilot revision 이후 release candidate 변경은 pilot evidence와 changelog로
-  제한한다.
+  binary version·digest와 macOS Apple trust chain의 OpenAI Developer ID를 함께 검증하고, 검증한 realpath를
+  사용자 홈 비식별 형태로 기록한다. guard는 서로 다른 두 session의 실제 router block을 구조화·비식별하고,
+  routing은 정확한 agent-message event만 보존해 artifact digest를 재계산한다. pilot revision 이후 release
+  candidate 변경은 pilot evidence와 changelog로 제한한다.
 - **AC-13 (exact installed surface):** WHEN native plugin을 검증하면, the system SHALL hook event를
   `PreToolUse`·`UserPromptSubmit` exact inventory로 제한하고 wrapper가 참조하는 공용 skill을 포함한 전체 plugin
-  file inventory·digest를 trusted checkout과 비교한다.
+  file inventory·digest를 trusted checkout과 비교하며 installed/trusted root의 non-symlink inode·realpath가
+  검사 전후 동일한지 확인한다.
 
 ## 4. 제약 / 비기능
 

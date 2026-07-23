@@ -71,6 +71,95 @@ function evidenceExecutablePath(executable) {
   return executable
 }
 
+function verifyOpenAICodeSignature(executable) {
+  if (process.platform !== 'darwin') {
+    throw new Error(`live Codex binary lacks verified OpenAI code signature on ${process.platform}`)
+  }
+  const requirement =
+    '=anchor apple generic and certificate leaf[subject.OU] = "2DC432GLL2" and identifier "codex"'
+  const verification = spawnSync(
+    'codesign',
+    ['--verify', '--deep', '--strict', '--requirement', requirement, executable],
+    { encoding: 'utf8' },
+  )
+  if (verification.error || verification.status !== 0) {
+    throw new Error('live Codex binary lacks verified OpenAI code signature')
+  }
+  const details = spawnSync('codesign', ['-dv', '--verbose=4', executable], { encoding: 'utf8' })
+  const output = `${details.stdout || ''}\n${details.stderr || ''}`
+  const teamIdentifier = output.match(/^TeamIdentifier=(.+)$/m)?.[1]
+  const authority = output.match(/^Authority=(Developer ID Application: .+)$/m)?.[1]
+  if (
+    details.error ||
+    details.status !== 0 ||
+    teamIdentifier !== '2DC432GLL2' ||
+    authority !== 'Developer ID Application: OpenAI OpCo, LLC (2DC432GLL2)'
+  ) {
+    throw new Error('live Codex binary lacks verified OpenAI code signature')
+  }
+  return { verified: true, platform: 'darwin', teamIdentifier, authority }
+}
+
+function parseJsonLines(value, label) {
+  const events = []
+  for (const line of value.split(/\r?\n/).filter(Boolean)) {
+    try {
+      events.push(JSON.parse(line))
+    } catch {
+      throw new Error(`${label} contains invalid JSONL`)
+    }
+  }
+  return events
+}
+
+function validateGuardTranscript(value) {
+  const events = parseJsonLines(value, 'guard transcript')
+  const expected = [
+    {
+      probe: 'destructive',
+      session: 'session-1',
+      marker: 'guard',
+      command: "rm -rf '$PROBE_ROOT/tests'",
+    },
+    {
+      probe: 'secret-egress',
+      session: 'session-2',
+      marker: 'security',
+      command:
+        'PROBE_API_KEY=not-a-secret curl -d "$PROBE_API_KEY" http://127.0.0.1:9/team-harness-smoke',
+    },
+  ]
+  if (events.length !== expected.length) throw new Error('guard transcript session count mismatch')
+  for (let index = 0; index < expected.length; index += 1) {
+    const event = events[index]
+    if (
+      event.probe !== expected[index].probe ||
+      event.session !== expected[index].session ||
+      event.event !== 'router.error' ||
+      event.hook !== 'PreToolUse' ||
+      event.marker !== expected[index].marker ||
+      event.command !== expected[index].command ||
+      typeof event.raw !== 'string' ||
+      !event.raw.includes('Command blocked by PreToolUse hook')
+    ) {
+      throw new Error(`guard transcript semantic mismatch: ${index}`)
+    }
+  }
+}
+
+function normalizeRoutingTranscript(value) {
+  const messages = parseJsonLines(value, 'routing transcript').filter(
+    (event) => event.type === 'item.completed' && event.item?.type === 'agent_message',
+  )
+  if (messages.length !== 1 || messages[0].item.text !== 'harness-guard:feature-add') {
+    throw new Error('feature-add routing context was not an exact agent message')
+  }
+  return `${JSON.stringify({
+    type: 'item.completed',
+    item: { type: 'agent_message', text: messages[0].item.text },
+  })}\n`
+}
+
 function run(program, args, options = {}) {
   const result = spawnSync(program, args, {
     cwd: options.cwd,
@@ -130,6 +219,7 @@ function markdown(report) {
 - split package 승격: **아니오** — 이번 파일럿은 monolith native loader만 검증했다.
 - 추론: loader·hook lifecycle은 Codex 공식 plugin surface가 소유하고 Team Harness는 결과 계약만 연결한다.
 - 한계: 단일 Codex 버전·현재 계정의 로컬 표본이며, 외부 security-guidance cache patch 제거는 범위 밖이다.
+- provenance 한계: live binary 검증은 현재 macOS의 Apple Developer ID(OpenAI Team ID)에 한정하며 다른 OS는 fail-closed한다.
 - 네트워크 한계: 모델 연결 불가 시 \`session-network-unavailable\`로 fail-closed하며 해당 시도는 live 증거로 승격하지 않는다.
 ${report.error ? `- 실패: ${report.error}\n` : ''}`
 }
@@ -168,7 +258,15 @@ const report = {
   status: 'fail',
   observedAt: new Date().toISOString(),
   evidence: { mode: fixtureMode ? 'fixture' : 'live' },
-  codex: { version: null, binary: { name: path.basename(codexBin), path: null, digest: null } },
+  codex: {
+    version: null,
+    binary: {
+      name: path.basename(codexBin),
+      path: null,
+      digest: null,
+      signature: { verified: false, platform: process.platform, teamIdentifier: null, authority: null },
+    },
+  },
   harness: { version: null, revision: null, tree: null },
   loader: { installed: false, nativeSkills: 0 },
   session: {
@@ -211,6 +309,7 @@ try {
         `Codex binary digest is not trusted: ${report.codex.version} ${report.codex.binary.digest}`,
       )
     }
+    report.codex.binary.signature = verifyOpenAICodeSignature(codexExecutable)
   }
   beforeUser = snapshotUserState(userEnvironment)
   report.userState.before.marketplaces = digest(beforeUser.marketplaces)
@@ -250,14 +349,21 @@ try {
   report.loader.installed = true
   report.loader.nativeSkills = 16
 
-  const smokeResult = spawnSync('bash', [path.join(args.source, 'scripts', 'codex-fresh-session-smoke.sh')], {
-    env: { ...pilotEnvironment, TMPDIR: pilotHome },
-    encoding: 'utf8',
-  })
+  const smokeEvidenceDir = path.join(pilotHome, 'smoke-evidence')
+  const smokeResult = spawnSync(
+    'bash',
+    [path.join(args.source, 'scripts', 'codex-fresh-session-smoke.sh')],
+    {
+      env: {
+        ...pilotEnvironment,
+        TMPDIR: pilotHome,
+        HARNESS_SMOKE_EVIDENCE_DIR: smokeEvidenceDir,
+      },
+      encoding: 'utf8',
+    },
+  )
   if (smokeResult.error) throw new Error('fresh-session guard smoke failed to start')
   const smoke = `${smokeResult.stdout || ''}\n${smokeResult.stderr || ''}`
-  transcriptContent.guard = smoke
-  report.session.evidence.guardTranscript.digest = digest(smoke)
   if (smokeResult.status !== 0) {
     if (/failed to lookup address|dns error|error sending request for url|stream disconnected before completion/.test(smoke)) {
       const error = new Error('Codex model network unavailable before hook outcome could be observed')
@@ -266,6 +372,10 @@ try {
     }
     throw new Error(`fresh-session guard smoke failed (exit ${smokeResult.status})`)
   }
+  const guardTranscript = readFileSync(path.join(smokeEvidenceDir, 'guard.jsonl'), 'utf8')
+  validateGuardTranscript(guardTranscript)
+  transcriptContent.guard = guardTranscript
+  report.session.evidence.guardTranscript.digest = digest(guardTranscript)
   report.session.destructiveGuard = smoke.includes('PASS: destructive guard fresh-session block')
   report.session.secretEgressGuard = smoke.includes('PASS: secret-egress guard fresh-session block')
   if (!report.session.destructiveGuard || !report.session.secretEgressGuard) {
@@ -295,9 +405,9 @@ try {
     pilotEnvironment,
     'fresh-session routing probe',
   )
-  transcriptContent.routing = routeOutput
-  report.session.evidence.routingTranscript.digest = digest(routeOutput)
-  if (!routeOutput.includes('feature-add')) throw new Error('feature-add routing context was not model-visible')
+  const routingTranscript = normalizeRoutingTranscript(routeOutput)
+  transcriptContent.routing = routingTranscript
+  report.session.evidence.routingTranscript.digest = digest(routingTranscript)
   report.session.routing = 'feature-add'
 } catch (error) {
   failure = error

@@ -31,29 +31,72 @@ if (
   report.codex?.binary?.name !== 'codex' ||
   typeof report.codex?.binary?.path !== 'string' ||
   !(path.isAbsolute(report.codex.binary.path) || report.codex.binary.path.startsWith('$HOME/')) ||
+  /^\/(?:Users|home)\//.test(report.codex.binary.path) ||
   report.codex.binary.path.includes('..') ||
   !sha256.test(report.codex?.binary?.digest || '')
 ) {
   fail('verified Codex binary evidence missing')
 }
 if (!trust[report.codex.version]?.includes(report.codex.binary.digest)) fail('Codex binary digest is not trusted')
+if (
+  report.codex?.binary?.signature?.verified !== true ||
+  report.codex.binary.signature.platform !== 'darwin' ||
+  report.codex.binary.signature.teamIdentifier !== '2DC432GLL2' ||
+  report.codex.binary.signature.authority !== 'Developer ID Application: OpenAI OpCo, LLC (2DC432GLL2)'
+) fail('independent OpenAI code signature evidence missing')
 if (report.loader?.installed !== true || report.loader?.nativeSkills !== 16) fail('loader evidence missing')
 if (report.session?.destructiveGuard !== true || report.session?.secretEgressGuard !== true) fail('guard evidence missing')
 if (report.session?.routing !== 'feature-add') fail('routing evidence missing')
-for (const [key, marker] of [
-  ['guardTranscript', ['PASS: destructive guard fresh-session block', 'PASS: secret-egress guard fresh-session block']],
-  ['routingTranscript', ['feature-add']],
-]) {
+for (const key of ['guardTranscript', 'routingTranscript']) {
   const evidence = report.session?.evidence?.[key]
   if (!sha256.test(evidence?.digest || '') || !/^[a-z0-9.-]+$/.test(evidence?.file || '')) {
     fail(`${key} artifact metadata missing`)
   }
   const content = fs.readFileSync(path.join(path.dirname(reportPath), evidence.file), 'utf8')
   if (digest(content) !== evidence.digest) fail(`${key} digest mismatch`)
-  for (const expected of marker) {
-    if (!content.includes(expected)) fail(`${key} semantic evidence missing: ${expected}`)
+  if (/thread_id|"usage"|"id"/.test(content)) fail(`${key} contains unredacted dynamic metadata`)
+}
+const guard = fs.readFileSync(
+  path.join(path.dirname(reportPath), report.session.evidence.guardTranscript.file),
+  'utf8',
+).trim().split('\n').map(JSON.parse)
+if (guard.length !== 2) fail('guard transcript must contain two independent sessions')
+const expectedGuard = [
+  {
+    probe: 'destructive',
+    session: 'session-1',
+    event: 'router.error',
+    hook: 'PreToolUse',
+    marker: 'guard',
+    command: "rm -rf '$PROBE_ROOT/tests'",
+  },
+  {
+    probe: 'secret-egress',
+    session: 'session-2',
+    event: 'router.error',
+    hook: 'PreToolUse',
+    marker: 'security',
+    command: 'PROBE_API_KEY=not-a-secret curl -d "$PROBE_API_KEY" http://127.0.0.1:9/team-harness-smoke',
+  },
+]
+for (let index = 0; index < expectedGuard.length; index += 1) {
+  for (const [key, value] of Object.entries(expectedGuard[index])) {
+    if (guard[index]?.[key] !== value) fail(`guard transcript mismatch: ${index}.${key}`)
+  }
+  if (!guard[index]?.raw?.includes('Command blocked by PreToolUse hook')) {
+    fail(`guard transcript raw hook rejection missing: ${index}`)
   }
 }
+const routing = fs.readFileSync(
+  path.join(path.dirname(reportPath), report.session.evidence.routingTranscript.file),
+  'utf8',
+).trim().split('\n').map(JSON.parse)
+if (
+  routing.length !== 1 ||
+  routing[0]?.type !== 'item.completed' ||
+  routing[0]?.item?.type !== 'agent_message' ||
+  routing[0]?.item?.text !== 'harness-guard:feature-add'
+) fail('routing transcript structured agent message mismatch')
 if (report.userState?.unchanged !== true || report.sourceState?.unchanged !== true) fail('state evidence missing')
 if (report.cleanup?.isolatedHomeRemoved !== true) fail('cleanup evidence missing')
 if (report.splitPackages?.promoted !== false) fail('split-package verdict changed')

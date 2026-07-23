@@ -58,6 +58,11 @@ if [ "$*" = 'plugin add harness-guard@team-harness --json' ]; then
   exit 0
 fi
 if [ "$1" = exec ]; then
+  count=0
+  [ ! -f "$FAKE_SESSION_COUNT" ] || count=$(cat "$FAKE_SESSION_COUNT")
+  count=$((count + 1))
+  printf '%s' "$count" >"$FAKE_SESSION_COUNT"
+  printf '{"type":"thread.started","thread_id":"thread-%s"}\n' "$count"
   if [ "${FAKE_MODE:-ok}" = network ]; then
     echo 'stream disconnected before completion: dns error: failed to lookup address information' >&2
     exit 7
@@ -77,7 +82,7 @@ if [ "$1" = exec ]; then
   elif [ "${FAKE_MODE:-ok}" = route-missing ]; then
     echo '{"type":"item.completed","item":{"type":"agent_message","text":"no routing context"}}'
   else
-    echo '{"type":"item.completed","item":{"type":"agent_message","text":"current=feature-add, phase=Phase 1"}}'
+    echo '{"type":"item.completed","item":{"type":"agent_message","text":"harness-guard:feature-add"}}'
   fi
   exit 0
 fi
@@ -88,7 +93,7 @@ chmod +x "$TMP/fake-codex"
 
 SOURCE_VERSION=$(node -p "JSON.parse(require('node:fs').readFileSync('$SOURCE_ROOT/plugins/harness-guard/.codex-plugin/plugin.json')).version")
 export SOURCE_VERSION SOURCE_ROOT USER_CODEX_HOME
-export CODEX_BIN="$TMP/fake-codex" FAKE_CALLS="$TMP/calls" USER_PLUGIN_CALLS="$TMP/user-plugin-calls"
+export CODEX_BIN="$TMP/fake-codex" FAKE_CALLS="$TMP/calls" USER_PLUGIN_CALLS="$TMP/user-plugin-calls" FAKE_SESSION_COUNT="$TMP/session-count"
 export CODEX_HOME="$USER_CODEX_HOME" TMPDIR="$TMP" HARNESS_PILOT_SKIP_AUTH=1 HARNESS_PILOT_FIXTURE=1
 
 node "$RUNNER" --source "$SOURCE_ROOT" --json-report "$TMP/report.json" --markdown-report "$TMP/report.md"
@@ -110,7 +115,7 @@ if (report.auth?.copied !== false || report.splitPackages?.promoted !== false) f
 NODE
 grep -Fq '# Codex native loader pilot' "$TMP/report.md"
 grep -Fq '검증됨' "$TMP/report.md"
-grep -Fq 'PASS: destructive guard fresh-session block' "$TMP/report.guard.txt"
+grep -Fq '"event":"router.error"' "$TMP/report.guard.txt"
 grep -Fq 'feature-add' "$TMP/report.routing.jsonl"
 if find "$TMP" -maxdepth 1 -type d -name 'team-harness-codex-native-pilot.*' | grep -q .; then
   echo 'FAIL: isolated pilot home was not removed'
@@ -137,6 +142,29 @@ if env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$RUNNER" --s
 fi
 grep -Fq 'Codex binary digest is not trusted' "$TMP/path-shadow.err" || {
   echo 'FAIL: PATH-shadowed Codex rejection lacked trusted-binary evidence'
+  exit 1
+}
+
+SELF_TRUST_SOURCE="$TMP/self-trust-source"
+cp -R "$SOURCE_ROOT" "$SELF_TRUST_SOURCE"
+FAKE_DIGEST=$(shasum -a 256 "$TMP/codex" | awk '{print "sha256:" $1}')
+node - "$SELF_TRUST_SOURCE/docs/pilots/codex-native-loader-trusted-binaries.json" "$FAKE_DIGEST" <<'NODE'
+const fs = require('node:fs')
+const [file, digest] = process.argv.slice(2)
+const trust = JSON.parse(fs.readFileSync(file, 'utf8'))
+trust['codex-cli 0.144.6'] = [...new Set([...(trust['codex-cli 0.144.6'] || []), digest])]
+fs.writeFileSync(file, `${JSON.stringify(trust, null, 2)}\n`)
+NODE
+git -C "$SELF_TRUST_SOURCE" add docs/pilots/codex-native-loader-trusted-binaries.json
+git -C "$SELF_TRUST_SOURCE" commit -qm 'test: self-trust fake codex'
+if env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$RUNNER" --source "$SELF_TRUST_SOURCE" \
+  --json-report "$TMP/self-trust.json" --markdown-report "$TMP/self-trust.md" \
+  >"$TMP/self-trust.out" 2>"$TMP/self-trust.err"; then
+  echo 'FAIL: repo allowlist self-approved an unsigned fake Codex as live evidence'
+  exit 1
+fi
+grep -Fq 'verified OpenAI code signature' "$TMP/self-trust.err" || {
+  echo 'FAIL: self-trusted fake Codex rejection lacked independent signature evidence'
   exit 1
 }
 

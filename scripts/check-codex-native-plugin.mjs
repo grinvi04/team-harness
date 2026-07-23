@@ -2,7 +2,7 @@
 
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-import { existsSync, lstatSync, readFileSync, readdirSync } from 'node:fs'
+import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from 'node:fs'
 import path from 'node:path'
 
 const pluginId = 'harness-guard@team-harness'
@@ -121,6 +121,30 @@ function validate(root, expectedVersion, installedVersion) {
   return { version: manifest.version }
 }
 
+function captureRootIdentity(root, label) {
+  let stat
+  try {
+    stat = lstatSync(root)
+  } catch {
+    fail(`${label} root is unavailable`)
+  }
+  if (stat.isSymbolicLink() || !stat.isDirectory()) {
+    fail(`${label} root must be a non-symlink directory`)
+  }
+  return { input: root, canonical: realpathSync(root), dev: stat.dev, ino: stat.ino }
+}
+
+function verifyRootIdentity(identity, label) {
+  const current = captureRootIdentity(identity.input, label)
+  if (
+    current.canonical !== identity.canonical ||
+    current.dev !== identity.dev ||
+    current.ino !== identity.ino
+  ) {
+    fail(`${label} root identity changed during validation`)
+  }
+}
+
 function fileInventory(root, relative = '') {
   const directory = path.join(root, relative)
   let entries
@@ -162,11 +186,19 @@ function compareTrusted(installedRoot, trustedRoot) {
 try {
   const args = parseArgs(process.argv.slice(2))
   const installed = args.root ? { root: args.root, installedVersion: null } : installedPluginRoot()
-  const result = validate(installed.root, args.expectedVersion, installed.installedVersion)
+  const installedIdentity = captureRootIdentity(installed.root, 'plugin')
+  const result = validate(
+    installedIdentity.canonical,
+    args.expectedVersion,
+    installed.installedVersion,
+  )
   if (args.trustedRoot) {
-    validate(args.trustedRoot, args.expectedVersion, null)
-    compareTrusted(installed.root, args.trustedRoot)
+    const trustedIdentity = captureRootIdentity(args.trustedRoot, 'trusted plugin')
+    validate(trustedIdentity.canonical, args.expectedVersion, null)
+    compareTrusted(installedIdentity.canonical, trustedIdentity.canonical)
+    verifyRootIdentity(trustedIdentity, 'trusted plugin')
   }
+  verifyRootIdentity(installedIdentity, 'plugin')
   console.log(`native harness-guard ${result.version}: manifest, hooks, ${expectedSkills.length} skills`)
 } catch (error) {
   console.error(`check-codex-native-plugin: ${error.message}`)
