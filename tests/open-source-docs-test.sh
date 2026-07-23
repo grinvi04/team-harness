@@ -33,11 +33,13 @@ contains CONTRIBUTING.md 'Conventional Commits' '커밋 형식 안내'
 contains CHANGELOG.md 'generated|Generated' 'CHANGELOG 생성물 표시'
 contains CHANGELOG.md 'generate-changelog\.mjs' 'CHANGELOG 재생성 명령'
 
-node "$ROOT/scripts/generate-changelog.mjs" >"$TMP/tagged.md"
-if cmp -s "$ROOT/CHANGELOG.md" "$TMP/tagged.md"; then
-  pass "태그 기반 CHANGELOG 재현"
+node "$ROOT/scripts/generate-changelog.mjs" >"$TMP/tagged-a.md"
+node "$ROOT/scripts/generate-changelog.mjs" >"$TMP/tagged-b.md"
+if cmp -s "$TMP/tagged-a.md" "$TMP/tagged-b.md" &&
+   grep -q '^## v0\.60\.0 - ' "$TMP/tagged-a.md"; then
+  pass "태그 기반 CHANGELOG 결정론"
 else
-  fail "태그 기반 CHANGELOG 재현"
+  fail "태그 기반 CHANGELOG 결정론"
 fi
 
 node "$ROOT/scripts/generate-changelog.mjs" --release v0.61.0 >"$TMP/candidate-a.md"
@@ -46,6 +48,11 @@ if cmp -s "$TMP/candidate-a.md" "$TMP/candidate-b.md"; then
   pass "사전 태그 release candidate 결정론"
 else
   fail "사전 태그 release candidate 결정론"
+fi
+if cmp -s "$ROOT/CHANGELOG.md" "$TMP/candidate-a.md"; then
+  pass "현재 CHANGELOG release candidate 재현"
+else
+  fail "현재 CHANGELOG release candidate 재현"
 fi
 if grep -q '^## v0\.61\.0 - ' "$TMP/candidate-a.md" &&
    grep -q '^## v0\.60\.0 - ' "$TMP/candidate-a.md" &&

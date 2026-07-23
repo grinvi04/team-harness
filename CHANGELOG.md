@@ -2,8 +2,27 @@
 
 <!-- Generated file. Do not edit release entries manually. -->
 
-Generated from version tags and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs` and replace this file with its output.
+Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
+Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and replace this file with its output.
+
+## v0.61.0 - 2026-07-24
+
+- fix(release): v0.61.0 최종 게이트 강화
+- fix(security): sh -c option separator 처리
+- fix(security): prefixed shell wrapper egress 차단
+- fix(security): Unix continuation을 LF로 한정
+- fix(security): 셸 continuation 의미론 보존
+- fix(security): v0.61.0 릴리즈 게이트 우회 차단
+- fix(codex): routing 증거 응답 형식 고정
+- fix(codex): 다중행 hook 증거 정규화
+- fix(codex): live attestation 독립 검증
+- fix(codex): pilot 경로 증거 비식별화
+- fix(codex): pilot 한계 보고 재현
+- fix(codex): 릴리즈 증거 trust chain 강화
+- fix(migration): 테스트 fixture 발견 제외
+- fix(ci): pilot 증거 검증에 전체 이력 제공
+- fix(codex): 네이티브 증거 검증 강화
+- feat(codex): 네이티브 loader로 전환
 
 ## v0.60.0 - 2026-07-19
 
