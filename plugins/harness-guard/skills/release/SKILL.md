@@ -70,6 +70,7 @@ Phase 2(해당 시) ✅인 경우에만 진행.
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base main \
   --title "release: v$VERSION" \
   --body "릴리즈 v$VERSION"
+PR=$(gh pr view --json number --jq .number)
 ```
 
 **`pr-review-gate` 스킬의 전체 절차(1~7단계)**를 따른다 — AI 리뷰 처리·사람 승인·CI·
@@ -77,9 +78,13 @@ commit-status·머지. (단일 출처 — 여기에 복붙하지 않음)
 
 ```bash
 # 2. 태그
-git checkout main && git pull origin main
-git tag v$VERSION
-git push origin v$VERSION
+git checkout main && git pull --ff-only origin main
+MERGE_SHA=$(gh pr view "$PR" --json state,mergeCommit --jq 'select(.state == "MERGED") | .mergeCommit.oid')
+[ -n "$MERGE_SHA" ]
+[ "$(git rev-parse HEAD)" = "$MERGE_SHA" ]
+[ "$(git rev-parse origin/main)" = "$MERGE_SHA" ]
+git tag v$VERSION "$MERGE_SHA"
+git push origin "refs/tags/v$VERSION"
 ```
 
 ---

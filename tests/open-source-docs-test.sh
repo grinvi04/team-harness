@@ -66,6 +66,16 @@ if grep -q 'generate-changelog\.mjs --release' "$ROOT/plugins/harness-guard/skil
 else
   fail "release skill이 사전 태그 CHANGELOG 생성"
 fi
+contains plugins/harness-guard/skills/release/SKILL.md \
+  'git pull --ff-only origin main' 'release skill이 divergent local main 차단'
+contains plugins/harness-guard/skills/release/SKILL.md \
+  'mergeCommit\.oid' 'release skill이 merged PR SHA 조회'
+contains plugins/harness-guard/skills/release/SKILL.md \
+  'git rev-parse origin/main.*MERGE_SHA' 'release skill이 origin/main과 merge SHA 일치 검증'
+contains plugins/harness-guard/skills/release/SKILL.md \
+  'git tag v\$VERSION "\$MERGE_SHA"' 'release skill이 검증된 merge SHA를 명시적으로 태그'
+contains plugins/harness-guard/skills/release/SKILL.md \
+  'git push origin "refs/tags/v\$VERSION"' 'release skill이 exact tag ref push'
 
 STABLE_REPO="$TMP/stable-repo"
 mkdir -p "$STABLE_REPO/scripts"

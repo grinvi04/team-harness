@@ -116,7 +116,13 @@ done
 rc=0
 for branch in main develop; do
   if ! gh api "repos/$REPO/branches/$branch" >/dev/null 2>&1; then
-    echo "skip $REPO:$branch (브랜치 없음/비공개)"; continue
+    if $CHECK; then
+      echo "✗ $REPO:$branch — 브랜치 조회 실패(누락·권한·repo 오타)"
+      rc=1
+    else
+      echo "skip $REPO:$branch (브랜치 없음/비공개)"
+    fi
+    continue
   fi
 
   if $CHECK; then
