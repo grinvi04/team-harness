@@ -84,6 +84,10 @@ function validate(root, expectedVersion, installedVersion) {
   }
 
   const hooks = readJson(path.join(root, 'codex', 'hooks', 'hooks.json')).hooks
+  const hookEvents = Object.keys(hooks || {}).sort()
+  if (JSON.stringify(hookEvents) !== JSON.stringify(['PreToolUse', 'UserPromptSubmit'])) {
+    fail('native hook event inventory mismatch')
+  }
   const preTool = hooks?.PreToolUse
   const prompt = hooks?.UserPromptSubmit
   if (!Array.isArray(preTool) || preTool.length !== 1 || preTool[0].matcher !== 'Bash') {
@@ -114,36 +118,41 @@ function validate(root, expectedVersion, installedVersion) {
       fail(`${skill}: native wrapper contract mismatch`)
     }
   }
-  return {
-    version: manifest.version,
-    criticalFiles: [
-      '.codex-plugin/plugin.json',
-      'codex/hooks/hooks.json',
-      'codex/native-runtime.md',
-      ...skills.map((skill) => `codex/skills/${skill}/SKILL.md`),
-      'scripts/codex-pretool-guard.mjs',
-      'scripts/codex-secret-egress-guard.mjs',
-      'scripts/guard.sh',
-      'scripts/lib/tokenize.sh',
-      'scripts/route-intent.mjs',
-    ],
+  return { version: manifest.version }
+}
+
+function fileInventory(root, relative = '') {
+  const directory = path.join(root, relative)
+  let entries
+  try {
+    entries = readdirSync(directory).sort()
+  } catch {
+    fail(`plugin directory is unreadable: ${relative || '.'}`)
   }
+  const files = []
+  for (const name of entries) {
+    const child = path.join(relative, name)
+    const stat = lstatSync(path.join(root, child))
+    if (stat.isSymbolicLink()) fail(`plugin tree contains a symbolic link: ${child}`)
+    if (stat.isDirectory()) files.push(...fileInventory(root, child))
+    else if (stat.isFile()) files.push(child)
+    else fail(`plugin tree contains a non-regular entry: ${child}`)
+  }
+  return files
 }
 
 function fileDigest(root, relative) {
   const file = path.join(root, relative)
-  let stat
-  try {
-    stat = lstatSync(file)
-  } catch {
-    fail(`critical file missing: ${relative}`)
-  }
-  if (!stat.isFile() || stat.isSymbolicLink()) fail(`critical file is not a regular file: ${relative}`)
   return createHash('sha256').update(readFileSync(file)).digest('hex')
 }
 
-function compareTrusted(installedRoot, trustedRoot, criticalFiles) {
-  for (const relative of criticalFiles) {
+function compareTrusted(installedRoot, trustedRoot) {
+  const installedFiles = fileInventory(installedRoot)
+  const trustedFiles = fileInventory(trustedRoot)
+  if (JSON.stringify(installedFiles) !== JSON.stringify(trustedFiles)) {
+    fail('trusted source inventory mismatch')
+  }
+  for (const relative of trustedFiles) {
     if (fileDigest(installedRoot, relative) !== fileDigest(trustedRoot, relative)) {
       fail(`trusted source mismatch: ${relative}`)
     }
@@ -155,8 +164,8 @@ try {
   const installed = args.root ? { root: args.root, installedVersion: null } : installedPluginRoot()
   const result = validate(installed.root, args.expectedVersion, installed.installedVersion)
   if (args.trustedRoot) {
-    const trusted = validate(args.trustedRoot, args.expectedVersion, null)
-    compareTrusted(installed.root, args.trustedRoot, trusted.criticalFiles)
+    validate(args.trustedRoot, args.expectedVersion, null)
+    compareTrusted(installed.root, args.trustedRoot)
   }
   console.log(`native harness-guard ${result.version}: manifest, hooks, ${expectedSkills.length} skills`)
 } catch (error) {

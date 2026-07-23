@@ -50,6 +50,13 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   the system SHALL trusted checkout과 installed critical surface의 version·content·hook command를 exact하게
   대조하고, clean Git tree·검증한 Codex binary digest·실제 session transcript digest를 revision에 결합한다.
   fixture binary는 live 증거로 승격하지 않으며 malformed·불완전 PreToolUse payload는 차단한다.
+- **AC-12 (live evidence trust anchor):** WHEN live pilot을 실행하면, the system SHALL repo에 승인된 Codex
+  binary version·digest만 허용하고 resolved absolute path를 기록한다. guard·routing 원문 transcript artifact의
+  digest는 보고서 검증 시 재계산하며 pilot revision 이후 release candidate 변경은 pilot evidence와 changelog로
+  제한한다.
+- **AC-13 (exact installed surface):** WHEN native plugin을 검증하면, the system SHALL hook event를
+  `PreToolUse`·`UserPromptSubmit` exact inventory로 제한하고 wrapper가 참조하는 공용 skill을 포함한 전체 plugin
+  file inventory·digest를 trusted checkout과 비교한다.
 
 ## 4. 제약 / 비기능
 

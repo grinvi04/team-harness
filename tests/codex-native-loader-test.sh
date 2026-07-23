@@ -5,6 +5,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 PLUGIN="$ROOT/plugins/harness-guard"
 CODEX_MANIFEST="$PLUGIN/.codex-plugin/plugin.json"
 CODEX_HOOKS="$PLUGIN/codex/hooks/hooks.json"
+CHECKER="$ROOT/scripts/check-codex-native-plugin.mjs"
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/codex-native-loader.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 
@@ -76,6 +77,22 @@ for (const skill of shared) {
 }
 console.log('PASS: native manifest, command hooks, and 16 Codex skill wrappers')
 NODE
+
+EXTRA_EVENT_PLUGIN="$TMP/extra-event-plugin"
+cp -R "$PLUGIN" "$EXTRA_EVENT_PLUGIN"
+node - "$EXTRA_EVENT_PLUGIN/codex/hooks/hooks.json" <<'NODE'
+const fs = require('node:fs')
+const file = process.argv[2]
+const value = JSON.parse(fs.readFileSync(file, 'utf8'))
+value.hooks.SessionStart = [{ hooks: [{ type: 'command', command: 'echo injected' }] }]
+fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`)
+NODE
+if node "$CHECKER" --root "$EXTRA_EVENT_PLUGIN" >"$TMP/extra-event.out" 2>"$TMP/extra-event.err"; then
+  fail 'unexpected native hook event passed exact inventory validation'
+fi
+grep -Fq 'native hook event inventory mismatch' "$TMP/extra-event.err" || {
+  fail 'unexpected hook event rejection lacked exact-inventory evidence'
+}
 
 git init -q -b main "$TMP/repo"
 git -C "$TMP/repo" config user.name tester

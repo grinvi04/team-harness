@@ -9,7 +9,7 @@ USER_CODEX_HOME="$TMP/user-codex"
 mkdir -p "$USER_CODEX_HOME"
 SOURCE_ROOT="$TMP/source"
 mkdir -p "$SOURCE_ROOT"
-git -C "$ROOT" archive HEAD | tar -x -C "$SOURCE_ROOT"
+tar -C "$ROOT" --exclude=.git -cf - . | tar -x -C "$SOURCE_ROOT"
 git -C "$SOURCE_ROOT" init -q -b main
 git -C "$SOURCE_ROOT" config user.name pilot-fixture
 git -C "$SOURCE_ROOT" config user.email pilot-fixture@example.invalid
@@ -103,13 +103,15 @@ if (!sha256.test(report.codex?.binary?.digest || '')) fail('fixture binary diges
 if (report.loader?.installed !== true || report.loader?.nativeSkills !== 16) fail('loader evidence missing')
 if (report.session?.destructiveGuard !== true || report.session?.secretEgressGuard !== true) fail('guard evidence missing')
 if (report.session?.routing !== 'feature-add') fail('routing evidence missing')
-if (!sha256.test(report.session?.evidence?.guardTranscript || '')) fail('guard transcript digest missing')
-if (!sha256.test(report.session?.evidence?.routingTranscript || '')) fail('routing transcript digest missing')
+if (!sha256.test(report.session?.evidence?.guardTranscript?.digest || '')) fail('guard transcript digest missing')
+if (!sha256.test(report.session?.evidence?.routingTranscript?.digest || '')) fail('routing transcript digest missing')
 if (report.userState?.unchanged !== true || report.cleanup?.isolatedHomeRemoved !== true) fail('restore evidence missing')
 if (report.auth?.copied !== false || report.splitPackages?.promoted !== false) fail('scope verdict mismatch')
 NODE
 grep -Fq '# Codex native loader pilot' "$TMP/report.md"
 grep -Fq '검증됨' "$TMP/report.md"
+grep -Fq 'PASS: destructive guard fresh-session block' "$TMP/report.guard.txt"
+grep -Fq 'feature-add' "$TMP/report.routing.jsonl"
 if find "$TMP" -maxdepth 1 -type d -name 'team-harness-codex-native-pilot.*' | grep -q .; then
   echo 'FAIL: isolated pilot home was not removed'
   exit 1
@@ -123,6 +125,18 @@ if HARNESS_PILOT_FIXTURE=0 node "$RUNNER" --source "$SOURCE_ROOT" \
 fi
 grep -Fq 'HARNESS_PILOT_FIXTURE=1' "$TMP/untrusted-binary.err" || {
   echo 'FAIL: untrusted binary rejection lacked fixture opt-in guidance'
+  exit 1
+}
+
+cp "$TMP/fake-codex" "$TMP/codex"
+if env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$RUNNER" --source "$SOURCE_ROOT" \
+  --json-report "$TMP/path-shadow.json" --markdown-report "$TMP/path-shadow.md" \
+  >"$TMP/path-shadow.out" 2>"$TMP/path-shadow.err"; then
+  echo 'FAIL: PATH-shadowed fake Codex was accepted as live pilot evidence'
+  exit 1
+fi
+grep -Fq 'Codex binary digest is not trusted' "$TMP/path-shadow.err" || {
+  echo 'FAIL: PATH-shadowed Codex rejection lacked trusted-binary evidence'
   exit 1
 }
 
