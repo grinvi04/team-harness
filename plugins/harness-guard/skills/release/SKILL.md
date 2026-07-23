@@ -78,6 +78,9 @@ commit-status·머지. (단일 출처 — 여기에 복붙하지 않음)
 
 ```bash
 # 2. 태그
+PR=$(gh pr list --state merged --base main --head "release/v$VERSION" --json number \
+  --jq 'if length == 1 then .[0].number else empty end')
+[ -n "$PR" ]
 git checkout main && git pull --ff-only origin main
 MERGE_SHA=$(gh pr view "$PR" --json state,mergeCommit --jq 'select(.state == "MERGED") | .mergeCommit.oid')
 [ -n "$MERGE_SHA" ]

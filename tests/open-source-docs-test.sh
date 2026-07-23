@@ -71,6 +71,9 @@ contains plugins/harness-guard/skills/release/SKILL.md \
 contains plugins/harness-guard/skills/release/SKILL.md \
   'mergeCommit\.oid' 'release skill이 merged PR SHA 조회'
 contains plugins/harness-guard/skills/release/SKILL.md \
+  'gh pr list --state merged --base main --head "release/v\$VERSION"' \
+  'release skill이 태그 단계에서 merged release PR 재조회'
+contains plugins/harness-guard/skills/release/SKILL.md \
   'git rev-parse origin/main.*MERGE_SHA' 'release skill이 origin/main과 merge SHA 일치 검증'
 contains plugins/harness-guard/skills/release/SKILL.md \
   'git tag v\$VERSION "\$MERGE_SHA"' 'release skill이 검증된 merge SHA를 명시적으로 태그'

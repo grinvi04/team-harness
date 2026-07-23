@@ -402,7 +402,8 @@ function shellCommandOperand(tokens, shellIndex) {
 function isRemoteTarget(token) {
   if (/^(?:dict|ftps?|gophers?|https?|imaps?|ipfs|ipns|ldaps?|mqtt|pop3s?|rtmps?|rtsp|scp|sftp|smbs?|smtps?|telnet|tftp|wss?):\/\//i.test(token)) return true
   if (/\$(?:\{[A-Za-z_][A-Za-z0-9_]*[^}]*\}|[A-Za-z_][A-Za-z0-9_]*)/.test(token)) return true
-  return /^(?:localhost|\d{1,3}(?:\.\d{1,3}){3}|[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)(?::\d+)?(?:\/.*)?$/i.test(token)
+  if (/^\[[0-9a-f:.]+\](?::\d+)?(?:\/.*)?$/i.test(token)) return true
+  return /^(?:localhost|\d{1,3}(?:\.\d{1,3}){3}|[A-Za-z0-9][A-Za-z0-9-]*(?:\.[A-Za-z0-9-]+)*)(?::\d+)?(?:\/.*)?$/i.test(token)
 }
 
 function hasRemoteTarget(tokens) {
