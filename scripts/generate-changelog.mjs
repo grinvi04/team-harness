@@ -21,10 +21,9 @@ const candidate = releaseCandidate(process.argv.slice(2))
 const tags = git(['tag', '--list', 'v*', '--sort=-version:refname'])
   .split('\n')
   .filter(Boolean)
-if (candidate && tags.includes(candidate)) {
-  process.stderr.write(`이미 존재하는 tag는 release candidate로 생성할 수 없습니다: ${candidate}\n`)
-  process.exit(2)
-}
+const candidateIndex = candidate ? tags.indexOf(candidate) : -1
+const candidateExists = candidateIndex >= 0
+const releaseTags = candidateExists ? tags.filter((tag) => tag !== candidate) : tags
 const lines = [
   '# Changelog',
   '',
@@ -40,8 +39,20 @@ const lines = [
 ]
 
 const releases = [
-  ...(candidate ? [{ tag: candidate, ref: 'HEAD', older: tags[0], isCandidate: true }] : []),
-  ...tags.map((tag, index) => ({ tag, ref: tag, older: tags[index + 1], isCandidate: false })),
+  ...(candidate
+    ? [{
+        tag: candidate,
+        ref: candidateExists ? candidate : 'HEAD',
+        older: candidateExists ? tags[candidateIndex + 1] : tags[0],
+        isCandidate: true,
+      }]
+    : []),
+  ...releaseTags.map((tag) => ({
+    tag,
+    ref: tag,
+    older: tags[tags.indexOf(tag) + 1],
+    isCandidate: false,
+  })),
 ]
 
 for (const { tag, ref, older, isCandidate } of releases) {

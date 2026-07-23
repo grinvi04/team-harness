@@ -94,6 +94,13 @@ if cmp -s "$TMP/stable-a.md" "$TMP/stable-b.md" &&
 else
   fail "release prep 커밋 뒤 candidate 날짜 안정"
 fi
+git -C "$STABLE_REPO" tag v1.1.0
+node "$STABLE_REPO/scripts/generate-changelog.mjs" --release v1.1.0 >"$TMP/stable-tagged.md"
+if cmp -s "$TMP/stable-b.md" "$TMP/stable-tagged.md"; then
+  pass "정식 태그 뒤 candidate 명령 byte 재현"
+else
+  fail "정식 태그 뒤 candidate 명령 byte 재현"
+fi
 
 echo "RESULT: $PASS PASS, $FAIL FAIL"
 [[ "$FAIL" -eq 0 ]]
