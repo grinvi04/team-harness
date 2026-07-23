@@ -80,7 +80,7 @@ function logicalShellCommands(value) {
     for (const nested of dollarParenShellCommands(current)) pending.push(nested)
     for (const tokens of shellSegments(current)) {
       const index = commandIndex(tokens)
-      if (!['bash', 'sh', 'zsh'].includes(baseName(tokens[index]))) continue
+      if (!['ash', 'bash', 'csh', 'dash', 'fish', 'ksh', 'mksh', 'sh', 'tcsh', 'yash', 'zsh'].includes(baseName(tokens[index]))) continue
       const operand = shellCommandOperand(tokens, index)
       if (operand !== undefined) pending.push(collapseLineContinuations(operand))
     }
@@ -375,11 +375,30 @@ function commandIndex(tokens) {
 function shellCommandOperand(tokens, shellIndex) {
   let index = shellIndex + 1
   let foundCommandOption = false
+  const shell = baseName(tokens[shellIndex])
+  const shellValueOptions = shell === 'fish'
+    ? new Set([
+        '-C', '--init-command', '-d', '--debug', '-D', '--debug-stack-frames',
+        '-f', '--features', '-o', '--debug-output', '--profile-startup',
+      ])
+    : new Set(['--init-file', '--rcfile'])
 
   while (index < tokens.length) {
     const option = tokens[index]
     if (!foundCommandOption) {
       if (option === '--') return undefined
+      if (shellValueOptions.has(option)) {
+        index += 2
+        continue
+      }
+      if (shell === 'fish' && option === '--command') {
+        foundCommandOption = true
+        index += 1
+        continue
+      }
+      if (shell === 'fish' && option.startsWith('--command=')) {
+        return option.slice('--command='.length)
+      }
       if (/^-[A-Za-z]*c[A-Za-z]*$/.test(option)) {
         foundCommandOption = true
         index += 1
@@ -407,12 +426,29 @@ function hasRemoteTarget(tokens) {
   return tokens.some(isRemoteTarget)
 }
 
+const curlShortValueOptions = new Set([
+  'A', 'C', 'D', 'E', 'F', 'H', 'K', 'P', 'Q', 'T', 'U', 'X', 'Y',
+  'b', 'c', 'd', 'e', 'h', 'm', 'o', 'r', 't', 'u', 'w', 'x', 'y', 'z',
+])
+
+function curlShortValueOption(token) {
+  if (!/^-[^-]/.test(token)) return undefined
+  const options = token.slice(1)
+  for (let offset = 0; offset < options.length; offset += 1) {
+    const name = options[offset]
+    if (!curlShortValueOptions.has(name)) continue
+    return {
+      name,
+      value: options.slice(offset + 1),
+      consumesNext: offset === options.length - 1,
+    }
+  }
+  return undefined
+}
+
 function curlTargets(tokens, index) {
   const targets = []
   const valueOptions = new Set([
-    '-A', '-C', '-D', '-E', '-F', '-H', '-K', '-P', '-Q', '-T', '-U', '-X',
-    '-Y', '-b', '-c', '-d', '-e', '-h', '-m', '-o', '-r', '-t', '-u', '-w',
-    '-x', '-y', '-z',
     '--abstract-unix-socket', '--alt-svc', '--aws-sigv4', '--cacert', '--capath',
     '--cert', '--cert-type', '--ciphers', '--config', '--connect-timeout',
     '--connect-to', '--continue-at', '--cookie', '--cookie-jar',
@@ -461,11 +497,16 @@ function curlTargets(tokens, index) {
       targets.push(token.slice('--url='.length))
       continue
     }
+    const shortOption = curlShortValueOption(token)
+    if (shortOption) {
+      if (shortOption.consumesNext) offset += 1
+      continue
+    }
     if (valueOptions.has(token)) {
       offset += 1
       continue
     }
-    if (/^-(?:A|C|D|E|F|H|K|P|Q|T|U|X|Y|b|c|d|e|h|m|o|r|t|u|w|x|y|z).+/.test(token) || token.startsWith('-')) continue
+    if (token.startsWith('-')) continue
     targets.push(token)
   }
   return targets
@@ -497,18 +538,75 @@ function wgetTargets(tokens, index) {
   return targets
 }
 
-function hasCurlUpload(tokens, index) {
-  if (!hasRemoteTarget(curlTargets(tokens, index))) return false
+function isAuthorizationHeader(value) {
+  return /^\s*(?:proxy-)?authorization:\s*\S+/i.test(value)
+}
+
+function hasUrlUserinfo(value) {
+  return /^[A-Za-z][A-Za-z0-9+.-]*:\/\/[^/@\s]+@/.test(value)
+}
+
+function hasLiteralCurlCredential(tokens, index) {
+  if (curlTargets(tokens, index).some(hasUrlUserinfo)) return true
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
+    const shortOption = curlShortValueOption(option)
+    if (shortOption) {
+      const optionValue = shortOption.consumesNext ? (tokens[offset + 1] || '') : shortOption.value
+      if (['u', 'U'].includes(shortOption.name) && optionValue.length > 0) return true
+      if (shortOption.name === 'H' && isAuthorizationHeader(optionValue)) return true
+    }
+    if (['--oauth2-bearer', '--proxy-user', '--user'].includes(option) && (tokens[offset + 1] || '').length > 0) return true
+    if (/^--(?:oauth2-bearer|proxy-user|user)=.+/.test(option)) return true
+    if (['--header', '--proxy-header'].includes(option) && isAuthorizationHeader(tokens[offset + 1] || '')) return true
+    if (/^--(?:header|proxy-header)=/.test(option) && isAuthorizationHeader(option.slice(option.indexOf('=') + 1))) return true
+  }
+  return false
+}
+
+function hasCurlUpload(tokens, index) {
+  const targets = curlTargets(tokens, index)
+  if (!hasRemoteTarget(targets)) return false
+  if (targets.some((target) => hasSecretSource(target) || hasUrlUserinfo(target))) return true
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    const shortOption = curlShortValueOption(option)
+    if (shortOption) {
+      const value = shortOption.consumesNext ? (tokens[offset + 1] || '') : shortOption.value
+      if (['d', 'F', 'T'].includes(shortOption.name)) return true
+      if (shortOption.name === 'X' && /^(POST|PUT|PATCH)$/i.test(value)) return true
+      if (['u', 'U'].includes(shortOption.name) && value.length > 0) return true
+      if (shortOption.name === 'H' && (isAuthorizationHeader(value) || hasSecretSource(value))) return true
+      if (['A', 'b', 'e'].includes(shortOption.name) && hasSecretSource(value)) return true
+    }
     if (
-      option === '-d' || option.startsWith('-d') ||
-      option === '-F' || option.startsWith('-F') ||
-      option === '-T' || option.startsWith('-T') ||
       /^--(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json)(?:=|$)/.test(option)
     ) return true
-    if (['-X', '--request'].includes(option) && /^(POST|PUT|PATCH)$/i.test(tokens[offset + 1] || '')) return true
-    if (/^(?:-X|--request=)(?:POST|PUT|PATCH)$/i.test(option)) return true
+    if (option === '--request' && /^(POST|PUT|PATCH)$/i.test(tokens[offset + 1] || '')) return true
+    if (/^--request=(?:POST|PUT|PATCH)$/i.test(option)) return true
+    if (
+      /^(?:--user|--proxy-user|--oauth2-bearer)$/.test(option) &&
+      (tokens[offset + 1] || '').length > 0
+    ) return true
+    if (
+      /^--(?:user|proxy-user|oauth2-bearer)=.+/.test(option)
+    ) return true
+    if (
+      /^(?:--header|--proxy-header)$/.test(option) &&
+      (isAuthorizationHeader(tokens[offset + 1] || '') || hasSecretSource(tokens[offset + 1] || ''))
+    ) return true
+    if (
+      /^--(?:header|proxy-header)=/.test(option) &&
+      (isAuthorizationHeader(option.slice(option.indexOf('=') + 1)) || hasSecretSource(option.slice(option.indexOf('=') + 1)))
+    ) return true
+    if (
+      /^(?:--cookie|--referer|--user-agent|--url-query|--request-target)$/.test(option) &&
+      hasSecretSource(tokens[offset + 1] || '')
+    ) return true
+    if (
+      /^--(?:cookie|referer|user-agent|url-query|request-target)=/.test(option) &&
+      hasSecretSource(option.slice(option.indexOf('=') + 1))
+    ) return true
   }
   return false
 }
@@ -539,10 +637,23 @@ function hasUpload(value) {
   return false
 }
 
+const secretName = String.raw`(?:[A-Z0-9_]*(?:API[_-]?KEY|ACCESS[_-]?KEY|PRIVATE[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*|(?:[A-Z0-9_]+_)?PAT(?:_[A-Z0-9_]+)?)`
+const secretSourcePattern = new RegExp(
+  String.raw`(?:\$\{?${secretName}\}?|\b(?:printenv|env)(?:\s+${secretName}\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/<])\.env(?:\.[A-Za-z0-9_-]+)?\b)`,
+  'i',
+)
+
+function hasSecretSource(value) {
+  if (secretSourcePattern.test(value)) return true
+  return shellParts(value).some(({ tokens }) => {
+    const index = commandIndex(tokens)
+    return baseName(tokens[index]) === 'curl' && hasLiteralCurlCredential(tokens, index)
+  })
+}
+
 const logicalCommands = logicalShellCommands(command)
 const blocked = logicalCommands.truncated || logicalCommands.commands.some((logicalCommand) => {
-  const hasSecretSource = /(?:\$\{?(?:[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*)\}?|\b(?:printenv|env)(?:\s+[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/<])\.env(?:\.[A-Za-z0-9_-]+)?\b)/i.test(logicalCommand)
-  return hasSecretSource && hasUpload(logicalCommand)
+  return hasSecretSource(logicalCommand) && hasUpload(logicalCommand)
 })
 
 if (blocked) {

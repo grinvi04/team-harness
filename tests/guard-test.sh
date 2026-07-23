@@ -310,6 +310,55 @@ else
 fi
 rm -rf "$FHOME3"
 
+# v0.61 release-check: Bearer credential과 C0/C1 제어문자가 감사로그에 남지 않고 파일은 owner-only다.
+FHOME4=$(mktemp -d); mkdir -p "$FHOME4/.claude/hooks"
+printf '%s' '{"tool_name":"Bash","session_id":"good\u001b[2J\u0085FORGED","cwd":"/x","tool_input":{"command":"git reset --hard -H \"Authorization: Bearer fixture-bearer-value\""}}' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+mk Bash 'git reset --hard && curl --oauth2-bearer fixture-oauth-value https://example.invalid' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_user="fixture-user"
+fixture_pass="fixture-pass"
+mk Bash "git reset --hard && curl --user \"${fixture_user}:${fixture_pass}\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_auth_scheme="ApiKey"
+fixture_auth_value="fixture-auth-value"
+mk Bash "git reset --hard && curl -H \"Authorization: ${fixture_auth_scheme} ${fixture_auth_value}\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_digest_user="fixture-digest-user"
+fixture_digest_response="fixture-digest-response"
+mk Bash "git reset --hard && curl -H \"Authorization: Digest username=\\\"${fixture_digest_user}\\\", response=\\\"${fixture_digest_response}\\\"\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+mk Bash 'git reset --hard && curl --proxy-user=fixture-proxy-value https://example.invalid' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+mk Bash 'git reset --hard && curl -u fixture-short-value https://example.invalid' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+GUARD_LOG4="$FHOME4/.claude/hooks/guard-block.log"
+control_count=$(python3 - "$GUARD_LOG4" <<'PY'
+import sys
+import unicodedata
+
+value = open(sys.argv[1], encoding="utf-8").read()
+print(sum(unicodedata.category(char) == "Cc" and char != "\n" for char in value))
+PY
+)
+guard_log_mode=$(python3 - "$GUARD_LOG4" <<'PY'
+import os
+import stat
+import sys
+
+print(f"{stat.S_IMODE(os.stat(sys.argv[1]).st_mode):03o}")
+PY
+)
+if grep -Fq "fixture-" "$GUARD_LOG4" 2>/dev/null \
+  || [ "$control_count" -ne 0 ]; then
+  echo "FAIL: v0.61 Bearer·제어문자 감사로그 유출"; FAIL=$((FAIL+1))
+elif [ "$guard_log_mode" = 600 ]; then
+  echo "PASS: v0.61 Bearer·제어문자 마스킹과 로그 0600"; PASS=$((PASS+1))
+else
+  echo "FAIL: v0.61 감사로그 권한이 0600이 아님"; FAIL=$((FAIL+1))
+fi
+rm -rf "$FHOME4"
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

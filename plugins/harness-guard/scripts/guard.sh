@@ -34,6 +34,25 @@ COMMAND=""
 GUARD_LOG="${HARNESS_GUARD_LOG:-${HOME}/.claude/hooks/guard-block.log}"
 HARNESS_AGENT_NAME="${HARNESS_AGENT_NAME:-Claude}"
 
+sanitize_control_chars() {
+  local sanitized
+  if command -v python3 >/dev/null 2>&1; then
+    sanitized=$(python3 -c 'import sys, unicodedata
+value = sys.stdin.read()
+sys.stdout.write("".join(" " if unicodedata.category(char) == "Cc" else char for char in value))' 2>/dev/null) && {
+      printf '%s' "$sanitized"
+      return
+    }
+  fi
+  if command -v jq >/dev/null 2>&1; then
+    sanitized=$(jq -Rrs 'gsub("[\\u0000-\\u001f\\u007f-\\u009f]"; " ")' 2>/dev/null) && {
+      printf '%s' "$sanitized"
+      return
+    }
+  fi
+  LC_ALL=C tr '\000-\037\177' ' '
+}
+
 # 차단 단일 경로: 이력 로그 + ⛔ 메시지(+해결 안내) + exit 2.
 # $1 = 사유 라벨, $2 = 해결 안내(선택). session_id·cwd는 payload에서 추출(없으면 ?).
 deny() {
@@ -42,17 +61,23 @@ deny() {
   sid=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('session_id','?'))" 2>/dev/null) || sid="?"
   cwd=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cwd','?'))" 2>/dev/null) || cwd="?"
   # 로그 위조(log forging) 방지 — session_id·cwd의 개행·탭·제어문자가 감사 로그에 별도 라인/ANSI를 주입하지 못하게 정제.
-  sid=$(printf '%s' "$sid" | tr '\n\r\t' '   ' | cut -c1-80)
-  cwd=$(printf '%s' "$cwd" | tr '\n\r\t' '   ' | cut -c1-256)
+  sid=$(printf '%s' "$sid" | sanitize_control_chars | cut -c1-80)
+  cwd=$(printf '%s' "$cwd" | sanitize_control_chars | cut -c1-256)
   # cmd는 한 줄로 정제(개행→공백) + 시크릿 마스킹(URL 박힌 크레덴셜·gh 토큰·PAT) + 길이 제한.
   # 차단된 명령을 평문 로깅하므로, 토큰이 섞인 명령(예: https://x:TOKEN@host)이 로그에 남지 않게 마스킹.
-  cmd1=$(printf '%s' "${COMMAND:-}" | tr '\n\r\t' '   ' \
+  cmd1=$(printf '%s' "${COMMAND:-}" | sanitize_control_chars \
     | sed -E -e 's#([Hh][Tt][Tt][Pp][Ss]?://)[^@ ]*@#\1***@#g' \
              -e 's#gh[pousr]_[A-Za-z0-9]{20,}#gh_***#g' \
              -e 's#github_pat_[A-Za-z0-9_]{20,}#github_pat_***#g' \
+             -e "s#((([Pp][Rr][Oo][Xx][Yy]-)?[Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]):[[:space:]]*).*#\1***#g" \
+             -e "s#((--oauth2-bearer|--proxy-user|--user)(=|[[:space:]]+))(\"[^\"]*\"|'[^']*'|[^\"'[:space:];|&]+)#\1***#g" \
+             -e "s#(^|[[:space:]])(-[A-Za-z]*[uU][[:space:]]+)(\"[^\"]*\"|'[^']*'|[^\"'[:space:];|&]+)#\1\2***#g" \
+             -e "s#(^|[[:space:]])(-[A-Za-z]*[uU])([^\"'[:space:];|&]+)#\1\2***#g" \
              -e "s#(([A-Za-z_][A-Za-z0-9_]*)?([Aa][Pp][Ii]_?[Kk][Ee][Yy]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Tt][Oo][Kk][Ee][Nn]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Pp][Aa][Ss][Ss][Ww][Dd]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll])[A-Za-z0-9_]*=)(\\$'([^'\\\\]|\\\\.)*'|\"[^\"]*\"|'[^']*'|([^[:space:];|&\\\\]|\\\\.)+)#\1***#g" \
     | cut -c1-200)
+  umask 077
   mkdir -p "$(dirname "$GUARD_LOG")" 2>/dev/null || true
+  { touch "$GUARD_LOG" && chmod 600 "$GUARD_LOG"; } 2>/dev/null || true
   # 로그 로테이션: 256KB 초과 시 최근 절반만 보존(무한 증가 방지)
   { [ -f "$GUARD_LOG" ] && [ "$(wc -c <"$GUARD_LOG" 2>/dev/null || echo 0)" -gt 262144 ] && tail -n "$(( $(wc -l <"$GUARD_LOG" 2>/dev/null || echo 0)/2 ))" "$GUARD_LOG" > "$GUARD_LOG.tmp" && mv "$GUARD_LOG.tmp" "$GUARD_LOG"; } 2>/dev/null
   { printf '%s session=%s cwd=%s DENY %s | cmd=%s\n' "${ts:-?}" "${sid:-?}" "${cwd:-?}" "$reason" "$cmd1" >> "$GUARD_LOG"; } 2>/dev/null

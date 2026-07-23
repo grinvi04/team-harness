@@ -7,6 +7,14 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): fish long command egress 우회 차단
+- fix(ci): 감사로그 권한 검사를 OS 독립화
+- fix(security): quoted Authorization 감사로그 전체 마스킹
+- fix(security): URL userinfo와 Authorization egress 차단
+- fix(security): literal curl credential egress 차단
+- fix(security): curl auth option 감사로그 마스킹
+- fix(security): fish command option egress 우회 차단
+- fix(security): 최종 release-check credential 경계 차단
 - fix(security): 확장형 curl 목적지 차단
 - fix(security): curl option operand 목적지 오인 방지
 - fix(security): attached env redirect egress 차단
