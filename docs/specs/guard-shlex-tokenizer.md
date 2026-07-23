@@ -57,8 +57,8 @@
   토큰화된 게이트가 그대로 작동한다(토크나이저는 순수 bash라 JSON 파싱 이후 단계엔 외부 파서 불요).
 - **AC-T8 (논리행 정규화 — v0.61.0 release-check hardening):** WHEN 셸 입력에 backslash+LF 또는
   backslash+CRLF continuation이 있으면, the system SHALL 실제 셸처럼 이를 제거한 논리행을
-  `split_segments`·`tokenize`와 모든 게이트 판정에 사용한다. 따옴표 자체는 보존해 mention 경계를
-  넓히지 않는다.
+  `split_segments`·`tokenize`와 모든 게이트 판정에 사용한다. single quote 안의 literal과 짝수
+  backslash run 뒤 개행은 제거하지 않고 따옴표도 보존해 mention 경계를 넓히지 않는다.
 
 ### git구조 게이트 이관 (commit·force-push·reset)
 

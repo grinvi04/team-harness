@@ -40,6 +40,10 @@ check "LF 줄 연속 rm -rf tests 차단"  2 Bash $'rm \\\n-rf tests'           
 check "CRLF 줄 연속 rm -rf tests 차단" 2 Bash $'rm \\\r\n-rf tests'               "$FEAT"
 check "LF 줄 연속 reset --hard 차단"  2 Bash $'git reset \\\n--hard'             "$FEAT"
 check "LF 줄 연속 npm -g 차단"        2 Bash $'npm install \\\n-g some-pkg'      "$FEAT"
+check "single-quoted rm continuation mention 통과" 0 Bash \
+  "printf '%s' 'rm \\"$'\n'"-rf src'" "$FEAT"
+check "짝수 backslash 뒤 개행은 continuation 아님" 0 Bash \
+  'rm \\'$'\n''-rf tests' "$FEAT"
 check "main force push 차단"          2 Bash "git push --force origin main"     "$FEAT"
 check "npm 글로벌 설치 차단"          2 Bash "npm install -g some-pkg"          "$DEV"
 check "테스트 파일 rm 차단(Java)"     2 Bash "rm src/test/UserServiceTest.java" "$FEAT"

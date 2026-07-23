@@ -45,6 +45,12 @@ eq "T5 다중 env-prefix"          "A=1|B=2|git|commit"      "$(toks 'A=1 B=2 gi
 # ── AC-T8: 셸 line continuation을 논리행으로 정규화 ──
 eq "T8 backslash+LF 제거"   "rm -rf tests" "$(collapse_line_continuations $'rm \\\n-rf tests')"
 eq "T8 backslash+CRLF 제거" "rm -rf tests" "$(collapse_line_continuations $'rm \\\r\n-rf tests')"
+T8_SINGLE="'rm \\"$'\n'"-rf src'"
+T8_EVEN='rm \\'$'\n''-rf tests'
+eq "T8 single-quoted literal 보존" "$T8_SINGLE" "$(collapse_line_continuations "$T8_SINGLE")"
+eq "T8 짝수 backslash+LF 보존"     "$T8_EVEN"   "$(collapse_line_continuations "$T8_EVEN")"
+eq "T8 double-quoted continuation 제거" '"rm -rf src"' \
+   "$(collapse_line_continuations '"rm \'$'\n''-rf src"')"
 
 # ── 판정 헬퍼 (task3 게이트가 의존) ──
 # git_subcommand: **command-position 앵커** — 선행 env-prefix만 스킵하고 git이 그 자리에 와야 한다.
