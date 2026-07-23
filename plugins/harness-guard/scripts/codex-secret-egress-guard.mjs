@@ -413,14 +413,40 @@ function hasRemoteTarget(tokens) {
 function curlTargets(tokens, index) {
   const targets = []
   const valueOptions = new Set([
-    '-d', '--data', '--data-ascii', '--data-binary', '--data-raw', '--data-urlencode',
-    '-F', '--form', '--form-string', '-T', '--upload-file', '--json',
-    '-X', '--request', '-o', '--output', '-H', '--header', '-u', '--user',
-    '-A', '--user-agent', '-e', '--referer', '-b', '--cookie', '-c', '--cookie-jar',
-    '-x', '--proxy', '--proxy-user', '--resolve', '--connect-to', '--cacert', '--cert',
-    '--key', '-K', '--config', '--max-time', '--connect-timeout', '--retry',
-    '--retry-delay', '--retry-max-time', '--interface', '--unix-socket',
-    '--aws-sigv4', '--oauth2-bearer'
+    '-A', '-C', '-D', '-E', '-F', '-H', '-K', '-P', '-Q', '-T', '-U', '-X',
+    '-Y', '-b', '-c', '-d', '-e', '-h', '-m', '-o', '-r', '-t', '-u', '-w',
+    '-x', '-y', '-z',
+    '--abstract-unix-socket', '--alt-svc', '--aws-sigv4', '--cacert', '--capath',
+    '--cert', '--cert-type', '--ciphers', '--config', '--connect-timeout',
+    '--connect-to', '--continue-at', '--cookie', '--cookie-jar',
+    '--create-file-mode', '--crlfile', '--curves', '--data', '--data-ascii',
+    '--data-binary', '--data-raw', '--data-urlencode', '--delegation',
+    '--dns-interface', '--dns-ipv4-addr', '--dns-ipv6-addr', '--dns-servers',
+    '--doh-url', '--dump-header', '--egd-file', '--engine', '--etag-compare',
+    '--etag-save', '--expect100-timeout', '--form', '--form-string',
+    '--ftp-account', '--ftp-alternative-to-user', '--ftp-method', '--ftp-port',
+    '--ftp-ssl-ccc-mode', '--happy-eyeballs-timeout-ms', '--haproxy-clientip',
+    '--header', '--help', '--hostpubmd5', '--hostpubsha256', '--hsts',
+    '--interface', '--ipfs-gateway', '--json', '--keepalive-time', '--key',
+    '--key-type', '--krb', '--libcurl', '--limit-rate', '--local-port',
+    '--login-options', '--mail-auth', '--mail-from', '--mail-rcpt',
+    '--max-filesize', '--max-redirs', '--max-time', '--netrc-file', '--noproxy',
+    '--oauth2-bearer', '--output', '--output-dir', '--parallel-max', '--pass',
+    '--pinnedpubkey', '--preproxy', '--proto', '--proto-default', '--proto-redir',
+    '--proxy', '--proxy-cacert', '--proxy-capath', '--proxy-cert',
+    '--proxy-cert-type', '--proxy-ciphers', '--proxy-crlfile', '--proxy-header',
+    '--proxy-key', '--proxy-key-type', '--proxy-pass', '--proxy-pinnedpubkey',
+    '--proxy-service-name', '--proxy-tls13-ciphers', '--proxy-tlsauthtype',
+    '--proxy-tlspassword', '--proxy-tlsuser', '--proxy-user', '--proxy1.0',
+    '--pubkey', '--quote', '--random-file', '--range', '--rate', '--referer',
+    '--request', '--request-target', '--resolve', '--retry', '--retry-delay',
+    '--retry-max-time', '--sasl-authzid', '--service-name', '--socks4',
+    '--socks4a', '--socks5', '--socks5-gssapi-service', '--socks5-hostname',
+    '--speed-limit', '--speed-time', '--stderr', '--telnet-option',
+    '--tftp-blksize', '--time-cond', '--tls-max', '--tls13-ciphers',
+    '--tlsauthtype', '--tlspassword', '--tlsuser', '--trace', '--trace-ascii',
+    '--trace-config', '--unix-socket', '--upload-file', '--url-query', '--user',
+    '--user-agent', '--variable', '--write-out'
   ])
 
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
@@ -442,7 +468,7 @@ function curlTargets(tokens, index) {
       offset += 1
       continue
     }
-    if (/^-(?:d|F|T|X|o|H|u|A|e|b|c|x|K).+/.test(token) || token.startsWith('-')) continue
+    if (/^-(?:A|C|D|E|F|H|K|P|Q|T|U|X|Y|b|c|d|e|h|m|o|r|t|u|w|x|y|z).+/.test(token) || token.startsWith('-')) continue
     targets.push(token)
   }
   return targets
