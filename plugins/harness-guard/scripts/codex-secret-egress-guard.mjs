@@ -375,11 +375,22 @@ function commandIndex(tokens) {
 function shellCommandOperand(tokens, shellIndex) {
   let index = shellIndex + 1
   let foundCommandOption = false
+  const shell = baseName(tokens[shellIndex])
+  const shellValueOptions = shell === 'fish'
+    ? new Set([
+        '-C', '--init-command', '-d', '--debug', '-D', '--debug-stack-frames',
+        '-f', '--features', '-o', '--debug-output', '--profile-startup',
+      ])
+    : new Set(['--init-file', '--rcfile'])
 
   while (index < tokens.length) {
     const option = tokens[index]
     if (!foundCommandOption) {
       if (option === '--') return undefined
+      if (shellValueOptions.has(option)) {
+        index += 2
+        continue
+      }
       if (/^-[A-Za-z]*c[A-Za-z]*$/.test(option)) {
         foundCommandOption = true
         index += 1
