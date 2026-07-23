@@ -20,6 +20,8 @@ check() { # desc, expected_exit, target_path
 
 # 검사 A: 대역인데 out-of-order 설정 없음 → 차단
 check "대역 + out-of-order 미설정 → FAIL"   1 "$FIX/bad-missing"
+# 발견 모드: repo의 의도적 실패 fixture는 운영 마이그레이션이 아님 → self release-check에서 제외
+check "repo 발견 모드가 tests fixture를 운영 migration으로 오인하지 않음" 0 "$ROOT"
 # 검사 B: 대역인데 out-of-order:false 명시 → 차단
 check "대역 + out-of-order:false → FAIL"     1 "$FIX/bad-false"
 # S1: 비운영(test) 프로파일에만 out-of-order:true, 운영 config엔 없음 → FAIL(false-pass 방지)
