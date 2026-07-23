@@ -26,7 +26,8 @@ GitHub 저장소에서 직접 보장하는 결과 계약이다.
 - **AC-4 (기여):** `CONTRIBUTING.md`는 develop 기반 branch/PR wrapper, spec/TDD, commit 형식과 quality gate를
   이 저장소 규약에 맞게 안내한다.
 - **AC-5 (변경 기록):** `CHANGELOG.md`는 수기 편집물이 아니라 Conventional Commits와 태그에서 생성된
-  파일임을 명시하고 현재 릴리즈 내역을 재현 가능한 명령으로 갱신할 수 있다.
+  파일임을 명시하고 현재 릴리즈 내역을 재현 가능한 명령으로 갱신할 수 있다. 정식 태그 전 release
+  candidate는 `--release vX.Y.Z`로 현재 `HEAD`를 직전 태그와 비교해 결정적으로 생성한다.
 - **AC-6 (bundle):** release bundle 생성기는 기록된 `HEAD`의 source archive, 네 staged package artifact,
   provenance manifest와 SHA-256 목록을 clean output에 생성하며 dirty worktree를 포함하지 않는다.
 - **AC-7 (재현성):** 같은 Git revision과 catalog로 두 번 만든 bundle의 파일 경로와 digest 목록은 같다.

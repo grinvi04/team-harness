@@ -7,7 +7,7 @@
 # 사용:
 #   bash set-branch-protection.sh <repo>                    # main·develop에 표준 보호 적용(check 자동감지)
 #   bash set-branch-protection.sh <repo> --check            # 적용 안 하고 현재 상태만 검증(드리프트 리포트)
-#   bash set-branch-protection.sh <repo> --contexts a,b,c   # required check를 명시 등록(기존 repo 리메디에이션)
+#   bash set-branch-protection.sh <repo> --contexts a,b,c   # required check를 적용하거나(--check 시) exact-set 검증
 #   bash set-branch-protection.sh <repo> --approvals N      # 팀 모드: main에 리뷰 승인 N 요구(develop은 0 유지)
 #   <repo> = owner/name 또는 name(=$(gh api user)/name)
 #   ※ --contexts: base 브랜치 머지커밋엔 check-run이 없어 자동감지가 빈 목록이 될 때(기존 repo 첫 적용) 쓴다.
@@ -91,6 +91,11 @@ contexts_json() {
   printf '%s' "$1" | python3 -c "import sys,json; print(json.dumps([x.strip() for x in sys.stdin.read().split(',') if x.strip()]))"
 }
 
+# CSV context를 순서·중복과 무관한 exact-set 비교용 문자열로 정규화한다.
+contexts_normalized() {
+  printf '%s' "$1" | python3 -c "import sys; print(','.join(sorted(set(x.strip() for x in sys.stdin.read().split(',') if x.strip()))))"
+}
+
 # 테스트 훅: 함수만 로드하고 종료(REPO 인자 파싱·gh 없이 순수 함수만 검증).
 [ -n "${SBP_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
@@ -121,6 +126,7 @@ for branch in main develop; do
     adm=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('enforce_admins',{}).get('enabled'))" 2>/dev/null || echo "?")
     # B1: required_status_checks 개수 — -1=null(없음), 0=빈 목록(약한 보호), >0=정상.
     chk=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(len(r.get('contexts') or [c.get('context') for c in (r.get('checks') or [])]) if r else -1)" 2>/dev/null || echo "?")
+    actual_contexts=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks') or {}; names=list(r.get('contexts') or []) + [c.get('context') for c in (r.get('checks') or [])]; print(','.join(sorted(set(x for x in names if x))))" 2>/dev/null || echo "?")
     # strict(up-to-date 필수) — false면 stale-green 머지 허용(#199). rsc null이면 ''(chk가 이미 drift로 잡음).
     strict=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(r.get('strict') if r else '')" 2>/dev/null || echo "?")
     # allow_force_pushes/allow_deletions(표준=false) — 계층0이 force-push·삭제를 실제로 막는지. 재설계 [A] 전제.
@@ -131,10 +137,16 @@ for branch in main develop; do
     # 승인 baseline: main은 --approvals 미지정 시 정보성, develop은 팀/솔로 모두 정확히 0.
     exp="$APPROVALS"; [ "$branch" = "develop" ] && exp=0
     verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp" "$strict" "$fpush" "$del" "$conv" "$dismiss") || true
-    if [ "$verdict" = "ok" ]; then
+    context_drift=""
+    if [ -n "$CONTEXTS" ]; then
+      expected_contexts=$(contexts_normalized "$CONTEXTS" 2>/dev/null || echo "?")
+      [ "$actual_contexts" = "$expected_contexts" ] || context_drift=" required_contexts=$actual_contexts(표준=$expected_contexts)"
+    fi
+    if [ "$verdict" = "ok" ] && [ -z "$context_drift" ]; then
       echo "✓ $REPO:$branch — 보호 적용(승인$appr · enforce_admins=on · checks=$chk)"
     else
-      echo "⚠ $REPO:$branch — 드리프트:${verdict#drift:}"; rc=1
+      protection_drift="${verdict#drift:}"; [ "$verdict" = "ok" ] && protection_drift=""
+      echo "⚠ $REPO:$branch — 드리프트:${protection_drift}${context_drift}"; rc=1
     fi
     continue
   fi

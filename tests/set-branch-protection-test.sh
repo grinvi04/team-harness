@@ -121,7 +121,12 @@ case "${2:-}" in
     else
       reviews='{"required_approving_review_count":2,"dismiss_stale_reviews":true}'
     fi
-    printf '{"required_status_checks":{"strict":true,"contexts":["quality"]},"enforce_admins":{"enabled":true},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":false},"allow_deletions":{"enabled":false},"required_conversation_resolution":{"enabled":true}}\n' "$reviews"
+    if [ "${FAKE_GH_SCENARIO:-ok}" = "missing-context" ]; then
+      contexts='["quality","secret-scan","test-guard"]'
+    else
+      contexts='["quality","secret-scan","test-guard","commitlint"]'
+    fi
+    printf '{"required_status_checks":{"strict":true,"contexts":%s},"enforce_admins":{"enabled":true},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":false},"allow_deletions":{"enabled":false},"required_conversation_resolution":{"enabled":true}}\n' "$contexts" "$reviews"
     ;;
   repos/o/r/branches/develop/protection)
     if [ "${FAKE_GH_SCENARIO:-ok}" = "develop-approval-one" ]; then
@@ -129,7 +134,7 @@ case "${2:-}" in
     else
       reviews='null'
     fi
-    printf '{"required_status_checks":{"strict":true,"contexts":["quality"]},"enforce_admins":{"enabled":true},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":false},"allow_deletions":{"enabled":false},"required_conversation_resolution":{"enabled":true}}\n' "$reviews"
+    printf '{"required_status_checks":{"strict":true,"contexts":["quality","secret-scan","test-guard","commitlint"]},"enforce_admins":{"enabled":true},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":false},"allow_deletions":{"enabled":false},"required_conversation_resolution":{"enabled":true}}\n' "$reviews"
     ;;
   *)
     exit 71
@@ -138,9 +143,11 @@ esac
 SH
 chmod +x "$FAKEBIN/gh"
 
-cli_check_case() { # desc, fixture scenario, expected exit
-  local desc="$1" scenario="$2" wantrc="$3" out rc
-  out=$(FAKE_GH_SCENARIO="$scenario" PATH="$FAKEBIN:$PATH" bash "$SBP" o/r --check --approvals 1 2>&1); rc=$?
+cli_check_case() { # desc, fixture scenario, expected exit, [required contexts]
+  local desc="$1" scenario="$2" wantrc="$3" contexts="${4:-}" out rc
+  local args=(o/r --check --approvals 1)
+  [ -n "$contexts" ] && args+=(--contexts "$contexts")
+  out=$(FAKE_GH_SCENARIO="$scenario" PATH="$FAKEBIN:$PATH" bash "$SBP" "${args[@]}" 2>&1); rc=$?
   if [ "$rc" = "$wantrc" ]; then
     echo "PASS: $desc"; PASS=$((PASS+1))
   else
@@ -150,6 +157,9 @@ cli_check_case() { # desc, fixture scenario, expected exit
 cli_check_case "CLI 팀1: main 승인2+dismiss, develop 승인0 → exit 0" ok 0
 cli_check_case "CLI 팀1: main dismiss_stale=false → exit nonzero" main-dismiss-false 1
 cli_check_case "CLI 팀1: develop 승인1 → exit nonzero" develop-approval-one 1
+cli_check_case "CLI exact contexts 일치 → exit 0" ok 0 "quality,secret-scan,test-guard,commitlint"
+cli_check_case "CLI exact contexts 순서·중복 정규화 → exit 0" ok 0 "commitlint,quality,quality,test-guard,secret-scan"
+cli_check_case "CLI exact contexts 누락 → exit nonzero" missing-context 1 "quality,secret-scan,test-guard,commitlint"
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

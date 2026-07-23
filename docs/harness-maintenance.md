@@ -116,5 +116,5 @@ node scripts/run-external-pilot.mjs --repo /path/to/consumer --output /tmp/pilot
 
 - **develop 채택(v0.14.x)**: team-harness도 다른 repo처럼 `기본=main + develop` gitflow를 쓴다.
   feature→develop→release→main. `ci-gate.yml`은 실제로 있으며 `[main, develop]` PR마다 실행된다.
-- **branch protection 적용됨**(2026-07 public 전환 #73 이후) — main·develop에 required status checks·force-push/삭제 차단·대화 resolve·`enforce_admins=on`. 현재 team-harness는 **팀 모드(main 승인1 + stale 승인 무효화, develop 승인0)** 다. `guard.sh` 훅·`.githooks/pre-commit`(dogfooding)은 직접커밋·맨손 gh 머지를 로컬에서 선차단하는 **방어심화 계층**으로 병존(서버 강제와 이중). 드리프트 점검 = `set-branch-protection.sh --check --approvals 1`; main은 옵션 미지정 시 승인 수가 정보성이지만 develop 승인0과 나머지 불변식은 항상 엄격하다.
+- **branch protection 적용됨**(2026-07 public 전환 #73 이후) — main·develop에 required status checks·force-push/삭제 차단·대화 resolve·`enforce_admins=on`. 현재 team-harness는 **팀 모드(main 승인1 + stale 승인 무효화, develop 승인0)** 다. `guard.sh` 훅·`.githooks/pre-commit`(dogfooding)은 직접커밋·맨손 gh 머지를 로컬에서 선차단하는 **방어심화 계층**으로 병존(서버 강제와 이중). 드리프트 점검 = `set-branch-protection.sh --check --approvals 1 --contexts quality,secret-scan,test-guard,commitlint`; `--contexts`를 주면 개수만이 아니라 exact set을 검증한다. main은 승인 수를 명시하고 develop 승인0과 나머지 불변식도 엄격하게 확인한다.
 - `presentation.html` 등 발표 자료는 커밋 대상이 아니다 — repo는 운영 자산만

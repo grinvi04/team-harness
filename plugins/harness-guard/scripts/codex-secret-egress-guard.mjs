@@ -66,58 +66,163 @@ function collapseLineContinuations(value) {
 
 function logicalShellCommands(value) {
   const outer = collapseLineContinuations(value)
-  const commands = [outer]
+  const commands = []
+  const pending = [outer]
+  const seen = new Set()
 
-  for (const tokens of shellSegments(outer)) {
-    let index = 0
-    while (isAssignment(tokens[index])) index += 1
+  while (pending.length > 0 && commands.length < 32) {
+    const current = pending.shift()
+    if (seen.has(current)) continue
+    seen.add(current)
+    commands.push(current)
 
-    if (baseName(tokens[index]) === 'exec') {
+    for (const nested of backtickShellCommands(current)) pending.push(nested)
+    for (const nested of dollarParenShellCommands(current)) pending.push(nested)
+    for (const tokens of shellSegments(current)) {
+      const index = commandIndex(tokens)
+      if (!['bash', 'sh', 'zsh'].includes(baseName(tokens[index]))) continue
+      const operand = shellCommandOperand(tokens, index)
+      if (operand !== undefined) pending.push(collapseLineContinuations(operand))
+    }
+  }
+  return { commands, truncated: pending.length > 0 }
+}
+
+function backtickShellCommands(value) {
+  const commands = []
+  let quote = ''
+  let index = 0
+
+  while (index < value.length) {
+    const char = value[index]
+    if (quote === "'") {
+      if (char === "'") quote = ''
       index += 1
-      while (tokens[index]?.startsWith('-')) {
-        if (tokens[index] === '-a') index += 2
-        else index += 1
-      }
-      while (isAssignment(tokens[index])) index += 1
+      continue
+    }
+    if (char === '\\' && index + 1 < value.length) {
+      index += 2
+      continue
+    }
+    if (!quote && char === "'") {
+      quote = "'"
+      index += 1
+      continue
+    }
+    if (char === '"') {
+      quote = quote === '"' ? '' : '"'
+      index += 1
+      continue
+    }
+    if (char !== '`') {
+      index += 1
+      continue
     }
 
-    if (baseName(tokens[index]) === 'env') {
-      index += 1
-      while (index < tokens.length) {
-        const token = tokens[index]
-        if (isAssignment(token)) index += 1
-        else if (['-u', '--unset', '-C', '--chdir', '-S', '--split-string'].includes(token)) index += 2
-        else if (token.startsWith('-')) index += 1
-        else break
-      }
-    }
-
-    if (!['bash', 'sh', 'zsh'].includes(baseName(tokens[index]))) continue
+    let nested = ''
+    let closed = false
     index += 1
-    while (index < tokens.length) {
-      const option = tokens[index]
-      if (/^-[A-Za-z]*c[A-Za-z]*$/.test(option) && tokens[index + 1] !== undefined) {
-        const commandIndex = tokens[index + 1] === '--' ? index + 2 : index + 1
-        if (tokens[commandIndex] !== undefined) {
-          commands.push(collapseLineContinuations(tokens[commandIndex]))
-        }
+    while (index < value.length) {
+      const nestedChar = value[index]
+      if (nestedChar === '\\' && index + 1 < value.length) {
+        nested += nestedChar + value[index + 1]
+        index += 2
+      } else if (nestedChar === '`') {
+        closed = true
+        index += 1
         break
+      } else {
+        nested += nestedChar
+        index += 1
       }
-      if (['-o', '+o', '-O', '+O'].includes(option)) index += 2
-      else if (option.startsWith('-') || option.startsWith('+')) index += 1
-      else break
     }
+    if (closed) commands.push(collapseLineContinuations(nested))
+  }
+  return commands
+}
+
+function dollarParenShellCommands(value) {
+  const commands = []
+  let quote = ''
+  let index = 0
+
+  while (index < value.length) {
+    const char = value[index]
+    if (quote === "'") {
+      if (char === "'") quote = ''
+      index += 1
+      continue
+    }
+    if (char === '\\' && index + 1 < value.length) {
+      index += 2
+      continue
+    }
+    if (!quote && char === "'") {
+      quote = "'"
+      index += 1
+      continue
+    }
+    if (char === '"') {
+      quote = quote === '"' ? '' : '"'
+      index += 1
+      continue
+    }
+    if (char !== '$' || value[index + 1] !== '(') {
+      index += 1
+      continue
+    }
+
+    let nested = ''
+    let nestedQuote = ''
+    let depth = 1
+    index += 2
+    while (index < value.length && depth > 0) {
+      const nestedChar = value[index]
+      if (nestedQuote === "'") {
+        nested += nestedChar
+        if (nestedChar === "'") nestedQuote = ''
+        index += 1
+      } else if (nestedChar === '\\' && index + 1 < value.length) {
+        nested += nestedChar + value[index + 1]
+        index += 2
+      } else if (!nestedQuote && nestedChar === "'") {
+        nestedQuote = "'"
+        nested += nestedChar
+        index += 1
+      } else if (nestedChar === '"') {
+        nestedQuote = nestedQuote === '"' ? '' : '"'
+        nested += nestedChar
+        index += 1
+      } else if (!nestedQuote && nestedChar === '(') {
+        depth += 1
+        nested += nestedChar
+        index += 1
+      } else if (!nestedQuote && nestedChar === ')') {
+        depth -= 1
+        if (depth > 0) nested += nestedChar
+        index += 1
+      } else {
+        nested += nestedChar
+        index += 1
+      }
+    }
+    if (depth === 0) commands.push(collapseLineContinuations(nested))
   }
   return commands
 }
 
 function shellSegments(value) {
-  const segments = []
+  return shellParts(value).map(({ tokens }) => tokens)
+}
+
+function shellParts(value) {
+  const parts = []
   let tokens = []
   let word = ''
   let wordStarted = false
   let quote = ''
   let index = 0
+  let separatorBefore = ''
 
   const pushWord = () => {
     if (!wordStarted) return
@@ -125,10 +230,13 @@ function shellSegments(value) {
     word = ''
     wordStarted = false
   }
-  const pushSegment = () => {
+  const pushSegment = (separatorAfter = '') => {
     pushWord()
-    if (tokens.length > 0) segments.push(tokens)
-    tokens = []
+    if (tokens.length > 0) {
+      parts.push({ tokens, separatorBefore })
+      tokens = []
+    }
+    separatorBefore = separatorAfter
   }
 
   while (index < value.length) {
@@ -158,9 +266,16 @@ function shellSegments(value) {
       word += value[index + 1]
       wordStarted = true
       index += 2
-    } else if (char === '\n' || ';|&()'.includes(char)) {
-      pushSegment()
+    } else if (char === '\n' || ';()'.includes(char)) {
+      pushSegment(char)
       index += 1
+    } else if (char === '|' && value[index + 1] === '&') {
+      pushSegment('|&')
+      index += 2
+    } else if ('|&'.includes(char)) {
+      const doubled = value[index + 1] === char
+      pushSegment(doubled ? `${char}${char}` : char)
+      index += doubled ? 2 : 1
     } else if (/\s/.test(char)) {
       pushWord()
       index += 1
@@ -171,7 +286,7 @@ function shellSegments(value) {
     }
   }
   pushSegment()
-  return segments
+  return parts
 }
 
 function baseName(value) {
@@ -182,14 +297,155 @@ function isAssignment(value) {
   return typeof value === 'string' && /^[A-Za-z_][A-Za-z0-9_]*=/.test(value)
 }
 
-const curlUpload = /\bcurl\b(?=[^\n]*(?:\s(?:-d|-F|-T)\b|--(?:data(?:-binary|-raw|-urlencode)?|form|upload-file)\b|(?:-X|--request)\s*(?:POST|PUT|PATCH)\b))[^\n]*\bhttps?:\/\//i
-const wgetUpload = /\bwget\b(?=[^\n]*--post-(?:data|file)\b)[^\n]*\bhttps?:\/\//i
-const netcatUpload = /\|[^\n]*\b(?:nc|ncat|netcat)\b/i
-const remoteCopy = /\b(?:scp|rsync)\b[^\n]*\.env(?:\.[A-Za-z0-9_-]+)?[^\n]*\b[A-Za-z0-9._-]+@[^\s:]+:/i
+function commandIndex(tokens) {
+  let index = 0
+  while (index < tokens.length) {
+    while (isAssignment(tokens[index])) index += 1
+    const executable = baseName(tokens[index])
 
-const blocked = logicalShellCommands(command).some((logicalCommand) => {
+    if (executable === 'exec') {
+      index += 1
+      while (tokens[index]?.startsWith('-')) {
+        if (tokens[index] === '-a') index += 2
+        else index += 1
+      }
+      continue
+    }
+
+    if (executable === 'env') {
+      index += 1
+      while (index < tokens.length) {
+        const token = tokens[index]
+        if (isAssignment(token)) index += 1
+        else if (['-u', '--unset', '-C', '--chdir', '-S', '--split-string'].includes(token)) index += 2
+        else if (token.startsWith('-')) index += 1
+        else break
+      }
+      continue
+    }
+
+    if (executable === 'builtin') {
+      let nested = index + 1
+      while (tokens[nested] === '--') nested += 1
+      if (['command', 'exec'].includes(baseName(tokens[nested]))) {
+        index = nested
+        continue
+      }
+    }
+
+    if (executable === 'command') {
+      index += 1
+      while (tokens[index]?.startsWith('-')) index += 1
+      continue
+    }
+
+    if (executable === 'sudo') {
+      index += 1
+      while (tokens[index]?.startsWith('-')) {
+        if (['-u', '--user', '-g', '--group', '-h', '--host', '-p', '--prompt', '-C', '--close-from', '-T', '--command-timeout'].includes(tokens[index])) index += 2
+        else index += 1
+      }
+      continue
+    }
+
+    if (['timeout', 'gtimeout'].includes(executable)) {
+      index += 1
+      while (tokens[index]?.startsWith('-')) {
+        if (tokens[index] === '--') {
+          index += 1
+          break
+        }
+        if (['-k', '--kill-after', '-s', '--signal'].includes(tokens[index])) index += 2
+        else index += 1
+      }
+      if (index < tokens.length) index += 1
+      continue
+    }
+
+    if (['time', 'nohup'].includes(executable)) {
+      index += 1
+      while (tokens[index]?.startsWith('-')) index += 1
+      continue
+    }
+    break
+  }
+  return index
+}
+
+function shellCommandOperand(tokens, shellIndex) {
+  let index = shellIndex + 1
+  let foundCommandOption = false
+
+  while (index < tokens.length) {
+    const option = tokens[index]
+    if (!foundCommandOption) {
+      if (option === '--') return undefined
+      if (/^-[A-Za-z]*c[A-Za-z]*$/.test(option)) {
+        foundCommandOption = true
+        index += 1
+        continue
+      }
+    } else if (option === '--') {
+      index += 1
+      continue
+    } else if (!option.startsWith('-') && !option.startsWith('+')) {
+      return option
+    }
+
+    if (['-o', '+o', '-O', '+O'].includes(option)) index += 2
+    else if (option.startsWith('-') || option.startsWith('+')) index += 1
+    else break
+  }
+  return undefined
+}
+
+function hasRemoteUrl(tokens) {
+  return tokens.some((token) => /\bhttps?:\/\//i.test(token))
+}
+
+function hasCurlUpload(tokens, index) {
+  if (!hasRemoteUrl(tokens)) return false
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    if (
+      option === '-d' || option.startsWith('-d') ||
+      option === '-F' || option.startsWith('-F') ||
+      option === '-T' || option.startsWith('-T') ||
+      /^--(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json)(?:=|$)/.test(option)
+    ) return true
+    if (['-X', '--request'].includes(option) && /^(POST|PUT|PATCH)$/i.test(tokens[offset + 1] || '')) return true
+    if (/^(?:-X|--request=)(?:POST|PUT|PATCH)$/i.test(option)) return true
+  }
+  return false
+}
+
+function hasUpload(value) {
+  for (const { tokens, separatorBefore } of shellParts(value)) {
+    const index = commandIndex(tokens)
+    const executable = baseName(tokens[index])
+    if (executable === 'curl' && hasCurlUpload(tokens, index)) return true
+    if (
+      executable === 'wget' &&
+      hasRemoteUrl(tokens) &&
+      tokens.slice(index + 1).some((token) => /^--post-(?:data|file)(?:=|$)/.test(token))
+    ) return true
+    if (
+      ['nc', 'ncat', 'netcat'].includes(executable) &&
+      ['|', '|&'].includes(separatorBefore)
+    ) return true
+    if (
+      ['scp', 'rsync'].includes(executable) &&
+      tokens.slice(index + 1).some((token) => /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token)) &&
+      tokens.slice(index + 1).some((token) => /^[A-Za-z0-9._-]+@[^\s:]+:/.test(token))
+    ) return true
+  }
+  return false
+}
+
+const logicalCommands = logicalShellCommands(command)
+const blocked = logicalCommands.truncated || logicalCommands.commands.some((logicalCommand) => {
   const hasSecretSource = /(?:\$\{?(?:[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*)\}?|\b(?:printenv|env)(?:\s+[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/])\.env(?:\.[A-Za-z0-9_-]+)?\b)/i.test(logicalCommand)
-  return hasSecretSource && (curlUpload.test(logicalCommand) || wgetUpload.test(logicalCommand) || netcatUpload.test(logicalCommand) || remoteCopy.test(logicalCommand))
+  return hasSecretSource && hasUpload(logicalCommand)
 })
 
 if (blocked) {
