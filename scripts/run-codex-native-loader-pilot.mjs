@@ -123,6 +123,7 @@ function markdown(report) {
 - split package 승격: **아니오** — 이번 파일럿은 monolith native loader만 검증했다.
 - 추론: loader·hook lifecycle은 Codex 공식 plugin surface가 소유하고 Team Harness는 결과 계약만 연결한다.
 - 한계: 단일 Codex 버전·현재 계정의 로컬 표본이며, 외부 security-guidance cache patch 제거는 범위 밖이다.
+- 네트워크 한계: 모델 연결 불가 시 \`session-network-unavailable\`로 fail-closed하며 해당 시도는 live 증거로 승격하지 않는다.
 ${report.error ? `- 실패: ${report.error}\n` : ''}`
 }
 
