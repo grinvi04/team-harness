@@ -69,10 +69,10 @@ deny() {
     | sed -E -e 's#([Hh][Tt][Tt][Pp][Ss]?://)[^@ ]*@#\1***@#g' \
              -e 's#gh[pousr]_[A-Za-z0-9]{20,}#gh_***#g' \
              -e 's#github_pat_[A-Za-z0-9_]{20,}#github_pat_***#g' \
-             -e "s#([Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]:[[:space:]]*[Bb][Ee][Aa][Rr][Ee][Rr][[:space:]]+)[^\"'[:space:];|&]+#\1***#g" \
+             -e "s#((([Pp][Rr][Oo][Xx][Yy]-)?[Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]):[[:space:]]*)[^\"';|&]+#\1***#g" \
              -e "s#((--oauth2-bearer|--proxy-user|--user)(=|[[:space:]]+))(\"[^\"]*\"|'[^']*'|[^\"'[:space:];|&]+)#\1***#g" \
-             -e "s#(-[A-Za-z]*[uU][[:space:]]+)(\"[^\"]*\"|'[^']*'|[^\"'[:space:];|&]+)#\1***#g" \
-             -e "s#(-[A-Za-z]*[uU])([^\"'[:space:];|&]+)#\1***#g" \
+             -e "s#(^|[[:space:]])(-[A-Za-z]*[uU][[:space:]]+)(\"[^\"]*\"|'[^']*'|[^\"'[:space:];|&]+)#\1\2***#g" \
+             -e "s#(^|[[:space:]])(-[A-Za-z]*[uU])([^\"'[:space:];|&]+)#\1\2***#g" \
              -e "s#(([A-Za-z_][A-Za-z0-9_]*)?([Aa][Pp][Ii]_?[Kk][Ee][Yy]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Tt][Oo][Kk][Ee][Nn]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Pp][Aa][Ss][Ss][Ww][Dd]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll])[A-Za-z0-9_]*=)(\\$'([^'\\\\]|\\\\.)*'|\"[^\"]*\"|'[^']*'|([^[:space:];|&\\\\]|\\\\.)+)#\1***#g" \
     | cut -c1-200)
   umask 077

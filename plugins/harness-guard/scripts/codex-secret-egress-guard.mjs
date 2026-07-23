@@ -531,10 +531,15 @@ function wgetTargets(tokens, index) {
 }
 
 function isAuthorizationHeader(value) {
-  return /(?:^|\b)(?:proxy-)?authorization:\s*(?:basic|bearer|digest|negotiate|ntlm)\s+\S+/i.test(value)
+  return /^\s*(?:proxy-)?authorization:\s*\S+/i.test(value)
+}
+
+function hasUrlUserinfo(value) {
+  return /^[A-Za-z][A-Za-z0-9+.-]*:\/\/[^/@\s]+@/.test(value)
 }
 
 function hasLiteralCurlCredential(tokens, index) {
+  if (curlTargets(tokens, index).some(hasUrlUserinfo)) return true
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
     const shortOption = curlShortValueOption(option)
@@ -554,7 +559,7 @@ function hasLiteralCurlCredential(tokens, index) {
 function hasCurlUpload(tokens, index) {
   const targets = curlTargets(tokens, index)
   if (!hasRemoteTarget(targets)) return false
-  if (targets.some(hasSecretSource)) return true
+  if (targets.some((target) => hasSecretSource(target) || hasUrlUserinfo(target))) return true
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
     const shortOption = curlShortValueOption(option)

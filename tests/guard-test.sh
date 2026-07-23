@@ -320,6 +320,10 @@ fixture_user="fixture-user"
 fixture_pass="fixture-pass"
 mk Bash "git reset --hard && curl --user \"${fixture_user}:${fixture_pass}\" https://example.invalid" \
   | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_auth_scheme="ApiKey"
+fixture_auth_value="fixture-auth-value"
+mk Bash "git reset --hard && curl -H \"Authorization: ${fixture_auth_scheme} ${fixture_auth_value}\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
 mk Bash 'git reset --hard && curl --proxy-user=fixture-proxy-value https://example.invalid' \
   | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
 mk Bash 'git reset --hard && curl -u fixture-short-value https://example.invalid' \
@@ -333,7 +337,7 @@ value = open(sys.argv[1], encoding="utf-8").read()
 print(sum(unicodedata.category(char) == "Cc" and char != "\n" for char in value))
 PY
 )
-if grep -Eq "fixture-(bearer-value|oauth-value|user|pass|proxy-value|short-value)" "$GUARD_LOG4" 2>/dev/null \
+if grep -Fq "fixture-" "$GUARD_LOG4" 2>/dev/null \
   || [ "$control_count" -ne 0 ]; then
   echo "FAIL: v0.61 Bearer·제어문자 감사로그 유출"; FAIL=$((FAIL+1))
 elif [ "$(stat -f '%Lp' "$GUARD_LOG4" 2>/dev/null || stat -c '%a' "$GUARD_LOG4" 2>/dev/null)" = 600 ]; then
