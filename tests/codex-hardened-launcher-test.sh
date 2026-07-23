@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# The launcher must repair both Codex plugin caches before it starts Codex.
+# The launcher must sync and validate the native plugin before it starts Codex.
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
@@ -7,31 +7,14 @@ LAUNCHER="$ROOT/scripts/codex-hardened.sh"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 
-SOURCE_VERSION=$(node -p "JSON.parse(require('node:fs').readFileSync('$ROOT/plugins/harness-guard/.claude-plugin/plugin.json')).version")
-HARNESS_ROOT="$TMP/.codex/plugins/cache/team-harness/harness-guard/$SOURCE_VERSION"
+SOURCE_VERSION=$(node -p "JSON.parse(require('node:fs').readFileSync('$ROOT/plugins/harness-guard/.codex-plugin/plugin.json')).version")
+NATIVE_PLUGIN_ROOT="$TMP/native-plugin"
 SECURITY_CACHE="$TMP/.codex/plugins/cache/claude-plugins-official/security-guidance/2.0.6/hooks/hooks.json"
 SECURITY_SNAPSHOT="$TMP/.codex/.tmp/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/hooks.json"
 
-mkdir -p "$HARNESS_ROOT/hooks" "$HARNESS_ROOT/scripts" "$HARNESS_ROOT/codex/agents" "$HARNESS_ROOT/codex/skill-overlays"
-cp -R "$ROOT/plugins/harness-guard/skills" "$HARNESS_ROOT/"
-cp "$ROOT/plugins/harness-guard/scripts/codex-pretool-guard.mjs" "$HARNESS_ROOT/scripts/"
-cp "$ROOT/plugins/harness-guard/scripts/guard.sh" "$HARNESS_ROOT/scripts/"
-cp -R "$ROOT/plugins/harness-guard/codex/agents/." "$HARNESS_ROOT/codex/agents/"
-cp -R "$ROOT/plugins/harness-guard/codex/skill-overlays/." "$HARNESS_ROOT/codex/skill-overlays/"
-
-cat >"$HARNESS_ROOT/hooks/hooks.json" <<'JSON'
-{
-  "hooks": {
-    "PreToolUse": [{
-      "matcher": "Bash",
-      "hooks": [
-        { "type": "command", "command": "bash guard.sh" },
-        { "type": "prompt", "prompt": "secret review" }
-      ]
-    }]
-  }
-}
-JSON
+mkdir -p "$NATIVE_PLUGIN_ROOT"
+cp -R "$ROOT/plugins/harness-guard/.codex-plugin" "$NATIVE_PLUGIN_ROOT/"
+cp -R "$ROOT/plugins/harness-guard/codex" "$NATIVE_PLUGIN_ROOT/"
 
 for hooks in "$SECURITY_CACHE" "$SECURITY_SNAPSHOT"; do
   mkdir -p "$(dirname "$hooks")"
@@ -54,11 +37,6 @@ approval_policy = "untrusted"
 enabled = false
 TOML
 
-mkdir -p "$TMP/.claude/plugins/cache/claude-plugins-official/security-guidance"
-printf '%s\n' 'Claude cache sentinel' >"$TMP/.claude/plugins/cache/claude-plugins-official/security-guidance/sentinel"
-SOURCE_SKILL="$ROOT/plugins/harness-guard/skills/repo-sync/SKILL.md"
-SOURCE_SKILL_BEFORE=$(cksum "$SOURCE_SKILL")
-
 cat >"$TMP/fake-codex" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
@@ -67,12 +45,8 @@ if [[ "$*" == "plugin list --json" ]]; then
     echo "sync failed" >&2
     exit 8
   fi
-  if ! grep -q '"type": "prompt"' "$HOME/.codex/plugins/cache/team-harness/harness-guard/$SOURCE_VERSION/hooks/hooks.json"; then
-    echo "FAIL: cache patch ran before plugin version sync" >&2
-    exit 1
-  fi
-  printf '%s\n' "$*" >"$HOME/sync-invocation"
-  printf '{"installed":[{"pluginId":"harness-guard@team-harness","version":"%s"}]}\n' "$SOURCE_VERSION"
+  printf '%s\n' "$*" >>"$HOME/plugin-list-invocations"
+  printf '{"installed":[{"pluginId":"harness-guard@team-harness","version":"%s","enabled":true,"source":{"source":"local","path":"%s"}}]}\n' "$SOURCE_VERSION" "$NATIVE_PLUGIN_ROOT"
   exit 0
 fi
 node - "$HOME" <<'NODE'
@@ -80,9 +54,6 @@ const fs = require('node:fs');
 const path = require('node:path');
 const home = process.argv[2];
 const fail = (message) => { console.error(`FAIL: ${message}`); process.exit(1); };
-const harness = JSON.parse(fs.readFileSync(path.join(home, `.codex/plugins/cache/team-harness/harness-guard/${process.env.SOURCE_VERSION}/hooks/hooks.json`), 'utf8'));
-const preTool = harness.hooks.PreToolUse[0].hooks;
-if (preTool.length !== 1 || !preTool[0].command.endsWith('/scripts/codex-pretool-guard.mjs')) fail('harness patch did not finish before Codex');
 for (const relative of [
   '.codex/plugins/cache/claude-plugins-official/security-guidance/2.0.6/hooks/hooks.json',
   '.codex/.tmp/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/hooks.json',
@@ -96,56 +67,35 @@ printf '%s\n' "$@" >"$HOME/invocation"
 SH
 chmod +x "$TMP/fake-codex"
 
-HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version
-if [[ "$(cat "$TMP/invocation")" != $'--disable\nunified_exec\n--version' ]]; then
-  echo "FAIL: launcher did not disable unified_exec before preserving Codex arguments"
+HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version
+if [[ "$(cat "$TMP/invocation")" != '--version' ]]; then
+  echo "FAIL: launcher changed Codex arguments or disabled unified_exec"
   exit 1
 fi
-if [[ "$(cat "$TMP/sync-invocation")" != "plugin list --json" ]]; then
-  echo "FAIL: launcher skipped plugin cache version sync"
-  exit 1
-fi
-if [[ "$(cksum "$SOURCE_SKILL")" != "$SOURCE_SKILL_BEFORE" ]]; then
-  echo "FAIL: launcher modified the Claude source skill"
-  exit 1
-fi
-if [[ "$(cat "$TMP/.claude/plugins/cache/claude-plugins-official/security-guidance/sentinel")" != "Claude cache sentinel" ]]; then
-  echo "FAIL: launcher modified the Claude cache"
+if [[ "$(wc -l <"$TMP/plugin-list-invocations" | tr -d ' ')" -lt 2 ]]; then
+  echo "FAIL: launcher did not sync and validate the installed plugin"
   exit 1
 fi
 
 rm "$TMP/invocation"
-if HOME="$TMP" SYNC_FAIL=1 SOURCE_VERSION="$SOURCE_VERSION" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/sync-fail.out" 2>"$TMP/sync-fail.err"; then
+if HOME="$TMP" SYNC_FAIL=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/sync-fail.out" 2>"$TMP/sync-fail.err"; then
   echo "FAIL: plugin sync failure allowed Codex to start"
   exit 1
 fi
-if [[ -e "$TMP/invocation" ]]; then
-  echo "FAIL: Codex binary ran after plugin sync failure"
-  exit 1
-fi
+[[ ! -e "$TMP/invocation" ]] || { echo "FAIL: Codex ran after sync failure"; exit 1; }
 
-FAIL_HOME=$(mktemp -d)
-trap 'rm -rf "$TMP" "$FAIL_HOME"' EXIT
-mkdir -p "$FAIL_HOME/.codex"
-printf '%s\n' 'approval_policy = "untrusted"' >"$FAIL_HOME/.codex/config.toml"
-if HOME="$FAIL_HOME" SOURCE_VERSION="$SOURCE_VERSION" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$FAIL_HOME/out" 2>"$FAIL_HOME/err"; then
-  echo "FAIL: missing cache allowed Codex to start"
+BROKEN_PLUGIN_ROOT="$TMP/broken-plugin"
+mkdir -p "$BROKEN_PLUGIN_ROOT/.codex-plugin"
+cp "$NATIVE_PLUGIN_ROOT/.codex-plugin/plugin.json" "$BROKEN_PLUGIN_ROOT/.codex-plugin/"
+if HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$BROKEN_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/native-fail.out" 2>"$TMP/native-fail.err"; then
+  echo "FAIL: broken native contract allowed Codex to start"
   exit 1
 fi
-if [[ -e "$FAIL_HOME/invocation" ]]; then
-  echo "FAIL: Codex binary ran after a patch failure"
-  exit 1
-fi
+[[ ! -e "$TMP/invocation" ]] || { echo "FAIL: Codex ran after native validation failure"; exit 1; }
 
 for document in "$ROOT/README.md" "$ROOT/docs/onboarding.md" "$ROOT/docs/harness-maintenance.md"; do
-  if ! grep -Fq 'scripts/codex-hardened.sh --version' "$document"; then
-    echo "FAIL: Codex update command missing from ${document#"$ROOT"/}"
-    exit 1
-  fi
-  if ! grep -Fq 'scripts/harness-doctor.sh --repo . --probe' "$document"; then
-    echo "FAIL: Codex post-update probe missing from ${document#"$ROOT"/}"
-    exit 1
-  fi
+  grep -Fq 'scripts/codex-hardened.sh --version' "$document" || { echo "FAIL: update command missing from ${document#"$ROOT"/}"; exit 1; }
+  grep -Fq 'scripts/harness-doctor.sh --repo . --probe' "$document" || { echo "FAIL: post-update probe missing from ${document#"$ROOT"/}"; exit 1; }
 done
 
-echo "PASS: hardened launcher patches both Codex caches, fails closed, and has one documented update path"
+echo "PASS: hardened launcher syncs and validates native Codex state without disabling unified_exec"

@@ -47,7 +47,7 @@ report = Path(sys.argv[2]).read_text()
 expected = []
 for path in sorted((root / "plugins/harness-guard/skills").glob("*/SKILL.md")):
     expected.append(f"skill:{path.parent.name}")
-for base in (root / "plugins/harness-guard/agents", root / "plugins/harness-guard/codex/agents"):
+for base in (root / "plugins/harness-guard/agents",):
     for path in sorted(p for p in base.iterdir() if p.is_file()):
         expected.append(f"agent:{path.relative_to(root).as_posix()}")
 
@@ -86,12 +86,12 @@ counts = Counter(identifier for identifier, *_ in rows)
 errors = []
 if len([item for item in expected if item.startswith("skill:")]) != 16:
     errors.append("source skill count is not 16")
-if len([item for item in expected if item.startswith("agent:")]) != 5:
-    errors.append("source agent count is not 5")
+if len([item for item in expected if item.startswith("agent:")]) != 2:
+    errors.append("source agent count is not 2")
 if len([item for item in expected if item.startswith("hook:")]) != 4:
     errors.append("source hook count is not 4")
-if len([item for item in expected if item.startswith("codex-file:")]) != 10:
-    errors.append("source Codex compatibility file count is not 10")
+if len([item for item in expected if item.startswith("codex-file:")]) != 11:
+    errors.append("source Codex compatibility file count is not 11")
 if expected_counts != counts:
     errors.append(
         f"missing={sorted((expected_counts - counts).elements())} "
@@ -110,7 +110,7 @@ if errors:
 print(f"PASS: implementation inventory classified exactly once ({len(expected)} items)")
 PY
 then
-  pass "현재 구현 인벤토리 35개 전수 단일 판정"
+  pass "현재 구현 인벤토리 33개 전수 단일 판정"
 else
   fail "현재 구현 인벤토리와 감사 분류 불일치"
 fi
@@ -140,18 +140,19 @@ else
   fail "route-intent 의미 분류기 비확장 결정 누락"
 fi
 
-for patch in \
-  "codex-file:plugins/harness-guard/scripts/patch-codex-harness-guard.mjs" \
-  "codex-file:plugins/harness-guard/scripts/patch-codex-security-guidance.mjs" \
-  "codex-file:scripts/codex-hardened.sh"
-do
-  line="$(grep -F "$patch" "$REPORT" 2>/dev/null || true)"
-  if printf '%s' "$line" | grep -Fq "제거"; then
-    pass "우선 제거 후보: $patch"
-  else
-    fail "우선 제거 판정 누락: $patch"
-  fi
-done
+line="$(grep -F 'codex-file:plugins/harness-guard/scripts/patch-codex-security-guidance.mjs' "$REPORT" 2>/dev/null || true)"
+if printf '%s' "$line" | grep -Fq "제거"; then
+  pass "외부 plugin patch 후속 제거 후보 유지"
+else
+  fail "외부 plugin patch 후속 판정 누락"
+fi
+
+line="$(grep -F 'codex-file:scripts/codex-hardened.sh' "$REPORT" 2>/dev/null || true)"
+if printf '%s' "$line" | grep -Fq "얇게 유지"; then
+  pass "native launcher 목표 상태 반영"
+else
+  fail "native launcher 목표 상태 누락"
+fi
 
 if contains "$README" "docs/platform-overlap-audit.md" \
   && contains "$PRODUCT" "[x] **플랫폼 중복 감사:**" \

@@ -6,28 +6,29 @@ DOCTOR="$ROOT/scripts/harness-doctor.sh"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 FAKE_ROOT="$TMP/harness"
-mkdir -p "$FAKE_ROOT/scripts" "$FAKE_ROOT/plugins/harness-guard/.claude-plugin" "$FAKE_ROOT/plugins/harness-guard/scripts" "$TMP/bin"
+NATIVE_PLUGIN_ROOT="$TMP/native-plugin"
+mkdir -p "$FAKE_ROOT/scripts" "$FAKE_ROOT/plugins/harness-guard/.codex-plugin" "$FAKE_ROOT/plugins/harness-guard/scripts" "$TMP/bin" "$NATIVE_PLUGIN_ROOT"
 
-printf '{"version":"1.2.3"}\n' >"$FAKE_ROOT/plugins/harness-guard/.claude-plugin/plugin.json"
+printf '{"version":"1.2.3"}\n' >"$FAKE_ROOT/plugins/harness-guard/.codex-plugin/plugin.json"
+cp -R "$ROOT/plugins/harness-guard/.codex-plugin" "$NATIVE_PLUGIN_ROOT/"
+cp -R "$ROOT/plugins/harness-guard/codex" "$NATIVE_PLUGIN_ROOT/"
+node - "$NATIVE_PLUGIN_ROOT/.codex-plugin/plugin.json" <<'NODE'
+const fs = require('node:fs')
+const file = process.argv[2]
+const data = JSON.parse(fs.readFileSync(file, 'utf8'))
+data.version = '1.2.3'
+fs.writeFileSync(file, `${JSON.stringify(data, null, 2)}\n`)
+NODE
 
 cat >"$FAKE_ROOT/scripts/install-codex-managed-requirements.sh" <<'SH'
 #!/usr/bin/env bash
 [ "${DOCTOR_FAIL:-}" != requirements ] || exit 1
 echo 'OK requirements'
 SH
+cp "$ROOT/scripts/check-codex-native-plugin.mjs" "$FAKE_ROOT/scripts/" 2>/dev/null || true
 cat >"$FAKE_ROOT/plugins/harness-guard/scripts/check-repo-sync.mjs" <<'JS'
 if (process.env.DOCTOR_FAIL === 'repo-sync') process.exit(1)
 console.log('OK repo-sync')
-JS
-cat >"$FAKE_ROOT/plugins/harness-guard/scripts/patch-codex-harness-guard.mjs" <<'JS'
-const changed = process.env.DOCTOR_FAIL === 'cache'
-console.log(JSON.stringify({
-  dryRun: true,
-  hooks: { changedFile: changed },
-  skills: { changedFiles: 0 },
-  guard: { changedFile: false },
-  agents: { changedFiles: 0 },
-}))
 JS
 cat >"$FAKE_ROOT/plugins/harness-guard/scripts/set-branch-protection.sh" <<'SH'
 #!/usr/bin/env bash
@@ -54,7 +55,9 @@ if [ "$*" = 'plugin list --json' ]; then
   version=${DOCTOR_INSTALLED_VERSION:-1.2.3}
   enabled=true
   [ "${DOCTOR_FAIL:-}" != disabled ] || enabled=false
-  printf '{"installed":[{"pluginId":"harness-guard@team-harness","version":"%s","enabled":%s}]}\n' "$version" "$enabled"
+  path=$NATIVE_PLUGIN_ROOT
+  [ "${DOCTOR_FAIL:-}" != native ] || path=$BROKEN_PLUGIN_ROOT
+  printf '{"installed":[{"pluginId":"harness-guard@team-harness","version":"%s","enabled":%s,"source":{"source":"local","path":"%s"}}]}\n' "$version" "$enabled" "$path"
   exit 0
 fi
 exit 2
@@ -66,15 +69,18 @@ echo 'owner/repo'
 SH
 chmod +x "$TMP/bin/codex" "$TMP/bin/gh"
 
+BROKEN_PLUGIN_ROOT="$TMP/broken-plugin"
+mkdir -p "$BROKEN_PLUGIN_ROOT"
 export PATH="$TMP/bin:$PATH"
 export HARNESS_ROOT="$FAKE_ROOT"
+export NATIVE_PLUGIN_ROOT BROKEN_PLUGIN_ROOT
 export DOCTOR_CALLS="$TMP/calls"
 touch "$DOCTOR_CALLS"
 
 out=$(bash "$DOCTOR" --repo "$ROOT")
 printf '%s\n' "$out" | grep -Fq 'PASS  managed requirements'
 printf '%s\n' "$out" | grep -Fq 'PASS  harness-guard plugin 1.2.3'
-printf '%s\n' "$out" | grep -Fq 'PASS  Codex harness cache patch'
+printf '%s\n' "$out" | grep -Fq 'PASS  Codex native plugin contract'
 printf '%s\n' "$out" | grep -Fq 'PASS  repo sync'
 printf '%s\n' "$out" | grep -Fq 'PASS  branch protection'
 printf '%s\n' "$out" | grep -Fq 'SKIP  fresh-session probe (use --probe)'
@@ -101,12 +107,11 @@ if DOCTOR_FAIL=missing-branch bash "$DOCTOR" --repo "$ROOT" >"$TMP/missing-branc
   exit 1
 fi
 grep -Fq 'FAIL  branch protection' "$TMP/missing-branch.out"
-grep -Fq 'skip owner/repo:develop' "$TMP/missing-branch.out"
 
-if DOCTOR_FAIL=cache bash "$DOCTOR" --repo "$ROOT" >"$TMP/cache.out" 2>&1; then
-  echo 'FAIL: doctor accepted unpatched Codex harness cache'
+if DOCTOR_FAIL=native bash "$DOCTOR" --repo "$ROOT" >"$TMP/native.out" 2>&1; then
+  echo 'FAIL: doctor accepted a broken native plugin'
   exit 1
 fi
-grep -Fq 'FAIL  Codex harness cache patch' "$TMP/cache.out"
+grep -Fq 'FAIL  Codex native plugin contract' "$TMP/native.out"
 
-echo 'PASS: doctor aggregates checks, skips model work by default, and propagates failures'
+echo 'PASS: doctor validates native plugin state, skips model work by default, and propagates failures'

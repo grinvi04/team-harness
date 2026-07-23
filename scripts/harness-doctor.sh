@@ -68,7 +68,7 @@ else
   detail "$TMP/codex-version.err"
 fi
 
-manifest="$ROOT/plugins/harness-guard/.claude-plugin/plugin.json"
+manifest="$ROOT/plugins/harness-guard/.codex-plugin/plugin.json"
 expected=$($PYTHON_BIN -c 'import json,sys; print(json.load(open(sys.argv[1]))["version"])' "$manifest" 2>"$TMP/manifest.err")
 plugin_json=$($CODEX_BIN plugin list --json 2>"$TMP/plugin.err")
 if [ -n "$expected" ] && [ -n "$plugin_json" ]; then
@@ -95,30 +95,8 @@ else
   detail "$TMP/plugin.err"
 fi
 
-cache_json=$($NODE_BIN "$ROOT/plugins/harness-guard/scripts/patch-codex-harness-guard.mjs" --dry-run 2>"$TMP/cache.err")
-if [ -n "$cache_json" ]; then
-  cache_result=$(printf '%s' "$cache_json" | "$PYTHON_BIN" -c '
-import json, sys
-data = json.load(sys.stdin)
-pending = {
-    "hooks": int(bool(data.get("hooks", {}).get("changedFile"))),
-    "skills": int(data.get("skills", {}).get("changedFiles", 0)),
-    "guard": int(bool(data.get("guard", {}).get("changedFile"))),
-    "agents": int(data.get("agents", {}).get("changedFiles", 0)),
-}
-print(", ".join(f"{name}={count}" for name, count in pending.items()))
-raise SystemExit(1 if any(pending.values()) else 0)
-' 2>"$TMP/cache-parse.err")
-  if [ $? -eq 0 ]; then
-    pass "Codex harness cache patch ($cache_result)"
-  else
-    fail "Codex harness cache patch pending ($cache_result)"
-    echo "      repair: bash $ROOT/scripts/codex-hardened.sh --version"
-  fi
-else
-  fail 'Codex harness cache patch status unavailable'
-  detail "$TMP/cache.err"
-fi
+run_check 'Codex native plugin contract' \
+  "$NODE_BIN" "$ROOT/scripts/check-codex-native-plugin.mjs" --expected-version "$expected"
 
 run_check 'repo sync' \
   "$NODE_BIN" "$ROOT/plugins/harness-guard/scripts/check-repo-sync.mjs" --repo "$REPO" --harness "$ROOT"

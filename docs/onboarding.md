@@ -110,15 +110,15 @@ Team/Enterprise 없이도 파일 기반 managed settings로 본인 머신에서 
 
 - 규약의 단일 출처는 `AGENTS.md`다. Claude Code는 `CLAUDE.md`에서 import하고 Codex는
   네이티브로 읽는다. Gemini CLI는 `contextFileName`을 `AGENTS.md`로 설정한다.
-- Claude Code와 Codex는 모두 harness skill·agent·hook을 지원한다. UI는 다르지만 같은 skill
+- Claude Code와 Codex는 모두 harness skill·hook을 지원한다. UI는 다르지만 같은 skill
   수용 기준, PR wrapper, 리뷰·CI 게이트를 따른다.
-- Codex는 `harness-guard` v0.55.0 이상을 설치하고, 관리자가
-  `/path/to/team-harness/scripts/install-codex-managed-requirements.sh`로 `hooks=true`,
-  `unified_exec=false`를 머신에 고정한다.
+- Codex는 `harness-guard` v0.61.0 이상을 설치하고, 관리자가
+  `/path/to/team-harness/scripts/install-codex-managed-requirements.sh`로 `hooks=true`를 머신에 고정한다.
+  unified exec lifecycle은 현재 Codex native hook 구현에 위임한다.
 - 최초 plugin 설치 뒤와 이후 갱신 때는 Team Harness checkout에서 아래 단일 launcher 명령을 실행한다.
-  launcher는 필요할 때만 marketplace/plugin을 갱신하고 skill overlay·command guard·custom agent와
-  `security-guidance` adapter 패치를 모두 적용한다. 이어서 doctor probe로 실제 새 세션의 두 guard 차단을
-  확인하고 `/hooks`의 변경 hash를 review/trust한다.
+  launcher는 필요할 때만 marketplace/plugin을 갱신하고 native manifest·command hook·16개 skill을 검사한 뒤
+  범위 밖의 `security-guidance` adapter 패치만 적용한다. 이어서 doctor probe로 실제 새 세션의 두 guard 차단을
+  확인하고 `/hooks`의 변경 hash를 review/trust한다. Codex agent 실행은 플랫폼에 위임한다.
   ```bash
   bash /path/to/team-harness/scripts/codex-hardened.sh --version
   bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe

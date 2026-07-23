@@ -3,7 +3,8 @@
 set -euo pipefail
 
 TARGET=${CODEX_REQUIREMENTS_PATH:-/etc/codex/requirements.toml}
-MARKER='# team-harness managed codex requirements v1'
+MARKER='# team-harness managed codex requirements v2'
+LEGACY_MARKER='# team-harness managed codex requirements v1'
 MODE=${1:---install}
 
 usage() {
@@ -11,7 +12,9 @@ usage() {
 }
 
 is_managed() {
-  [ -f "$TARGET" ] && [ "$(sed -n '1p' "$TARGET")" = "$MARKER" ]
+  [ -f "$TARGET" ] || return 1
+  first=$(sed -n '1p' "$TARGET")
+  [ "$first" = "$MARKER" ] || [ "$first" = "$LEGACY_MARKER" ]
 }
 
 expected() {
@@ -19,8 +22,7 @@ expected() {
     "$MARKER" \
     '' \
     '[features]' \
-    'hooks = true' \
-    'unified_exec = false'
+    'hooks = true'
 }
 
 require_write_access() {
@@ -39,7 +41,7 @@ case "$MODE" in
   --check)
     is_managed || { echo "not managed: $TARGET" >&2; exit 1; }
     [ "$(cat "$TARGET")" = "$(expected)" ] || { echo "managed requirements drift: $TARGET" >&2; exit 1; }
-    echo "OK: hooks=true, unified_exec=false ($TARGET)"
+    echo "OK: hooks=true, unified_exec=native ($TARGET)"
     ;;
   --install)
     if [ -e "$TARGET" ] && ! is_managed; then
