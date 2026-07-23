@@ -67,12 +67,116 @@ function collapseLineContinuations(value) {
 function logicalShellCommands(value) {
   const outer = collapseLineContinuations(value)
   const commands = [outer]
-  const wrapper = /(?:^|[;&|()]\s*)(?:\/(?:usr\/)?bin\/)?(?:bash|sh|zsh)\b[ \t]+-[A-Za-z]*c[A-Za-z]*[ \t]+(?:"((?:\\[\s\S]|[^"])*)"|'([^']*)')/g
-  let match
-  while ((match = wrapper.exec(outer)) !== null) {
-    commands.push(collapseLineContinuations(match[1] ?? match[2]))
+
+  for (const tokens of shellSegments(outer)) {
+    let index = 0
+    while (isAssignment(tokens[index])) index += 1
+
+    if (baseName(tokens[index]) === 'exec') {
+      index += 1
+      while (tokens[index]?.startsWith('-')) {
+        if (tokens[index] === '-a') index += 2
+        else index += 1
+      }
+      while (isAssignment(tokens[index])) index += 1
+    }
+
+    if (baseName(tokens[index]) === 'env') {
+      index += 1
+      while (index < tokens.length) {
+        const token = tokens[index]
+        if (isAssignment(token)) index += 1
+        else if (['-u', '--unset', '-C', '--chdir', '-S', '--split-string'].includes(token)) index += 2
+        else if (token.startsWith('-')) index += 1
+        else break
+      }
+    }
+
+    if (!['bash', 'sh', 'zsh'].includes(baseName(tokens[index]))) continue
+    index += 1
+    while (index < tokens.length) {
+      const option = tokens[index]
+      if (/^-[A-Za-z]*c[A-Za-z]*$/.test(option) && tokens[index + 1] !== undefined) {
+        commands.push(collapseLineContinuations(tokens[index + 1]))
+        break
+      }
+      if (['-o', '+o', '-O', '+O'].includes(option)) index += 2
+      else if (option.startsWith('-') || option.startsWith('+')) index += 1
+      else break
+    }
   }
   return commands
+}
+
+function shellSegments(value) {
+  const segments = []
+  let tokens = []
+  let word = ''
+  let wordStarted = false
+  let quote = ''
+  let index = 0
+
+  const pushWord = () => {
+    if (!wordStarted) return
+    tokens.push(word)
+    word = ''
+    wordStarted = false
+  }
+  const pushSegment = () => {
+    pushWord()
+    if (tokens.length > 0) segments.push(tokens)
+    tokens = []
+  }
+
+  while (index < value.length) {
+    const char = value[index]
+    if (quote) {
+      if (char === quote) {
+        quote = ''
+        wordStarted = true
+        index += 1
+      } else if (quote === '"' && char === '\\' && index + 1 < value.length) {
+        word += value[index + 1]
+        wordStarted = true
+        index += 2
+      } else {
+        word += char
+        wordStarted = true
+        index += 1
+      }
+      continue
+    }
+
+    if (char === "'" || char === '"') {
+      quote = char
+      wordStarted = true
+      index += 1
+    } else if (char === '\\' && index + 1 < value.length) {
+      word += value[index + 1]
+      wordStarted = true
+      index += 2
+    } else if (char === '\n' || ';|&()'.includes(char)) {
+      pushSegment()
+      index += 1
+    } else if (/\s/.test(char)) {
+      pushWord()
+      index += 1
+    } else {
+      word += char
+      wordStarted = true
+      index += 1
+    }
+  }
+  pushSegment()
+  return segments
+}
+
+function baseName(value) {
+  return typeof value === 'string' ? value.split('/').pop() : ''
+}
+
+function isAssignment(value) {
+  return typeof value === 'string' && /^[A-Za-z_][A-Za-z0-9_]*=/.test(value)
 }
 
 const curlUpload = /\bcurl\b(?=[^\n]*(?:\s(?:-d|-F|-T)\b|--(?:data(?:-binary|-raw|-urlencode)?|form|upload-file)\b|(?:-X|--request)\s*(?:POST|PUT|PATCH)\b))[^\n]*\bhttps?:\/\//i
