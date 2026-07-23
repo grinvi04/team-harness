@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-23T18:17:05.419Z",
+  "observedAt": "2026-07-23T18:24:00.277Z",
   "evidence": {
     "mode": "live"
   },
@@ -21,8 +21,8 @@
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "659434095c8b7b7dd756e189847ad04e95cf7efe",
-    "tree": "90702b7424d8fa57a8dd192f6f2a88e775a6d923"
+    "revision": "f15d8f9be5a24e885ed13c75aeb6ad902ec20b2f",
+    "tree": "6b41378b05e08954a50a9f7fe61282354096c18d"
   },
   "loader": {
     "installed": true,
