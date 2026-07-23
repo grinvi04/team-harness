@@ -1,0 +1,6 @@
+{"type":"thread.started","thread_id":"019f8fe2-b8c5-7730-bf8b-6ae0f051652b"}
+{"type":"item.completed","item":{"id":"item_0","type":"error","message":"`--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation."}}
+{"type":"item.completed","item":{"id":"item_1","type":"error","message":"`--dangerously-bypass-hook-trust` is enabled. Enabled hooks may run without review for this invocation."}}
+{"type":"turn.started"}
+{"type":"item.completed","item":{"id":"item_2","type":"agent_message","text":"harness-guard:feature-add"}}
+{"type":"turn.completed","usage":{"input_tokens":16333,"cached_input_tokens":0,"output_tokens":11,"reasoning_output_tokens":0}}

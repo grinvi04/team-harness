@@ -1,12 +1,12 @@
 # Codex native loader pilot
 
 - 판정: **PASS**
-- 시각: 2026-07-23T16:13:59.296Z
+- 시각: 2026-07-23T16:49:59.560Z
 - Codex: codex-cli 0.144.6
 - 실행 증거: live
-- Codex binary: codex (sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff)
-- Team Harness: 0.61.0 @ 1e5325c1a07dd7f89166f7f951e7bc0e6c4c8311
-- Git tree: 69f2090949738f318db8f60a04a688ad86361d08
+- Codex binary: codex @ /Users/grinvi04/.codex/packages/standalone/releases/0.144.6-aarch64-apple-darwin/bin/codex (sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff)
+- Team Harness: 0.61.0 @ 7a23eff21705d8ba1f9e615e5af1526bc42307ee
+- Git tree: 09d6761f457fa9bd770ccaa7ae1f3c4d2d303875
 
 ## 검증됨
 
@@ -15,6 +15,8 @@
 - 파괴 명령 차단·sentinel 보존: PASS
 - 시크릿 외부 전송 차단: PASS
 - UserPromptSubmit 라우팅: feature-add
+- guard transcript: codex-native-loader-v0.61.0.guard.txt (sha256:bc1bf1d45a2af553c959bfeb3d2f295ad7d48c5b579cbf2c777a957cb7b73284)
+- routing transcript: codex-native-loader-v0.61.0.routing.jsonl (sha256:491b815b3fe7a20cbb673f2527dffdbaee011c2cc9c8132adef847d8ce63d82b)
 - 사용자 marketplace/plugin 상태 byte-equivalent: PASS
 - 격리 CODEX_HOME 삭제: PASS
 
