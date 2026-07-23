@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): 중첩 명령 탐색을 fail-closed 처리
 - fix(security): quoted dollar substitution egress 차단
 - fix(security): backtick egress substitution 차단
 - fix(release): 태그 후 changelog byte 재현 보장
