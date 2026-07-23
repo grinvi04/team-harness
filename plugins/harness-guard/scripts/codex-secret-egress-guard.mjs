@@ -97,7 +97,10 @@ function logicalShellCommands(value) {
     while (index < tokens.length) {
       const option = tokens[index]
       if (/^-[A-Za-z]*c[A-Za-z]*$/.test(option) && tokens[index + 1] !== undefined) {
-        commands.push(collapseLineContinuations(tokens[index + 1]))
+        const commandIndex = tokens[index + 1] === '--' ? index + 2 : index + 1
+        if (tokens[commandIndex] !== undefined) {
+          commands.push(collapseLineContinuations(tokens[commandIndex]))
+        }
         break
       }
       if (['-o', '+o', '-O', '+O'].includes(option)) index += 2

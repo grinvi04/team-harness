@@ -141,7 +141,8 @@ shell을 완전 해석한다는 의미는 아니다. quote 상태와 연속 back
 짝수 backslash 뒤 LF, CRLF를 결합하지 않는다. `codex-secret-egress-guard-test.sh`는 Claude-shaped
 payload와 Codex exec-shaped payload, direct/nested escaped-newline 및 과차단 반례를 함께 고정한다.
 wrapper command position은 shell-word/segment 스캐너로 판정해 선행 assignment·`env`·`exec`를
-허용하되 `printf` 등 인자에 나타난 wrapper mention은 실행으로 오인하지 않는다.
+허용하고 `-c` 뒤 선택적 `--` separator를 건너뛰되, `printf` 등 인자에 나타난 wrapper mention은
+실행으로 오인하지 않는다.
 
 ## Codex Native Refresh Runbook
 
