@@ -348,6 +348,20 @@ function commandIndex(tokens) {
       continue
     }
 
+    if (['timeout', 'gtimeout'].includes(executable)) {
+      index += 1
+      while (tokens[index]?.startsWith('-')) {
+        if (tokens[index] === '--') {
+          index += 1
+          break
+        }
+        if (['-k', '--kill-after', '-s', '--signal'].includes(tokens[index])) index += 2
+        else index += 1
+      }
+      if (index < tokens.length) index += 1
+      continue
+    }
+
     if (['time', 'nohup'].includes(executable)) {
       index += 1
       while (tokens[index]?.startsWith('-')) index += 1
