@@ -67,5 +67,33 @@ else
   fail "release skill이 사전 태그 CHANGELOG 생성"
 fi
 
+STABLE_REPO="$TMP/stable-repo"
+mkdir -p "$STABLE_REPO/scripts"
+cp "$ROOT/scripts/generate-changelog.mjs" "$STABLE_REPO/scripts/"
+git -C "$STABLE_REPO" init -q
+git -C "$STABLE_REPO" config user.name tester
+git -C "$STABLE_REPO" config user.email tester@example.test
+printf 'base\n' >"$STABLE_REPO/state.txt"
+git -C "$STABLE_REPO" add .
+GIT_AUTHOR_DATE=2026-01-01T00:00:00Z GIT_COMMITTER_DATE=2026-01-01T00:00:00Z \
+  git -C "$STABLE_REPO" commit -qm "chore: baseline"
+git -C "$STABLE_REPO" tag v1.0.0
+printf 'fix\n' >>"$STABLE_REPO/state.txt"
+git -C "$STABLE_REPO" add state.txt
+GIT_AUTHOR_DATE=2026-01-02T00:00:00Z GIT_COMMITTER_DATE=2026-01-02T00:00:00Z \
+  git -C "$STABLE_REPO" commit -qm "fix: release note"
+node "$STABLE_REPO/scripts/generate-changelog.mjs" --release v1.1.0 >"$TMP/stable-a.md"
+printf 'docs\n' >>"$STABLE_REPO/state.txt"
+git -C "$STABLE_REPO" add state.txt
+GIT_AUTHOR_DATE=2026-01-03T00:00:00Z GIT_COMMITTER_DATE=2026-01-03T00:00:00Z \
+  git -C "$STABLE_REPO" commit -qm "docs: release prep"
+node "$STABLE_REPO/scripts/generate-changelog.mjs" --release v1.1.0 >"$TMP/stable-b.md"
+if cmp -s "$TMP/stable-a.md" "$TMP/stable-b.md" &&
+   grep -q '^## v1\.1\.0 - 2026-01-02$' "$TMP/stable-b.md"; then
+  pass "release prep 커밋 뒤 candidate 날짜 안정"
+else
+  fail "release prep 커밋 뒤 candidate 날짜 안정"
+fi
+
 echo "RESULT: $PASS PASS, $FAIL FAIL"
 [[ "$FAIL" -eq 0 ]]

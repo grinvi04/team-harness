@@ -135,6 +135,9 @@ function shellParts(value) {
     } else if (char === '\n' || ';()'.includes(char)) {
       pushSegment(char)
       index += 1
+    } else if (char === '|' && value[index + 1] === '&') {
+      pushSegment('|&')
+      index += 2
     } else if ('|&'.includes(char)) {
       const doubled = value[index + 1] === char
       pushSegment(doubled ? `${char}${char}` : char)
@@ -280,7 +283,7 @@ function hasUpload(value) {
     ) return true
     if (
       ['nc', 'ncat', 'netcat'].includes(executable) &&
-      separatorBefore === '|'
+      ['|', '|&'].includes(separatorBefore)
     ) return true
     if (
       ['scp', 'rsync'].includes(executable) &&

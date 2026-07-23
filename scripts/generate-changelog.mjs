@@ -40,18 +40,24 @@ const lines = [
 ]
 
 const releases = [
-  ...(candidate ? [{ tag: candidate, ref: 'HEAD', older: tags[0] }] : []),
-  ...tags.map((tag, index) => ({ tag, ref: tag, older: tags[index + 1] })),
+  ...(candidate ? [{ tag: candidate, ref: 'HEAD', older: tags[0], isCandidate: true }] : []),
+  ...tags.map((tag, index) => ({ tag, ref: tag, older: tags[index + 1], isCandidate: false })),
 ]
 
-for (const { tag, ref, older } of releases) {
+for (const { tag, ref, older, isCandidate } of releases) {
   const range = older ? `${older}..${ref}` : ref
-  const date = git(['log', '-1', '--format=%cs', ref])
-  const entries = git(['log', '--format=%s', range])
+  const entries = git(['log', '--format=%cs%x1f%s', range])
     .split('\n')
-    .filter((subject) => /^(feat|fix)(\([^)]+\))?!?: /.test(subject))
+    .map((record) => {
+      const separator = record.indexOf('\x1f')
+      return separator < 0
+        ? { date: '', subject: record }
+        : { date: record.slice(0, separator), subject: record.slice(separator + 1) }
+    })
+    .filter(({ subject }) => /^(feat|fix)(\([^)]+\))?!?: /.test(subject))
   if (entries.length === 0) continue
-  lines.push(`## ${tag} - ${date}`, '', ...entries.map((entry) => `- ${entry}`), '')
+  const date = isCandidate ? entries[0].date : git(['log', '-1', '--format=%cs', ref])
+  lines.push(`## ${tag} - ${date}`, '', ...entries.map(({ subject }) => `- ${subject}`), '')
 }
 
 process.stdout.write(`${lines.join('\n').trimEnd()}\n`)
