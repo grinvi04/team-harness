@@ -401,21 +401,80 @@ function shellCommandOperand(tokens, shellIndex) {
 
 function isRemoteTarget(token) {
   if (/^(?:dict|ftps?|gophers?|https?|imaps?|ipfs|ipns|ldaps?|mqtt|pop3s?|rtmps?|rtsp|scp|sftp|smbs?|smtps?|telnet|tftp|wss?):\/\//i.test(token)) return true
-  const variable = token.match(/\$(?:\{([A-Za-z_][A-Za-z0-9_]*)[^}]*\}|([A-Za-z_][A-Za-z0-9_]*))/)
-  if (variable) {
-    return !/(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)/i.test(variable[1] || variable[2])
-  }
+  if (/\$(?:\{[A-Za-z_][A-Za-z0-9_]*[^}]*\}|[A-Za-z_][A-Za-z0-9_]*)/.test(token)) return true
   return /^(?:localhost|\d{1,3}(?:\.\d{1,3}){3}|[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)(?::\d+)?(?:\/.*)?$/i.test(token)
 }
 
 function hasRemoteTarget(tokens) {
-  return tokens.some((token) => isRemoteTarget(token) || (
-    token.startsWith('--url=') && isRemoteTarget(token.slice('--url='.length))
-  ))
+  return tokens.some(isRemoteTarget)
+}
+
+function curlTargets(tokens, index) {
+  const targets = []
+  const valueOptions = new Set([
+    '-d', '--data', '--data-ascii', '--data-binary', '--data-raw', '--data-urlencode',
+    '-F', '--form', '--form-string', '-T', '--upload-file', '--json',
+    '-X', '--request', '-o', '--output', '-H', '--header', '-u', '--user',
+    '-A', '--user-agent', '-e', '--referer', '-b', '--cookie', '-c', '--cookie-jar',
+    '-x', '--proxy', '--proxy-user', '--resolve', '--connect-to', '--cacert', '--cert',
+    '--key', '-K', '--config', '--max-time', '--connect-timeout', '--retry',
+    '--retry-delay', '--retry-max-time', '--interface', '--unix-socket',
+    '--aws-sigv4', '--oauth2-bearer'
+  ])
+
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const token = tokens[offset]
+    if (token === '--') {
+      targets.push(...tokens.slice(offset + 1))
+      break
+    }
+    if (token === '--url') {
+      if (tokens[offset + 1] !== undefined) targets.push(tokens[offset + 1])
+      offset += 1
+      continue
+    }
+    if (token.startsWith('--url=')) {
+      targets.push(token.slice('--url='.length))
+      continue
+    }
+    if (valueOptions.has(token)) {
+      offset += 1
+      continue
+    }
+    if (/^-(?:d|F|T|X|o|H|u|A|e|b|c|x|K).+/.test(token) || token.startsWith('-')) continue
+    targets.push(token)
+  }
+  return targets
+}
+
+function wgetTargets(tokens, index) {
+  const targets = []
+  const valueOptions = new Set([
+    '--post-data', '--post-file', '-O', '--output-document', '-o', '--output-file',
+    '-a', '--append-output', '-P', '--directory-prefix', '-U', '--user-agent',
+    '--header', '--user', '--password', '--proxy-user', '--proxy-password',
+    '--timeout', '--tries', '--wait', '--limit-rate', '--bind-address', '--referer',
+    '--certificate', '--private-key', '--ca-certificate'
+  ])
+
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const token = tokens[offset]
+    if (token === '--') {
+      targets.push(...tokens.slice(offset + 1))
+      break
+    }
+    if (valueOptions.has(token)) {
+      offset += 1
+      continue
+    }
+    if (/^-(?:O|o|a|P|U).+/.test(token) || token.startsWith('-')) continue
+    targets.push(token)
+  }
+  return targets
 }
 
 function hasCurlUpload(tokens, index) {
-  if (!hasRemoteTarget(tokens)) return false
+  if (!hasRemoteTarget(curlTargets(tokens, index))) return false
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
     if (
@@ -437,7 +496,7 @@ function hasUpload(value) {
     if (executable === 'curl' && hasCurlUpload(tokens, index)) return true
     if (
       executable === 'wget' &&
-      hasRemoteTarget(tokens) &&
+      hasRemoteTarget(wgetTargets(tokens, index)) &&
       tokens.slice(index + 1).some((token) => /^--post-(?:data|file)(?:=|$)/.test(token))
     ) return true
     if (
