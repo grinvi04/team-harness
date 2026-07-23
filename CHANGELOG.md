@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): builtin egress dispatcher 차단
 - fix(security): 감사로그와 netcat 경계 보강
 - fix(release): v0.61.0 최종 게이트 강화
 - fix(security): sh -c option separator 처리
