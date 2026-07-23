@@ -506,8 +506,9 @@ function curlShortValueOption(token) {
   return undefined
 }
 
-function curlTargets(tokens, index) {
+function curlCommandInfo(tokens, index) {
   const targets = []
+  let hasConfig = false
   const valueOptions = new Set([
     '--abstract-unix-socket', '--alt-svc', '--aws-sigv4', '--cacert', '--capath',
     '--cert', '--cert-type', '--ciphers', '--config', '--connect-timeout',
@@ -559,9 +560,11 @@ function curlTargets(tokens, index) {
     }
     const shortOption = curlShortValueOption(token)
     if (shortOption) {
+      if (shortOption.name === 'K') hasConfig = true
       if (shortOption.consumesNext) offset += 1
       continue
     }
+    if (token === '--config' || token.startsWith('--config=')) hasConfig = true
     if (valueOptions.has(token)) {
       offset += 1
       continue
@@ -569,7 +572,7 @@ function curlTargets(tokens, index) {
     if (token.startsWith('-')) continue
     targets.push(token)
   }
-  return targets
+  return { hasConfig, targets }
 }
 
 function wgetTargets(tokens, index) {
@@ -607,7 +610,7 @@ function hasUrlUserinfo(value) {
 }
 
 function hasLiteralCurlCredential(tokens, index) {
-  if (curlTargets(tokens, index).some(hasUrlUserinfo)) return true
+  if (curlCommandInfo(tokens, index).targets.some(hasUrlUserinfo)) return true
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
     const shortOption = curlShortValueOption(option)
@@ -625,7 +628,8 @@ function hasLiteralCurlCredential(tokens, index) {
 }
 
 function hasCurlUpload(tokens, index) {
-  const targets = curlTargets(tokens, index)
+  const { hasConfig, targets } = curlCommandInfo(tokens, index)
+  if (hasConfig) return true
   if (!hasRemoteTarget(targets)) return false
   if (targets.some((target) => hasSecretSource(target) || hasUrlUserinfo(target))) return true
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
@@ -643,11 +647,6 @@ function hasCurlUpload(tokens, index) {
     if (
       /^--(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json)(?:=|$)/.test(option)
     ) return true
-    if (option === '--config' && ((tokens[offset + 1] || '') === '-' || hasSecretSource(tokens[offset + 1] || ''))) return true
-    if (/^--config=/.test(option)) {
-      const value = option.slice(option.indexOf('=') + 1)
-      if (value === '-' || hasSecretSource(value)) return true
-    }
     if (option === '--request' && /^(POST|PUT|PATCH)$/i.test(tokens[offset + 1] || '')) return true
     if (/^--request=(?:POST|PUT|PATCH)$/i.test(option)) return true
     if (
