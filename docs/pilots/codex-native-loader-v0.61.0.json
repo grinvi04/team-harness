@@ -1,13 +1,21 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-23T13:24:33.091Z",
+  "observedAt": "2026-07-23T16:13:59.296Z",
+  "evidence": {
+    "mode": "live"
+  },
   "codex": {
-    "version": "codex-cli 0.144.6"
+    "version": "codex-cli 0.144.6",
+    "binary": {
+      "name": "codex",
+      "digest": "sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff"
+    }
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "c7b9fb53c5c0c33348607806beff5f40fe66a1e3"
+    "revision": "1e5325c1a07dd7f89166f7f951e7bc0e6c4c8311",
+    "tree": "69f2090949738f318db8f60a04a688ad86361d08"
   },
   "loader": {
     "installed": true,
@@ -16,16 +24,20 @@
   "session": {
     "destructiveGuard": true,
     "secretEgressGuard": true,
-    "routing": "feature-add"
+    "routing": "feature-add",
+    "evidence": {
+      "guardTranscript": "sha256:bc1bf1d45a2af553c959bfeb3d2f295ad7d48c5b579cbf2c777a957cb7b73284",
+      "routingTranscript": "sha256:017193f5067f982b072d0f3fb6c922fe0de5428944ffdc015d0e7d505041d432"
+    }
   },
   "userState": {
     "before": {
       "marketplaces": "sha256:b132a5f6d66f18ba2cdf51a689d6c496115721705d39553f83948f1ed9109d1f",
-      "plugins": "sha256:c579af2c991102f4b65fc4ab10c0eefb23a2aa89ce278da07c60cc8c8f6a9ab3"
+      "plugins": "sha256:d508832e6e9b115d20f0b051308f6ee8f0dda4b19c0bace51144e6289f670e89"
     },
     "after": {
       "marketplaces": "sha256:b132a5f6d66f18ba2cdf51a689d6c496115721705d39553f83948f1ed9109d1f",
-      "plugins": "sha256:c579af2c991102f4b65fc4ab10c0eefb23a2aa89ce278da07c60cc8c8f6a9ab3"
+      "plugins": "sha256:d508832e6e9b115d20f0b051308f6ee8f0dda4b19c0bace51144e6289f670e89"
     },
     "unchanged": true
   },
