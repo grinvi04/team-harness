@@ -97,6 +97,7 @@ jobs:
           node --check scripts/generate-changelog.mjs
           node --check scripts/check-plugin-coexistence.mjs
           node --check scripts/run-external-pilot.mjs
+          node --check scripts/codex-binary-trust.mjs
           node --check scripts/sync-codex-plugin-cache.mjs
           node --check scripts/check-codex-native-plugin.mjs
           node --check scripts/run-codex-native-loader-pilot.mjs

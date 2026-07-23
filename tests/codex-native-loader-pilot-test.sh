@@ -216,4 +216,86 @@ if (report.status !== 'fail' || report.errorCode !== 'session-network-unavailabl
 if (report.userState?.unchanged !== true || report.cleanup?.isolatedHomeRemoved !== true) process.exit(1)
 NODE
 
+cat >"$TMP/replace-codex-before-exec" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+count=0
+[ ! -f "$PILOT_SWAP_COUNT" ] || count=$(cat "$PILOT_SWAP_COUNT")
+count=$((count + 1))
+printf '%s' "$count" >"$PILOT_SWAP_COUNT"
+[ "$count" = "$PILOT_SWAP_AT" ] || exit 0
+if [ "$PILOT_SWAP_MODE" = bytes ]; then
+  cp "$PILOT_SWAP_REPLACEMENT" "$PILOT_SWAP_TARGET"
+else
+  mv "$PILOT_SWAP_REPLACEMENT" "$PILOT_SWAP_TARGET"
+fi
+chmod +x "$PILOT_SWAP_TARGET"
+SH
+chmod +x "$TMP/replace-codex-before-exec"
+
+cat >"$TMP/replacement-codex-template" <<'SH'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >>"$PILOT_REPLACEMENT_EXECUTIONS"
+exit 86
+SH
+chmod +x "$TMP/replacement-codex-template"
+
+cat >"$TMP/live-before-exec-hook" <<'SH'
+#!/usr/bin/env bash
+printf 'executed\n' >"$PILOT_LIVE_HOOK_MARKER"
+SH
+chmod +x "$TMP/live-before-exec-hook"
+
+SWAP_FAILURES=0
+rm -f "$TMP/live-hook-executed"
+set +e
+env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 \
+  HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC="$TMP/live-before-exec-hook" \
+  PILOT_LIVE_HOOK_MARKER="$TMP/live-hook-executed" PATH="$TMP:$PATH" \
+  node "$RUNNER" --source "$SOURCE_ROOT" \
+    --json-report "$TMP/live-hook.json" --markdown-report "$TMP/live-hook.md" \
+    >"$TMP/live-hook.out" 2>"$TMP/live-hook.err"
+live_hook_rc=$?
+set -e
+if [ "$live_hook_rc" -ne 0 ] &&
+  [ ! -e "$TMP/live-hook-executed" ] &&
+  grep -Fq 'HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC requires HARNESS_PILOT_FIXTURE=1' "$TMP/live-hook.err"; then
+  echo "PASS: fixture replacement seam is rejected without fixture mode"
+else
+  echo "FAIL: fixture replacement seam weakened live pilot behavior (rc=$live_hook_rc)"
+  SWAP_FAILURES=$((SWAP_FAILURES + 1))
+fi
+
+pilot_swap_case() { # desc, swap_at, mode, stem
+  local desc="$1" swap_at="$2" mode="$3" stem="$4" rc
+  local target="$TMP/${stem}-codex" replacement="$TMP/${stem}-replacement"
+  cp "$TMP/fake-codex" "$target"
+  cp "$TMP/replacement-codex-template" "$replacement"
+  rm -f "$TMP/${stem}-swap-count" "$TMP/${stem}-replacement-executions"
+  set +e
+  CODEX_BIN="$target" HARNESS_PILOT_FIXTURE=1 \
+    HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC="$TMP/replace-codex-before-exec" \
+    PILOT_SWAP_COUNT="$TMP/${stem}-swap-count" PILOT_SWAP_AT="$swap_at" \
+    PILOT_SWAP_MODE="$mode" PILOT_SWAP_TARGET="$target" \
+    PILOT_SWAP_REPLACEMENT="$replacement" \
+    PILOT_REPLACEMENT_EXECUTIONS="$TMP/${stem}-replacement-executions" \
+    node "$RUNNER" --source "$SOURCE_ROOT" \
+      --json-report "$TMP/${stem}.json" --markdown-report "$TMP/${stem}.md" \
+      >"$TMP/${stem}.out" 2>"$TMP/${stem}.err"
+  rc=$?
+  set -e
+  if [ "$rc" -ne 0 ] &&
+    [ ! -e "$TMP/${stem}-replacement-executions" ] &&
+    grep -Fq 'Codex executable changed after trust verification' "$TMP/${stem}.err"; then
+    echo "PASS: $desc"
+  else
+    echo "FAIL: $desc (rc=$rc replacement_executed=$([ -e "$TMP/${stem}-replacement-executions" ] && echo yes || echo no))"
+    SWAP_FAILURES=$((SWAP_FAILURES + 1))
+  fi
+}
+
+pilot_swap_case "fixture byte replacement before first Codex execution is rejected" 1 bytes byte-swap
+pilot_swap_case "fixture inode replacement before each later Codex execution is rejected" 2 inode inode-swap
+
+[ "$SWAP_FAILURES" -eq 0 ]
 echo 'PASS: native loader pilot isolates auth/state, records live outcomes, and fails closed on drift'

@@ -2,11 +2,11 @@
 
 ## 1. 목표 & Why
 
-cmux CLI에서 Codex를 시작하기 전에 조건부 plugin 동기화와 `harness-guard`·`security-guidance` Codex cache patch를 적용한다.
+cmux CLI에서 Codex를 시작하기 전에 Codex binary provenance를 확정하고 조건부 plugin 동기화와
+`harness-guard` native contract·`security-guidance` Codex cache patch를 검증한다.
 Codex marketplace refresh가 Claude-style hook을 되돌려도 CLI 새 세션은 adapter·skill 정규화를 거친 상태에서
-시작한다. 또한 Codex 0.144.1에서 PreToolUse interception이 불완전한 `unified_exec`를 비활성화해 hook이
-지원되는 simple shell 경로를 사용한다. **성공 기준: launcher가 두 patch를 성공한 뒤에만 Codex binary를
-`--disable unified_exec`와 사용자가 준 인자로 실행한다.**
+시작한다. **성공 기준: launcher가 승인된 digest·OpenAI code signature·version을 실행 전에 확인하고,
+plugin 동기화·검증을 성공한 뒤에만 같은 binary를 사용자가 준 인자 그대로 실행한다.**
 
 ## 2. Scope
 
@@ -22,15 +22,14 @@ Codex marketplace refresh가 Claude-style hook을 되돌려도 CLI 새 세션은
   source SKILL.md와 Claude cache는 바뀌지 않는다.
 - **AC-4 (회귀):** IF Codex binary 실행 순서가 patch보다 앞서거나 security-guidance patch가 빠지면 THEN 테스트가
   실패한다.
-- **AC-5 (hook 경로):** WHEN launcher가 Codex binary를 시작하면 THEN `--disable unified_exec`를 주입하고 원래
-  사용자 인자는 그 뒤에 보존한다. fresh ephemeral probe에서 simple shell `pwd` 전에 PreToolUse가 발화해야 한다.
+- **AC-5 (trust-before-use):** WHEN live launcher가 Codex binary를 사용하면 THEN PATH 후보를 포함해 승인된
+  digest·OpenAI code signature를 확인하기 전에는 어떤 Codex 명령도 실행하지 않고, sync·검증·최종 실행마다
+  검증한 path·digest·device·inode·size identity를 실행 전후 확인한다. live `CODEX_BIN` override는 거부한다.
 
 ## 4. 제약 / 비기능
 
-- launcher는 cmux CLI용 cache 자동복구와 하위 버전 중복 방어를 담당한다.
-- system requirements 설치 전에는 직접 CLI와 Desktop에 unified_exec 비활성화가 적용되지 않는다. v0.55.0
-  이후에는 managed requirements가 모든 지원 local surface에 같은 pin을 강제한다.
-- 트레이드오프: unified_exec의 richer streaming stdin/stdout 처리를 포기하고 PreToolUse 보안 경로를 우선한다.
+- launcher는 cmux CLI용 cache 자동복구, 하위 버전 중복 방어, binary provenance 검증을 담당한다.
+- unified exec hook lifecycle은 v0.61.0 native loader 전환 뒤 Codex 공식 surface에 위임한다.
 - alias는 사용자가 명시적으로 설치·제거하는 전역 shell 설정이다.
 - 기본 Codex `approval_policy = "untrusted"`는 유지한다.
 
@@ -46,9 +45,9 @@ Codex marketplace refresh가 Claude-style hook을 되돌려도 CLI 새 세션은
 
 ## 7. 기술 접근 (HOW)
 
-- launcher는 자신의 repository root를 기준으로 두 patch script를 Node로 실행한 뒤 `CODEX_BIN`(기본 `codex`)을
-  `--disable unified_exec`와 함께 `exec`한다.
-- `CODEX_BIN`은 테스트에서 fake binary로 주입해 patch 완료 뒤 실행되는 순서를 검증한다.
+- launcher는 공용 `codex-binary-trust.mjs`로 canonical binary의 digest·signature·version을 검증하고,
+  검증된 절대경로와 digest를 sync·native 검사에 전달한 뒤 같은 trust helper에서 최종 Codex를 실행한다.
+- `CODEX_BIN`은 명시적 fixture mode에서만 fake binary로 주입해 검증 완료 뒤 실행되는 순서를 확인한다.
 - 테스트는 temporary HOME에 raw hooks와 plugin cache fixture를 만들고, fake binary가 실행된 시점의 patched
   artifacts와 전달 인자를 확인한다.
 

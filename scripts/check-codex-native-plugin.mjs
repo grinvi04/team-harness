@@ -4,6 +4,11 @@ import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync } from 'node:fs'
 import path from 'node:path'
+import {
+  captureExecutableIdentity,
+  resolveExecutable,
+  runVerifiedExecutable,
+} from './codex-binary-trust.mjs'
 
 const pluginId = 'harness-guard@team-harness'
 const expectedSkills = [
@@ -52,7 +57,13 @@ function parseArgs(argv) {
 
 function installedPluginRoot() {
   const codex = process.env.CODEX_BIN || 'codex'
-  const result = spawnSync(codex, ['plugin', 'list', '--json'], { encoding: 'utf8', env: process.env })
+  const expectedDigest = process.env.HARNESS_CODEX_EXPECTED_DIGEST
+  const identity = expectedDigest
+    ? captureExecutableIdentity(resolveExecutable(codex), expectedDigest)
+    : null
+  const result = identity
+    ? runVerifiedExecutable(identity, ['plugin', 'list', '--json'], { env: process.env })
+    : spawnSync(codex, ['plugin', 'list', '--json'], { encoding: 'utf8', env: process.env })
   if (result.error) fail(result.error.message)
   if (result.status !== 0) fail(result.stderr.trim() || `codex plugin list failed: exit ${result.status}`)
   let data

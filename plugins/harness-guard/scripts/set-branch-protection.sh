@@ -164,16 +164,38 @@ for branch in main develop; do
   # 승인요건: main만 --approvals N(팀 모드) — develop은 0 유지(pr-merge.sh --auto 무프롬프트 머지 보존).
   bappr=0; [ "$branch" = "main" ] && bappr="${APPROVALS:-0}"
   rpr=$(reviews_json "$bappr")
-  if gh api -X PUT "repos/$REPO/branches/$branch/protection" --input - >/dev/null 2>&1 <<JSON
+  if ! gh api -X PUT "repos/$REPO/branches/$branch/protection" --input - >/dev/null 2>&1 <<JSON
 {"required_status_checks":$rsc,"enforce_admins":true,"required_pull_request_reviews":$rpr,"restrictions":null,"required_conversation_resolution":true,"allow_force_pushes":false,"allow_deletions":false}
 JSON
   then
-    if [ "$ctx" = "[]" ]; then
-      # B1: 감지된 check가 0개면 required_status_checks=null(약한 보호)로 걸린 것 — 성공으로 은폐하지 않는다.
-      echo "⚠ $REPO:$branch — 보호 적용됐으나 required status check 0개(첫 CI 이전?) — CI 실행 후 재실행 필요"; rc=1
-    else
-      echo "✓ $REPO:$branch — 보호 적용(승인$bappr · enforce_admins=on · checks=$ctx)"
-    fi
-  else echo "✗ $REPO:$branch — 적용 실패(private+Free? 권한?)"; rc=1; fi
+    echo "✗ $REPO:$branch — 적용 실패(private+Free? 권한?)"; rc=1; continue
+  fi
+  if [ "$ctx" = "[]" ]; then
+    # B1: 감지된 check가 0개면 required_status_checks=null(약한 보호)로 걸린 것 — 성공으로 은폐하지 않는다.
+    echo "⚠ $REPO:$branch — 보호 적용됐으나 required status check 0개(첫 CI 이전?) — CI 실행 후 재실행 필요"; rc=1; continue
+  fi
+
+  # GitHub가 PUT을 성공으로 받아도 실제 정책이 정규화·부분 적용될 수 있으므로 postcondition을 다시 읽는다.
+  prot=$(gh api "repos/$REPO/branches/$branch/protection" 2>/dev/null || true)
+  if [ -z "$prot" ]; then
+    echo "✗ $REPO:$branch — 적용 후 보호정책 재조회 실패"; rc=1; continue
+  fi
+  appr=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_pull_request_reviews'); print(r.get('required_approving_review_count') if r else 0)" 2>/dev/null || echo "?")
+  adm=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('enforce_admins',{}).get('enabled'))" 2>/dev/null || echo "?")
+  chk=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(len(r.get('contexts') or [c.get('context') for c in (r.get('checks') or [])]) if r else -1)" 2>/dev/null || echo "?")
+  actual_contexts=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks') or {}; names=list(r.get('contexts') or []) + [c.get('context') for c in (r.get('checks') or [])]; print(','.join(sorted(set(x for x in names if x))))" 2>/dev/null || echo "?")
+  strict=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(r.get('strict') if r else '')" 2>/dev/null || echo "?")
+  fpush=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_force_pushes',{}).get('enabled'))" 2>/dev/null || echo "?")
+  del=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_deletions',{}).get('enabled'))" 2>/dev/null || echo "?")
+  conv=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('required_conversation_resolution',{}).get('enabled'))" 2>/dev/null || echo "?")
+  dismiss=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_pull_request_reviews'); print(r.get('dismiss_stale_reviews') if r else '')" 2>/dev/null || echo "?")
+  expected_contexts=$(printf '%s' "$ctx" | python3 -c "import sys,json; print(','.join(sorted(set(json.load(sys.stdin)))))" 2>/dev/null || echo "?")
+  verdict=$(classify_protection "$appr" "$adm" "$chk" "$bappr" "$strict" "$fpush" "$del" "$conv" "$dismiss") || true
+  if [ "$verdict" = "ok" ] && [ "$appr" = "$bappr" ] && [ "$actual_contexts" = "$expected_contexts" ]; then
+    echo "✓ $REPO:$branch — 보호 적용·재검증(승인$bappr · enforce_admins=on · checks=$ctx)"
+  else
+    echo "✗ $REPO:$branch — 적용 후 정책 드리프트(verdict=$verdict approvals=$appr/$bappr contexts=$actual_contexts/$expected_contexts)"
+    rc=1
+  fi
 done
 exit $rc

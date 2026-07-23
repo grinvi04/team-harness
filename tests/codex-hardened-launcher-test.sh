@@ -66,7 +66,7 @@ printf '%s\n' "$@" >"$HOME/invocation"
 SH
 chmod +x "$TMP/fake-codex"
 
-HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version
+HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version
 if [[ "$(cat "$TMP/invocation")" != '--version' ]]; then
   echo "FAIL: launcher changed Codex arguments or disabled unified_exec"
   exit 1
@@ -77,7 +77,7 @@ if [[ "$(wc -l <"$TMP/plugin-list-invocations" | tr -d ' ')" -lt 2 ]]; then
 fi
 
 rm "$TMP/invocation"
-if HOME="$TMP" SYNC_FAIL=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/sync-fail.out" 2>"$TMP/sync-fail.err"; then
+if HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SYNC_FAIL=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/sync-fail.out" 2>"$TMP/sync-fail.err"; then
   echo "FAIL: plugin sync failure allowed Codex to start"
   exit 1
 fi
@@ -86,7 +86,7 @@ fi
 BROKEN_PLUGIN_ROOT="$TMP/broken-plugin"
 mkdir -p "$BROKEN_PLUGIN_ROOT/.codex-plugin"
 cp "$NATIVE_PLUGIN_ROOT/.codex-plugin/plugin.json" "$BROKEN_PLUGIN_ROOT/.codex-plugin/"
-if HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$BROKEN_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/native-fail.out" 2>"$TMP/native-fail.err"; then
+if HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$BROKEN_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/native-fail.out" 2>"$TMP/native-fail.err"; then
   echo "FAIL: broken native contract allowed Codex to start"
   exit 1
 fi
@@ -101,7 +101,7 @@ const hooks = JSON.parse(fs.readFileSync(file, 'utf8'))
 hooks.hooks.PreToolUse[0].hooks[0].command += '; echo injected'
 fs.writeFileSync(file, `${JSON.stringify(hooks, null, 2)}\n`)
 NODE
-if HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$TAMPERED_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/tampered.out" 2>"$TMP/tampered.err"; then
+if HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$TAMPERED_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/tampered.out" 2>"$TMP/tampered.err"; then
   echo "FAIL: appended native hook command passed hardened validation"
   exit 1
 fi
@@ -114,7 +114,7 @@ grep -Eq 'command mismatch|trusted source mismatch' "$TMP/tampered.err" || {
 TAMPERED_SKILL_ROOT="$TMP/tampered-skill-plugin"
 cp -R "$NATIVE_PLUGIN_ROOT" "$TAMPERED_SKILL_ROOT"
 printf '\nInjected untrusted instruction.\n' >>"$TAMPERED_SKILL_ROOT/skills/release/SKILL.md"
-if HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$TAMPERED_SKILL_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/tampered-skill.out" 2>"$TMP/tampered-skill.err"; then
+if HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$TAMPERED_SKILL_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/tampered-skill.out" 2>"$TMP/tampered-skill.err"; then
   echo "FAIL: tampered shared skill passed hardened validation"
   exit 1
 fi
@@ -125,7 +125,7 @@ grep -Fq 'trusted source mismatch: skills/release/SKILL.md' "$TMP/tampered-skill
 }
 
 NEWER_VERSION=9.0.0
-if HOME="$TMP" SOURCE_VERSION="$NEWER_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/newer.out" 2>"$TMP/newer.err"; then
+if HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SOURCE_VERSION="$NEWER_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/newer.out" 2>"$TMP/newer.err"; then
   echo "FAIL: installed plugin newer than the trusted checkout started Codex"
   exit 1
 fi
@@ -135,9 +135,72 @@ grep -Fq 'newer than trusted source' "$TMP/newer.err" || {
   exit 1
 }
 
+cat >"$TMP/untrusted-codex" <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >>"$UNTRUSTED_CALLS"
+if [[ "$*" == "plugin list --json" ]]; then
+  printf '{"installed":[{"pluginId":"harness-guard@team-harness","version":"%s","enabled":true,"source":{"source":"local","path":"%s"}}]}\n' "$SOURCE_VERSION" "$NATIVE_PLUGIN_ROOT"
+fi
+SH
+chmod +x "$TMP/untrusted-codex"
+
+TRUST_FAILURES=0
+rm -f "$TMP/untrusted-override-calls"
+set +e
+HOME="$TMP" SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" \
+  UNTRUSTED_CALLS="$TMP/untrusted-override-calls" CODEX_BIN="$TMP/untrusted-codex" \
+  bash "$LAUNCHER" --version >"$TMP/untrusted-override.out" 2>"$TMP/untrusted-override.err"
+override_rc=$?
+set -e
+if [ "$override_rc" -ne 0 ] && [ ! -e "$TMP/untrusted-override-calls" ]; then
+  echo "PASS: live CODEX_BIN override is rejected before execution"
+else
+  echo "FAIL: live CODEX_BIN override executed before independent trust (rc=$override_rc)"
+  TRUST_FAILURES=$((TRUST_FAILURES + 1))
+fi
+
+PATH_SHADOW="$TMP/path-shadow"
+mkdir -p "$PATH_SHADOW"
+cp "$TMP/untrusted-codex" "$PATH_SHADOW/codex"
+rm -f "$TMP/path-shadow-calls"
+set +e
+env -u CODEX_BIN HOME="$TMP" PATH="$PATH_SHADOW:$PATH" SOURCE_VERSION="$SOURCE_VERSION" \
+  NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" UNTRUSTED_CALLS="$TMP/path-shadow-calls" \
+  bash "$LAUNCHER" --version >"$TMP/path-shadow.out" 2>"$TMP/path-shadow.err"
+path_shadow_rc=$?
+set -e
+if [ "$path_shadow_rc" -ne 0 ] && [ ! -e "$TMP/path-shadow-calls" ]; then
+  echo "PASS: PATH-shadowed Codex is rejected before execution"
+else
+  echo "FAIL: PATH-shadowed Codex executed before independent trust (rc=$path_shadow_rc)"
+  TRUST_FAILURES=$((TRUST_FAILURES + 1))
+fi
+
+DIGEST_SWAP_CODEX="$TMP/digest-swap-codex"
+cp "$TMP/untrusted-codex" "$DIGEST_SWAP_CODEX"
+EXPECTED_DIGEST="sha256:$(shasum -a 256 "$DIGEST_SWAP_CODEX" | awk '{print $1}')"
+printf '\n# changed after initial trust\n' >>"$DIGEST_SWAP_CODEX"
+rm -f "$TMP/digest-swap-calls"
+set +e
+SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" \
+  UNTRUSTED_CALLS="$TMP/digest-swap-calls" \
+  node "$ROOT/scripts/codex-binary-trust.mjs" \
+    --candidate "$DIGEST_SWAP_CODEX" --fixture --expected-digest "$EXPECTED_DIGEST" \
+    --execute -- --version >"$TMP/digest-swap.out" 2>"$TMP/digest-swap.err"
+digest_swap_rc=$?
+set -e
+if [ "$digest_swap_rc" -ne 0 ] && [ ! -e "$TMP/digest-swap-calls" ]; then
+  echo "PASS: post-trust Codex replacement is rejected before execution"
+else
+  echo "FAIL: post-trust Codex replacement executed (rc=$digest_swap_rc)"
+  TRUST_FAILURES=$((TRUST_FAILURES + 1))
+fi
+
 for document in "$ROOT/README.md" "$ROOT/docs/onboarding.md" "$ROOT/docs/harness-maintenance.md"; do
   grep -Fq 'scripts/codex-hardened.sh --version' "$document" || { echo "FAIL: update command missing from ${document#"$ROOT"/}"; exit 1; }
   grep -Fq 'scripts/harness-doctor.sh --repo . --probe' "$document" || { echo "FAIL: post-update probe missing from ${document#"$ROOT"/}"; exit 1; }
 done
 
+[ "$TRUST_FAILURES" -eq 0 ]
 echo "PASS: hardened launcher syncs and validates native Codex state without disabling unified_exec"
