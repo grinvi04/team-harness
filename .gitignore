@@ -5,3 +5,10 @@
 # team-harness도 자기 표준(templates/gitignore.snippet)을 dogfood — decisions K3
 docs/goals/
 docs/milestones/
+
+# 시크릿 — 공개 저장소에 민감 파일이 staging되기 전 차단
+.env
+.env.*
+!.env.example
+*.key
+*.pem

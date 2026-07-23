@@ -9,6 +9,8 @@ PRODUCT="$ROOT/docs/product-direction.md"
 DECISIONS="$ROOT/docs/decisions.md"
 CI="$ROOT/.github/workflows/ci-gate.yml"
 LICENSE="$ROOT/LICENSE"
+GITIGNORE="$ROOT/.gitignore"
+PRE_COMMIT="$ROOT/.githooks/pre-commit"
 PASS=0
 FAIL=0
 
@@ -60,6 +62,42 @@ if printf '%s\n' "$tracked_paths" \
 else
   pass "민감 tracked 파일 0"
 fi
+
+if contains "$GITIGNORE" ".env" \
+  && contains "$GITIGNORE" ".env.*" \
+  && contains "$GITIGNORE" "!.env.example" \
+  && contains "$GITIGNORE" "*.key" \
+  && contains "$GITIGNORE" "*.pem"; then
+  pass "자기 repo 민감 파일 ignore baseline"
+else
+  fail "자기 repo 민감 파일 ignore baseline 누락"
+fi
+
+if contains "$PRE_COMMIT" "gitleaks git --pre-commit --staged" \
+  && contains "$PRE_COMMIT" "--redact=100"; then
+  pass "pre-commit staged secret scan 배선"
+else
+  fail "pre-commit staged secret scan 배선 누락"
+fi
+
+HOOK_TMP=$(mktemp -d)
+mkdir -p "$HOOK_TMP/bin"
+cat >"$HOOK_TMP/bin/gitleaks" <<'SH'
+#!/bin/sh
+printf '%s\n' "$*" >"$GITLEAKS_ARGS"
+exit "${FAKE_GITLEAKS_RC:-0}"
+SH
+chmod +x "$HOOK_TMP/bin/gitleaks"
+GITLEAKS_ARGS="$HOOK_TMP/args" FAKE_GITLEAKS_RC=1 PATH="$HOOK_TMP/bin:$PATH" \
+  sh "$PRE_COMMIT" >/dev/null 2>&1
+hook_rc=$?
+if [ "$hook_rc" -eq 1 ] \
+  && grep -Fq -- "git --pre-commit --staged --redact=100" "$HOOK_TMP/args"; then
+  pass "pre-commit secret finding fail-closed"
+else
+  fail "pre-commit secret finding을 차단하지 못함"
+fi
+rm -rf "$HOOK_TMP"
 
 HOME_PATH_PATTERN='(/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|/root(/|$)|[A-Za-z]:[/\\]Users[/\\][A-Za-z0-9._-]+)'
 home_refs="$(git -C "$ROOT" grep -n -I -E "$HOME_PATH_PATTERN" -- . 2>/dev/null || true)"

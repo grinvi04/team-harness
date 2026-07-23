@@ -13,6 +13,9 @@ Start with [`AGENTS.md`](AGENTS.md), which is the repository's working contract,
    PRs target `develop` unless the documented hotfix or release flow says otherwise.
 6. Resolve review threads and required checks, then merge only through the repository's harness workflow.
 
+Install `gitleaks` before committing. The repository pre-commit hook scans staged changes and fails closed when the
+scanner is unavailable or reports a potential secret.
+
 Keep changes surgical. Do not weaken secret scanning, guards, or server gates to make a test pass. Changes affecting
 plugin, hook, skill, script, or template behavior must follow the version policy in
 [`docs/harness-maintenance.md`](docs/harness-maintenance.md).

@@ -399,12 +399,106 @@ function shellCommandOperand(tokens, shellIndex) {
   return undefined
 }
 
-function hasRemoteUrl(tokens) {
-  return tokens.some((token) => /\bhttps?:\/\//i.test(token))
+function isRemoteTarget(token) {
+  return token.length > 0 && !/^file:\/\//i.test(token)
+}
+
+function hasRemoteTarget(tokens) {
+  return tokens.some(isRemoteTarget)
+}
+
+function curlTargets(tokens, index) {
+  const targets = []
+  const valueOptions = new Set([
+    '-A', '-C', '-D', '-E', '-F', '-H', '-K', '-P', '-Q', '-T', '-U', '-X',
+    '-Y', '-b', '-c', '-d', '-e', '-h', '-m', '-o', '-r', '-t', '-u', '-w',
+    '-x', '-y', '-z',
+    '--abstract-unix-socket', '--alt-svc', '--aws-sigv4', '--cacert', '--capath',
+    '--cert', '--cert-type', '--ciphers', '--config', '--connect-timeout',
+    '--connect-to', '--continue-at', '--cookie', '--cookie-jar',
+    '--create-file-mode', '--crlfile', '--curves', '--data', '--data-ascii',
+    '--data-binary', '--data-raw', '--data-urlencode', '--delegation',
+    '--dns-interface', '--dns-ipv4-addr', '--dns-ipv6-addr', '--dns-servers',
+    '--doh-url', '--dump-header', '--egd-file', '--engine', '--etag-compare',
+    '--etag-save', '--expect100-timeout', '--form', '--form-string',
+    '--ftp-account', '--ftp-alternative-to-user', '--ftp-method', '--ftp-port',
+    '--ftp-ssl-ccc-mode', '--happy-eyeballs-timeout-ms', '--haproxy-clientip',
+    '--header', '--help', '--hostpubmd5', '--hostpubsha256', '--hsts',
+    '--interface', '--ipfs-gateway', '--json', '--keepalive-time', '--key',
+    '--key-type', '--krb', '--libcurl', '--limit-rate', '--local-port',
+    '--login-options', '--mail-auth', '--mail-from', '--mail-rcpt',
+    '--max-filesize', '--max-redirs', '--max-time', '--netrc-file', '--noproxy',
+    '--oauth2-bearer', '--output', '--output-dir', '--parallel-max', '--pass',
+    '--pinnedpubkey', '--preproxy', '--proto', '--proto-default', '--proto-redir',
+    '--proxy', '--proxy-cacert', '--proxy-capath', '--proxy-cert',
+    '--proxy-cert-type', '--proxy-ciphers', '--proxy-crlfile', '--proxy-header',
+    '--proxy-key', '--proxy-key-type', '--proxy-pass', '--proxy-pinnedpubkey',
+    '--proxy-service-name', '--proxy-tls13-ciphers', '--proxy-tlsauthtype',
+    '--proxy-tlspassword', '--proxy-tlsuser', '--proxy-user', '--proxy1.0',
+    '--pubkey', '--quote', '--random-file', '--range', '--rate', '--referer',
+    '--request', '--request-target', '--resolve', '--retry', '--retry-delay',
+    '--retry-max-time', '--sasl-authzid', '--service-name', '--socks4',
+    '--socks4a', '--socks5', '--socks5-gssapi-service', '--socks5-hostname',
+    '--speed-limit', '--speed-time', '--stderr', '--telnet-option',
+    '--tftp-blksize', '--time-cond', '--tls-max', '--tls13-ciphers',
+    '--tlsauthtype', '--tlspassword', '--tlsuser', '--trace', '--trace-ascii',
+    '--trace-config', '--unix-socket', '--upload-file', '--url-query', '--user',
+    '--user-agent', '--variable', '--write-out'
+  ])
+
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const token = tokens[offset]
+    if (token === '--') {
+      targets.push(...tokens.slice(offset + 1))
+      break
+    }
+    if (token === '--url') {
+      if (tokens[offset + 1] !== undefined) targets.push(tokens[offset + 1])
+      offset += 1
+      continue
+    }
+    if (token.startsWith('--url=')) {
+      targets.push(token.slice('--url='.length))
+      continue
+    }
+    if (valueOptions.has(token)) {
+      offset += 1
+      continue
+    }
+    if (/^-(?:A|C|D|E|F|H|K|P|Q|T|U|X|Y|b|c|d|e|h|m|o|r|t|u|w|x|y|z).+/.test(token) || token.startsWith('-')) continue
+    targets.push(token)
+  }
+  return targets
+}
+
+function wgetTargets(tokens, index) {
+  const targets = []
+  const valueOptions = new Set([
+    '--post-data', '--post-file', '-O', '--output-document', '-o', '--output-file',
+    '-a', '--append-output', '-P', '--directory-prefix', '-U', '--user-agent',
+    '--header', '--user', '--password', '--proxy-user', '--proxy-password',
+    '--timeout', '--tries', '--wait', '--limit-rate', '--bind-address', '--referer',
+    '--certificate', '--private-key', '--ca-certificate'
+  ])
+
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const token = tokens[offset]
+    if (token === '--') {
+      targets.push(...tokens.slice(offset + 1))
+      break
+    }
+    if (valueOptions.has(token)) {
+      offset += 1
+      continue
+    }
+    if (/^-(?:O|o|a|P|U).+/.test(token) || token.startsWith('-')) continue
+    targets.push(token)
+  }
+  return targets
 }
 
 function hasCurlUpload(tokens, index) {
-  if (!hasRemoteUrl(tokens)) return false
+  if (!hasRemoteTarget(curlTargets(tokens, index))) return false
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
     if (
@@ -426,12 +520,15 @@ function hasUpload(value) {
     if (executable === 'curl' && hasCurlUpload(tokens, index)) return true
     if (
       executable === 'wget' &&
-      hasRemoteUrl(tokens) &&
+      hasRemoteTarget(wgetTargets(tokens, index)) &&
       tokens.slice(index + 1).some((token) => /^--post-(?:data|file)(?:=|$)/.test(token))
     ) return true
     if (
       ['nc', 'ncat', 'netcat'].includes(executable) &&
-      ['|', '|&'].includes(separatorBefore)
+      (
+        ['|', '|&'].includes(separatorBefore) ||
+        tokens.slice(index + 1).some((token) => /^(?:[0-9]+)?<{1,3}/.test(token))
+      )
     ) return true
     if (
       ['scp', 'rsync'].includes(executable) &&
@@ -444,7 +541,7 @@ function hasUpload(value) {
 
 const logicalCommands = logicalShellCommands(command)
 const blocked = logicalCommands.truncated || logicalCommands.commands.some((logicalCommand) => {
-  const hasSecretSource = /(?:\$\{?(?:[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*)\}?|\b(?:printenv|env)(?:\s+[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/])\.env(?:\.[A-Za-z0-9_-]+)?\b)/i.test(logicalCommand)
+  const hasSecretSource = /(?:\$\{?(?:[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*)\}?|\b(?:printenv|env)(?:\s+[A-Z0-9_]*(?:API[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/<])\.env(?:\.[A-Za-z0-9_-]+)?\b)/i.test(logicalCommand)
   return hasSecretSource && hasUpload(logicalCommand)
 })
 

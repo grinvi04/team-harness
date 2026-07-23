@@ -7,6 +7,14 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): 확장형 curl 목적지 차단
+- fix(security): curl option operand 목적지 오인 방지
+- fix(security): attached env redirect egress 차단
+- fix(security): schemeless sink와 release PR 재조회 보강
+- fix(security): curl sink operand를 위치로 판정
+- fix(security): 로컬 URI egress 과차단 해소
+- fix(security): 변수 확장 원격 sink 차단
+- fix(security): 최종 release-check 경계 차단
 - fix(security): timeout wrapper egress 차단
 - fix(security): 중첩 명령 탐색을 fail-closed 처리
 - fix(security): quoted dollar substitution egress 차단

@@ -113,6 +113,7 @@ set -u
 [ "${1:-}" = "api" ] || exit 70
 case "${2:-}" in
   repos/o/r/branches/main|repos/o/r/branches/develop)
+    [ "${FAKE_GH_SCENARIO:-ok}" = "missing-branch" ] && exit 1
     printf '{}\n'
     ;;
   repos/o/r/branches/main/protection)
@@ -160,6 +161,7 @@ cli_check_case "CLI 팀1: develop 승인1 → exit nonzero" develop-approval-one
 cli_check_case "CLI exact contexts 일치 → exit 0" ok 0 "quality,secret-scan,test-guard,commitlint"
 cli_check_case "CLI exact contexts 순서·중복 정규화 → exit 0" ok 0 "commitlint,quality,quality,test-guard,secret-scan"
 cli_check_case "CLI exact contexts 누락 → exit nonzero" missing-context 1 "quality,secret-scan,test-guard,commitlint"
+cli_check_case "CLI repo/branch 조회 실패 → exit nonzero" missing-branch 1
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
