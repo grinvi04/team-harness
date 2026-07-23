@@ -391,6 +391,14 @@ function shellCommandOperand(tokens, shellIndex) {
         index += 2
         continue
       }
+      if (shell === 'fish' && option === '--command') {
+        foundCommandOption = true
+        index += 1
+        continue
+      }
+      if (shell === 'fish' && option.startsWith('--command=')) {
+        return option.slice('--command='.length)
+      }
       if (/^-[A-Za-z]*c[A-Za-z]*$/.test(option)) {
         foundCommandOption = true
         index += 1
