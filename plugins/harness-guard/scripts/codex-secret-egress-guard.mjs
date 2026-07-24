@@ -866,7 +866,7 @@ function hasWgetEgress(tokens, index) {
 }
 
 function isRemoteCopyTarget(token) {
-  return /^(?:s(?:cp|ync):\/\/|(?:(?:[A-Za-z0-9._-]+@)?[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+\]):)/i.test(token)
+  return /^(?:s(?:cp|ync):\/\/|(?:[A-Za-z0-9._-]+@)?(?:[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+\]):)/i.test(token)
 }
 
 const remoteCopyValueOptions = {

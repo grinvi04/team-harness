@@ -75,9 +75,9 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   runner가 새로 주입하며 inherited credential·config alias는 전달하지 않는다. wget credential URL/header와 high-signal credential
   파일 upload는 실제 source option·stdin·positional source에 결합해 차단하고 `curl -o`·`wget -O` 같은
   로컬 출력 경로는 source로 오인하지 않는다. `scp`·`rsync`는 option operand와 positional operand를 구분하고
-  마지막 positional operand가 `host:path`·`user@host:path`·remote URI일 때만 원격 목적지로 판정해,
-  원격 source의 로컬 복원을 차단하지 않는다. macOS 전용 suspended-spawn 반례는 main·develop의
-  `atomic-trust-macos` required CI check에서 실제로 실행한다.
+  마지막 positional operand가 `host:path`·`user@host:path`·`user@[IPv6]:path`·remote URI일 때만 원격
+  목적지로 판정해, 원격 source의 로컬 복원을 차단하지 않는다. macOS 전용 suspended-spawn 반례는
+  main·develop의 `atomic-trust-macos` required CI check에서 실제로 실행한다.
 
 ## 4. 제약 / 비기능
 
