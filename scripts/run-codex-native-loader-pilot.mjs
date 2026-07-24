@@ -289,6 +289,35 @@ function isolatedSessionAuth(authSource) {
   return sanitized
 }
 
+const credentialEnvironmentName =
+  /(?:API[_-]?KEY|ACCESS[_-]?KEY|PRIVATE[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL|(?:^|_)PAT(?:_|$))/i
+const credentialEnvironmentAliases = new Set([
+  'AWS_CONFIG_FILE',
+  'AZURE_CONFIG_DIR',
+  'CURL_HOME',
+  'DOCKER_CONFIG',
+  'GH_CONFIG_DIR',
+  'GIT_ASKPASS',
+  'GIT_CONFIG_GLOBAL',
+  'GIT_CONFIG_SYSTEM',
+  'GPG_AGENT_INFO',
+  'KUBECONFIG',
+  'NETRC',
+  'NPM_CONFIG_USERCONFIG',
+  'SSH_AUTH_SOCK',
+])
+
+function isolatedPilotEnvironment(pilotHome) {
+  const environment = {}
+  for (const [key, value] of Object.entries(process.env)) {
+    if (credentialEnvironmentName.test(key) || credentialEnvironmentAliases.has(key)) continue
+    environment[key] = value
+  }
+  environment.HOME = pilotHome
+  environment.CODEX_HOME = pilotHome
+  return environment
+}
+
 function markdown(report) {
   const mark = (value) => (value ? 'PASS' : 'FAIL')
   return `# Codex native loader pilot
@@ -389,6 +418,8 @@ const report = {
     copied: false,
     sessionCredentialProvided: false,
     longLivedCredentialCopied: false,
+    longLivedEnvironmentForwarded: false,
+    userHomeIsolated: false,
   },
   cleanup: { isolatedHomeRemoved: false },
   splitPackages: { promoted: false, reason: 'monolith native loader pilot only' },
@@ -433,7 +464,9 @@ try {
       report.auth.sessionCredentialProvided = true
     }
   }
-  const pilotEnvironment = { ...process.env, CODEX_HOME: pilotHome }
+  const pilotEnvironment = isolatedPilotEnvironment(pilotHome)
+  report.auth.userHomeIsolated =
+    pilotEnvironment.HOME === pilotHome && pilotEnvironment.CODEX_HOME === pilotHome
 
   codex(['plugin', 'marketplace', 'add', args.source, '--json'], pilotEnvironment, 'local marketplace install')
   const installed = JSON.parse(

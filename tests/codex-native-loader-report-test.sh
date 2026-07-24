@@ -33,6 +33,12 @@ if (
 if (report.auth?.longLivedCredentialCopied !== false) {
   reject('long-lived credential non-copy evidence missing')
 }
+if (report.auth?.longLivedEnvironmentForwarded !== false) {
+  reject('long-lived credential environment stripping evidence missing')
+}
+if (report.auth?.userHomeIsolated !== true) {
+  reject('pilot HOME isolation evidence missing')
+}
 if (report.session?.credentialEgressGuard !== true) {
   reject('third credential-egress session verdict missing')
 }

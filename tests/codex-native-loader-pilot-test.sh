@@ -36,14 +36,19 @@ const forbidden = Boolean(
   tokens.refresh_token ||
   auth.refresh_token ||
   auth.OPENAI_API_KEY ||
-  auth.api_key,
+  auth.api_key ||
+  process.env.OPENAI_API_KEY ||
+  process.env.AWS_SECRET_ACCESS_KEY ||
+  process.env.GITHUB_TOKEN,
 )
 const schemaCompatible = Object.hasOwn(tokens, 'refresh_token') && tokens.refresh_token === ''
+const isolatedHome = process.env.HOME === process.env.CODEX_HOME
 const sessionOnly = Boolean(
   tokens.access_token &&
   tokens.id_token &&
   tokens.account_id &&
-  schemaCompatible
+  schemaCompatible &&
+  isolatedHome
 )
 fs.writeFileSync(observationPath, forbidden ? 'long-lived-present\n' : sessionOnly ? 'session-only\n' : 'session-missing\n')
 if (forbidden) process.exit(86)
@@ -432,6 +437,9 @@ JSON
 rm -f "$TMP/auth-observation"
 set +e
 HARNESS_PILOT_SKIP_AUTH=0 FAKE_EXPECT_SESSION_AUTH=1 \
+  OPENAI_API_KEY=fixture-long-env-api-key \
+  AWS_SECRET_ACCESS_KEY=fixture-long-env-aws-key \
+  GITHUB_TOKEN=fixture-long-env-github-token \
   FAKE_AUTH_OBSERVATION="$TMP/auth-observation" \
   node "$RUNNER" --source "$SOURCE_ROOT" \
     --json-report "$TMP/auth.json" --markdown-report "$TMP/auth.md" \
@@ -445,13 +453,15 @@ const report = require(process.argv[2])
 if (
   report.status !== 'pass' ||
   report.auth?.sessionCredentialProvided !== true ||
-  report.auth?.longLivedCredentialCopied !== false
+  report.auth?.longLivedCredentialCopied !== false ||
+  report.auth?.longLivedEnvironmentForwarded !== false ||
+  report.auth?.userHomeIsolated !== true
 ) process.exit(1)
 NODE
 then
-  echo "PASS: isolated auth contains session access/id/account without refresh token or API key"
+  echo "PASS: isolated auth/env contains session access/id/account without long-lived credentials"
 else
-  echo "FAIL: isolated auth exposed long-lived credential or omitted session-only auth (rc=$auth_rc observation=$(cat "$TMP/auth-observation" 2>/dev/null || echo missing))"
+  echo "FAIL: isolated auth/env exposed long-lived credential or omitted session-only auth (rc=$auth_rc observation=$(cat "$TMP/auth-observation" 2>/dev/null || echo missing))"
   CONTRACT_FAILURES=$((CONTRACT_FAILURES + 1))
 fi
 

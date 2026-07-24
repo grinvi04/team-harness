@@ -841,6 +841,10 @@ function hasWgetEgress(tokens, index) {
   return false
 }
 
+function isRemoteCopyTarget(token) {
+  return /^(?:(?:[A-Za-z0-9._-]+@)?[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+\]):/.test(token)
+}
+
 function hasUpload(value) {
   for (const { tokens, separatorBefore } of shellParts(value)) {
     const index = commandIndex(tokens)
@@ -860,7 +864,7 @@ function hasUpload(value) {
         /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token) ||
         isHighSignalCredentialPath(token)
       ) &&
-      tokens.slice(index + 1).some((token) => /^[A-Za-z0-9._-]+@[^\s:]+:/.test(token))
+      tokens.slice(index + 1).some(isRemoteCopyTarget)
     ) return true
   }
   return false
