@@ -29,6 +29,7 @@ printf '%s\n' "CODEX_HOME=$CODEX_HOME $*" >>"$FAKE_CALLS"
 if [ "${FAKE_EXPECT_SESSION_AUTH:-0}" = 1 ] && [ "$CODEX_HOME" != "$USER_CODEX_HOME" ]; then
   node - "$CODEX_HOME/auth.json" "$FAKE_AUTH_OBSERVATION" <<'NODE'
 const fs = require('node:fs')
+const path = require('node:path')
 const [authPath, observationPath] = process.argv.slice(2)
 const auth = JSON.parse(fs.readFileSync(authPath, 'utf8'))
 const tokens = auth.tokens || {}
@@ -39,10 +40,21 @@ const forbidden = Boolean(
   auth.api_key ||
   process.env.OPENAI_API_KEY ||
   process.env.AWS_SECRET_ACCESS_KEY ||
-  process.env.GITHUB_TOKEN,
+  process.env.GITHUB_TOKEN ||
+  process.env.CUSTOM_AUTH_ROOT,
 )
 const schemaCompatible = Object.hasOwn(tokens, 'refresh_token') && tokens.refresh_token === ''
-const isolatedHome = process.env.HOME === process.env.CODEX_HOME
+const isolatedRoots = [
+  'XDG_CONFIG_HOME',
+  'XDG_DATA_HOME',
+  'XDG_STATE_HOME',
+  'XDG_CACHE_HOME',
+  'XDG_RUNTIME_DIR',
+].every((key) => {
+  const relative = path.relative(process.env.CODEX_HOME, process.env[key] || '')
+  return relative !== '' && relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)
+})
+const isolatedHome = process.env.HOME === process.env.CODEX_HOME && isolatedRoots
 const sessionOnly = Boolean(
   tokens.access_token &&
   tokens.id_token &&
@@ -440,6 +452,12 @@ HARNESS_PILOT_SKIP_AUTH=0 FAKE_EXPECT_SESSION_AUTH=1 \
   OPENAI_API_KEY=fixture-long-env-api-key \
   AWS_SECRET_ACCESS_KEY=fixture-long-env-aws-key \
   GITHUB_TOKEN=fixture-long-env-github-token \
+  CUSTOM_AUTH_ROOT="$TMP/user-config-root" \
+  XDG_CONFIG_HOME="$TMP/user-config-root/xdg-config" \
+  XDG_DATA_HOME="$TMP/user-config-root/xdg-data" \
+  XDG_STATE_HOME="$TMP/user-config-root/xdg-state" \
+  XDG_CACHE_HOME="$TMP/user-config-root/xdg-cache" \
+  XDG_RUNTIME_DIR="$TMP/user-config-root/xdg-runtime" \
   FAKE_AUTH_OBSERVATION="$TMP/auth-observation" \
   node "$RUNNER" --source "$SOURCE_ROOT" \
     --json-report "$TMP/auth.json" --markdown-report "$TMP/auth.md" \
@@ -455,7 +473,8 @@ if (
   report.auth?.sessionCredentialProvided !== true ||
   report.auth?.longLivedCredentialCopied !== false ||
   report.auth?.longLivedEnvironmentForwarded !== false ||
-  report.auth?.userHomeIsolated !== true
+  report.auth?.userHomeIsolated !== true ||
+  report.auth?.inheritedEnvironmentAllowlisted !== true
 ) process.exit(1)
 NODE
 then

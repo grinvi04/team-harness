@@ -289,33 +289,96 @@ function isolatedSessionAuth(authSource) {
   return sanitized
 }
 
-const credentialEnvironmentName =
-  /(?:API[_-]?KEY|ACCESS[_-]?KEY|PRIVATE[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL|(?:^|_)PAT(?:_|$))/i
-const credentialEnvironmentAliases = new Set([
-  'AWS_CONFIG_FILE',
-  'AZURE_CONFIG_DIR',
-  'CURL_HOME',
-  'DOCKER_CONFIG',
-  'GH_CONFIG_DIR',
-  'GIT_ASKPASS',
-  'GIT_CONFIG_GLOBAL',
-  'GIT_CONFIG_SYSTEM',
-  'GPG_AGENT_INFO',
-  'KUBECONFIG',
-  'NETRC',
-  'NPM_CONFIG_USERCONFIG',
-  'SSH_AUTH_SOCK',
+const pilotEnvironmentAllowlist = new Set([
+  'COLORTERM',
+  'FORCE_COLOR',
+  'LANG',
+  'LC_ALL',
+  'LC_CTYPE',
+  'LOGNAME',
+  'NODE_EXTRA_CA_CERTS',
+  'NO_COLOR',
+  'PATH',
+  'SHELL',
+  'SSL_CERT_DIR',
+  'SSL_CERT_FILE',
+  'TEMP',
+  'TERM',
+  'TMP',
+  'TMPDIR',
+  'TZ',
+  'USER',
 ])
+const pilotEnvironmentRoots = {
+  XDG_CONFIG_HOME: '.config',
+  XDG_DATA_HOME: '.local/share',
+  XDG_STATE_HOME: '.local/state',
+  XDG_CACHE_HOME: '.cache',
+  XDG_RUNTIME_DIR: '.runtime',
+}
+const pilotTrustedEnvironmentKeys = new Set([
+  'CODEX_BIN',
+  'HARNESS_CODEX_EXPECTED_CDHASH',
+  'HARNESS_CODEX_EXPECTED_DIGEST',
+])
+
+function isFixtureEnvironmentKey(key) {
+  return fixtureMode && (
+    /^(?:FAKE_|PILOT_)/.test(key) ||
+    [
+      'PROBE_API_KEY',
+      'SELF_TRUST_SOURCE',
+      'SOURCE_ROOT',
+      'SOURCE_VERSION',
+      'USER_CODEX_HOME',
+      'USER_PLUGIN_CALLS',
+    ].includes(key)
+  )
+}
+
+function isPilotEnvironmentKey(key) {
+  return pilotEnvironmentAllowlist.has(key) ||
+    Object.hasOwn(pilotEnvironmentRoots, key) ||
+    pilotTrustedEnvironmentKeys.has(key) ||
+    ['HOME', 'CODEX_HOME'].includes(key) ||
+    isFixtureEnvironmentKey(key)
+}
 
 function isolatedPilotEnvironment(pilotHome) {
   const environment = {}
   for (const [key, value] of Object.entries(process.env)) {
-    if (credentialEnvironmentName.test(key) || credentialEnvironmentAliases.has(key)) continue
-    environment[key] = value
+    if (pilotEnvironmentAllowlist.has(key) || isFixtureEnvironmentKey(key)) environment[key] = value
   }
   environment.HOME = pilotHome
   environment.CODEX_HOME = pilotHome
+  environment.CODEX_BIN = verifiedCodexIdentity.path
+  environment.HARNESS_CODEX_EXPECTED_DIGEST = verifiedCodexIdentity.digest
+  if (verifiedCodexIdentity.cdHash) {
+    environment.HARNESS_CODEX_EXPECTED_CDHASH = verifiedCodexIdentity.cdHash
+  }
+  for (const [key, relative] of Object.entries(pilotEnvironmentRoots)) {
+    environment[key] = path.join(pilotHome, relative)
+    mkdirSync(environment[key], { recursive: true, mode: 0o700 })
+  }
   return environment
+}
+
+function isWithinPilotHome(pilotHome, candidate) {
+  const relative = path.relative(pilotHome, candidate)
+  return relative !== '' && relative !== '..' &&
+    !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative)
+}
+
+function pilotEnvironmentVerdict(environment, pilotHome) {
+  return {
+    allowlisted: Object.keys(environment).every(isPilotEnvironmentKey),
+    homeIsolated:
+      environment.HOME === pilotHome &&
+      environment.CODEX_HOME === pilotHome &&
+      Object.keys(pilotEnvironmentRoots).every((key) =>
+        isWithinPilotHome(pilotHome, environment[key])
+      ),
+  }
 }
 
 function markdown(report) {
@@ -420,6 +483,7 @@ const report = {
     longLivedCredentialCopied: false,
     longLivedEnvironmentForwarded: false,
     userHomeIsolated: false,
+    inheritedEnvironmentAllowlisted: false,
   },
   cleanup: { isolatedHomeRemoved: false },
   splitPackages: { promoted: false, reason: 'monolith native loader pilot only' },
@@ -465,8 +529,9 @@ try {
     }
   }
   const pilotEnvironment = isolatedPilotEnvironment(pilotHome)
-  report.auth.userHomeIsolated =
-    pilotEnvironment.HOME === pilotHome && pilotEnvironment.CODEX_HOME === pilotHome
+  const environmentVerdict = pilotEnvironmentVerdict(pilotEnvironment, pilotHome)
+  report.auth.userHomeIsolated = environmentVerdict.homeIsolated
+  report.auth.inheritedEnvironmentAllowlisted = environmentVerdict.allowlisted
 
   codex(['plugin', 'marketplace', 'add', args.source, '--json'], pilotEnvironment, 'local marketplace install')
   const installed = JSON.parse(

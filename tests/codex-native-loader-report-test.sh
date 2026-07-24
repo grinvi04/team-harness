@@ -39,6 +39,9 @@ if (report.auth?.longLivedEnvironmentForwarded !== false) {
 if (report.auth?.userHomeIsolated !== true) {
   reject('pilot HOME isolation evidence missing')
 }
+if (report.auth?.inheritedEnvironmentAllowlisted !== true) {
+  reject('pilot environment allowlist evidence missing')
+}
 if (report.session?.credentialEgressGuard !== true) {
   reject('third credential-egress session verdict missing')
 }
