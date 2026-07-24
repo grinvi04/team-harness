@@ -859,6 +859,8 @@ function codexHomeSuffix(value, activeExpansionOffsets = []) {
   const hasAcceptedPrefix = (referenceIndex) =>
     hasPureWrapperPrefix(referenceIndex) ||
     hasPotentiallyEmptyPrefix(referenceIndex)
+  const hasActiveSuffixExpansion = (referenceEnd) =>
+    activeExpansionOffsets.some((offset) => offset >= referenceEnd)
   const containingSuffix = (referenceEnd) => {
     if (containingExpansions.length === 0) return undefined
     const closingIndexes = new Set(
@@ -885,12 +887,17 @@ function codexHomeSuffix(value, activeExpansionOffsets = []) {
       return {
         suffix: value.slice(referenceEnd),
         containingSuffix: containingSuffix(referenceEnd),
+        hasActiveSuffixExpansion: hasActiveSuffixExpansion(referenceEnd),
       }
     }
     let parsedBraced
     if (value.startsWith(bracedPrefix, index)) {
       const operator = value[index + bracedPrefix.length]
-      if (operator === '}' || /[-:=?+%#/,^@]/.test(operator || '')) {
+      if (
+        operator === '}' ||
+        operator === '[' ||
+        /[-:=?+%#/,^@]/.test(operator || '')
+      ) {
         parsedBraced = readBracedParameterExpansion(value, index + 1)
         if (!parsedBraced) return undefined
         const operation = value.slice(
@@ -903,10 +910,20 @@ function codexHomeSuffix(value, activeExpansionOffsets = []) {
           operation.startsWith(':') && !/^:[-=?+]/.test(operation)
         const isNonzeroSimpleSubstring =
           substringOffset && /[1-9]/.test(substringOffset[1])
+        const subscript = /^\[([^\]]*)\]$/.exec(operation)
+        const decimalSubscript =
+          subscript &&
+          /^[ \t]*\+?(0*[1-9][0-9]*)[ \t]*$/.exec(subscript[1])
+        const significantSubscriptDigits =
+          decimalSubscript?.[1].replace(/^0+/, '')
+        const isKnownNonidentitySubscript =
+          significantSubscriptDigits !== undefined &&
+          significantSubscriptDigits.length <= 18
         if (
           operation === '' ||
           /^(?::)?[-=?]/.test(operation) ||
           (isSubstringOperation && !isNonzeroSimpleSubstring) ||
+          (subscript && !isKnownNonidentitySubscript) ||
           /^[%#/,^@]/.test(operation)
         ) {
           if (!activeOffsets.has(index) || !hasAcceptedPrefix(index)) {
@@ -920,6 +937,8 @@ function codexHomeSuffix(value, activeExpansionOffsets = []) {
           return {
             suffix: value.slice(parsedBraced.nextIndex),
             containingSuffix: containingSuffix(parsedBraced.nextIndex),
+            hasActiveSuffixExpansion:
+              hasActiveSuffixExpansion(parsedBraced.nextIndex),
           }
         }
       }
@@ -958,6 +977,7 @@ function isHighSignalCredentialPath(token, activeExpansionOffsets = []) {
     if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
     const codexHome = codexHomeSuffix(value, valueOffsets)
     if (codexHome) {
+      if (codexHome.hasActiveSuffixExpansion) return true
       if ([codexHome.suffix, codexHome.containingSuffix].some((suffix) =>
         suffix !== undefined &&
         path.posix.normalize(`/__CODEX_HOME__${suffix}`) ===
