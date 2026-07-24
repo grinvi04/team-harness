@@ -65,7 +65,7 @@
 
 ## 버전·릴리즈
 
-- **플러그인 동작 변경**(스크립트·훅·스킬·`templates/`) 시 `plugins/harness-guard/.claude-plugin/plugin.json` + `README.md` 배지 **버전 bump** — `docs/harness-maintenance.md`.
+- **플러그인 동작 변경**(스크립트·훅·스킬·`templates/`) 시 `plugins/harness-guard/.claude-plugin/plugin.json` + `plugins/harness-guard/.codex-plugin/plugin.json` + `README.md` 배지 **버전 bump** — `docs/harness-maintenance.md`.
 - 릴리즈: `develop`→`release/vX`→`main` PR + 태그(`/release`). 상세 `docs/harness-maintenance.md`.
 
 ## 금지 사항

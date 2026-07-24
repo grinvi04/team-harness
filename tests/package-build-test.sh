@@ -51,11 +51,11 @@ elif operation.name == "missing":
     packages["governance-core"]["sources"].pop()
 elif operation.name == "reverse-dependency":
     packages["governance-core"]["dependencies"] = [
-        {"id": "workflow-pack", "version": ">=0.60.0 <0.61.0"}
+        {"id": "workflow-pack", "version": ">=0.61.0 <0.62.0"}
     ]
 elif operation.name == "adapter-dependency":
     packages["claude-adapter"]["dependencies"].append(
-        {"id": "codex-adapter", "version": ">=0.60.0 <0.61.0"}
+        {"id": "codex-adapter", "version": ">=0.61.0 <0.62.0"}
     )
 elif operation.name == "traversal":
     packages["governance-core"]["sources"].append("../README.md")
@@ -155,7 +155,7 @@ for folder, (unit, skill_count) in expected.items():
     metadata = json.loads(metadata_path.read_text())
     if claude.get("name") != folder or codex.get("name") != folder:
         errors.append(f"manifest name mismatch: {folder}")
-    if claude.get("version") != "0.60.0" or codex.get("version") != "0.60.0":
+    if claude.get("version") != "0.61.0" or codex.get("version") != "0.61.0":
         errors.append(f"manifest version mismatch: {folder}")
     if metadata.get("unit") != unit or metadata.get("installable") is not False:
         errors.append(f"package metadata mismatch: {folder}")

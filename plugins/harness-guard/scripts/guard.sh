@@ -3,7 +3,7 @@
 # hooks/hooks.json 에서 ${CLAUDE_PLUGIN_ROOT}/scripts/guard.sh 로 호출된다.
 # 스택/프로젝트별 추가 가드는 각 프로젝트의 .claude/settings.json hooks에 별도 추가한다 (플러그인 훅과 공존).
 #
-# 주의: 이 가드는 Claude Code 사용자만 막는 보조 장치다.
+# 주의: 이 가드는 Claude Code와 Codex 사용자에게 적용되는 보조 장치다.
 # load-bearing 강제는 GitHub branch protection + CI 게이트(계층 0)가 담당한다.
 #
 # ── 판정 철학 (decisions.md "가드/게이트 판정 철학" · #220) ─────────────────────────
@@ -31,7 +31,27 @@
 
 INPUT=$(cat)
 COMMAND=""
-GUARD_LOG="${HOME}/.claude/hooks/guard-block.log"
+GUARD_LOG="${HARNESS_GUARD_LOG:-${HOME}/.claude/hooks/guard-block.log}"
+HARNESS_AGENT_NAME="${HARNESS_AGENT_NAME:-Claude}"
+
+sanitize_control_chars() {
+  local sanitized
+  if command -v python3 >/dev/null 2>&1; then
+    sanitized=$(python3 -c 'import sys, unicodedata
+value = sys.stdin.read()
+sys.stdout.write("".join(" " if unicodedata.category(char) == "Cc" else char for char in value))' 2>/dev/null) && {
+      printf '%s' "$sanitized"
+      return
+    }
+  fi
+  if command -v jq >/dev/null 2>&1; then
+    sanitized=$(jq -Rrs 'gsub("[\\u0000-\\u001f\\u007f-\\u009f]"; " ")' 2>/dev/null) && {
+      printf '%s' "$sanitized"
+      return
+    }
+  fi
+  LC_ALL=C tr '\000-\037\177' ' '
+}
 
 # 차단 단일 경로: 이력 로그 + ⛔ 메시지(+해결 안내) + exit 2.
 # $1 = 사유 라벨, $2 = 해결 안내(선택). session_id·cwd는 payload에서 추출(없으면 ?).
@@ -41,15 +61,23 @@ deny() {
   sid=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('session_id','?'))" 2>/dev/null) || sid="?"
   cwd=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cwd','?'))" 2>/dev/null) || cwd="?"
   # 로그 위조(log forging) 방지 — session_id·cwd의 개행·탭·제어문자가 감사 로그에 별도 라인/ANSI를 주입하지 못하게 정제.
-  sid=$(printf '%s' "$sid" | tr '\n\r\t' '   ' | cut -c1-80)
-  cwd=$(printf '%s' "$cwd" | tr '\n\r\t' '   ' | cut -c1-256)
+  sid=$(printf '%s' "$sid" | sanitize_control_chars | cut -c1-80)
+  cwd=$(printf '%s' "$cwd" | sanitize_control_chars | cut -c1-256)
   # cmd는 한 줄로 정제(개행→공백) + 시크릿 마스킹(URL 박힌 크레덴셜·gh 토큰·PAT) + 길이 제한.
   # 차단된 명령을 평문 로깅하므로, 토큰이 섞인 명령(예: https://x:TOKEN@host)이 로그에 남지 않게 마스킹.
-  cmd1=$(printf '%s' "${COMMAND:-}" | tr '\n\r\t' '   ' \
+  cmd1=$(printf '%s' "${COMMAND:-}" | sanitize_control_chars \
     | sed -E -e 's#([Hh][Tt][Tt][Pp][Ss]?://)[^@ ]*@#\1***@#g' \
              -e 's#gh[pousr]_[A-Za-z0-9]{20,}#gh_***#g' \
              -e 's#github_pat_[A-Za-z0-9_]{20,}#github_pat_***#g' \
+             -e "s#((([Pp][Rr][Oo][Xx][Yy]-)?[Aa][Uu][Tt][Hh][Oo][Rr][Ii][Zz][Aa][Tt][Ii][Oo][Nn]):[[:space:]]*).*#\1***#g" \
+             -e "s#((--oauth2-bearer|--((http|ftp|proxy)-)?(user|password))(=|[[:space:]]+))(\"[^\"]*\"|'[^']*'|[^\"'[:space:];|&]+)#\1***#g" \
+             -e "s#(^|[[:space:]])(-[A-Za-z]*[uU][[:space:]]+)(\"[^\"]*\"|'[^']*'|[^\"'[:space:];|&]+)#\1\2***#g" \
+             -e "s#(^|[[:space:]])(-[A-Za-z]*[uU])([^\"'[:space:];|&]+)#\1\2***#g" \
+             -e "s#(([A-Za-z_][A-Za-z0-9_]*)?([Aa][Pp][Ii]_?[Kk][Ee][Yy]|[Ss][Ee][Cc][Rr][Ee][Tt]|[Tt][Oo][Kk][Ee][Nn]|[Pp][Aa][Ss][Ss][Ww][Oo][Rr][Dd]|[Pp][Aa][Ss][Ss][Ww][Dd]|[Cc][Rr][Ee][Dd][Ee][Nn][Tt][Ii][Aa][Ll])[A-Za-z0-9_]*=)(\\$'([^'\\\\]|\\\\.)*'|\"[^\"]*\"|'[^']*'|([^[:space:];|&\\\\]|\\\\.)+)#\1***#g" \
     | cut -c1-200)
+  umask 077
+  mkdir -p "$(dirname "$GUARD_LOG")" 2>/dev/null || true
+  { touch "$GUARD_LOG" && chmod 600 "$GUARD_LOG"; } 2>/dev/null || true
   # 로그 로테이션: 256KB 초과 시 최근 절반만 보존(무한 증가 방지)
   { [ -f "$GUARD_LOG" ] && [ "$(wc -c <"$GUARD_LOG" 2>/dev/null || echo 0)" -gt 262144 ] && tail -n "$(( $(wc -l <"$GUARD_LOG" 2>/dev/null || echo 0)/2 ))" "$GUARD_LOG" > "$GUARD_LOG.tmp" && mv "$GUARD_LOG.tmp" "$GUARD_LOG"; } 2>/dev/null
   { printf '%s session=%s cwd=%s DENY %s | cmd=%s\n' "${ts:-?}" "${sid:-?}" "${cwd:-?}" "$reason" "$cmd1" >> "$GUARD_LOG"; } 2>/dev/null
@@ -87,6 +115,11 @@ if [[ "$TOOL" != "Bash" ]]; then exit 0; fi
 if ! source "${BASH_SOURCE[0]%/*}/lib/tokenize.sh" 2>/dev/null; then
   deny "토크나이저 lib 로드 실패 (scripts/lib/tokenize.sh) — fail-closed" "플러그인 설치 무결성 확인 후 재시도"
 fi
+
+# 실제 Unix 셸이 실행 전에 제거하는 backslash+LF를 동일하게 논리행으로 합친 뒤 모든 판정에 사용한다.
+# 이 정규화가 없으면 split_segments의 줄 출력과 while-read 경계가 continuation을 별도 세그먼트로 오인해
+# `rm \`+LF+`-rf tests` 같은 동일 argv 파괴 명령을 놓친다.
+COMMAND=$(collapse_line_continuations "$COMMAND")
 
 # LITE 면제는 명령이 실제로 실행되는 원래 repo(세션 cwd) 기준으로 판정한다 — 후행 cd/-C로 다른 .harness-lite
 # repo에 착지시켜 현재 코드 repo의 LITE-게이트 가드를 무장해제하는 교차오염(#196)을 막기 위해,
@@ -236,7 +269,7 @@ fi
 while IFS= read -r RSEG; do
   [[ "$(git_subcommand_scan "$RSEG")" == reset ]] || continue
   if seg_has_token "$RSEG" "--hard"; then
-    deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (Claude가 대신 실행하지 않음)"
+    deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (${HARNESS_AGENT_NAME}가 대신 실행하지 않음)"
   fi
 done < <(split_segments "$COMMAND")
 
@@ -260,7 +293,7 @@ while IFS= read -r DSEG; do
     #   파일명에 트레일링(glob `*`·`.bak`)이 붙어도 잡는다($ 종단앵커는 이 형태를 놓쳐 홀이었음, 검증 반영).
     #   디렉터리 패턴만 `(^|/)…(/|$)` 경로세그먼트 앵커 — `rm latest/`의 `test/` 부분매치 과차단만 방지.
     if printf '%s' "$_tok" | grep -qE "(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^/]*\.py|_test\.py|_spec\.rb|_test\.rb|(^|/)tests?(/|$)|(^|/)__tests__(/|$)|(^|/)db/migrations?(/|$)|(^|/)db/migrate(/|$)|(^|/)migrations(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
-      deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음)"
+      deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (${HARNESS_AGENT_NAME}가 대신 삭제하지 않음)"
     fi
   done
 done < <(split_segments "$COMMAND")

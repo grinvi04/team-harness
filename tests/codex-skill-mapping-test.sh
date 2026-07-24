@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Claude-specific execution annotations in skills need an explicit Codex mapping.
+# Shared skill contracts need a source-native Codex wrapper without custom agents.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -7,12 +7,12 @@ FAIL=0
 
 for path in "$ROOT"/plugins/harness-guard/skills/*/SKILL.md; do
   skill=$(basename "$(dirname "$path")")
-  overlay="$ROOT/plugins/harness-guard/codex/skill-overlays/$skill.md"
+  wrapper="$ROOT/plugins/harness-guard/codex/skills/$skill/SKILL.md"
   if ! grep -Fq '## Codex 실행' "$path" \
     && ! grep -Fq 'CODEX_PLUGIN_ROOT' "$path" \
-    && grep -Fq '## Codex 실행' "$overlay" \
-    && grep -Fq 'Codex' "$overlay"; then
-    echo "PASS: $skill Claude 원본·Codex overlay 격리"
+    && grep -Fq '## Codex 실행' "$wrapper" \
+    && grep -Fq "../../../skills/$skill/SKILL.md" "$wrapper"; then
+    echo "PASS: $skill Claude 원본·Codex native wrapper 격리"
   else
     echo "FAIL: $skill Codex 실행 규칙 누락"
     FAIL=1
@@ -28,19 +28,12 @@ else
   FAIL=1
 fi
 
-for agent in harness-explorer harness-verifier harness-security-reviewer; do
-  path="$ROOT/plugins/harness-guard/codex/agents/$agent.toml"
-  effort="high"; [ "$agent" = "harness-explorer" ] && effort="low"
-  if grep -Eq '^name = "harness-[a-z-]+"$' "$path" \
-    && ! grep -Eq '^model[[:space:]]*=' "$path" \
-    && grep -Fq "model_reasoning_effort = \"$effort\"" "$path" \
-    && grep -Fq 'sandbox_mode = "read-only"' "$path" \
-    && grep -Fq 'developer_instructions = """' "$path"; then
-    echo "PASS: $agent Codex 모델·권한 매핑"
-  else
-    echo "FAIL: $agent Codex 모델·권한 매핑 누락"
-    FAIL=1
-  fi
-done
+if ! find "$ROOT/plugins/harness-guard/codex" -type f -print | grep -Eq '/(agents|skill-overlays)/' \
+  && ! rg -n 'harness-(explorer|verifier|security-reviewer)' "$ROOT/plugins/harness-guard/codex/skills"; then
+  echo "PASS: Codex custom agent·cache overlay 의존 제거"
+else
+  echo "FAIL: Codex custom agent 또는 cache overlay 의존 잔존"
+  FAIL=1
+fi
 
 [ "$FAIL" -eq 0 ]

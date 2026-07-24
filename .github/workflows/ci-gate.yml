@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
 
       - name: 쉘 구문 검사
         run: |
@@ -64,7 +66,9 @@ jobs:
           bash -n tests/settings-deny-test.sh
           bash -n tests/codex-security-guidance-adapter-test.sh
           bash -n tests/patch-codex-security-guidance-test.sh
-          bash -n tests/codex-harness-guard-patch-test.sh
+          bash -n tests/codex-native-loader-test.sh
+          bash -n tests/codex-native-loader-pilot-test.sh
+          bash -n tests/codex-native-loader-report-test.sh
           bash -n tests/codex-secret-egress-guard-test.sh
           bash -n tests/codex-pretool-guard-test.sh
           bash -n tests/codex-semantic-parity-test.sh
@@ -82,7 +86,6 @@ jobs:
           bash -n tests/action-pin-test.sh
           node --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
-          node --check plugins/harness-guard/scripts/patch-codex-harness-guard.mjs
           node --check plugins/harness-guard/scripts/codex-secret-egress-guard.mjs
           node --check plugins/harness-guard/scripts/codex-pretool-guard.mjs
           node --check plugins/harness-guard/scripts/route-intent.mjs
@@ -94,7 +97,10 @@ jobs:
           node --check scripts/generate-changelog.mjs
           node --check scripts/check-plugin-coexistence.mjs
           node --check scripts/run-external-pilot.mjs
+          node --check scripts/codex-binary-trust.mjs
           node --check scripts/sync-codex-plugin-cache.mjs
+          node --check scripts/check-codex-native-plugin.mjs
+          node --check scripts/run-codex-native-loader-pilot.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
           node --check scripts/check-alembic-destructive-ddl.mjs
@@ -107,7 +113,9 @@ jobs:
           import json, glob
           paths = [
               "plugins/harness-guard/.claude-plugin/plugin.json",
+              "plugins/harness-guard/.codex-plugin/plugin.json",
               "plugins/harness-guard/hooks/hooks.json",
+              "plugins/harness-guard/codex/hooks/hooks.json",
               ".claude-plugin/marketplace.json",
               "templates/settings.json",
               "packaging/packages.json",
@@ -118,7 +126,9 @@ jobs:
           EOF
 
       - name: 파이썬 구문 검사 (등록된 훅 — enforce-subagent-model.py)
-        run: python3 -m py_compile plugins/harness-guard/scripts/enforce-subagent-model.py
+        run: |
+          python3 -m py_compile plugins/harness-guard/scripts/enforce-subagent-model.py
+          python3 -m py_compile scripts/spawn-verified-executable.py
 
       - name: 템플릿 생성기 ruff 검사 (python repo가 복사 시 CI 통과 보장 — v0.24.1)
         run: |
@@ -245,8 +255,14 @@ jobs:
       - name: Codex security-guidance cache refresh 패치 테스트
         run: bash tests/patch-codex-security-guidance-test.sh
 
-      - name: Codex harness-guard hook 호환 패치 테스트
-        run: bash tests/codex-harness-guard-patch-test.sh
+      - name: Codex source-native loader 계약
+        run: bash tests/codex-native-loader-test.sh
+
+      - name: Codex native loader pilot 격리·보고 계약
+        run: bash tests/codex-native-loader-pilot-test.sh
+
+      - name: Codex native loader 실측 보고서 계약
+        run: bash tests/codex-native-loader-report-test.sh
 
       - name: Codex 시크릿 외부 전송 가드 테스트
         run: bash tests/codex-secret-egress-guard-test.sh
@@ -263,7 +279,7 @@ jobs:
       - name: Claude-facing source 격리
         run: bash tests/claude-surface-isolation-test.sh
 
-      - name: Codex hardened launcher cache repair
+      - name: Codex hardened launcher native validation
         run: bash tests/codex-hardened-launcher-test.sh
 
       - name: Codex plugin cache 조건부 동기화
@@ -280,6 +296,16 @@ jobs:
 
       - name: GitHub Actions 공급망 SHA 고정
         run: bash tests/action-pin-test.sh
+
+  atomic-trust-macos:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+        with:
+          fetch-depth: 0
+
+      - name: Codex hardened launcher atomic trust
+        run: bash tests/codex-hardened-launcher-test.sh
 
   secret-scan:
     runs-on: ubuntu-latest

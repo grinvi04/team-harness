@@ -10,4 +10,14 @@ if [ "$branch" = "main" ] || [ "$branch" = "develop" ]; then
   echo "   (긴급 우회: --no-verify — 사용 시 팀 리드에게 보고)"
   exit 1
 fi
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "⛔ [pre-commit] gitleaks가 없어 staged secret scan을 실행할 수 없습니다"
+  echo "   해결: https://github.com/gitleaks/gitleaks 설치 후 다시 커밋하세요"
+  exit 1
+fi
+if ! gitleaks git --pre-commit --staged --redact=100 --no-banner .; then
+  echo "⛔ [pre-commit] staged 변경에서 시크릿 의심값이 감지됐습니다"
+  exit 1
+fi
 exit 0

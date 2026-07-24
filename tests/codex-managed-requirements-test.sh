@@ -17,8 +17,15 @@ bash "$INSTALLER" --install
 
 if ! grep -Fxq '[features]' "$TARGET" \
   || ! grep -Fxq 'hooks = true' "$TARGET" \
-  || ! grep -Fxq 'unified_exec = false' "$TARGET"; then
+  || grep -Fq 'unified_exec' "$TARGET"; then
   echo 'FAIL: required feature pins missing'
+  exit 1
+fi
+
+printf '%s\n' '# team-harness managed codex requirements v1' '' '[features]' 'hooks = true' 'unified_exec = false' >"$TARGET"
+bash "$INSTALLER" --install
+if grep -Fq 'unified_exec' "$TARGET"; then
+  echo 'FAIL: legacy managed unified_exec pin was not migrated'
   exit 1
 fi
 
@@ -26,7 +33,7 @@ bash "$INSTALLER" --uninstall
 [ ! -e "$TARGET" ] || { echo 'FAIL: uninstall left managed file'; exit 1; }
 bash "$INSTALLER" --uninstall
 
-printf '%s\n' '[features]' 'unified_exec = true' >"$TARGET"
+printf '%s\n' '[features]' 'unified_exec = false' >"$TARGET"
 before=$(cksum "$TARGET")
 if bash "$INSTALLER" --install >/dev/null 2>&1; then
   echo 'FAIL: foreign requirements were overwritten'

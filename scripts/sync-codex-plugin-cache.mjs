@@ -4,12 +4,22 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import {
+  captureExecutableIdentity,
+  resolveExecutable,
+  runVerifiedExecutable,
+} from './codex-binary-trust.mjs'
 
 const PLUGIN_ID = 'harness-guard@team-harness'
 const MARKETPLACE = 'team-harness'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
-const manifestPath = path.join(root, 'plugins', 'harness-guard', '.claude-plugin', 'plugin.json')
+const manifestPath = path.join(root, 'plugins', 'harness-guard', '.codex-plugin', 'plugin.json')
 const codexBin = process.env.CODEX_BIN || 'codex'
+const expectedCodexDigest = process.env.HARNESS_CODEX_EXPECTED_DIGEST
+const expectedCodexCdHash = process.env.HARNESS_CODEX_EXPECTED_CDHASH || null
+const codexIdentity = expectedCodexDigest
+  ? captureExecutableIdentity(resolveExecutable(codexBin), expectedCodexDigest, expectedCodexCdHash)
+  : null
 
 function versionParts(version) {
   if (!/^\d+(?:\.\d+)*$/.test(version)) throw new Error(`invalid numeric version: ${version}`)
@@ -28,7 +38,9 @@ function compareVersions(left, right) {
 }
 
 function runJson(args) {
-  const result = spawnSync(codexBin, args, { encoding: 'utf8', env: process.env })
+  const result = codexIdentity
+    ? runVerifiedExecutable(codexIdentity, args, { env: process.env })
+    : spawnSync(codexBin, args, { encoding: 'utf8', env: process.env })
   if (result.error) throw result.error
   if (result.status !== 0) {
     const detail = result.stderr.trim() || result.stdout.trim() || `exit ${result.status}`
@@ -49,9 +61,15 @@ try {
   const installed = list.installed?.find((plugin) => plugin.pluginId === PLUGIN_ID)
   const previousVersion = installed?.version || '0.0.0'
 
-  if (compareVersions(previousVersion, sourceVersion) >= 0) {
+  const comparison = compareVersions(previousVersion, sourceVersion)
+  if (comparison === 0) {
     console.log(JSON.stringify({ changed: false, sourceVersion, installedVersion: previousVersion }))
     process.exit(0)
+  }
+  if (comparison > 0) {
+    throw new Error(
+      `installed plugin ${previousVersion} is newer than trusted source ${sourceVersion}; update the checkout first`,
+    )
   }
 
   const upgrade = runJson(['plugin', 'marketplace', 'upgrade', MARKETPLACE, '--json'])
@@ -60,7 +78,7 @@ try {
   }
 
   const added = runJson(['plugin', 'add', PLUGIN_ID, '--json'])
-  if (added.pluginId !== PLUGIN_ID || compareVersions(added.version, sourceVersion) < 0) {
+  if (added.pluginId !== PLUGIN_ID || added.version !== sourceVersion) {
     throw new Error(`plugin install returned stale or unexpected version: ${added.pluginId}@${added.version}`)
   }
 

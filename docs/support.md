@@ -9,7 +9,7 @@ of an agent runtime or operating system is compatible.
 | macOS with Bash, Git, and Node.js 20+ | **supported** | Maintainer development, filesystem profiles, and release bundle generation are exercised here. |
 | Linux with Bash, Git, and Node.js 20+ | **supported** | Shell and Node contracts run in GitHub Actions; filesystem and permission behavior may differ by distribution. |
 | Claude Code current stable | **supported** | The committed plugin surface, hooks, skills, and fresh-session contracts are tested. |
-| Codex current stable | **supported** | The adapter, managed requirements, cache synchronization, hooks, and fresh-session contracts are tested. |
+| Codex current stable | **supported** | The native plugin loader, managed requirements, command hooks, 16 skill wrappers, and fresh-session contracts are tested. |
 | Other POSIX shells or older runtime versions | **best-effort** | Contributions are welcome, but they are not release gates. |
 | Windows without WSL | **unsupported** | The Bash, POSIX permissions, symlink, and atomic rename contracts are not validated. |
 | Independent split-package marketplace installation | **unsupported** | Package metadata remains `installable:false` until compatibility validation and explicit publication approval. |

@@ -69,7 +69,23 @@ const roots = args.filter((a, i) => !a.startsWith('--') && args[i - 1] !== '--mi
 if (roots.length === 0) roots.push('.')
 
 // ── 파일 탐색 ─────────────────────────────────────────────
-const IGNORE = new Set(['node_modules', '.git', 'build', 'target', '.gradle', 'dist', '.next', 'out', 'vendor', '.venv'])
+// 발견 모드에서 테스트 트리는 운영 입력이 아니다. 명시 경로로 tests/fixtures/...를 넘기는
+// 회귀 테스트는 시작 root 자체를 검사하므로 그대로 유지된다.
+const IGNORE = new Set([
+  'node_modules',
+  '.git',
+  'build',
+  'target',
+  '.gradle',
+  'dist',
+  '.next',
+  'out',
+  'vendor',
+  '.venv',
+  'test',
+  'tests',
+  '__tests__',
+])
 const FLYWAY_RE = /^V\d+.*__.*\.sql$/i           // V1__x.sql, V0001__x.sql, V20240101__x.sql
 const CONFIG_NAMES = /^(application.*\.ya?ml|flyway\.conf|flyway\.toml|alembic\.ini)$/i
 

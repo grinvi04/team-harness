@@ -36,6 +36,14 @@ check "feature 브랜치 커밋 통과"      0 Bash "git commit -m x"           
 check "핵심 디렉터리 재귀 삭제 차단"  2 Bash "rm -rf src/"                      "$DEV"
 check "rm 단어경계 — terraform 오탐 없음" 0 Bash "terraform -rf plan 적용"      "$DEV"
 check "reset --hard 차단"             2 Bash "git reset --hard HEAD~1"          "$DEV"
+check "LF 줄 연속 rm -rf tests 차단"  2 Bash $'rm \\\n-rf tests'                 "$FEAT"
+check "CRLF는 Unix shell continuation 아님" 0 Bash $'rm \\\r\n-rf tests'             "$FEAT"
+check "LF 줄 연속 reset --hard 차단"  2 Bash $'git reset \\\n--hard'             "$FEAT"
+check "LF 줄 연속 npm -g 차단"        2 Bash $'npm install \\\n-g some-pkg'      "$FEAT"
+check "single-quoted rm continuation mention 통과" 0 Bash \
+  "printf '%s' 'rm \\"$'\n'"-rf src'" "$FEAT"
+check "짝수 backslash 뒤 개행은 continuation 아님" 0 Bash \
+  'rm \\'$'\n''-rf tests' "$FEAT"
 check "main force push 차단"          2 Bash "git push --force origin main"     "$FEAT"
 check "npm 글로벌 설치 차단"          2 Bash "npm install -g some-pkg"          "$DEV"
 check "테스트 파일 rm 차단(Java)"     2 Bash "rm src/test/UserServiceTest.java" "$FEAT"
@@ -285,6 +293,74 @@ FHOME2=$(mktemp -d); mkdir -p "$FHOME2/.claude/hooks"
 printf '%s' '{"tool_name":"Bash","session_id":"s","cwd":"/x","tool_input":{"command":"git reset --hard HTTPS://user:SECRETPASS@host/x"}}' | HOME="$FHOME2" bash "$G" >/dev/null 2>&1
 if grep -q "SECRETPASS" "$FHOME2/.claude/hooks/guard-block.log" 2>/dev/null; then echo "FAIL: #208 대문자 URL 크레덴셜 로그 유출"; FAIL=$((FAIL+1)); else echo "PASS: #208 대문자 URL 크레덴셜 마스킹"; PASS=$((PASS+1)); fi
 rm -rf "$FHOME2"
+
+# v0.61 release-check: 차단 명령의 secret-like 환경변수 대입값도 감사로그에 평문으로 남기지 않는다.
+FHOME3=$(mktemp -d); mkdir -p "$FHOME3/.claude/hooks"
+mk Bash 'API_KEY=fixture-not-a-secret git reset --hard' | HOME="$FHOME3" bash "$G" >/dev/null 2>&1
+mk Bash 'DEPLOY_TOKEN="fixture secret value" git reset --hard' | HOME="$FHOME3" bash "$G" >/dev/null 2>&1
+mk Bash 'API_KEY=fixture\ escaped-secret git reset --hard' | HOME="$FHOME3" bash "$G" >/dev/null 2>&1
+mk Bash "TOKEN=\$'fixture ansi secret value' git reset --hard" | HOME="$FHOME3" bash "$G" >/dev/null 2>&1
+if grep -Eq "fixture-not-a-secret|fixture secret value|escaped-secret|ansi secret" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null; then
+  echo "FAIL: v0.61 secret-like 환경변수 감사로그 유출"; FAIL=$((FAIL+1))
+elif grep -q "API_KEY=\\*\\*\\*" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null &&
+     grep -q "DEPLOY_TOKEN=\\*\\*\\*" "$FHOME3/.claude/hooks/guard-block.log" 2>/dev/null; then
+  echo "PASS: v0.61 secret-like 환경변수 감사로그 마스킹"; PASS=$((PASS+1))
+else
+  echo "FAIL: v0.61 secret-like 환경변수 마스킹 증거 없음"; FAIL=$((FAIL+1))
+fi
+rm -rf "$FHOME3"
+
+# v0.61 release-check: Bearer credential과 C0/C1 제어문자가 감사로그에 남지 않고 파일은 owner-only다.
+FHOME4=$(mktemp -d); mkdir -p "$FHOME4/.claude/hooks"
+printf '%s' '{"tool_name":"Bash","session_id":"good\u001b[2J\u0085FORGED","cwd":"/x","tool_input":{"command":"git reset --hard -H \"Authorization: Bearer fixture-bearer-value\""}}' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+mk Bash 'git reset --hard && curl --oauth2-bearer fixture-oauth-value https://example.invalid' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_user="fixture-user"
+fixture_pass="fixture-pass"
+mk Bash "git reset --hard && curl --user \"${fixture_user}:${fixture_pass}\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_auth_scheme="ApiKey"
+fixture_auth_value="fixture-auth-value"
+mk Bash "git reset --hard && curl -H \"Authorization: ${fixture_auth_scheme} ${fixture_auth_value}\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_digest_user="fixture-digest-user"
+fixture_digest_response="fixture-digest-response"
+mk Bash "git reset --hard && curl -H \"Authorization: Digest username=\\\"${fixture_digest_user}\\\", response=\\\"${fixture_digest_response}\\\"\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+fixture_wget_password="fixture-wget-password"
+mk Bash "git reset --hard && wget --password \"${fixture_wget_password}\" https://example.invalid" \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+mk Bash 'git reset --hard && curl --proxy-user=fixture-proxy-value https://example.invalid' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+mk Bash 'git reset --hard && curl -u fixture-short-value https://example.invalid' \
+  | HOME="$FHOME4" bash "$G" >/dev/null 2>&1
+GUARD_LOG4="$FHOME4/.claude/hooks/guard-block.log"
+control_count=$(python3 - "$GUARD_LOG4" <<'PY'
+import sys
+import unicodedata
+
+value = open(sys.argv[1], encoding="utf-8").read()
+print(sum(unicodedata.category(char) == "Cc" and char != "\n" for char in value))
+PY
+)
+guard_log_mode=$(python3 - "$GUARD_LOG4" <<'PY'
+import os
+import stat
+import sys
+
+print(f"{stat.S_IMODE(os.stat(sys.argv[1]).st_mode):03o}")
+PY
+)
+if grep -Fq "fixture-" "$GUARD_LOG4" 2>/dev/null \
+  || [ "$control_count" -ne 0 ]; then
+  echo "FAIL: v0.61 Bearer·제어문자 감사로그 유출"; FAIL=$((FAIL+1))
+elif [ "$guard_log_mode" = 600 ]; then
+  echo "PASS: v0.61 Bearer·제어문자 마스킹과 로그 0600"; PASS=$((PASS+1))
+else
+  echo "FAIL: v0.61 감사로그 권한이 0600이 아님"; FAIL=$((FAIL+1))
+fi
+rm -rf "$FHOME4"
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

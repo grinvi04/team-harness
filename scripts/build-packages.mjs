@@ -24,7 +24,7 @@ const expectedUnits = new Map([
   ['codex-adapter', { kind: 'adapter', pluginName: 'harness-codex-adapter' }],
   ['workflow-pack', { kind: 'workflow', pluginName: 'harness-workflows' }],
 ])
-const legacyManifest = '.claude-plugin/plugin.json'
+const sourceManifests = new Set(['.claude-plugin/plugin.json', '.codex-plugin/plugin.json'])
 const relativePathPattern = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))(?!.*\\)[^\0]+$/
 
 function isStrictSemver(value) {
@@ -95,7 +95,7 @@ function recordedSourceFiles(revision) {
     const match = record.match(/^(\d+)\s+blob\s+[0-9a-f]+\t(.+)$/)
     if (!match || !match[2].startsWith(prefix)) continue
     const file = match[2].slice(prefix.length)
-    if (file !== legacyManifest) files.set(file, match[1])
+    if (!sourceManifests.has(file)) files.set(file, match[1])
   }
   return files
 }

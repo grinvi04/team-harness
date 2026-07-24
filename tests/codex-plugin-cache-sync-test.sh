@@ -19,6 +19,7 @@ case "$*" in
   "plugin list --json")
     version="$SOURCE_VERSION"
     [[ "$FAKE_MODE" == "stale" || "$FAKE_MODE" == "upgrade-fail" || "$FAKE_MODE" == "stale-add" ]] && version="0.1.0"
+    [[ "$FAKE_MODE" == "newer" ]] && version="9.0.0"
     printf '{"installed":[{"pluginId":"harness-guard@team-harness","version":"%s"}]}\n' "$version"
     ;;
   "plugin marketplace upgrade team-harness --json")
@@ -93,3 +94,13 @@ if run_sync stale-add "$TMP/stale-add.json"; then
   exit 1
 fi
 echo "PASS: reinstall result version is verified"
+
+if run_sync newer "$TMP/newer.json"; then
+  echo "FAIL: plugin newer than the trusted checkout was silently accepted"
+  exit 1
+fi
+if [[ "$(cat "$LOG")" != 'plugin list --json' ]] || ! grep -Fq 'newer than trusted source' "$TMP/newer.json.err"; then
+  echo "FAIL: newer installed plugin did not fail closed before marketplace mutation"
+  exit 1
+fi
+echo "PASS: newer installed plugin requires a matching trusted checkout"

@@ -19,6 +19,10 @@ runtime binding을 실측한다. 사용자 plugin cache/config와 marketplace는
 경로도 그대로 유지한다. 이 결과는 독립 package의 공식 marketplace 공개가 아니라 승격 전 검증 surface다.
 `check-plugin-coexistence.mjs`는 같은 clean filesystem session의 외부 plugin을 실행하지 않고 두 runtime manifest
 identity, namespaced skill과 hook matcher overlap을 읽는다. overlap 순서는 플랫폼에 위임하며 승자를 정하지 않는다.
+v0.61.0부터 monolith Codex 경로는 `.codex-plugin/plugin.json`과 native command hook·16개 skill wrapper를
+source에서 직접 제공한다. 설치 cache patch, overlay, Codex custom agent 복사와 unified exec 비활성화는 제거했고
+doctor는 설치 source를 읽기 전용으로 검증한다. 이는 monolith adapter의 공식 loader 전환이며 네 split package의
+`installable:false` 또는 marketplace 공개 판정을 바꾸지 않는다.
 
 ## 목표 제품 단위
 
@@ -81,8 +85,9 @@ workflow-pack은 범용 agent runtime, 필수 개발 방법론, 독립된 정책
 | `skill:systematic-debugging` | **workflow-pack** | **선택** | 일반 디버깅 방법론은 플랫폼 native 기능으로 대체 가능하다. |
 | `skill:verification-before-completion` | **governance-core** | **기본** | 완료·PR·머지·릴리스 주장을 현재 상태의 새 증거에 묶는다. |
 
-runtime별 skill metadata와 agent 정의는 위 skill의 제품 소속이 아니라 `native-adapter`의 전달 메커니즘이다.
-예를 들어 verifier의 수용기준은 core에 속하고, Claude agent Markdown이나 Codex agent TOML은 adapter에 속한다.
+runtime별 skill metadata와 agent 기준은 위 skill의 제품 소속이 아니라 `native-adapter`의 전달 메커니즘이다.
+예를 들어 verifier의 수용기준은 core에 속하고, Claude agent Markdown은 Claude adapter에 속한다. Codex의 agent
+생성·모델·reasoning effort는 플랫폼에 위임하며 하네스 전용 TOML을 배포하지 않는다.
 
 ## 설치 프로필
 
@@ -141,12 +146,13 @@ workflow 세션 상태는 재생성 가능해야 한다. 제거 명령은 다른
 4. **clean-session 공존 검증(완료):** 세 profile과 외부 plugin의 identity·skill namespace·hook overlap·파일
    불변을 검사하고 malformed·symlink 입력을 fail-closed했다. 실제 hook 순서는 플랫폼에 위임한다.
 5. **호환 기간:** 최소 한 릴리스 동안 monolith를 deprecated alias로 유지하고 동일 결과·rollback 안내를 제공한다.
-6. **legacy 경로 제거:** 사용률과 doctor 증거가 기준을 충족한 뒤 cache patch·중복 agent·monolith manifest를
-   제거한다. required CI와 branch protection drift가 있으면 제거를 중단한다.
+6. **legacy 경로 제거(부분 완료):** v0.61.0에서 harness cache patch·overlay·Codex agent 복사본을 제거했다.
+   monolith manifest는 split package loader·rollback 증거가 충족될 때까지 유지한다. required CI와 branch
+   protection drift가 있으면 추가 제거를 중단한다.
 
-DriveTree 외부 파일럿에서 filesystem 설치·doctor와 guard 표본은 통과했지만 repo-sync MISSING 11과 실제 공식
-loader session 미검증이 남았다. 따라서 독립 package의 `installable:false`를 유지하고 marketplace 승격은
-backlog 처리 비용·loader 증거·rollback 경로를 확인한 뒤 별도 승인한다.
+DriveTree 외부 파일럿에서 filesystem 설치·doctor와 guard 표본은 통과했고 v0.61.0에서 monolith 공식 loader
+session도 검증했다. 다만 repo-sync MISSING 11의 처리 비용과 split package 자체의 공식 loader·rollback 증거는
+남았다. 따라서 독립 package의 `installable:false`를 유지하고 marketplace 승격은 별도 승인한다.
 
 ## 비목표와 재검토 조건
 

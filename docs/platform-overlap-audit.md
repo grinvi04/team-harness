@@ -5,15 +5,16 @@
 
 ## 감사 기준과 범위
 
-- 기준일: 2026-07-18
+- 기준일: 2026-07-24
 - 기준 브랜치: `develop`의 플랫폼 중복 감사 작업 시작 시점
-- 대상: skill 16개, agent 정의 5개, hook handler 4개, Codex 호환 실행 파일 10개. 합계 35개다.
+- 대상: skill 16개, agent 정의 2개, hook handler 4개, Codex 호환 실행 파일 12개. 합계 34개다.
 - 근거: 각 구현, 직접 호출자, 회귀 테스트, 결정 기록과 로컬 `codex-cli 0.144.5`의 read-only 출력.
 - 로컬 확인: `codex features list`에서 `hooks`, `plugins`, `multi_agent`가 stable이고 `codex plugin --help`가
   설치·목록·marketplace 관리 명령을 제공했다. 이는 이 버전의 시점 증거이며 향후 버전까지 보장하지 않는다.
 - 탐지: 파일명에 `codex`가 있거나 Codex CLI·호환 실행 파일을 직접 호출하는 script를 포함한다. 따라서 이름에
   `codex`가 없는 `harness-doctor.sh`도 실행 표면으로 계산한다.
-- 제외: 문서·테스트·spec은 구현 표면 수에 넣지 않았다. Codex agent TOML은 agent로만 계산했다.
+- 제외: 문서·테스트·spec과 Codex native skill wrapper는 구현 표면 수에 넣지 않았다. wrapper는 공용 skill의
+  전달 계층이며 `codex-native-loader-test.sh`가 16개 일대일 대응을 별도로 고정한다.
 
 판정의 의미는 다음과 같다.
 
@@ -52,9 +53,6 @@
 |---|---|---|---|
 | `agent:plugins/harness-guard/agents/security-reviewer.md` | **연결** | 기준만 유지 | 보안 검토 기준은 유지하되 spawn·모델 선택·격리는 플랫폼에 맡긴다. |
 | `agent:plugins/harness-guard/agents/verifier.md` | **연결** | 기준만 유지 | 독립 반증 체크리스트만 공유하고 실행 방식과 모델은 플랫폼에 맡긴다. |
-| `agent:plugins/harness-guard/codex/agents/harness-explorer.toml` | **위임** | 제거 | 일반 read-only 탐색 역할은 Codex의 native agent 실행과 작업 지시로 충분하다. |
-| `agent:plugins/harness-guard/codex/agents/harness-security-reviewer.toml` | **연결** | 공용 기준에 통합 | Codex 전용 복사본 대신 공용 보안 수용기준을 native agent에 전달한다. |
-| `agent:plugins/harness-guard/codex/agents/harness-verifier.toml` | **연결** | 공용 기준에 통합 | Codex 전용 복사본 대신 공용 반증 수용기준을 native agent에 전달한다. |
 
 ### Hook handler
 
@@ -62,7 +60,7 @@
 |---|---|---|---|
 | `hook:PreToolUse:1:Bash:1:command` | **연결** | 얇게 유지 | 명령을 서버 정책과 같은 규칙에 연결하는 조기 피드백이며 CI·GitHub가 최종 강제한다. |
 | `hook:PreToolUse:1:Bash:2:prompt` | **위임** | 제거 | LLM prompt 기반 시크릿 판정은 플랫폼 permission과 결정적 검사에 위임하고 서버 secret scan을 유지한다. |
-| `hook:PreToolUse:2:Agent:1:command` | **위임** | 제거 | subagent 생성·모델 선택·reasoning effort는 플랫폼 책임이며 고정 모델 주입을 중단한다. |
+| `hook:PreToolUse:2:Agent:1:command` | **위임** | Claude 전용 유지 | Codex는 custom agent 복사본 없이 native agent 실행에 위임하고, Claude 경로의 기존 모델 정책만 보존한다. |
 | `hook:UserPromptSubmit:1:*:1:command` | **연결** | 좁게 유지 | `route-intent`는 Git/PR **상태 기반** 다음 단계만 연결하고 일반 자연어 **의미 분류기**로 확장하지 않는다. |
 
 ### Codex 호환 실행 파일
@@ -72,12 +70,14 @@
 | `codex-file:plugins/harness-guard/scripts/codex-pretool-guard.mjs` | **연결** | 축소 유지 | native hook 입력을 공용 guard 계약으로 정규화하는 최소 어댑터만 남긴다. |
 | `codex-file:plugins/harness-guard/scripts/codex-secret-egress-guard.mjs` | **연결** | 축소 유지 | 결정적 외부 전송 검사를 native hook에 연결하되 플랫폼 permission과 서버 scan을 대체하지 않는다. |
 | `codex-file:plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs` | **위임** | 제거 | 외부 플러그인의 Claude 전용 출력을 고치는 책임은 upstream 또는 공식 호환 surface에 맡긴다. |
-| `codex-file:plugins/harness-guard/scripts/patch-codex-harness-guard.mjs` | **위임** | 우선 제거 | 설치 cache의 hook·skill·agent를 직접 변형하므로 공식 plugin과 hook surface 전환 후 제거한다. |
 | `codex-file:plugins/harness-guard/scripts/patch-codex-security-guidance.mjs` | **위임** | 우선 제거 | 외부 plugin cache와 marketplace snapshot mutation은 장기 지원 API가 아니므로 제거한다. |
+| `codex-file:scripts/check-codex-native-plugin.mjs` | **연결** | 얇게 유지 | 설치된 source path의 native manifest·command hooks·skill inventory만 읽기 전용으로 검증한다. |
+| `codex-file:scripts/codex-binary-trust.mjs` | **소유** | 유지 | 승인 digest·code signature·version과 실행 전후 identity를 결박해 Codex provenance 증거를 책임진다. |
 | `codex-file:scripts/codex-fresh-session-smoke.sh` | **소유** | 유지 | 실제 새 세션에서 정책·시크릿 차단 결과를 검증하는 outcome parity 증거다. |
-| `codex-file:scripts/codex-hardened.sh` | **위임** | 우선 제거 후 doctor로 통합 | cache patch와 feature 강제 launcher 대신 공식 설치·managed policy·doctor 경로를 사용한다. |
+| `codex-file:scripts/codex-hardened.sh` | **연결** | 얇게 유지 | 공식 plugin version sync와 native 계약 검사 뒤 Codex 인자를 그대로 전달한다. |
 | `codex-file:scripts/harness-doctor.sh` | **연결** | 공식 surface 중심으로 유지 | Codex·plugin·managed policy 상태를 repo·GitHub 건강 증거와 합성하되 cache patch 의존은 제거한다. |
-| `codex-file:scripts/install-codex-managed-requirements.sh` | **연결** | 조건부 유지 | 공식 managed requirements에 조직 정책을 연결하되 지원 범위와 제거 절차를 명시한다. |
+| `codex-file:scripts/install-codex-managed-requirements.sh` | **연결** | 조건부 유지 | 공식 managed requirements에서 hooks 활성화만 보장하고 unified exec 선택은 플랫폼에 맡긴다. |
+| `codex-file:scripts/run-codex-native-loader-pilot.mjs` | **연결** | 검증 도구 유지 | 격리된 공식 loader·새 session 결과와 사용자 상태 불변을 증거로 남기며 runtime을 복제하지 않는다. |
 | `codex-file:scripts/sync-codex-plugin-cache.mjs` | **연결** | installer·doctor에 통합 | 공식 `codex plugin` 명령을 호출하는 버전 확인만 남기고 cache 내부는 건드리지 않는다. |
 
 ## 목표 구조
@@ -100,10 +100,10 @@ skill과 agent의 prose는 실행 엔진이 아니다. 유지되는 항목도 �
    loading을 clean session으로 실측한다.
 2. **결과 동등성 테스트:** 현재 guard·secret egress·skill 발견·검토 증거가 공식 surface에서도 같은
    수용기준과 exit 결과를 내는지 forward test를 추가한다.
-3. **문서·doctor 전환:** 설치·업데이트·문제 진단을 공식 명령과 단일 doctor로 바꾸고 기존 launcher 의존을
-   경고가 보이는 deprecated 경로로 내린다.
-4. **호환 patch 제거:** 두 cache patcher와 security adapter를 먼저 제거하고, 이어 hardened launcher와 중복
-   agent 복사본을 제거한다. 한 릴리스 동안 rollback 가능한 이전 경로와 fresh-session smoke를 유지한다.
+3. **문서·doctor 전환:** 설치·업데이트·문제 진단을 공식 명령과 단일 doctor로 바꾸고 launcher는 sync·검사만
+   수행하는 얇은 경로로 축소한다.
+4. **호환 patch 제거:** v0.61.0에서 harness cache patch와 Codex agent 복사본을 제거한다. 외부
+   security-guidance patch는 공식 호환 surface 확인 뒤 별도 제거하고 fresh-session smoke를 유지한다.
 5. 선택 workflow 분리는 별도 제품 경계 작업에서 수행하고, core 설치가 일반 방법론 skill을 요구하지 않게 한다.
 
 우선순위는 cache·snapshot mutation 제거가 1순위, 모델 강제 hook과 중복 agent 제거가 2순위, 일반 방법론

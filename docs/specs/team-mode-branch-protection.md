@@ -19,10 +19,11 @@
   develop은 CI-게이트 자동".
 - **팀 기본에 `dismiss_stale_reviews=true` 내장** — 승인 후 새 커밋 push 시 stale 승인을 무효화
   (재리뷰 강제). 승인 요건이 우회되는 구멍을 막는 load-bearing 설정이라 `--approvals N`(N≥1)에 포함.
-- **`--check`의 승인 축은 정보성**: `--approvals` 미지정 시 승인 개수는 드리프트 판정에서 제외
-  (0이든 ≥1이든 통과), `enforce_admins`·required checks 불변식만 엄격. `--approvals N` 명시 시에만
-  그 baseline으로 판정(`0`=솔로 엄격·정확히 0, `N≥1`=팀·`appr≥N`). 승인↑는 *더 강한* 보호라
-  드리프트로 보는 게 애초에 어색 — 이 시맨틱 교정이 `/repo-sync` 팀 repo 오탐을 없앤다.
+- **`--check`의 main 승인 축은 정보성**: main은 `--approvals` 미지정 시 승인 개수를 드리프트
+  판정에서 제외(0이든 ≥1이든 통과)하고, 명시 시에만 그 baseline으로 판정한다
+  (`0`=솔로 엄격·정확히 0, `N≥1`=팀·`appr≥N`). 반면 develop은 옵션과 무관하게 승인 0을 엄격
+  검증한다. 승인요건이 1 이상인 브랜치는 `dismiss_stale_reviews=true`도 필수다.
+  `enforce_admins`·required checks·strict·force-push/삭제 차단·대화 resolve 불변식은 항상 엄격하다.
 
 ### seam·테스트
 
@@ -30,8 +31,9 @@
   `N≥1→{"required_approving_review_count":N,"dismiss_stale_reviews":true}`. 히어독에 주입 전
   단위테스트(기존 `classify_protection`·`contexts_json` seam 패턴과 동일) — 적용부가 테스트를
   타게 해 "무테스트 적용부" 결함 제거.
-- `classify_protection`에 4번째 인자 `expected`(기본 `""`=정보성) 추가. 3인자 기존 호출은
-  전부 정보성으로 동작(하위호환).
+- `classify_protection`에 4번째 인자 `expected`(기본 `""`=정보성)와 stale-review 판정 seam을 둔다.
+  순수 함수 직접 호출의 기존 3인자 계약은 정보성으로 유지하되, 실제 `--check` 경로는 main/develop
+  각 API 응답을 주입해 per-branch 계약을 검증한다.
 
 ## 비-목표 (표면화)
 
@@ -48,7 +50,7 @@
 - `plugins/harness-guard/scripts/set-branch-protection.sh` — `--approvals` 파싱·`reviews_json` seam·
   per-branch 적용(main만)·`classify_protection` baseline 인자·헤더/메시지.
 - `tests/set-branch-protection-test.sh` — `reviews_json` 테스트 + classify 정보성/솔로엄격/팀 케이스.
-  기존 case "승인1→drift"는 정보성 시맨틱으로 **ok로 flip**(의도된 오탐 수정).
+  fake `gh api` fixture로 main의 stale-review false와 develop 승인1을 각각 drift로 고정한다.
 - 문서: `docs/decisions.md`(append) · `docs/code-review.md`(솔로→팀 `--approvals`) ·
   `docs/onboarding.md`(멤버 합류 후 승인↑) · `docs/harness-maintenance.md`(솔로 하드코딩 서술) ·
   `plugins/harness-guard/skills/repo-sync/SKILL.md`(승인 정보성 명시).
@@ -57,7 +59,7 @@
 ## 검증
 
 - `bash -n set-branch-protection.sh` · `bash tests/set-branch-protection-test.sh` GREEN
-  (reviews_json 3케이스 + classify 정보성/솔로/팀 신규 케이스, 기존 회귀 0 except 의도된 flip).
+  (reviews_json + classify 정보성/솔로/팀 + 실제 `--check` CLI fixture).
 - `enforce_admins=true` + 승인1 + self-approve 불가 = 3인 팀에서 최소 1명 다른 리뷰어 필요(정상).
 - develop은 `--approvals 1` 적용 후에도 승인 0 → `--auto` 머지 경로 무영향.
 - git-flow: feature → PR(base develop) → CI green → 머지 → 보안검토 → release main v0.22.0.

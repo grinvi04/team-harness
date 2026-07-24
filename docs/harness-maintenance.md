@@ -20,7 +20,8 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 | 오타·문구·주석 수정 | PATCH (0.0.x) |
 | 호환이 깨지는 변경 (커맨드 제거·settings 키 변경 등) | MAJOR + 마이그레이션 안내 |
 
-버전 변경 시 함께 갱신: `plugins/harness-guard/.claude-plugin/plugin.json` + README 배지.
+버전 변경 시 함께 갱신: `plugins/harness-guard/.claude-plugin/plugin.json` +
+`plugins/harness-guard/.codex-plugin/plugin.json` + README 배지.
 동작 변경을 머지하고 버전을 안 올리면 팀원에게 배포되지 않은 것과 같다.
 
 ## 팀원에게 전파되는 방식
@@ -64,10 +65,10 @@ node scripts/check-plugin-coexistence.mjs --profile /tmp/harness-profile --plugi
 node scripts/run-external-pilot.mjs --repo /path/to/consumer --output /tmp/pilot.json
 ```
 
-- **플러그인(가드·커맨드·스킬·에이전트)**: Claude Code와 Codex 모두 **캐시된 버전을 실행**하므로 버전 업 후
+- **플러그인(가드·커맨드·스킬·에이전트 기준)**: Claude Code와 Codex 모두 **설치된 버전을 실행**하므로 버전 업 후
   갱신해야 실린다. Claude Code는 `/plugin marketplace update team-harness` 후 `/plugin` 메뉴에서
   harness-guard를 업데이트한다. Codex는 최신 Team Harness checkout에서 아래 한 경로로 plugin 동기화,
-  harness·security 호환 패치, 새 세션 검증을 순서대로 수행한다.
+  source-native 계약 검사, 외부 security 호환 단계, 새 세션 검증을 순서대로 수행한다.
   ```bash
   bash /path/to/team-harness/scripts/codex-hardened.sh --version
   bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe
@@ -115,5 +116,5 @@ node scripts/run-external-pilot.mjs --repo /path/to/consumer --output /tmp/pilot
 
 - **develop 채택(v0.14.x)**: team-harness도 다른 repo처럼 `기본=main + develop` gitflow를 쓴다.
   feature→develop→release→main. `ci-gate.yml`은 실제로 있으며 `[main, develop]` PR마다 실행된다.
-- **branch protection 적용됨**(2026-07 public 전환 #73 이후) — main·develop에 required status checks·force-push/삭제 차단·대화 resolve, **승인요건 0 · enforce_admins=on**(솔로 표준 — decisions "브랜치 보호 표준" + "enforce_admins=false→true(정정)" 행). `guard.sh` 훅·`.githooks/pre-commit`(dogfooding)은 직접커밋·맨손 gh 머지를 로컬에서 선차단하는 **방어심화 계층**으로 병존(서버 강제와 이중). 드리프트 점검 = `set-branch-protection.sh --check`(팀 모드는 `--approvals N`으로 main에만 승인 요건 추가, develop은 0 유지)
+- **branch protection 적용됨**(2026-07 public 전환 #73 이후) — main·develop에 required status checks·force-push/삭제 차단·대화 resolve·`enforce_admins=on`. 현재 team-harness는 **팀 모드(main 승인1 + stale 승인 무효화, develop 승인0)** 다. `guard.sh` 훅·`.githooks/pre-commit`(dogfooding)은 직접커밋·맨손 gh 머지를 로컬에서 선차단하는 **방어심화 계층**으로 병존(서버 강제와 이중). 드리프트 점검 = `set-branch-protection.sh --check --approvals 1 --contexts quality,secret-scan,test-guard,commitlint,atomic-trust-macos`; `--contexts`를 주면 개수만이 아니라 exact set을 검증한다. main은 승인 수를 명시하고 develop 승인0과 나머지 불변식도 엄격하게 확인한다.
 - `presentation.html` 등 발표 자료는 커밋 대상이 아니다 — repo는 운영 자산만

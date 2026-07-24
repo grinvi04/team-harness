@@ -13,6 +13,55 @@
 # 한계(의도적): 셸 확장(glob·변수·명령치환)은 하지 않는다 — 가드는 확장 전 리터럴 명령을 판정한다.
 #   heredoc·프로세스치환 같은 다중행 구문은 범위 밖(가드는 흔한 형태만, 정본 강제는 계층0).
 
+# collapse_line_continuations <cmdline>: Unix 셸이 실제 제거하는 backslash+LF만 논리행으로 합친다.
+#   CRLF, single quote 안의 literal, 짝수 backslash run 뒤 LF는 continuation이 아니므로 그대로 보존한다.
+#   따옴표 자체도 보존돼 mention 토큰 경계가 넓어지지 않는다.
+collapse_line_continuations() {
+  local s="$1"
+  local i=0 n=${#s} c next q='' out='' run=0 j=0
+  while (( i < n )); do
+    c="${s:i:1}"
+
+    if [[ "$q" == "'" ]]; then
+      out+="$c"
+      [[ "$c" == "'" ]] && q=''
+      ((i++))
+      continue
+    fi
+
+    if [[ "$c" == \\ ]]; then
+      run=0
+      while (( i < n )) && [[ "${s:i:1}" == \\ ]]; do
+        ((run++))
+        ((i++))
+      done
+      next="${s:i:1}"
+      if (( run % 2 == 1 )) && [[ "$next" == $'\n' ]]; then
+        j=1
+        while (( j < run )); do out+=\\; ((j++)); done
+        ((i++))
+        continue
+      fi
+      j=0
+      while (( j < run )); do out+=\\; ((j++)); done
+      # 홀수 run은 다음 문자를 escape한다. quote 문자를 상태 전환으로 오인하지 않게 함께 소비한다.
+      if (( run % 2 == 1 && i < n )); then
+        out+="$next"
+        ((i++))
+      fi
+      continue
+    fi
+
+    if [[ -z "$q" && "$c" == "'" ]]; then q="'"
+    elif [[ -z "$q" && "$c" == '"' ]]; then q='"'
+    elif [[ "$q" == '"' && "$c" == '"' ]]; then q=''
+    fi
+    out+="$c"
+    ((i++))
+  done
+  printf '%s' "$out"
+}
+
 # split_segments <cmdline>: 명령줄을 셸 연산자(; && || | ( ))에서 분리한다(따옴표 인식).
 #   1줄=1세그먼트로 출력. 따옴표 안의 연산자·서브셸 문자는 리터럴로 취급해 분리하지 않는다.
 split_segments() {

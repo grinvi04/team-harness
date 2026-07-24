@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* Normalize Codex exec payloads, then run the two Claude-shaped policy guards. */
+/* Normalize Codex exec payloads, then run the shared policy guards. */
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import path from 'node:path'
@@ -11,11 +11,15 @@ let hook
 try {
   hook = JSON.parse(raw)
 } catch {
-  process.exit(0)
+  process.stderr.write('Codex pretool guard failed: invalid hook JSON\n')
+  process.exit(2)
 }
 
 const command = hook?.tool_input?.command ?? hook?.tool_input?.cmd
-if (typeof command !== 'string') process.exit(0)
+if (typeof command !== 'string') {
+  process.stderr.write('Codex pretool guard failed: command is required\n')
+  process.exit(2)
+}
 
 const normalized = JSON.stringify({
   ...hook,
@@ -23,9 +27,19 @@ const normalized = JSON.stringify({
   tool_input: { ...(hook.tool_input || {}), command },
 })
 const scripts = path.dirname(fileURLToPath(import.meta.url))
+const pluginData = process.env.PLUGIN_DATA
+if (!pluginData) {
+  process.stderr.write('Codex pretool guard failed: PLUGIN_DATA is required\n')
+  process.exit(1)
+}
+const guardEnvironment = {
+  ...process.env,
+  HARNESS_AGENT_NAME: 'Codex',
+  HARNESS_GUARD_LOG: path.join(pluginData, 'guard-block.log'),
+}
 for (const [program, args, env] of [
-  ['bash', [path.join(scripts, 'codex-guard.sh')], process.env],
-  ['node', [path.join(scripts, 'codex-secret-egress-guard.mjs')], process.env],
+  ['bash', [path.join(scripts, 'guard.sh')], guardEnvironment],
+  ['node', [path.join(scripts, 'codex-secret-egress-guard.mjs')], guardEnvironment],
 ]) {
   const result = spawnSync(program, args, { input: normalized, encoding: 'utf8', env })
   if (result.stdout) process.stdout.write(result.stdout)

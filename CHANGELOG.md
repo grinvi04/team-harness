@@ -2,8 +2,81 @@
 
 <!-- Generated file. Do not edit release entries manually. -->
 
-Generated from version tags and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs` and replace this file with its output.
+Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
+Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and replace this file with its output.
+
+## v0.61.0 - 2026-07-24
+
+- fix(security): guaranteed prefix 과차단 해소
+- fix(security): 명백한 로컬 copy 허용
+- fix(security): credential offset overflow 차단
+- fix(security): dynamic credential path 차단
+- fix(security): uncertain substring expression 차단
+- fix(security): empty expansion prefix 차단
+- fix(security): path-preserving transform 차단
+- fix(security): zero-offset credential substring 차단
+- fix(security): quoted trim credential 차단
+- fix(security): identity trim credential 차단
+- fix(security): source expansion 의미 보존
+- fix(security): CODEX_HOME operator 의미 구분
+- fix(security): full-path fallback credential 차단
+- fix(security): fallback credential expansion 차단
+- fix(security): nested credential expansion 차단
+- fix(security): 원격 목적지 expansion 의미 보존
+- fix(security): credential 경로 동치 egress 차단
+- fix(security): 격리 Codex auth egress 차단
+- fix(security): IPv6 remote-copy 목적지 차단
+- fix(security): pilot 환경을 allowlist로 격리
+- fix(security): credential 방향과 macOS required 결박
+- fix(security): 원격복사 source와 목적지 구분
+- fix(security): pilot 환경과 원격복사 경계 결박
+- fix(codex): session auth schema 호환 유지
+- fix(security): pilot auth와 credential egress 결박
+- fix(security): Codex 실행을 동적 신원에 결박
+- fix(security): 실행 trust와 정책 결과 결박
+- fix(security): config 내부 curl 목적지 차단
+- fix(security): pilot trust와 egress 감사 경계 차단
+- fix(security): fish long command egress 우회 차단
+- fix(ci): 감사로그 권한 검사를 OS 독립화
+- fix(security): quoted Authorization 감사로그 전체 마스킹
+- fix(security): URL userinfo와 Authorization egress 차단
+- fix(security): literal curl credential egress 차단
+- fix(security): curl auth option 감사로그 마스킹
+- fix(security): fish command option egress 우회 차단
+- fix(security): 최종 release-check credential 경계 차단
+- fix(security): 확장형 curl 목적지 차단
+- fix(security): curl option operand 목적지 오인 방지
+- fix(security): attached env redirect egress 차단
+- fix(security): schemeless sink와 release PR 재조회 보강
+- fix(security): curl sink operand를 위치로 판정
+- fix(security): 로컬 URI egress 과차단 해소
+- fix(security): 변수 확장 원격 sink 차단
+- fix(security): 최종 release-check 경계 차단
+- fix(security): timeout wrapper egress 차단
+- fix(security): 중첩 명령 탐색을 fail-closed 처리
+- fix(security): quoted dollar substitution egress 차단
+- fix(security): backtick egress substitution 차단
+- fix(release): 태그 후 changelog byte 재현 보장
+- fix(release): pipeand와 후보 날짜 재현성 보강
+- fix(security): 경로 포함 env 원격복사 차단
+- fix(security): builtin egress dispatcher 차단
+- fix(security): 감사로그와 netcat 경계 보강
+- fix(release): v0.61.0 최종 게이트 강화
+- fix(security): sh -c option separator 처리
+- fix(security): prefixed shell wrapper egress 차단
+- fix(security): Unix continuation을 LF로 한정
+- fix(security): 셸 continuation 의미론 보존
+- fix(security): v0.61.0 릴리즈 게이트 우회 차단
+- fix(codex): routing 증거 응답 형식 고정
+- fix(codex): 다중행 hook 증거 정규화
+- fix(codex): live attestation 독립 검증
+- fix(codex): pilot 경로 증거 비식별화
+- fix(codex): pilot 한계 보고 재현
+- fix(codex): 릴리즈 증거 trust chain 강화
+- fix(migration): 테스트 fixture 발견 제외
+- fix(ci): pilot 증거 검증에 전체 이력 제공
+- fix(codex): 네이티브 증거 검증 강화
+- feat(codex): 네이티브 loader로 전환
 
 ## v0.60.0 - 2026-07-19
 

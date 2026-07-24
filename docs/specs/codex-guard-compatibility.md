@@ -74,6 +74,11 @@ Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native �
 `security-guidance`의 현재 오류는 Codex 기능 부재가 아니라 Claude Code hook/output 계약을 Codex에 그대로 가져온
 호환성 문제로 분류한다.
 
+2026-07-23 Codex 0.144.6 재검증에서는 unified exec가 `PreToolUse` command hook을 지원한다. v0.61.0부터
+`harness-guard`는 `.codex-plugin/plugin.json`, `codex/hooks/hooks.json`, `codex/skills/*/SKILL.md`를 source에
+직접 제공한다. harness plugin cache patch, overlay 주입, custom agent 복사, unified exec 강제 비활성화는
+제거했다. 위 0.144.0~0.144.1 기록은 당시 한계의 이력이며 현재 설치 절차가 아니다.
+
 ## Semantic Parity Matrix
 
 이 표는 `harness-guard`가 소유한 각 surface의 정본이다. `Codex-native 대체`와
@@ -82,16 +87,19 @@ Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native �
 
 | 소유 surface | Claude Code 경로 | Codex 경로 | 상태 | 자동 검증 |
 |---|---|---|---|---|
-| `hooks/hooks.json:PreToolUse:Bash:command` | `guard.sh` | 같은 command hook | system requirements가 모든 local surface에 simple-shell 경로 강제 | `guard-test.sh`, `guard-matrix-test.sh`, surface probes |
-| `hooks/hooks.json:PreToolUse:Bash:prompt` | LLM secret-egress 판정 | explicit-pattern command hook | 모든 local surface의 simple Bash에서 deterministic deny | `codex-secret-egress-guard-test.sh`, surface probes |
-| `hooks/hooks.json:PreToolUse:Agent` | `enforce-subagent-model.py` | namespaced read-only Codex custom agents | Codex-native 대체 | `codex-skill-mapping-test.sh`, cache patch test |
-| `hooks/hooks.json:UserPromptSubmit` | `route-intent.mjs` | 같은 command hook | 공통, cache patch 보존 | `route-intent-test.sh`, cache patch test |
+| `hooks/hooks.json:PreToolUse:Bash:command` | `guard.sh` | `codex/hooks/hooks.json` command가 공용 guard 호출 | source-native 연결 | `guard-test.sh`, `codex-native-loader-test.sh` |
+| `hooks/hooks.json:PreToolUse:Bash:prompt` | LLM secret-egress 판정 | native command hook의 explicit-pattern 검사 | deterministic deny | `codex-secret-egress-guard-test.sh`, native loader test |
+| `hooks/hooks.json:PreToolUse:Agent` | `enforce-subagent-model.py` | 플랫폼 native agent 실행 | Codex 구현은 플랫폼에 위임 | `codex-skill-mapping-test.sh` |
+| `hooks/hooks.json:UserPromptSubmit` | `route-intent.mjs` | native command hook이 같은 router 호출 | source-native 공통 | `route-intent-test.sh`, native loader test |
+| `.codex-plugin/plugin.json` | 해당 없음 | native skill·hook entry point | Codex 공식 loader 계약 | `codex-native-loader-test.sh` |
+| `codex/hooks/hooks.json` | 해당 없음 | `PLUGIN_ROOT` 기반 command hook 2개 | Codex 공식 hook 계약 | `codex-native-loader-test.sh` |
+| `codex/skills/*.md` | 해당 없음 | 16개 native wrapper가 공용 skill 계약 참조 | cache 변형 없는 skill 연결 | native loader + mapping tests |
 | `scripts/codex-security-guidance-adapter.mjs` | Claude security-guidance raw output | Codex-safe output adapter | Codex-native 대체, PostToolUse 실측 | `codex-security-guidance-adapter-test.sh` |
 | `scripts/patch-codex-security-guidance.mjs` | 해당 없음 | cache command patch + enable | Codex-native 설치 절차 | adapter patch test |
-| `scripts/patch-codex-harness-guard.mjs` | 해당 없음 | prompt 교체 + overlay·cache guard 생성 + metadata 보정 + agent 설치 | Codex-native 설치 절차 | `codex-harness-guard-patch-test.sh` |
+| `scripts/check-codex-native-plugin.mjs` | 해당 없음 | 설치 source의 manifest·hooks·16 skills read-only 검사 | native 상태 검증 | launcher·doctor tests |
 | `scripts/sync-codex-plugin-cache.mjs` | 해당 없음 | source가 더 새로울 때 team-harness marketplace·plugin만 갱신 | Codex-native 설치 절차 | `codex-plugin-cache-sync-test.sh` |
-| `scripts/codex-hardened.sh` | 해당 없음 | CLI 시작 전 plugin sync/cache patch 후 unified_exec 비활성화 | CLI 자동복구·중복 방어 | launcher + sync tests + fresh probe |
-| `scripts/install-codex-managed-requirements.sh` | 해당 없음 | system requirements에 hooks=true, unified_exec=false pin | 모든 지원 local surface의 admin-enforced 통제 | managed requirements test + surface probes |
+| `scripts/codex-hardened.sh` | 해당 없음 | plugin sync·native 계약 확인 후 인자 그대로 전달 | 얇은 CLI 검증 경로 | launcher + sync tests + fresh probe |
+| `scripts/install-codex-managed-requirements.sh` | 해당 없음 | system requirements에 hooks=true만 pin | hook 활성화 통제, exec lifecycle은 native | managed requirements test + surface probes |
 | `scripts/pr-create.sh` | skill이 호출 | 같은 wrapper | 공통 | `pr-create-test.sh` |
 | `scripts/pr-merge.sh` | skill이 호출 | 같은 wrapper | 공통 | `pr-merge-auto-test.sh` |
 | `scripts/solo-merge.sh` | skill이 호출 | 같은 wrapper | 공통 | `solo-merge-test.sh` |
@@ -111,52 +119,46 @@ Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native �
 | `skills/solo-merge/SKILL.md` | slash skill + wrapper | Codex review + same atomic wrapper | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/systematic-debugging/SKILL.md` | slash skill + evidence workflow | current-agent diagnosis/fix + optional explorer/verifier read-only roles | Codex-native mapping | `flagship-skills-test.sh`, `codex-skill-mapping-test.sh` |
 | `skills/verification-before-completion/SKILL.md` | slash skill + completion gate | current-agent final verdict + optional verifier read-only role | Codex-native mapping | `flagship-skills-test.sh`, `codex-skill-mapping-test.sh` |
-| `agents/security-reviewer.md` | Claude named agent, `model: opus` | `codex/agents/harness-security-reviewer.toml` | Codex-native replacement | mapping + cache patch test |
-| `agents/verifier.md` | Claude named agent, `model: opus` | `codex/agents/harness-verifier.toml` | Codex-native replacement | mapping + cache patch test |
-| `codex/agents/harness-explorer.toml` | 해당 없음 | 부모 model 상속 + low, read-only evidence role | Codex-native | mapping + cache patch test |
-| `codex/agents/harness-verifier.toml` | 해당 없음 | 부모 model 상속 + high, read-only verification role | Codex-native | mapping + cache patch test |
-| `codex/agents/harness-security-reviewer.toml` | 해당 없음 | 부모 model 상속 + high, read-only security role | Codex-native | mapping + cache patch test |
-| `codex/skill-overlays/*.md` | 해당 없음 | Claude 원본 skill에 Codex 실행 의미를 cache에서만 주입 | Codex-native | mapping + cache patch test |
+| `agents/security-reviewer.md` | Claude named agent 기준 | native agent에 보안 수용기준 전달 | 실행 lifecycle은 플랫폼 위임 | mapping + native loader test |
+| `agents/verifier.md` | Claude named agent 기준 | native agent에 반증 수용기준 전달 | 실행 lifecycle은 플랫폼 위임 | mapping + native loader test |
 
 `bash -lc` 등 compound shell은 `guard.sh` 단독으로 완전하게 해석하지 못한다. 이 항목은
 Codex sandbox/approval과 server-side CI/branch protection이 최종 통제선이며, 아래 Live Probe의
 반증 fixture로 계속 유지한다.
 
-Codex의 대체 command hook은 **Codex가 `PreToolUse`를 실제로 발생시키는 simple Bash 호출에서만**
+Codex의 대체 command hook은 **Codex가 `PreToolUse`를 실제로 발생시키는 Bash 호출에서**
 `curl`/`wget` upload, `nc` pipe, `scp`/`rsync` remote copy에 시크릿 source가 결합한 명백한 전송을 exit 2로
-차단한다. LLM prompt와 달리 난독화·새 도구를 의미론적으로 추론하지 않는다. system requirements가
-`unified_exec=false`를 pin하고 hardened launcher도 같은 flag를 중복 적용한다. server-side CI/branch protection은
-runtime egress를 대신 차단하지 않는다. 로컬 `.env` 읽기나 일반
+차단한다. LLM prompt와 달리 난독화·새 도구를 의미론적으로 추론하지 않는다. system requirements는
+`hooks=true`만 pin하고 unified exec lifecycle은 현재 Codex native hook 구현에 맡긴다. server-side
+CI/branch protection은 runtime egress를 대신 차단하지 않는다. 로컬 `.env` 읽기나 일반
 네트워크 요청을 이 훅이 차단해서는 안 된다.
 
 Codex CLI runtime은 Claude-style `tool_input.command` 대신 `tool_input.cmd`를 전달할 수 있다. replacement
 guard는 hook matcher가 이미 Bash 실행을 한정하므로 tool name을 다시 판정하지 않고 두 필드를 모두 검사한다.
-`codex-secret-egress-guard-test.sh`는 Claude-shaped payload와 Codex exec-shaped payload를 함께 고정한다.
+검사 전에 Unix 셸이 실제 제거하는 backslash+LF continuation을 논리행으로 합쳐 direct command와
+`sh -lc`/`zsh -lc` exec-shaped wrapper 안의 명백한 upload 패턴을 같은 방식으로 판정한다. 일반 compound
+shell을 완전 해석한다는 의미는 아니다. quote 상태와 연속 backslash 홀짝을 추적해 single-quoted literal과
+짝수 backslash 뒤 LF, CRLF를 결합하지 않는다. `codex-secret-egress-guard-test.sh`는 Claude-shaped
+payload와 Codex exec-shaped payload, direct/nested escaped-newline 및 과차단 반례를 함께 고정한다.
+wrapper command position은 shell-word/segment 스캐너로 판정해 선행 assignment·`env`·`exec`를
+허용하고 `-c` 뒤 선택적 `--` separator를 건너뛰되, `printf` 등 인자에 나타난 wrapper mention은
+실행으로 오인하지 않는다.
 
-## Codex Cache Refresh Runbook
+## Codex Native Refresh Runbook
 
-`harness-guard` cache가 새 버전으로 갱신된 뒤에는 아래 순서로 적용한다.
+`harness-guard`가 새 버전으로 갱신된 뒤에는 아래 순서로 적용한다.
 
 1. `sudo bash scripts/install-codex-managed-requirements.sh --install`로 system requirements를 설치하고
-   `--check`로 두 feature pin을 확인한다.
+   `--check`로 `hooks=true`를 확인한다. 기존 v1의 `unified_exec=false` pin은 제거된다.
 2. `~/.codex/config.toml`의 `approval_policy = "untrusted"`를 interactive 세션용으로 유지한다. `codex exec`는
    0.144.1 probe에서 `approval: never`였으므로 이 설정이 non-interactive 승인 경계를 보장한다고 주장하지 않는다.
    `sandbox_workspace_write.network_access = false`만으로 egress를 막는다고도 주장하지 않는다.
-3. Codex에 `harness-guard` **v0.55.0 이상**을 설치/갱신한다. patcher는 cache에
-   `scripts/codex-secret-egress-guard.mjs`가 없으면 중단한다. 구버전 cache를 억지로 patch하지 않는다.
-4. `node plugins/harness-guard/scripts/patch-codex-harness-guard.mjs`를 실행한다. 이 명령은 Claude
-   source/cache를 바꾸지 않고 Codex cache의 Claude `prompt` handler를 Codex command handler로 교체하고,
-   Claude 실행 메타데이터와 공동작성 표기를 Codex cache skill에서만 제거하고 Codex overlay와 cache 전용
-   `codex-guard.sh`를 생성하며, `harness-*` custom agent를 `~/.codex/agents/`에 설치한다.
+3. Codex에 `harness-guard` **v0.61.0 이상**을 설치/갱신한다.
+4. `node scripts/check-codex-native-plugin.mjs`로 설치 source의 manifest·hooks·16개 skill을 확인한다.
 5. `/hooks`에서 새 command hash를 review/trust한다.
-6. hardened CLI, 일반 CLI, cmux CLI, Desktop/app-server의 새 session을 시작하고 hook event 로그를
-   확인한다. 실제 시크릿이나 실제 전송 endpoint는 사용하지 않는다. v0.55.0부터 system requirements가
-   launcher와 무관하게 `hooks=true`, `unified_exec=false`를 고정하며, 네 표면의 `PreToolUse` 발화와
-   safe deny fixture를 실측했다. 결과 정본은
-   [`codex-managed-hook-enforcement.md`](codex-managed-hook-enforcement.md)다.
-7. 새 session의 `/subagents`에서 `harness-explorer`, `harness-verifier`,
-   `harness-security-reviewer`가 발견되는지 확인한다. 새 agent 파일은 hook이 아니므로 `/hooks` trust 대상이
-   아니다. 사용자 전역 default model은 변경하지 않는다.
+6. hardened CLI, 일반 CLI, cmux CLI, Desktop/app-server의 새 session에서 benign·파괴·egress fixture와
+   `UserPromptSubmit` 라우팅을 확인한다. 실제 시크릿이나 실제 전송 endpoint는 사용하지 않는다.
+7. subagent 선택은 Codex native 기능에 맡기며 `~/.codex/agents`에 harness 전용 파일을 복사하지 않는다.
 
 `security-guidance` patch도 별도다. Codex는 startup/cache refresh 때 marketplace snapshot의 raw Claude hook을
 cache에 다시 복사할 수 있으므로, v0.43.0 이상의
@@ -166,9 +168,9 @@ snapshot 둘 다** adapter command로 보정한다. marketplace upgrade 뒤에 �
 ### CLI 자동 복구 launcher
 
 cmux에서 시작하는 Codex CLI는 `scripts/codex-hardened.sh`를 사용한다. 이 launcher는 시작 직전에
-source manifest가 설치 cache보다 새로울 때만 공식 Codex CLI로 `team-harness` marketplace와
-`harness-guard` plugin을 갱신한다. 이어서 harness cache patch와 `security-guidance` adapter patch를 순서대로
-적용하며, 동기화나 patch 중 하나라도 실패하면 Codex를 실행하지 않는다. 버전이 같거나 cache가 더 새로우면
+source manifest가 설치 plugin보다 새로울 때만 공식 Codex CLI로 `team-harness` marketplace와
+`harness-guard` plugin을 갱신한다. 이어서 native 계약 검사와 `security-guidance` adapter patch를 순서대로
+적용하며, 동기화나 검사가 하나라도 실패하면 Codex를 실행하지 않는다. 버전이 같거나 설치본이 더 새로우면
 marketplace 네트워크 호출을 생략한다. `approval_policy = "untrusted"`는 변경하지 않는다.
 
 현재 checkout을 최신 `develop`으로 갱신한 뒤, zsh에서 다음 alias를 명시적으로 설치할 수 있다.
@@ -178,10 +180,10 @@ alias codex='bash "$HOME/team-harness/scripts/codex-hardened.sh"'
 ```
 
 영구 설치는 `.zshrc`에 같은 alias를 넣고 새 shell을 열어 확인한다. 제거하려면 해당 alias 한 줄만 지운다.
-Desktop은 launcher의 cache 자동복구를 실행하지 않으므로 plugin 갱신 직후 patch 명령을 먼저 실행해야 한다.
-보안 hook 경로 자체는 system requirements가 launcher와 독립적으로 강제한다.
+Desktop은 launcher를 실행하지 않으므로 plugin 갱신 뒤 doctor로 native 상태를 별도 확인한다.
+hook 활성화는 system requirements가 launcher와 독립적으로 강제한다.
 
-## Custom Agent Validation Status
+## Custom Agent Validation Status (historical)
 
 2026-07-10에는 세 agent를 `gpt-5.6-terra`/medium으로 고정했으나 이는 당시 계정 표본을 플러그인 계약으로
 일반화한 오류였다. Codex 공식 custom-agent 계약은 생략한 `model`이 부모 session을 상속한다고 명시한다.
@@ -190,8 +192,9 @@ Desktop은 launcher의 cache 자동복구를 실행하지 않으므로 plugin �
 
 quota 복구 뒤 새 저장형 Codex session에서 `harness-verifier`를 명시 spawn해 `AGENTS.md:31`의
 main/develop 직접 commit/push 금지 규칙을 read-only로 정확히 반환하는 것을 확인했다. `--ephemeral`은
-subagent thread를 만들 수 없어 probe 대상이 아니다. 구조·설치 회귀는 `codex-skill-mapping-test.sh`와
-`codex-harness-guard-patch-test.sh`가 계속 보장한다.
+subagent thread를 만들 수 없어 probe 대상이 아니다. 이 custom agent 복사 방식은 v0.61.0에서 제거됐다.
+구조·설치 회귀는 `codex-skill-mapping-test.sh`와 `codex-native-loader-test.sh`가 보장하고 실제 subagent 선택은
+플랫폼에 위임한다.
 
 ## Codex Security Evaluation
 
