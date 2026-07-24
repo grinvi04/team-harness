@@ -732,11 +732,77 @@ function hasUrlUserinfo(value) {
   return /^[A-Za-z][A-Za-z0-9+.-]*:\/\/[^/@\s]+@/.test(value)
 }
 
+function readBracedParameterExpansion(value, openIndex) {
+  const quotes = ['']
+  let index = openIndex + 1
+
+  while (index < value.length) {
+    const char = value[index]
+    const quote = quotes.at(-1)
+
+    if (quote === "'") {
+      if (char === "'") quotes[quotes.length - 1] = ''
+      index += 1
+      continue
+    }
+    if (char === '\\' && index + 1 < value.length) {
+      index += 2
+      continue
+    }
+    if (char === '"') {
+      quotes[quotes.length - 1] = quote === '"' ? '' : '"'
+      index += 1
+      continue
+    }
+    if (!quote && char === "'") {
+      quotes[quotes.length - 1] = "'"
+      index += 1
+      continue
+    }
+    if (char === '$' && value[index + 1] === '{') {
+      quotes.push('')
+      index += 2
+      continue
+    }
+    if (char === '$' && value[index + 1] === '(') {
+      const parsed = readParenthesizedCommand(value, index + 1)
+      if (!parsed) return null
+      index = parsed.nextIndex
+      continue
+    }
+    if (char === '`') {
+      index += 1
+      while (index < value.length && value[index] !== '`') {
+        index += value[index] === '\\' && index + 1 < value.length ? 2 : 1
+      }
+      if (index === value.length) return null
+      index += 1
+      continue
+    }
+    if (!quote && char === '}') {
+      quotes.pop()
+      index += 1
+      if (quotes.length === 0) return { nextIndex: index }
+      continue
+    }
+    index += 1
+  }
+  return null
+}
+
 function codexHomeSuffix(value) {
   const plain = value.match(/^\$CODEX_HOME(?![A-Za-z0-9_])(.*)$/)
   if (plain) return plain[1]
-  const braced = value.match(/^\$\{CODEX_HOME(?:[^A-Za-z0-9_}][^}]*)?\}(.*)$/)
-  return braced?.[1]
+  const prefix = '${CODEX_HOME'
+  const operator = value[prefix.length]
+  if (
+    !value.startsWith(prefix) ||
+    (operator !== '}' && !/[-:=?+%#/,^@]/.test(operator || ''))
+  ) {
+    return undefined
+  }
+  const parsed = readBracedParameterExpansion(value, 1)
+  return parsed ? value.slice(parsed.nextIndex) : undefined
 }
 
 function isHighSignalCredentialPath(token) {
