@@ -280,6 +280,7 @@ function isolatedSessionAuth(authSource) {
       access_token: tokens.access_token,
       id_token: tokens.id_token,
       account_id: tokens.account_id,
+      refresh_token: '',
     },
   }
   for (const key of ['auth_mode', 'last_refresh']) {

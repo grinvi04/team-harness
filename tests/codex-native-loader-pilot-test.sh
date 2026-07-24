@@ -38,7 +38,13 @@ const forbidden = Boolean(
   auth.OPENAI_API_KEY ||
   auth.api_key,
 )
-const sessionOnly = Boolean(tokens.access_token && tokens.id_token && tokens.account_id)
+const schemaCompatible = Object.hasOwn(tokens, 'refresh_token') && tokens.refresh_token === ''
+const sessionOnly = Boolean(
+  tokens.access_token &&
+  tokens.id_token &&
+  tokens.account_id &&
+  schemaCompatible
+)
 fs.writeFileSync(observationPath, forbidden ? 'long-lived-present\n' : sessionOnly ? 'session-only\n' : 'session-missing\n')
 if (forbidden) process.exit(86)
 if (!sessionOnly) process.exit(87)
