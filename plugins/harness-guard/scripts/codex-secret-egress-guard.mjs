@@ -307,25 +307,13 @@ function isActiveShellExpansion(value, index) {
   return /[({A-Za-z_0-9*@#?$!-]/.test(value[index + 1] || '')
 }
 
-function isActiveCodexHomeExpansion(value, index) {
-  if (value[index] !== '$') return false
-  if (value.startsWith('$CODEX_HOME', index)) {
-    return !/[A-Za-z0-9_]/.test(value[index + '$CODEX_HOME'.length] || '')
-  }
-  if (!value.startsWith('${CODEX_HOME', index)) return false
-  const operator = value[index + '${CODEX_HOME'.length]
-  return operator === '}' || /[-:=?+%#/,^@]/.test(operator || '')
-}
-
 function shellParts(value) {
   const parts = []
   let tokens = []
-  let activeShellExpansions = []
-  let activeCodexHomeExpansions = []
+  let activeShellExpansionOffsets = []
   let word = ''
   let wordStarted = false
-  let wordHasActiveShellExpansion = false
-  let wordHasActiveCodexHomeExpansion = false
+  let wordActiveShellExpansionOffsets = []
   let quote = ''
   let index = 0
   let separatorBefore = ''
@@ -333,25 +321,21 @@ function shellParts(value) {
   const pushWord = () => {
     if (!wordStarted) return
     tokens.push(word)
-    activeShellExpansions.push(wordHasActiveShellExpansion)
-    activeCodexHomeExpansions.push(wordHasActiveCodexHomeExpansion)
+    activeShellExpansionOffsets.push(wordActiveShellExpansionOffsets)
     word = ''
     wordStarted = false
-    wordHasActiveShellExpansion = false
-    wordHasActiveCodexHomeExpansion = false
+    wordActiveShellExpansionOffsets = []
   }
   const pushSegment = (separatorAfter = '') => {
     pushWord()
     if (tokens.length > 0) {
       parts.push({
         tokens,
-        activeShellExpansions,
-        activeCodexHomeExpansions,
+        activeShellExpansionOffsets,
         separatorBefore,
       })
       tokens = []
-      activeShellExpansions = []
-      activeCodexHomeExpansions = []
+      activeShellExpansionOffsets = []
     }
     separatorBefore = separatorAfter
   }
@@ -375,10 +359,7 @@ function shellParts(value) {
         index += 2
       } else {
         if (quote === '"' && isActiveShellExpansion(value, index)) {
-          wordHasActiveShellExpansion = true
-        }
-        if (quote === '"' && isActiveCodexHomeExpansion(value, index)) {
-          wordHasActiveCodexHomeExpansion = true
+          wordActiveShellExpansionOffsets.push(word.length)
         }
         word += char
         wordStarted = true
@@ -428,8 +409,9 @@ function shellParts(value) {
       pushWord()
       index += 1
     } else {
-      if (isActiveShellExpansion(value, index)) wordHasActiveShellExpansion = true
-      if (isActiveCodexHomeExpansion(value, index)) wordHasActiveCodexHomeExpansion = true
+      if (isActiveShellExpansion(value, index)) {
+        wordActiveShellExpansionOffsets.push(word.length)
+      }
       word += char
       wordStarted = true
       index += 1
@@ -814,9 +796,16 @@ function readBracedParameterExpansion(value, openIndex) {
   return null
 }
 
-function codexHomeSuffix(value) {
+function shiftedExpansionOffsets(offsets, startIndex) {
+  return (offsets || [])
+    .filter((offset) => offset >= startIndex)
+    .map((offset) => offset - startIndex)
+}
+
+function codexHomeSuffix(value, activeExpansionOffsets = []) {
   const plainPrefix = '$CODEX_HOME'
   const bracedPrefix = '${CODEX_HOME'
+  const activeOffsets = new Set(activeExpansionOffsets)
   const containingExpansions = []
   const replacementWordStart = (openIndex, endIndex) => {
     const body = value.slice(openIndex + 2, endIndex - 1)
@@ -831,9 +820,45 @@ function codexHomeSuffix(value) {
     return containingExpansions.every((expansion, expansionIndex) => {
       const nextStart =
         containingExpansions[expansionIndex + 1]?.openIndex ?? referenceIndex
-      return expansion.wordStart === nextStart
+      return activeOffsets.has(expansion.openIndex) &&
+        expansion.wordStart === nextStart
     })
   }
+  const activeExpansionEnd = (startIndex) => {
+    if (value[startIndex] === '`') {
+      let index = startIndex + 1
+      while (index < value.length) {
+        if (value[index] === '\\' && index + 1 < value.length) index += 2
+        else if (value[index] === '`') return index + 1
+        else index += 1
+      }
+      return undefined
+    }
+    if (value[startIndex] !== '$') return undefined
+    if (value[startIndex + 1] === '{') {
+      return readBracedParameterExpansion(value, startIndex + 1)?.nextIndex
+    }
+    if (value[startIndex + 1] === '(') {
+      return readParenthesizedCommand(value, startIndex + 1)?.nextIndex
+    }
+    const parameter = value.slice(startIndex + 1).match(
+      /^(?:[A-Za-z_][A-Za-z0-9_]*|[0-9]|[*@#?$!-])/,
+    )
+    return parameter ? startIndex + 1 + parameter[0].length : undefined
+  }
+  const hasPotentiallyEmptyPrefix = (referenceIndex) => {
+    let prefixIndex = 0
+    while (prefixIndex < referenceIndex) {
+      if (!activeOffsets.has(prefixIndex)) return false
+      const nextIndex = activeExpansionEnd(prefixIndex)
+      if (nextIndex === undefined || nextIndex > referenceIndex) return false
+      prefixIndex = nextIndex
+    }
+    return prefixIndex === referenceIndex
+  }
+  const hasAcceptedPrefix = (referenceIndex) =>
+    hasPureWrapperPrefix(referenceIndex) ||
+    hasPotentiallyEmptyPrefix(referenceIndex)
   const containingSuffix = (referenceEnd) => {
     if (containingExpansions.length === 0) return undefined
     const closingIndexes = new Set(
@@ -853,7 +878,8 @@ function codexHomeSuffix(value) {
     if (
       value.startsWith(plainPrefix, index) &&
       !/[A-Za-z0-9_]/.test(value[index + plainPrefix.length] || '') &&
-      hasPureWrapperPrefix(index)
+      activeOffsets.has(index) &&
+      hasAcceptedPrefix(index)
     ) {
       const referenceEnd = index + plainPrefix.length
       return {
@@ -877,7 +903,7 @@ function codexHomeSuffix(value) {
           /^:(?:[ \t]*0+|[ \t]+[+-]0+)(?::|$)/.test(operation) ||
           /^[%#/,^@]/.test(operation)
         ) {
-          if (!hasPureWrapperPrefix(index)) {
+          if (!activeOffsets.has(index) || !hasAcceptedPrefix(index)) {
             containingExpansions.push({
               openIndex: index,
               endIndex: parsedBraced.nextIndex,
@@ -904,24 +930,33 @@ function codexHomeSuffix(value) {
   return undefined
 }
 
-function isHighSignalCredentialPath(token, hasActiveCodexHomeExpansion = false) {
+function isHighSignalCredentialPath(token, activeExpansionOffsets = []) {
   if (typeof token !== 'string' || token.length === 0) return false
-  const candidates = [token]
-  if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
-  return candidates.some((raw) => {
-    const value = raw.replace(/^(?:[0-9]*)<{1,2}(?!<)/, '').replace(/^@/, '')
+  const candidates = [{ raw: token, startIndex: 0 }]
+  const equalIndex = token.indexOf('=')
+  if (equalIndex >= 0) {
+    candidates.push({ raw: token.slice(equalIndex + 1), startIndex: equalIndex + 1 })
+  }
+  return candidates.some(({ raw, startIndex }) => {
+    let value = raw
+    let valueOffsets = shiftedExpansionOffsets(activeExpansionOffsets, startIndex)
+    const redirection = value.match(/^(?:[0-9]*)<{1,2}(?!<)/)?.[0] || ''
+    value = value.slice(redirection.length)
+    valueOffsets = shiftedExpansionOffsets(valueOffsets, redirection.length)
+    if (value.startsWith('@')) {
+      value = value.slice(1)
+      valueOffsets = shiftedExpansionOffsets(valueOffsets, 1)
+    }
     if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return false
     if (/(?:^|\/)\.aws\/credentials$/i.test(value)) return true
     if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
-    if (hasActiveCodexHomeExpansion) {
-      const codexHome = codexHomeSuffix(value)
-      if (codexHome) {
-        if ([codexHome.suffix, codexHome.containingSuffix].some((suffix) =>
-          suffix !== undefined &&
-          path.posix.normalize(`/__CODEX_HOME__${suffix}`) ===
-            '/__CODEX_HOME__/auth.json'
-        )) return true
-      }
+    const codexHome = codexHomeSuffix(value, valueOffsets)
+    if (codexHome) {
+      if ([codexHome.suffix, codexHome.containingSuffix].some((suffix) =>
+        suffix !== undefined &&
+        path.posix.normalize(`/__CODEX_HOME__${suffix}`) ===
+          '/__CODEX_HOME__/auth.json'
+      )) return true
     }
     if (
       process.env.CODEX_HOME &&
@@ -944,18 +979,27 @@ function isDotEnvPath(token) {
   )
 }
 
-function isSensitiveFilePath(token, hasActiveCodexHomeExpansion = false) {
+function isSensitiveFilePath(token, activeExpansionOffsets = []) {
   return isDotEnvPath(token) ||
-    isHighSignalCredentialPath(token, hasActiveCodexHomeExpansion)
+    isHighSignalCredentialPath(token, activeExpansionOffsets)
 }
 
-function isSensitiveFileReference(token, hasActiveCodexHomeExpansion = false) {
+function isSensitiveFileReference(token, activeExpansionOffsets = []) {
   if (typeof token !== 'string') return false
-  const candidates = [token]
-  if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
-  return candidates.some((candidate) =>
-    candidate.startsWith('@') &&
-      isSensitiveFilePath(candidate, hasActiveCodexHomeExpansion)
+  const candidates = [{ value: token, startIndex: 0 }]
+  const equalIndex = token.indexOf('=')
+  if (equalIndex >= 0) {
+    candidates.push({
+      value: token.slice(equalIndex + 1),
+      startIndex: equalIndex + 1,
+    })
+  }
+  return candidates.some(({ value, startIndex }) =>
+    value.startsWith('@') &&
+      isSensitiveFilePath(
+        value,
+        shiftedExpansionOffsets(activeExpansionOffsets, startIndex),
+      )
   )
 }
 
@@ -1108,8 +1152,7 @@ function remoteCopyOperandEntries(tokens, index, executable) {
 function hasUpload(value) {
   for (const {
     tokens,
-    activeShellExpansions,
-    activeCodexHomeExpansions,
+    activeShellExpansionOffsets,
     separatorBefore,
   } of shellParts(value)) {
     const index = commandIndex(tokens)
@@ -1130,10 +1173,13 @@ function hasUpload(value) {
         destination &&
         (
           isRemoteCopyTarget(destination.token) ||
-          activeShellExpansions[destination.index]
+          activeShellExpansionOffsets[destination.index].length > 0
         ) &&
         operands.slice(0, -1).some(({ token, index: operandIndex }) =>
-          isSensitiveFilePath(token, activeCodexHomeExpansions[operandIndex])
+          isSensitiveFilePath(
+            token,
+            activeShellExpansionOffsets[operandIndex],
+          )
         )
       ) return true
     }
@@ -1148,7 +1194,7 @@ const secretSourcePattern = new RegExp(
   'i',
 )
 
-function curlSensitiveFileSource(tokens, activeCodexHomeExpansions, index) {
+function curlSensitiveFileSource(tokens, activeShellExpansionOffsets, index) {
   const directOptions = new Set(['--config', '--cookie', '--netrc-file', '--upload-file'])
   const referenceOptions =
     /^--(?:data(?:-ascii|-binary|-urlencode)?|form|header|json|proxy-header)$/
@@ -1158,56 +1204,77 @@ function curlSensitiveFileSource(tokens, activeCodexHomeExpansions, index) {
     if (shortOption) {
       const valueIndex = shortOption.consumesNext ? offset + 1 : offset
       const optionValue = shortOption.consumesNext ? (tokens[valueIndex] || '') : shortOption.value
-      const hasActiveCodexHomeExpansion = activeCodexHomeExpansions[valueIndex]
+      const valueStart = shortOption.consumesNext
+        ? 0
+        : option.length - optionValue.length
+      const valueOffsets = shiftedExpansionOffsets(
+        activeShellExpansionOffsets[valueIndex],
+        valueStart,
+      )
       if (
         ['K', 'T', 'b'].includes(shortOption.name) &&
-        isSensitiveFilePath(optionValue, hasActiveCodexHomeExpansion)
+        isSensitiveFilePath(optionValue, valueOffsets)
       ) return true
       if (
         ['d', 'F', 'H'].includes(shortOption.name) &&
-        isSensitiveFileReference(optionValue, hasActiveCodexHomeExpansion)
+        isSensitiveFileReference(optionValue, valueOffsets)
       ) return true
       if (shortOption.consumesNext) offset += 1
       continue
     }
     if (
       directOptions.has(option) &&
-      isSensitiveFilePath(tokens[offset + 1] || '', activeCodexHomeExpansions[offset + 1])
+      isSensitiveFilePath(
+        tokens[offset + 1] || '',
+        activeShellExpansionOffsets[offset + 1],
+      )
     ) return true
     if (
       referenceOptions.test(option) &&
-      isSensitiveFileReference(tokens[offset + 1] || '', activeCodexHomeExpansions[offset + 1])
+      isSensitiveFileReference(
+        tokens[offset + 1] || '',
+        activeShellExpansionOffsets[offset + 1],
+      )
     ) return true
     const equal = option.indexOf('=')
     if (equal > 0) {
       const name = option.slice(0, equal)
       const optionValue = option.slice(equal + 1)
-      const hasActiveCodexHomeExpansion = activeCodexHomeExpansions[offset]
+      const valueOffsets = shiftedExpansionOffsets(
+        activeShellExpansionOffsets[offset],
+        equal + 1,
+      )
       if (
         directOptions.has(name) &&
-        isSensitiveFilePath(optionValue, hasActiveCodexHomeExpansion)
+        isSensitiveFilePath(optionValue, valueOffsets)
       ) return true
       if (
         referenceOptions.test(name) &&
-        isSensitiveFileReference(optionValue, hasActiveCodexHomeExpansion)
+        isSensitiveFileReference(optionValue, valueOffsets)
       ) return true
     }
   }
   return false
 }
 
-function wgetSensitiveFileSource(tokens, activeCodexHomeExpansions, index) {
+function wgetSensitiveFileSource(tokens, activeShellExpansionOffsets, index) {
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
     if (
       option === '--post-file' &&
-      isSensitiveFilePath(tokens[offset + 1] || '', activeCodexHomeExpansions[offset + 1])
+      isSensitiveFilePath(
+        tokens[offset + 1] || '',
+        activeShellExpansionOffsets[offset + 1],
+      )
     ) return true
     if (
       option.startsWith('--post-file=') &&
       isSensitiveFilePath(
         option.slice('--post-file='.length),
-        activeCodexHomeExpansions[offset],
+        shiftedExpansionOffsets(
+          activeShellExpansionOffsets[offset],
+          '--post-file='.length,
+        ),
       )
     ) {
       return true
@@ -1217,24 +1284,27 @@ function wgetSensitiveFileSource(tokens, activeCodexHomeExpansions, index) {
 }
 
 function hasSensitiveFileSource(value) {
-  return shellParts(value).some(({ tokens, activeCodexHomeExpansions }) => {
+  return shellParts(value).some(({ tokens, activeShellExpansionOffsets }) => {
     const index = commandIndex(tokens)
     const executable = baseName(tokens[index])
     if (executable === 'curl') {
-      return curlSensitiveFileSource(tokens, activeCodexHomeExpansions, index)
+      return curlSensitiveFileSource(tokens, activeShellExpansionOffsets, index)
     }
     if (executable === 'wget') {
-      return wgetSensitiveFileSource(tokens, activeCodexHomeExpansions, index)
+      return wgetSensitiveFileSource(tokens, activeShellExpansionOffsets, index)
     }
     if (['scp', 'rsync'].includes(executable)) {
       return remoteCopyOperandEntries(tokens, index, executable)
         .slice(0, -1)
         .some(({ token, index: operandIndex }) =>
-          isSensitiveFilePath(token, activeCodexHomeExpansions[operandIndex])
+          isSensitiveFilePath(
+            token,
+            activeShellExpansionOffsets[operandIndex],
+          )
         )
     }
     return tokens.some((token, tokenIndex) =>
-      isSensitiveFilePath(token, activeCodexHomeExpansions[tokenIndex])
+      isSensitiveFilePath(token, activeShellExpansionOffsets[tokenIndex])
     )
   })
 }

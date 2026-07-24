@@ -79,8 +79,9 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   trim·substitution·case·attribute처럼 pattern 불일치나 no-op으로 원값을 보존할 수 있는 transform과
   zero-offset substring은 fail-closed하고, `+`·`:+`와 명백한 nonzero substring처럼 원래 값을
   대체하는 operator 자체는 보호 경로로 오인하지 않되, 대체값 내부의
-  실제 `CODEX_HOME/auth.json` 참조는 계속 차단한다. source token도 quote·escape 상태를 보존해 활성 참조만
-  확장 경로로 인정하고, literal prefix 없이 token root 또는 순수 nested replacement-word에서 시작할 때만
+  실제 `CODEX_HOME/auth.json` 참조는 계속 차단한다. source token도 quote·escape 상태와 활성 expansion의
+  cooked offset을 보존해 활성 참조만 확장 경로로 인정한다. literal prefix 없이 token root·순수 nested
+  replacement-word에서 시작하거나 potentially-empty active expansion prefix만 앞설 때
   `CODEX_HOME`-rooted path로 판정하며
   `curl -o`·`wget -O` 같은 로컬 출력 경로는 source로 오인하지 않는다. 제3 live
   session은 loopback closed port를 대상으로 격리 auth 경로 차단을 증거화한다. `scp`·`rsync`는 option
