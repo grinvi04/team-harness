@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): nested credential expansion 차단
 - fix(security): 원격 목적지 expansion 의미 보존
 - fix(security): credential 경로 동치 egress 차단
 - fix(security): 격리 Codex auth egress 차단
