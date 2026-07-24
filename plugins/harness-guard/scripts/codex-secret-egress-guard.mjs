@@ -874,7 +874,7 @@ function codexHomeSuffix(value) {
         if (
           operation === '' ||
           /^(?::)?[-=?]/.test(operation) ||
-          ['%/', '%%/'].includes(operation)
+          ['%', '%%', '#', '##', '%/', '%%/'].includes(operation)
         ) {
           if (!hasPureWrapperPrefix(index)) {
             containingExpansions.push({
