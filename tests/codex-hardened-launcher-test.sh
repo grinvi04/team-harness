@@ -261,5 +261,13 @@ else
   TRUST_FAILURES=$((TRUST_FAILURES + 1))
 fi
 
+CANONICAL_CONTEXTS='quality,secret-scan,test-guard,commitlint,atomic-trust-macos'
+if grep -Fq -- "--contexts $CANONICAL_CONTEXTS" "$ROOT/docs/harness-maintenance.md"; then
+  echo "PASS: canonical branch protection requires the macOS atomic trust context"
+else
+  echo "FAIL: canonical branch protection omits the macOS atomic trust context"
+  TRUST_FAILURES=$((TRUST_FAILURES + 1))
+fi
+
 [ "$TRUST_FAILURES" -eq 0 ]
 echo "PASS: hardened launcher syncs and validates native Codex state without disabling unified_exec"

@@ -722,13 +722,37 @@ function isHighSignalCredentialPath(token) {
   const candidates = [token]
   if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
   return candidates.some((raw) => {
-    const value = raw.replace(/^@/, '')
+    const value = raw.replace(/^(?:[0-9]*)<{1,2}(?!<)/, '').replace(/^@/, '')
     if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return false
     if (/(?:^|\/)\.aws\/credentials$/i.test(value)) return true
     if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
     if (/(?:^|\/)\.ssh\/id_[^/]+$/i.test(value) && !/\.pub$/i.test(value)) return true
     return /\.(?:pem|key|p12|pfx)$/i.test(value)
   })
+}
+
+function isDotEnvPath(token) {
+  if (typeof token !== 'string' || token.length === 0) return false
+  const candidates = [token]
+  if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
+  return candidates.some((raw) =>
+    /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(
+      raw.replace(/^(?:[0-9]*)<{1,2}(?!<)/, '').replace(/^@/, ''),
+    )
+  )
+}
+
+function isSensitiveFilePath(token) {
+  return isDotEnvPath(token) || isHighSignalCredentialPath(token)
+}
+
+function isSensitiveFileReference(token) {
+  if (typeof token !== 'string') return false
+  const candidates = [token]
+  if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
+  return candidates.some((candidate) =>
+    candidate.startsWith('@') && isSensitiveFilePath(candidate)
+  )
 }
 
 function hasLiteralCurlCredential(tokens, index) {
@@ -894,10 +918,7 @@ function hasUpload(value) {
       if (
         destination &&
         isRemoteCopyTarget(destination) &&
-        operands.slice(0, -1).some((token) =>
-          /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token) ||
-          isHighSignalCredentialPath(token)
-        )
+        operands.slice(0, -1).some(isSensitiveFilePath)
       ) return true
     }
   }
@@ -907,13 +928,64 @@ function hasUpload(value) {
 const secretName = String.raw`(?:[A-Z0-9_]*(?:API[_-]?KEY|ACCESS[_-]?KEY|PRIVATE[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*|(?:[A-Z0-9_]+_)?PAT(?:_[A-Z0-9_]+)?)`
 const curlSecretVariablePattern = new RegExp(String.raw`^%${secretName}(?:=|$)`, 'i')
 const secretSourcePattern = new RegExp(
-  String.raw`(?:\$\{?${secretName}\}?|\b(?:printenv|env)(?:\s+${secretName}\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/<])\.env(?:\.[A-Za-z0-9_-]+)?\b)`,
+  String.raw`(?:\$\{?${secretName}\}?|\b(?:printenv|env)(?:\s+${secretName}\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b)`,
   'i',
 )
 
+function curlSensitiveFileSource(tokens, index) {
+  const directOptions = new Set(['--config', '--cookie', '--netrc-file', '--upload-file'])
+  const referenceOptions =
+    /^--(?:data(?:-ascii|-binary|-urlencode)?|form|header|json|proxy-header)$/
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    const shortOption = curlShortValueOption(option)
+    if (shortOption) {
+      const optionValue = shortOption.consumesNext ? (tokens[offset + 1] || '') : shortOption.value
+      if (['K', 'T', 'b'].includes(shortOption.name) && isSensitiveFilePath(optionValue)) return true
+      if (['d', 'F', 'H'].includes(shortOption.name) && isSensitiveFileReference(optionValue)) return true
+      if (shortOption.consumesNext) offset += 1
+      continue
+    }
+    if (directOptions.has(option) && isSensitiveFilePath(tokens[offset + 1] || '')) return true
+    if (referenceOptions.test(option) && isSensitiveFileReference(tokens[offset + 1] || '')) return true
+    const equal = option.indexOf('=')
+    if (equal > 0) {
+      const name = option.slice(0, equal)
+      const optionValue = option.slice(equal + 1)
+      if (directOptions.has(name) && isSensitiveFilePath(optionValue)) return true
+      if (referenceOptions.test(name) && isSensitiveFileReference(optionValue)) return true
+    }
+  }
+  return false
+}
+
+function wgetSensitiveFileSource(tokens, index) {
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    if (option === '--post-file' && isSensitiveFilePath(tokens[offset + 1] || '')) return true
+    if (option.startsWith('--post-file=') && isSensitiveFilePath(option.slice('--post-file='.length))) {
+      return true
+    }
+  }
+  return false
+}
+
+function hasSensitiveFileSource(value) {
+  return shellParts(value).some(({ tokens }) => {
+    const index = commandIndex(tokens)
+    const executable = baseName(tokens[index])
+    if (executable === 'curl') return curlSensitiveFileSource(tokens, index)
+    if (executable === 'wget') return wgetSensitiveFileSource(tokens, index)
+    if (['scp', 'rsync'].includes(executable)) {
+      return remoteCopyOperands(tokens, index, executable).slice(0, -1).some(isSensitiveFilePath)
+    }
+    return tokens.some(isSensitiveFilePath)
+  })
+}
+
 function hasSecretSource(value) {
   if (secretSourcePattern.test(value)) return true
-  if (shellParts(value).some(({ tokens }) => tokens.some(isHighSignalCredentialPath))) return true
+  if (hasSensitiveFileSource(value)) return true
   return shellParts(value).some(({ tokens }) => {
     const index = commandIndex(tokens)
     const executable = baseName(tokens[index])

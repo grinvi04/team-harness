@@ -143,7 +143,7 @@ case "$endpoint" in
     if [[ "${FAKE_GH_SCENARIO:-ok}" = "missing-context" || "${FAKE_GH_SCENARIO:-ok}" = "post-context-drift" ]]; then
       contexts='["quality","secret-scan","test-guard"]'
     else
-      contexts='["quality","secret-scan","test-guard","commitlint"]'
+      contexts='["quality","secret-scan","test-guard","commitlint","atomic-trust-macos"]'
     fi
     strict=true; admins=true; force=false; delete=false
     [ "${FAKE_GH_SCENARIO:-ok}" = "post-strict-drift" ] && strict=false
@@ -159,7 +159,7 @@ case "$endpoint" in
     else
       reviews='null'
     fi
-    printf '{"required_status_checks":{"strict":true,"contexts":["quality","secret-scan","test-guard","commitlint"]},"enforce_admins":{"enabled":true},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":false},"allow_deletions":{"enabled":false},"required_conversation_resolution":{"enabled":true}}\n' "$reviews"
+    printf '{"required_status_checks":{"strict":true,"contexts":["quality","secret-scan","test-guard","commitlint","atomic-trust-macos"]},"enforce_admins":{"enabled":true},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":false},"allow_deletions":{"enabled":false},"required_conversation_resolution":{"enabled":true}}\n' "$reviews"
     ;;
   *)
     exit 71
@@ -182,14 +182,14 @@ cli_check_case() { # desc, fixture scenario, expected exit, [required contexts]
 cli_check_case "CLI 팀1: main 승인2+dismiss, develop 승인0 → exit 0" ok 0
 cli_check_case "CLI 팀1: main dismiss_stale=false → exit nonzero" main-dismiss-false 1
 cli_check_case "CLI 팀1: develop 승인1 → exit nonzero" develop-approval-one 1
-cli_check_case "CLI exact contexts 일치 → exit 0" ok 0 "quality,secret-scan,test-guard,commitlint"
-cli_check_case "CLI exact contexts 순서·중복 정규화 → exit 0" ok 0 "commitlint,quality,quality,test-guard,secret-scan"
-cli_check_case "CLI exact contexts 누락 → exit nonzero" missing-context 1 "quality,secret-scan,test-guard,commitlint"
+cli_check_case "CLI exact contexts 일치 → exit 0" ok 0 "quality,secret-scan,test-guard,commitlint,atomic-trust-macos"
+cli_check_case "CLI exact contexts 순서·중복 정규화 → exit 0" ok 0 "atomic-trust-macos,commitlint,quality,quality,test-guard,secret-scan"
+cli_check_case "CLI exact contexts 누락 → exit nonzero" missing-context 1 "quality,secret-scan,test-guard,commitlint,atomic-trust-macos"
 cli_check_case "CLI repo/branch 조회 실패 → exit nonzero" missing-branch 1
 
 set +e
 apply_out=$(FAKE_GH_SCENARIO=missing-branch FAKE_GH_CALLS="$CLI_TMP/apply-missing-calls" PATH="$FAKEBIN:$PATH" \
-  bash "$SBP" o/r --approvals 1 --contexts "quality,secret-scan,test-guard,commitlint" 2>&1)
+  bash "$SBP" o/r --approvals 1 --contexts "quality,secret-scan,test-guard,commitlint,atomic-trust-macos" 2>&1)
 apply_rc=$?
 set -e
 if [ "$apply_rc" = 1 ]; then
@@ -204,7 +204,7 @@ apply_postcondition_case() { # desc, fixture scenario, expected exit
   : >"$calls"
   set +e
   out=$(FAKE_GH_SCENARIO="$scenario" FAKE_GH_CALLS="$calls" PATH="$FAKEBIN:$PATH" \
-    bash "$SBP" o/r --approvals 1 --contexts "quality,secret-scan,test-guard,commitlint" 2>&1)
+    bash "$SBP" o/r --approvals 1 --contexts "quality,secret-scan,test-guard,commitlint,atomic-trust-macos" 2>&1)
   rc=$?
   set -e
   local post_reads
