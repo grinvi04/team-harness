@@ -89,7 +89,8 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   operand와 positional operand를 구분하고
   마지막 positional operand가 `host:path`·`user@host:path`·`user@[IPv6%zone]:path`·remote URI이면 원격
   목적지로 판정하고, sensitive source와 함께 목적지의 active parameter·command·backtick expansion이 남아
-  원격 여부를 확정할 수 없으면 fail-closed한다. single-quoted·escaped literal `$`는 expansion으로 오인하지
+  원격 여부를 확정할 수 없으면 fail-closed한다. `/`·`./`·`../`로 시작해 원격 문법이 불가능한 목적지는
+  active suffix가 있어도 로컬로 허용한다. single-quoted·escaped literal `$`는 expansion으로 오인하지
   않으며 원격 source의 로컬 복원도 차단하지 않는다. macOS 전용 suspended-spawn 반례는
   main·develop의 `atomic-trust-macos` required CI check에서 실제로 실행한다.
 

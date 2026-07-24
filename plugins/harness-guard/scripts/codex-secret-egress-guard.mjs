@@ -1148,6 +1148,10 @@ function isRemoteCopyTarget(token) {
   return /^(?:s(?:cp|ync):\/\/|(?:[A-Za-z0-9._-]+@)?(?:[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+(?:%[A-Za-z0-9._-]+)?\]):)/i.test(token)
 }
 
+function isUnambiguouslyLocalCopyTarget(token) {
+  return /^(?:\/|\.\/|\.\.\/)/.test(token)
+}
+
 const remoteCopyValueOptions = {
   scp: new Set(['-c', '-D', '-F', '-i', '-J', '-l', '-o', '-P', '-S', '-X']),
   rsync: new Set([
@@ -1204,7 +1208,10 @@ function hasUpload(value) {
         destination &&
         (
           isRemoteCopyTarget(destination.token) ||
-          activeShellExpansionOffsets[destination.index].length > 0
+          (
+            activeShellExpansionOffsets[destination.index].length > 0 &&
+            !isUnambiguouslyLocalCopyTarget(destination.token)
+          )
         ) &&
         operands.slice(0, -1).some(({ token, index: operandIndex }) =>
           isSensitiveFilePath(
