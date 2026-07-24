@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-24T01:45:01.850Z",
+  "observedAt": "2026-07-24T01:55:56.208Z",
   "evidence": {
     "mode": "live"
   },
@@ -22,12 +22,12 @@
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "e0554c360bd4789368c4d94e8843c52e61140a09",
-    "tree": "1aef1e53fba1478b8740d84c90a64012b95d113f",
+    "revision": "3b49c482a625768f5f1881c49a79a93131b4f4e6",
+    "tree": "76531ac2b6568ed00b03c918a2fdd737d0c1f85f",
     "remote": {
       "repository": "https://github.com/grinvi04/team-harness.git",
       "ref": "refs/heads/fix/v0.61.0-release-check-auth-egress-ci",
-      "revision": "e0554c360bd4789368c4d94e8843c52e61140a09"
+      "revision": "3b49c482a625768f5f1881c49a79a93131b4f4e6"
     }
   },
   "loader": {
@@ -42,7 +42,7 @@
     "evidence": {
       "guardTranscript": {
         "file": "codex-native-loader-v0.61.0.guard.txt",
-        "digest": "sha256:065d678e6b149bf9267396d8ee2479426d8ed66a99b06036c6a1dc74dc06bda8"
+        "digest": "sha256:c916839a027a3fd46045e707fe7964aac94389d6c91ec26333221833958a2233"
       },
       "routingTranscript": {
         "file": "codex-native-loader-v0.61.0.routing.jsonl",
