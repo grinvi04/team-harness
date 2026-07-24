@@ -1,12 +1,12 @@
 # Codex native loader pilot
 
 - 판정: **PASS**
-- 시각: 2026-07-23T23:50:34.370Z
+- 시각: 2026-07-24T01:55:56.208Z
 - Codex: codex-cli 0.144.6
 - 실행 증거: live
 - Codex binary: codex @ $HOME/.codex/packages/standalone/releases/0.144.6-aarch64-apple-darwin/bin/codex (sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff)
-- Team Harness: 0.61.0 @ 11b0bab72d2a868ed8782a7c69fefacce528c809
-- Git tree: e09edc38fe62cd7da9197b096c64a7a5fcfa5605
+- Team Harness: 0.61.0 @ 3b49c482a625768f5f1881c49a79a93131b4f4e6
+- Git tree: 76531ac2b6568ed00b03c918a2fdd737d0c1f85f
 
 ## 검증됨
 
@@ -14,8 +14,9 @@
 - source-native skill 16개 발견: PASS
 - 파괴 명령 차단·sentinel 보존: PASS
 - 시크릿 외부 전송 차단: PASS
+- credential 파일 외부 전송 차단: PASS
 - UserPromptSubmit 라우팅: feature-add
-- guard transcript: codex-native-loader-v0.61.0.guard.txt (sha256:9f79665b617cad77c7ea731f1555f465104b9dbef7d4d081262f45b8927c8fcb)
+- guard transcript: codex-native-loader-v0.61.0.guard.txt (sha256:c916839a027a3fd46045e707fe7964aac94389d6c91ec26333221833958a2233)
 - routing transcript: codex-native-loader-v0.61.0.routing.jsonl (sha256:e655e1d59420020aafe6f0384f4a7cbc03909744484484d62ad2181641513636)
 - 사용자 marketplace/plugin 상태 byte-equivalent: PASS
 - 격리 CODEX_HOME 삭제: PASS

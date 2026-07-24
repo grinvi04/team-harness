@@ -717,6 +717,50 @@ function hasUrlUserinfo(value) {
   return /^[A-Za-z][A-Za-z0-9+.-]*:\/\/[^/@\s]+@/.test(value)
 }
 
+function isHighSignalCredentialPath(token) {
+  if (typeof token !== 'string' || token.length === 0) return false
+  const candidates = [token]
+  if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
+  return candidates.some((raw) => {
+    const value = raw.replace(/^(?:[0-9]*)<{1,2}(?!<)/, '').replace(/^@/, '')
+    if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return false
+    if (/(?:^|\/)\.aws\/credentials$/i.test(value)) return true
+    if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
+    if (/^\$(?:CODEX_HOME|\{CODEX_HOME\})\/auth\.json$/i.test(value)) return true
+    if (
+      process.env.CODEX_HOME &&
+      path.isAbsolute(value) &&
+      path.resolve(value) === path.resolve(process.env.CODEX_HOME, 'auth.json')
+    ) return true
+    if (/(?:^|\/)\.ssh\/id_[^/]+$/i.test(value) && !/\.pub$/i.test(value)) return true
+    return /\.(?:pem|key|p12|pfx)$/i.test(value)
+  })
+}
+
+function isDotEnvPath(token) {
+  if (typeof token !== 'string' || token.length === 0) return false
+  const candidates = [token]
+  if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
+  return candidates.some((raw) =>
+    /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(
+      raw.replace(/^(?:[0-9]*)<{1,2}(?!<)/, '').replace(/^@/, ''),
+    )
+  )
+}
+
+function isSensitiveFilePath(token) {
+  return isDotEnvPath(token) || isHighSignalCredentialPath(token)
+}
+
+function isSensitiveFileReference(token) {
+  if (typeof token !== 'string') return false
+  const candidates = [token]
+  if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
+  return candidates.some((candidate) =>
+    candidate.startsWith('@') && isSensitiveFilePath(candidate)
+  )
+}
+
 function hasLiteralCurlCredential(tokens, index) {
   if (curlCommandInfo(tokens, index).targets.some(hasUrlUserinfo)) return true
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
@@ -731,6 +775,21 @@ function hasLiteralCurlCredential(tokens, index) {
     if (/^--(?:oauth2-bearer|proxy-user|user)=.+/.test(option)) return true
     if (['--header', '--proxy-header'].includes(option) && isAuthorizationHeader(tokens[offset + 1] || '')) return true
     if (/^--(?:header|proxy-header)=/.test(option) && isAuthorizationHeader(option.slice(option.indexOf('=') + 1))) return true
+  }
+  return false
+}
+
+function hasLiteralWgetCredential(tokens, index) {
+  if (wgetTargets(tokens, index).some(hasUrlUserinfo)) return true
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    if (option === '--header' && isAuthorizationHeader(tokens[offset + 1] || '')) return true
+    if (option.startsWith('--header=') && isAuthorizationHeader(option.slice('--header='.length))) return true
+    if (
+      ['--user', '--password', '--proxy-user', '--proxy-password'].includes(option) &&
+      (tokens[offset + 1] || '').length > 0
+    ) return true
+    if (/^--(?:user|password|proxy-user|proxy-password)=.+/.test(option)) return true
   }
   return false
 }
@@ -787,16 +846,71 @@ function hasCurlUpload(tokens, index) {
   return false
 }
 
+function hasWgetEgress(tokens, index) {
+  const targets = wgetTargets(tokens, index)
+  if (!hasRemoteTarget(targets)) return false
+  if (targets.some((target) => hasSecretSource(target) || hasUrlUserinfo(target))) return true
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    if (/^--post-(?:data|file)(?:=|$)/.test(option)) return true
+    if (
+      option === '--header' &&
+      (isAuthorizationHeader(tokens[offset + 1] || '') || hasSecretSource(tokens[offset + 1] || ''))
+    ) return true
+    if (
+      option.startsWith('--header=') &&
+      (isAuthorizationHeader(option.slice('--header='.length)) ||
+        hasSecretSource(option.slice('--header='.length)))
+    ) return true
+    if (
+      ['--user', '--password', '--proxy-user', '--proxy-password'].includes(option) &&
+      (tokens[offset + 1] || '').length > 0
+    ) return true
+    if (/^--(?:user|password|proxy-user|proxy-password)=.+/.test(option)) return true
+  }
+  return false
+}
+
+function isRemoteCopyTarget(token) {
+  return /^(?:s(?:cp|ync):\/\/|(?:[A-Za-z0-9._-]+@)?(?:[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+\]):)/i.test(token)
+}
+
+const remoteCopyValueOptions = {
+  scp: new Set(['-c', '-D', '-F', '-i', '-J', '-l', '-o', '-P', '-S', '-X']),
+  rsync: new Set([
+    '-e', '-M',
+    '--backup-dir', '--bwlimit', '--chown', '--compare-dest', '--contimeout',
+    '--copy-dest', '--exclude', '--exclude-from', '--files-from', '--filter', '--groupmap',
+    '--include', '--include-from', '--link-dest', '--log-file', '--max-size', '--min-size',
+    '--out-format', '--password-file', '--remote-option', '--rsync-path', '--rsh',
+    '--suffix', '--temp-dir', '--timeout', '--usermap',
+  ]),
+}
+
+function remoteCopyOperands(tokens, index, executable) {
+  const operands = []
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const token = tokens[offset]
+    if (token === '--') {
+      operands.push(...tokens.slice(offset + 1))
+      break
+    }
+    if (remoteCopyValueOptions[executable].has(token)) {
+      offset += 1
+      continue
+    }
+    if (token.startsWith('-')) continue
+    operands.push(token)
+  }
+  return operands
+}
+
 function hasUpload(value) {
   for (const { tokens, separatorBefore } of shellParts(value)) {
     const index = commandIndex(tokens)
     const executable = baseName(tokens[index])
     if (executable === 'curl' && hasCurlUpload(tokens, index)) return true
-    if (
-      executable === 'wget' &&
-      hasRemoteTarget(wgetTargets(tokens, index)) &&
-      tokens.slice(index + 1).some((token) => /^--post-(?:data|file)(?:=|$)/.test(token))
-    ) return true
+    if (executable === 'wget' && hasWgetEgress(tokens, index)) return true
     if (
       ['nc', 'ncat', 'netcat'].includes(executable) &&
       (
@@ -804,11 +918,15 @@ function hasUpload(value) {
         tokens.slice(index + 1).some((token) => /^(?:[0-9]+)?<{1,3}/.test(token))
       )
     ) return true
-    if (
-      ['scp', 'rsync'].includes(executable) &&
-      tokens.slice(index + 1).some((token) => /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token)) &&
-      tokens.slice(index + 1).some((token) => /^[A-Za-z0-9._-]+@[^\s:]+:/.test(token))
-    ) return true
+    if (['scp', 'rsync'].includes(executable)) {
+      const operands = remoteCopyOperands(tokens, index, executable)
+      const destination = operands.at(-1)
+      if (
+        destination &&
+        isRemoteCopyTarget(destination) &&
+        operands.slice(0, -1).some(isSensitiveFilePath)
+      ) return true
+    }
   }
   return false
 }
@@ -816,17 +934,72 @@ function hasUpload(value) {
 const secretName = String.raw`(?:[A-Z0-9_]*(?:API[_-]?KEY|ACCESS[_-]?KEY|PRIVATE[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*|(?:[A-Z0-9_]+_)?PAT(?:_[A-Z0-9_]+)?)`
 const curlSecretVariablePattern = new RegExp(String.raw`^%${secretName}(?:=|$)`, 'i')
 const secretSourcePattern = new RegExp(
-  String.raw`(?:\$\{?${secretName}\}?|\b(?:printenv|env)(?:\s+${secretName}\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/<])\.env(?:\.[A-Za-z0-9_-]+)?\b)`,
+  String.raw`(?:\$\{?${secretName}\}?|\b(?:printenv|env)(?:\s+${secretName}\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b)`,
   'i',
 )
 
-function hasSecretSource(value) {
-  if (secretSourcePattern.test(value)) return true
+function curlSensitiveFileSource(tokens, index) {
+  const directOptions = new Set(['--config', '--cookie', '--netrc-file', '--upload-file'])
+  const referenceOptions =
+    /^--(?:data(?:-ascii|-binary|-urlencode)?|form|header|json|proxy-header)$/
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    const shortOption = curlShortValueOption(option)
+    if (shortOption) {
+      const optionValue = shortOption.consumesNext ? (tokens[offset + 1] || '') : shortOption.value
+      if (['K', 'T', 'b'].includes(shortOption.name) && isSensitiveFilePath(optionValue)) return true
+      if (['d', 'F', 'H'].includes(shortOption.name) && isSensitiveFileReference(optionValue)) return true
+      if (shortOption.consumesNext) offset += 1
+      continue
+    }
+    if (directOptions.has(option) && isSensitiveFilePath(tokens[offset + 1] || '')) return true
+    if (referenceOptions.test(option) && isSensitiveFileReference(tokens[offset + 1] || '')) return true
+    const equal = option.indexOf('=')
+    if (equal > 0) {
+      const name = option.slice(0, equal)
+      const optionValue = option.slice(equal + 1)
+      if (directOptions.has(name) && isSensitiveFilePath(optionValue)) return true
+      if (referenceOptions.test(name) && isSensitiveFileReference(optionValue)) return true
+    }
+  }
+  return false
+}
+
+function wgetSensitiveFileSource(tokens, index) {
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    if (option === '--post-file' && isSensitiveFilePath(tokens[offset + 1] || '')) return true
+    if (option.startsWith('--post-file=') && isSensitiveFilePath(option.slice('--post-file='.length))) {
+      return true
+    }
+  }
+  return false
+}
+
+function hasSensitiveFileSource(value) {
   return shellParts(value).some(({ tokens }) => {
     const index = commandIndex(tokens)
-    if (baseName(tokens[index]) !== 'curl') return false
-    const info = curlCommandInfo(tokens, index)
-    return hasLiteralCurlCredential(tokens, index) || info.importsSecretVariable
+    const executable = baseName(tokens[index])
+    if (executable === 'curl') return curlSensitiveFileSource(tokens, index)
+    if (executable === 'wget') return wgetSensitiveFileSource(tokens, index)
+    if (['scp', 'rsync'].includes(executable)) {
+      return remoteCopyOperands(tokens, index, executable).slice(0, -1).some(isSensitiveFilePath)
+    }
+    return tokens.some(isSensitiveFilePath)
+  })
+}
+
+function hasSecretSource(value) {
+  if (secretSourcePattern.test(value)) return true
+  if (hasSensitiveFileSource(value)) return true
+  return shellParts(value).some(({ tokens }) => {
+    const index = commandIndex(tokens)
+    const executable = baseName(tokens[index])
+    if (executable === 'curl') {
+      const info = curlCommandInfo(tokens, index)
+      return hasLiteralCurlCredential(tokens, index) || info.importsSecretVariable
+    }
+    return executable === 'wget' && hasLiteralWgetCredential(tokens, index)
   })
 }
 

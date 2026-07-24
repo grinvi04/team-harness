@@ -7,6 +7,14 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): 격리 Codex auth egress 차단
+- fix(security): IPv6 remote-copy 목적지 차단
+- fix(security): pilot 환경을 allowlist로 격리
+- fix(security): credential 방향과 macOS required 결박
+- fix(security): 원격복사 source와 목적지 구분
+- fix(security): pilot 환경과 원격복사 경계 결박
+- fix(codex): session auth schema 호환 유지
+- fix(security): pilot auth와 credential egress 결박
 - fix(security): Codex 실행을 동적 신원에 결박
 - fix(security): 실행 trust와 정책 결과 결박
 - fix(security): config 내부 curl 목적지 차단

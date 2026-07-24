@@ -237,5 +237,37 @@ for document in "$ROOT/README.md" "$ROOT/docs/onboarding.md" "$ROOT/docs/harness
   grep -Fq 'scripts/harness-doctor.sh --repo . --probe' "$document" || { echo "FAIL: post-update probe missing from ${document#"$ROOT"/}"; exit 1; }
 done
 
+if node - "$ROOT/.github/workflows/ci-gate.yml" <<'NODE'
+const fs = require('node:fs')
+const workflow = fs.readFileSync(process.argv[2], 'utf8')
+const jobsStart = workflow.search(/^jobs:\s*$/m)
+const jobsText = jobsStart >= 0 ? workflow.slice(jobsStart) : ''
+const headings = [...jobsText.matchAll(/^  ([A-Za-z0-9_-]+):\s*$/gm)]
+const jobs = headings.map((match, index) => ({
+  id: match[1],
+  body: jobsText.slice(match.index, headings[index + 1]?.index ?? jobsText.length),
+}))
+const atomicJob = jobs.find(({ id, body }) =>
+  id !== 'quality' &&
+  /^\s+runs-on:\s*macos-(?:latest|\d+)\s*$/m.test(body) &&
+  /^\s+run:\s*(?:\|\s*\n\s*)?bash tests\/codex-hardened-launcher-test\.sh\s*$/m.test(body)
+)
+if (!atomicJob) process.exit(1)
+NODE
+then
+  echo "PASS: separate macOS CI job executes the hardened launcher atomic trust suite"
+else
+  echo "FAIL: CI lacks a separate macOS atomic trust job executing the hardened launcher suite"
+  TRUST_FAILURES=$((TRUST_FAILURES + 1))
+fi
+
+CANONICAL_CONTEXTS='quality,secret-scan,test-guard,commitlint,atomic-trust-macos'
+if grep -Fq -- "--contexts $CANONICAL_CONTEXTS" "$ROOT/docs/harness-maintenance.md"; then
+  echo "PASS: canonical branch protection requires the macOS atomic trust context"
+else
+  echo "FAIL: canonical branch protection omits the macOS atomic trust context"
+  TRUST_FAILURES=$((TRUST_FAILURES + 1))
+fi
+
 [ "$TRUST_FAILURES" -eq 0 ]
 echo "PASS: hardened launcher syncs and validates native Codex state without disabling unified_exec"
