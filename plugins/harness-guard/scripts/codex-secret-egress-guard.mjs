@@ -717,6 +717,20 @@ function hasUrlUserinfo(value) {
   return /^[A-Za-z][A-Za-z0-9+.-]*:\/\/[^/@\s]+@/.test(value)
 }
 
+function isHighSignalCredentialPath(token) {
+  if (typeof token !== 'string' || token.length === 0) return false
+  const candidates = [token]
+  if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
+  return candidates.some((raw) => {
+    const value = raw.replace(/^@/, '')
+    if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return false
+    if (/(?:^|\/)\.aws\/credentials$/i.test(value)) return true
+    if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
+    if (/(?:^|\/)\.ssh\/id_[^/]+$/i.test(value) && !/\.pub$/i.test(value)) return true
+    return /\.(?:pem|key|p12|pfx)$/i.test(value)
+  })
+}
+
 function hasLiteralCurlCredential(tokens, index) {
   if (curlCommandInfo(tokens, index).targets.some(hasUrlUserinfo)) return true
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
@@ -731,6 +745,21 @@ function hasLiteralCurlCredential(tokens, index) {
     if (/^--(?:oauth2-bearer|proxy-user|user)=.+/.test(option)) return true
     if (['--header', '--proxy-header'].includes(option) && isAuthorizationHeader(tokens[offset + 1] || '')) return true
     if (/^--(?:header|proxy-header)=/.test(option) && isAuthorizationHeader(option.slice(option.indexOf('=') + 1))) return true
+  }
+  return false
+}
+
+function hasLiteralWgetCredential(tokens, index) {
+  if (wgetTargets(tokens, index).some(hasUrlUserinfo)) return true
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    if (option === '--header' && isAuthorizationHeader(tokens[offset + 1] || '')) return true
+    if (option.startsWith('--header=') && isAuthorizationHeader(option.slice('--header='.length))) return true
+    if (
+      ['--user', '--password', '--proxy-user', '--proxy-password'].includes(option) &&
+      (tokens[offset + 1] || '').length > 0
+    ) return true
+    if (/^--(?:user|password|proxy-user|proxy-password)=.+/.test(option)) return true
   }
   return false
 }
@@ -787,16 +816,37 @@ function hasCurlUpload(tokens, index) {
   return false
 }
 
+function hasWgetEgress(tokens, index) {
+  const targets = wgetTargets(tokens, index)
+  if (!hasRemoteTarget(targets)) return false
+  if (targets.some((target) => hasSecretSource(target) || hasUrlUserinfo(target))) return true
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const option = tokens[offset]
+    if (/^--post-(?:data|file)(?:=|$)/.test(option)) return true
+    if (
+      option === '--header' &&
+      (isAuthorizationHeader(tokens[offset + 1] || '') || hasSecretSource(tokens[offset + 1] || ''))
+    ) return true
+    if (
+      option.startsWith('--header=') &&
+      (isAuthorizationHeader(option.slice('--header='.length)) ||
+        hasSecretSource(option.slice('--header='.length)))
+    ) return true
+    if (
+      ['--user', '--password', '--proxy-user', '--proxy-password'].includes(option) &&
+      (tokens[offset + 1] || '').length > 0
+    ) return true
+    if (/^--(?:user|password|proxy-user|proxy-password)=.+/.test(option)) return true
+  }
+  return false
+}
+
 function hasUpload(value) {
   for (const { tokens, separatorBefore } of shellParts(value)) {
     const index = commandIndex(tokens)
     const executable = baseName(tokens[index])
     if (executable === 'curl' && hasCurlUpload(tokens, index)) return true
-    if (
-      executable === 'wget' &&
-      hasRemoteTarget(wgetTargets(tokens, index)) &&
-      tokens.slice(index + 1).some((token) => /^--post-(?:data|file)(?:=|$)/.test(token))
-    ) return true
+    if (executable === 'wget' && hasWgetEgress(tokens, index)) return true
     if (
       ['nc', 'ncat', 'netcat'].includes(executable) &&
       (
@@ -806,7 +856,10 @@ function hasUpload(value) {
     ) return true
     if (
       ['scp', 'rsync'].includes(executable) &&
-      tokens.slice(index + 1).some((token) => /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token)) &&
+      tokens.slice(index + 1).some((token) =>
+        /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token) ||
+        isHighSignalCredentialPath(token)
+      ) &&
       tokens.slice(index + 1).some((token) => /^[A-Za-z0-9._-]+@[^\s:]+:/.test(token))
     ) return true
   }
@@ -822,11 +875,15 @@ const secretSourcePattern = new RegExp(
 
 function hasSecretSource(value) {
   if (secretSourcePattern.test(value)) return true
+  if (shellParts(value).some(({ tokens }) => tokens.some(isHighSignalCredentialPath))) return true
   return shellParts(value).some(({ tokens }) => {
     const index = commandIndex(tokens)
-    if (baseName(tokens[index]) !== 'curl') return false
-    const info = curlCommandInfo(tokens, index)
-    return hasLiteralCurlCredential(tokens, index) || info.importsSecretVariable
+    const executable = baseName(tokens[index])
+    if (executable === 'curl') {
+      const info = curlCommandInfo(tokens, index)
+      return hasLiteralCurlCredential(tokens, index) || info.importsSecretVariable
+    }
+    return executable === 'wget' && hasLiteralWgetCredential(tokens, index)
   })
 }
 
