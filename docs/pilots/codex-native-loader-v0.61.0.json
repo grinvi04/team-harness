@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-24T07:55:32.623Z",
+  "observedAt": "2026-07-24T08:56:24.651Z",
   "evidence": {
     "mode": "live"
   },
@@ -22,12 +22,12 @@
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "8ec419f401bf38ae5c1399f9ccb06c78e52d4b12",
-    "tree": "a7ba0b5c364765012c230db5baa38c8f73a9325f",
+    "revision": "ae274cf5e32980acc643087b46743ddafcb1a7aa",
+    "tree": "fa4a01b444d530f6700a3ad4b460e5199445db64",
     "remote": {
       "repository": "https://github.com/grinvi04/team-harness.git",
       "ref": "refs/heads/fix/v0.61.0-release-check-egress-paths",
-      "revision": "8ec419f401bf38ae5c1399f9ccb06c78e52d4b12"
+      "revision": "ae274cf5e32980acc643087b46743ddafcb1a7aa"
     }
   },
   "loader": {
