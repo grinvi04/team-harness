@@ -817,20 +817,31 @@ function codexHomeSuffix(value) {
         embedded: index > 0,
       }
     }
+    let parsedBraced
     if (value.startsWith(bracedPrefix, index)) {
       const operator = value[index + bracedPrefix.length]
       if (operator === '}' || /[-:=?+%#/,^@]/.test(operator || '')) {
-        const parsed = readBracedParameterExpansion(value, index + 1)
-        if (!parsed) return undefined
-        return {
-          suffix: value.slice(parsed.nextIndex),
-          containingSuffix: containingSuffix(parsed.nextIndex),
-          embedded: index > 0,
+        parsedBraced = readBracedParameterExpansion(value, index + 1)
+        if (!parsedBraced) return undefined
+        const operation = value.slice(
+          index + bracedPrefix.length,
+          parsedBraced.nextIndex - 1,
+        )
+        if (
+          operation === '' ||
+          /^(?::)?[-=?]/.test(operation) ||
+          ['%/', '%%/'].includes(operation)
+        ) {
+          return {
+            suffix: value.slice(parsedBraced.nextIndex),
+            containingSuffix: containingSuffix(parsedBraced.nextIndex),
+            embedded: index > 0,
+          }
         }
       }
     }
     if (value[index] !== '$' || value[index + 1] !== '{') continue
-    const parsed = readBracedParameterExpansion(value, index + 1)
+    const parsed = parsedBraced || readBracedParameterExpansion(value, index + 1)
     if (!parsed) return undefined
     containingExpansionEnds.push(parsed.nextIndex)
   }
