@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): zero-offset credential substring 차단
 - fix(security): quoted trim credential 차단
 - fix(security): identity trim credential 차단
 - fix(security): source expansion 의미 보존
