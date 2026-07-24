@@ -726,6 +726,12 @@ function isHighSignalCredentialPath(token) {
     if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return false
     if (/(?:^|\/)\.aws\/credentials$/i.test(value)) return true
     if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
+    if (/^\$(?:CODEX_HOME|\{CODEX_HOME\})\/auth\.json$/i.test(value)) return true
+    if (
+      process.env.CODEX_HOME &&
+      path.isAbsolute(value) &&
+      path.resolve(value) === path.resolve(process.env.CODEX_HOME, 'auth.json')
+    ) return true
     if (/(?:^|\/)\.ssh\/id_[^/]+$/i.test(value) && !/\.pub$/i.test(value)) return true
     return /\.(?:pem|key|p12|pfx)$/i.test(value)
   })

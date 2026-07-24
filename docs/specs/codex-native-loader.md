@@ -72,9 +72,11 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   거부한다. 격리 홈에는 현재 session에 필요한 access/id/account 값만 제공하고 refresh token·API key는
   제공하지 않는다. subprocess 환경은 실행에 필요한 비밀 없는 key allowlist만 상속하고 `HOME`·`CODEX_HOME`
   및 XDG config/data/state/cache/runtime root를 같은 격리 홈 아래로 고정한다. 검증된 Codex path·digest·CDHash만
-  runner가 새로 주입하며 inherited credential·config alias는 전달하지 않는다. wget credential URL/header와 high-signal credential
-  파일 upload는 실제 source option·stdin·positional source에 결합해 차단하고 `curl -o`·`wget -O` 같은
-  로컬 출력 경로는 source로 오인하지 않는다. `scp`·`rsync`는 option operand와 positional operand를 구분하고
+  runner가 새로 주입하며 inherited credential·config alias는 전달하지 않는다. wget credential URL/header와
+  high-signal credential 파일 및 활성 `CODEX_HOME/auth.json` upload는 실제 source option·stdin·positional
+  source에 결합해 차단하고 `curl -o`·`wget -O` 같은 로컬 출력 경로는 source로 오인하지 않는다. 제3 live
+  session은 loopback closed port를 대상으로 격리 auth 경로 차단을 증거화한다. `scp`·`rsync`는 option
+  operand와 positional operand를 구분하고
   마지막 positional operand가 `host:path`·`user@host:path`·`user@[IPv6]:path`·remote URI일 때만 원격
   목적지로 판정해, 원격 source의 로컬 복원을 차단하지 않는다. macOS 전용 suspended-spawn 반례는
   main·develop의 `atomic-trust-macos` required CI check에서 실제로 실행한다.
