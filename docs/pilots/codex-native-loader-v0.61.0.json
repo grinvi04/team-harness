@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-24T00:48:06.482Z",
+  "observedAt": "2026-07-24T01:02:10.903Z",
   "evidence": {
     "mode": "live"
   },
@@ -22,12 +22,12 @@
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "1e11f2d2f3dc1e58b12d00976fbfc8f68c10d62b",
-    "tree": "a17a1fab771c9c77247412bf9c4de69d901a5434",
+    "revision": "33de6ecb816ad0bf9715a6fa1f6417b7c5d73ce5",
+    "tree": "fd3797f4783e7d4f695911c59589092d91bded32",
     "remote": {
       "repository": "https://github.com/grinvi04/team-harness.git",
       "ref": "refs/heads/fix/v0.61.0-release-check-auth-egress-ci",
-      "revision": "1e11f2d2f3dc1e58b12d00976fbfc8f68c10d62b"
+      "revision": "33de6ecb816ad0bf9715a6fa1f6417b7c5d73ce5"
     }
   },
   "loader": {
@@ -67,7 +67,9 @@
   "auth": {
     "copied": false,
     "sessionCredentialProvided": true,
-    "longLivedCredentialCopied": false
+    "longLivedCredentialCopied": false,
+    "longLivedEnvironmentForwarded": false,
+    "userHomeIsolated": true
   },
   "cleanup": {
     "isolatedHomeRemoved": true
