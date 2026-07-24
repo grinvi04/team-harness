@@ -301,11 +301,19 @@ function shellSegments(value) {
   return shellParts(value).map(({ tokens }) => tokens)
 }
 
+function isActiveShellExpansion(value, index) {
+  if (value[index] === '`') return true
+  if (value[index] !== '$') return false
+  return /[({A-Za-z_0-9*@#?$!-]/.test(value[index + 1] || '')
+}
+
 function shellParts(value) {
   const parts = []
   let tokens = []
+  let activeShellExpansions = []
   let word = ''
   let wordStarted = false
+  let wordHasActiveShellExpansion = false
   let quote = ''
   let index = 0
   let separatorBefore = ''
@@ -313,14 +321,17 @@ function shellParts(value) {
   const pushWord = () => {
     if (!wordStarted) return
     tokens.push(word)
+    activeShellExpansions.push(wordHasActiveShellExpansion)
     word = ''
     wordStarted = false
+    wordHasActiveShellExpansion = false
   }
   const pushSegment = (separatorAfter = '') => {
     pushWord()
     if (tokens.length > 0) {
-      parts.push({ tokens, separatorBefore })
+      parts.push({ tokens, activeShellExpansions, separatorBefore })
       tokens = []
+      activeShellExpansions = []
     }
     separatorBefore = separatorAfter
   }
@@ -343,6 +354,9 @@ function shellParts(value) {
         wordStarted = true
         index += 2
       } else {
+        if (quote === '"' && isActiveShellExpansion(value, index)) {
+          wordHasActiveShellExpansion = true
+        }
         word += char
         wordStarted = true
         index += 1
@@ -391,6 +405,7 @@ function shellParts(value) {
       pushWord()
       index += 1
     } else {
+      if (isActiveShellExpansion(value, index)) wordHasActiveShellExpansion = true
       word += char
       wordStarted = true
       index += 1
@@ -886,10 +901,6 @@ function isRemoteCopyTarget(token) {
   return /^(?:s(?:cp|ync):\/\/|(?:[A-Za-z0-9._-]+@)?(?:[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+(?:%[A-Za-z0-9._-]+)?\]):)/i.test(token)
 }
 
-function hasShellParameterExpansion(token) {
-  return /\$(?:[A-Za-z_][A-Za-z0-9_]*|\{[^}]+\})/.test(token)
-}
-
 const remoteCopyValueOptions = {
   scp: new Set(['-c', '-D', '-F', '-i', '-J', '-l', '-o', '-P', '-S', '-X']),
   rsync: new Set([
@@ -902,12 +913,14 @@ const remoteCopyValueOptions = {
   ]),
 }
 
-function remoteCopyOperands(tokens, index, executable) {
+function remoteCopyOperandEntries(tokens, index, executable) {
   const operands = []
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const token = tokens[offset]
     if (token === '--') {
-      operands.push(...tokens.slice(offset + 1))
+      for (let operandIndex = offset + 1; operandIndex < tokens.length; operandIndex += 1) {
+        operands.push({ token: tokens[operandIndex], index: operandIndex })
+      }
       break
     }
     if (remoteCopyValueOptions[executable].has(token)) {
@@ -915,13 +928,17 @@ function remoteCopyOperands(tokens, index, executable) {
       continue
     }
     if (token.startsWith('-')) continue
-    operands.push(token)
+    operands.push({ token, index: offset })
   }
   return operands
 }
 
+function remoteCopyOperands(tokens, index, executable) {
+  return remoteCopyOperandEntries(tokens, index, executable).map(({ token }) => token)
+}
+
 function hasUpload(value) {
-  for (const { tokens, separatorBefore } of shellParts(value)) {
+  for (const { tokens, activeShellExpansions, separatorBefore } of shellParts(value)) {
     const index = commandIndex(tokens)
     const executable = baseName(tokens[index])
     if (executable === 'curl' && hasCurlUpload(tokens, index)) return true
@@ -934,12 +951,15 @@ function hasUpload(value) {
       )
     ) return true
     if (['scp', 'rsync'].includes(executable)) {
-      const operands = remoteCopyOperands(tokens, index, executable)
+      const operands = remoteCopyOperandEntries(tokens, index, executable)
       const destination = operands.at(-1)
       if (
         destination &&
-        (isRemoteCopyTarget(destination) || hasShellParameterExpansion(destination)) &&
-        operands.slice(0, -1).some(isSensitiveFilePath)
+        (
+          isRemoteCopyTarget(destination.token) ||
+          activeShellExpansions[destination.index]
+        ) &&
+        operands.slice(0, -1).some(({ token }) => isSensitiveFilePath(token))
       ) return true
     }
   }
