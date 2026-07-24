@@ -806,6 +806,12 @@ function codexHomeSuffix(value, activeExpansionOffsets = []) {
   const plainPrefix = '$CODEX_HOME'
   const bracedPrefix = '${CODEX_HOME'
   const activeOffsets = new Set(activeExpansionOffsets)
+  const isBoundedNonzeroDecimal = (digits) => {
+    const significantDigits = digits?.replace(/^0+/, '')
+    return significantDigits !== undefined &&
+      significantDigits.length > 0 &&
+      significantDigits.length <= 18
+  }
   const containingExpansions = []
   const replacementWordStart = (openIndex, endIndex) => {
     const body = value.slice(openIndex + 2, endIndex - 1)
@@ -909,16 +915,15 @@ function codexHomeSuffix(value, activeExpansionOffsets = []) {
         const isSubstringOperation =
           operation.startsWith(':') && !/^:[-=?+]/.test(operation)
         const isNonzeroSimpleSubstring =
-          substringOffset && /[1-9]/.test(substringOffset[1])
+          substringOffset !== null &&
+          isBoundedNonzeroDecimal(substringOffset[1])
         const subscript = /^\[([^\]]*)\]$/.exec(operation)
         const decimalSubscript =
           subscript &&
-          /^[ \t]*\+?(0*[1-9][0-9]*)[ \t]*$/.exec(subscript[1])
-        const significantSubscriptDigits =
-          decimalSubscript?.[1].replace(/^0+/, '')
+          /^[ \t]*\+?([0-9]+)[ \t]*$/.exec(subscript[1])
         const isKnownNonidentitySubscript =
-          significantSubscriptDigits !== undefined &&
-          significantSubscriptDigits.length <= 18
+          decimalSubscript !== null &&
+          isBoundedNonzeroDecimal(decimalSubscript[1])
         if (
           operation === '' ||
           /^(?::)?[-=?]/.test(operation) ||
