@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-24T06:50:16.904Z",
+  "observedAt": "2026-07-24T07:44:32.788Z",
   "evidence": {
     "mode": "live"
   },
@@ -22,12 +22,12 @@
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "37f3d388a8e29387da27b66af8b4cfeba3e414fa",
-    "tree": "8d0779bd756359b3f1d1f60cb9bb534a4ea242ef",
+    "revision": "0ebf1a8319ce1230c0c9eb8c9b75e88c98020cdf",
+    "tree": "ae3fa3cae870ebb8bb217cfba85d50d647a3cdba",
     "remote": {
       "repository": "https://github.com/grinvi04/team-harness.git",
       "ref": "refs/heads/fix/v0.61.0-release-check-egress-paths",
-      "revision": "37f3d388a8e29387da27b66af8b4cfeba3e414fa"
+      "revision": "0ebf1a8319ce1230c0c9eb8c9b75e88c98020cdf"
     }
   },
   "loader": {
@@ -53,11 +53,11 @@
   "userState": {
     "before": {
       "marketplaces": "sha256:b132a5f6d66f18ba2cdf51a689d6c496115721705d39553f83948f1ed9109d1f",
-      "plugins": "sha256:d508832e6e9b115d20f0b051308f6ee8f0dda4b19c0bace51144e6289f670e89"
+      "plugins": "sha256:79ad472dc70e7d06bd417fdfa8fca1160a7a7a1bedaab1cd5c1055e0c90cad06"
     },
     "after": {
       "marketplaces": "sha256:b132a5f6d66f18ba2cdf51a689d6c496115721705d39553f83948f1ed9109d1f",
-      "plugins": "sha256:d508832e6e9b115d20f0b051308f6ee8f0dda4b19c0bace51144e6289f670e89"
+      "plugins": "sha256:79ad472dc70e7d06bd417fdfa8fca1160a7a7a1bedaab1cd5c1055e0c90cad06"
     },
     "unchanged": true
   },
