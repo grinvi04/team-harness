@@ -7,6 +7,23 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): guaranteed prefix 과차단 해소
+- fix(security): 명백한 로컬 copy 허용
+- fix(security): credential offset overflow 차단
+- fix(security): dynamic credential path 차단
+- fix(security): uncertain substring expression 차단
+- fix(security): empty expansion prefix 차단
+- fix(security): path-preserving transform 차단
+- fix(security): zero-offset credential substring 차단
+- fix(security): quoted trim credential 차단
+- fix(security): identity trim credential 차단
+- fix(security): source expansion 의미 보존
+- fix(security): CODEX_HOME operator 의미 구분
+- fix(security): full-path fallback credential 차단
+- fix(security): fallback credential expansion 차단
+- fix(security): nested credential expansion 차단
+- fix(security): 원격 목적지 expansion 의미 보존
+- fix(security): credential 경로 동치 egress 차단
 - fix(security): 격리 Codex auth egress 차단
 - fix(security): IPv6 remote-copy 목적지 차단
 - fix(security): pilot 환경을 allowlist로 격리

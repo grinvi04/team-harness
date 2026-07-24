@@ -73,12 +73,26 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   제공하지 않는다. subprocess 환경은 실행에 필요한 비밀 없는 key allowlist만 상속하고 `HOME`·`CODEX_HOME`
   및 XDG config/data/state/cache/runtime root를 같은 격리 홈 아래로 고정한다. 검증된 Codex path·digest·CDHash만
   runner가 새로 주입하며 inherited credential·config alias는 전달하지 않는다. wget credential URL/header와
-  high-signal credential 파일 및 활성 `CODEX_HOME/auth.json` upload는 실제 source option·stdin·positional
-  source에 결합해 차단하고 `curl -o`·`wget -O` 같은 로컬 출력 경로는 source로 오인하지 않는다. 제3 live
+  high-signal credential 파일 및 활성 `CODEX_HOME/auth.json` upload는 다른 parameter의 깊게 중첩된
+  fallback 안에서 전체 보호 경로를 이루는 정확한 `CODEX_HOME` 참조, balanced nested shell parameter
+  operator, lexical dot segment를 포함한 동치 경로까지 실제 source option·stdin·positional source에 결합해 차단한다.
+  trim·substitution·case·attribute처럼 pattern 불일치나 no-op으로 원값을 보존할 수 있는 transform과
+  substring 산술식·변수·length form, substring·subscript의 identity·overflow 가능 정수와
+  `CODEX_HOME` 뒤의 active suffix expansion은 fail-closed하고, `+`·`:+`, overflow가 불가능한 단순
+  nonzero decimal substring과 양의 decimal subscript처럼 원래 값을 명백히 대체하는 operator 자체는 보호 경로로 오인하지 않되, 대체값 내부의
+  실제 `CODEX_HOME/auth.json` 참조는 계속 차단한다. source token도 quote·escape 상태와 활성 expansion의
+  cooked offset을 보존해 활성 참조만 확장 경로로 인정한다. literal prefix 없이 token root·순수 nested
+  replacement-word에서 시작하거나 potentially-empty active expansion prefix만 앞설 때
+  `CODEX_HOME`-rooted path로 판정하되, 성공 시 고정 literal 때문에 비어있지 않음이 증명되는 `:-`·`:=`
+  prefix와 성공 자체가 nonempty를 보장하는 `:?` prefix는 비민감 경로로 허용하며
+  `curl -o`·`wget -O` 같은 로컬 출력 경로는 source로 오인하지 않는다. 제3 live
   session은 loopback closed port를 대상으로 격리 auth 경로 차단을 증거화한다. `scp`·`rsync`는 option
   operand와 positional operand를 구분하고
-  마지막 positional operand가 `host:path`·`user@host:path`·`user@[IPv6]:path`·remote URI일 때만 원격
-  목적지로 판정해, 원격 source의 로컬 복원을 차단하지 않는다. macOS 전용 suspended-spawn 반례는
+  마지막 positional operand가 `host:path`·`user@host:path`·`user@[IPv6%zone]:path`·remote URI이면 원격
+  목적지로 판정하고, sensitive source와 함께 목적지의 active parameter·command·backtick expansion이 남아
+  원격 여부를 확정할 수 없으면 fail-closed한다. `/`·`./`·`../`로 시작해 원격 문법이 불가능한 목적지는
+  active suffix가 있어도 로컬로 허용한다. single-quoted·escaped literal `$`는 expansion으로 오인하지
+  않으며 원격 source의 로컬 복원도 차단하지 않는다. macOS 전용 suspended-spawn 반례는
   main·develop의 `atomic-trust-macos` required CI check에서 실제로 실행한다.
 
 ## 4. 제약 / 비기능
