@@ -825,33 +825,6 @@ function codexHomeSuffix(value) {
     )
     return matched ? openIndex + 2 + matched[0].length : undefined
   }
-  const canonicalTrimOperation = (operation) => {
-    let canonical = ''
-    let quote = ''
-    for (let index = 0; index < operation.length; index += 1) {
-      const char = operation[index]
-      if (quote === "'") {
-        if (char === "'") quote = ''
-        else canonical += char
-        continue
-      }
-      if (char === '\\' && index + 1 < operation.length) {
-        canonical += char + operation[index + 1]
-        index += 1
-        continue
-      }
-      if (char === '"') {
-        quote = quote === '"' ? '' : '"'
-        continue
-      }
-      if (!quote && char === "'") {
-        quote = "'"
-        continue
-      }
-      canonical += char
-    }
-    return canonical
-  }
   const hasPureWrapperPrefix = (referenceIndex) => {
     if (containingExpansions.length === 0) return referenceIndex === 0
     if (containingExpansions[0].openIndex !== 0) return false
@@ -901,10 +874,8 @@ function codexHomeSuffix(value) {
         if (
           operation === '' ||
           /^(?::)?[-=?]/.test(operation) ||
-          /^:(?:[ \t]*0+|[ \t]+[+-]0+)$/.test(operation) ||
-          ['%', '%%', '#', '##', '%/', '%%/'].includes(
-            canonicalTrimOperation(operation),
-          )
+          /^:(?:[ \t]*0+|[ \t]+[+-]0+)(?::|$)/.test(operation) ||
+          /^[%#/,^@]/.test(operation)
         ) {
           if (!hasPureWrapperPrefix(index)) {
             containingExpansions.push({
