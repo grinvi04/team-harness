@@ -897,10 +897,16 @@ function codexHomeSuffix(value, activeExpansionOffsets = []) {
           index + bracedPrefix.length,
           parsedBraced.nextIndex - 1,
         )
+        const substringOffset =
+          /^:(?![-=?+])[ \t]*[+-]?([0-9]+)$/.exec(operation)
+        const isSubstringOperation =
+          operation.startsWith(':') && !/^:[-=?+]/.test(operation)
+        const isNonzeroSimpleSubstring =
+          substringOffset && /[1-9]/.test(substringOffset[1])
         if (
           operation === '' ||
           /^(?::)?[-=?]/.test(operation) ||
-          /^:(?:[ \t]*0+|[ \t]+[+-]0+)(?::|$)/.test(operation) ||
+          (isSubstringOperation && !isNonzeroSimpleSubstring) ||
           /^[%#/,^@]/.test(operation)
         ) {
           if (!activeOffsets.has(index) || !hasAcceptedPrefix(index)) {
