@@ -842,7 +842,37 @@ function hasWgetEgress(tokens, index) {
 }
 
 function isRemoteCopyTarget(token) {
-  return /^(?:(?:[A-Za-z0-9._-]+@)?[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+\]):/.test(token)
+  return /^(?:s(?:cp|ync):\/\/|(?:(?:[A-Za-z0-9._-]+@)?[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+\]):)/i.test(token)
+}
+
+const remoteCopyValueOptions = {
+  scp: new Set(['-c', '-D', '-F', '-i', '-J', '-l', '-o', '-P', '-S', '-X']),
+  rsync: new Set([
+    '-e', '-M',
+    '--backup-dir', '--bwlimit', '--chown', '--compare-dest', '--contimeout',
+    '--copy-dest', '--exclude', '--exclude-from', '--files-from', '--filter', '--groupmap',
+    '--include', '--include-from', '--link-dest', '--log-file', '--max-size', '--min-size',
+    '--out-format', '--password-file', '--remote-option', '--rsync-path', '--rsh',
+    '--suffix', '--temp-dir', '--timeout', '--usermap',
+  ]),
+}
+
+function remoteCopyOperands(tokens, index, executable) {
+  const operands = []
+  for (let offset = index + 1; offset < tokens.length; offset += 1) {
+    const token = tokens[offset]
+    if (token === '--') {
+      operands.push(...tokens.slice(offset + 1))
+      break
+    }
+    if (remoteCopyValueOptions[executable].has(token)) {
+      offset += 1
+      continue
+    }
+    if (token.startsWith('-')) continue
+    operands.push(token)
+  }
+  return operands
 }
 
 function hasUpload(value) {
@@ -858,14 +888,18 @@ function hasUpload(value) {
         tokens.slice(index + 1).some((token) => /^(?:[0-9]+)?<{1,3}/.test(token))
       )
     ) return true
-    if (
-      ['scp', 'rsync'].includes(executable) &&
-      tokens.slice(index + 1).some((token) =>
-        /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token) ||
-        isHighSignalCredentialPath(token)
-      ) &&
-      tokens.slice(index + 1).some(isRemoteCopyTarget)
-    ) return true
+    if (['scp', 'rsync'].includes(executable)) {
+      const operands = remoteCopyOperands(tokens, index, executable)
+      const destination = operands.at(-1)
+      if (
+        destination &&
+        isRemoteCopyTarget(destination) &&
+        operands.slice(0, -1).some((token) =>
+          /(?:^|\/)\.env(?:\.[A-Za-z0-9_-]+)?$/.test(token) ||
+          isHighSignalCredentialPath(token)
+        )
+      ) return true
+    }
   }
   return false
 }
