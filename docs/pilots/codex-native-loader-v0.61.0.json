@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-24T01:02:10.903Z",
+  "observedAt": "2026-07-24T01:13:39.010Z",
   "evidence": {
     "mode": "live"
   },
@@ -22,12 +22,12 @@
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "33de6ecb816ad0bf9715a6fa1f6417b7c5d73ce5",
-    "tree": "fd3797f4783e7d4f695911c59589092d91bded32",
+    "revision": "720249afd533a68d860e0b01df5fb7dfb4762a9b",
+    "tree": "4e101d3f74c952974aa49b3e3d7bd8e268267035",
     "remote": {
       "repository": "https://github.com/grinvi04/team-harness.git",
       "ref": "refs/heads/fix/v0.61.0-release-check-auth-egress-ci",
-      "revision": "33de6ecb816ad0bf9715a6fa1f6417b7c5d73ce5"
+      "revision": "720249afd533a68d860e0b01df5fb7dfb4762a9b"
     }
   },
   "loader": {
