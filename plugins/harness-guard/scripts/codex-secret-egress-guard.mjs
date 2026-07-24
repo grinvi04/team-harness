@@ -791,18 +791,30 @@ function readBracedParameterExpansion(value, openIndex) {
 }
 
 function codexHomeSuffix(value) {
-  const plain = value.match(/^\$CODEX_HOME(?![A-Za-z0-9_])(.*)$/)
-  if (plain) return plain[1]
-  const prefix = '${CODEX_HOME'
-  const operator = value[prefix.length]
-  if (
-    !value.startsWith(prefix) ||
-    (operator !== '}' && !/[-:=?+%#/,^@]/.test(operator || ''))
-  ) {
-    return undefined
+  const plainPrefix = '$CODEX_HOME'
+  const bracedPrefix = '${CODEX_HOME'
+
+  for (let index = 0; index < value.length; index += 1) {
+    if (
+      value.startsWith(plainPrefix, index) &&
+      !/[A-Za-z0-9_]/.test(value[index + plainPrefix.length] || '')
+    ) {
+      return {
+        suffix: value.slice(index + plainPrefix.length),
+        embedded: index > 0,
+      }
+    }
+    if (!value.startsWith(bracedPrefix, index)) continue
+    const operator = value[index + bracedPrefix.length]
+    if (operator !== '}' && !/[-:=?+%#/,^@]/.test(operator || '')) continue
+    const parsed = readBracedParameterExpansion(value, index + 1)
+    if (!parsed) return undefined
+    return {
+      suffix: value.slice(parsed.nextIndex),
+      embedded: index > 0,
+    }
   }
-  const parsed = readBracedParameterExpansion(value, 1)
-  return parsed ? value.slice(parsed.nextIndex) : undefined
+  return undefined
 }
 
 function isHighSignalCredentialPath(token) {
@@ -814,11 +826,17 @@ function isHighSignalCredentialPath(token) {
     if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return false
     if (/(?:^|\/)\.aws\/credentials$/i.test(value)) return true
     if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
-    const suffix = codexHomeSuffix(value)
-    if (
-      suffix !== undefined &&
-      path.posix.normalize(`/__CODEX_HOME__${suffix}`) === '/__CODEX_HOME__/auth.json'
-    ) return true
+    const codexHome = codexHomeSuffix(value)
+    if (codexHome) {
+      if (
+        path.posix.normalize(`/__CODEX_HOME__${codexHome.suffix}`) ===
+        '/__CODEX_HOME__/auth.json'
+      ) return true
+      if (
+        codexHome.embedded &&
+        path.posix.basename(path.posix.normalize(value)) === 'auth.json'
+      ) return true
+    }
     if (
       process.env.CODEX_HOME &&
       path.isAbsolute(value) &&
