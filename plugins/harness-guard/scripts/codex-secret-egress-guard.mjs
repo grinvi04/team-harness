@@ -717,6 +717,13 @@ function hasUrlUserinfo(value) {
   return /^[A-Za-z][A-Za-z0-9+.-]*:\/\/[^/@\s]+@/.test(value)
 }
 
+function codexHomeSuffix(value) {
+  const plain = value.match(/^\$CODEX_HOME(?![A-Za-z0-9_])(.*)$/)
+  if (plain) return plain[1]
+  const braced = value.match(/^\$\{CODEX_HOME(?:[^A-Za-z0-9_}][^}]*)?\}(.*)$/)
+  return braced?.[1]
+}
+
 function isHighSignalCredentialPath(token) {
   if (typeof token !== 'string' || token.length === 0) return false
   const candidates = [token]
@@ -726,7 +733,11 @@ function isHighSignalCredentialPath(token) {
     if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return false
     if (/(?:^|\/)\.aws\/credentials$/i.test(value)) return true
     if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
-    if (/^\$(?:CODEX_HOME|\{CODEX_HOME\})\/auth\.json$/i.test(value)) return true
+    const suffix = codexHomeSuffix(value)
+    if (
+      suffix !== undefined &&
+      path.posix.normalize(`/__CODEX_HOME__${suffix}`) === '/__CODEX_HOME__/auth.json'
+    ) return true
     if (
       process.env.CODEX_HOME &&
       path.isAbsolute(value) &&
@@ -872,7 +883,11 @@ function hasWgetEgress(tokens, index) {
 }
 
 function isRemoteCopyTarget(token) {
-  return /^(?:s(?:cp|ync):\/\/|(?:[A-Za-z0-9._-]+@)?(?:[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+\]):)/i.test(token)
+  return /^(?:s(?:cp|ync):\/\/|(?:[A-Za-z0-9._-]+@)?(?:[A-Za-z0-9._-]+|\[[0-9A-Fa-f:]+(?:%[A-Za-z0-9._-]+)?\]):)/i.test(token)
+}
+
+function hasShellParameterExpansion(token) {
+  return /\$(?:[A-Za-z_][A-Za-z0-9_]*|\{[^}]+\})/.test(token)
 }
 
 const remoteCopyValueOptions = {
@@ -923,7 +938,7 @@ function hasUpload(value) {
       const destination = operands.at(-1)
       if (
         destination &&
-        isRemoteCopyTarget(destination) &&
+        (isRemoteCopyTarget(destination) || hasShellParameterExpansion(destination)) &&
         operands.slice(0, -1).some(isSensitiveFilePath)
       ) return true
     }
