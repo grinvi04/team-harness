@@ -4,12 +4,22 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
+import {
+  captureExecutableIdentity,
+  resolveExecutable,
+  runVerifiedExecutable,
+} from './codex-binary-trust.mjs'
 
 const PLUGIN_ID = 'harness-guard@team-harness'
 const MARKETPLACE = 'team-harness'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const manifestPath = path.join(root, 'plugins', 'harness-guard', '.codex-plugin', 'plugin.json')
 const codexBin = process.env.CODEX_BIN || 'codex'
+const expectedCodexDigest = process.env.HARNESS_CODEX_EXPECTED_DIGEST
+const expectedCodexCdHash = process.env.HARNESS_CODEX_EXPECTED_CDHASH || null
+const codexIdentity = expectedCodexDigest
+  ? captureExecutableIdentity(resolveExecutable(codexBin), expectedCodexDigest, expectedCodexCdHash)
+  : null
 
 function versionParts(version) {
   if (!/^\d+(?:\.\d+)*$/.test(version)) throw new Error(`invalid numeric version: ${version}`)
@@ -28,7 +38,9 @@ function compareVersions(left, right) {
 }
 
 function runJson(args) {
-  const result = spawnSync(codexBin, args, { encoding: 'utf8', env: process.env })
+  const result = codexIdentity
+    ? runVerifiedExecutable(codexIdentity, args, { env: process.env })
+    : spawnSync(codexBin, args, { encoding: 'utf8', env: process.env })
   if (result.error) throw result.error
   if (result.status !== 0) {
     const detail = result.stderr.trim() || result.stdout.trim() || `exit ${result.status}`

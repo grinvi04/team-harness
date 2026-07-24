@@ -3,12 +3,9 @@
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import {
-  accessSync,
   chmodSync,
-  constants as fsConstants,
   copyFileSync,
   existsSync,
-  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -19,16 +16,27 @@ import {
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  establishCodexTrust,
+  runVerifiedExecutable,
+} from './codex-binary-trust.mjs'
 
 const scriptRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const codexOverride = process.env.CODEX_BIN
 const fixtureMode = process.env.HARNESS_PILOT_FIXTURE === '1'
+const fixtureBeforeCodexExec = process.env.HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC
 if (codexOverride && !fixtureMode) {
   console.error('run-codex-native-loader-pilot: CODEX_BIN requires HARNESS_PILOT_FIXTURE=1')
   process.exit(2)
 }
+if (fixtureBeforeCodexExec && !fixtureMode) {
+  console.error(
+    'run-codex-native-loader-pilot: HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC requires HARNESS_PILOT_FIXTURE=1',
+  )
+  process.exit(2)
+}
 const codexBin = codexOverride || 'codex'
-let verifiedCodexExecutable = null
+let verifiedCodexIdentity = null
 
 function parseArgs(argv) {
   let source = scriptRoot
@@ -49,56 +57,11 @@ function digest(value) {
   return `sha256:${createHash('sha256').update(value).digest('hex')}`
 }
 
-function resolveExecutable(command) {
-  const candidates = command.includes(path.sep)
-    ? [path.resolve(command)]
-    : (process.env.PATH || '').split(path.delimiter).filter(Boolean).map((directory) => path.join(directory, command))
-  for (const candidate of candidates) {
-    try {
-      accessSync(candidate, fsConstants.X_OK)
-      const resolved = realpathSync(candidate)
-      if (lstatSync(resolved).isFile()) return resolved
-    } catch {
-      // Try the next PATH entry.
-    }
-  }
-  throw new Error(`Codex binary is not an executable regular file: ${command}`)
-}
-
 function evidenceExecutablePath(executable) {
   const home = realpathSync(os.homedir())
   if (executable === home) return '$HOME'
   if (executable.startsWith(`${home}${path.sep}`)) return `$HOME${executable.slice(home.length)}`
   return executable
-}
-
-function verifyOpenAICodeSignature(executable) {
-  if (process.platform !== 'darwin') {
-    throw new Error(`live Codex binary lacks verified OpenAI code signature on ${process.platform}`)
-  }
-  const requirement =
-    '=anchor apple generic and certificate leaf[subject.OU] = "2DC432GLL2" and identifier "codex"'
-  const verification = spawnSync(
-    'codesign',
-    ['--verify', '--deep', '--strict', '--requirement', requirement, executable],
-    { encoding: 'utf8' },
-  )
-  if (verification.error || verification.status !== 0) {
-    throw new Error('live Codex binary lacks verified OpenAI code signature')
-  }
-  const details = spawnSync('codesign', ['-dv', '--verbose=4', executable], { encoding: 'utf8' })
-  const output = `${details.stdout || ''}\n${details.stderr || ''}`
-  const teamIdentifier = output.match(/^TeamIdentifier=(.+)$/m)?.[1]
-  const authority = output.match(/^Authority=(Developer ID Application: .+)$/m)?.[1]
-  if (
-    details.error ||
-    details.status !== 0 ||
-    teamIdentifier !== '2DC432GLL2' ||
-    authority !== 'Developer ID Application: OpenAI OpCo, LLC (2DC432GLL2)'
-  ) {
-    throw new Error('live Codex binary lacks verified OpenAI code signature')
-  }
-  return { verified: true, platform: 'darwin', teamIdentifier, authority }
 }
 
 function parseJsonLines(value, label) {
@@ -173,8 +136,18 @@ function run(program, args, options = {}) {
 }
 
 function codex(args, env, label) {
-  if (!verifiedCodexExecutable) throw new Error('Codex executable was used before trust verification')
-  return run(verifiedCodexExecutable, args, { env, label })
+  if (!verifiedCodexIdentity) throw new Error('Codex executable was used before trust verification')
+  const result = runVerifiedExecutable(verifiedCodexIdentity, args, {
+    env,
+    beforeSpawn: fixtureBeforeCodexExec
+      ? () => run(fixtureBeforeCodexExec, [], { env, label: 'Codex fixture pre-exec hook' })
+      : null,
+  })
+  if (result.error) throw new Error(`${label} failed to start`)
+  if (result.status !== 0) {
+    throw new Error(`${label} failed (exit ${result.status})`)
+  }
+  return result.stdout
 }
 
 function snapshotUserState(env) {
@@ -300,25 +273,18 @@ try {
   if (beforeSource.status !== '') {
     throw new Error('source repository must be clean before pilot execution')
   }
-  const codexExecutable = resolveExecutable(codexBin)
-  report.codex.binary.path = evidenceExecutablePath(codexExecutable)
-  report.codex.binary.digest = digest(readFileSync(codexExecutable))
-  if (!fixtureMode) {
-    const trustedBinaries = JSON.parse(readFileSync(trustedBinariesPath, 'utf8'))
-    const trustedDigests = new Set(Object.values(trustedBinaries).flat())
-    if (!trustedDigests.has(report.codex.binary.digest)) {
-      throw new Error(`Codex binary digest is not trusted: ${report.codex.binary.digest}`)
-    }
-    report.codex.binary.signature = verifyOpenAICodeSignature(codexExecutable)
-    verifiedCodexExecutable = codexExecutable
-    report.codex.version = codex(['--version'], userEnvironment, 'Codex version').trim()
-    if (!trustedBinaries[report.codex.version]?.includes(report.codex.binary.digest)) {
-      throw new Error(
-        `Codex binary digest is not trusted: ${report.codex.version} ${report.codex.binary.digest}`,
-      )
-    }
-  } else {
-    verifiedCodexExecutable = codexExecutable
+  const codexTrust = establishCodexTrust({
+    command: codexBin,
+    env: userEnvironment,
+    fixtureMode,
+    trustedBinariesPath,
+  })
+  verifiedCodexIdentity = codexTrust.identity
+  report.codex.binary.path = evidenceExecutablePath(codexTrust.path)
+  report.codex.binary.digest = codexTrust.digest
+  report.codex.binary.signature = codexTrust.signature
+  report.codex.version = codexTrust.version
+  if (fixtureMode) {
     report.codex.version = codex(['--version'], userEnvironment, 'Codex version').trim()
   }
   beforeUser = snapshotUserState(userEnvironment)

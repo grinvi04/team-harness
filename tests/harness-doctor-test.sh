@@ -26,6 +26,7 @@ cat >"$FAKE_ROOT/scripts/install-codex-managed-requirements.sh" <<'SH'
 echo 'OK requirements'
 SH
 cp "$ROOT/scripts/check-codex-native-plugin.mjs" "$FAKE_ROOT/scripts/" 2>/dev/null || true
+cp "$ROOT/scripts/codex-binary-trust.mjs" "$FAKE_ROOT/scripts/" 2>/dev/null || true
 cat >"$FAKE_ROOT/plugins/harness-guard/scripts/check-repo-sync.mjs" <<'JS'
 if (process.env.DOCTOR_FAIL === 'repo-sync') process.exit(1)
 console.log('OK repo-sync')

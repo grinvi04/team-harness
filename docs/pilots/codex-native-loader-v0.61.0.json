@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "status": "pass",
-  "observedAt": "2026-07-23T22:44:43.096Z",
+  "observedAt": "2026-07-23T23:50:34.370Z",
   "evidence": {
     "mode": "live"
   },
@@ -15,14 +15,15 @@
         "verified": true,
         "platform": "darwin",
         "teamIdentifier": "2DC432GLL2",
-        "authority": "Developer ID Application: OpenAI OpCo, LLC (2DC432GLL2)"
+        "authority": "Developer ID Application: OpenAI OpCo, LLC (2DC432GLL2)",
+        "cdHash": "14fe9fce7d47a8c12e42094e5cc90ff97b2cf627"
       }
     }
   },
   "harness": {
     "version": "0.61.0",
-    "revision": "d4ca95077b326e9bc20ef837a48d13176b174964",
-    "tree": "4a0237ffc726619d679f4883685532b7e52fd640"
+    "revision": "11b0bab72d2a868ed8782a7c69fefacce528c809",
+    "tree": "e09edc38fe62cd7da9197b096c64a7a5fcfa5605"
   },
   "loader": {
     "installed": true,

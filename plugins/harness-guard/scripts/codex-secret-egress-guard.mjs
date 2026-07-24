@@ -82,6 +82,7 @@ function logicalShellCommands(value) {
 
     for (const nested of backtickShellCommands(current)) pending.push(nested)
     for (const nested of dollarParenShellCommands(current)) pending.push(nested)
+    for (const nested of processSubstitutionShellCommands(current)) pending.push(nested)
     for (const tokens of shellSegments(current)) {
       const index = commandIndex(tokens)
       if (!['ash', 'bash', 'csh', 'dash', 'fish', 'ksh', 'mksh', 'sh', 'tcsh', 'yash', 'zsh'].includes(baseName(tokens[index]))) continue
@@ -218,6 +219,84 @@ function dollarParenShellCommands(value) {
   return commands
 }
 
+function readParenthesizedCommand(value, openIndex) {
+  let command = ''
+  let quote = ''
+  let depth = 1
+  let index = openIndex + 1
+
+  while (index < value.length && depth > 0) {
+    const char = value[index]
+    if (quote === "'") {
+      command += char
+      if (char === "'") quote = ''
+      index += 1
+    } else if (char === '\\' && index + 1 < value.length) {
+      command += char + value[index + 1]
+      index += 2
+    } else if (!quote && char === "'") {
+      quote = "'"
+      command += char
+      index += 1
+    } else if (char === '"') {
+      quote = quote === '"' ? '' : '"'
+      command += char
+      index += 1
+    } else if (!quote && char === '(') {
+      depth += 1
+      command += char
+      index += 1
+    } else if (!quote && char === ')') {
+      depth -= 1
+      if (depth > 0) command += char
+      index += 1
+    } else {
+      command += char
+      index += 1
+    }
+  }
+  return depth === 0 ? { command, nextIndex: index } : null
+}
+
+function processSubstitutionShellCommands(value) {
+  const commands = []
+  let quote = ''
+  let index = 0
+
+  while (index < value.length) {
+    const char = value[index]
+    if (quote === "'") {
+      if (char === "'") quote = ''
+      index += 1
+      continue
+    }
+    if (char === '\\' && index + 1 < value.length) {
+      index += 2
+      continue
+    }
+    if (!quote && char === "'") {
+      quote = "'"
+      index += 1
+      continue
+    }
+    if (char === '"') {
+      quote = quote === '"' ? '' : '"'
+      index += 1
+      continue
+    }
+    if (!quote && ['<', '>'].includes(char) && value[index + 1] === '(') {
+      const parsed = readParenthesizedCommand(value, index + 1)
+      if (parsed) {
+        commands.push(collapseLineContinuations(parsed.command))
+        index = parsed.nextIndex
+        continue
+      }
+    }
+    index += 1
+  }
+  return commands
+}
+
 function shellSegments(value) {
   return shellParts(value).map(({ tokens }) => tokens)
 }
@@ -283,6 +362,17 @@ function shellParts(value) {
       quote = char
       wordStarted = true
       index += 1
+    } else if (['<', '>'].includes(char) && value[index + 1] === '(') {
+      const parsed = readParenthesizedCommand(value, index + 1)
+      if (parsed) {
+        word += `${char}(${parsed.command})`
+        wordStarted = true
+        index = parsed.nextIndex
+      } else {
+        word += char
+        wordStarted = true
+        index += 1
+      }
     } else if (char === '\\' && index + 1 < value.length) {
       word += value[index + 1]
       wordStarted = true
@@ -509,6 +599,7 @@ function curlShortValueOption(token) {
 function curlCommandInfo(tokens, index) {
   const targets = []
   let hasConfig = false
+  let importsSecretVariable = false
   const valueOptions = new Set([
     '--abstract-unix-socket', '--alt-svc', '--aws-sigv4', '--cacert', '--capath',
     '--cert', '--cert-type', '--ciphers', '--config', '--connect-timeout',
@@ -554,8 +645,17 @@ function curlCommandInfo(tokens, index) {
       offset += 1
       continue
     }
+    if (token === '--expand-url') {
+      if (tokens[offset + 1] !== undefined) targets.push(tokens[offset + 1])
+      offset += 1
+      continue
+    }
     if (token.startsWith('--url=')) {
       targets.push(token.slice('--url='.length))
+      continue
+    }
+    if (token.startsWith('--expand-url=')) {
+      targets.push(token.slice('--expand-url='.length))
       continue
     }
     const shortOption = curlShortValueOption(token)
@@ -565,6 +665,14 @@ function curlCommandInfo(tokens, index) {
       continue
     }
     if (token === '--config' || token.startsWith('--config=')) hasConfig = true
+    if (token === '--variable' && curlSecretVariablePattern.test(tokens[offset + 1] || '')) {
+      importsSecretVariable = true
+    } else if (
+      token.startsWith('--variable=') &&
+      curlSecretVariablePattern.test(token.slice('--variable='.length))
+    ) {
+      importsSecretVariable = true
+    }
     if (valueOptions.has(token)) {
       offset += 1
       continue
@@ -572,7 +680,7 @@ function curlCommandInfo(tokens, index) {
     if (token.startsWith('-')) continue
     targets.push(token)
   }
-  return { hasConfig, targets }
+  return { hasConfig, importsSecretVariable, targets }
 }
 
 function wgetTargets(tokens, index) {
@@ -645,7 +753,10 @@ function hasCurlUpload(tokens, index) {
       if (['A', 'b', 'e'].includes(shortOption.name) && hasSecretSource(value)) return true
     }
     if (
-      /^--(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json)(?:=|$)/.test(option)
+      /^--(?:expand-)?(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json)(?:=|$)/.test(option)
+    ) return true
+    if (
+      /^--expand-(?:header|proxy-header|cookie|referer|user-agent|url-query|request-target|url)(?:=|$)/.test(option)
     ) return true
     if (option === '--request' && /^(POST|PUT|PATCH)$/i.test(tokens[offset + 1] || '')) return true
     if (/^--request=(?:POST|PUT|PATCH)$/i.test(option)) return true
@@ -703,6 +814,7 @@ function hasUpload(value) {
 }
 
 const secretName = String.raw`(?:[A-Z0-9_]*(?:API[_-]?KEY|ACCESS[_-]?KEY|PRIVATE[_-]?KEY|SECRET|TOKEN|PASSWORD|PASSWD|CREDENTIAL)[A-Z0-9_]*|(?:[A-Z0-9_]+_)?PAT(?:_[A-Z0-9_]+)?)`
+const curlSecretVariablePattern = new RegExp(String.raw`^%${secretName}(?:=|$)`, 'i')
 const secretSourcePattern = new RegExp(
   String.raw`(?:\$\{?${secretName}\}?|\b(?:printenv|env)(?:\s+${secretName}\b|\s*\|)|\bgh\s+auth\s+token\b|\bop\s+read\b|(?:^|[\s"'=@/<])\.env(?:\.[A-Za-z0-9_-]+)?\b)`,
   'i',
@@ -712,7 +824,9 @@ function hasSecretSource(value) {
   if (secretSourcePattern.test(value)) return true
   return shellParts(value).some(({ tokens }) => {
     const index = commandIndex(tokens)
-    return baseName(tokens[index]) === 'curl' && hasLiteralCurlCredential(tokens, index)
+    if (baseName(tokens[index]) !== 'curl') return false
+    const info = curlCommandInfo(tokens, index)
+    return hasLiteralCurlCredential(tokens, index) || info.importsSecretVariable
   })
 }
 

@@ -97,6 +97,7 @@ jobs:
           node --check scripts/generate-changelog.mjs
           node --check scripts/check-plugin-coexistence.mjs
           node --check scripts/run-external-pilot.mjs
+          node --check scripts/codex-binary-trust.mjs
           node --check scripts/sync-codex-plugin-cache.mjs
           node --check scripts/check-codex-native-plugin.mjs
           node --check scripts/run-codex-native-loader-pilot.mjs
@@ -125,7 +126,9 @@ jobs:
           EOF
 
       - name: 파이썬 구문 검사 (등록된 훅 — enforce-subagent-model.py)
-        run: python3 -m py_compile plugins/harness-guard/scripts/enforce-subagent-model.py
+        run: |
+          python3 -m py_compile plugins/harness-guard/scripts/enforce-subagent-model.py
+          python3 -m py_compile scripts/spawn-verified-executable.py
 
       - name: 템플릿 생성기 ruff 검사 (python repo가 복사 시 CI 통과 보장 — v0.24.1)
         run: |

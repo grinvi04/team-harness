@@ -111,25 +111,49 @@ cat > "$FAKEBIN/gh" <<'SH'
 #!/usr/bin/env bash
 set -u
 [ "${1:-}" = "api" ] || exit 70
-case "${2:-}" in
+shift
+method=GET
+endpoint=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -X) method="${2:-}"; shift 2;;
+    --input) cat >/dev/null; shift 2;;
+    --jq) shift 2;;
+    repos/*) endpoint="$1"; shift;;
+    *) shift;;
+  esac
+done
+printf '%s %s\n' "$method" "$endpoint" >>"${FAKE_GH_CALLS:-/dev/null}"
+case "$endpoint" in
   repos/o/r/branches/main|repos/o/r/branches/develop)
     [ "${FAKE_GH_SCENARIO:-ok}" = "missing-branch" ] && exit 1
     printf '{}\n'
     ;;
   repos/o/r/branches/main/protection)
+    [ "$method" = PUT ] && exit 0
     if [ "${FAKE_GH_SCENARIO:-ok}" = "main-dismiss-false" ]; then
       reviews='{"required_approving_review_count":2,"dismiss_stale_reviews":false}'
+    elif [ "${FAKE_GH_SCENARIO:-ok}" = "post-review-drift" ]; then
+      reviews='null'
+    elif [[ "${FAKE_GH_SCENARIO:-ok}" == post-* ]]; then
+      reviews='{"required_approving_review_count":1,"dismiss_stale_reviews":true}'
     else
       reviews='{"required_approving_review_count":2,"dismiss_stale_reviews":true}'
     fi
-    if [ "${FAKE_GH_SCENARIO:-ok}" = "missing-context" ]; then
+    if [[ "${FAKE_GH_SCENARIO:-ok}" = "missing-context" || "${FAKE_GH_SCENARIO:-ok}" = "post-context-drift" ]]; then
       contexts='["quality","secret-scan","test-guard"]'
     else
       contexts='["quality","secret-scan","test-guard","commitlint"]'
     fi
-    printf '{"required_status_checks":{"strict":true,"contexts":%s},"enforce_admins":{"enabled":true},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":false},"allow_deletions":{"enabled":false},"required_conversation_resolution":{"enabled":true}}\n' "$contexts" "$reviews"
+    strict=true; admins=true; force=false; delete=false
+    [ "${FAKE_GH_SCENARIO:-ok}" = "post-strict-drift" ] && strict=false
+    [ "${FAKE_GH_SCENARIO:-ok}" = "post-admin-drift" ] && admins=false
+    [ "${FAKE_GH_SCENARIO:-ok}" = "post-force-drift" ] && force=true
+    [ "${FAKE_GH_SCENARIO:-ok}" = "post-delete-drift" ] && delete=true
+    printf '{"required_status_checks":{"strict":%s,"contexts":%s},"enforce_admins":{"enabled":%s},"required_pull_request_reviews":%s,"allow_force_pushes":{"enabled":%s},"allow_deletions":{"enabled":%s},"required_conversation_resolution":{"enabled":true}}\n' "$strict" "$contexts" "$admins" "$reviews" "$force" "$delete"
     ;;
   repos/o/r/branches/develop/protection)
+    [ "$method" = PUT ] && exit 0
     if [ "${FAKE_GH_SCENARIO:-ok}" = "develop-approval-one" ]; then
       reviews='{"required_approving_review_count":1,"dismiss_stale_reviews":true}'
     else
@@ -148,7 +172,7 @@ cli_check_case() { # desc, fixture scenario, expected exit, [required contexts]
   local desc="$1" scenario="$2" wantrc="$3" contexts="${4:-}" out rc
   local args=(o/r --check --approvals 1)
   [ -n "$contexts" ] && args+=(--contexts "$contexts")
-  out=$(FAKE_GH_SCENARIO="$scenario" PATH="$FAKEBIN:$PATH" bash "$SBP" "${args[@]}" 2>&1); rc=$?
+  out=$(FAKE_GH_SCENARIO="$scenario" FAKE_GH_CALLS="$CLI_TMP/check-calls" PATH="$FAKEBIN:$PATH" bash "$SBP" "${args[@]}" 2>&1); rc=$?
   if [ "$rc" = "$wantrc" ]; then
     echo "PASS: $desc"; PASS=$((PASS+1))
   else
@@ -164,7 +188,7 @@ cli_check_case "CLI exact contexts 누락 → exit nonzero" missing-context 1 "q
 cli_check_case "CLI repo/branch 조회 실패 → exit nonzero" missing-branch 1
 
 set +e
-apply_out=$(FAKE_GH_SCENARIO=missing-branch PATH="$FAKEBIN:$PATH" \
+apply_out=$(FAKE_GH_SCENARIO=missing-branch FAKE_GH_CALLS="$CLI_TMP/apply-missing-calls" PATH="$FAKEBIN:$PATH" \
   bash "$SBP" o/r --approvals 1 --contexts "quality,secret-scan,test-guard,commitlint" 2>&1)
 apply_rc=$?
 set -e
@@ -173,6 +197,33 @@ if [ "$apply_rc" = 1 ]; then
 else
   echo "FAIL: CLI apply-mode repo/branch 조회 실패 — want rc1 got rc$apply_rc ($apply_out)"; FAIL=$((FAIL+1))
 fi
+
+apply_postcondition_case() { # desc, fixture scenario, expected exit
+  local desc="$1" scenario="$2" wantrc="$3" out rc calls
+  calls="$CLI_TMP/${scenario}-calls"
+  : >"$calls"
+  set +e
+  out=$(FAKE_GH_SCENARIO="$scenario" FAKE_GH_CALLS="$calls" PATH="$FAKEBIN:$PATH" \
+    bash "$SBP" o/r --approvals 1 --contexts "quality,secret-scan,test-guard,commitlint" 2>&1)
+  rc=$?
+  set -e
+  local post_reads
+  post_reads=$(grep -Ec '^GET repos/o/r/branches/(main|develop)/protection$' "$calls" || true)
+  if [ "$rc" = "$wantrc" ] && [ "$post_reads" = 2 ]; then
+    echo "PASS: $desc"; PASS=$((PASS+1))
+  else
+    echo "FAIL: $desc — want rc$wantrc/post-read2 got rc$rc/post-read$post_reads ($out)"
+    FAIL=$((FAIL+1))
+  fi
+}
+
+apply_postcondition_case "CLI apply post-read success → exit 0" post-ok 0
+apply_postcondition_case "CLI apply post-read contexts drift → exit nonzero" post-context-drift 1
+apply_postcondition_case "CLI apply post-read strict drift → exit nonzero" post-strict-drift 1
+apply_postcondition_case "CLI apply post-read admin drift → exit nonzero" post-admin-drift 1
+apply_postcondition_case "CLI apply post-read review drift → exit nonzero" post-review-drift 1
+apply_postcondition_case "CLI apply post-read force-push drift → exit nonzero" post-force-drift 1
+apply_postcondition_case "CLI apply post-read deletion drift → exit nonzero" post-delete-drift 1
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

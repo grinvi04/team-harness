@@ -5,9 +5,9 @@
 
 ## 감사 기준과 범위
 
-- 기준일: 2026-07-23
+- 기준일: 2026-07-24
 - 기준 브랜치: `develop`의 플랫폼 중복 감사 작업 시작 시점
-- 대상: skill 16개, agent 정의 2개, hook handler 4개, Codex 호환 실행 파일 11개. 합계 33개다.
+- 대상: skill 16개, agent 정의 2개, hook handler 4개, Codex 호환 실행 파일 12개. 합계 34개다.
 - 근거: 각 구현, 직접 호출자, 회귀 테스트, 결정 기록과 로컬 `codex-cli 0.144.5`의 read-only 출력.
 - 로컬 확인: `codex features list`에서 `hooks`, `plugins`, `multi_agent`가 stable이고 `codex plugin --help`가
   설치·목록·marketplace 관리 명령을 제공했다. 이는 이 버전의 시점 증거이며 향후 버전까지 보장하지 않는다.
@@ -72,6 +72,7 @@
 | `codex-file:plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs` | **위임** | 제거 | 외부 플러그인의 Claude 전용 출력을 고치는 책임은 upstream 또는 공식 호환 surface에 맡긴다. |
 | `codex-file:plugins/harness-guard/scripts/patch-codex-security-guidance.mjs` | **위임** | 우선 제거 | 외부 plugin cache와 marketplace snapshot mutation은 장기 지원 API가 아니므로 제거한다. |
 | `codex-file:scripts/check-codex-native-plugin.mjs` | **연결** | 얇게 유지 | 설치된 source path의 native manifest·command hooks·skill inventory만 읽기 전용으로 검증한다. |
+| `codex-file:scripts/codex-binary-trust.mjs` | **소유** | 유지 | 승인 digest·code signature·version과 실행 전후 identity를 결박해 Codex provenance 증거를 책임진다. |
 | `codex-file:scripts/codex-fresh-session-smoke.sh` | **소유** | 유지 | 실제 새 세션에서 정책·시크릿 차단 결과를 검증하는 outcome parity 증거다. |
 | `codex-file:scripts/codex-hardened.sh` | **연결** | 얇게 유지 | 공식 plugin version sync와 native 계약 검사 뒤 Codex 인자를 그대로 전달한다. |
 | `codex-file:scripts/harness-doctor.sh` | **연결** | 공식 surface 중심으로 유지 | Codex·plugin·managed policy 상태를 repo·GitHub 건강 증거와 합성하되 cache patch 의존은 제거한다. |

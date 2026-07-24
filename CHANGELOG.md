@@ -7,6 +7,8 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): Codex 실행을 동적 신원에 결박
+- fix(security): 실행 trust와 정책 결과 결박
 - fix(security): config 내부 curl 목적지 차단
 - fix(security): pilot trust와 egress 감사 경계 차단
 - fix(security): fish long command egress 우회 차단
