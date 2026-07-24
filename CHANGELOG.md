@@ -7,6 +7,8 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and repl
 
 ## v0.61.0 - 2026-07-24
 
+- fix(security): guaranteed prefix 과차단 해소
+- fix(security): 명백한 로컬 copy 허용
 - fix(security): credential offset overflow 차단
 - fix(security): dynamic credential path 차단
 - fix(security): uncertain substring expression 차단
