@@ -77,7 +77,7 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   fallback 안에서 전체 보호 경로를 이루는 정확한 `CODEX_HOME` 참조, balanced nested shell parameter
   operator, lexical dot segment를 포함한 동치 경로까지 실제 source option·stdin·positional source에 결합해 차단한다.
   quote delimiter로 표현한 경우까지 canonicalize한 empty trim과 trailing-slash trim처럼
-  원값과 path-equivalent인 operator는 보호하고,
+  원값과 path-equivalent인 operator 및 zero-offset identity substring은 보호하고,
   `+`·`:+`·substring처럼 원래 값을 대체하는 operator 자체는 보호 경로로 오인하지 않되, 대체값 내부의
   실제 `CODEX_HOME/auth.json` 참조는 계속 차단한다. source token도 quote·escape 상태를 보존해 활성 참조만
   확장 경로로 인정하고, literal prefix 없이 token root 또는 순수 nested replacement-word에서 시작할 때만

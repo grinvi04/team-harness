@@ -901,6 +901,7 @@ function codexHomeSuffix(value) {
         if (
           operation === '' ||
           /^(?::)?[-=?]/.test(operation) ||
+          /^:(?:[ \t]*0+|[ \t]+[+-]0+)$/.test(operation) ||
           ['%', '%%', '#', '##', '%/', '%%/'].includes(
             canonicalTrimOperation(operation),
           )
