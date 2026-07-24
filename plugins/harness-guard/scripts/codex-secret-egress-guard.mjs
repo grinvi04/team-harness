@@ -793,26 +793,46 @@ function readBracedParameterExpansion(value, openIndex) {
 function codexHomeSuffix(value) {
   const plainPrefix = '$CODEX_HOME'
   const bracedPrefix = '${CODEX_HOME'
+  const containingExpansionEnds = []
+  const containingSuffix = (referenceEnd) => {
+    if (containingExpansionEnds.length === 0) return undefined
+    const closingIndexes = new Set(containingExpansionEnds.map((end) => end - 1))
+    let suffix = ''
+    for (let index = referenceEnd; index < value.length; index += 1) {
+      if (!closingIndexes.has(index)) suffix += value[index]
+    }
+    return suffix
+  }
 
   for (let index = 0; index < value.length; index += 1) {
+    while (containingExpansionEnds.at(-1) <= index) containingExpansionEnds.pop()
     if (
       value.startsWith(plainPrefix, index) &&
       !/[A-Za-z0-9_]/.test(value[index + plainPrefix.length] || '')
     ) {
+      const referenceEnd = index + plainPrefix.length
       return {
-        suffix: value.slice(index + plainPrefix.length),
+        suffix: value.slice(referenceEnd),
+        containingSuffix: containingSuffix(referenceEnd),
         embedded: index > 0,
       }
     }
-    if (!value.startsWith(bracedPrefix, index)) continue
-    const operator = value[index + bracedPrefix.length]
-    if (operator !== '}' && !/[-:=?+%#/,^@]/.test(operator || '')) continue
+    if (value.startsWith(bracedPrefix, index)) {
+      const operator = value[index + bracedPrefix.length]
+      if (operator === '}' || /[-:=?+%#/,^@]/.test(operator || '')) {
+        const parsed = readBracedParameterExpansion(value, index + 1)
+        if (!parsed) return undefined
+        return {
+          suffix: value.slice(parsed.nextIndex),
+          containingSuffix: containingSuffix(parsed.nextIndex),
+          embedded: index > 0,
+        }
+      }
+    }
+    if (value[index] !== '$' || value[index + 1] !== '{') continue
     const parsed = readBracedParameterExpansion(value, index + 1)
     if (!parsed) return undefined
-    return {
-      suffix: value.slice(parsed.nextIndex),
-      embedded: index > 0,
-    }
+    containingExpansionEnds.push(parsed.nextIndex)
   }
   return undefined
 }
@@ -828,10 +848,11 @@ function isHighSignalCredentialPath(token) {
     if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
     const codexHome = codexHomeSuffix(value)
     if (codexHome) {
-      if (
-        path.posix.normalize(`/__CODEX_HOME__${codexHome.suffix}`) ===
-        '/__CODEX_HOME__/auth.json'
-      ) return true
+      if ([codexHome.suffix, codexHome.containingSuffix].some((suffix) =>
+        suffix !== undefined &&
+        path.posix.normalize(`/__CODEX_HOME__${suffix}`) ===
+          '/__CODEX_HOME__/auth.json'
+      )) return true
       if (
         codexHome.embedded &&
         path.posix.basename(path.posix.normalize(value)) === 'auth.json'

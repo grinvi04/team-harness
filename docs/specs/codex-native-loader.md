@@ -73,9 +73,9 @@ Codex가 Team Harness monolith를 공식 marketplace·plugin·hook surface에서
   제공하지 않는다. subprocess 환경은 실행에 필요한 비밀 없는 key allowlist만 상속하고 `HOME`·`CODEX_HOME`
   및 XDG config/data/state/cache/runtime root를 같은 격리 홈 아래로 고정한다. 검증된 Codex path·digest·CDHash만
   runner가 새로 주입하며 inherited credential·config alias는 전달하지 않는다. wget credential URL/header와
-  high-signal credential 파일 및 활성 `CODEX_HOME/auth.json` upload는 다른 parameter의 fallback 안에 든
-  정확한 `CODEX_HOME` 참조, balanced nested shell parameter operator, lexical dot segment를 포함한 동치
-  경로까지 실제 source option·stdin·positional source에 결합해 차단하고
+  high-signal credential 파일 및 활성 `CODEX_HOME/auth.json` upload는 다른 parameter의 깊게 중첩된
+  fallback 안에서 전체 보호 경로를 이루는 정확한 `CODEX_HOME` 참조, balanced nested shell parameter
+  operator, lexical dot segment를 포함한 동치 경로까지 실제 source option·stdin·positional source에 결합해 차단하고
   `curl -o`·`wget -O` 같은 로컬 출력 경로는 source로 오인하지 않는다. 제3 live
   session은 loopback closed port를 대상으로 격리 auth 경로 차단을 증거화한다. `scp`·`rsync`는 option
   operand와 positional operand를 구분하고
