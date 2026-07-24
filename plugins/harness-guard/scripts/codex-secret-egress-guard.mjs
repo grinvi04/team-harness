@@ -307,13 +307,25 @@ function isActiveShellExpansion(value, index) {
   return /[({A-Za-z_0-9*@#?$!-]/.test(value[index + 1] || '')
 }
 
+function isActiveCodexHomeExpansion(value, index) {
+  if (value[index] !== '$') return false
+  if (value.startsWith('$CODEX_HOME', index)) {
+    return !/[A-Za-z0-9_]/.test(value[index + '$CODEX_HOME'.length] || '')
+  }
+  if (!value.startsWith('${CODEX_HOME', index)) return false
+  const operator = value[index + '${CODEX_HOME'.length]
+  return operator === '}' || /[-:=?+%#/,^@]/.test(operator || '')
+}
+
 function shellParts(value) {
   const parts = []
   let tokens = []
   let activeShellExpansions = []
+  let activeCodexHomeExpansions = []
   let word = ''
   let wordStarted = false
   let wordHasActiveShellExpansion = false
+  let wordHasActiveCodexHomeExpansion = false
   let quote = ''
   let index = 0
   let separatorBefore = ''
@@ -322,16 +334,24 @@ function shellParts(value) {
     if (!wordStarted) return
     tokens.push(word)
     activeShellExpansions.push(wordHasActiveShellExpansion)
+    activeCodexHomeExpansions.push(wordHasActiveCodexHomeExpansion)
     word = ''
     wordStarted = false
     wordHasActiveShellExpansion = false
+    wordHasActiveCodexHomeExpansion = false
   }
   const pushSegment = (separatorAfter = '') => {
     pushWord()
     if (tokens.length > 0) {
-      parts.push({ tokens, activeShellExpansions, separatorBefore })
+      parts.push({
+        tokens,
+        activeShellExpansions,
+        activeCodexHomeExpansions,
+        separatorBefore,
+      })
       tokens = []
       activeShellExpansions = []
+      activeCodexHomeExpansions = []
     }
     separatorBefore = separatorAfter
   }
@@ -356,6 +376,9 @@ function shellParts(value) {
       } else {
         if (quote === '"' && isActiveShellExpansion(value, index)) {
           wordHasActiveShellExpansion = true
+        }
+        if (quote === '"' && isActiveCodexHomeExpansion(value, index)) {
+          wordHasActiveCodexHomeExpansion = true
         }
         word += char
         wordStarted = true
@@ -406,6 +429,7 @@ function shellParts(value) {
       index += 1
     } else {
       if (isActiveShellExpansion(value, index)) wordHasActiveShellExpansion = true
+      if (isActiveCodexHomeExpansion(value, index)) wordHasActiveCodexHomeExpansion = true
       word += char
       wordStarted = true
       index += 1
@@ -793,10 +817,28 @@ function readBracedParameterExpansion(value, openIndex) {
 function codexHomeSuffix(value) {
   const plainPrefix = '$CODEX_HOME'
   const bracedPrefix = '${CODEX_HOME'
-  const containingExpansionEnds = []
+  const containingExpansions = []
+  const replacementWordStart = (openIndex, endIndex) => {
+    const body = value.slice(openIndex + 2, endIndex - 1)
+    const matched = body.match(
+      /^(?:[A-Za-z_][A-Za-z0-9_]*|[0-9]+|[@*#?$!-])(?::)?[-=?+]/,
+    )
+    return matched ? openIndex + 2 + matched[0].length : undefined
+  }
+  const hasPureWrapperPrefix = (referenceIndex) => {
+    if (containingExpansions.length === 0) return referenceIndex === 0
+    if (containingExpansions[0].openIndex !== 0) return false
+    return containingExpansions.every((expansion, expansionIndex) => {
+      const nextStart =
+        containingExpansions[expansionIndex + 1]?.openIndex ?? referenceIndex
+      return expansion.wordStart === nextStart
+    })
+  }
   const containingSuffix = (referenceEnd) => {
-    if (containingExpansionEnds.length === 0) return undefined
-    const closingIndexes = new Set(containingExpansionEnds.map((end) => end - 1))
+    if (containingExpansions.length === 0) return undefined
+    const closingIndexes = new Set(
+      containingExpansions.map(({ endIndex }) => endIndex - 1),
+    )
     let suffix = ''
     for (let index = referenceEnd; index < value.length; index += 1) {
       if (!closingIndexes.has(index)) suffix += value[index]
@@ -805,16 +847,18 @@ function codexHomeSuffix(value) {
   }
 
   for (let index = 0; index < value.length; index += 1) {
-    while (containingExpansionEnds.at(-1) <= index) containingExpansionEnds.pop()
+    while (containingExpansions.at(-1)?.endIndex <= index) {
+      containingExpansions.pop()
+    }
     if (
       value.startsWith(plainPrefix, index) &&
-      !/[A-Za-z0-9_]/.test(value[index + plainPrefix.length] || '')
+      !/[A-Za-z0-9_]/.test(value[index + plainPrefix.length] || '') &&
+      hasPureWrapperPrefix(index)
     ) {
       const referenceEnd = index + plainPrefix.length
       return {
         suffix: value.slice(referenceEnd),
         containingSuffix: containingSuffix(referenceEnd),
-        embedded: index > 0,
       }
     }
     let parsedBraced
@@ -832,10 +876,17 @@ function codexHomeSuffix(value) {
           /^(?::)?[-=?]/.test(operation) ||
           ['%/', '%%/'].includes(operation)
         ) {
+          if (!hasPureWrapperPrefix(index)) {
+            containingExpansions.push({
+              openIndex: index,
+              endIndex: parsedBraced.nextIndex,
+              wordStart: replacementWordStart(index, parsedBraced.nextIndex),
+            })
+            continue
+          }
           return {
             suffix: value.slice(parsedBraced.nextIndex),
             containingSuffix: containingSuffix(parsedBraced.nextIndex),
-            embedded: index > 0,
           }
         }
       }
@@ -843,12 +894,16 @@ function codexHomeSuffix(value) {
     if (value[index] !== '$' || value[index + 1] !== '{') continue
     const parsed = parsedBraced || readBracedParameterExpansion(value, index + 1)
     if (!parsed) return undefined
-    containingExpansionEnds.push(parsed.nextIndex)
+    containingExpansions.push({
+      openIndex: index,
+      endIndex: parsed.nextIndex,
+      wordStart: replacementWordStart(index, parsed.nextIndex),
+    })
   }
   return undefined
 }
 
-function isHighSignalCredentialPath(token) {
+function isHighSignalCredentialPath(token, hasActiveCodexHomeExpansion = false) {
   if (typeof token !== 'string' || token.length === 0) return false
   const candidates = [token]
   if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
@@ -857,17 +912,15 @@ function isHighSignalCredentialPath(token) {
     if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(value)) return false
     if (/(?:^|\/)\.aws\/credentials$/i.test(value)) return true
     if (/(?:^|\/)\.codex\/auth\.json$/i.test(value)) return true
-    const codexHome = codexHomeSuffix(value)
-    if (codexHome) {
-      if ([codexHome.suffix, codexHome.containingSuffix].some((suffix) =>
-        suffix !== undefined &&
-        path.posix.normalize(`/__CODEX_HOME__${suffix}`) ===
-          '/__CODEX_HOME__/auth.json'
-      )) return true
-      if (
-        codexHome.embedded &&
-        path.posix.basename(path.posix.normalize(value)) === 'auth.json'
-      ) return true
+    if (hasActiveCodexHomeExpansion) {
+      const codexHome = codexHomeSuffix(value)
+      if (codexHome) {
+        if ([codexHome.suffix, codexHome.containingSuffix].some((suffix) =>
+          suffix !== undefined &&
+          path.posix.normalize(`/__CODEX_HOME__${suffix}`) ===
+            '/__CODEX_HOME__/auth.json'
+        )) return true
+      }
     }
     if (
       process.env.CODEX_HOME &&
@@ -890,16 +943,18 @@ function isDotEnvPath(token) {
   )
 }
 
-function isSensitiveFilePath(token) {
-  return isDotEnvPath(token) || isHighSignalCredentialPath(token)
+function isSensitiveFilePath(token, hasActiveCodexHomeExpansion = false) {
+  return isDotEnvPath(token) ||
+    isHighSignalCredentialPath(token, hasActiveCodexHomeExpansion)
 }
 
-function isSensitiveFileReference(token) {
+function isSensitiveFileReference(token, hasActiveCodexHomeExpansion = false) {
   if (typeof token !== 'string') return false
   const candidates = [token]
   if (token.includes('=')) candidates.push(token.slice(token.indexOf('=') + 1))
   return candidates.some((candidate) =>
-    candidate.startsWith('@') && isSensitiveFilePath(candidate)
+    candidate.startsWith('@') &&
+      isSensitiveFilePath(candidate, hasActiveCodexHomeExpansion)
   )
 }
 
@@ -1049,12 +1104,13 @@ function remoteCopyOperandEntries(tokens, index, executable) {
   return operands
 }
 
-function remoteCopyOperands(tokens, index, executable) {
-  return remoteCopyOperandEntries(tokens, index, executable).map(({ token }) => token)
-}
-
 function hasUpload(value) {
-  for (const { tokens, activeShellExpansions, separatorBefore } of shellParts(value)) {
+  for (const {
+    tokens,
+    activeShellExpansions,
+    activeCodexHomeExpansions,
+    separatorBefore,
+  } of shellParts(value)) {
     const index = commandIndex(tokens)
     const executable = baseName(tokens[index])
     if (executable === 'curl' && hasCurlUpload(tokens, index)) return true
@@ -1075,7 +1131,9 @@ function hasUpload(value) {
           isRemoteCopyTarget(destination.token) ||
           activeShellExpansions[destination.index]
         ) &&
-        operands.slice(0, -1).some(({ token }) => isSensitiveFilePath(token))
+        operands.slice(0, -1).some(({ token, index: operandIndex }) =>
+          isSensitiveFilePath(token, activeCodexHomeExpansions[operandIndex])
+        )
       ) return true
     }
   }
@@ -1089,7 +1147,7 @@ const secretSourcePattern = new RegExp(
   'i',
 )
 
-function curlSensitiveFileSource(tokens, index) {
+function curlSensitiveFileSource(tokens, activeCodexHomeExpansions, index) {
   const directOptions = new Set(['--config', '--cookie', '--netrc-file', '--upload-file'])
   const referenceOptions =
     /^--(?:data(?:-ascii|-binary|-urlencode)?|form|header|json|proxy-header)$/
@@ -1097,30 +1155,60 @@ function curlSensitiveFileSource(tokens, index) {
     const option = tokens[offset]
     const shortOption = curlShortValueOption(option)
     if (shortOption) {
-      const optionValue = shortOption.consumesNext ? (tokens[offset + 1] || '') : shortOption.value
-      if (['K', 'T', 'b'].includes(shortOption.name) && isSensitiveFilePath(optionValue)) return true
-      if (['d', 'F', 'H'].includes(shortOption.name) && isSensitiveFileReference(optionValue)) return true
+      const valueIndex = shortOption.consumesNext ? offset + 1 : offset
+      const optionValue = shortOption.consumesNext ? (tokens[valueIndex] || '') : shortOption.value
+      const hasActiveCodexHomeExpansion = activeCodexHomeExpansions[valueIndex]
+      if (
+        ['K', 'T', 'b'].includes(shortOption.name) &&
+        isSensitiveFilePath(optionValue, hasActiveCodexHomeExpansion)
+      ) return true
+      if (
+        ['d', 'F', 'H'].includes(shortOption.name) &&
+        isSensitiveFileReference(optionValue, hasActiveCodexHomeExpansion)
+      ) return true
       if (shortOption.consumesNext) offset += 1
       continue
     }
-    if (directOptions.has(option) && isSensitiveFilePath(tokens[offset + 1] || '')) return true
-    if (referenceOptions.test(option) && isSensitiveFileReference(tokens[offset + 1] || '')) return true
+    if (
+      directOptions.has(option) &&
+      isSensitiveFilePath(tokens[offset + 1] || '', activeCodexHomeExpansions[offset + 1])
+    ) return true
+    if (
+      referenceOptions.test(option) &&
+      isSensitiveFileReference(tokens[offset + 1] || '', activeCodexHomeExpansions[offset + 1])
+    ) return true
     const equal = option.indexOf('=')
     if (equal > 0) {
       const name = option.slice(0, equal)
       const optionValue = option.slice(equal + 1)
-      if (directOptions.has(name) && isSensitiveFilePath(optionValue)) return true
-      if (referenceOptions.test(name) && isSensitiveFileReference(optionValue)) return true
+      const hasActiveCodexHomeExpansion = activeCodexHomeExpansions[offset]
+      if (
+        directOptions.has(name) &&
+        isSensitiveFilePath(optionValue, hasActiveCodexHomeExpansion)
+      ) return true
+      if (
+        referenceOptions.test(name) &&
+        isSensitiveFileReference(optionValue, hasActiveCodexHomeExpansion)
+      ) return true
     }
   }
   return false
 }
 
-function wgetSensitiveFileSource(tokens, index) {
+function wgetSensitiveFileSource(tokens, activeCodexHomeExpansions, index) {
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
-    if (option === '--post-file' && isSensitiveFilePath(tokens[offset + 1] || '')) return true
-    if (option.startsWith('--post-file=') && isSensitiveFilePath(option.slice('--post-file='.length))) {
+    if (
+      option === '--post-file' &&
+      isSensitiveFilePath(tokens[offset + 1] || '', activeCodexHomeExpansions[offset + 1])
+    ) return true
+    if (
+      option.startsWith('--post-file=') &&
+      isSensitiveFilePath(
+        option.slice('--post-file='.length),
+        activeCodexHomeExpansions[offset],
+      )
+    ) {
       return true
     }
   }
@@ -1128,15 +1216,25 @@ function wgetSensitiveFileSource(tokens, index) {
 }
 
 function hasSensitiveFileSource(value) {
-  return shellParts(value).some(({ tokens }) => {
+  return shellParts(value).some(({ tokens, activeCodexHomeExpansions }) => {
     const index = commandIndex(tokens)
     const executable = baseName(tokens[index])
-    if (executable === 'curl') return curlSensitiveFileSource(tokens, index)
-    if (executable === 'wget') return wgetSensitiveFileSource(tokens, index)
-    if (['scp', 'rsync'].includes(executable)) {
-      return remoteCopyOperands(tokens, index, executable).slice(0, -1).some(isSensitiveFilePath)
+    if (executable === 'curl') {
+      return curlSensitiveFileSource(tokens, activeCodexHomeExpansions, index)
     }
-    return tokens.some(isSensitiveFilePath)
+    if (executable === 'wget') {
+      return wgetSensitiveFileSource(tokens, activeCodexHomeExpansions, index)
+    }
+    if (['scp', 'rsync'].includes(executable)) {
+      return remoteCopyOperandEntries(tokens, index, executable)
+        .slice(0, -1)
+        .some(({ token, index: operandIndex }) =>
+          isSensitiveFilePath(token, activeCodexHomeExpansions[operandIndex])
+        )
+    }
+    return tokens.some((token, tokenIndex) =>
+      isSensitiveFilePath(token, activeCodexHomeExpansions[tokenIndex])
+    )
   })
 }
 
