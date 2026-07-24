@@ -852,12 +852,30 @@ function codexHomeSuffix(value, activeExpansionOffsets = []) {
     )
     return parameter ? startIndex + 1 + parameter[0].length : undefined
   }
+  const isGuaranteedNonemptyExpansion = (startIndex, endIndex) => {
+    if (!value.startsWith('${', startIndex)) return false
+    const wordStart = replacementWordStart(startIndex, endIndex)
+    if (wordStart === undefined) return false
+    const operator = value.slice(wordStart - 2, wordStart)
+    if (operator === ':?') return true
+    if (![':-', ':='].includes(operator)) return false
+
+    const wordEnd = endIndex - 1
+    for (let index = wordStart; index < wordEnd;) {
+      if (!activeOffsets.has(index)) return true
+      const nextIndex = activeExpansionEnd(index)
+      if (nextIndex === undefined || nextIndex > wordEnd) return false
+      index = nextIndex
+    }
+    return false
+  }
   const hasPotentiallyEmptyPrefix = (referenceIndex) => {
     let prefixIndex = 0
     while (prefixIndex < referenceIndex) {
       if (!activeOffsets.has(prefixIndex)) return false
       const nextIndex = activeExpansionEnd(prefixIndex)
       if (nextIndex === undefined || nextIndex > referenceIndex) return false
+      if (isGuaranteedNonemptyExpansion(prefixIndex, nextIndex)) return false
       prefixIndex = nextIndex
     }
     return prefixIndex === referenceIndex
