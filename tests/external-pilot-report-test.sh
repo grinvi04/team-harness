@@ -35,43 +35,186 @@ const fs = require('fs')
 const before = JSON.parse(fs.readFileSync(process.argv[2]))
 const after = JSON.parse(fs.readFileSync(process.argv[3]))
 const harnessCommit = 'e263e78926155c2451a0ca6df2ccfdd0a0b19290'
-if (before.schemaVersion !== 1 || after.schemaVersion !== 1) process.exit(1)
-if (before.harnessCommit !== harnessCommit || after.harnessCommit !== harnessCommit) process.exit(1)
-if (before.repo.name !== 'DriveTree' || after.repo.name !== 'DriveTree') process.exit(1)
-if (before.repo.branch !== 'develop' || after.repo.branch !== 'develop') process.exit(1)
-if (before.repo.commit !== 'cb967b57296fe33adfcf87a482734b52a28a2e04') process.exit(1)
-if (after.repo.commit !== '662464b78cd4ba712428f2743c327589b460ecc9') process.exit(1)
-if (before.profile.healthy !== true || after.profile.healthy !== true) process.exit(1)
-if (before.repositoryUnchanged !== true || after.repositoryUnchanged !== true) process.exit(1)
-if (before.drift.ok !== 4 || before.drift.warn !== 3 || before.drift.missing !== 11) process.exit(1)
-if (after.drift.ok !== 8 || after.drift.warn !== 0 || after.drift.missing !== 10) process.exit(1)
-if (after.guard.sampleFalsePositives !== 0 || after.guard.sampleFalseNegatives !== 0) process.exit(1)
+const expectedRemote = 'github.com/grinvi04/drivertree.git'
+
+function validIso8601(value) {
+  return typeof value === 'string' && !Number.isNaN(Date.parse(value)) &&
+    new Date(value).toISOString() === value
+}
+
+function nonnegativeNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+}
+
+function validLimitations(limitations) {
+  if (!Array.isArray(limitations) || limitations.length === 0) return false
+  const text = limitations.join(' ')
+  return /probes|command-string/.test(text) &&
+    /not full false-positive or false-negative rates/.test(text) &&
+    /application tests/.test(text) &&
+    /deployments/.test(text) &&
+    /LLM sessions/.test(text) &&
+    /marketplace installation/.test(text)
+}
+
+function validPilot(report, expected) {
+  return report.schemaVersion === 1 &&
+    validIso8601(report.measuredAt) &&
+    report.harnessCommit === harnessCommit &&
+    report.repo?.name === 'DriveTree' &&
+    report.repo?.remote === expectedRemote &&
+    report.repo?.branch === 'develop' &&
+    report.repo?.commit === expected.commit &&
+    report.profile?.name === 'agent-governed' &&
+    report.profile?.runtime === 'codex' &&
+    nonnegativeNumber(report.profile?.installMs) &&
+    nonnegativeNumber(report.profile?.doctorMs) &&
+    report.profile?.healthy === true &&
+    report.drift?.exitCode === 1 &&
+    report.drift?.total === 18 &&
+    report.drift?.ok === expected.ok &&
+    report.drift?.weak === 0 &&
+    report.drift?.warn === expected.warn &&
+    report.drift?.missing === expected.missing &&
+    nonnegativeNumber(report.drift?.durationMs) &&
+    report.guard?.benign?.total === 4 &&
+    report.guard?.benign?.matched === 4 &&
+    report.guard?.blocked?.total === 5 &&
+    report.guard?.blocked?.matched === 5 &&
+    report.guard?.sampleFalsePositives === 0 &&
+    report.guard?.sampleFalseNegatives === 0 &&
+    report.repositoryUnchanged === true &&
+    validLimitations(report.limitations)
+}
+
+const beforeExpected = {
+  commit: 'cb967b57296fe33adfcf87a482734b52a28a2e04',
+  ok: 4,
+  warn: 3,
+  missing: 11
+}
+const afterExpected = {
+  commit: '662464b78cd4ba712428f2743c327589b460ecc9',
+  ok: 8,
+  warn: 0,
+  missing: 10
+}
+
+if (!validPilot(before, beforeExpected) || !validPilot(after, afterExpected)) process.exit(1)
+
+const missingMeasuredAt = structuredClone(before)
+delete missingMeasuredAt.measuredAt
+const missingLimitations = structuredClone(after)
+delete missingLimitations.limitations
+if (validPilot(missingMeasuredAt, beforeExpected) || validPilot(missingLimitations, afterExpected)) process.exit(1)
 NODE
 then
-  pass 'v0.61.0 전후 JSON provenance·clean develop·드리프트 계약'
+  pass 'v0.61.0 전후 JSON provenance·clean develop·전체 지표·변이 반례 계약'
 else
-  fail 'v0.61.0 전후 JSON provenance·clean develop·드리프트 계약'
+  fail 'v0.61.0 전후 JSON provenance·clean develop·전체 지표·변이 반례 계약'
 fi
 
-for pattern in \
-  'drivertree-v0\.61\.0-before\.json' \
-  'drivertree-v0\.61\.0-after\.json' \
-  'issues/74' \
-  'pull/75' \
-  'OK 4.*OK 8|OK.*4.*8' \
-  'WARN 3.*WARN 0|WARN.*3.*0' \
-  'MISSING 11.*MISSING 10|MISSING.*11.*10' \
-  'commitlint' \
-  'destructive-DDL|파괴적 DDL' \
-  'Alembic' \
-  'ActiveRecord' \
-  '단일.*macOS|macOS.*단일' \
-  '표본' \
-  'branch-preview.*폐기|브랜치 preview.*폐기|브랜치.*guard.*폐기' \
-  'installable:false' \
-  'marketplace.*보류|승격.*보류'; do
-  if grep -Eq "$pattern" "$REPORT_V61" 2>/dev/null; then pass "v0.61.0 보고서 계약: $pattern"; else fail "v0.61.0 보고서 계약: $pattern"; fi
-done
+if node - "$REPORT_V61" <<'NODE'
+const fs = require('fs')
+const report = fs.readFileSync(process.argv[2], 'utf8')
+const mergeSha = '662464b78cd4ba712428f2743c327589b460ecc9'
+
+function section(text, level, title) {
+  const marker = `${'#'.repeat(level)} ${title}\n`
+  const start = text.indexOf(marker)
+  if (start < 0) return null
+  const bodyStart = start + marker.length
+  const next = text.indexOf(`\n${'#'.repeat(level)} `, bodyStart)
+  return text.slice(bodyStart, next < 0 ? text.length : next)
+}
+
+function bulletMembers(text) {
+  return [...text.matchAll(/^[ \t]+- (.+)$/gm)].map(match => match[1].trim())
+}
+
+function sameMembers(actual, expected) {
+  return actual.length === expected.length &&
+    expected.every(member => actual.includes(member))
+}
+
+function validReport(text) {
+  const verified = section(text, 2, '검증된 결과')
+  const backlog = section(text, 2, '잔여 backlog')
+  const interpretation = section(text, 2, '해석과 제품 결정')
+  const limitations = section(text, 2, '한계와 잔여 위험')
+  if (!verified || !backlog || !interpretation || !limitations) return false
+
+  const verifiedFacts = section(interpretation, 3, '검증된 사실')
+  const inference = section(interpretation, 3, '추론')
+  const decision = section(interpretation, 3, '결정')
+  if (!verifiedFacts || !inference || !decision) return false
+
+  const provenanceTitle = '1. **commit provenance chain — 4개**'
+  const ddlTitle = '2. **stack-agnostic destructive DDL suite — 6개**'
+  const provenanceStart = backlog.indexOf(provenanceTitle)
+  const ddlStart = backlog.indexOf(ddlTitle)
+  if (provenanceStart < 0 || ddlStart <= provenanceStart) return false
+  const provenanceMembers = bulletMembers(backlog.slice(provenanceStart + provenanceTitle.length, ddlStart))
+  const ddlMembers = bulletMembers(backlog.slice(ddlStart + ddlTitle.length))
+  if (!sameMembers(provenanceMembers, [
+    'commitlint gate',
+    'commitlint config',
+    'commit-msg hook',
+    'commit message validator'
+  ])) return false
+  if (!sameMembers(ddlMembers, [
+    'destructive-DDL workflow',
+    'generic destructive-DDL checker',
+    'Alembic workflow step',
+    'Alembic checker',
+    'ActiveRecord workflow step',
+    'ActiveRecord checker'
+  ])) return false
+
+  return text.includes('[변경 전](drivertree-v0.61.0-before.json)') &&
+    text.includes('[변경 후](drivertree-v0.61.0-after.json)') &&
+    text.includes('[DriveTree Issue #74](https://github.com/grinvi04/drivertree/issues/74)') &&
+    text.includes('[DriveTree PR #75](https://github.com/grinvi04/drivertree/pull/75)') &&
+    text.includes(mergeSha) &&
+    /1166\.978 ms/.test(verified) &&
+    /1185\.873 ms/.test(verified) &&
+    /40\.208 ms, healthy/.test(verified) &&
+    /39\.528 ms, healthy/.test(verified) &&
+    /53\.214 ms, exit 1/.test(verified) &&
+    /42\.715 ms, exit 1/.test(verified) &&
+    /OK 4[\s\S]*OK 8/.test(verified) &&
+    /WARN 3[\s\S]*WARN 0/.test(verified) &&
+    /MISSING 11[\s\S]*MISSING 10/.test(verified) &&
+    /backend:[^\n]*8 suites \/ 70 tests/.test(verified) &&
+    /frontend:[^\n]*2 files \/ 8 tests/.test(verified) &&
+    /backend real DB e2e/.test(verified) &&
+    /frontend Playwright/.test(verified) &&
+    /secret-scan/.test(verified) &&
+    /Vercel Preview Comments/.test(verified) &&
+    /Vercel commit status는 success/.test(verified) &&
+    /미해결 review thread는 0개/.test(verified) &&
+    /required가 아닌 repo-sync observation\s+job은 실패/.test(verified) &&
+    /잔여 \*\*MISSING 10\*\*[\s\S]*exit 1/.test(verified) &&
+    /branch-preview[\s\S]{0,200}폐기/.test(verified) &&
+    /\*\*연결\*\*/.test(decision) &&
+    /`installable:false`/.test(decision) &&
+    /marketplace 승격 보류/.test(decision) &&
+    /단일 public repo[\s\S]*단일 macOS[\s\S]*단일 시점/.test(limitations) &&
+    /runner는 앱 dependency[\s\S]*배포[\s\S]*LLM session[\s\S]*marketplace install/.test(limitations) &&
+    /명령 문자열 \*\*표본\*\*[\s\S]*모집단/.test(limitations) &&
+    /branch-preview[\s\S]*폐기/.test(limitations)
+}
+
+if (!validReport(report)) process.exit(1)
+if (validReport(report.split(mergeSha).join('0'.repeat(40)))) process.exit(1)
+if (validReport(report.replace('   - ActiveRecord checker', '   - moved ActiveRecord checker'))) process.exit(1)
+if (validReport(report.replace('### 추론', '### 삭제된 추론'))) process.exit(1)
+NODE
+then
+  pass 'v0.61.0 보고서 provenance·품질·CI·4+6 backlog·결정·한계 구조 계약'
+else
+  fail 'v0.61.0 보고서 provenance·품질·CI·4+6 backlog·결정·한계 구조 계약'
+fi
 
 if grep -Eq '^7\. \[x\].*외부 파일럿' "$ROOT/docs/product-direction.md"; then
   pass '제품 로드맵 외부 파일럿 완료 표시'
