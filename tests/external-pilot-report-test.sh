@@ -439,18 +439,34 @@ const expected = {
 function nonnegativeNumber(value) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
 }
+function validIso8601(value) {
+  return typeof value === 'string' && !Number.isNaN(Date.parse(value)) &&
+    new Date(value).toISOString() === value
+}
 function valid(value) {
-  if (value.schemaVersion !== 1 || value.harnessCommit !== expected.harnessCommit) return false
+  if (value.schemaVersion !== 1 || !validIso8601(value.measuredAt) || value.harnessCommit !== expected.harnessCommit) return false
   if (value.repo?.name !== 'webhook-service' || value.repo?.remote !== 'github.com/grinvi04/webhook-service.git') return false
   if (value.repo?.branch !== 'develop' || value.repo?.commit !== expected.repoCommit) return false
   if (value.profile?.name !== 'agent-governed' || value.profile?.runtime !== 'codex' || value.profile?.healthy !== true) return false
   if (!nonnegativeNumber(value.profile?.installMs) || !nonnegativeNumber(value.profile?.doctorMs)) return false
   if (value.drift?.exitCode !== 0 || value.drift?.total !== 18 || value.drift?.ok !== 18) return false
   if (value.drift?.weak !== 0 || value.drift?.warn !== 0 || value.drift?.missing !== 0) return false
+  if (JSON.stringify(value.drift?.stacks) !== JSON.stringify(['python', 'alembic'])) return false
   if (!nonnegativeNumber(value.drift?.durationMs)) return false
   if (value.guard?.benign?.total !== 4 || value.guard?.benign?.matched !== 4) return false
   if (value.guard?.blocked?.total !== 5 || value.guard?.blocked?.matched !== 5) return false
   if (value.guard?.sampleFalsePositives !== 0 || value.guard?.sampleFalseNegatives !== 0) return false
+  const expectedProbes = {
+    benign: ['git-status', 'node-check', 'test-runner', 'project-build'],
+    blocked: ['protected-commit', 'hard-reset', 'force-push', 'global-install', 'test-deletion']
+  }
+  for (const [kind, names] of Object.entries(expectedProbes)) {
+    const probes = value.guard?.[kind]?.probes
+    const expectedExit = kind === 'benign' ? 0 : 2
+    if (!Array.isArray(probes) || probes.length !== names.length) return false
+    if (!probes.every((probe, index) => probe.name === names[index] &&
+      probe.expectedExit === expectedExit && probe.actualExit === expectedExit && probe.matched === true)) return false
+  }
   if (value.repositoryUnchanged !== true || !Array.isArray(value.limitations) || value.limitations.length < 2) return false
   const serialized = JSON.stringify(value)
   if (/\/(Users|home)\/[A-Za-z0-9._-]+/.test(serialized)) return false
@@ -462,15 +478,30 @@ function valid(value) {
 if (!valid(evidence)) process.exit(1)
 const staleCommit = structuredClone(evidence)
 staleCommit.repo.commit = '0'.repeat(40)
+const missingMeasuredAt = structuredClone(evidence)
+delete missingMeasuredAt.measuredAt
 const staleDrift = structuredClone(evidence)
 staleDrift.drift.missing = 1
+const staleStacks = structuredClone(evidence)
+staleStacks.drift.stacks = ['python']
+const staleProbe = structuredClone(evidence)
+staleProbe.guard.blocked.probes[0].actualExit = 0
 const missingLimitations = structuredClone(evidence)
 delete missingLimitations.limitations
 const badPath = structuredClone(evidence)
 badPath.limitations.push(`/${['Us', 'ers'].join('')}/example/private`)
 const badSecret = structuredClone(evidence)
 badSecret.limitations.push(`ghp_${'1234567890abcdef'}`)
-for (const mutation of [staleCommit, staleDrift, missingLimitations, badPath, badSecret]) {
+for (const mutation of [
+  staleCommit,
+  missingMeasuredAt,
+  staleDrift,
+  staleStacks,
+  staleProbe,
+  missingLimitations,
+  badPath,
+  badSecret
+]) {
   if (valid(mutation)) process.exit(1)
 }
 NODE
@@ -508,6 +539,9 @@ function validReport(text) {
     /main·develop branch protection[\s\S]*alembic-heads[\s\S]*build-and-test[\s\S]*secret-scan/.test(text) &&
     /webhook-service Issue #68/.test(text) && /webhook-service PR #69/.test(text) &&
     /9743ca849d6d7a746df19e22f74422a7128b90e1/.test(text) &&
+    text.includes(`${remediated.profile.installMs} ms`) &&
+    text.includes(`doctor ${remediated.profile.doctorMs} ms`) &&
+    text.includes(`repo-sync ${remediated.drift.durationMs} ms`) &&
     /56 passed/.test(text) && /22 source files/.test(text) && /634bbf55b755/.test(text) &&
     /main·develop[\s\S]*required context[\s\S]*5개/.test(text) &&
     /commitlint[\s\S]*destructive-ddl/.test(text) &&
@@ -526,6 +560,9 @@ for (const mutation of [
   report.replace('migration 2개', 'migration 1개'),
   report.split('repositoryUnchanged=true').join('repositoryUnchanged=false'),
   report.replace('측정 SHA와 일치했다', '측정 SHA와 불일치했다'),
+  report.replace(`${remediated.profile.installMs} ms`, '0 ms'),
+  report.replace(`doctor ${remediated.profile.doctorMs} ms`, 'doctor 0 ms'),
+  report.replace(`repo-sync ${remediated.drift.durationMs} ms`, 'repo-sync 0 ms'),
   report.replace('56 passed', '55 passed'),
   report.split('required context 5개').join('required context 4개')
 ]) if (validReport(mutation)) process.exit(1)
