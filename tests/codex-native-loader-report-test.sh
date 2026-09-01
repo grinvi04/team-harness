@@ -166,9 +166,23 @@ if (
 if (report.userState?.unchanged !== true || report.sourceState?.unchanged !== true) fail('state evidence missing')
 if (report.cleanup?.isolatedHomeRemoved !== true) fail('cleanup evidence missing')
 if (report.splitPackages?.promoted !== false) fail('split-package verdict changed')
+const releaseRef = `refs/tags/v${report.harness.version}`
+try {
+  execFileSync('git', ['show-ref', '--verify', '--quiet', releaseRef], { cwd: root, stdio: 'ignore' })
+} catch {
+  fail(`release tag missing: ${releaseRef}`)
+}
+try {
+  execFileSync('git', ['merge-base', '--is-ancestor', report.harness.revision, releaseRef], {
+    cwd: root,
+    stdio: 'ignore',
+  })
+} catch {
+  fail(`pilot revision is not an ancestor of release tag: ${releaseRef}`)
+}
 const changedAfterPilot = execFileSync(
   'git',
-  ['diff', '--name-only', `${report.harness.revision}..HEAD`],
+  ['diff', '--name-only', `${report.harness.revision}..${releaseRef}`],
   { cwd: root, encoding: 'utf8' },
 ).trim().split('\n').filter(Boolean)
 const allowedAfterPilot = new Set([
@@ -178,7 +192,12 @@ const allowedAfterPilot = new Set([
   'docs/pilots/codex-native-loader-v0.61.0.md',
   'docs/pilots/codex-native-loader-v0.61.0.routing.jsonl',
 ])
-const disallowed = changedAfterPilot.filter((file) => !allowedAfterPilot.has(file))
+const findDisallowed = (files) => files.filter((file) => !allowedAfterPilot.has(file))
+const syntheticDisallowed = 'tests/disallowed-after-pilot.sh'
+if (!findDisallowed([...changedAfterPilot, syntheticDisallowed]).includes(syntheticDisallowed)) {
+  fail('release candidate change allowlist is not fail-closed')
+}
+const disallowed = findDisallowed(changedAfterPilot)
 if (disallowed.length > 0) fail(`release candidate changed after pilot: ${disallowed.join(', ')}`)
 NODE
 then
