@@ -91,7 +91,10 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
    [`pilots/drivertree-v0.60.0.md`](pilots/drivertree-v0.60.0.md)에 기록했다. v0.61.0에서 stack-rule 전달
    backlog 1건을 실제 처리한 전후 증거와 잔여 MISSING 10은
    [`pilots/drivertree-v0.61.0.md`](pilots/drivertree-v0.61.0.md)에 기록했으며, 판정은 **연결**이고
-   split package의 `installable:false`와 marketplace 승격 보류를 유지한다.
+   후속 commit-provenance·destructive-DDL 두 slice를 완료해 같은 보고서와
+   [zero-drift 원본](pilots/drivertree-v0.61.0-remediated.json)에 OK 18 · MISSING 0,
+   repositoryUnchanged와 main/develop required gate 적용을 기록했다. 단일 repo 표본이므로 split package의
+   `installable:false`와 marketplace 승격 보류를 유지한다.
 8. [x] **Codex 공식 loader 전환:** monolith에 native manifest·command hooks·16개 skill wrapper를 직접 싣고
    harness cache patch·overlay·custom agent 복사·unified exec 비활성화를 제거했다. 격리 loader와 실제 새 세션
    결과는 [`pilots/codex-native-loader-v0.61.0.md`](pilots/codex-native-loader-v0.61.0.md)에 기록한다. 이 증거는

@@ -6,6 +6,7 @@ JSON="$ROOT/docs/pilots/drivertree-v0.60.0.json"
 REPORT="$ROOT/docs/pilots/drivertree-v0.60.0.md"
 BEFORE_V61="$ROOT/docs/pilots/drivertree-v0.61.0-before.json"
 AFTER_V61="$ROOT/docs/pilots/drivertree-v0.61.0-after.json"
+REMEDIATED_V61="$ROOT/docs/pilots/drivertree-v0.61.0-remediated.json"
 REPORT_V61="$ROOT/docs/pilots/drivertree-v0.61.0.md"
 PASS=0
 FAIL=0
@@ -30,11 +31,11 @@ for pattern in '## 검증된 결과' '## 해석' '## 한계와 잔여 위험' '9
   if grep -Eq "$pattern" "$REPORT" 2>/dev/null; then pass "보고서 계약: $pattern"; else fail "보고서 계약: $pattern"; fi
 done
 
-if node - "$BEFORE_V61" "$AFTER_V61" <<'NODE'
+if node - "$BEFORE_V61" "$AFTER_V61" "$REMEDIATED_V61" <<'NODE'
 const fs = require('fs')
 const before = JSON.parse(fs.readFileSync(process.argv[2]))
 const after = JSON.parse(fs.readFileSync(process.argv[3]))
-const harnessCommit = 'e263e78926155c2451a0ca6df2ccfdd0a0b19290'
+const remediated = JSON.parse(fs.readFileSync(process.argv[4]))
 const expectedRemote = 'github.com/grinvi04/drivertree.git'
 
 function validIso8601(value) {
@@ -60,7 +61,7 @@ function validLimitations(limitations) {
 function validPilot(report, expected) {
   return report.schemaVersion === 1 &&
     validIso8601(report.measuredAt) &&
-    report.harnessCommit === harnessCommit &&
+    report.harnessCommit === expected.harnessCommit &&
     report.repo?.name === 'DriveTree' &&
     report.repo?.remote === expectedRemote &&
     report.repo?.branch === 'develop' &&
@@ -70,7 +71,7 @@ function validPilot(report, expected) {
     nonnegativeNumber(report.profile?.installMs) &&
     nonnegativeNumber(report.profile?.doctorMs) &&
     report.profile?.healthy === true &&
-    report.drift?.exitCode === 1 &&
+    report.drift?.exitCode === expected.exitCode &&
     report.drift?.total === 18 &&
     report.drift?.ok === expected.ok &&
     report.drift?.weak === 0 &&
@@ -88,28 +89,50 @@ function validPilot(report, expected) {
 }
 
 const beforeExpected = {
+  harnessCommit: 'e263e78926155c2451a0ca6df2ccfdd0a0b19290',
   commit: 'cb967b57296fe33adfcf87a482734b52a28a2e04',
+  exitCode: 1,
   ok: 4,
   warn: 3,
   missing: 11
 }
 const afterExpected = {
+  harnessCommit: 'e263e78926155c2451a0ca6df2ccfdd0a0b19290',
   commit: '662464b78cd4ba712428f2743c327589b460ecc9',
+  exitCode: 1,
   ok: 8,
   warn: 0,
   missing: 10
 }
+const remediatedExpected = {
+  harnessCommit: 'fe000137d43fdd2eb743650ec5ec4001d70fcf12',
+  commit: 'd71c0ac62a2712312d263d6de74500bc2c7ede25',
+  exitCode: 0,
+  ok: 18,
+  warn: 0,
+  missing: 0
+}
 
-if (!validPilot(before, beforeExpected) || !validPilot(after, afterExpected)) process.exit(1)
+if (
+  !validPilot(before, beforeExpected) ||
+  !validPilot(after, afterExpected) ||
+  !validPilot(remediated, remediatedExpected)
+) process.exit(1)
 
 const missingMeasuredAt = structuredClone(before)
 delete missingMeasuredAt.measuredAt
 const missingLimitations = structuredClone(after)
 delete missingLimitations.limitations
-if (validPilot(missingMeasuredAt, beforeExpected) || validPilot(missingLimitations, afterExpected)) process.exit(1)
+const staleRemediated = structuredClone(remediated)
+staleRemediated.drift.missing = 1
+if (
+  validPilot(missingMeasuredAt, beforeExpected) ||
+  validPilot(missingLimitations, afterExpected) ||
+  validPilot(staleRemediated, remediatedExpected)
+) process.exit(1)
 NODE
 then
-  pass 'v0.61.0 전후 JSON provenance·clean develop·전체 지표·변이 반례 계약'
+  pass 'v0.61.0 전후·zero-drift JSON provenance·clean develop·전체 지표·변이 반례 계약'
 else
   fail 'v0.61.0 전후 JSON provenance·clean develop·전체 지표·변이 반례 계약'
 fi
@@ -118,6 +141,7 @@ if node - "$REPORT_V61" <<'NODE'
 const fs = require('fs')
 const report = fs.readFileSync(process.argv[2], 'utf8')
 const mergeSha = '662464b78cd4ba712428f2743c327589b460ecc9'
+const remediatedMergeSha = 'd71c0ac62a2712312d263d6de74500bc2c7ede25'
 
 function namedSections(text, level, expectedTitles) {
   const marker = '#'.repeat(level)
@@ -187,9 +211,19 @@ function validReport(text) {
 
   return text.includes('[변경 전](drivertree-v0.61.0-before.json)') &&
     text.includes('[변경 후](drivertree-v0.61.0-after.json)') &&
+    text.includes('[zero-drift 후속](drivertree-v0.61.0-remediated.json)') &&
     text.includes('[DriveTree Issue #74](https://github.com/grinvi04/drivertree/issues/74)') &&
     text.includes('[DriveTree PR #75](https://github.com/grinvi04/drivertree/pull/75)') &&
+    text.includes('[DriveTree Issue #76](https://github.com/grinvi04/drivertree/issues/76)') &&
+    text.includes('[DriveTree PR #77](https://github.com/grinvi04/drivertree/pull/77)') &&
+    text.includes('[Issue #78](https://github.com/grinvi04/drivertree/issues/78)') &&
+    text.includes('[Issue #79](https://github.com/grinvi04/drivertree/issues/79)') &&
+    text.includes('[DriveTree PR #80](https://github.com/grinvi04/drivertree/pull/80)') &&
+    text.includes('[DriveTree Issue #81](https://github.com/grinvi04/drivertree/issues/81)') &&
+    text.includes('[DriveTree PR #82](https://github.com/grinvi04/drivertree/pull/82)') &&
     text.includes(mergeSha) &&
+    text.includes(remediatedMergeSha) &&
+    text.includes('## 후속 slice 완료 결과') &&
     /1166\.978 ms/.test(verified) &&
     /1185\.873 ms/.test(verified) &&
     /40\.208 ms, healthy/.test(verified) &&
@@ -199,6 +233,17 @@ function validReport(text) {
     /OK 4[\s\S]*OK 8/.test(verified) &&
     /WARN 3[\s\S]*WARN 0/.test(verified) &&
     /MISSING 11[\s\S]*MISSING 10/.test(verified) &&
+    /1046\.162 ms/.test(text) &&
+    /35\.696 ms, healthy/.test(text) &&
+    /38\.225 ms, exit 0/.test(text) &&
+    /OK 18[\s\S]*MISSING 0/.test(text) &&
+    /5파일, 315 additions \/ 10 deletions/.test(text) &&
+    /5파일, 979 additions/.test(text) &&
+    /정본 fixture 92개[\s\S]*반례 12개[\s\S]*Prisma migration SQL 3개/.test(text) &&
+    /commitlint[\s\S]*required context/.test(text) &&
+    /destructive-ddl[\s\S]*required context/.test(text) &&
+    /main 5개, develop 6개 required check/.test(text) &&
+    /develop@d71c0ac6[\s\S]*core\.hooksPath=\.githooks/.test(text) &&
     /다음 로컬 품질 게이트가 모두 통과했다\./.test(verified) &&
     /backend: format, lint, build 통과; 테스트 \*\*8 suites \/ 70 tests\*\* 통과\./.test(verified) &&
     /frontend: format, lint, build 통과; 단위 테스트 \*\*2 files \/ 8 tests\*\* 통과\./.test(verified) &&
@@ -223,6 +268,17 @@ function validReport(text) {
 
 if (!validReport(report)) process.exit(1)
 if (validReport(report.split(mergeSha).join('0'.repeat(40)))) process.exit(1)
+if (validReport(report.split(remediatedMergeSha).join('0'.repeat(40)))) process.exit(1)
+for (const issue of ['76', '78', '79', '81']) {
+  if (validReport(report.replace(`/issues/${issue})`, `/issues/999)`))) process.exit(1)
+}
+if (validReport(report.replace('315 additions / 10 deletions', '316 additions / 10 deletions'))) process.exit(1)
+if (validReport(report.replace('979 additions', '978 additions'))) process.exit(1)
+if (validReport(report.replace('정본 fixture 92개', '정본 fixture 91개'))) process.exit(1)
+if (validReport(report.replace('DriveTree 반례 12개', 'DriveTree 반례 11개'))) process.exit(1)
+if (validReport(report.replace('Prisma migration SQL 3개', 'Prisma migration SQL 2개'))) process.exit(1)
+if (validReport(report.replace('main 5개, develop 6개', 'main 4개, develop 6개'))) process.exit(1)
+if (validReport(report.replace('core.hooksPath=.githooks', 'core.hooksPath=.git/hooks'))) process.exit(1)
 if (validReport(report.replace('   - ActiveRecord checker', '   - moved ActiveRecord checker'))) process.exit(1)
 if (validReport(report.replace('### 추론', '### 삭제된 추론'))) process.exit(1)
 if (validReport(report.replace(
@@ -250,7 +306,7 @@ if (validReport(wrongOrder)) process.exit(1)
 if (validReport(report.replace('### 결정', '### 추론\n\n중복\n\n### 결정'))) process.exit(1)
 NODE
 then
-  pass 'v0.61.0 보고서 provenance·품질·CI·4+6 backlog·결정·한계 구조 계약'
+  pass 'v0.61.0 보고서 provenance·품질·CI·4+6 완료·zero-drift·결정·한계 구조 계약'
 else
   fail 'v0.61.0 보고서 provenance·품질·CI·4+6 backlog·결정·한계 구조 계약'
 fi
