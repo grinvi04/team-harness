@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 RELEASE_VERSION=0.61.0
 RELEASE_REF=refs/tags/v0.61.0
+RELEASE_COMMIT=3d40782e3d33dbf9509dc602d7eb59b90256b338
 EVIDENCE_DIR=$(mktemp -d)
 trap 'rm -rf -- "$EVIDENCE_DIR"' EXIT
 
@@ -17,14 +18,18 @@ ROUTING="$EVIDENCE_DIR/codex-native-loader-v0.61.0.routing.jsonl"
 read_release_blob() {
   local repo_path=$1
   local destination=$2
-  if ! git -C "$ROOT" show "$RELEASE_REF:$repo_path" > "$destination"; then
-    echo "FAIL: release evidence blob missing: $RELEASE_REF:$repo_path" >&2
+  if ! git -C "$ROOT" show "$RELEASE_COMMIT:$repo_path" > "$destination"; then
+    echo "FAIL: release evidence blob missing: $RELEASE_REF@$RELEASE_COMMIT:$repo_path" >&2
     exit 1
   fi
 }
 
-if ! git -C "$ROOT" rev-parse --verify --quiet "$RELEASE_REF^{commit}" >/dev/null; then
+if ! RESOLVED_RELEASE_COMMIT=$(git -C "$ROOT" rev-parse --verify --quiet "$RELEASE_REF^{commit}"); then
   echo "FAIL: release tag missing or does not peel to a commit: $RELEASE_REF" >&2
+  exit 1
+fi
+if [ "$RESOLVED_RELEASE_COMMIT" != "$RELEASE_COMMIT" ]; then
+  echo "FAIL: release tag commit mismatch: $RELEASE_REF" >&2
   exit 1
 fi
 
@@ -93,15 +98,16 @@ then
   REPORT_FAILURES=$((REPORT_FAILURES + 1))
 fi
 
-if ! node - "$JSON" "$MANIFEST" "$TRUST" "$ROOT" "$RELEASE_REF" <<'NODE'
+if ! node - "$JSON" "$MANIFEST" "$TRUST" "$ROOT" "$RELEASE_REF" "$RELEASE_COMMIT" <<'NODE'
 const { execFileSync } = require('node:child_process')
 const { createHash } = require('node:crypto')
 const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
-const [reportPath, manifestPath, trustPath, root, releaseRef] = process.argv.slice(2)
+const [reportPath, manifestPath, trustPath, root, releaseRef, releaseCommit] = process.argv.slice(2)
 const releaseVersion = '0.61.0'
 const expectedReleaseRef = 'refs/tags/v0.61.0'
+const expectedReleaseCommit = '3d40782e3d33dbf9509dc602d7eb59b90256b338'
 const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'))
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
 const trust = JSON.parse(fs.readFileSync(trustPath, 'utf8'))
@@ -109,6 +115,7 @@ const fail = (message) => { console.error(`FAIL: ${message}`); process.exit(1) }
 const sha256 = /^sha256:[0-9a-f]{64}$/
 const digest = (value) => `sha256:${createHash('sha256').update(value).digest('hex')}`
 if (releaseRef !== expectedReleaseRef) fail('unexpected release ref')
+if (releaseCommit !== expectedReleaseCommit) fail('unexpected release commit')
 if (
   report.status !== 'pass' ||
   report.harness?.version !== releaseVersion ||
@@ -214,23 +221,27 @@ const git = (repository, args, options = {}) => execFileSync('git', args, {
   encoding: 'utf8',
   ...options,
 })
-const inspectReleaseRange = (repository, tagRef, pilotRevision, allowed) => {
+const inspectReleaseRange = (repository, tagRef, pinnedCommit, pilotRevision, allowed) => {
   try {
     git(repository, ['show-ref', '--verify', '--quiet', tagRef], { stdio: 'ignore' })
   } catch {
     throw new Error(`release tag missing: ${tagRef}`)
   }
+  let resolvedCommit
   try {
-    git(repository, ['rev-parse', '--verify', `${tagRef}^{commit}`])
+    resolvedCommit = git(repository, ['rev-parse', '--verify', `${tagRef}^{commit}`]).trim()
   } catch {
     throw new Error(`release tag does not peel to a commit: ${tagRef}`)
   }
+  if (resolvedCommit !== pinnedCommit) {
+    throw new Error(`release tag commit mismatch: ${tagRef}`)
+  }
   try {
-    git(repository, ['merge-base', '--is-ancestor', pilotRevision, tagRef], { stdio: 'ignore' })
+    git(repository, ['merge-base', '--is-ancestor', pilotRevision, pinnedCommit], { stdio: 'ignore' })
   } catch {
     throw new Error(`pilot revision is not an ancestor of release tag: ${tagRef}`)
   }
-  const changed = git(repository, ['diff', '--name-only', `${pilotRevision}..${tagRef}`])
+  const changed = git(repository, ['diff', '--name-only', `${pilotRevision}..${pinnedCommit}`])
     .trim().split('\n').filter(Boolean)
   return {
     changed,
@@ -239,7 +250,13 @@ const inspectReleaseRange = (repository, tagRef, pilotRevision, allowed) => {
 }
 let releaseRange
 try {
-  releaseRange = inspectReleaseRange(root, releaseRef, report.harness.revision, allowedAfterPilot)
+  releaseRange = inspectReleaseRange(
+    root,
+    releaseRef,
+    releaseCommit,
+    report.harness.revision,
+    allowedAfterPilot,
+  )
 } catch (error) {
   fail(error.message)
 }
@@ -249,15 +266,17 @@ if (releaseRange.disallowed.length > 0) {
 
 const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'loader-release-range-'))
 const fixtureAllowed = new Set(['CHANGELOG.md'])
+const intentionalCleanupFailure = 'intentional fixture cleanup failure'
 const expectRangeError = (label, pattern, callback) => {
   try {
     callback()
   } catch (error) {
     if (pattern.test(error.message)) return
-    fail(`${label} returned unexpected error: ${error.message}`)
+    throw new Error(`${label} returned unexpected error: ${error.message}`)
   }
-  fail(`${label} was accepted`)
+  throw new Error(`${label} was accepted`)
 }
+let fixtureFailure
 try {
   git(fixtureRoot, ['init', '--quiet'])
   git(fixtureRoot, ['config', 'user.name', 'team-harness-test'])
@@ -268,44 +287,70 @@ try {
   const fixturePilot = git(fixtureRoot, ['rev-parse', 'HEAD']).trim()
 
   expectRangeError('missing release tag', /release tag missing/, () => {
-    inspectReleaseRange(fixtureRoot, 'refs/tags/missing', fixturePilot, fixtureAllowed)
+    inspectReleaseRange(fixtureRoot, 'refs/tags/missing', fixturePilot, fixturePilot, fixtureAllowed)
   })
 
   fs.writeFileSync(path.join(fixtureRoot, 'CHANGELOG.md'), 'allowed\n')
   git(fixtureRoot, ['add', 'CHANGELOG.md'])
   git(fixtureRoot, ['commit', '--quiet', '-m', 'allowed'])
   git(fixtureRoot, ['tag', 'allowed'])
+  const allowedCommit = git(fixtureRoot, ['rev-parse', 'HEAD']).trim()
   const allowedRange = inspectReleaseRange(
     fixtureRoot,
     'refs/tags/allowed',
+    allowedCommit,
     fixturePilot,
     fixtureAllowed,
   )
-  if (allowedRange.disallowed.length !== 0) fail('allowed-only release delta was rejected')
+  if (allowedRange.disallowed.length !== 0) throw new Error('allowed-only release delta was rejected')
 
   fs.mkdirSync(path.join(fixtureRoot, 'tests'))
   fs.writeFileSync(path.join(fixtureRoot, 'tests/disallowed-after-pilot.sh'), 'disallowed\n')
   git(fixtureRoot, ['add', 'tests/disallowed-after-pilot.sh'])
   git(fixtureRoot, ['commit', '--quiet', '-m', 'disallowed'])
   git(fixtureRoot, ['tag', 'disallowed'])
+  const disallowedCommit = git(fixtureRoot, ['rev-parse', 'HEAD']).trim()
   const disallowedRange = inspectReleaseRange(
     fixtureRoot,
     'refs/tags/disallowed',
+    disallowedCommit,
     fixturePilot,
     fixtureAllowed,
   )
   if (
     disallowedRange.disallowed.length !== 1 ||
     disallowedRange.disallowed[0] !== 'tests/disallowed-after-pilot.sh'
-  ) fail('real disallowed release delta was not rejected')
+  ) throw new Error('real disallowed release delta was not rejected')
 
-  const descendantRevision = git(fixtureRoot, ['rev-parse', 'HEAD']).trim()
   expectRangeError('non-ancestor pilot revision', /not an ancestor/, () => {
-    inspectReleaseRange(fixtureRoot, 'refs/tags/allowed', descendantRevision, fixtureAllowed)
+    inspectReleaseRange(
+      fixtureRoot,
+      'refs/tags/allowed',
+      allowedCommit,
+      disallowedCommit,
+      fixtureAllowed,
+    )
   })
+
+  git(fixtureRoot, ['tag', '--force', 'allowed', disallowedCommit])
+  expectRangeError('retargeted release tag', /release tag commit mismatch/, () => {
+    inspectReleaseRange(
+      fixtureRoot,
+      'refs/tags/allowed',
+      allowedCommit,
+      fixturePilot,
+      fixtureAllowed,
+    )
+  })
+  throw new Error(intentionalCleanupFailure)
+} catch (error) {
+  fixtureFailure = error
 } finally {
   fs.rmSync(fixtureRoot, { recursive: true, force: true })
 }
+if (fs.existsSync(fixtureRoot)) fail('release range fixture cleanup failed')
+if (!fixtureFailure) fail('intentional fixture cleanup failure was not observed')
+if (fixtureFailure.message !== intentionalCleanupFailure) fail(fixtureFailure.message)
 NODE
 then
   REPORT_FAILURES=$((REPORT_FAILURES + 1))
