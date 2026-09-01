@@ -10,6 +10,7 @@ REMEDIATED_V61="$ROOT/docs/pilots/drivertree-v0.61.0-remediated.json"
 REPORT_V61="$ROOT/docs/pilots/drivertree-v0.61.0.md"
 WEBHOOK_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.json"
 WEBHOOK_SIM_V61="$ROOT/docs/pilots/webhook-service-v0.61.0-simulation.json"
+WEBHOOK_REMEDIATED_V61="$ROOT/docs/pilots/webhook-service-v0.61.0-remediated.json"
 WEBHOOK_REPORT_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.md"
 PRODUCT_DIRECTION="$ROOT/docs/product-direction.md"
 PASS=0
@@ -428,11 +429,94 @@ else
   fail 'webhook-service slice별 raw repo-sync·provenance·민감정보 반례 계약'
 fi
 
-if node - "$WEBHOOK_REPORT_V61" "$PRODUCT_DIRECTION" "$WEBHOOK_SIM_V61" <<'NODE'
+if node - "$WEBHOOK_REMEDIATED_V61" <<'NODE'
+const fs = require('fs')
+const evidence = JSON.parse(fs.readFileSync(process.argv[2]))
+const expected = {
+  harnessCommit: '7c872545a732d5da44ba032622e39c4ecd056a09',
+  repoCommit: '9743ca849d6d7a746df19e22f74422a7128b90e1'
+}
+function nonnegativeNumber(value) {
+  return typeof value === 'number' && Number.isFinite(value) && value >= 0
+}
+function validIso8601(value) {
+  return typeof value === 'string' && !Number.isNaN(Date.parse(value)) &&
+    new Date(value).toISOString() === value
+}
+function valid(value) {
+  if (value.schemaVersion !== 1 || !validIso8601(value.measuredAt) || value.harnessCommit !== expected.harnessCommit) return false
+  if (value.repo?.name !== 'webhook-service' || value.repo?.remote !== 'github.com/grinvi04/webhook-service.git') return false
+  if (value.repo?.branch !== 'develop' || value.repo?.commit !== expected.repoCommit) return false
+  if (value.profile?.name !== 'agent-governed' || value.profile?.runtime !== 'codex' || value.profile?.healthy !== true) return false
+  if (!nonnegativeNumber(value.profile?.installMs) || !nonnegativeNumber(value.profile?.doctorMs)) return false
+  if (value.drift?.exitCode !== 0 || value.drift?.total !== 18 || value.drift?.ok !== 18) return false
+  if (value.drift?.weak !== 0 || value.drift?.warn !== 0 || value.drift?.missing !== 0) return false
+  if (JSON.stringify(value.drift?.stacks) !== JSON.stringify(['python', 'alembic'])) return false
+  if (!nonnegativeNumber(value.drift?.durationMs)) return false
+  if (value.guard?.benign?.total !== 4 || value.guard?.benign?.matched !== 4) return false
+  if (value.guard?.blocked?.total !== 5 || value.guard?.blocked?.matched !== 5) return false
+  if (value.guard?.sampleFalsePositives !== 0 || value.guard?.sampleFalseNegatives !== 0) return false
+  const expectedProbes = {
+    benign: ['git-status', 'node-check', 'test-runner', 'project-build'],
+    blocked: ['protected-commit', 'hard-reset', 'force-push', 'global-install', 'test-deletion']
+  }
+  for (const [kind, names] of Object.entries(expectedProbes)) {
+    const probes = value.guard?.[kind]?.probes
+    const expectedExit = kind === 'benign' ? 0 : 2
+    if (!Array.isArray(probes) || probes.length !== names.length) return false
+    if (!probes.every((probe, index) => probe.name === names[index] &&
+      probe.expectedExit === expectedExit && probe.actualExit === expectedExit && probe.matched === true)) return false
+  }
+  if (value.repositoryUnchanged !== true || !Array.isArray(value.limitations) || value.limitations.length < 2) return false
+  const serialized = JSON.stringify(value)
+  if (/\/(Users|home)\/[A-Za-z0-9._-]+/.test(serialized)) return false
+  if (/"(?:env|environment)":/.test(serialized)) return false
+  if (/(?:ghp_|github_pat_|sk-|AKIA)[A-Za-z0-9_\-]{12,}/.test(serialized)) return false
+  if (/BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY/.test(serialized)) return false
+  return true
+}
+if (!valid(evidence)) process.exit(1)
+const staleCommit = structuredClone(evidence)
+staleCommit.repo.commit = '0'.repeat(40)
+const missingMeasuredAt = structuredClone(evidence)
+delete missingMeasuredAt.measuredAt
+const staleDrift = structuredClone(evidence)
+staleDrift.drift.missing = 1
+const staleStacks = structuredClone(evidence)
+staleStacks.drift.stacks = ['python']
+const staleProbe = structuredClone(evidence)
+staleProbe.guard.blocked.probes[0].actualExit = 0
+const missingLimitations = structuredClone(evidence)
+delete missingLimitations.limitations
+const badPath = structuredClone(evidence)
+badPath.limitations.push(`/${['Us', 'ers'].join('')}/example/private`)
+const badSecret = structuredClone(evidence)
+badSecret.limitations.push(`ghp_${'1234567890abcdef'}`)
+for (const mutation of [
+  staleCommit,
+  missingMeasuredAt,
+  staleDrift,
+  staleStacks,
+  staleProbe,
+  missingLimitations,
+  badPath,
+  badSecret
+]) {
+  if (valid(mutation)) process.exit(1)
+}
+NODE
+then
+  pass 'webhook-service 실제 backfill JSON provenance·zero-drift·불변·민감정보 반례 계약'
+else
+  fail 'webhook-service 실제 backfill JSON provenance·zero-drift·불변·민감정보 반례 계약'
+fi
+
+if node - "$WEBHOOK_REPORT_V61" "$PRODUCT_DIRECTION" "$WEBHOOK_SIM_V61" "$WEBHOOK_REMEDIATED_V61" <<'NODE'
 const fs = require('fs')
 const report = fs.readFileSync(process.argv[2], 'utf8')
 const direction = fs.readFileSync(process.argv[3], 'utf8')
 const simulation = JSON.parse(fs.readFileSync(process.argv[4]))
+const remediated = JSON.parse(fs.readFileSync(process.argv[5]))
 function validReport(text) {
   return /## 검증된 결과/.test(text) &&
     /## zero-drift simulation/.test(text) &&
@@ -449,10 +533,19 @@ function validReport(text) {
     /repositoryUnchanged=true/.test(text) &&
     /Team Harness Issue #397/.test(text) &&
     /webhook-service-v0\.61\.0-simulation\.json/.test(text) &&
+    /webhook-service-v0\.61\.0-remediated\.json/.test(text) &&
     /실제 webhook-service 저장소와 GitHub 정책은 변경하지 않았다/.test(text) &&
     /원격 `develop` SHA는 측정 SHA와 일치했다/.test(text) &&
     /main·develop branch protection[\s\S]*alembic-heads[\s\S]*build-and-test[\s\S]*secret-scan/.test(text) &&
-    /commitlint[\s\S]*destructive-ddl[\s\S]*required context에 아직 연결되지 않았다/.test(text) &&
+    /webhook-service Issue #68/.test(text) && /webhook-service PR #69/.test(text) &&
+    /9743ca849d6d7a746df19e22f74422a7128b90e1/.test(text) &&
+    text.includes(`${remediated.profile.installMs} ms`) &&
+    text.includes(`doctor ${remediated.profile.doctorMs} ms`) &&
+    text.includes(`repo-sync ${remediated.drift.durationMs} ms`) &&
+    /56 passed/.test(text) && /22 source files/.test(text) && /634bbf55b755/.test(text) &&
+    /main·develop[\s\S]*required context[\s\S]*5개/.test(text) &&
+    /commitlint[\s\S]*destructive-ddl/.test(text) &&
+    /원격 develop CI[\s\S]*모두 성공/.test(text) &&
     /\*\*연결\*\*/.test(text) && /installable:false/.test(text) && /marketplace 승격 보류/.test(text)
 }
 if (!validReport(report)) process.exit(1)
@@ -460,19 +553,25 @@ for (const slice of simulation.slices) {
   const {ok, warn, missing} = slice.repoSync
   if (!report.includes(`OK ${ok} · WARN ${warn} · MISSING ${missing}`)) process.exit(1)
 }
+if (!report.includes(`OK ${remediated.drift.ok} · WARN ${remediated.drift.warn} · MISSING ${remediated.drift.missing}`)) process.exit(1)
 for (const mutation of [
   report.split('MISSING 11').join('MISSING 10'),
-  report.replace('OK 18', 'OK 17'),
+  report.split('OK 18').join('OK 17'),
   report.replace('migration 2개', 'migration 1개'),
-  report.replace('repositoryUnchanged=true', 'repositoryUnchanged=false'),
-  report.replace('측정 SHA와 일치했다', '측정 SHA와 불일치했다')
+  report.split('repositoryUnchanged=true').join('repositoryUnchanged=false'),
+  report.replace('측정 SHA와 일치했다', '측정 SHA와 불일치했다'),
+  report.replace(`${remediated.profile.installMs} ms`, '0 ms'),
+  report.replace(`doctor ${remediated.profile.doctorMs} ms`, 'doctor 0 ms'),
+  report.replace(`repo-sync ${remediated.drift.durationMs} ms`, 'repo-sync 0 ms'),
+  report.replace('56 passed', '55 passed'),
+  report.split('required context 5개').join('required context 4개')
 ]) if (validReport(mutation)) process.exit(1)
-if (!/^9\. \[ \] \*\*두 번째 외부 파일럿:/m.test(direction)) process.exit(1)
+if (!/^9\. \[x\] \*\*두 번째 외부 파일럿:/m.test(direction)) process.exit(1)
 NODE
 then
-  pass 'webhook-service 파일럿 보고서·simulation·제품 결정·후속 로드맵 계약'
+  pass 'webhook-service 파일럿 보고서·simulation·실제 backfill·제품 결정·완료 로드맵 계약'
 else
-  fail 'webhook-service 파일럿 보고서·simulation·제품 결정·후속 로드맵 계약'
+  fail 'webhook-service 파일럿 보고서·simulation·실제 backfill·제품 결정·완료 로드맵 계약'
 fi
 
 if grep -Eq '^7\. \[x\].*외부 파일럿' "$ROOT/docs/product-direction.md"; then

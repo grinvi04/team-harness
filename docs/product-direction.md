@@ -101,11 +101,13 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
    operator-approved GitHub ref의 exact revision, allowlisted subprocess 환경, 격리 HOME·XDG root,
    refresh/API-key와 inherited long-lived credential 환경이 없는 session credential에 결박한다. monolith
    전환만 승인하며 split package의 `installable:false`와 marketplace 승격 보류는 유지한다.
-9. [ ] **두 번째 외부 파일럿:** Python·Alembic 소비 repo webhook-service의 격리 clean `develop`에서
+9. [x] **두 번째 외부 파일럿:** Python·Alembic 소비 repo webhook-service의 격리 clean `develop`에서
    profile healthy, guard 9/9, repo-sync OK 5 · WARN 2 · MISSING 11을 측정하고 정본 세 slice로
    OK 18 · WARN 0 · MISSING 0 수렴을 simulation했다. 원본·판정은
    [`pilots/webhook-service-v0.61.0.md`](pilots/webhook-service-v0.61.0.md)에 기록했다. 실제 소비 repo
-   backfill PR과 앱 품질, 현재 main/develop의 3개 required context에 `commitlint`·`destructive-ddl`을
-   추가한 뒤 병합 후 재측정이 남아 있으므로 완료 표시와 marketplace 승격은 보류한다.
+   [PR #69](https://github.com/grinvi04/webhook-service/pull/69)을 develop에 병합하고 앱 품질 56 tests,
+   zero-drift 재측정, main/develop의 `commitlint`·`destructive-ddl` 포함 required context 5개 강제를
+   [완료 원본](pilots/webhook-service-v0.61.0-remediated.json)으로 고정했다. 판정은 **연결**이며 두 public
+   repo·단일 운영 환경 표본이므로 split package의 `installable:false`와 marketplace 승격 보류를 유지한다.
 
 로드맵 항목은 기능 수가 아니라 거버넌스 강제력, 증거 품질, 유지보수 감소로 성공 여부를 판단한다.
