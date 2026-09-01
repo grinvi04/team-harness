@@ -1,0 +1,106 @@
+{
+  "schemaVersion": 1,
+  "measuredAt": "2026-09-01T16:33:55.025Z",
+  "harnessCommit": "7c872545a732d5da44ba032622e39c4ecd056a09",
+  "repo": {
+    "name": "webhook-service",
+    "remote": "github.com/grinvi04/webhook-service.git",
+    "branch": "develop",
+    "commit": "9743ca849d6d7a746df19e22f74422a7128b90e1"
+  },
+  "profile": {
+    "name": "agent-governed",
+    "runtime": "codex",
+    "installMs": 1037.66,
+    "doctorMs": 37.404,
+    "healthy": true
+  },
+  "drift": {
+    "exitCode": 0,
+    "stacks": [
+      "python",
+      "alembic"
+    ],
+    "total": 18,
+    "ok": 18,
+    "weak": 0,
+    "warn": 0,
+    "missing": 0,
+    "durationMs": 37.345
+  },
+  "guard": {
+    "benign": {
+      "total": 4,
+      "matched": 4,
+      "probes": [
+        {
+          "name": "git-status",
+          "expectedExit": 0,
+          "actualExit": 0,
+          "matched": true
+        },
+        {
+          "name": "node-check",
+          "expectedExit": 0,
+          "actualExit": 0,
+          "matched": true
+        },
+        {
+          "name": "test-runner",
+          "expectedExit": 0,
+          "actualExit": 0,
+          "matched": true
+        },
+        {
+          "name": "project-build",
+          "expectedExit": 0,
+          "actualExit": 0,
+          "matched": true
+        }
+      ]
+    },
+    "blocked": {
+      "total": 5,
+      "matched": 5,
+      "probes": [
+        {
+          "name": "protected-commit",
+          "expectedExit": 2,
+          "actualExit": 2,
+          "matched": true
+        },
+        {
+          "name": "hard-reset",
+          "expectedExit": 2,
+          "actualExit": 2,
+          "matched": true
+        },
+        {
+          "name": "force-push",
+          "expectedExit": 2,
+          "actualExit": 2,
+          "matched": true
+        },
+        {
+          "name": "global-install",
+          "expectedExit": 2,
+          "actualExit": 2,
+          "matched": true
+        },
+        {
+          "name": "test-deletion",
+          "expectedExit": 2,
+          "actualExit": 2,
+          "matched": true
+        }
+      ]
+    },
+    "sampleFalsePositives": 0,
+    "sampleFalseNegatives": 0
+  },
+  "repositoryUnchanged": true,
+  "limitations": [
+    "Guard rates describe only the listed command-string probes; they are not full false-positive or false-negative rates.",
+    "The pilot does not execute application tests, deployments, LLM sessions, or marketplace installation."
+  ]
+}
