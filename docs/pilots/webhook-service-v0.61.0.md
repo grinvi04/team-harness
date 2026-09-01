@@ -4,7 +4,8 @@
 - Team Harness: `45514b3d429452d87c058df2776cf34dc71a6ccb`
 - 대상: `webhook-service develop@70123c72f4402096ac9c24d07f40320d6a39488a`
 - 스택: Python · FastAPI · Alembic
-- 원본: [webhook-service-v0.61.0.json](webhook-service-v0.61.0.json)
+- 측정 원본: [webhook-service-v0.61.0.json](webhook-service-v0.61.0.json)
+- simulation 원본: [webhook-service-v0.61.0-simulation.json](webhook-service-v0.61.0-simulation.json)
 - 추적: [Team Harness Issue #397](https://github.com/grinvi04/team-harness/issues/397)
 
 ## 검증된 결과
@@ -23,6 +24,8 @@ MISSING은 다음 세 연결 경계로 분리됐다.
 ## zero-drift simulation
 
 실제 소비 저장소를 수정하지 않고 같은 SHA의 임시 clone에 Team Harness 정본을 slice별로 적용했다.
+각 단계의 repo-sync 명령·exit code·원시 stdout/stderr·적용 자산 digest는 simulation 원본에 보존했다.
+재현 시점의 Team Harness `1118b4b`는 최초 측정 `45514b3`과 repo-sync 및 적용 정본 11개 blob이 모두 같았다.
 
 | 단계 | 적용 | repo-sync |
 |---|---|---|

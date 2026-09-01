@@ -9,6 +9,7 @@ AFTER_V61="$ROOT/docs/pilots/drivertree-v0.61.0-after.json"
 REMEDIATED_V61="$ROOT/docs/pilots/drivertree-v0.61.0-remediated.json"
 REPORT_V61="$ROOT/docs/pilots/drivertree-v0.61.0.md"
 WEBHOOK_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.json"
+WEBHOOK_SIM_V61="$ROOT/docs/pilots/webhook-service-v0.61.0-simulation.json"
 WEBHOOK_REPORT_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.md"
 PRODUCT_DIRECTION="$ROOT/docs/product-direction.md"
 PASS=0
@@ -328,17 +329,110 @@ if (report.drift?.exitCode !== 1 || report.drift?.total !== 18 || report.drift?.
 if (report.guard?.benign?.matched !== 4 || report.guard?.blocked?.matched !== 5) process.exit(1)
 if (report.guard?.sampleFalsePositives !== 0 || report.guard?.sampleFalseNegatives !== 0) process.exit(1)
 if (report.repositoryUnchanged !== true) process.exit(1)
+function safeEvidence(value) {
+  if (!Array.isArray(value.limitations) || value.limitations.length < 2) return false
+  const serialized = JSON.stringify(value)
+  if (/\/(Users|home)\/[A-Za-z0-9._-]+/.test(serialized)) return false
+  if (/"(?:env|environment)":/.test(serialized)) return false
+  if (/(?:ghp_|github_pat_|sk-|AKIA)[A-Za-z0-9_\-]{12,}/.test(serialized)) return false
+  if (/BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY/.test(serialized)) return false
+  return true
+}
+if (!safeEvidence(report)) process.exit(1)
+const badLimitations = structuredClone(report)
+badLimitations.limitations = []
+const badPath = structuredClone(report)
+badPath.limitations.push(`/${['Us', 'ers'].join('')}/example/private`)
+const badEnvironment = structuredClone(report)
+badEnvironment.environment = { ACCESS_TOKEN: 'redacted' }
+const badSecret = structuredClone(report)
+badSecret.limitations.push(`ghp_${'1234567890abcdef'}`)
+for (const mutation of [badLimitations, badPath, badEnvironment, badSecret]) {
+  if (safeEvidence(mutation)) process.exit(1)
+}
 NODE
 then
-  pass 'webhook-service v0.61.0 파일럿 JSON provenance·지표·불변 계약'
+  pass 'webhook-service v0.61.0 파일럿 JSON provenance·지표·불변·민감정보 반례 계약'
 else
-  fail 'webhook-service v0.61.0 파일럿 JSON provenance·지표·불변 계약'
+  fail 'webhook-service v0.61.0 파일럿 JSON provenance·지표·불변·민감정보 반례 계약'
 fi
 
-if node - "$WEBHOOK_REPORT_V61" "$PRODUCT_DIRECTION" <<'NODE'
+if node - "$WEBHOOK_SIM_V61" <<'NODE'
+const fs = require('fs')
+const evidence = JSON.parse(fs.readFileSync(process.argv[2]))
+const expected = [
+  ['baseline', 5, 2, 11, 1],
+  ['stack-rules', 8, 0, 10, 1],
+  ['commit-provenance', 12, 0, 6, 1],
+  ['destructive-ddl', 18, 0, 0, 0]
+]
+function valid(value) {
+  if (value.schemaVersion !== 1 || value.evidenceType !== 'repo-sync-slice-simulation') return false
+  if (value.harnessCommit !== '45514b3d429452d87c058df2776cf34dc71a6ccb') return false
+  if (value.reproducedWithHarnessCommit !== '1118b4b623bcad460a0647aadfc2190ba6858ab5') return false
+  if (value.sourceVerification?.remoteDevelop !== '70123c72f4402096ac9c24d07f40320d6a39488a') return false
+  if (value.sourceVerification?.canonicalInputsEquivalentToOriginal !== true) return false
+  if (value.sourceVerification?.harnessInputBlobs?.length !== 11) return false
+  if (!value.sourceVerification.harnessInputBlobs.every(item => item.identical && item.originalBlob === item.reproductionBlob)) return false
+  if (value.repo?.commit !== '70123c72f4402096ac9c24d07f40320d6a39488a') return false
+  if (value.repo?.headBefore !== value.repo.commit || value.repo?.statusBefore !== '') return false
+  if (value.repo?.sourceRemoteModified !== false || value.repo?.simulationCloneModified !== true) return false
+  if (value.command !== 'node scripts/check-repo-sync.mjs --repo <TARGET_REPO> --harness <TEAM_HARNESS>') return false
+  if (value.normalization?.['<TARGET_REPO>'] !== 'isolated clone path') return false
+  if (!Array.isArray(value.slices) || value.slices.length !== expected.length) return false
+  for (let i = 0; i < expected.length; i++) {
+    const [name, ok, warn, missing, exitCode] = expected[i]
+    const slice = value.slices[i]
+    if (slice.name !== name || slice.head !== value.repo.commit) return false
+    if (slice.repoSync?.exitCode !== exitCode || slice.repoSync?.total !== 18) return false
+    if (slice.repoSync?.ok !== ok || slice.repoSync?.weak !== 0 || slice.repoSync?.warn !== warn || slice.repoSync?.missing !== missing) return false
+    const summary = `요약: 대상 18개 · OK ${ok} · WEAK 0 · WARN ${warn} · MISSING ${missing}`
+    if (!slice.repoSync.stdout.includes(summary)) return false
+    if (!Array.isArray(slice.appliedAssets)) return false
+  }
+  if (value.slices[0].appliedAssets.length !== 0) return false
+  if (!value.slices[1].appliedAssets.includes('.claude/rules/python.md')) return false
+  if (!value.slices[2].appliedAssets.includes('scripts/check-commit-message.cjs')) return false
+  if (!value.slices[3].appliedAssets.includes('scripts/check-alembic-destructive-ddl.mjs')) return false
+  if (value.assetProvenance?.length !== 11) return false
+  if (!value.assetProvenance.filter(item => item.operation === 'copy').every(item => item.identical && item.sourceSha256 === item.targetSha256)) return false
+  const validations = Object.fromEntries((value.validations || []).map(item => [item.name, item]))
+  if (!Object.values(validations).every(item => item.exitCode === 0 && item.stderr === '')) return false
+  if (!/마이그레이션 2개/.test(validations['target-alembic']?.summary || '')) return false
+  if (validations['fixture-sql']?.summary !== '결과: PASS=24 FAIL=0') return false
+  if (validations['fixture-alembic']?.summary !== '결과: PASS=31 FAIL=0') return false
+  if (validations['fixture-activerecord']?.summary !== '결과: PASS=37 FAIL=0') return false
+  if (validations['commit-message']?.summary !== '결과: PASS=46 FAIL=0') return false
+  if (!Array.isArray(value.limitations) || value.limitations.length < 2) return false
+  const serialized = JSON.stringify(value)
+  if (/\/(Users|home)\/[A-Za-z0-9._-]+/.test(serialized)) return false
+  if (/"(?:env|environment)":/.test(serialized)) return false
+  if (/(?:ghp_|github_pat_|sk-|AKIA)[A-Za-z0-9_\-]{12,}/.test(serialized)) return false
+  if (/BEGIN (?:RSA |OPENSSH |EC )?PRIVATE KEY/.test(serialized)) return false
+  return true
+}
+if (!valid(evidence)) process.exit(1)
+const badCount = structuredClone(evidence)
+badCount.slices[3].repoSync.ok = 17
+const badOutput = structuredClone(evidence)
+badOutput.slices[2].repoSync.stdout = badOutput.slices[2].repoSync.stdout.replace('OK 12', 'OK 11')
+const badPath = structuredClone(evidence)
+badPath.slices[0].repoSync.stdout += `\n/${['Us', 'ers'].join('')}/example/private`
+const badSecret = structuredClone(evidence)
+badSecret.slices[0].repoSync.stderr += '\nghp_1234567890abcdef'
+for (const mutation of [badCount, badOutput, badPath, badSecret]) if (valid(mutation)) process.exit(1)
+NODE
+then
+  pass 'webhook-service slice별 raw repo-sync·provenance·민감정보 반례 계약'
+else
+  fail 'webhook-service slice별 raw repo-sync·provenance·민감정보 반례 계약'
+fi
+
+if node - "$WEBHOOK_REPORT_V61" "$PRODUCT_DIRECTION" "$WEBHOOK_SIM_V61" <<'NODE'
 const fs = require('fs')
 const report = fs.readFileSync(process.argv[2], 'utf8')
 const direction = fs.readFileSync(process.argv[3], 'utf8')
+const simulation = JSON.parse(fs.readFileSync(process.argv[4]))
 function validReport(text) {
   return /## 검증된 결과/.test(text) &&
     /## zero-drift simulation/.test(text) &&
@@ -354,6 +448,7 @@ function validReport(text) {
     /migration 2개/.test(text) && /92개/.test(text) && /46개/.test(text) &&
     /repositoryUnchanged=true/.test(text) &&
     /Team Harness Issue #397/.test(text) &&
+    /webhook-service-v0\.61\.0-simulation\.json/.test(text) &&
     /실제 webhook-service 저장소와 GitHub 정책은 변경하지 않았다/.test(text) &&
     /원격 `develop` SHA는 측정 SHA와 일치했다/.test(text) &&
     /main·develop branch protection[\s\S]*alembic-heads[\s\S]*build-and-test[\s\S]*secret-scan/.test(text) &&
@@ -361,6 +456,10 @@ function validReport(text) {
     /\*\*연결\*\*/.test(text) && /installable:false/.test(text) && /marketplace 승격 보류/.test(text)
 }
 if (!validReport(report)) process.exit(1)
+for (const slice of simulation.slices) {
+  const {ok, warn, missing} = slice.repoSync
+  if (!report.includes(`OK ${ok} · WARN ${warn} · MISSING ${missing}`)) process.exit(1)
+}
 for (const mutation of [
   report.split('MISSING 11').join('MISSING 10'),
   report.replace('OK 18', 'OK 17'),
