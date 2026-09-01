@@ -214,8 +214,12 @@ function validReport(text) {
     text.includes('[zero-drift 후속](drivertree-v0.61.0-remediated.json)') &&
     text.includes('[DriveTree Issue #74](https://github.com/grinvi04/drivertree/issues/74)') &&
     text.includes('[DriveTree PR #75](https://github.com/grinvi04/drivertree/pull/75)') &&
+    text.includes('[DriveTree Issue #76](https://github.com/grinvi04/drivertree/issues/76)') &&
     text.includes('[DriveTree PR #77](https://github.com/grinvi04/drivertree/pull/77)') &&
+    text.includes('[Issue #78](https://github.com/grinvi04/drivertree/issues/78)') &&
+    text.includes('[Issue #79](https://github.com/grinvi04/drivertree/issues/79)') &&
     text.includes('[DriveTree PR #80](https://github.com/grinvi04/drivertree/pull/80)') &&
+    text.includes('[DriveTree Issue #81](https://github.com/grinvi04/drivertree/issues/81)') &&
     text.includes('[DriveTree PR #82](https://github.com/grinvi04/drivertree/pull/82)') &&
     text.includes(mergeSha) &&
     text.includes(remediatedMergeSha) &&
@@ -233,8 +237,13 @@ function validReport(text) {
     /35\.696 ms, healthy/.test(text) &&
     /38\.225 ms, exit 0/.test(text) &&
     /OK 18[\s\S]*MISSING 0/.test(text) &&
+    /5파일, 315 additions \/ 10 deletions/.test(text) &&
+    /5파일, 979 additions/.test(text) &&
+    /정본 fixture 92개[\s\S]*반례 12개[\s\S]*Prisma migration SQL 3개/.test(text) &&
     /commitlint[\s\S]*required context/.test(text) &&
     /destructive-ddl[\s\S]*required context/.test(text) &&
+    /main 5개, develop 6개 required check/.test(text) &&
+    /develop@d71c0ac6[\s\S]*core\.hooksPath=\.githooks/.test(text) &&
     /다음 로컬 품질 게이트가 모두 통과했다\./.test(verified) &&
     /backend: format, lint, build 통과; 테스트 \*\*8 suites \/ 70 tests\*\* 통과\./.test(verified) &&
     /frontend: format, lint, build 통과; 단위 테스트 \*\*2 files \/ 8 tests\*\* 통과\./.test(verified) &&
@@ -260,6 +269,16 @@ function validReport(text) {
 if (!validReport(report)) process.exit(1)
 if (validReport(report.split(mergeSha).join('0'.repeat(40)))) process.exit(1)
 if (validReport(report.split(remediatedMergeSha).join('0'.repeat(40)))) process.exit(1)
+for (const issue of ['76', '78', '79', '81']) {
+  if (validReport(report.replace(`/issues/${issue})`, `/issues/999)`))) process.exit(1)
+}
+if (validReport(report.replace('315 additions / 10 deletions', '316 additions / 10 deletions'))) process.exit(1)
+if (validReport(report.replace('979 additions', '978 additions'))) process.exit(1)
+if (validReport(report.replace('정본 fixture 92개', '정본 fixture 91개'))) process.exit(1)
+if (validReport(report.replace('DriveTree 반례 12개', 'DriveTree 반례 11개'))) process.exit(1)
+if (validReport(report.replace('Prisma migration SQL 3개', 'Prisma migration SQL 2개'))) process.exit(1)
+if (validReport(report.replace('main 5개, develop 6개', 'main 4개, develop 6개'))) process.exit(1)
+if (validReport(report.replace('core.hooksPath=.githooks', 'core.hooksPath=.git/hooks'))) process.exit(1)
 if (validReport(report.replace('   - ActiveRecord checker', '   - moved ActiveRecord checker'))) process.exit(1)
 if (validReport(report.replace('### 추론', '### 삭제된 추론'))) process.exit(1)
 if (validReport(report.replace(
