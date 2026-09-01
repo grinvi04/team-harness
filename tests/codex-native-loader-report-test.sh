@@ -2,10 +2,38 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-JSON="$ROOT/docs/pilots/codex-native-loader-v0.61.0.json"
-REPORT="$ROOT/docs/pilots/codex-native-loader-v0.61.0.md"
-MANIFEST="$ROOT/plugins/harness-guard/.codex-plugin/plugin.json"
-TRUST="$ROOT/docs/pilots/codex-native-loader-trusted-binaries.json"
+RELEASE_VERSION=0.61.0
+RELEASE_REF=refs/tags/v0.61.0
+EVIDENCE_DIR=$(mktemp -d)
+trap 'rm -rf -- "$EVIDENCE_DIR"' EXIT
+
+JSON="$EVIDENCE_DIR/codex-native-loader-v0.61.0.json"
+REPORT="$EVIDENCE_DIR/codex-native-loader-v0.61.0.md"
+MANIFEST="$EVIDENCE_DIR/plugin.json"
+TRUST="$EVIDENCE_DIR/codex-native-loader-trusted-binaries.json"
+GUARD="$EVIDENCE_DIR/codex-native-loader-v0.61.0.guard.txt"
+ROUTING="$EVIDENCE_DIR/codex-native-loader-v0.61.0.routing.jsonl"
+
+read_release_blob() {
+  local repo_path=$1
+  local destination=$2
+  if ! git -C "$ROOT" show "$RELEASE_REF:$repo_path" > "$destination"; then
+    echo "FAIL: release evidence blob missing: $RELEASE_REF:$repo_path" >&2
+    exit 1
+  fi
+}
+
+if ! git -C "$ROOT" rev-parse --verify --quiet "$RELEASE_REF^{commit}" >/dev/null; then
+  echo "FAIL: release tag missing or does not peel to a commit: $RELEASE_REF" >&2
+  exit 1
+fi
+
+read_release_blob "plugins/harness-guard/.codex-plugin/plugin.json" "$MANIFEST"
+read_release_blob "docs/pilots/codex-native-loader-v0.61.0.json" "$JSON"
+read_release_blob "docs/pilots/codex-native-loader-v0.61.0.md" "$REPORT"
+read_release_blob "docs/pilots/codex-native-loader-trusted-binaries.json" "$TRUST"
+read_release_blob "docs/pilots/codex-native-loader-v0.61.0.guard.txt" "$GUARD"
+read_release_blob "docs/pilots/codex-native-loader-v0.61.0.routing.jsonl" "$ROUTING"
 
 REPORT_FAILURES=0
 if ! node - "$JSON" <<'NODE'
@@ -65,19 +93,27 @@ then
   REPORT_FAILURES=$((REPORT_FAILURES + 1))
 fi
 
-if ! node - "$JSON" "$MANIFEST" "$TRUST" "$ROOT" <<'NODE'
+if ! node - "$JSON" "$MANIFEST" "$TRUST" "$ROOT" "$RELEASE_REF" <<'NODE'
 const { execFileSync } = require('node:child_process')
 const { createHash } = require('node:crypto')
 const fs = require('node:fs')
+const os = require('node:os')
 const path = require('node:path')
-const [reportPath, manifestPath, trustPath, root] = process.argv.slice(2)
+const [reportPath, manifestPath, trustPath, root, releaseRef] = process.argv.slice(2)
+const releaseVersion = '0.61.0'
+const expectedReleaseRef = 'refs/tags/v0.61.0'
 const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'))
 const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'))
 const trust = JSON.parse(fs.readFileSync(trustPath, 'utf8'))
 const fail = (message) => { console.error(`FAIL: ${message}`); process.exit(1) }
 const sha256 = /^sha256:[0-9a-f]{64}$/
 const digest = (value) => `sha256:${createHash('sha256').update(value).digest('hex')}`
-if (report.status !== 'pass' || report.harness?.version !== manifest.version) fail('status/version mismatch')
+if (releaseRef !== expectedReleaseRef) fail('unexpected release ref')
+if (
+  report.status !== 'pass' ||
+  report.harness?.version !== releaseVersion ||
+  manifest.version !== releaseVersion
+) fail('status/version mismatch')
 if (!/^[0-9a-f]{40}$/.test(report.harness?.revision || '')) fail('source revision missing')
 const expectedTree = execFileSync('git', ['rev-parse', `${report.harness.revision}^{tree}`], {
   cwd: root,
@@ -166,25 +202,6 @@ if (
 if (report.userState?.unchanged !== true || report.sourceState?.unchanged !== true) fail('state evidence missing')
 if (report.cleanup?.isolatedHomeRemoved !== true) fail('cleanup evidence missing')
 if (report.splitPackages?.promoted !== false) fail('split-package verdict changed')
-const releaseRef = `refs/tags/v${report.harness.version}`
-try {
-  execFileSync('git', ['show-ref', '--verify', '--quiet', releaseRef], { cwd: root, stdio: 'ignore' })
-} catch {
-  fail(`release tag missing: ${releaseRef}`)
-}
-try {
-  execFileSync('git', ['merge-base', '--is-ancestor', report.harness.revision, releaseRef], {
-    cwd: root,
-    stdio: 'ignore',
-  })
-} catch {
-  fail(`pilot revision is not an ancestor of release tag: ${releaseRef}`)
-}
-const changedAfterPilot = execFileSync(
-  'git',
-  ['diff', '--name-only', `${report.harness.revision}..${releaseRef}`],
-  { cwd: root, encoding: 'utf8' },
-).trim().split('\n').filter(Boolean)
 const allowedAfterPilot = new Set([
   'CHANGELOG.md',
   'docs/pilots/codex-native-loader-v0.61.0.guard.txt',
@@ -192,13 +209,103 @@ const allowedAfterPilot = new Set([
   'docs/pilots/codex-native-loader-v0.61.0.md',
   'docs/pilots/codex-native-loader-v0.61.0.routing.jsonl',
 ])
-const findDisallowed = (files) => files.filter((file) => !allowedAfterPilot.has(file))
-const syntheticDisallowed = 'tests/disallowed-after-pilot.sh'
-if (!findDisallowed([...changedAfterPilot, syntheticDisallowed]).includes(syntheticDisallowed)) {
-  fail('release candidate change allowlist is not fail-closed')
+const git = (repository, args, options = {}) => execFileSync('git', args, {
+  cwd: repository,
+  encoding: 'utf8',
+  ...options,
+})
+const inspectReleaseRange = (repository, tagRef, pilotRevision, allowed) => {
+  try {
+    git(repository, ['show-ref', '--verify', '--quiet', tagRef], { stdio: 'ignore' })
+  } catch {
+    throw new Error(`release tag missing: ${tagRef}`)
+  }
+  try {
+    git(repository, ['rev-parse', '--verify', `${tagRef}^{commit}`])
+  } catch {
+    throw new Error(`release tag does not peel to a commit: ${tagRef}`)
+  }
+  try {
+    git(repository, ['merge-base', '--is-ancestor', pilotRevision, tagRef], { stdio: 'ignore' })
+  } catch {
+    throw new Error(`pilot revision is not an ancestor of release tag: ${tagRef}`)
+  }
+  const changed = git(repository, ['diff', '--name-only', `${pilotRevision}..${tagRef}`])
+    .trim().split('\n').filter(Boolean)
+  return {
+    changed,
+    disallowed: changed.filter((file) => !allowed.has(file)),
+  }
 }
-const disallowed = findDisallowed(changedAfterPilot)
-if (disallowed.length > 0) fail(`release candidate changed after pilot: ${disallowed.join(', ')}`)
+let releaseRange
+try {
+  releaseRange = inspectReleaseRange(root, releaseRef, report.harness.revision, allowedAfterPilot)
+} catch (error) {
+  fail(error.message)
+}
+if (releaseRange.disallowed.length > 0) {
+  fail(`release candidate changed after pilot: ${releaseRange.disallowed.join(', ')}`)
+}
+
+const fixtureRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'loader-release-range-'))
+const fixtureAllowed = new Set(['CHANGELOG.md'])
+const expectRangeError = (label, pattern, callback) => {
+  try {
+    callback()
+  } catch (error) {
+    if (pattern.test(error.message)) return
+    fail(`${label} returned unexpected error: ${error.message}`)
+  }
+  fail(`${label} was accepted`)
+}
+try {
+  git(fixtureRoot, ['init', '--quiet'])
+  git(fixtureRoot, ['config', 'user.name', 'team-harness-test'])
+  git(fixtureRoot, ['config', 'user.email', 'team-harness-test@example.invalid'])
+  fs.writeFileSync(path.join(fixtureRoot, 'base.txt'), 'pilot\n')
+  git(fixtureRoot, ['add', 'base.txt'])
+  git(fixtureRoot, ['commit', '--quiet', '-m', 'pilot'])
+  const fixturePilot = git(fixtureRoot, ['rev-parse', 'HEAD']).trim()
+
+  expectRangeError('missing release tag', /release tag missing/, () => {
+    inspectReleaseRange(fixtureRoot, 'refs/tags/missing', fixturePilot, fixtureAllowed)
+  })
+
+  fs.writeFileSync(path.join(fixtureRoot, 'CHANGELOG.md'), 'allowed\n')
+  git(fixtureRoot, ['add', 'CHANGELOG.md'])
+  git(fixtureRoot, ['commit', '--quiet', '-m', 'allowed'])
+  git(fixtureRoot, ['tag', 'allowed'])
+  const allowedRange = inspectReleaseRange(
+    fixtureRoot,
+    'refs/tags/allowed',
+    fixturePilot,
+    fixtureAllowed,
+  )
+  if (allowedRange.disallowed.length !== 0) fail('allowed-only release delta was rejected')
+
+  fs.mkdirSync(path.join(fixtureRoot, 'tests'))
+  fs.writeFileSync(path.join(fixtureRoot, 'tests/disallowed-after-pilot.sh'), 'disallowed\n')
+  git(fixtureRoot, ['add', 'tests/disallowed-after-pilot.sh'])
+  git(fixtureRoot, ['commit', '--quiet', '-m', 'disallowed'])
+  git(fixtureRoot, ['tag', 'disallowed'])
+  const disallowedRange = inspectReleaseRange(
+    fixtureRoot,
+    'refs/tags/disallowed',
+    fixturePilot,
+    fixtureAllowed,
+  )
+  if (
+    disallowedRange.disallowed.length !== 1 ||
+    disallowedRange.disallowed[0] !== 'tests/disallowed-after-pilot.sh'
+  ) fail('real disallowed release delta was not rejected')
+
+  const descendantRevision = git(fixtureRoot, ['rev-parse', 'HEAD']).trim()
+  expectRangeError('non-ancestor pilot revision', /not an ancestor/, () => {
+    inspectReleaseRange(fixtureRoot, 'refs/tags/allowed', descendantRevision, fixtureAllowed)
+  })
+} finally {
+  fs.rmSync(fixtureRoot, { recursive: true, force: true })
+}
 NODE
 then
   REPORT_FAILURES=$((REPORT_FAILURES + 1))
@@ -210,11 +317,11 @@ grep -Fq '## 판정·한계' "$REPORT"
 grep -Fq '실행 증거: live' "$REPORT"
 grep -Fq 'session-network-unavailable' "$REPORT"
 grep -Fq 'split package 승격: **아니오**' "$REPORT"
-if rg -n 'github_pat_|gh[pousr]_|sk-[A-Za-z0-9]' "$JSON" "$REPORT" "$ROOT/docs/pilots/codex-native-loader-v0.61.0.guard.txt" "$ROOT/docs/pilots/codex-native-loader-v0.61.0.routing.jsonl"; then
+if rg -n 'github_pat_|gh[pousr]_|sk-[A-Za-z0-9]' "$JSON" "$REPORT" "$GUARD" "$ROUTING"; then
   echo 'FAIL: pilot report contains a token-shaped value'
   exit 1
 fi
-if rg -n 'auth\.json' "$JSON" "$REPORT" "$ROOT/docs/pilots/codex-native-loader-v0.61.0.guard.txt" "$ROOT/docs/pilots/codex-native-loader-v0.61.0.routing.jsonl" |
+if rg -n 'auth\.json' "$JSON" "$REPORT" "$GUARD" "$ROUTING" |
   rg -v '\$\{CODEX_HOME:\?\}/\./auth\.json'; then
   echo 'FAIL: pilot report contains an unredacted auth path'
   exit 1
