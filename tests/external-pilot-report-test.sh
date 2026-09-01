@@ -8,6 +8,9 @@ BEFORE_V61="$ROOT/docs/pilots/drivertree-v0.61.0-before.json"
 AFTER_V61="$ROOT/docs/pilots/drivertree-v0.61.0-after.json"
 REMEDIATED_V61="$ROOT/docs/pilots/drivertree-v0.61.0-remediated.json"
 REPORT_V61="$ROOT/docs/pilots/drivertree-v0.61.0.md"
+WEBHOOK_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.json"
+WEBHOOK_REPORT_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.md"
+PRODUCT_DIRECTION="$ROOT/docs/product-direction.md"
 PASS=0
 FAIL=0
 pass() { echo "PASS: $1"; PASS=$((PASS + 1)); }
@@ -309,6 +312,68 @@ then
   pass 'v0.61.0 보고서 provenance·품질·CI·4+6 완료·zero-drift·결정·한계 구조 계약'
 else
   fail 'v0.61.0 보고서 provenance·품질·CI·4+6 backlog·결정·한계 구조 계약'
+fi
+
+if node - "$WEBHOOK_V61" <<'NODE'
+const fs = require('fs')
+const report = JSON.parse(fs.readFileSync(process.argv[2]))
+if (report.schemaVersion !== 1) process.exit(1)
+if (report.harnessCommit !== '45514b3d429452d87c058df2776cf34dc71a6ccb') process.exit(1)
+if (report.repo?.name !== 'webhook-service') process.exit(1)
+if (report.repo?.remote !== 'github.com/grinvi04/webhook-service.git') process.exit(1)
+if (report.repo?.branch !== 'develop') process.exit(1)
+if (report.repo?.commit !== '70123c72f4402096ac9c24d07f40320d6a39488a') process.exit(1)
+if (report.profile?.healthy !== true || report.profile?.installMs !== 1044.457 || report.profile?.doctorMs !== 38.759) process.exit(1)
+if (report.drift?.exitCode !== 1 || report.drift?.total !== 18 || report.drift?.ok !== 5 || report.drift?.warn !== 2 || report.drift?.missing !== 11) process.exit(1)
+if (report.guard?.benign?.matched !== 4 || report.guard?.blocked?.matched !== 5) process.exit(1)
+if (report.guard?.sampleFalsePositives !== 0 || report.guard?.sampleFalseNegatives !== 0) process.exit(1)
+if (report.repositoryUnchanged !== true) process.exit(1)
+NODE
+then
+  pass 'webhook-service v0.61.0 파일럿 JSON provenance·지표·불변 계약'
+else
+  fail 'webhook-service v0.61.0 파일럿 JSON provenance·지표·불변 계약'
+fi
+
+if node - "$WEBHOOK_REPORT_V61" "$PRODUCT_DIRECTION" <<'NODE'
+const fs = require('fs')
+const report = fs.readFileSync(process.argv[2], 'utf8')
+const direction = fs.readFileSync(process.argv[3], 'utf8')
+function validReport(text) {
+  return /## 검증된 결과/.test(text) &&
+    /## zero-drift simulation/.test(text) &&
+    /## 제품 결정/.test(text) &&
+    /## 한계와 후속/.test(text) &&
+    /45514b3d429452d87c058df2776cf34dc71a6ccb/.test(text) &&
+    /70123c72f4402096ac9c24d07f40320d6a39488a/.test(text) &&
+    /1044\.457 ms/.test(text) && /38\.759 ms/.test(text) &&
+    /OK 5[\s\S]*WARN 2[\s\S]*MISSING 11/.test(text) &&
+    /OK 8[\s\S]*MISSING 10/.test(text) &&
+    /OK 12[\s\S]*MISSING 6/.test(text) &&
+    /OK 18[\s\S]*WARN 0[\s\S]*MISSING 0/.test(text) &&
+    /migration 2개/.test(text) && /92개/.test(text) && /46개/.test(text) &&
+    /repositoryUnchanged=true/.test(text) &&
+    /Team Harness Issue #397/.test(text) &&
+    /실제 webhook-service 저장소와 GitHub 정책은 변경하지 않았다/.test(text) &&
+    /원격 `develop` SHA는 측정 SHA와 일치했다/.test(text) &&
+    /main·develop branch protection[\s\S]*alembic-heads[\s\S]*build-and-test[\s\S]*secret-scan/.test(text) &&
+    /commitlint[\s\S]*destructive-ddl[\s\S]*required context에 아직 연결되지 않았다/.test(text) &&
+    /\*\*연결\*\*/.test(text) && /installable:false/.test(text) && /marketplace 승격 보류/.test(text)
+}
+if (!validReport(report)) process.exit(1)
+for (const mutation of [
+  report.split('MISSING 11').join('MISSING 10'),
+  report.replace('OK 18', 'OK 17'),
+  report.replace('migration 2개', 'migration 1개'),
+  report.replace('repositoryUnchanged=true', 'repositoryUnchanged=false'),
+  report.replace('측정 SHA와 일치했다', '측정 SHA와 불일치했다')
+]) if (validReport(mutation)) process.exit(1)
+if (!/^9\. \[ \] \*\*두 번째 외부 파일럿:/m.test(direction)) process.exit(1)
+NODE
+then
+  pass 'webhook-service 파일럿 보고서·simulation·제품 결정·후속 로드맵 계약'
+else
+  fail 'webhook-service 파일럿 보고서·simulation·제품 결정·후속 로드맵 계약'
 fi
 
 if grep -Eq '^7\. \[x\].*외부 파일럿' "$ROOT/docs/product-direction.md"; then

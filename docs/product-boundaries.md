@@ -150,9 +150,11 @@ workflow 세션 상태는 재생성 가능해야 한다. 제거 명령은 다른
    monolith manifest는 split package loader·rollback 증거가 충족될 때까지 유지한다. required CI와 branch
    protection drift가 있으면 추가 제거를 중단한다.
 
-DriveTree 외부 파일럿에서 filesystem 설치·doctor와 guard 표본은 통과했고 v0.61.0에서 monolith 공식 loader
-session도 검증했다. 다만 repo-sync MISSING 11의 처리 비용과 split package 자체의 공식 loader·rollback 증거는
-남았다. 따라서 독립 package의 `installable:false`를 유지하고 marketplace 승격은 별도 승인한다.
+DriveTree 외부 파일럿의 repo-sync MISSING 11은 실제 세 PR로 OK 18 · MISSING 0까지 처리했고 v0.61.0에서
+monolith 공식 loader session도 검증했다. 두 번째 Python·Alembic 파일럿은 webhook-service의 MISSING 11을
+같은 정본 세 slice로 zero-drift까지 simulation했지만 실제 소비 repo 병합·required gate 증거와 split package
+자체의 공식 loader·rollback 증거는 남았다. 따라서 독립 package의 `installable:false`를 유지하고
+marketplace 승격은 별도 승인한다.
 
 ## 비목표와 재검토 조건
 
