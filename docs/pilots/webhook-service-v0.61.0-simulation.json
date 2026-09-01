@@ -1,0 +1,340 @@
+{
+  "schemaVersion": 1,
+  "evidenceType": "repo-sync-slice-simulation",
+  "measuredAt": "2026-09-01T15:33:37.157Z",
+  "harnessCommit": "45514b3d429452d87c058df2776cf34dc71a6ccb",
+  "reproducedWithHarnessCommit": "1118b4b623bcad460a0647aadfc2190ba6858ab5",
+  "sourceVerification": {
+    "remoteDevelop": "70123c72f4402096ac9c24d07f40320d6a39488a",
+    "canonicalInputsEquivalentToOriginal": true,
+    "harnessInputBlobs": [
+      {
+        "path": "plugins/harness-guard/scripts/check-repo-sync.mjs",
+        "originalBlob": "2f72aedaec184b263517776079c42c0691637267",
+        "reproductionBlob": "2f72aedaec184b263517776079c42c0691637267",
+        "identical": true
+      },
+      {
+        "path": "templates/rules/stacks/python.md",
+        "originalBlob": "21df548a91acf5cee87a4fe0575921075d10f3bf",
+        "reproductionBlob": "21df548a91acf5cee87a4fe0575921075d10f3bf",
+        "identical": true
+      },
+      {
+        "path": "templates/rules/stacks/alembic.md",
+        "originalBlob": "7814b2cc1f289a377027d8834bb07c82d82ca6b3",
+        "reproductionBlob": "7814b2cc1f289a377027d8834bb07c82d82ca6b3",
+        "identical": true
+      },
+      {
+        "path": "templates/ci/commitlint.yml",
+        "originalBlob": "6b42afd81384bcd0c938ed7444c1b41b48682845",
+        "reproductionBlob": "6b42afd81384bcd0c938ed7444c1b41b48682845",
+        "identical": true
+      },
+      {
+        "path": "templates/commitlint.config.cjs",
+        "originalBlob": "fc0cbbc72d45f93de95d0c96c11b7c34b05b25a7",
+        "reproductionBlob": "fc0cbbc72d45f93de95d0c96c11b7c34b05b25a7",
+        "identical": true
+      },
+      {
+        "path": "templates/githooks/commit-msg",
+        "originalBlob": "ae28228eaf595f1941dd50fb25a522a3ef0426b5",
+        "reproductionBlob": "ae28228eaf595f1941dd50fb25a522a3ef0426b5",
+        "identical": true
+      },
+      {
+        "path": "scripts/check-commit-message.cjs",
+        "originalBlob": "a96ac629738bfc3f54a7c8773bd7e4c7a1767cb4",
+        "reproductionBlob": "a96ac629738bfc3f54a7c8773bd7e4c7a1767cb4",
+        "identical": true
+      },
+      {
+        "path": "templates/ci/destructive-ddl.yml",
+        "originalBlob": "70ecc876088c615f72d380d932fbe2f399238ac8",
+        "reproductionBlob": "70ecc876088c615f72d380d932fbe2f399238ac8",
+        "identical": true
+      },
+      {
+        "path": "scripts/check-destructive-ddl.mjs",
+        "originalBlob": "baed59e08bd5c8cda1465de14453dc1fa88dace8",
+        "reproductionBlob": "baed59e08bd5c8cda1465de14453dc1fa88dace8",
+        "identical": true
+      },
+      {
+        "path": "scripts/check-alembic-destructive-ddl.mjs",
+        "originalBlob": "0325c5ce448e1d302a404507cef3aac66ef517e8",
+        "reproductionBlob": "0325c5ce448e1d302a404507cef3aac66ef517e8",
+        "identical": true
+      },
+      {
+        "path": "scripts/check-activerecord-destructive-ddl.mjs",
+        "originalBlob": "bcba4077b20e397a0adf47f1b62f1834298d1429",
+        "reproductionBlob": "bcba4077b20e397a0adf47f1b62f1834298d1429",
+        "identical": true
+      }
+    ]
+  },
+  "repo": {
+    "name": "webhook-service",
+    "remote": "github.com/grinvi04/webhook-service.git",
+    "branch": "develop",
+    "commit": "70123c72f4402096ac9c24d07f40320d6a39488a",
+    "tree": "afdd2da21516e4e14d1b0f412df95bcf3b2748ff",
+    "headBefore": "70123c72f4402096ac9c24d07f40320d6a39488a",
+    "statusBefore": "",
+    "sourceRemoteModified": false,
+    "simulationCloneModified": true
+  },
+  "command": "node scripts/check-repo-sync.mjs --repo <TARGET_REPO> --harness <TEAM_HARNESS>",
+  "normalization": {
+    "<TARGET_REPO>": "isolated clone path",
+    "<TEAM_HARNESS>": "team-harness checkout path"
+  },
+  "assetProvenance": [
+    {
+      "slice": "stack-rules",
+      "operation": "append-pointer",
+      "target": "AGENTS.md",
+      "beforeSha256": "6ea7004c54c6294ac01a9b37bddfaf4f17bf479921dfece2d033f14b895d53c6",
+      "afterSha256": "c203eba4c98db7aeac8a2273735c101baafd663602989c440fb019d3c5de3f5d"
+    },
+    {
+      "slice": "stack-rules",
+      "operation": "copy",
+      "source": "templates/rules/stacks/python.md",
+      "target": ".claude/rules/python.md",
+      "sourceSha256": "b53b501036bceae065be248519b432dcaa7960e298e5f03c53403027841126f0",
+      "targetSha256": "b53b501036bceae065be248519b432dcaa7960e298e5f03c53403027841126f0",
+      "identical": true,
+      "executable": false
+    },
+    {
+      "slice": "stack-rules",
+      "operation": "copy",
+      "source": "templates/rules/stacks/alembic.md",
+      "target": ".claude/rules/alembic.md",
+      "sourceSha256": "6d31b44f992ae02be9c57b54badcb87957dc598f9188488fb00ddd3d02e64e99",
+      "targetSha256": "6d31b44f992ae02be9c57b54badcb87957dc598f9188488fb00ddd3d02e64e99",
+      "identical": true,
+      "executable": false
+    },
+    {
+      "slice": "commit-provenance",
+      "operation": "copy",
+      "source": "templates/ci/commitlint.yml",
+      "target": ".github/workflows/commitlint.yml",
+      "sourceSha256": "75c06a6824ab32c5be2c583309eacb521c97d95ee7e7365dd478d30a7f5982c9",
+      "targetSha256": "75c06a6824ab32c5be2c583309eacb521c97d95ee7e7365dd478d30a7f5982c9",
+      "identical": true,
+      "executable": false
+    },
+    {
+      "slice": "commit-provenance",
+      "operation": "copy",
+      "source": "templates/commitlint.config.cjs",
+      "target": "commitlint.config.cjs",
+      "sourceSha256": "c9db27e27848ea26a26f7eb0a6fa736978c6bbf9a75998d44ed5e449e1a9f4c2",
+      "targetSha256": "c9db27e27848ea26a26f7eb0a6fa736978c6bbf9a75998d44ed5e449e1a9f4c2",
+      "identical": true,
+      "executable": false
+    },
+    {
+      "slice": "commit-provenance",
+      "operation": "copy",
+      "source": "templates/githooks/commit-msg",
+      "target": ".githooks/commit-msg",
+      "sourceSha256": "da6e5afc5cad7358bef48fcfd83b525091ff498185fd3d583e98ce0bbf3bc1e2",
+      "targetSha256": "da6e5afc5cad7358bef48fcfd83b525091ff498185fd3d583e98ce0bbf3bc1e2",
+      "identical": true,
+      "executable": true
+    },
+    {
+      "slice": "commit-provenance",
+      "operation": "copy",
+      "source": "scripts/check-commit-message.cjs",
+      "target": "scripts/check-commit-message.cjs",
+      "sourceSha256": "fc5a4e82601efe2f7b47bdf2f475de89a0ffba8fd9dc39ec54c61518b8a5fbe3",
+      "targetSha256": "fc5a4e82601efe2f7b47bdf2f475de89a0ffba8fd9dc39ec54c61518b8a5fbe3",
+      "identical": true,
+      "executable": false
+    },
+    {
+      "slice": "destructive-ddl",
+      "operation": "copy",
+      "source": "templates/ci/destructive-ddl.yml",
+      "target": ".github/workflows/destructive-ddl.yml",
+      "sourceSha256": "c626fe0bdd84231dde940de16216eb9161f2bbecfdff589d8ecd7151144f0e21",
+      "targetSha256": "c626fe0bdd84231dde940de16216eb9161f2bbecfdff589d8ecd7151144f0e21",
+      "identical": true,
+      "executable": false
+    },
+    {
+      "slice": "destructive-ddl",
+      "operation": "copy",
+      "source": "scripts/check-destructive-ddl.mjs",
+      "target": "scripts/check-destructive-ddl.mjs",
+      "sourceSha256": "fd5ce785d0f8be2ca33705bd59027e2db41d901946b72fe23eb9695e9ffaa2cd",
+      "targetSha256": "fd5ce785d0f8be2ca33705bd59027e2db41d901946b72fe23eb9695e9ffaa2cd",
+      "identical": true,
+      "executable": false
+    },
+    {
+      "slice": "destructive-ddl",
+      "operation": "copy",
+      "source": "scripts/check-alembic-destructive-ddl.mjs",
+      "target": "scripts/check-alembic-destructive-ddl.mjs",
+      "sourceSha256": "f1b183c18a30a44cedea8b19ed8ea5e4cca1dc468863d221ca628840135391f2",
+      "targetSha256": "f1b183c18a30a44cedea8b19ed8ea5e4cca1dc468863d221ca628840135391f2",
+      "identical": true,
+      "executable": false
+    },
+    {
+      "slice": "destructive-ddl",
+      "operation": "copy",
+      "source": "scripts/check-activerecord-destructive-ddl.mjs",
+      "target": "scripts/check-activerecord-destructive-ddl.mjs",
+      "sourceSha256": "ba092c5693aa314c756af373f2208616512f6bc2888af658bb22ee436ca594ff",
+      "targetSha256": "ba092c5693aa314c756af373f2208616512f6bc2888af658bb22ee436ca594ff",
+      "identical": true,
+      "executable": false
+    }
+  ],
+  "slices": [
+    {
+      "name": "baseline",
+      "appliedAssets": [],
+      "head": "70123c72f4402096ac9c24d07f40320d6a39488a",
+      "status": "",
+      "repoSync": {
+        "exitCode": 1,
+        "total": 18,
+        "ok": 5,
+        "weak": 0,
+        "warn": 2,
+        "missing": 11,
+        "stdout": "\n기존 repo 드리프트 점검 — <TARGET_REPO>\n감지된 스택: python, alembic\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✗ MISSING Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✗ MISSING commitlint config                       루트 commitlint.config.cjs (team-harness-message rule 연결)\n  ✗ MISSING commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✗ MISSING 커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✗ MISSING destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✗ MISSING check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✗ MISSING alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✗ MISSING check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✗ MISSING activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✗ MISSING check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     alembic heads 스텝                        CI에 다중 head 차단 (sentinel: alembic heads)\n  ! WARN   룰: python.md                            .claude/rules/python.md (표준: templates/rules/stacks/python.md)\n  ! WARN   룰: alembic.md                           .claude/rules/alembic.md (표준: templates/rules/stacks/alembic.md)\n\n요약: 대상 18개 · OK 5 · WEAK 0 · WARN 2 · MISSING 11\n",
+        "stderr": "\n✗ 드리프트 — 필수 자산 11개 누락: Codex stack-rule pointer, commitlint 게이트, commitlint config, commit-msg 훅, 커밋 메시지 validator, destructive-ddl 워크플로, check-destructive-ddl.mjs, alembic destructive-ddl 스텝, check-alembic-destructive-ddl.mjs, activerecord destructive-ddl 스텝, check-activerecord-destructive-ddl.mjs\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      }
+    },
+    {
+      "name": "stack-rules",
+      "appliedAssets": [
+        "AGENTS.md",
+        ".claude/rules/python.md",
+        ".claude/rules/alembic.md"
+      ],
+      "head": "70123c72f4402096ac9c24d07f40320d6a39488a",
+      "status": " M AGENTS.md\n",
+      "repoSync": {
+        "exitCode": 1,
+        "total": 18,
+        "ok": 8,
+        "weak": 0,
+        "warn": 0,
+        "missing": 10,
+        "stdout": "\n기존 repo 드리프트 점검 — <TARGET_REPO>\n감지된 스택: python, alembic\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✓ OK     Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✗ MISSING commitlint config                       루트 commitlint.config.cjs (team-harness-message rule 연결)\n  ✗ MISSING commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✗ MISSING 커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✗ MISSING destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✗ MISSING check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✗ MISSING alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✗ MISSING check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✗ MISSING activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✗ MISSING check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     alembic heads 스텝                        CI에 다중 head 차단 (sentinel: alembic heads)\n  ✓ OK     룰: python.md                            .claude/rules/python.md (표준: templates/rules/stacks/python.md)\n  ✓ OK     룰: alembic.md                           .claude/rules/alembic.md (표준: templates/rules/stacks/alembic.md)\n\n요약: 대상 18개 · OK 8 · WEAK 0 · WARN 0 · MISSING 10\n",
+        "stderr": "\n✗ 드리프트 — 필수 자산 10개 누락: commitlint 게이트, commitlint config, commit-msg 훅, 커밋 메시지 validator, destructive-ddl 워크플로, check-destructive-ddl.mjs, alembic destructive-ddl 스텝, check-alembic-destructive-ddl.mjs, activerecord destructive-ddl 스텝, check-activerecord-destructive-ddl.mjs\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      }
+    },
+    {
+      "name": "commit-provenance",
+      "appliedAssets": [
+        ".github/workflows/commitlint.yml",
+        "commitlint.config.cjs",
+        ".githooks/commit-msg",
+        "scripts/check-commit-message.cjs"
+      ],
+      "head": "70123c72f4402096ac9c24d07f40320d6a39488a",
+      "status": " M .github/workflows/commitlint.yml\n M AGENTS.md\n M commitlint.config.cjs\n?? .githooks/commit-msg\n?? scripts/check-commit-message.cjs\n",
+      "repoSync": {
+        "exitCode": 1,
+        "total": 18,
+        "ok": 12,
+        "weak": 0,
+        "warn": 0,
+        "missing": 6,
+        "stdout": "\n기존 repo 드리프트 점검 — <TARGET_REPO>\n감지된 스택: python, alembic\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✓ OK     Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✓ OK     commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✓ OK     commitlint config                       루트 commitlint.config.cjs (team-harness-message rule 연결)\n  ✓ OK     commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✓ OK     커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✗ MISSING destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✗ MISSING check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✗ MISSING alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✗ MISSING check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✗ MISSING activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✗ MISSING check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     alembic heads 스텝                        CI에 다중 head 차단 (sentinel: alembic heads)\n  ✓ OK     룰: python.md                            .claude/rules/python.md (표준: templates/rules/stacks/python.md)\n  ✓ OK     룰: alembic.md                           .claude/rules/alembic.md (표준: templates/rules/stacks/alembic.md)\n\n요약: 대상 18개 · OK 12 · WEAK 0 · WARN 0 · MISSING 6\n",
+        "stderr": "\n✗ 드리프트 — 필수 자산 6개 누락: destructive-ddl 워크플로, check-destructive-ddl.mjs, alembic destructive-ddl 스텝, check-alembic-destructive-ddl.mjs, activerecord destructive-ddl 스텝, check-activerecord-destructive-ddl.mjs\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      }
+    },
+    {
+      "name": "destructive-ddl",
+      "appliedAssets": [
+        ".github/workflows/destructive-ddl.yml",
+        "scripts/check-destructive-ddl.mjs",
+        "scripts/check-alembic-destructive-ddl.mjs",
+        "scripts/check-activerecord-destructive-ddl.mjs"
+      ],
+      "head": "70123c72f4402096ac9c24d07f40320d6a39488a",
+      "status": " M .github/workflows/commitlint.yml\n M AGENTS.md\n M commitlint.config.cjs\n?? .githooks/commit-msg\n?? .github/workflows/destructive-ddl.yml\n?? scripts/check-activerecord-destructive-ddl.mjs\n?? scripts/check-alembic-destructive-ddl.mjs\n?? scripts/check-commit-message.cjs\n?? scripts/check-destructive-ddl.mjs\n",
+      "repoSync": {
+        "exitCode": 0,
+        "total": 18,
+        "ok": 18,
+        "weak": 0,
+        "warn": 0,
+        "missing": 0,
+        "stdout": "\n기존 repo 드리프트 점검 — <TARGET_REPO>\n감지된 스택: python, alembic\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✓ OK     Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✓ OK     commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✓ OK     commitlint config                       루트 commitlint.config.cjs (team-harness-message rule 연결)\n  ✓ OK     commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✓ OK     커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✓ OK     destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✓ OK     check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✓ OK     alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✓ OK     check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✓ OK     activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✓ OK     check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     alembic heads 스텝                        CI에 다중 head 차단 (sentinel: alembic heads)\n  ✓ OK     룰: python.md                            .claude/rules/python.md (표준: templates/rules/stacks/python.md)\n  ✓ OK     룰: alembic.md                           .claude/rules/alembic.md (표준: templates/rules/stacks/alembic.md)\n\n요약: 대상 18개 · OK 18 · WEAK 0 · WARN 0 · MISSING 0\n\n✓ 표준과 sync — 드리프트 없음.\n\n",
+        "stderr": ""
+      }
+    }
+  ],
+  "validations": [
+    {
+      "name": "target-sql",
+      "command": "node scripts/check-destructive-ddl.mjs",
+      "exitCode": 0,
+      "summary": "  대상: db/migration/ · prisma/migrations/ · supabase/migrations/ (Alembic .py는 비대상).",
+      "stderr": ""
+    },
+    {
+      "name": "target-alembic",
+      "command": "node scripts/check-alembic-destructive-ddl.mjs",
+      "exitCode": 0,
+      "summary": "✓ Alembic 파괴적 DDL 게이트 통과 — 마이그레이션 2개 · upgrade 계열에 승인 없는 파괴 DDL 없음",
+      "stderr": ""
+    },
+    {
+      "name": "target-activerecord",
+      "command": "node scripts/check-activerecord-destructive-ddl.mjs",
+      "exitCode": 0,
+      "summary": "  대상: `< ActiveRecord::Migration` + `def (change|up|down)` 지문을 가진 .rb.",
+      "stderr": ""
+    },
+    {
+      "name": "fixture-sql",
+      "command": "bash tests/destructive-ddl-test.sh",
+      "exitCode": 0,
+      "summary": "결과: PASS=24 FAIL=0",
+      "stderr": ""
+    },
+    {
+      "name": "fixture-alembic",
+      "command": "bash tests/alembic-destructive-ddl-test.sh",
+      "exitCode": 0,
+      "summary": "결과: PASS=31 FAIL=0",
+      "stderr": ""
+    },
+    {
+      "name": "fixture-activerecord",
+      "command": "bash tests/activerecord-destructive-ddl-test.sh",
+      "exitCode": 0,
+      "summary": "결과: PASS=37 FAIL=0",
+      "stderr": ""
+    },
+    {
+      "name": "commit-message",
+      "command": "bash tests/commit-message-test.sh",
+      "exitCode": 0,
+      "summary": "결과: PASS=46 FAIL=0",
+      "stderr": ""
+    }
+  ],
+  "limitations": [
+    "The applied assets exist only in an isolated clone; this evidence does not prove an actual webhook-service merge.",
+    "Required GitHub contexts and application quality remain separate post-backfill acceptance gates.",
+    "Normalized placeholders replace machine-local checkout paths; repo-sync status lines and counts are otherwise preserved."
+  ]
+}
