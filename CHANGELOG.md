@@ -3,7 +3,15 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.61.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.61.1` and replace this file with its output.
+
+## v0.61.1 - 2026-09-02
+
+- fix(pilot): webhook 완료 상태 정본 일치
+- fix(pilot): simulation 원본 증거 고정
+- fix(pilot): v0.61 릴리즈 커밋 identity 고정
+- fix(pilot): v0.61 증거 입력을 릴리즈 태그에 고정
+- fix(pilot): 릴리즈 증거 비교 기준을 태그로 고정
 
 ## v0.61.0 - 2026-07-24
 

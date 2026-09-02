@@ -3,7 +3,8 @@
 ## 1. 목표 & Why
 
 독립 소비 프로젝트에서 Team Harness profile 설치 시간, guard 표본 오탐·누락, repo 표준 유지보수 비용을
-재현 가능하게 측정해 제품 방향을 다시 검증한다. 첫 대상은 clean `develop`의 공개 소비 repo DriveTree다.
+재현 가능하게 측정해 제품 방향을 다시 검증한다. 첫 대상은 clean `develop`의 공개 소비 repo DriveTree,
+두 번째 대상은 Python·Alembic 소비 repo webhook-service다.
 **성공 기준: 대상 repo 전후 status·HEAD가 불변이고, 구조화된 측정 결과와 한계를 저장소에 기록한다.**
 
 제품 방향 판정은 **연결**이다. 소비 repo의 앱·배포를 소유하지 않고 governance profile과 해당 repo의
@@ -49,3 +50,4 @@ Git/CI 증거 사이를 읽기 전용으로 측정한다.
 | 1 | runner 정상·실패·비변경 계약 RED | AC-1~7 | `tests/external-pilot-test.sh` | `bash tests/external-pilot-test.sh` |
 | 2 | 최소 측정 runner 구현 | AC-1~7 | `scripts/run-external-pilot.mjs` | 동일 테스트 |
 | 3 | DriveTree 실측·판정·CI·로드맵 반영 | AC-7~8 | `docs/pilots/`, `docs/`, CI | 전체 quality gate |
+| 4 | webhook-service 실측·zero-drift simulation·후속 조건 기록 | AC-7~8 | `docs/pilots/`, `docs/`, CI | 전체 quality gate |

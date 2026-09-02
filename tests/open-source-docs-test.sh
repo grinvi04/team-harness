@@ -42,8 +42,10 @@ else
   fail "태그 기반 CHANGELOG 결정론"
 fi
 
-node "$ROOT/scripts/generate-changelog.mjs" --release v0.61.0 >"$TMP/candidate-a.md"
-node "$ROOT/scripts/generate-changelog.mjs" --release v0.61.0 >"$TMP/candidate-b.md"
+CANDIDATE_VERSION=$(node -p "require('$ROOT/plugins/harness-guard/.claude-plugin/plugin.json').version")
+CANDIDATE_TAG="v$CANDIDATE_VERSION"
+node "$ROOT/scripts/generate-changelog.mjs" --release "$CANDIDATE_TAG" >"$TMP/candidate-a.md"
+node "$ROOT/scripts/generate-changelog.mjs" --release "$CANDIDATE_TAG" >"$TMP/candidate-b.md"
 if cmp -s "$TMP/candidate-a.md" "$TMP/candidate-b.md"; then
   pass "사전 태그 release candidate 결정론"
 else
@@ -54,12 +56,12 @@ if cmp -s "$ROOT/CHANGELOG.md" "$TMP/candidate-a.md"; then
 else
   fail "현재 CHANGELOG release candidate 재현"
 fi
-if grep -q '^## v0\.61\.0 - ' "$TMP/candidate-a.md" &&
+if grep -Fq "## $CANDIDATE_TAG - " "$TMP/candidate-a.md" &&
    grep -q '^## v0\.60\.0 - ' "$TMP/candidate-a.md" &&
-   [ "$(grep -n '^## v0\.61\.0 - ' "$TMP/candidate-a.md" | cut -d: -f1)" -lt "$(grep -n '^## v0\.60\.0 - ' "$TMP/candidate-a.md" | cut -d: -f1)" ]; then
-  pass "사전 태그 v0.61.0 항목 생성"
+   [ "$(grep -nF "## $CANDIDATE_TAG - " "$TMP/candidate-a.md" | cut -d: -f1)" -lt "$(grep -n '^## v0\.60\.0 - ' "$TMP/candidate-a.md" | cut -d: -f1)" ]; then
+  pass "사전 태그 $CANDIDATE_TAG 항목 생성"
 else
-  fail "사전 태그 v0.61.0 항목 생성"
+  fail "사전 태그 $CANDIDATE_TAG 항목 생성"
 fi
 if grep -q 'generate-changelog\.mjs --release' "$ROOT/plugins/harness-guard/skills/release/SKILL.md"; then
   pass "release skill이 사전 태그 CHANGELOG 생성"

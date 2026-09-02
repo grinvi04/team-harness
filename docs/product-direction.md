@@ -88,12 +88,26 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
    namespaced skill 공존, hook overlap 위임, 파일 불변과 malformed·symlink 거부를 검증했다.
 7. [x] **외부 파일럿:** DriveTree clean `develop`에서 profile 설치 952.225ms, doctor 38.883ms,
    guard 표본 오탐·누락 0/9, repo-sync MISSING 11을 측정했다. 결과와 한계는
-   [`pilots/drivertree-v0.60.0.md`](pilots/drivertree-v0.60.0.md)에 기록했으며 marketplace 승격은 보류한다.
+   [`pilots/drivertree-v0.60.0.md`](pilots/drivertree-v0.60.0.md)에 기록했다. v0.61.0에서 stack-rule 전달
+   backlog 1건을 실제 처리한 전후 증거와 잔여 MISSING 10은
+   [`pilots/drivertree-v0.61.0.md`](pilots/drivertree-v0.61.0.md)에 기록했으며, 판정은 **연결**이고
+   후속 commit-provenance·destructive-DDL 두 slice를 완료해 같은 보고서와
+   [zero-drift 원본](pilots/drivertree-v0.61.0-remediated.json)에 OK 18 · MISSING 0,
+   repositoryUnchanged와 main/develop required gate 적용을 기록했다. 단일 repo 표본이므로 split package의
+   `installable:false`와 marketplace 승격 보류를 유지한다.
 8. [x] **Codex 공식 loader 전환:** monolith에 native manifest·command hooks·16개 skill wrapper를 직접 싣고
    harness cache patch·overlay·custom agent 복사·unified exec 비활성화를 제거했다. 격리 loader와 실제 새 세션
    결과는 [`pilots/codex-native-loader-v0.61.0.md`](pilots/codex-native-loader-v0.61.0.md)에 기록한다. 이 증거는
    operator-approved GitHub ref의 exact revision, allowlisted subprocess 환경, 격리 HOME·XDG root,
    refresh/API-key와 inherited long-lived credential 환경이 없는 session credential에 결박한다. monolith
    전환만 승인하며 split package의 `installable:false`와 marketplace 승격 보류는 유지한다.
+9. [x] **두 번째 외부 파일럿:** Python·Alembic 소비 repo webhook-service의 격리 clean `develop`에서
+   profile healthy, guard 9/9, repo-sync OK 5 · WARN 2 · MISSING 11을 측정하고 정본 세 slice로
+   OK 18 · WARN 0 · MISSING 0 수렴을 simulation했다. 원본·판정은
+   [`pilots/webhook-service-v0.61.0.md`](pilots/webhook-service-v0.61.0.md)에 기록했다. 실제 소비 repo
+   [PR #69](https://github.com/grinvi04/webhook-service/pull/69)을 develop에 병합하고 앱 품질 56 tests,
+   zero-drift 재측정, main/develop의 `commitlint`·`destructive-ddl` 포함 required context 5개 강제를
+   [완료 원본](pilots/webhook-service-v0.61.0-remediated.json)으로 고정했다. 판정은 **연결**이며 두 public
+   repo·단일 운영 환경 표본이므로 split package의 `installable:false`와 marketplace 승격 보류를 유지한다.
 
 로드맵 항목은 기능 수가 아니라 거버넌스 강제력, 증거 품질, 유지보수 감소로 성공 여부를 판단한다.
