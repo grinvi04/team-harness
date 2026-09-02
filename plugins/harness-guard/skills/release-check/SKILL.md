@@ -62,7 +62,19 @@ git status --short   # 미커밋 변경 있으면 중단
 - 신규 마이그레이션의 무중단 호환 위반(컬럼 즉시 삭제/rename, 비-CONCURRENTLY 대용량 인덱스) 점검
 - 금액 컬럼 float 사용 등 DB 표준 위반 스캔
 
-## Phase 2 — 종합 판정 (오케스트레이터 직접 실행)
+## Phase 2 — 외부 파일럿 live provenance (오케스트레이터 직접 실행)
+
+`docs/pilots/external-pilot-provenance.json`이 있으면 아래 명령을 **`--offline` 없이** 실행한다.
+
+```bash
+node scripts/check-external-pilot-provenance.mjs --manifest docs/pilots/external-pilot-provenance.json
+```
+
+- manifest가 없으면 이 항목만 SKIP한다.
+- manifest가 있는데 verifier가 없거나 non-zero이면 provenance 검증 실패를 **NO-GO**로 판정하고 중단한다.
+- network·rate limit·permission 실패를 SKIP, cache, 이전 성공 결과로 대체하지 않는다.
+
+## Phase 3 — 종합 판정 (오케스트레이터 직접 실행)
 
 세 에이전트 결과를 표로 종합:
 
@@ -72,7 +84,8 @@ git status --short   # 미커밋 변경 있으면 중단
 | A 품질 (lint·test·build) | ✅/❌ | |
 | B 보안 | ✅/❌ | |
 | C 마이그레이션·DB 표준 | ✅/❌ | |
+| D 외부 파일럿 live provenance | ✅/❌/SKIP | manifest가 없을 때만 SKIP |
 ```
 
-- 전부 ✅ → **"release-check 통과 — /release <version> 진행 가능"** 출력
+- A·B·C가 전부 ✅이고 D가 ✅ 또는 정당한 SKIP → **"release-check 통과 — /release <version> 진행 가능"** 출력
 - 하나라도 ❌ → 실패 항목·원인·수정 방향을 리포트하고 **중단** (수정 후 재실행)

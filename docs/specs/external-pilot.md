@@ -13,7 +13,8 @@ Git/CI 증거 사이를 읽기 전용으로 측정한다.
 ## 2. Scope
 
 - **In:** clean Git repo preflight; 임시 `agent-governed/codex` profile install·doctor 시간; repo-sync
-  OK/WARN/MISSING 집계; 정상 허용·정책 차단 guard probe; 전후 Git status·HEAD 불변; JSON report와 Markdown 판정.
+  OK/WARN/MISSING 집계; 정상 허용·정책 차단 guard probe; 전후 Git status·HEAD 불변; JSON report와 Markdown 판정;
+  공개한 JSON 원본의 immutable GitHub commit·SHA-256 provenance 검증.
 - **Out:** 소비 repo 파일·브랜치·GitHub 정책 변경; 앱 dependency 설치·build/test/deploy; 실제 사용자
   cache/config 변경; marketplace 공개; 표본 밖 전체 정확도 주장.
 
@@ -35,6 +36,14 @@ Git/CI 증거 사이를 읽기 전용으로 측정한다.
   한계를 포함하며 사용자 home 절대경로·환경변수·secret을 포함하지 않는다.
 - **AC-8 (판정):** Markdown은 측정값, 검증/추론 구분, 잔여 위험과 다음 결정을 기록하며 표본 0건을 전체
   호환성 0%로 표현하지 않는다.
+- **AC-9 (immutable ref):** provenance manifest의 각 JSON 원본은 branch·tag가 아닌 40자리 commit SHA와
+  lowercase SHA-256 digest를 기록한다.
+- **AC-10 (재계산):** offline 검사는 현재 checkout의 원본 digest를 재계산하고, live 검사는 같은 exact commit의
+  GitHub Contents API 원본을 다시 받아 digest를 별도로 재계산한다.
+- **AC-11 (fail-closed):** mutable ref, local·remote digest 불일치, 원본 누락, malformed 응답, network·rate limit·
+  permission 실패는 검증 실패로 종료한다.
+- **AC-12 (게이트 분리):** CI는 schema·local digest·검증기 반례를 외부 network 없이 실행하고, 정식 release-check는
+  live GitHub 검증을 필수로 실행한다.
 
 ## 4. 제약 / Do-Not
 
@@ -42,6 +51,8 @@ Git/CI 증거 사이를 읽기 전용으로 측정한다.
 - 임시 profile은 OS temp 아래 생성·정리하며 target repo에는 쓰지 않는다.
 - guard probe는 JSON을 stdin으로 전달해 판정만 받고 명령을 실행하지 않는다.
 - 외부 repo의 AGENTS·stack rules를 읽되 파일럿 때문에 수정하지 않는다.
+- GitHub 원본 조회는 exact commit을 지정한 공식 Contents API를 사용한다. 응답 실패를 cache나 stale result로
+  대체하지 않으며 인증 token은 URL·오류 출력·artifact에 기록하지 않는다.
 
 ## 5. 태스크
 
@@ -51,3 +62,6 @@ Git/CI 증거 사이를 읽기 전용으로 측정한다.
 | 2 | 최소 측정 runner 구현 | AC-1~7 | `scripts/run-external-pilot.mjs` | 동일 테스트 |
 | 3 | DriveTree 실측·판정·CI·로드맵 반영 | AC-7~8 | `docs/pilots/`, `docs/`, CI | 전체 quality gate |
 | 4 | webhook-service 실측·zero-drift simulation·후속 조건 기록 | AC-7~8 | `docs/pilots/`, `docs/`, CI | 전체 quality gate |
+| 5 | immutable ref·digest·실패 경계 RED | AC-9~12 | `tests/external-pilot-provenance-test.sh` | 해당 테스트의 RED→GREEN |
+| 6 | offline/live provenance verifier와 manifest 구현 | AC-9~12 | `scripts/check-external-pilot-provenance.mjs`, `docs/pilots/external-pilot-provenance.json` | offline + live 명령 |
+| 7 | CI와 release-check 책임 분리·실행 연결 | AC-12 | CI, `release-check` skill, 유지보수 규약, 결정 로그 | 전체 quality gate |

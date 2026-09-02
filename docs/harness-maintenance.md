@@ -65,6 +65,24 @@ node scripts/check-plugin-coexistence.mjs --profile /tmp/harness-profile --plugi
 node scripts/run-external-pilot.mjs --repo /path/to/consumer --output /tmp/pilot.json
 ```
 
+저장소에 채택한 외부 파일럿 JSON은 `docs/pilots/external-pilot-provenance.json`에서 공개된 immutable commit과
+SHA-256에 결박한다. CI는 외부 서비스 장애와 무관하게 schema와 현재 checkout의 원본 digest를 검사한다.
+
+```bash
+node scripts/check-external-pilot-provenance.mjs \
+  --manifest docs/pilots/external-pilot-provenance.json --offline
+```
+
+정식 release-check에서는 `--offline`을 빼고 실행해 exact commit의 GitHub Contents API 원본을 다시 읽는다.
+network·rate limit·permission 오류와 원본 누락·digest 불일치는 release blocker이며, cache나 이전 성공 결과로
+대체하지 않는다. `GITHUB_TOKEN` 또는 `GH_TOKEN`은 선택 사항이지만 public API rate limit이 부족하면 token을
+사용해 같은 검증을 재실행한다.
+
+```bash
+node scripts/check-external-pilot-provenance.mjs \
+  --manifest docs/pilots/external-pilot-provenance.json
+```
+
 - **플러그인(가드·커맨드·스킬·에이전트 기준)**: Claude Code와 Codex 모두 **설치된 버전을 실행**하므로 버전 업 후
   갱신해야 실린다. Claude Code는 `/plugin marketplace update team-harness` 후 `/plugin` 메뉴에서
   harness-guard를 업데이트한다. Codex는 최신 Team Harness checkout에서 아래 한 경로로 plugin 동기화,
