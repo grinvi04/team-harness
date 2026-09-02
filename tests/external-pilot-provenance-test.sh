@@ -241,6 +241,17 @@ try {
     }),
     /repository-relative path/
   )
+
+  await writeManifest(manifest({ repository: '../..' }))
+  await expectFailure(
+    'repository dot segments must fail before GitHub access',
+    () => verifyExternalPilotProvenance({
+      manifestPath,
+      repositoryRoot: root,
+      fetchImpl: async () => { throw new Error('fetch must not run') }
+    }),
+    /GitHub owner\/repository name/
+  )
 } finally {
   await rm(root, { recursive: true, force: true })
 }
@@ -250,6 +261,109 @@ NODE
   else
     fail 'immutable ref·local/remote digest·missing original·API failure 계약'
   fi
+fi
+
+if node --input-type=module - "$CHECKER" <<'NODE'
+import assert from 'node:assert/strict'
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+import { spawnSync } from 'node:child_process'
+
+const checkerPath = process.argv[2]
+const root = await mkdtemp(path.join(tmpdir(), 'external-pilot-provenance-cli.'))
+const artifactPath = 'docs/pilots/evidence.json'
+const artifact = Buffer.from('trusted evidence\n')
+const digest = '993fb75a22357394395e50e3960af8aa0e2f1c784a647b002bbc57d5d5b9a98e'
+const commit = '1234567890abcdef1234567890abcdef12345678'
+const manifestPath = path.join(root, 'manifest.json')
+const preloadPath = path.join(root, 'fake-fetch.mjs')
+const fetchLogPath = path.join(root, 'fetch.log')
+
+try {
+  await mkdir(path.join(root, 'docs/pilots'), { recursive: true })
+  await writeFile(path.join(root, artifactPath), artifact)
+  await writeFile(manifestPath, `${JSON.stringify({
+    schemaVersion: 1,
+    repository: 'grinvi04/team-harness',
+    artifacts: [{ path: artifactPath, commit, sha256: digest }]
+  })}\n`)
+  await writeFile(preloadPath, `
+import { appendFileSync } from 'node:fs'
+globalThis.fetch = async url => {
+  appendFileSync(process.env.FAKE_FETCH_LOG, String(url) + '\\n')
+  if (process.env.FAKE_FETCH_MODE === 'network') throw new Error('network unavailable')
+  if (process.env.FAKE_FETCH_MODE === '403') return { ok: false, status: 403 }
+  const content = process.env.FAKE_ARTIFACT_BASE64
+  return {
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        type: 'file',
+        path: process.env.FAKE_ARTIFACT_PATH,
+        encoding: 'base64',
+        content,
+        size: Buffer.from(content, 'base64').length
+      }
+    }
+  }
+}
+`)
+
+  function runCli(mode, selectedManifest = manifestPath, executablePath = checkerPath) {
+    return spawnSync(process.execPath, [
+      '--import', preloadPath,
+      executablePath,
+      '--manifest', selectedManifest,
+      '--repo-root', root
+    ], {
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        FAKE_FETCH_MODE: mode,
+        FAKE_FETCH_LOG: fetchLogPath,
+        FAKE_ARTIFACT_BASE64: artifact.toString('base64'),
+        FAKE_ARTIFACT_PATH: artifactPath
+      }
+    })
+  }
+
+  const success = runCli('success')
+  assert.equal(success.status, 0, success.stderr)
+  assert.match(success.stdout, /\(local and GitHub\)/)
+  assert.equal(
+    (await readFile(fetchLogPath, 'utf8')).trim(),
+    `https://api.github.com/repos/grinvi04/team-harness/contents/docs/pilots/evidence.json?ref=${commit}`
+  )
+
+  const forbidden = runCli('403')
+  assert.notEqual(forbidden.status, 0, '403 must fail the CLI live path')
+  assert.match(forbidden.stderr, /GitHub API returned 403/)
+
+  const network = runCli('network')
+  assert.notEqual(network.status, 0, 'network failure must fail the CLI live path')
+  assert.match(network.stderr, /GitHub API request failed/)
+
+  const malformedPath = path.join(root, 'malformed.json')
+  await writeFile(malformedPath, '{"schemaVersion":1,"FAKE-PASS\\n\\u001b[2J":}')
+  const malformed = runCli('success', malformedPath)
+  assert.notEqual(malformed.status, 0, 'malformed manifest must fail')
+  assert.equal(malformed.stderr, 'FAIL: provenance manifest must contain valid JSON\n')
+
+  const checkerAliasPath = path.join(root, 'checker-alias.mjs')
+  await symlink(checkerPath, checkerAliasPath)
+  const aliased = runCli('success', malformedPath, checkerAliasPath)
+  assert.notEqual(aliased.status, 0, 'symlinked CLI path must still execute the release gate')
+  assert.equal(aliased.stderr, 'FAIL: provenance manifest must contain valid JSON\n')
+} finally {
+  await rm(root, { recursive: true, force: true })
+}
+NODE
+then
+  pass 'CLI live 경로·exact ref·외부 실패·안전한 parse error 계약'
+else
+  fail 'CLI live 경로·exact ref·외부 실패·안전한 parse error 계약'
 fi
 
 if node "$CHECKER" --manifest "$MANIFEST" --repo-root "$ROOT" --offline >/dev/null 2>&1; then
