@@ -3,7 +3,11 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.61.1` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.62.0` and replace this file with its output.
+
+## v0.62.0 - 2026-09-02
+
+- fix(pilot): 외부 provenance 원본 결박
 
 ## v0.61.1 - 2026-09-02
 

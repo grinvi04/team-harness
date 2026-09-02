@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.61.1-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.62.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -60,7 +60,7 @@ Team Harness는 코딩 에이전트나 개발 방법론을 새로 만드는 프�
 | 🔒 솔로 머지 | `/solo-merge` — 자기 PR 승인 불가 제약을 review 보호 일시 해제·복구로 처리 |
 | 📦 드리프트 점검 | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 감지 및 백필 PR 제안 |
 | 🩺 런타임 진단 | `harness-doctor.sh` — Codex 설정·플러그인·repo·branch protection 종합 점검 + 선택적 fresh-session probe |
-| 🏅 릴리즈 검증 | `/release-check` — 품질(A)·보안(B)·DB 마이그레이션(C) 병렬 검증 에이전트 |
+| 🏅 릴리즈 검증 | `/release-check` — 품질(A)·보안(B)·DB 마이그레이션(C) 병렬 검증 + 외부 파일럿 live provenance(D) |
 
 ## 🧱 기술 스택
 
@@ -141,7 +141,7 @@ node scripts/build-packages.mjs --output /tmp/team-harness-packages
 | **완료 검증 스킬** | `/verification-before-completion` — 완료·PR·머지·릴리즈 준비 주장을 현재 worktree·HEAD SHA의 새 증거로 검증. 실패·미확인은 fail-closed |
 | **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 timeout·max·내용 기반 stuck·안전 checkpoint 안에서 자동화. 맥락 자동 선택은 명시적 요청 없이 commit하지 않으며 시간 예약 polling과 별개 |
 | **품질 커맨드** | `/qa` — 프론트엔드 QA: 디자인 토큰 준수 + WCAG 2.2 접근성 검증 (`/feature-add`의 TDD 로직과 직교한 비주얼·a11y 축) |
-| **릴리즈 검증** | `/release-check` — 릴리즈 전 품질(Agent A)·보안(Agent B)·DB 마이그레이션(Agent C) 병렬 검증 |
+| **릴리즈 검증** | `/release-check` — 릴리즈 전 품질(Agent A)·보안(Agent B)·DB 마이그레이션(Agent C) 병렬 검증 + manifest가 있을 때 외부 파일럿 live provenance |
 | **드리프트 점검** | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 점검(`check-repo-sync`). commit-msg·validator·CI·rules 등 필수 자산 누락 리포트 |
 | **PR 생성** | `/pr-create` — base 자동감지(develop 있으면 develop, 없으면 기본 브랜치) PR 생성 **단일 프리미티브**. 맨손 `gh pr create` 대체 — develop 없는 main 기반 repo도 한 경로로. `feature-merge`가 PR 생성 단계를 이 스킬에 위임 |
 | **머지·릴리즈 커맨드** | `/feature-merge` · `/hotfix` · `/release` · `/solo-merge` — git-flow 전 구간을 게이트 경유로 자동화 |
