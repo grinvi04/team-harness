@@ -265,7 +265,7 @@ fi
 
 if node --input-type=module - "$CHECKER" <<'NODE'
 import assert from 'node:assert/strict'
-import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, mkdir, readFile, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
@@ -311,10 +311,10 @@ globalThis.fetch = async url => {
 }
 `)
 
-  function runCli(mode, selectedManifest = manifestPath) {
+  function runCli(mode, selectedManifest = manifestPath, executablePath = checkerPath) {
     return spawnSync(process.execPath, [
       '--import', preloadPath,
-      checkerPath,
+      executablePath,
       '--manifest', selectedManifest,
       '--repo-root', root
     ], {
@@ -350,6 +350,12 @@ globalThis.fetch = async url => {
   const malformed = runCli('success', malformedPath)
   assert.notEqual(malformed.status, 0, 'malformed manifest must fail')
   assert.equal(malformed.stderr, 'FAIL: provenance manifest must contain valid JSON\n')
+
+  const checkerAliasPath = path.join(root, 'checker-alias.mjs')
+  await symlink(checkerPath, checkerAliasPath)
+  const aliased = runCli('success', malformedPath, checkerAliasPath)
+  assert.notEqual(aliased.status, 0, 'symlinked CLI path must still execute the release gate')
+  assert.equal(aliased.stderr, 'FAIL: provenance manifest must contain valid JSON\n')
 } finally {
   await rm(root, { recursive: true, force: true })
 }

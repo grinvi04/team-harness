@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.62.0` and repl
 
 ## v0.62.0 - 2026-09-03
 
+- fix(pilot): 비정규 경로 CLI 실행 보장
 - fix(pilot): provenance CLI 경계 강화
 - fix(pilot): 외부 provenance 원본 결박
 

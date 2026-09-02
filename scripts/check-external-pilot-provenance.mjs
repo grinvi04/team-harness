@@ -300,6 +300,15 @@ async function main() {
   }
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
+async function isDirectExecution() {
+  if (!process.argv[1]) return false
+  try {
+    return await realpath(fileURLToPath(import.meta.url)) === await realpath(process.argv[1])
+  } catch {
+    return false
+  }
+}
+
+if (await isDirectExecution()) {
   await main()
 }
