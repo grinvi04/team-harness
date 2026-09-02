@@ -13,6 +13,8 @@ WEBHOOK_SIM_V61="$ROOT/docs/pilots/webhook-service-v0.61.0-simulation.json"
 WEBHOOK_REMEDIATED_V61="$ROOT/docs/pilots/webhook-service-v0.61.0-remediated.json"
 WEBHOOK_REPORT_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.md"
 PRODUCT_DIRECTION="$ROOT/docs/product-direction.md"
+PRODUCT_BOUNDARIES="$ROOT/docs/product-boundaries.md"
+DECISIONS="$ROOT/docs/decisions.md"
 PASS=0
 FAIL=0
 pass() { echo "PASS: $1"; PASS=$((PASS + 1)); }
@@ -511,12 +513,14 @@ else
   fail 'webhook-service 실제 backfill JSON provenance·zero-drift·불변·민감정보 반례 계약'
 fi
 
-if node - "$WEBHOOK_REPORT_V61" "$PRODUCT_DIRECTION" "$WEBHOOK_SIM_V61" "$WEBHOOK_REMEDIATED_V61" <<'NODE'
+if node - "$WEBHOOK_REPORT_V61" "$PRODUCT_DIRECTION" "$WEBHOOK_SIM_V61" "$WEBHOOK_REMEDIATED_V61" "$PRODUCT_BOUNDARIES" "$DECISIONS" <<'NODE'
 const fs = require('fs')
 const report = fs.readFileSync(process.argv[2], 'utf8')
 const direction = fs.readFileSync(process.argv[3], 'utf8')
 const simulation = JSON.parse(fs.readFileSync(process.argv[4]))
 const remediated = JSON.parse(fs.readFileSync(process.argv[5]))
+const boundaries = fs.readFileSync(process.argv[6], 'utf8')
+const decisions = fs.readFileSync(process.argv[7], 'utf8')
 function validReport(text) {
   return /## 검증된 결과/.test(text) &&
     /## zero-drift simulation/.test(text) &&
@@ -567,6 +571,19 @@ for (const mutation of [
   report.split('required context 5개').join('required context 4개')
 ]) if (validReport(mutation)) process.exit(1)
 if (!/^9\. \[x\] \*\*두 번째 외부 파일럿:/m.test(direction)) process.exit(1)
+const drivetreeDecision = decisions.indexOf('DriveTree v0.61.0 잔여 MISSING 10을 두 slice로 적용해 zero-drift를 실측')
+const simulationDecision = decisions.indexOf('두 번째 외부 파일럿을 Python·Alembic webhook-service에서 측정하고 zero-drift 경로를 simulation')
+const completionDecision = decisions.indexOf('webhook-service 실제 backfill을 완료')
+if (drivetreeDecision < 0 || simulationDecision <= drivetreeDecision || completionDecision <= simulationDecision) process.exit(1)
+const drivetree = decisions.slice(drivetreeDecision, simulationDecision)
+const simulationDecisionRow = decisions.slice(simulationDecision, completionDecision)
+const completion = decisions.slice(completionDecision)
+if (!/PR #69[\s\S]*9743ca849d6d7a746df19e22f74422a7128b90e1[\s\S]*OK 18[\s\S]*MISSING 0[\s\S]*required context 5개/.test(completion)) process.exit(1)
+for (const decision of [drivetree, simulationDecisionRow, completion]) {
+  if (!/\*\*버전정책\*\*:[\s\S]*PATCH[\s\S]*\*\*0\.61\.1\*\*/.test(decision)) process.exit(1)
+}
+if (!/webhook-service[\s\S]*PR #69[\s\S]*OK 18[\s\S]*MISSING 0[\s\S]*required context 5개/.test(boundaries)) process.exit(1)
+if (/실제 소비 repo 병합·required gate 증거[\s\S]{0,80}남았다/.test(boundaries)) process.exit(1)
 NODE
 then
   pass 'webhook-service 파일럿 보고서·simulation·실제 backfill·제품 결정·완료 로드맵 계약'
