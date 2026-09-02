@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "repository": "grinvi04/team-harness",
+  "artifacts": [
+    {
+      "path": "docs/pilots/drivertree-v0.60.0.json",
+      "commit": "47f5d7106bb1c3e236a2bf5e270ab481ad4af9ae",
+      "sha256": "0db702c81ca3c256b7f0c8c1fd13cfea6b29b61dfca6814ad1d7d3c845a10fcc"
+    },
+    {
+      "path": "docs/pilots/drivertree-v0.61.0-before.json",
+      "commit": "47f5d7106bb1c3e236a2bf5e270ab481ad4af9ae",
+      "sha256": "08393e5d84e88b24b3d4fa853d639294cf71b80a3bc9d0396f09f0d1ef8537aa"
+    },
+    {
+      "path": "docs/pilots/drivertree-v0.61.0-after.json",
+      "commit": "47f5d7106bb1c3e236a2bf5e270ab481ad4af9ae",
+      "sha256": "ee918ea0792d3adcbf63b0891a0b1e1553ba87eb1e1dd4ef57d20d9a991cb7b4"
+    },
+    {
+      "path": "docs/pilots/drivertree-v0.61.0-remediated.json",
+      "commit": "47f5d7106bb1c3e236a2bf5e270ab481ad4af9ae",
+      "sha256": "16f1e7492a91faed5beeba431358337175da8839cc970b51122b6853b7772cdd"
+    },
+    {
+      "path": "docs/pilots/webhook-service-v0.61.0.json",
+      "commit": "47f5d7106bb1c3e236a2bf5e270ab481ad4af9ae",
+      "sha256": "77c1ca5c4e759785e5c3e8695ff0db4519914a2bc686d5fc7826c50c4e1e2c30"
+    },
+    {
+      "path": "docs/pilots/webhook-service-v0.61.0-simulation.json",
+      "commit": "47f5d7106bb1c3e236a2bf5e270ab481ad4af9ae",
+      "sha256": "7de54f3f33d85a8fd103da92604d1d0a355c8c2e3a0ceaa8b35da8602be00ab5"
+    },
+    {
+      "path": "docs/pilots/webhook-service-v0.61.0-remediated.json",
+      "commit": "47f5d7106bb1c3e236a2bf5e270ab481ad4af9ae",
+      "sha256": "7ef98c9b776750b11efa0dc1b8d7f2fb58174f7b3ee4474ed494c83e99b48af0"
+    }
+  ]
+}

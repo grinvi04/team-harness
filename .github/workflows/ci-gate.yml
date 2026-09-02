@@ -58,6 +58,7 @@ jobs:
           bash -n tests/plugin-coexistence-test.sh
           bash -n tests/external-pilot-test.sh
           bash -n tests/external-pilot-report-test.sh
+          bash -n tests/external-pilot-provenance-test.sh
           bash -n tests/package-catalog-integrity-test.sh
           bash -n tests/package-workflow-binding-test.sh
           bash -n tests/profile-lifecycle-test.sh
@@ -97,6 +98,7 @@ jobs:
           node --check scripts/generate-changelog.mjs
           node --check scripts/check-plugin-coexistence.mjs
           node --check scripts/run-external-pilot.mjs
+          node --check scripts/check-external-pilot-provenance.mjs
           node --check scripts/codex-binary-trust.mjs
           node --check scripts/sync-codex-plugin-cache.mjs
           node --check scripts/check-codex-native-plugin.mjs
@@ -119,6 +121,7 @@ jobs:
               ".claude-plugin/marketplace.json",
               "templates/settings.json",
               "packaging/packages.json",
+              "docs/pilots/external-pilot-provenance.json",
           ] + sorted(glob.glob("templates/permissions/*.json"))
           for p in paths:
               json.load(open(p))
@@ -239,6 +242,7 @@ jobs:
         run: |
           bash tests/external-pilot-test.sh
           bash tests/external-pilot-report-test.sh
+          bash tests/external-pilot-provenance-test.sh
 
       - name: subagent 모델 강제 훅 테스트
         run: bash tests/enforce-subagent-model-test.sh
