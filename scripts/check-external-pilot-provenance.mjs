@@ -63,7 +63,15 @@ function validateManifest(manifest) {
   if (manifest.schemaVersion !== 1) {
     throw new Error('manifest.schemaVersion must be 1')
   }
-  if (!GITHUB_REPOSITORY.test(manifest.repository ?? '')) {
+  const repository = manifest.repository
+  const [owner, name] = typeof repository === 'string' ? repository.split('/') : []
+  if (
+    !GITHUB_REPOSITORY.test(repository ?? '') ||
+    owner === '.' ||
+    owner === '..' ||
+    name === '.' ||
+    name === '..'
+  ) {
     throw new Error('manifest.repository must be a GitHub owner/repository name')
   }
   if (!Array.isArray(manifest.artifacts) || manifest.artifacts.length === 0) {
@@ -171,11 +179,18 @@ async function inspectExternalPilotProvenanceManifest({
   manifestPath,
   repositoryRoot = process.cwd()
 }) {
+  let serializedManifest
+  try {
+    serializedManifest = await readFile(manifestPath, 'utf8')
+  } catch {
+    throw new Error('cannot read provenance manifest')
+  }
+
   let manifest
   try {
-    manifest = JSON.parse(await readFile(manifestPath, 'utf8'))
-  } catch (error) {
-    throw new Error(`cannot read provenance manifest: ${error.message}`)
+    manifest = JSON.parse(serializedManifest)
+  } catch {
+    throw new Error('provenance manifest must contain valid JSON')
   }
   validateManifest(manifest)
 
