@@ -120,8 +120,8 @@ node scripts/check-external-pilot-provenance.mjs \
   네 자산 모두 team-harness 정본의 정규화된 SHA-256과 일치해야 하며, 대상 파일을 실행하지 않아 드리프트
   검사 중 소비 repo 코드가 실행되지 않는다. 따라서 `if:false`, `continue-on-error`, block scalar 안 가짜 action
   같은 비활성 workflow도 정본 불일치로 차단한다.
-  team-harness 자기 자신을 점검할 때는 배포용 `templates/`와 테스트 입력인 `tests/fixtures/`를
-  활성 스택 신호에서 제외한다. 이 예외는 `--repo`와 `--harness`가 같은 self-check에만 적용되며,
+  team-harness 자기 자신을 점검할 때는 배포용 `templates/`, 테스트 입력인 `tests/fixtures/`, 로컬 목표 실행
+  산출물인 `docs/goals/`를 활성 스택 신호에서 제외한다. 이 예외는 `--repo`와 `--harness`가 같은 self-check에만 적용되며,
   repo 루트의 실제 워크플로·설정 자산 검사는 그대로 수행한다.
   stack이 감지된 소비 repo는 rule 파일 존재뿐 아니라 `AGENTS.md`가 `.claude/rules/*.md`를 관련 도구가
   읽도록 지시하는지도 검사한다. Claude는 해당 경로를 자동 로드하고 Codex/Gemini는 AGENTS pointer로 같은
