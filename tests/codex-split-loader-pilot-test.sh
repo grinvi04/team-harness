@@ -428,4 +428,8 @@ if find "$TMP" -name '.team-harness-report.*' | grep -q .; then
   exit 1
 fi
 
+grep -Fq \
+  'standalone pilot 변경만으로 monolith plugin version을 올리지 않는다.' \
+  "$ROOT/docs/specs/codex-split-loader-pilot.md"
+
 echo 'PASS: split package loader installs exact caches, rolls back in reverse order, and fails closed'

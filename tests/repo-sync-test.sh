@@ -194,6 +194,20 @@ else
   echo "FAIL: self-repo docs/goals 중첩 checkout 스택 오탐"; FAIL=$((FAIL+1))
 fi
 
+# Consumer repo: 같은 docs/goals 경로도 self-check가 아니면 실제 stack 신호로 취급한다.
+CONSUMER_WITH_GOAL="$TMP/consumer-with-goal-checkout"
+mkdir -p "$CONSUMER_WITH_GOAL/docs/goals/run/repo/db/migration"
+touch "$CONSUMER_WITH_GOAL/docs/goals/run/repo/build.gradle"
+touch "$CONSUMER_WITH_GOAL/docs/goals/run/repo/db/migration/V1__nested.sql"
+if OUT=$(node "$GATE" --repo "$CONSUMER_WITH_GOAL" --harness "$ROOT" 2>&1); then
+  echo "FAIL: consumer repo docs/goals 스택 누락"; FAIL=$((FAIL+1))
+elif echo "$OUT" | grep -q "감지된 스택: java, flyway" &&
+     echo "$OUT" | grep -q "✗ MISSING"; then
+  echo "PASS: consumer repo docs/goals 스택 감지·드리프트 차단"; PASS=$((PASS+1))
+else
+  echo "FAIL: consumer repo docs/goals 스택 판정 불일치"; FAIL=$((FAIL+1))
+fi
+
 # --help → 통과
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
 

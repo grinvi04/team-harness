@@ -57,7 +57,7 @@ CLI로 설치·제거하고, 각 installed cache가 생성 artifact와 byte-equi
 - 외부 입력인 revision, CLI JSON, installed path, report path는 신뢰하지 않고 canonical path와 exact identity를
   검증한다.
 - 격리 subprocess에는 loader에 필요한 최소 환경만 전달하고 access/refresh token·API key를 전달하지 않는다.
-- plugin runtime과 소비 repo 설치 경로는 바꾸지 않으므로 monolith plugin version은 `0.62.0`을 유지한다.
+- plugin runtime과 소비 repo 설치 경로는 바꾸지 않으므로 standalone pilot 변경만으로 monolith plugin version을 올리지 않는다.
 
 ## 5. 경계 / Do-Not
 
