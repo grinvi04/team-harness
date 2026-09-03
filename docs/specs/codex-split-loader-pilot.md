@@ -21,8 +21,10 @@ CLI로 설치·제거하고, 각 installed cache가 생성 artifact와 byte-equi
 
 ## 3. 기능 요구사항 + 수용기준 (= 테스트 계약)
 
-- **AC-1 (exact source):** WHEN runner에 immutable Git commit이 주어지면, the system SHALL 그 commit에서 네
-  package를 생성하고 모든 artifact의 `sourcePluginCommit`을 exact commit으로 검증한다.
+- **AC-1 (exact source):** WHEN runner에 immutable Git commit이 주어지면, the system SHALL clean source의
+  `HEAD`가 그 commit과 정확히 같을 때만 Git 제어 환경변수를 제거한 private checkout을 만들고 그 exact
+  checkout의 builder·trust data로 네 package를 생성해 모든 artifact의 `sourcePluginCommit`을 검증한다. 다른
+  HEAD나 일반 dirty source는 실행 전에 거부하고, `skip-worktree`로 숨긴 live 파일도 실행 입력으로 사용하지 않는다.
 - **AC-2 (공식 loader):** WHEN 각 Codex profile을 검증하면, the system SHALL local marketplace를 공식
   `codex plugin marketplace add`로 등록하고 profile 구성 package를 core→adapter→workflow 순서로 설치한다.
 - **AC-3 (설치 무결성):** WHEN plugin add가 성공하면, the system SHALL CLI가 반환한 non-symlink installed
@@ -39,7 +41,10 @@ CLI로 설치·제거하고, 각 installed cache가 생성 artifact와 byte-equi
   nonzero로 종료한다.
 - **AC-8 (증거 보고):** WHEN live pilot이 통과하면, Markdown/JSON report SHALL Codex version·binary digest,
   Team Harness revision·tree, package version·digest, profile별 install/rollback 결과, 사용자 상태 불변, 검증된
-  사실·추론·한계를 구분해 기록한다.
+  사실·추론·한계를 구분해 기록한다. 두 report 경로는 source와 사용자 `CODEX_HOME` 밖의 기존 디렉터리에 있는
+  새 non-symlink 파일이어야 하며, runner는 parent의 canonical path·device·inode를 게시 전후 재검증하고 기존
+  파일을 덮어쓰지 않은 채 identity가 고정된 완성 bytes만 배타적으로 게시한다. 두 번째 게시 실패나 게시 후
+  상태 snapshot 예외 시 게시한 pair를 identity 확인 후 회수하고, source·사용자 상태를 다시 검증한다.
 - **AC-9 (비승격):** WHILE 공식 loader에 dependency/runtime binding 선언 surface가 없고 실제 hook session을
   검증하지 않았으면, the system SHALL split package `installable:false`, monolith alias, marketplace 공개 보류를
   유지한다.
@@ -49,7 +54,8 @@ CLI로 설치·제거하고, 각 installed cache가 생성 artifact와 byte-equi
 ## 4. 제약 / 비기능
 
 - 실측 기준 runtime은 설치된 `codex-cli 0.144.6`; 결과는 해당 버전·macOS 한 표본으로 제한한다.
-- 외부 입력인 revision, CLI JSON, installed path는 신뢰하지 않고 canonical path와 exact identity를 검증한다.
+- 외부 입력인 revision, CLI JSON, installed path, report path는 신뢰하지 않고 canonical path와 exact identity를
+  검증한다.
 - 격리 subprocess에는 loader에 필요한 최소 환경만 전달하고 access/refresh token·API key를 전달하지 않는다.
 - plugin runtime과 소비 repo 설치 경로는 바꾸지 않으므로 monolith plugin version은 `0.62.0`을 유지한다.
 
@@ -69,7 +75,12 @@ CLI로 설치·제거하고, 각 installed cache가 생성 artifact와 byte-equi
 ## 7. 기술 접근 (HOW)
 
 - `run-codex-split-loader-pilot.mjs`가 exact revision을 `build-packages.mjs --revision`에 전달해 임시 artifact를
-  만들고, 그 디렉터리에만 local marketplace manifest를 생성한다. checked-in marketplace는 수정하지 않는다.
+  만들고, 그 디렉터리에만 local marketplace manifest를 생성한다. 실행 전 source HEAD·clean 상태를 exact
+  revision과 결박하고 `GIT_*`를 제거한 private no-hardlink checkout만 builder 입력으로 사용하며 checked-in
+  marketplace는 수정하지 않는다.
+- report는 보호 root 밖의 identity-bound canonical parent에서 완성한 단일 임시 파일을 hard link로 새 목적지에만
+  게시한다. 임시·최종 파일 inode가 같음을 검증하고 임시 경로는 identity 확인 후 단일 unlink한다. 기존 파일·symlink·source·사용자 `CODEX_HOME` 경로는 쓰기 전에 거부하고 pair rollback과 게시 후
+  보호 상태 재검증을 수행한다.
 - 각 profile은 별도 격리 HOME에서 실행한다. 실제 Codex subprocess는 `HOME`, `CODEX_HOME`, XDG root와
   `PATH`, locale, temp 관련 비밀 없는 key만 받는다.
 - 공식 CLI의 JSON 결과에서 marketplace name, plugin id, version, installedPath를 읽고 생성 artifact와 cache를

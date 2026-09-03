@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.63.0` and repl
 
 ## v0.63.0 - 2026-09-03
 
+- fix(packaging): split loader 증거 경계 결박
 - fix(repo-sync): goal checkout 스택 오탐 제거
 - feat(packaging): Codex split loader rollback pilot 추가
 

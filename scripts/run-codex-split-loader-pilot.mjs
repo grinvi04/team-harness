@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process'
-import { createHash } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import {
   existsSync,
+  linkSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -11,6 +12,7 @@ import {
   realpathSync,
   rmSync,
   statSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs'
 import os from 'node:os'
@@ -116,6 +118,21 @@ function run(program, args, options = {}) {
   return result.stdout
 }
 
+function gitEnvironment() {
+  const environment = { ...process.env }
+  for (const key of Object.keys(environment)) {
+    if (key.startsWith('GIT_')) delete environment[key]
+  }
+  if (path.isAbsolute(gitBin)) {
+    environment.PATH = [...new Set([path.dirname(gitBin), '/usr/bin', '/bin'])].join(':')
+  }
+  return environment
+}
+
+function runGit(source, args, label) {
+  return run(gitBin, args, { cwd: source, env: gitEnvironment(), label })
+}
+
 function runCodex(args, env, label) {
   if (!verifiedCodexIdentity) {
     throw new Error('Codex executable was used before trust verification')
@@ -132,14 +149,12 @@ function runCodexJson(args, env, label) {
 
 function snapshotSource(source) {
   return {
-    head: run(gitBin, ['rev-parse', 'HEAD'], {
-      cwd: source,
-      label: 'source HEAD snapshot',
-    }).trim(),
-    status: run(gitBin, ['status', '--porcelain=v1', '-uall'], {
-      cwd: source,
-      label: 'source status snapshot',
-    }),
+    head: runGit(source, ['rev-parse', 'HEAD'], 'source HEAD snapshot').trim(),
+    status: runGit(
+      source,
+      ['status', '--porcelain=v1', '-uall'],
+      'source status snapshot',
+    ),
   }
 }
 
@@ -159,26 +174,37 @@ function snapshotUserState(env) {
 }
 
 function resolveRevision(source, requested) {
-  const revision = run(
-    gitBin,
+  const revision = runGit(
+    source,
     ['--no-replace-objects', 'rev-parse', '--verify', requested + '^{commit}'],
-    { cwd: source, label: 'revision resolution' },
+    'revision resolution',
   ).trim()
   if (revision !== requested) throw new Error('revision did not resolve to the exact requested commit')
-  const tree = run(
-    gitBin,
+  const tree = runGit(
+    source,
     ['--no-replace-objects', 'rev-parse', '--verify', revision + '^{tree}'],
-    { cwd: source, label: 'revision tree resolution' },
+    'revision tree resolution',
   ).trim()
   return { revision, tree }
 }
 
-function gitFile(source, revision, file) {
-  return run(
-    gitBin,
-    ['--no-replace-objects', 'show', revision + ':' + file],
-    { cwd: source, label: 'exact revision file read' },
+function materializeRevision(source, revision, tempRoot) {
+  const exactSource = path.join(tempRoot, 'exact-source')
+  runGit(
+    source,
+    ['clone', '--quiet', '--no-checkout', '--no-hardlinks', source, exactSource],
+    'exact revision clone',
   )
+  runGit(
+    exactSource,
+    ['--no-replace-objects', 'checkout', '--detach', '--quiet', revision],
+    'exact revision checkout',
+  )
+  const exact = snapshotSource(exactSource)
+  if (exact.head !== revision || exact.status !== '') {
+    throw new Error('exact revision checkout identity mismatch')
+  }
+  return exactSource
 }
 
 function captureDirectory(directory, label) {
@@ -230,6 +256,72 @@ function evidencePath(file) {
   if (resolved === temporary) return '$TMP'
   if (resolved.startsWith(temporary + path.sep)) return '$TMP' + resolved.slice(temporary.length)
   return path.basename(resolved)
+}
+
+function prepareReportTargets(args, source, userCodexHome) {
+  const protectedRoots = [source, userCodexHome].map((root) => (
+    existsSync(root) ? realpathSync(root) : path.resolve(root)
+  ))
+  const resolveTarget = (file) => {
+    const parent = path.dirname(file)
+    if (!existsSync(parent) || !lstatSync(parent).isDirectory()) {
+      throw new Error('report destination parent must be an existing directory')
+    }
+    const canonicalParent = realpathSync(parent)
+    const parentStat = statSync(canonicalParent)
+    const target = path.join(canonicalParent, path.basename(file))
+    if (protectedRoots.some((root) => target === root || isWithin(root, target))) {
+      throw new Error(
+        'report destinations must be outside source repository and user CODEX_HOME',
+      )
+    }
+    let targetStat = null
+    try {
+      targetStat = lstatSync(target)
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+    }
+    if (targetStat) {
+      if (targetStat.isSymbolicLink()) {
+        throw new Error('report destination must not be a symbolic link')
+      }
+      throw new Error('report destination must not already exist')
+    }
+    return {
+      path: target,
+      parent: {
+        path: canonicalParent,
+        device: parentStat.dev,
+        inode: parentStat.ino,
+      },
+    }
+  }
+  const jsonReport = resolveTarget(args.jsonReport)
+  const markdownReport = resolveTarget(args.markdownReport)
+  if (jsonReport.path === markdownReport.path) {
+    throw new Error('JSON and Markdown report destinations must be distinct')
+  }
+  return { jsonReport, markdownReport, protectedRoots }
+}
+
+function assertReportParent(target, protectedRoots) {
+  let current
+  try {
+    if (!lstatSync(target.parent.path).isDirectory()) throw new Error('not a directory')
+    const canonical = realpathSync(target.parent.path)
+    const stat = statSync(canonical)
+    current = { path: canonical, device: stat.dev, inode: stat.ino }
+  } catch {
+    throw new Error('report destination parent changed during verification')
+  }
+  if (
+    current.path !== target.parent.path ||
+    current.device !== target.parent.device ||
+    current.inode !== target.parent.inode ||
+    protectedRoots.some((root) => target.path === root || isWithin(root, target.path))
+  ) {
+    throw new Error('report destination parent changed during verification')
+  }
 }
 
 const environmentAllowlist = new Set([
@@ -286,8 +378,11 @@ function isolatedEnvironment(pilotHome) {
   return environment
 }
 
-function buildMarketplace(args, tempRoot, exact) {
-  const catalogRaw = gitFile(args.source, exact.revision, 'packaging/packages.json')
+function buildMarketplace(exactSource, tempRoot, exact) {
+  const catalogRaw = readFileSync(
+    path.join(exactSource, 'packaging', 'packages.json'),
+    'utf8',
+  )
   const catalog = parseJson(catalogRaw, 'package catalog')
   const catalogDigest = sha256(catalogRaw)
   const catalogFile = path.join(tempRoot, 'packages.json')
@@ -296,7 +391,7 @@ function buildMarketplace(args, tempRoot, exact) {
   run(
     process.execPath,
     [
-      path.join(args.source, 'scripts', 'build-packages.mjs'),
+      path.join(exactSource, 'scripts', 'build-packages.mjs'),
       '--catalog',
       catalogFile,
       '--revision',
@@ -304,7 +399,11 @@ function buildMarketplace(args, tempRoot, exact) {
       '--output',
       marketplaceRoot,
     ],
-    { cwd: args.source, label: 'split package build' },
+    {
+      cwd: exactSource,
+      env: gitEnvironment(),
+      label: 'split package build',
+    },
   )
 
   const artifacts = new Map()
@@ -609,11 +708,82 @@ function markdown(report) {
   ].join('\n')
 }
 
-function writeReports(args, report) {
-  mkdirSync(path.dirname(args.jsonReport), { recursive: true })
-  mkdirSync(path.dirname(args.markdownReport), { recursive: true })
-  writeFileSync(args.jsonReport, JSON.stringify(report, null, 2) + '\n')
-  writeFileSync(args.markdownReport, markdown(report))
+function writeReports(targets, report) {
+  const contents = [
+    [targets.jsonReport, JSON.stringify(report, null, 2) + '\n'],
+    [targets.markdownReport, markdown(report)],
+  ]
+  const staged = []
+  const published = []
+  let publicationFailed = false
+  let cleanupFailed = false
+  try {
+    for (const [target, content] of contents) {
+      assertReportParent(target, targets.protectedRoots)
+      const file = path.join(
+        target.parent.path,
+        '.team-harness-report.' + randomBytes(16).toString('hex'),
+      )
+      writeFileSync(file, content, { encoding: 'utf8', flag: 'wx', mode: 0o600 })
+      const stat = lstatSync(file)
+      staged.push({ file, target, device: stat.dev, inode: stat.ino })
+    }
+    for (const item of staged) {
+      assertReportParent(item.target, targets.protectedRoots)
+      const stagedStat = lstatSync(item.file)
+      if (stagedStat.dev !== item.device || stagedStat.ino !== item.inode) {
+        throw new Error('staged report identity changed')
+      }
+      linkSync(item.file, item.target.path)
+      const targetStat = lstatSync(item.target.path)
+      if (targetStat.dev !== item.device || targetStat.ino !== item.inode) {
+        throw new Error('published report identity mismatch')
+      }
+      published.push({ ...item.target, device: item.device, inode: item.inode })
+      assertReportParent(item.target, targets.protectedRoots)
+    }
+  } catch {
+    publicationFailed = true
+  } finally {
+    for (const item of staged) {
+      try {
+        assertReportParent(item.target, targets.protectedRoots)
+        const stat = lstatSync(item.file)
+        if (stat.dev !== item.device || stat.ino !== item.inode) {
+          throw new Error('staged report identity changed')
+        }
+        unlinkSync(item.file)
+      } catch {
+        cleanupFailed = true
+      }
+    }
+  }
+  if (publicationFailed || cleanupFailed) {
+    try {
+      removePublishedReports(targets, published)
+    } catch {
+      throw new Error('report publication rollback failed')
+    }
+    throw new Error(cleanupFailed ? 'report staging cleanup failed' : 'report publication failed')
+  }
+  return published
+}
+
+function removePublishedReports(targets, published) {
+  let failed = false
+  for (const target of [...published].reverse()) {
+    try {
+      assertReportParent(target, targets.protectedRoots)
+      const stat = lstatSync(target.path)
+      if (stat.dev !== target.device || stat.ino !== target.inode) {
+        throw new Error('published report identity changed')
+      }
+      unlinkSync(target.path)
+    } catch {
+      failed = true
+    }
+  }
+  if (failed) throw new Error('published report rollback failed')
 }
 
 let args
@@ -656,18 +826,31 @@ let beforeSource = null
 let beforeUser = null
 let tempRoot = null
 let failure = null
+let reportTargets = null
 
 try {
   if (!existsSync(args.source) || !lstatSync(args.source).isDirectory()) {
     throw new Error('source repository is unavailable')
   }
+  reportTargets = prepareReportTargets(args, realpathSync(args.source), userCodexHome)
   beforeSource = snapshotSource(args.source)
   const exact = resolveRevision(args.source, args.revision)
+  if (beforeSource.head !== exact.revision) {
+    throw new Error('source HEAD does not match requested revision')
+  }
+  if (beforeSource.status !== '') {
+    throw new Error('source repository must be clean before pilot execution')
+  }
   report.harness.revision = exact.revision
   report.harness.tree = exact.tree
 
+  tempRoot = mkdtempSync(
+    path.join(process.env.TMPDIR || os.tmpdir(), 'team-harness-codex-split-pilot.'),
+  )
+  const exactSource = materializeRevision(args.source, exact.revision, tempRoot)
+
   const trustedBinariesPath = path.join(
-    args.source,
+    exactSource,
     'docs',
     'pilots',
     'codex-native-loader-trusted-binaries.json',
@@ -687,10 +870,7 @@ try {
   beforeUser = snapshotUserState(userEnvironment)
   report.userState.before = beforeUser.digest
 
-  tempRoot = mkdtempSync(
-    path.join(process.env.TMPDIR || os.tmpdir(), 'team-harness-codex-split-pilot.'),
-  )
-  const marketplace = buildMarketplace(args, tempRoot, exact)
+  const marketplace = buildMarketplace(exactSource, tempRoot, exact)
   report.packages.version = marketplace.version
   report.packages.catalogDigest = marketplace.catalogDigest
   report.packages.artifacts = [...marketplace.artifacts.values()].map((artifact) => ({
@@ -750,7 +930,40 @@ try {
   }
   report.status = failure ? 'fail' : 'pass'
   if (failure && !report.error) report.error = failure.message
-  writeReports(args, report)
+  if (reportTargets) {
+    let published = null
+    try {
+      published = writeReports(reportTargets, report)
+      if (!failure) {
+        const publishedUser = snapshotUserState(userEnvironment)
+        const publishedSource = snapshotSource(args.source)
+        if (
+          !beforeUser ||
+          publishedUser.canonical !== beforeUser.canonical ||
+          !beforeSource ||
+          publishedSource.head !== beforeSource.head ||
+          publishedSource.status !== beforeSource.status
+        ) {
+          removePublishedReports(reportTargets, published)
+          published = null
+          throw new Error('protected state changed during report publication')
+        }
+      }
+    } catch (error) {
+      let reportError = error
+      if (published) {
+        try {
+          removePublishedReports(reportTargets, published)
+          published = null
+        } catch {
+          reportError = new Error('published report rollback failed')
+        }
+      }
+      if (!failure) failure = reportError
+      report.status = 'fail'
+      if (!report.error) report.error = reportError.message
+    }
+  }
 }
 
 if (failure) {
