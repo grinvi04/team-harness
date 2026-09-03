@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "status": "wait",
+  "observedAt": "2026-09-03T04:25:04.283Z",
+  "evidence": {
+    "mode": "live",
+    "officialDocumentation": {
+      "url": "https://developers.openai.com/plugins/build/plugins",
+      "manifestFields": [
+        "name",
+        "version",
+        "description",
+        "author",
+        "homepage",
+        "repository",
+        "license",
+        "keywords",
+        "skills",
+        "mcpServers",
+        "apps",
+        "hooks",
+        "interface"
+      ],
+      "documentedCrossPluginDependency": false,
+      "documentedCrossPluginRuntimeBinding": false,
+      "documentedHookEnvironment": [
+        "PLUGIN_ROOT",
+        "PLUGIN_DATA",
+        "CLAUDE_PLUGIN_ROOT",
+        "CLAUDE_PLUGIN_DATA"
+      ]
+    }
+  },
+  "codex": {
+    "version": "codex-cli 0.144.6",
+    "binary": {
+      "path": "$HOME/.codex/packages/standalone/releases/0.144.6-aarch64-apple-darwin/bin/codex",
+      "digest": "sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff"
+    },
+    "pluginAddDependencyOption": false,
+    "pluginAddRuntimeBindingOption": false
+  },
+  "harness": {
+    "revision": "18d0e178fa9e62092ca6e2783ce3868a871f7777",
+    "tree": "5895f2d785dbd82d04ffc53156c98b56237d927a",
+    "packageVersion": "0.61.0"
+  },
+  "adapterArtifact": {
+    "officialManifestFields": [
+      "name",
+      "version",
+      "description",
+      "author",
+      "license",
+      "keywords",
+      "interface"
+    ],
+    "rootHooksPresent": false,
+    "nestedHooksPresent": true,
+    "rootSkillsPresent": false,
+    "nestedSkillsPresent": true,
+    "internalDependencyMetadata": [
+      {
+        "id": "governance-core",
+        "version": ">=0.61.0 <0.62.0"
+      }
+    ],
+    "internalRuntimeBindings": [],
+    "coreGuardPresentInAdapter": false,
+    "coreRouteIntentPresentInAdapter": false,
+    "coreGuardPresentInCore": true,
+    "coreRouteIntentPresentInCore": true
+  },
+  "directNestedHookProbe": {
+    "equivalentToFreshSession": false,
+    "preToolUse": {
+      "status": 127,
+      "error": "adapter PLUGIN_ROOT에 scripts/guard.sh 없음"
+    },
+    "userPromptSubmit": {
+      "status": 1,
+      "error": "adapter PLUGIN_ROOT에 scripts/route-intent.mjs 없음"
+    }
+  },
+  "state": {
+    "userPluginInventoryUnchanged": true,
+    "temporaryArtifactsRemoved": true
+  },
+  "decision": {
+    "productGate": "연결",
+    "implementation": "deferred",
+    "freshSessionParityRun": false,
+    "splitPackagesPromoted": false,
+    "installable": false,
+    "monolithRetained": true,
+    "reason": "공식 cross-plugin dependency/runtime binding surface가 없어 native fresh-session 결과 계약의 선행조건이 충족되지 않음"
+  }
+}
