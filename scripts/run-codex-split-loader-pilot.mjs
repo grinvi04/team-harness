@@ -82,10 +82,6 @@ function sha256(value) {
   return 'sha256:' + createHash('sha256').update(value).digest('hex')
 }
 
-function hashFile(file) {
-  return sha256(readFileSync(file))
-}
-
 function canonicalValue(value) {
   if (Array.isArray(value)) return value.map(canonicalValue)
   if (value && typeof value === 'object') {
