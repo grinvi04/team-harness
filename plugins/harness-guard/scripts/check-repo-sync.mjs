@@ -68,7 +68,7 @@ const REPO = resolve(optVal('--repo') || '.')
 // (플러그인으로 설치돼 templates/ 가 없으면 standardHas=false 로 graceful — detail 힌트만 생략.)
 const HARNESS = resolve(optVal('--harness') || join(__dirname, '../../..'))
 const IS_HARNESS_SELF = REPO === HARNESS
-const SELF_IGNORED_PREFIXES = ['templates', 'tests/fixtures']
+const SELF_IGNORED_PREFIXES = ['templates', 'tests/fixtures', 'docs/goals']
 
 if (!existsSync(REPO)) {
   console.error(`✖ --repo 경로가 없습니다: ${REPO}`)

@@ -107,7 +107,19 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
    [`pilots/webhook-service-v0.61.0.md`](pilots/webhook-service-v0.61.0.md)에 기록했다. 실제 소비 repo
    [PR #69](https://github.com/grinvi04/webhook-service/pull/69)을 develop에 병합하고 앱 품질 56 tests,
    zero-drift 재측정, main/develop의 `commitlint`·`destructive-ddl` 포함 required context 5개 강제를
-   [완료 원본](pilots/webhook-service-v0.61.0-remediated.json)으로 고정했다. 판정은 **연결**이며 두 public
-   repo·단일 운영 환경 표본이므로 split package의 `installable:false`와 marketplace 승격 보류를 유지한다.
+    [완료 원본](pilots/webhook-service-v0.61.0-remediated.json)으로 고정했다. 판정은 **연결**이며 두 public
+    repo·단일 운영 환경 표본이므로 split package의 `installable:false`와 marketplace 승격 보류를 유지한다.
+10. [x] **split package 공식 loader·rollback:** v0.62.0 이후 exact commit `d580808`에서 생성한 staged
+    package를 Codex 0.144.6 공식 local marketplace loader로 세 profile에 각각 설치했다. 생성 artifact와 설치
+    cache의 전체 tree digest, core-first 설치, workflow→adapter→core 역순 제거, 사용자 Codex 상태 불변과 격리
+    HOME 삭제를 [`pilots/codex-split-loader-v0.61.0.md`](pilots/codex-split-loader-v0.61.0.md)에 고정했다.
+    판정은 **연결**이며 loader 수명주기 증거만 충족했으므로 `installable:false`를 유지한다.
+11. [ ] **split runtime 결과 계약:** 독립 core+Codex adapter에서 native hook·skill fresh-session outcome parity를
+    검증한다. Codex가 plugin dependency와 runtime binding을 선언하는 공식 surface를 제공하지 않는 동안 custom
+    resolver를 만들지 않고 전환기 monolith를 유지한다. 공식 surface가 생기거나 지원 가능한 native 연결이
+    확인된 뒤에만 marketplace 승격·호환 기간·rollback 계획을 별도 결정한다. 2026-09-03 Codex 0.144.6과 공식
+    plugin manifest를 재확인했지만 연결 surface가 없었고, 독립 artifact의 hook도 core root를 해석하지 못함을
+    [`pilots/codex-split-runtime-v0.61.0.md`](pilots/codex-split-runtime-v0.61.0.md)에 기록했다. 따라서 항목은
+    **WAIT**로 열어 두고 `installable:false`·monolith를 유지한다.
 
 로드맵 항목은 기능 수가 아니라 거버넌스 강제력, 증거 품질, 유지보수 감소로 성공 여부를 판단한다.

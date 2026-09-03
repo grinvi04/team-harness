@@ -23,6 +23,11 @@ v0.61.0부터 monolith Codex 경로는 `.codex-plugin/plugin.json`과 native com
 source에서 직접 제공한다. 설치 cache patch, overlay, Codex custom agent 복사와 unified exec 비활성화는 제거했고
 doctor는 설치 source를 읽기 전용으로 검증한다. 이는 monolith adapter의 공식 loader 전환이며 네 split package의
 `installable:false` 또는 marketplace 공개 판정을 바꾸지 않는다.
+v0.62.0 이후 exact commit `d580808`의 staged package는 Codex 0.144.6 공식 local marketplace loader에서 세
+profile의 독립 설치, 생성 artifact와 cache의 전체 tree digest 일치, 역의존 순서 제거와 사용자 상태 불변을
+통과했다. 원본은 [`pilots/codex-split-loader-v0.61.0.md`](pilots/codex-split-loader-v0.61.0.md)다. 이 증거는
+loader·rollback 수명주기만 검증한다. Codex의 공식 plugin dependency/runtime binding 선언 surface와 분리된
+core+adapter의 model·hook session은 아직 없으므로 `installable:false`와 monolith를 유지한다.
 
 ## 목표 제품 단위
 
@@ -142,20 +147,25 @@ workflow 세션 상태는 재생성 가능해야 한다. 제거 명령은 다른
 2. **manifest/package 분리(완료):** core, runtime adapter, workflow pack manifest와 버전 호환 범위를 추가하되
    기존 monolith는 그대로 유지한다. build artifact는 설치 불가로 표시해 검증 전 노출을 막는다.
 3. **profile 설치·doctor 검증(완료):** clean 대상에서 세 profile의 설치·업데이트·비활성화·제거와 core 보존,
-   파일 drift·binding·실패 원자성을 실측했다. 공식 loader 승격 전까지 filesystem 검증 surface로만 둔다.
+   파일 drift·binding·실패 원자성을 filesystem surface에서 실측했다.
 4. **clean-session 공존 검증(완료):** 세 profile과 외부 plugin의 identity·skill namespace·hook overlap·파일
    불변을 검사하고 malformed·symlink 입력을 fail-closed했다. 실제 hook 순서는 플랫폼에 위임한다.
-5. **호환 기간:** 최소 한 릴리스 동안 monolith를 deprecated alias로 유지하고 동일 결과·rollback 안내를 제공한다.
-6. **legacy 경로 제거(부분 완료):** v0.61.0에서 harness cache patch·overlay·Codex agent 복사본을 제거했다.
-   monolith manifest는 split package loader·rollback 증거가 충족될 때까지 유지한다. required CI와 branch
+5. **공식 loader·rollback 검증(완료):** Codex 공식 local marketplace loader로 세 profile을 core-first 설치하고
+   exact cache digest와 역의존 순서 제거, 사용자 상태 불변, 격리 HOME 삭제를 실측했다.
+6. **runtime 결과 계약(대기):** 공식 dependency/runtime binding surface에서 분리 core+adapter의 native
+   hook·skill session parity를 검증한다. surface가 없으면 custom resolver를 만들지 않고 monolith를 유지한다.
+7. **호환 기간:** 최소 한 릴리스 동안 monolith를 deprecated alias로 유지하고 동일 결과·rollback 안내를 제공한다.
+8. **legacy 경로 제거(부분 완료):** v0.61.0에서 harness cache patch·overlay·Codex agent 복사본을 제거했다.
+   monolith manifest는 split package runtime 결과 계약이 충족될 때까지 유지한다. required CI와 branch
    protection drift가 있으면 추가 제거를 중단한다.
 
 DriveTree 외부 파일럿의 repo-sync MISSING 11은 실제 세 PR로 OK 18 · MISSING 0까지 처리했고 v0.61.0에서
 monolith 공식 loader session도 검증했다. 두 번째 Python·Alembic 파일럿도 webhook-service PR #69에서
 같은 정본 세 slice를 실제 적용해 OK 18 · MISSING 0으로 수렴했고, main·develop에 `commitlint`와
-`destructive-ddl`을 포함한 required context 5개 exact set을 연결했다. 두 public repo에서 공통 backfill 경로는
-검증됐지만 split package 자체의 공식 loader·rollback 증거는 남았다. 따라서 독립 package의
-`installable:false`를 유지하고 marketplace 승격은 별도 승인한다.
+`destructive-ddl`을 포함한 required context 5개 exact set을 연결했다. 두 public repo에서 공통 backfill 경로와
+split package 자체의 공식 loader·rollback은 검증됐다. 남은 전환 조건은 공식 dependency/runtime binding
+surface와 분리 core+adapter의 native hook·skill session parity다. 따라서 독립 package의 `installable:false`를
+유지하고 marketplace 승격은 별도 결정한다.
 
 ## 비목표와 재검토 조건
 

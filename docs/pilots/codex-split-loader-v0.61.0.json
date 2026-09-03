@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "status": "pass",
+  "observedAt": "2026-09-03T02:36:20.240Z",
+  "evidence": {
+    "mode": "live"
+  },
+  "codex": {
+    "version": "codex-cli 0.144.6",
+    "binary": {
+      "path": "$HOME/.codex/packages/standalone/releases/0.144.6-aarch64-apple-darwin/bin/codex",
+      "digest": "sha256:80a3933d11a9d13ef806aa24f7bb8afc9169cfe4e9b09d6da6a92922cbde9cff"
+    }
+  },
+  "harness": {
+    "revision": "d580808f48751adb598fc38dd307e51183a64583",
+    "tree": "b764d55831c763ef062616c9289b2369056ba268"
+  },
+  "packages": {
+    "version": "0.61.0",
+    "catalogDigest": "sha256:22c6e64054bd3109e6069ff119716db164cf263d8a38f9cd509956af8bdaaf52",
+    "installable": false,
+    "artifacts": [
+      {
+        "unit": "governance-core",
+        "name": "harness-governance-core",
+        "version": "0.61.0",
+        "digest": "sha256:ecb95609caad1669ee87043ca0562187d4d0df6a0f4ce5a27a482540f17ac7ea"
+      },
+      {
+        "unit": "claude-adapter",
+        "name": "harness-claude-adapter",
+        "version": "0.61.0",
+        "digest": "sha256:7a46cee570cdc34868bb4ee1b219fafcf2adee5b68dff72cd6bbcf00039b5e68"
+      },
+      {
+        "unit": "codex-adapter",
+        "name": "harness-codex-adapter",
+        "version": "0.61.0",
+        "digest": "sha256:1f941d978e2d92b175dc413ddc4d333bda45ec5c0aeb03e70714619f0c41403a"
+      },
+      {
+        "unit": "workflow-pack",
+        "name": "harness-workflows",
+        "version": "0.61.0",
+        "digest": "sha256:1c7c5caa68b66fb50253afc94de07d0d5dd0b8f964e5535ed1c2ee07928d4ceb"
+      }
+    ]
+  },
+  "profiles": [
+    {
+      "name": "repository-only",
+      "units": [
+        "harness-governance-core"
+      ],
+      "installed": true,
+      "cacheExact": true,
+      "artifacts": [
+        {
+          "unit": "governance-core",
+          "name": "harness-governance-core",
+          "version": "0.61.0",
+          "digest": "sha256:ecb95609caad1669ee87043ca0562187d4d0df6a0f4ce5a27a482540f17ac7ea"
+        }
+      ],
+      "rollback": {
+        "order": [
+          "harness-governance-core"
+        ],
+        "complete": true
+      }
+    },
+    {
+      "name": "agent-governed",
+      "units": [
+        "harness-governance-core",
+        "harness-codex-adapter"
+      ],
+      "installed": true,
+      "cacheExact": true,
+      "artifacts": [
+        {
+          "unit": "governance-core",
+          "name": "harness-governance-core",
+          "version": "0.61.0",
+          "digest": "sha256:ecb95609caad1669ee87043ca0562187d4d0df6a0f4ce5a27a482540f17ac7ea"
+        },
+        {
+          "unit": "codex-adapter",
+          "name": "harness-codex-adapter",
+          "version": "0.61.0",
+          "digest": "sha256:1f941d978e2d92b175dc413ddc4d333bda45ec5c0aeb03e70714619f0c41403a"
+        }
+      ],
+      "rollback": {
+        "order": [
+          "harness-codex-adapter",
+          "harness-governance-core"
+        ],
+        "complete": true
+      }
+    },
+    {
+      "name": "workflow-assisted",
+      "units": [
+        "harness-governance-core",
+        "harness-codex-adapter",
+        "harness-workflows"
+      ],
+      "installed": true,
+      "cacheExact": true,
+      "artifacts": [
+        {
+          "unit": "governance-core",
+          "name": "harness-governance-core",
+          "version": "0.61.0",
+          "digest": "sha256:ecb95609caad1669ee87043ca0562187d4d0df6a0f4ce5a27a482540f17ac7ea"
+        },
+        {
+          "unit": "codex-adapter",
+          "name": "harness-codex-adapter",
+          "version": "0.61.0",
+          "digest": "sha256:1f941d978e2d92b175dc413ddc4d333bda45ec5c0aeb03e70714619f0c41403a"
+        },
+        {
+          "unit": "workflow-pack",
+          "name": "harness-workflows",
+          "version": "0.61.0",
+          "digest": "sha256:1c7c5caa68b66fb50253afc94de07d0d5dd0b8f964e5535ed1c2ee07928d4ceb"
+        }
+      ],
+      "rollback": {
+        "order": [
+          "harness-workflows",
+          "harness-codex-adapter",
+          "harness-governance-core"
+        ],
+        "complete": true
+      }
+    }
+  ],
+  "userState": {
+    "before": "sha256:228f9cce44f5e021ef0bf9cea8dc35b09b4a582e93d84a2a55347fcd0c0550a4",
+    "after": "sha256:228f9cce44f5e021ef0bf9cea8dc35b09b4a582e93d84a2a55347fcd0c0550a4",
+    "unchanged": true
+  },
+  "sourceState": {
+    "unchanged": true
+  },
+  "cleanup": {
+    "isolatedHomesRemoved": true
+  },
+  "splitPackages": {
+    "promoted": false,
+    "reason": "dependency/runtime binding declaration and model hook session remain unverified"
+  }
+}

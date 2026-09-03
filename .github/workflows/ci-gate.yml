@@ -70,6 +70,7 @@ jobs:
           bash -n tests/codex-native-loader-test.sh
           bash -n tests/codex-native-loader-pilot-test.sh
           bash -n tests/codex-native-loader-report-test.sh
+          bash -n tests/codex-split-loader-pilot-test.sh
           bash -n tests/codex-secret-egress-guard-test.sh
           bash -n tests/codex-pretool-guard-test.sh
           bash -n tests/codex-semantic-parity-test.sh
@@ -103,6 +104,7 @@ jobs:
           node --check scripts/sync-codex-plugin-cache.mjs
           node --check scripts/check-codex-native-plugin.mjs
           node --check scripts/run-codex-native-loader-pilot.mjs
+          node --check scripts/run-codex-split-loader-pilot.mjs
           node --check scripts/merge-permissions.mjs
           node --check scripts/check-destructive-ddl.mjs
           node --check scripts/check-alembic-destructive-ddl.mjs
@@ -122,6 +124,8 @@ jobs:
               "templates/settings.json",
               "packaging/packages.json",
               "docs/pilots/external-pilot-provenance.json",
+              "docs/pilots/codex-split-loader-v0.61.0.json",
+              "docs/pilots/codex-split-runtime-v0.61.0.json",
           ] + sorted(glob.glob("templates/permissions/*.json"))
           for p in paths:
               json.load(open(p))
@@ -267,6 +271,9 @@ jobs:
 
       - name: Codex native loader 실측 보고서 계약
         run: bash tests/codex-native-loader-report-test.sh
+
+      - name: Codex split package 공식 loader·rollback 계약
+        run: bash tests/codex-split-loader-pilot-test.sh
 
       - name: Codex 시크릿 외부 전송 가드 테스트
         run: bash tests/codex-secret-egress-guard-test.sh
