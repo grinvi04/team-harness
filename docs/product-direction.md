@@ -117,6 +117,9 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
 11. [ ] **split runtime 결과 계약:** 독립 core+Codex adapter에서 native hook·skill fresh-session outcome parity를
     검증한다. Codex가 plugin dependency와 runtime binding을 선언하는 공식 surface를 제공하지 않는 동안 custom
     resolver를 만들지 않고 전환기 monolith를 유지한다. 공식 surface가 생기거나 지원 가능한 native 연결이
-    확인된 뒤에만 marketplace 승격·호환 기간·rollback 계획을 별도 결정한다.
+    확인된 뒤에만 marketplace 승격·호환 기간·rollback 계획을 별도 결정한다. 2026-09-03 Codex 0.144.6과 공식
+    plugin manifest를 재확인했지만 연결 surface가 없었고, 독립 artifact의 hook도 core root를 해석하지 못함을
+    [`pilots/codex-split-runtime-v0.61.0.md`](pilots/codex-split-runtime-v0.61.0.md)에 기록했다. 따라서 항목은
+    **WAIT**로 열어 두고 `installable:false`·monolith를 유지한다.
 
 로드맵 항목은 기능 수가 아니라 거버넌스 강제력, 증거 품질, 유지보수 감소로 성공 여부를 판단한다.
