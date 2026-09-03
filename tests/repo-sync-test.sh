@@ -178,6 +178,22 @@ else
   echo "FAIL: self-repo 스택 오탐 또는 필수 자산 드리프트"; FAIL=$((FAIL+1))
 fi
 
+# Self-repo: gitignored docs/goals 실행 산출물의 중첩 checkout도 런타임 스택이 아니다.
+SELF_WITH_GOAL="$TMP/self-with-goal-checkout"
+mkdir -p "$SELF_WITH_GOAL"
+git -C "$ROOT" archive --format=tar --output="$TMP/self-with-goal.tar" HEAD
+tar -xf "$TMP/self-with-goal.tar" -C "$SELF_WITH_GOAL"
+mkdir -p "$SELF_WITH_GOAL/docs/goals/run/repo/db/migration"
+touch "$SELF_WITH_GOAL/docs/goals/run/repo/build.gradle"
+touch "$SELF_WITH_GOAL/docs/goals/run/repo/db/migration/V1__nested.sql"
+if OUT=$(node "$GATE" --repo "$SELF_WITH_GOAL" --harness "$SELF_WITH_GOAL" 2>&1) &&
+   echo "$OUT" | grep -q "감지된 스택: (없음)" &&
+   ! echo "$OUT" | grep -qE "룰:|✗ MISSING"; then
+  echo "PASS: self-repo docs/goals 중첩 checkout 스택 오탐 없음"; PASS=$((PASS+1))
+else
+  echo "FAIL: self-repo docs/goals 중첩 checkout 스택 오탐"; FAIL=$((FAIL+1))
+fi
+
 # --help → 통과
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
 
