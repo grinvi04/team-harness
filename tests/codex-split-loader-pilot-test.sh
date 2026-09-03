@@ -25,6 +25,17 @@ if [ "$*" = 'plugin marketplace list --json' ]; then
     [ ! -f "$USER_SNAPSHOT_CALLS" ] || count=$(cat "$USER_SNAPSHOT_CALLS")
     count=$((count + 1))
     printf '%s' "$count" >"$USER_SNAPSHOT_CALLS"
+    if [ "${FAKE_MODE:-ok}" = post-publication-snapshot-failure ] && [ "$count" -gt 2 ]; then
+      echo 'fixture post-publication snapshot failure' >&2
+      exit 23
+    fi
+    if [ "${FAKE_MODE:-ok}" = report-parent-swap ] && [ "$count" -gt 1 ]; then
+      mv "$REPORT_PARENT" "$REPORT_PARENT.before"
+      ln -s "$REPORT_SWAP_TARGET" "$REPORT_PARENT"
+    fi
+    if [ "${FAKE_MODE:-ok}" = report-second-link-collision ] && [ "$count" -gt 1 ]; then
+      printf 'preserve-late-collision\n' >"$REPORT_COLLISION_TARGET"
+    fi
     if [ "${FAKE_MODE:-ok}" = user-state-drift ] && [ "$count" -gt 1 ]; then
       echo '{"marketplaces":[{"name":"changed"}]}'
     else
@@ -132,9 +143,11 @@ export CODEX_BIN="$TMP/fake-codex"
 export CODEX_HOME="$USER_CODEX_HOME"
 export USER_CODEX_HOME TMP FAKE_CALLS="$TMP/calls" USER_SNAPSHOT_CALLS="$TMP/user-snapshot-calls"
 export HARNESS_SPLIT_PILOT_FIXTURE=1 TMPDIR="$TMP"
-REVISION=$(git -C "$ROOT" rev-parse HEAD)
+SOURCE_ROOT="$TMP/source"
+git clone -q "$ROOT" "$SOURCE_ROOT"
+REVISION=$(git -C "$SOURCE_ROOT" rev-parse HEAD)
 
-node "$RUNNER" --source "$ROOT" --revision "$REVISION" \
+node "$RUNNER" --source "$SOURCE_ROOT" --revision "$REVISION" \
   --json-report "$TMP/report.json" --markdown-report "$TMP/report.md"
 
 node - "$TMP/report.json" "$REVISION" <<'NODE'
@@ -192,11 +205,206 @@ if find "$TMP" -maxdepth 1 -type d -name 'team-harness-codex-split-pilot.*' | gr
   exit 1
 fi
 
+MISMATCH_SOURCE="$TMP/mismatch-source"
+git clone -q "$SOURCE_ROOT" "$MISMATCH_SOURCE"
+git -C "$MISMATCH_SOURCE" config user.name pilot
+git -C "$MISMATCH_SOURCE" config user.email pilot@example.invalid
+git -C "$MISMATCH_SOURCE" commit --allow-empty -qm 'test: mismatched source head'
+if node "$RUNNER" --source "$MISMATCH_SOURCE" --revision "$REVISION" \
+  --json-report "$TMP/mismatch-source.json" \
+  --markdown-report "$TMP/mismatch-source.md" \
+  >"$TMP/mismatch-source.out" 2>"$TMP/mismatch-source.err"; then
+  echo 'FAIL: source HEAD mismatch was accepted'
+  exit 1
+fi
+grep -Fq 'source HEAD does not match requested revision' "$TMP/mismatch-source.err"
+
+DIRTY_SOURCE="$TMP/dirty-source"
+git clone -q "$SOURCE_ROOT" "$DIRTY_SOURCE"
+printf '\n// uncommitted test mutation\n' >>"$DIRTY_SOURCE/scripts/build-packages.mjs"
+if node "$RUNNER" --source "$DIRTY_SOURCE" --revision "$REVISION" \
+  --json-report "$TMP/dirty-source.json" \
+  --markdown-report "$TMP/dirty-source.md" \
+  >"$TMP/dirty-source.out" 2>"$TMP/dirty-source.err"; then
+  echo 'FAIL: dirty source repository was accepted'
+  exit 1
+fi
+grep -Fq 'source repository must be clean before pilot execution' "$TMP/dirty-source.err"
+
+SKIP_SOURCE="$TMP/skip-source"
+git clone -q "$SOURCE_ROOT" "$SKIP_SOURCE"
+SKIP_MARKER="$TMP/skip-worktree-builder-executed"
+cat >>"$SKIP_SOURCE/scripts/build-packages.mjs" <<'NODE'
+await import('node:fs').then(({ writeFileSync }) => {
+  writeFileSync(process.env.SKIP_WORKTREE_MARKER, 'live builder executed\n')
+})
+NODE
+git -C "$SKIP_SOURCE" update-index --skip-worktree scripts/build-packages.mjs
+if [ -n "$(git -C "$SKIP_SOURCE" status --porcelain=v1 -uall)" ]; then
+  echo 'FAIL: skip-worktree fixture is not porcelain-clean'
+  exit 1
+fi
+SKIP_WORKTREE_MARKER="$SKIP_MARKER" node "$RUNNER" \
+  --source "$SKIP_SOURCE" --revision "$REVISION" \
+  --json-report "$TMP/skip-source.json" \
+  --markdown-report "$TMP/skip-source.md"
+if [ -e "$SKIP_MARKER" ]; then
+  echo 'FAIL: live skip-worktree builder was executed instead of exact revision bytes'
+  exit 1
+fi
+
+REDIRECT_SOURCE="$TMP/redirect-source"
+git clone -q "$SOURCE_ROOT" "$REDIRECT_SOURCE"
+git -C "$REDIRECT_SOURCE" config user.name pilot
+git -C "$REDIRECT_SOURCE" config user.email pilot@example.invalid
+git -C "$REDIRECT_SOURCE" commit --allow-empty -qm 'test: redirected git repository'
+REDIRECT_REVISION=$(git -C "$REDIRECT_SOURCE" rev-parse HEAD)
+if GIT_DIR="$REDIRECT_SOURCE/.git" GIT_WORK_TREE="$REDIRECT_SOURCE" \
+  node "$RUNNER" --source "$SOURCE_ROOT" --revision "$REDIRECT_REVISION" \
+  --json-report "$TMP/redirect-source.json" \
+  --markdown-report "$TMP/redirect-source.md" \
+  >"$TMP/redirect-source.out" 2>"$TMP/redirect-source.err"; then
+  echo 'FAIL: inherited Git repository redirection was accepted'
+  exit 1
+fi
+grep -Fq 'revision resolution failed' "$TMP/redirect-source.err"
+
+REPORT_SOURCE="$TMP/report-source"
+git clone -q "$SOURCE_ROOT" "$REPORT_SOURCE"
+REPORT_REVISION=$(git -C "$REPORT_SOURCE" rev-parse HEAD)
+SOURCE_REPORT_TARGET="$REPORT_SOURCE/AGENTS.md"
+SOURCE_REPORT_BEFORE=$(shasum -a 256 "$SOURCE_REPORT_TARGET" | awk '{print $1}')
+if node "$RUNNER" --source "$REPORT_SOURCE" --revision "$REPORT_REVISION" \
+  --json-report "$SOURCE_REPORT_TARGET" \
+  --markdown-report "$TMP/source-target.md" \
+  >"$TMP/source-target.out" 2>"$TMP/source-target.err"; then
+  echo 'FAIL: report destination inside source repository was accepted'
+  exit 1
+fi
+grep -Fq 'report destinations must be outside source repository and user CODEX_HOME' \
+  "$TMP/source-target.err"
+SOURCE_REPORT_AFTER=$(shasum -a 256 "$SOURCE_REPORT_TARGET" | awk '{print $1}')
+if [ "$SOURCE_REPORT_BEFORE" != "$SOURCE_REPORT_AFTER" ]; then
+  echo 'FAIL: rejected source report destination was modified'
+  exit 1
+fi
+
+USER_REPORT_TARGET="$USER_CODEX_HOME/config.toml"
+printf 'preserve-user-config\n' >"$USER_REPORT_TARGET"
+if node "$RUNNER" --source "$SOURCE_ROOT" --revision "$REVISION" \
+  --json-report "$USER_REPORT_TARGET" \
+  --markdown-report "$TMP/user-target.md" \
+  >"$TMP/user-target.out" 2>"$TMP/user-target.err"; then
+  echo 'FAIL: report destination inside user CODEX_HOME was accepted'
+  exit 1
+fi
+grep -Fq 'report destinations must be outside source repository and user CODEX_HOME' \
+  "$TMP/user-target.err"
+grep -Fxq 'preserve-user-config' "$USER_REPORT_TARGET"
+
+EXISTING_REPORT_TARGET="$TMP/existing-report.json"
+printf 'preserve-existing-report\n' >"$EXISTING_REPORT_TARGET"
+if node "$RUNNER" --source "$SOURCE_ROOT" --revision "$REVISION" \
+  --json-report "$EXISTING_REPORT_TARGET" \
+  --markdown-report "$TMP/existing-target.md" \
+  >"$TMP/existing-target.out" 2>"$TMP/existing-target.err"; then
+  echo 'FAIL: existing report destination was accepted'
+  exit 1
+fi
+grep -Fq 'report destination must not already exist' "$TMP/existing-target.err"
+grep -Fxq 'preserve-existing-report' "$EXISTING_REPORT_TARGET"
+
+SYMLINK_SENTINEL="$TMP/symlink-sentinel"
+SYMLINK_REPORT_TARGET="$TMP/symlink-report.json"
+printf 'preserve-symlink-target\n' >"$SYMLINK_SENTINEL"
+ln -s "$SYMLINK_SENTINEL" "$SYMLINK_REPORT_TARGET"
+if node "$RUNNER" --source "$SOURCE_ROOT" --revision "$REVISION" \
+  --json-report "$SYMLINK_REPORT_TARGET" \
+  --markdown-report "$TMP/symlink-target.md" \
+  >"$TMP/symlink-target.out" 2>"$TMP/symlink-target.err"; then
+  echo 'FAIL: symlinked report destination was accepted'
+  exit 1
+fi
+grep -Fq 'report destination must not be a symbolic link' "$TMP/symlink-target.err"
+grep -Fxq 'preserve-symlink-target' "$SYMLINK_SENTINEL"
+
+BROKEN_SYMLINK_REPORT_TARGET="$TMP/broken-symlink-report.json"
+ln -s "$TMP/missing-symlink-target" "$BROKEN_SYMLINK_REPORT_TARGET"
+if node "$RUNNER" --source "$SOURCE_ROOT" --revision "$REVISION" \
+  --json-report "$BROKEN_SYMLINK_REPORT_TARGET" \
+  --markdown-report "$TMP/broken-symlink-target.md" \
+  >"$TMP/broken-symlink-target.out" 2>"$TMP/broken-symlink-target.err"; then
+  echo 'FAIL: broken symlink report destination was accepted'
+  exit 1
+fi
+grep -Fq 'report destination must not be a symbolic link' \
+  "$TMP/broken-symlink-target.err"
+
+SWAP_SOURCE="$TMP/report-swap-source"
+git clone -q "$SOURCE_ROOT" "$SWAP_SOURCE"
+SWAP_PARENT="$TMP/report-swap-parent"
+mkdir "$SWAP_PARENT"
+: >"$USER_SNAPSHOT_CALLS"
+if FAKE_MODE=report-parent-swap REPORT_PARENT="$SWAP_PARENT" \
+  REPORT_SWAP_TARGET="$SWAP_SOURCE" \
+  node "$RUNNER" --source "$SWAP_SOURCE" --revision "$REVISION" \
+  --json-report "$SWAP_PARENT/report.json" \
+  --markdown-report "$SWAP_PARENT/report.md" \
+  >"$TMP/report-parent-swap.out" 2>"$TMP/report-parent-swap.err"; then
+  echo 'FAIL: swapped report parent was accepted'
+  exit 1
+fi
+grep -Fq 'report publication failed' "$TMP/report-parent-swap.err"
+if [ -e "$SWAP_SOURCE/report.json" ] || [ -e "$SWAP_SOURCE/report.md" ]; then
+  echo 'FAIL: swapped report parent wrote into source repository'
+  exit 1
+fi
+
+COLLISION_PARENT="$TMP/report-collision-parent"
+mkdir "$COLLISION_PARENT"
+: >"$USER_SNAPSHOT_CALLS"
+if FAKE_MODE=report-second-link-collision \
+  REPORT_COLLISION_TARGET="$COLLISION_PARENT/report.md" \
+  node "$RUNNER" --source "$SOURCE_ROOT" --revision "$REVISION" \
+  --json-report "$COLLISION_PARENT/report.json" \
+  --markdown-report "$COLLISION_PARENT/report.md" \
+  >"$TMP/report-second-link-collision.out" \
+  2>"$TMP/report-second-link-collision.err"; then
+  echo 'FAIL: second report link collision was accepted'
+  exit 1
+fi
+grep -Fq 'report publication failed' "$TMP/report-second-link-collision.err"
+if [ -e "$COLLISION_PARENT/report.json" ]; then
+  echo 'FAIL: first report remained after second-link collision'
+  exit 1
+fi
+grep -Fxq 'preserve-late-collision' "$COLLISION_PARENT/report.md"
+
+POST_PUBLICATION_PARENT="$TMP/post-publication-parent"
+mkdir "$POST_PUBLICATION_PARENT"
+: >"$USER_SNAPSHOT_CALLS"
+if FAKE_MODE=post-publication-snapshot-failure \
+  node "$RUNNER" --source "$SOURCE_ROOT" --revision "$REVISION" \
+  --json-report "$POST_PUBLICATION_PARENT/report.json" \
+  --markdown-report "$POST_PUBLICATION_PARENT/report.md" \
+  >"$TMP/post-publication-snapshot-failure.out" \
+  2>"$TMP/post-publication-snapshot-failure.err"; then
+  echo 'FAIL: post-publication snapshot failure was accepted'
+  exit 1
+fi
+grep -Fq 'user marketplace snapshot failed' \
+  "$TMP/post-publication-snapshot-failure.err"
+if [ -e "$POST_PUBLICATION_PARENT/report.json" ] || \
+  [ -e "$POST_PUBLICATION_PARENT/report.md" ]; then
+  echo 'FAIL: PASS reports remained after post-publication snapshot failure'
+  exit 1
+fi
+
 run_fail() {
   local mode="$1" expected="$2"
   local stem="$TMP/$mode"
   : >"$USER_SNAPSHOT_CALLS"
-  if FAKE_MODE="$mode" node "$RUNNER" --source "$ROOT" --revision "$REVISION" \
+  if FAKE_MODE="$mode" node "$RUNNER" --source "$SOURCE_ROOT" --revision "$REVISION" \
     --json-report "$stem.json" --markdown-report "$stem.md" >"$stem.out" 2>"$stem.err"; then
     echo "FAIL: $mode was accepted"
     exit 1
@@ -214,5 +422,10 @@ run_fail mutated-cache 'installed cache digest mismatch'
 run_fail install-failure 'plugin install failed'
 run_fail rollback-failure 'plugin rollback failed'
 run_fail user-state-drift 'user Codex state changed'
+
+if find "$TMP" -name '.team-harness-report.*' | grep -q .; then
+  echo 'FAIL: staged report path was not removed'
+  exit 1
+fi
 
 echo 'PASS: split package loader installs exact caches, rolls back in reverse order, and fails closed'
