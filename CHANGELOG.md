@@ -3,7 +3,12 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.62.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.63.0` and replace this file with its output.
+
+## v0.63.0 - 2026-09-03
+
+- fix(repo-sync): goal checkout 스택 오탐 제거
+- feat(packaging): Codex split loader rollback pilot 추가
 
 ## v0.62.0 - 2026-09-03
 
