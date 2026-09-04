@@ -56,6 +56,9 @@ check "CREATE/ADD COLUMN만 → 통과"              0 "$FIX/good-create-only"
 # ── 이슈 #258 backport — TRUNCATE(x,d) 수치함수 오탐 금지(FP 가드) ──
 #   반증: MySQL TRUNCATE(수,자릿수)는 절삭 함수(데이터-손실 아님). TRUNCATE TABLE(bad-truncate)은 여전히 차단.
 check "TRUNCATE() 수치함수 → 통과(#258 오탐가드)" 0 "$FIX/good-truncate-func"
+# PostgreSQL TRUNCATE 테이블 권한은 실행문이 아니다. GRANT/REVOKE privilege 목록의 키워드를
+# 데이터 삭제로 오인하면 기존 권한 최소화 마이그레이션이 새 게이트 도입만으로 막힌다.
+check "GRANT/REVOKE TRUNCATE 권한 → 통과(오탐가드)" 0 "$FIX/good-truncate-privileges"
 # ── AC-2+AC-8: prisma + 승인마커 → 통과 · supabase 스택 커버리지 ──
 check "prisma DROP + 승인마커 → 통과(AC-2,8)"    0 "$FIX/good-prisma-acknowledged"
 check "supabase TRUNCATE + 승인마커 → 통과"      0 "$FIX/good-supabase-acknowledged"

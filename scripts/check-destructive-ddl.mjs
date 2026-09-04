@@ -9,7 +9,8 @@
  * 정책(team-harness): 체크 가능한 규칙은 prose가 아니라 결정적 게이트로. 단, SQL도 정규언어가 아니므로
  *   **흔한 데이터-손실 형태만** 잡는다(종단 우회는 계층0 코드리뷰 소관 — decisions.md 가드/게이트 판정 철학).
  *   - 파괴 판정: DROP TABLE · DROP DATABASE · DROP SCHEMA · TRUNCATE · ALTER…DROP COLUMN
- *   - 비대상(오탐 금지): DROP INDEX/VIEW/CONSTRAINT/TRIGGER/SEQUENCE(데이터-행 손실 아님)
+ *   - 비대상(오탐 금지): DROP INDEX/VIEW/CONSTRAINT/TRIGGER/SEQUENCE(데이터-행 손실 아님),
+ *     GRANT/REVOKE privilege 목록의 TRUNCATE 권한
  *   - forward-only 2단계 배포(db-standards.md §마이그레이션)의 정당한 DROP COLUMN은 **승인마커**로 통과:
  *       같은 문장에 실제 주석 `-- migration-safety: destructive-ok`.
  *
@@ -38,7 +39,7 @@ if (args.includes('--help') || args.includes('-h')) {
   node scripts/check-destructive-ddl.mjs [루트경로 …]
 
 파괴 판정: DROP TABLE · DROP DATABASE · DROP SCHEMA · TRUNCATE · ALTER…DROP COLUMN
-비대상   : DROP INDEX/VIEW/CONSTRAINT/TRIGGER (데이터-손실 아님)
+비대상   : DROP INDEX/VIEW/CONSTRAINT/TRIGGER, GRANT/REVOKE의 TRUNCATE 권한 (데이터-손실 아님)
 승인마커 : 파괴 문장과 같은 문장의 실제 주석 \`-- migration-safety: destructive-ok\` → 통과
 스캔대상 : db/migration/ · prisma/migrations/ · supabase/migrations/ 하위 *.sql
            (Alembic .py는 형제 게이트 check-alembic-destructive-ddl.mjs 소관)
@@ -160,7 +161,7 @@ const DESTRUCTIVE = [
   { label: 'DROP TABLE', re: /\bDROP\s+TABLE\b/i },
   { label: 'DROP DATABASE', re: /\bDROP\s+DATABASE\b/i },
   { label: 'DROP SCHEMA', re: /\bDROP\s+SCHEMA\b/i },
-  { label: 'TRUNCATE', re: /\bTRUNCATE\b(?!\s*\()/i }, // TRUNCATE(x,d) 수치함수 제외(오탐), TRUNCATE [TABLE] t는 차단(#258)
+  { label: 'TRUNCATE', re: /^\s*TRUNCATE\b(?!\s*\()/i }, // 문장 선두 TRUNCATE [TABLE]만 차단. 수치함수·GRANT/REVOKE 권한은 제외.
   { label: 'ALTER…DROP COLUMN', re: /\bDROP\s+COLUMN\b/i },
 ]
 const MARKER_RE = /migration-safety:\s*destructive-ok/i
