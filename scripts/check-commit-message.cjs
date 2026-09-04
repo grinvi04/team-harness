@@ -27,6 +27,12 @@ function isGitGenerated(input) {
     || TAG_MERGE_MESSAGE_RE.test(message)
 }
 
+function hasConventionalConflictComments(input) {
+  const message = String(input ?? '').replace(/\r\n?/g, '\n').replace(/\n+$/, '')
+  const withoutConflictComments = message.replace(MERGE_CONFLICT_COMMENTS_RE, '')
+  return withoutConflictComments !== message && HEADER_RE.test(withoutConflictComments.split('\n')[0])
+}
+
 function validateCommitMessage(input, { allowGitGenerated = false } = {}) {
   const rawMessage = String(input ?? '').replace(/\r\n?/g, '\n').replace(/\n+$/, '')
   const message = allowGitGenerated
@@ -226,6 +232,12 @@ function main(argv) {
   return 1
 }
 
-module.exports = { TYPES, validateCommitMessage, commitlintRule, isGitGenerated }
+module.exports = {
+  TYPES,
+  validateCommitMessage,
+  commitlintRule,
+  isGitGenerated,
+  hasConventionalConflictComments,
+}
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2))

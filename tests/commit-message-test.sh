@@ -77,6 +77,7 @@ for (const configPath of [`${root}/commitlint.config.cjs`, `${root}/templates/co
   const ignored = (message) => config.ignores.some((ignore) => ignore(message))
   if (!ignored("Merge branch 'feature/order' into develop")) process.exit(1)
   if (!ignored('Merge pull request #348 from grinvi04/fix/release-security-gaps\n\nfix(workflow): 릴리즈 보안 우회 차단')) process.exit(1)
+  if (!ignored('chore(release): main 이력 후보에 병합\n\n# Conflicts:\n#\tdocs/architecture.svg')) process.exit(1)
   if (ignored('Revert "feat(order): 주문 기능 추가"\n\nThis reverts commit abcdef0123456789abcdef0123456789abcdef01.')) process.exit(1)
   if (ignored('Revert "규칙 우회"') || ignored('v1.2.3')) process.exit(1)
   const [valid] = rule({ raw: 'docs: 설치 설명 보완' })
