@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.66.0` and repl
 
 ## v0.66.0 - 2026-09-04
 
+- fix(commit): commitlint 단일 검증 경로 완성
 - fix(commit): 보조 action merge 판정 정합화
 - fix(commit): 릴리즈 PR 누적 이력 재검사 차단
 

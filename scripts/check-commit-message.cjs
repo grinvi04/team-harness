@@ -7,6 +7,8 @@ const { execFileSync } = require('node:child_process')
 const TYPES = ['feat', 'fix', 'docs', 'style', 'refactor', 'perf', 'test', 'chore', 'ci', 'build', 'revert']
 const SCOPE_REQUIRED = new Set(['feat', 'fix', 'refactor', 'perf', 'test'])
 const REASON_REQUIRED = new Set(['feat', 'fix', 'refactor', 'perf'])
+const HEADER_MAX_LENGTH = 100
+const FOOTER_MAX_LINE_LENGTH = 100
 const HEADER_RE = new RegExp(
   `^(${TYPES.join('|')})(?:\\(([a-z0-9][a-z0-9._/-]*)\\))?(!)?: (.+)$`,
 )
@@ -61,6 +63,10 @@ function validateCommitMessage(input, { allowGitGenerated = false } = {}) {
   }
 
   const [, type, scope, , subject] = match
+  if ([...header].length > HEADER_MAX_LENGTH) {
+    errors.push(`헤더는 ${HEADER_MAX_LENGTH}자 이하여야 합니다.`)
+  }
+  if (header !== header.trim()) errors.push('헤더 앞뒤 공백은 허용하지 않습니다.')
   if (SCOPE_REQUIRED.has(type) && !scope) {
     errors.push(`${type} 타입은 변경 영역을 나타내는 scope가 필요합니다.`)
   }
@@ -83,6 +89,9 @@ function validateCommitMessage(input, { allowGitGenerated = false } = {}) {
       continue
     }
     if (FOOTER_RE.test(line)) {
+      if ([...line].length > FOOTER_MAX_LINE_LENGTH) {
+        errors.push(`footer는 ${FOOTER_MAX_LINE_LENGTH}자 이하여야 합니다.`)
+      }
       inFooters = true
       continue
     }

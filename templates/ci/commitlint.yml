@@ -1,7 +1,7 @@
 # commitlint — PR 커밋 메시지가 Conventional Commits 규약을 따르는지 검사하는 기계 게이트.
 # 배경: 커밋 컨벤션(타입 영어 feat/fix/...·본문 한국어)을 prose 규칙 대신 메커니즘으로 강제한다.
-# 규약 정의는 repo 루트의 commitlint.config.cjs (new-repo.sh가 복사). 단일 출처: team-harness code-review.md
-# 셋업: new-repo.sh가 이 파일과 commitlint.config.cjs를 복사하고 'commitlint'를 required check에 등록한다.
+# 규약 강제는 scripts/check-commit-message.cjs가 담당한다. 단일 출처: team-harness code-review.md
+# 셋업: new-repo.sh가 workflow·validator를 복사하고 'commitlint'를 required check에 등록한다.
 name: commitlint
 
 on:
@@ -31,9 +31,3 @@ jobs:
           else
             node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA"
           fi
-      # develop PR은 외부 action으로도 이중 검사한다. main release PR은 이미 develop에서 검증된
-      # 누적 이력을 action이 소급 검사하므로 위 provenance validator만 사용한다.
-      - uses: wagoid/commitlint-github-action@b948419dd99f3fd78a6548d48f94e3df7f6bf3ed # v6
-        if: github.base_ref == 'develop'
-        with:
-          configFile: ./commitlint.config.cjs

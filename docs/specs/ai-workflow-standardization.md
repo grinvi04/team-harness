@@ -21,21 +21,21 @@ AI가 코드 작성부터 commit·push·PR까지 수행해도 커밋 기록이 �
 
 - **AC-1 (커밋 헤더):** WHEN 일반 커밋을 생성하면, the system SHALL Conventional Commits 1.0.0의
   `<type>[optional scope][!]: <description>` 문법과 호환되는 `<type>(<scope>): <한국어 요약>`을 검사한다.
-  `feat|fix|refactor|perf|test`는 team-harness 추가 규칙으로 scope가 필수이고,
+  `feat|fix|refactor|perf|test`는 team-harness 추가 규칙으로 scope가 필수이고, 헤더는 앞뒤 공백 없이 100자 이하이며,
   `docs|style|chore|ci|build|revert`는 의미 있는 scope가 있을 때만 사용한다. 요약은 한글을 포함하고 50자 이하이며
   마침표로 끝나지 않는다.
 - **AC-2 (필요한 본문만):** WHEN `feat|fix|refactor|perf` 커밋을 생성하면, the system SHALL 빈 줄 뒤
   `이유:` 한 줄을 요구하고 `영향:`·`검증:`은 실제 정보가 있을 때만 허용한다. 그 밖의 타입은 헤더만으로
   충분하며 본문을 강제하지 않는다. breaking change는 표준대로 `!` 또는 `BREAKING CHANGE:` footer 중
-  하나로 표시할 수 있고 둘을 중복 강제하지 않는다.
+  하나로 표시할 수 있고 둘을 중복 강제하지 않으며, footer 각 줄은 100자 이하다.
 - **AC-3 (동일 강제):** WHEN Node.js가 있는 환경에서 사람이나 AI가 로컬 commit을 만들면 THEN
   `commit-msg` 훅이 같은 정책으로 즉시 거부한다. WHEN Node.js가 없는 non-Node 환경이면 THEN 훅은 경고 후
-  통과시키고, WHEN PR을 열면 THEN 필수 CI commitlint가 `.cjs` 정본을 명시적으로 로드해 같은 validator로
-  모든 PR commit을 검사한다. 기본 ignore는 끄며, Git 기본 merge 메시지는 로컬 `MERGE_HEAD` 또는 CI commit의
+  통과시키고, WHEN PR을 열면 THEN 필수 CI commitlint가 무의존 validator 정본을 직접 실행해
+  모든 PR 고유 commit을 검사한다. Git 기본 merge 메시지는 로컬 `MERGE_HEAD` 또는 CI commit의
   2개 이상 parent로 provenance가 확인될 때만 허용한다. 기본 revert 메시지는 예외 없이 `revert` 규약을 따른다.
 - **AC-4 (신규·기존 repo):** WHEN `new-repo.sh`가 실행되면 THEN validator·`commit-msg` 훅·commitlint
-  config가 함께 설치되고 실행권한이 설정된다. 기존 repo에서 자산이 빠지거나 commitlint action이 `.cjs`
-  정본·commit metadata 검증을 포함한 workflow 정본과 다르면 `repo-sync`가 드리프트로 보고한다.
+  config가 함께 설치되고 실행권한이 설정된다. 기존 repo에서 자산이 빠지거나 commit metadata
+  검증을 포함한 workflow·validator 정본과 다르면 `repo-sync`가 드리프트로 보고한다.
 - **AC-5 (`/loop` 종료 정확성):** WHEN 루프의 첫 수정 후 통과하면 THEN 반복 수는 1로 기록된다. 각 검증
   명령은 기본 timeout 안에서 종료하고 timeout은 non-zero로 판정한다. timeout 시 TERM을 무시하는 descendant도
   SIGKILL 단계에서 종료한 뒤 반환하며, max·stuck·통과 중 하나로만 종료한다.
