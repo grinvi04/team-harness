@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.64.0` and repl
 
 ## v0.64.0 - 2026-09-04
 
+- fix(ddl): dollar 식별자와 ELSE 경계 봉쇄
 - fix(ddl): 방언별 파괴 DDL 우회 봉쇄
 - fix(ddl): TRUNCATE 권한 오탐 제거
 
