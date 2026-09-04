@@ -12,7 +12,8 @@
  *   - 스택별로 의도적 커스터마이즈되는 자산(ci-gate 본문)은 내용을 diff하지 않고 "존재"만 본다.
  *   - 스택 무관 게이트(test-guard·commitlint·secret-scan)는 파일명이 자유라 "내용 sentinel"로
  *     매칭한다(완전일치 강요 X). sentinel이 있으면 OK, 비슷한 파일은 있으나 sentinel이 없으면 WEAK.
- *   - 룰 문서는 "존재"만 본다(내용 stale은 경고 수준 — 본 도구는 content를 강제하지 않는다).
+ *   - 룰 문서는 기본적으로 "존재"만 본다. 단, Next.js의 path-scoped rule은 root·src·모노레포 경로
+ *     계약이 없으면 파일이 있어도 로드되지 않으므로 WARN한다(내용 강제는 아님).
  *
  * 종료 코드:
  *   0  표준과 sync (또는 WEAK/룰 경고만 — 머지를 막지 않는 약한 신호)
@@ -273,12 +274,38 @@ function canonicalFileContract(targetRel, canonicalRels, bundledHashes, executab
   }
 }
 
-// 룰 문서 존재 — .claude/rules/<name>.md 또는 .claude/rules/stacks/<name>.md
-function ruleExists(name) {
-  return (
-    existsSync(join(REPO, '.claude/rules', `${name}.md`)) ||
-    existsSync(join(REPO, '.claude/rules/stacks', `${name}.md`))
-  )
+// 룰 문서 — .claude/rules/<name>.md 또는 .claude/rules/stacks/<name>.md
+function rulePath(name) {
+  const candidates = [
+    join(REPO, '.claude/rules', `${name}.md`),
+    join(REPO, '.claude/rules/stacks', `${name}.md`),
+  ]
+  return candidates.find((candidate) => existsSync(candidate)) || null
+}
+
+function ruleStatus(name) {
+  const p = rulePath(name)
+  if (!p) return 'WARN'
+  if (name !== 'nextjs') return 'OK'
+
+  let text
+  try { text = readFileSync(p, 'utf8') } catch { return 'WARN' }
+  const frontmatter = text.match(/^---\s*\n([\s\S]*?)\n---/)
+  if (!frontmatter || !/^paths:\s*/m.test(frontmatter[1])) return 'OK' // paths가 없으면 전역 로드
+
+  const pathsLine = frontmatter[1].split('\n').find((line) => line.startsWith('paths: '))
+  if (!pathsLine) return 'WARN'
+  let patterns
+  try { patterns = JSON.parse(pathsLine.slice('paths: '.length)) } catch { return 'WARN' }
+  const required = [
+    '**/app/**/*.tsx',
+    '**/app/**/*.ts',
+    '**/pages/**/*.tsx',
+    '**/pages/**/*.ts',
+    '**/middleware.ts',
+    '**/next.config.*',
+  ]
+  return Array.isArray(patterns) && required.every((pattern) => patterns.includes(pattern)) ? 'OK' : 'WARN'
 }
 
 // ── 매니페스트(스택별 필수 harness 자산) ──────────────────
@@ -455,7 +482,7 @@ checks.push({
   detail: 'CI에 다중 head 차단 (sentinel: alembic heads)',
 })
 
-// 룰 문서 — 스택 해당분 존재(내용 stale은 경고 수준이라 존재만 본다)
+// 룰 문서 — 스택 해당분 존재. Next.js만 로딩 경로 계약을 추가로 확인한다(#425).
 const ruleMap = [
   ['java', stacks.java],
   ['flyway', stacks.flyway],
@@ -473,7 +500,7 @@ for (const [rule, applicable] of ruleMap) {
     asset: `룰: ${rule}.md`,
     severity: 'warn',
     applicable,
-    status: ruleExists(rule) ? 'OK' : 'WARN',
+    status: ruleStatus(rule),
     detail: standardHas
       ? `.claude/rules/${rule}.md (표준: templates/rules/stacks/${rule}.md)`
       : `.claude/rules/${rule}.md`,

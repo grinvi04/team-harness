@@ -30,6 +30,42 @@ else
   echo "FAIL: AGENTS template → 개발자 워크플로 가이드 발견 경로 누락"; FAIL=$((FAIL+1))
 fi
 
+# #425: path-scoped Next.js rule은 root 앱뿐 아니라 src/·모노레포 앱에서도 실제로 로드돼야 한다.
+if ROOT="$ROOT" node <<'NODE'
+const { readFileSync } = require('node:fs')
+const { join } = require('node:path')
+
+const rule = readFileSync(join(process.env.ROOT, 'templates/rules/stacks/nextjs.md'), 'utf8')
+const pathsLine = rule.split('\n').find((line) => line.startsWith('paths: '))
+const patterns = JSON.parse(pathsLine.slice('paths: '.length))
+const required = [
+  ['**/app/**/*.tsx', 'root·src·모노레포 App Router TSX'],
+  ['**/app/**/*.ts', 'root·src·모노레포 App Router TS'],
+  ['**/pages/**/*.tsx', 'root·모노레포 Pages Router TSX'],
+  ['**/pages/**/*.ts', 'root·모노레포 Pages API TS'],
+  ['**/middleware.ts', 'root·모노레포 middleware'],
+  ['**/next.config.*', 'root·모노레포 next.config'],
+]
+
+for (const [pattern, contract] of required) {
+  if (!patterns.includes(pattern)) {
+    console.error(`Next.js rule path 누락: ${pattern} (${contract})`)
+    process.exit(1)
+  }
+}
+for (const pattern of ['**/*.ts', '**/*.tsx']) {
+  if (patterns.includes(pattern)) {
+    console.error(`Next.js rule path 과매칭: ${pattern}`)
+    process.exit(1)
+  }
+}
+NODE
+then
+  echo "PASS: Next.js rule → root·src·모노레포 경로 로드"; PASS=$((PASS+1))
+else
+  echo "FAIL: Next.js rule → root·src·모노레포 경로 계약 위반"; FAIL=$((FAIL+1))
+fi
+
 if grep -Fq 'check-commit-message.cjs' "$ROOT/scripts/new-repo.sh" \
   && grep -Fq 'templates/githooks/commit-msg' "$ROOT/scripts/new-repo.sh" \
   && grep -Fq 'chmod +x .githooks/commit-msg' "$ROOT/scripts/new-repo.sh"; then
