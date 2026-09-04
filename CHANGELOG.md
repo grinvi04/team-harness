@@ -3,7 +3,14 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.63.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.64.0` and replace this file with its output.
+
+## v0.64.0 - 2026-09-04
+
+- fix(gates): 깊은 migration 탐색 우회 봉쇄
+- fix(ddl): dollar 식별자와 ELSE 경계 봉쇄
+- fix(ddl): 방언별 파괴 DDL 우회 봉쇄
+- fix(ddl): TRUNCATE 권한 오탐 제거
 
 ## v0.63.0 - 2026-09-03
 

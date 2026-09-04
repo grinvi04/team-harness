@@ -1,0 +1,1 @@
+/*!50000 TRUNCATE TABLE orders */;

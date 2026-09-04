@@ -1,0 +1,2 @@
+GRANT SELECT ON TABLE "truncate" TO app;
+REVOKE SELECT ON TABLE "truncate" FROM app;

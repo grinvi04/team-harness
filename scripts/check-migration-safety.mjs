@@ -20,8 +20,8 @@
  *
  * 단일 출처: docs/db-standards.md · templates/rules/stacks/flyway.md
  */
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
-import { join, basename, dirname, sep } from 'node:path'
+import { readFileSync, readdirSync, statSync, lstatSync, existsSync, realpathSync } from 'node:fs'
+import { join, basename, dirname, relative, isAbsolute, sep } from 'node:path'
 
 // ── 인자 파싱 ─────────────────────────────────────────────
 const args = process.argv.slice(2)
@@ -89,18 +89,48 @@ const IGNORE = new Set([
 const FLYWAY_RE = /^V\d+.*__.*\.sql$/i           // V1__x.sql, V0001__x.sql, V20240101__x.sql
 const CONFIG_NAMES = /^(application.*\.ya?ml|flyway\.conf|flyway\.toml|alembic\.ini)$/i
 
-function walk(dir, onFile, depth = 0) {
-  if (depth > 12 || !existsSync(dir)) return
-  let entries
-  try { entries = readdirSync(dir) } catch { return }
-  for (const name of entries) {
-    if (IGNORE.has(name)) continue
-    const p = join(dir, name)
-    let s
-    try { s = statSync(p) } catch { continue }
-    if (s.isDirectory()) walk(p, onFile, depth + 1)
-    else onFile(p, name)
+function isWithinRoot(rootIdentity, targetIdentity) {
+  const rel = relative(rootIdentity, targetIdentity)
+  return rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel)
+}
+
+function failSymlink(p, reason) {
+  console.error(`✖ symlink 탐색 경계 위반: ${p} — ${reason}`)
+  process.exit(1)
+}
+
+function walk(root, onFile, isRelevant) {
+  if (!existsSync(root)) return
+  let rootIdentity
+  try { rootIdentity = realpathSync(root) } catch { return }
+
+  function visit(dir) {
+    let entries
+    try { entries = readdirSync(dir) } catch { return }
+    for (const name of entries) {
+      if (IGNORE.has(name)) continue
+      const p = join(dir, name)
+      let s
+      try { s = lstatSync(p) } catch { continue }
+      if (s.isSymbolicLink()) {
+        let target
+        try { target = statSync(p) } catch {
+          if (isRelevant(p, name)) failSymlink(p, 'dangling target')
+          continue
+        }
+        if (target.isDirectory()) failSymlink(p, 'directory symlink unsupported')
+        if (!isRelevant(p, name)) continue
+        if (!target.isFile()) failSymlink(p, 'target is not a regular file')
+        let targetIdentity
+        try { targetIdentity = realpathSync(p) } catch { failSymlink(p, 'target resolution failed') }
+        if (!isWithinRoot(rootIdentity, targetIdentity)) failSymlink(p, 'target escapes scan root')
+        onFile(p, name)
+      } else if (s.isDirectory()) visit(p)
+      else if (s.isFile() && isRelevant(p, name)) onFile(p, name)
+    }
   }
+
+  visit(root)
 }
 
 const migrationFiles = []
@@ -108,15 +138,16 @@ const configFiles = []
 
 if (explicitMigrations && explicitConfig) {
   // 정밀 모드: 둘 다 명시 — 지정된 경로만 검사(무관 대상 오판 없음).
-  walk(explicitMigrations, (p, name) => { if (FLYWAY_RE.test(name)) migrationFiles.push(p) })
+  walk(explicitMigrations, (p) => { migrationFiles.push(p) }, (_p, name) => FLYWAY_RE.test(name))
   if (existsSync(explicitConfig)) configFiles.push(explicitConfig)
 } else {
   // 발견 모드: 둘 다 생략 — [루트경로](기본 cwd)에서 마이그레이션·설정을 함께 탐색.
   for (const root of roots) {
+    const isMigrationInput = (_p, name) => FLYWAY_RE.test(name) || CONFIG_NAMES.test(name)
     walk(root, (p, name) => {
       if (FLYWAY_RE.test(name)) migrationFiles.push(p)
       if (CONFIG_NAMES.test(name)) configFiles.push(p)
-    })
+    }, isMigrationInput)
   }
 }
 

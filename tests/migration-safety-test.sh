@@ -7,6 +7,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GATE="$ROOT/scripts/check-migration-safety.mjs"
 FIX="$ROOT/tests/fixtures/migration-safety"
 PASS=0; FAIL=0
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
 
 check() { # desc, expected_exit, target_path
   local desc="$1" want="$2" target="$3"
@@ -20,6 +22,7 @@ check() { # desc, expected_exit, target_path
 
 # 검사 A: 대역인데 out-of-order 설정 없음 → 차단
 check "대역 + out-of-order 미설정 → FAIL"   1 "$FIX/bad-missing"
+check "깊이 13 Flyway 대역 → FAIL"          1 "$FIX/bad-deep-discovery"
 # 발견 모드: repo의 의도적 실패 fixture는 운영 마이그레이션이 아님 → self release-check에서 제외
 check "repo 발견 모드가 tests fixture를 운영 migration으로 오인하지 않음" 0 "$ROOT"
 # 검사 B: 대역인데 out-of-order:false 명시 → 차단
@@ -78,6 +81,58 @@ check "단조 증가 번호 → 통과"                0 "$FIX/monotonic"
 check "타임스탬프 버전 → 통과"               0 "$FIX/timestamp"
 # 마이그레이션 없음 → skip 통과
 check "마이그레이션 없음 → skip 통과"        0 "$ROOT/docs"
+
+# 발견 모드는 exact root 아래의 tracked directory만 본다. symlink escape·cycle·fan-out은 무시한다.
+SYMLINK_ROOT="$TMP/symlink-root"
+mkdir -p "$SYMLINK_ROOT"
+ln -s "$SYMLINK_ROOT" "$SYMLINK_ROOT/cycle"
+for alias in 1 2 3 4 5 6 7 8; do
+  ln -s "$FIX/bad-missing" "$SYMLINK_ROOT/external-$alias"
+done
+check "directory symlink cycle·외부 escape·alias fan-out → fail-closed" 1 "$SYMLINK_ROOT"
+
+LINK_ROOT="$TMP/file-link-root"
+mkdir -p "$LINK_ROOT/db/migration"
+cp "$FIX/bad-missing/src/main/resources/application.yml" "$LINK_ROOT/config.txt"
+ln -s ../../config.txt "$LINK_ROOT/db/migration/V0001__linked.sql"
+ln -s ../../config.txt "$LINK_ROOT/db/migration/V1001__linked.sql"
+ln -s ../../config.txt "$LINK_ROOT/db/migration/V2001__linked.sql"
+ln -s config.txt "$LINK_ROOT/application.yml"
+check "내부 regular Flyway file symlink의 대역 → FAIL" 1 "$LINK_ROOT"
+
+SAFE_LINK_ROOT="$TMP/safe-file-link-root"
+mkdir -p "$SAFE_LINK_ROOT/db/migration"
+cp "$FIX/good/src/main/resources/application.yml" "$SAFE_LINK_ROOT/config.txt"
+cp "$FIX/good/src/main/resources/db/migration/V0001__init.sql" "$SAFE_LINK_ROOT/v0001.txt"
+cp "$FIX/good/src/main/resources/db/migration/V1001__hr.sql" "$SAFE_LINK_ROOT/v1001.txt"
+cp "$FIX/good/src/main/resources/db/migration/V2001__finance.sql" "$SAFE_LINK_ROOT/v2001.txt"
+ln -s config.txt "$SAFE_LINK_ROOT/application.yml"
+ln -s ../../v0001.txt "$SAFE_LINK_ROOT/db/migration/V0001__linked.sql"
+ln -s ../../v1001.txt "$SAFE_LINK_ROOT/db/migration/V1001__linked.sql"
+ln -s ../../v2001.txt "$SAFE_LINK_ROOT/db/migration/V2001__linked.sql"
+if OUT=$(node "$GATE" "$SAFE_LINK_ROOT" 2>&1) && echo "$OUT" | grep -q "대상 3개"; then
+  echo "PASS: 내부 regular Flyway file symlink를 실제 migration으로 검사"; PASS=$((PASS+1))
+else
+  echo "FAIL: 내부 regular Flyway file symlink 검사 누락"; FAIL=$((FAIL+1))
+fi
+
+EXTERNAL_LINK_ROOT="$TMP/external-file-link-root"
+mkdir -p "$EXTERNAL_LINK_ROOT/db/migration"
+printf '%s\n' 'SELECT 1;' > "$TMP/external-safe.sql"
+ln -s "$TMP/external-safe.sql" "$EXTERNAL_LINK_ROOT/db/migration/V0001__external.sql"
+check "외부 regular Flyway file symlink → fail-closed" 1 "$EXTERNAL_LINK_ROOT"
+
+DANGLING_LINK_ROOT="$TMP/dangling-file-link-root"
+mkdir -p "$DANGLING_LINK_ROOT/db/migration"
+ln -s "$TMP/missing.sql" "$DANGLING_LINK_ROOT/db/migration/V0001__dangling.sql"
+check "dangling Flyway file symlink → fail-closed" 1 "$DANGLING_LINK_ROOT"
+
+NONREGULAR_LINK_ROOT="$TMP/nonregular-file-link-root"
+mkdir -p "$NONREGULAR_LINK_ROOT/db/migration"
+mkfifo "$NONREGULAR_LINK_ROOT/payload.pipe"
+ln -s ../../payload.pipe "$NONREGULAR_LINK_ROOT/db/migration/V0001__pipe.sql"
+check "비정규 Flyway file symlink → fail-closed" 1 "$NONREGULAR_LINK_ROOT"
+
 # --help → 통과
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
 

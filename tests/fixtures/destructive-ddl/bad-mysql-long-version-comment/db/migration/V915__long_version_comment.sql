@@ -1,0 +1,7 @@
+CREATE PROCEDURE p()
+BEGIN
+  IF /*!8000011 THEN
+    TRUNCATE TABLE orders;
+  END IF */;
+END;
+CALL p();
