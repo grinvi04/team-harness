@@ -40,11 +40,22 @@
 
 ### 시크릿 유출 대응 런북
 
-> **감지·차단은 이미 계층으로 존재**한다 — gitleaks(CI `ci-gate.yml` secret-scan 잡)·guard 명령 마스킹·
-> PreToolUse 유출 탐지 프롬프트·release 전 `security-reviewer`·`.gitignore`(.env/*.key/*.pem), 저장 표준은
-> `auth-standards.md`(AWS Secrets Manager/SSM — 코드·.env 금지). 이 런북은 그 계층이 **뚫린 뒤의 대응**만
-> 다룬다(중복 서술 안 함 — 참조). 시크릿 유출은 **SEV1(데이터 유출)로 선언**하고 §1 대응 절차(IC/조치자 분리)를
-> 따르되, 아래 시크릿 특유 단계를 얹는다.
+> **감지·차단은 이미 계층으로 존재**한다 — GitHub Secret Scanning·Push Protection, gitleaks(CI
+> `ci-gate.yml` secret-scan 잡), guard 명령 마스킹·PreToolUse 유출 탐지 프롬프트·release 전
+> `security-reviewer`·`.gitignore`(.env/*.key/*.pem). 저장 표준은 `auth-standards.md`(AWS Secrets
+> Manager/SSM — 코드·.env 금지)다. 이 런북은 그 계층이 **뚫린 뒤의 대응**만 다룬다(중복 서술 안 함 — 참조).
+> 시크릿 유출은 **SEV1(데이터 유출)로 선언**하고 §1 대응 절차(IC/조치자 분리)를 따르되, 아래 시크릿 특유
+> 단계를 얹는다.
+
+각 계층의 역할은 다음과 같다.
+
+- **GitHub Push Protection** — GitHub가 지원하는 시크릿 패턴을 서버에서 push 시점에 검사해 저장소 유입 전에
+  차단한다. 지원 패턴 밖 값과 명시적 우회 가능성 때문에 단독 안전망으로 간주하지 않는다.
+- **GitHub Secret Scanning** — 저장소의 모든 브랜치와 전체 Git 히스토리를 계속 검사하고 이미 유입된 시크릿을
+  경보로 남긴다. 사후 탐지이므로 유효한 값은 경보 확인 즉시 폐기·회전한다.
+- **gitleaks required `secret-scan`** — PR의 full history를 별도 탐지 엔진으로 재검증해 머지를 차단한다. 최초
+  push 뒤 실행되는 CI이므로 Push Protection을 대체하지 않으며, GitHub 지원 패턴과 다른 규칙·entropy 탐지로
+  상호 보완한다.
 
 **핵심 원칙 — 폐기가 히스토리 정리보다 우선.** 시크릿은 커밋된 순간 이미 공개다(clone·fork·CI 로그·캐시로
 확산 — 되돌릴 수 없음). 그래서 **값을 죽이는 폐기가 1순위**, 히스토리 purge는 2차다(비가역성 원칙: 못 되돌릴
