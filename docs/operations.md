@@ -53,9 +53,9 @@
   차단한다. 지원 패턴 밖 값과 명시적 우회 가능성 때문에 단독 안전망으로 간주하지 않는다.
 - **GitHub Secret Scanning** — 저장소의 모든 브랜치와 전체 Git 히스토리를 계속 검사하고 이미 유입된 시크릿을
   경보로 남긴다. 사후 탐지이므로 유효한 값은 경보 확인 즉시 폐기·회전한다.
-- **gitleaks required `secret-scan`** — PR의 full history를 별도 탐지 엔진으로 재검증해 머지를 차단한다. 최초
+- **gitleaks required `secret-scan`** — PR 커밋 범위를 별도 탐지 엔진으로 재검증해 머지를 차단한다. 최초
   push 뒤 실행되는 CI이므로 Push Protection을 대체하지 않으며, GitHub 지원 패턴과 다른 규칙·entropy 탐지로
-  상호 보완한다.
+  상호 보완한다. 모든 브랜치·전체 Git 히스토리의 지속 검사는 GitHub Secret Scanning이 맡는다.
 
 **핵심 원칙 — 폐기가 히스토리 정리보다 우선.** 시크릿은 커밋된 순간 이미 공개다(clone·fork·CI 로그·캐시로
 확산 — 되돌릴 수 없음). 그래서 **값을 죽이는 폐기가 1순위**, 히스토리 purge는 2차다(비가역성 원칙: 못 되돌릴
