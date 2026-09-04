@@ -96,8 +96,14 @@ if (workflows[0] !== workflows[1]) process.exit(1)
 for (const workflow of workflows) {
   if (/wagoid\/commitlint-github-action|docker:\/\//.test(workflow)) process.exit(1)
   if (!/BASE_REF: \$\{\{ github\.base_ref \}\}/.test(workflow)) process.exit(1)
+  if (!workflow.includes('HEAD_REF: ${{ github.head_ref }}')) process.exit(1)
   if (!/git fetch --no-tags origin develop/.test(workflow)) process.exit(1)
   if (!/check-commit-message\.cjs --range "\$BASE_SHA\.\.\$HEAD_SHA" --exclude "\$DEVELOP_SHA"/.test(workflow)) process.exit(1)
+  if (!workflow.includes('"$HEAD_REF" == sync/backmerge-*')) process.exit(1)
+  if (!workflow.includes('git fetch --no-tags origin main')) process.exit(1)
+  if (!workflow.includes('BACKMERGE_COMMITS="$(git rev-list "$BASE_SHA..$HEAD_SHA" "^$MAIN_SHA" --)"')) process.exit(1)
+  if (!workflow.includes('[ -z "$BACKMERGE_COMMITS" ]')) process.exit(1)
+  if (!workflow.includes('check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA" --exclude "$MAIN_SHA"')) process.exit(1)
   if (!/check-commit-message\.cjs --range "\$BASE_SHA\.\.\$HEAD_SHA"/.test(workflow)) process.exit(1)
   if (workflow.includes('< <(')) process.exit(1)
 }
@@ -289,6 +295,52 @@ if [ "$ORPHAN_EXCLUDE_RC" -eq 2 ]; then
   PASS=$((PASS+1))
 else
   echo "FAIL: range 없는 exclude 종료코드 — expected 2, got $ORPHAN_EXCLUDE_RC"
+  FAIL=$((FAIL+1))
+fi
+
+BACKMERGE_REPO="$TMP/backmerge-repo"
+mkdir -p "$BACKMERGE_REPO"
+git -C "$BACKMERGE_REPO" init -q
+git -C "$BACKMERGE_REPO" config user.name test
+git -C "$BACKMERGE_REPO" config user.email test@example.com
+git -C "$BACKMERGE_REPO" -c core.hooksPath=/dev/null commit --allow-empty -qm 'docs: 기준 커밋 추가'
+git -C "$BACKMERGE_REPO" branch -M develop
+BACKMERGE_BASE_SHA="$(git -C "$BACKMERGE_REPO" rev-parse HEAD)"
+git -C "$BACKMERGE_REPO" checkout -qb main
+git -C "$BACKMERGE_REPO" -c core.hooksPath=/dev/null commit --allow-empty -qm 'legacy invalid main message'
+BACKMERGE_MAIN_SHA="$(git -C "$BACKMERGE_REPO" rev-parse HEAD)"
+
+UNFILTERED_BACKMERGE_RC=0
+(cd "$BACKMERGE_REPO" && node "$CHECK" --range "$BACKMERGE_BASE_SHA..$BACKMERGE_MAIN_SHA") >/dev/null 2>&1 \
+  || UNFILTERED_BACKMERGE_RC=$?
+if [ "$UNFILTERED_BACKMERGE_RC" -eq 1 ]; then
+  echo "PASS: develop backmerge 원시 range가 과거 main 이력을 재검사"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: develop backmerge 원시 range 재현 종료코드 — expected 1, got $UNFILTERED_BACKMERGE_RC"
+  FAIL=$((FAIL+1))
+fi
+
+BACKMERGE_COMMITS="$(git -C "$BACKMERGE_REPO" rev-list "$BACKMERGE_BASE_SHA..$BACKMERGE_MAIN_SHA" "^$BACKMERGE_MAIN_SHA" --)"
+if [ -z "$BACKMERGE_COMMITS" ]; then
+  echo "PASS: 순수 backmerge는 main에 없는 commit이 없음"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: 순수 backmerge에 main 밖 commit이 검출됨"
+  FAIL=$((FAIL+1))
+fi
+
+git -C "$BACKMERGE_REPO" checkout -qb sync/backmerge-v1.0.0
+git -C "$BACKMERGE_REPO" -c core.hooksPath=/dev/null commit --allow-empty -qm 'invalid backmerge resolution'
+BACKMERGE_UNIQUE_SHA="$(git -C "$BACKMERGE_REPO" rev-parse HEAD)"
+FILTERED_BACKMERGE_RC=0
+(cd "$BACKMERGE_REPO" && node "$CHECK" --range "$BACKMERGE_BASE_SHA..$BACKMERGE_UNIQUE_SHA" --exclude "$BACKMERGE_MAIN_SHA") >/dev/null 2>&1 \
+  || FILTERED_BACKMERGE_RC=$?
+if [ "$FILTERED_BACKMERGE_RC" -eq 1 ]; then
+  echo "PASS: main 제외 뒤 backmerge 고유 위반은 거부"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: backmerge 고유 위반 종료코드 — expected 1, got $FILTERED_BACKMERGE_RC"
   FAIL=$((FAIL+1))
 fi
 

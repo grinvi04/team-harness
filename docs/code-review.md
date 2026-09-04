@@ -29,6 +29,9 @@ Conventional Commits 1.0.0의 `<type>[optional scope][!]: <description>` 구조�
 Node.js가 있는 환경에서는 `commit-msg` 훅이 로컬에서 즉시 검사하고, PR의 commitlint가 같은 validator로
 다시 검사한다. non-Node 소비 repo의 개발 환경에 Node.js가 없으면 훅은 경고 후 로컬 검사를 건너뛰며,
 PR의 필수 CI commitlint가 규칙을 강제한다. `--no-verify`로 로컬 훅을 건너뛰어도 CI 규칙은 그대로 남는다.
+main 대상 release PR은 보호된 develop에서 이미 도달 가능한 이력을 제외하고 PR 고유 커밋만 검사한다.
+develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, 충돌 해결처럼 main 밖에서 새로 생긴
+고유 커밋은 같은 규칙으로 검사한다. 고유 커밋이 없는 순수 역병합은 재검사 없이 통과한다.
 
 ## 브랜치
 
