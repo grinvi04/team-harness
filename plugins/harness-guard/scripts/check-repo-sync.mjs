@@ -235,11 +235,11 @@ function existsAnywhere(re) {
   return files.some((f) => re.test(f.name))
 }
 
-const BUNDLED_COMMITLINT_WORKFLOW_SHA256 = '111ca0162e27c0f180ab6518d3737ef38fde1f4da54d1e739e3d76133a83a99d'
-const BUNDLED_COMMIT_VALIDATOR_SHA256 = 'fc5a4e82601efe2f7b47bdf2f475de89a0ffba8fd9dc39ec54c61518b8a5fbe3'
+const BUNDLED_COMMITLINT_WORKFLOW_SHA256 = '072f8e4329e63e50d6b22f6f148d394c5a2bf3e01b045edbf273fb298d5a1e08'
+const BUNDLED_COMMIT_VALIDATOR_SHA256 = '0e16c0b6d7ebfd88bf48bcc952726149f0c00e3a136ac8dffcdff9653475cb61'
 const BUNDLED_COMMITLINT_SHA256 = [
-  '5fad6ec6655f12c62afcb8d538d7edad652ef5463fea49159a486d2cb6e8d43d',
-  'c9db27e27848ea26a26f7eb0a6fa736978c6bbf9a75998d44ed5e449e1a9f4c2',
+  '2080abae45b3595f0a93a84aae3c14911cc325fb25b3798aa2401523459525a3',
+  'd8c529909573f55dab2bc0501c72dafda757c86d9e3717c10cf12022cf429c38',
 ]
 const BUNDLED_COMMIT_MSG_HOOK_SHA256 = 'da6e5afc5cad7358bef48fcfd83b525091ff498185fd3d583e98ce0bbf3bc1e2'
 
@@ -364,7 +364,7 @@ checks.push({
     ['commitlint.config.cjs', 'templates/commitlint.config.cjs'],
     BUNDLED_COMMITLINT_SHA256,
   ) ? 'OK' : 'MISSING',
-  detail: '루트 commitlint.config.cjs (team-harness-message rule 연결)',
+  detail: '루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)',
 })
 checks.push({
   asset: 'commit-msg 훅',

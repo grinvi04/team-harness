@@ -118,7 +118,7 @@ node scripts/check-external-pilot-provenance.mjs \
   단, 커밋 메시지 강제 체인(commit metadata provenance를 포함한 commitlint workflow·commitlint config·
   commit-msg hook·validator)은 정책 코어이므로 action 이름이나 sentinel 존재만으로 `OK` 처리하지 않는다.
   네 자산 모두 team-harness 정본의 정규화된 SHA-256과 일치해야 하며, 대상 파일을 실행하지 않아 드리프트
-  검사 중 소비 repo 코드가 실행되지 않는다. 따라서 `if:false`, `continue-on-error`, block scalar 안 가짜 action
+  검사 중 소비 repo 코드가 실행되지 않는다. 따라서 `if:false`, `continue-on-error`, block scalar 안 가짜 validator
   같은 비활성 workflow도 정본 불일치로 차단한다.
   team-harness 자기 자신을 점검할 때는 배포용 `templates/`, 테스트 입력인 `tests/fixtures/`, 로컬 목표 실행
   산출물인 `docs/goals/`를 활성 스택 신호에서 제외한다. 이 예외는 `--repo`와 `--harness`가 같은 self-check에만 적용되며,

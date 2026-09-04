@@ -39,6 +39,8 @@ case_message "Git merge는 provenance 없이 거부" 1 "Merge branch 'feature/or
 case_message "Git merge 실제 context 허용" 0 "Merge branch 'feature/order' into develop" allow-generated
 case_message "Git 충돌 merge 주석은 provenance 없이 거부" 1 $'Merge branch \'feature/order\'\n\n# Conflicts:\n#\torder.txt'
 case_message "Git 충돌 merge 자동 주석 실제 context 허용" 0 $'Merge branch \'feature/order\'\n\n# Conflicts:\n#\torder.txt' allow-generated
+case_message "규약형 merge 충돌 주석은 provenance 없이 거부" 1 $'chore(release): main 이력 후보에 병합\n\n# Conflicts:\n#\tdocs/architecture.svg'
+case_message "규약형 merge 충돌 주석 실제 context 허용" 0 $'chore(release): main 이력 후보에 병합\n\n# Conflicts:\n#\tdocs/architecture.svg' allow-generated
 case_message "Git octopus merge 실제 context 허용" 0 "Merge branches 'feature/order', 'feature/auth' and 'feature/search' into develop" allow-generated
 case_message "Git pull merge 실제 context 허용" 0 "Merge branch 'main' of https://github.com/acme/project" allow-generated
 case_message "Git SSH pull merge 실제 context 허용" 0 "Merge branch 'main' of git@github.com:acme/project.git" allow-generated
@@ -54,6 +56,12 @@ case_message "필수 이유 누락 거부" 1 'refactor(order): 주문 검증기 
 case_message "header 뒤 빈 줄 누락 거부" 1 $'perf(query): 조회 쿼리 단순화\n이유: 중복 조인을 제거'
 case_message "요약 마침표 거부" 1 'docs: 설치 설명 보완.'
 case_message "50자 초과 요약 거부" 1 "docs: $(printf '가%.0s' {1..51})"
+case_message "100자 header 허용" 0 "docs($(printf 'a%.0s' {1..90})): 설명"
+case_message "100자 초과 header 거부" 1 "docs($(printf 'a%.0s' {1..91})): 설명"
+case_message "header 후행 공백 거부" 1 'docs: 설치 설명 보완 '
+case_message "100자 footer 허용" 0 "docs: 설치 설명 보완"$'\n\n'"Refs: $(printf 'a%.0s' {1..94})"
+case_message "100자 초과 footer 거부" 1 "docs: 설치 설명 보완"$'\n\n'"Refs: $(printf 'a%.0s' {1..95})"
+case_message "100자 초과 body label은 현 계약대로 허용" 0 "docs: 설치 설명 보완"$'\n\n'"이유: $(printf '가%.0s' {1..101})"
 case_message "미등록 타입 거부" 1 'update(core): 설정 파일 갱신'
 case_message "형식 없는 메시지 거부" 1 '주문 검증 추가'
 case_message "Revert 접두사 스푸핑 거부" 1 'Revert "규칙 우회"'
@@ -75,26 +83,30 @@ for (const configPath of [`${root}/commitlint.config.cjs`, `${root}/templates/co
   const ignored = (message) => config.ignores.some((ignore) => ignore(message))
   if (!ignored("Merge branch 'feature/order' into develop")) process.exit(1)
   if (!ignored('Merge pull request #348 from grinvi04/fix/release-security-gaps\n\nfix(workflow): 릴리즈 보안 우회 차단')) process.exit(1)
+  if (!ignored('chore(release): main 이력 후보에 병합\n\n# Conflicts:\n#\tdocs/architecture.svg')) process.exit(1)
   if (ignored('Revert "feat(order): 주문 기능 추가"\n\nThis reverts commit abcdef0123456789abcdef0123456789abcdef01.')) process.exit(1)
   if (ignored('Revert "규칙 우회"') || ignored('v1.2.3')) process.exit(1)
   const [valid] = rule({ raw: 'docs: 설치 설명 보완' })
   if (!valid) process.exit(1)
 }
 
-for (const workflowPath of [`${root}/.github/workflows/commitlint.yml`, `${root}/templates/ci/commitlint.yml`]) {
-  const workflow = readFileSync(workflowPath, 'utf8')
-  if (!/- uses: wagoid\/commitlint-github-action@[0-9a-f]{40} # v6\n\s+with:\n\s+configFile: \.\/commitlint\.config\.cjs/m.test(workflow)) {
-    process.exit(1)
-  }
+const workflowPaths = [`${root}/.github/workflows/commitlint.yml`, `${root}/templates/ci/commitlint.yml`]
+const workflows = workflowPaths.map((workflowPath) => readFileSync(workflowPath, 'utf8'))
+if (workflows[0] !== workflows[1]) process.exit(1)
+for (const workflow of workflows) {
+  if (/wagoid\/commitlint-github-action|docker:\/\//.test(workflow)) process.exit(1)
+  if (!/BASE_REF: \$\{\{ github\.base_ref \}\}/.test(workflow)) process.exit(1)
+  if (!/git fetch --no-tags origin develop/.test(workflow)) process.exit(1)
+  if (!/check-commit-message\.cjs --range "\$BASE_SHA\.\.\$HEAD_SHA" --exclude "\$DEVELOP_SHA"/.test(workflow)) process.exit(1)
   if (!/check-commit-message\.cjs --range "\$BASE_SHA\.\.\$HEAD_SHA"/.test(workflow)) process.exit(1)
   if (workflow.includes('< <(')) process.exit(1)
 }
 NODE
 then
-  echo "PASS: root/template commitlint action·ignore가 동일 custom validator 사용"
+  echo "PASS: root/template commitlint가 외부 action 없이 동일 custom validator 사용"
   PASS=$((PASS+1))
 else
-  echo "FAIL: commitlint action config 경로 또는 ignore 배선 누락"
+  echo "FAIL: commitlint workflow 단일 validator 배선 불일치"
   FAIL=$((FAIL+1))
 fi
 
@@ -205,6 +217,78 @@ if [ "$INVALID_RANGE_RC" -ne 0 ]; then
   PASS=$((PASS+1))
 else
   echo "FAIL: CI 해석 불가 commit range가 검사 없이 성공"
+  FAIL=$((FAIL+1))
+fi
+
+RELEASE_REPO="$TMP/release-repo"
+mkdir -p "$RELEASE_REPO"
+git -C "$RELEASE_REPO" init -q
+git -C "$RELEASE_REPO" config user.name test
+git -C "$RELEASE_REPO" config user.email test@example.com
+git -C "$RELEASE_REPO" -c core.hooksPath=/dev/null commit --allow-empty -qm 'docs: 기준 커밋 추가'
+git -C "$RELEASE_REPO" branch -M main
+RELEASE_BASE_SHA="$(git -C "$RELEASE_REPO" rev-parse HEAD)"
+git -C "$RELEASE_REPO" checkout -qb develop
+git -C "$RELEASE_REPO" -c core.hooksPath=/dev/null commit --allow-empty -qm 'legacy invalid message'
+DEVELOP_SHA="$(git -C "$RELEASE_REPO" rev-parse HEAD)"
+git -C "$RELEASE_REPO" checkout -qb release/v1.0.0
+git -C "$RELEASE_REPO" -c core.hooksPath=/dev/null commit --allow-empty -qm 'chore(release): v1.0.0 릴리즈 준비'
+RELEASE_SHA="$(git -C "$RELEASE_REPO" rev-parse HEAD)"
+
+UNFILTERED_RELEASE_RC=0
+(cd "$RELEASE_REPO" && node "$CHECK" --range "$RELEASE_BASE_SHA..$RELEASE_SHA") >/dev/null 2>&1 \
+  || UNFILTERED_RELEASE_RC=$?
+if [ "$UNFILTERED_RELEASE_RC" -eq 1 ]; then
+  echo "PASS: main release 원시 range가 정책 도입 전 develop 이력을 재검사"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: main release 원시 range 재현 종료코드 — expected 1, got $UNFILTERED_RELEASE_RC"
+  FAIL=$((FAIL+1))
+fi
+
+FILTERED_RELEASE_RC=0
+(cd "$RELEASE_REPO" && node "$CHECK" --range "$RELEASE_BASE_SHA..$RELEASE_SHA" --exclude "$DEVELOP_SHA") >/dev/null 2>&1 \
+  || FILTERED_RELEASE_RC=$?
+if [ "$FILTERED_RELEASE_RC" -eq 0 ]; then
+  echo "PASS: main release range가 develop 도달 이력을 제외"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: main release develop 제외 종료코드 — expected 0, got $FILTERED_RELEASE_RC"
+  FAIL=$((FAIL+1))
+fi
+
+git -C "$RELEASE_REPO" -c core.hooksPath=/dev/null commit --allow-empty -qm 'release invalid message'
+INVALID_RELEASE_SHA="$(git -C "$RELEASE_REPO" rev-parse HEAD)"
+INVALID_RELEASE_RC=0
+(cd "$RELEASE_REPO" && node "$CHECK" --range "$RELEASE_BASE_SHA..$INVALID_RELEASE_SHA" --exclude "$DEVELOP_SHA") >/dev/null 2>&1 \
+  || INVALID_RELEASE_RC=$?
+if [ "$INVALID_RELEASE_RC" -eq 1 ]; then
+  echo "PASS: develop 제외 뒤 release 고유 위반은 거부"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: release 고유 위반 종료코드 — expected 1, got $INVALID_RELEASE_RC"
+  FAIL=$((FAIL+1))
+fi
+
+INVALID_EXCLUDE_RC=0
+(cd "$RELEASE_REPO" && node "$CHECK" --range "$RELEASE_BASE_SHA..$RELEASE_SHA" --exclude deadbeef) >/dev/null 2>&1 \
+  || INVALID_EXCLUDE_RC=$?
+if [ "$INVALID_EXCLUDE_RC" -eq 2 ]; then
+  echo "PASS: 잘못된 exclude SHA fail-closed"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: 잘못된 exclude SHA 종료코드 — expected 2, got $INVALID_EXCLUDE_RC"
+  FAIL=$((FAIL+1))
+fi
+
+ORPHAN_EXCLUDE_RC=0
+(cd "$RELEASE_REPO" && node "$CHECK" --commit "$RELEASE_SHA" --exclude "$DEVELOP_SHA") >/dev/null 2>&1 \
+  || ORPHAN_EXCLUDE_RC=$?
+if [ "$ORPHAN_EXCLUDE_RC" -eq 2 ]; then
+  echo "PASS: range 없는 exclude fail-closed"
+  PASS=$((PASS+1))
+else
+  echo "FAIL: range 없는 exclude 종료코드 — expected 2, got $ORPHAN_EXCLUDE_RC"
   FAIL=$((FAIL+1))
 fi
 
