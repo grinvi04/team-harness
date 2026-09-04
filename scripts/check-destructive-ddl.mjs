@@ -107,26 +107,26 @@ const LEXER_MODES = [
   {
     dashCommentRequiresSpace: false, hashComment: false, backslashEscapes: false,
     doubleQuoteBackslashEscapes: false, nestedBlockComments: true,
-    mysqlExecutableComments: false, newlineStatements: false,
+    mysqlExecutableComments: false, newlineStatements: false, postgresDollarQuotes: true,
   }, // PostgreSQL
   {
     dashCommentRequiresSpace: false, hashComment: false, backslashEscapes: true,
     doubleQuoteBackslashEscapes: false, nestedBlockComments: true,
-    mysqlExecutableComments: false, newlineStatements: false,
+    mysqlExecutableComments: false, newlineStatements: false, postgresDollarQuotes: true,
   }, // PostgreSQL E-string
   {
     dashCommentRequiresSpace: true, hashComment: true, backslashEscapes: true,
     doubleQuoteBackslashEscapes: true, nestedBlockComments: false,
-    mysqlExecutableComments: true, newlineStatements: false,
+    mysqlExecutableComments: true, newlineStatements: false, postgresDollarQuotes: false,
   }, // MySQL
   {
     dashCommentRequiresSpace: false, hashComment: false, backslashEscapes: false,
     doubleQuoteBackslashEscapes: false, nestedBlockComments: false,
-    mysqlExecutableComments: false, newlineStatements: true,
+    mysqlExecutableComments: false, newlineStatements: true, postgresDollarQuotes: false,
   }, // T-SQL
 ]
 const LINE_MARKER_RE = /^\s*migration-safety:\s*destructive-ok\b/i
-const TSQL_LINE_START_RE = /^\s*(?:(?:IF|BEGIN|END|WHILE|TRUNCATE|GRANT|REVOKE|DROP|ALTER|CREATE|DELETE|UPDATE|INSERT|EXEC(?:UTE)?|MERGE|SELECT|WITH|DECLARE|SET|PRINT|GOTO|RETURN|THROW|RAISERROR|USE|WAITFOR|COMMIT|ROLLBACK|SAVE|GO)\b|[A-Za-z_][A-Za-z0-9_]*\s*:)/i
+const TSQL_LINE_START_RE = /^\s*(?:(?:IF|ELSE|BEGIN|END|WHILE|TRUNCATE|GRANT|REVOKE|DROP|ALTER|CREATE|DELETE|UPDATE|INSERT|EXEC(?:UTE)?|MERGE|SELECT|WITH|DECLARE|SET|PRINT|GOTO|RETURN|THROW|RAISERROR|USE|WAITFOR|COMMIT|ROLLBACK|SAVE|GO)\b|[A-Za-z_][A-Za-z0-9_]*\s*:)/i
 const PRIVILEGE_CONTINUATION_RE = /^\s*(?:SELECT|INSERT|UPDATE|DELETE|TRUNCATE|REFERENCES|TRIGGER|EXECUTE|USAGE|CREATE|CONNECT|TEMPORARY)\b/i
 
 function isPrivilegeListContinuation(code, nextLine) {
@@ -147,8 +147,9 @@ function parseStatements(sql, mode) {
   let n = sql.length
   while (i < n) {
     const c = sql[i], c2 = sql[i + 1]
-    // PostgreSQL dollar-quoted string. 다른 방언에서 같은 표기는 유효한 DDL 문맥이 아니므로 공통 불투명 토큰으로 본다.
-    if (c === '$' && (i === 0 || !/[A-Za-z0-9_$]/.test(sql[i - 1]))) {
+    // PostgreSQL dollar-quoted string. MySQL은 `$`를 unquoted identifier에 허용하므로 PostgreSQL mode에서만
+    // 불투명 문자열로 본다. 다른 mode는 `$tag$` 사이의 파괴문을 코드로 유지해 방언 중의성을 fail-closed한다.
+    if (mode.postgresDollarQuotes && c === '$' && (i === 0 || !/[A-Za-z0-9_$]/.test(sql[i - 1]))) {
       const delimiter = sql.slice(i).match(/^\$(?:[A-Za-z_][A-Za-z0-9_]*)?\$/)?.[0]
       if (delimiter) {
         const end = sql.indexOf(delimiter, i + delimiter.length)

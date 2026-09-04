@@ -49,6 +49,8 @@ check "모든 방언 lexical 오류 → fail-closed"     1 "$FIX/bad-unparseable
 check "dollar 포함 식별자 사이 TRUNCATE → FAIL" 1 "$FIX/bad-dollar-identifier-boundary"
 check "T-SQL label 앞 marker 유출 → FAIL"       1 "$FIX/bad-tsql-marker-label"
 check "T-SQL WHILE 앞 marker 유출 → FAIL"       1 "$FIX/bad-tsql-marker-while"
+check "MySQL dollar 식별자 사이 TRUNCATE → FAIL" 1 "$FIX/bad-mysql-dollar-identifiers"
+check "T-SQL ELSE 앞 marker 유출 → FAIL"        1 "$FIX/bad-tsql-marker-else"
 check "ALTER…DROP COLUMN 미승인 → FAIL(AC-1)"   1 "$FIX/bad-drop-column"
 check "DROP DATABASE 미승인 → FAIL(AC-1)"       1 "$FIX/bad-drop-database"
 check "DROP SCHEMA 미승인 → FAIL(AC-1)"         1 "$FIX/bad-drop-schema"
@@ -76,7 +78,7 @@ check "블록주석 속 DROP TABLE → 통과(AC-3)"      0 "$FIX/good-block-com
 # MySQL 실행형 주석 안에서도 문자열 리터럴은 실행 코드가 아니므로 키워드를 무시한다.
 check "MySQL 실행형 주석 문자열 → 통과(AC-4)"    0 "$FIX/good-mysql-executable-string"
 check "MySQL double quote 문자열 → 통과(AC-4)"  0 "$FIX/good-mysql-double-quote-string"
-check "PostgreSQL dollar quote 문자열 → 통과(AC-4)" 0 "$FIX/good-dollar-quote-string"
+check "dollar quote 방언 중의성 + 승인마커 → 통과" 0 "$FIX/good-dollar-quote-string"
 check "PostgreSQL 중첩주석 속 TRUNCATE → 통과(AC-3)" 0 "$FIX/good-pg-nested-comment"
 check "MySQL 4자리 버전 주석 → 통과(AC-3)"       0 "$FIX/good-mysql-four-digit-comment"
 # ── AC-4: 문자열 리터럴 안의 파괴 키워드 → 무시(우회) ──
