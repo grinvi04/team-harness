@@ -11,6 +11,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GATE="$ROOT/scripts/check-destructive-ddl.mjs"
 FIX="$ROOT/tests/fixtures/destructive-ddl"
 PASS=0; FAIL=0
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
 
 check() { # desc, expected_exit, target_path
   local desc="$1" want="$2" target="$3"
@@ -51,6 +53,7 @@ check "T-SQL label 앞 marker 유출 → FAIL"       1 "$FIX/bad-tsql-marker-lab
 check "T-SQL WHILE 앞 marker 유출 → FAIL"       1 "$FIX/bad-tsql-marker-while"
 check "MySQL dollar 식별자 사이 TRUNCATE → FAIL" 1 "$FIX/bad-mysql-dollar-identifiers"
 check "T-SQL ELSE 앞 marker 유출 → FAIL"        1 "$FIX/bad-tsql-marker-else"
+check "깊이 13 migration의 TRUNCATE → FAIL"     1 "$FIX/bad-deep-migration"
 check "ALTER…DROP COLUMN 미승인 → FAIL(AC-1)"   1 "$FIX/bad-drop-column"
 check "DROP DATABASE 미승인 → FAIL(AC-1)"       1 "$FIX/bad-drop-database"
 check "DROP SCHEMA 미승인 → FAIL(AC-1)"         1 "$FIX/bad-drop-schema"
@@ -103,6 +106,52 @@ check "MySQL 실행형 주석 # 승인마커 → 통과"      0 "$FIX/good-exec-
 # ── AC-9: 마이그레이션 디렉터리 밖 .sql → 스캔 안 함(오탐 금지) ──
 check "비-마이그레이션 .sql DROP → skip 통과(AC-9)" 0 "$FIX/skip-no-migration"
 check "마이그레이션 .sql 없음 → skip 통과(AC-9)"    0 "$FIX/skip-empty"
+
+# exact scan root 밖의 내용과 symlink alias는 repo의 추적 파일이 아니다. 외부 escape·내부 cycle·
+# 같은 외부 tree의 반복 alias를 모두 따라가지 않아야 한다.
+SYMLINK_ROOT="$TMP/symlink-root"
+SYMLINK_OUTSIDE="$TMP/symlink-outside"
+mkdir -p "$SYMLINK_ROOT/db/migration" "$SYMLINK_OUTSIDE"
+printf '%s\n' 'TRUNCATE TABLE audit_log;' > "$SYMLINK_OUTSIDE/V999__external.sql"
+ln -s "$SYMLINK_ROOT" "$SYMLINK_ROOT/db/migration/cycle"
+for alias in 1 2 3 4 5 6 7 8; do
+  ln -s "$SYMLINK_OUTSIDE" "$SYMLINK_ROOT/db/migration/external-$alias"
+done
+check "directory symlink cycle·외부 escape·alias fan-out → fail-closed" 1 "$SYMLINK_ROOT"
+
+# 정책 파일명 symlink는 내부 regular target만 논리 경로로 검사한다.
+LINK_ROOT="$TMP/file-link-root"
+mkdir -p "$LINK_ROOT/db/migration"
+printf '%s\n' 'TRUNCATE TABLE linked_audit;' > "$LINK_ROOT/payload.txt"
+ln -s ../../payload.txt "$LINK_ROOT/db/migration/V998__linked.sql"
+check "내부 regular file symlink의 TRUNCATE → FAIL" 1 "$LINK_ROOT"
+
+SAFE_LINK_ROOT="$TMP/safe-file-link-root"
+mkdir -p "$SAFE_LINK_ROOT/db/migration"
+printf '%s\n' 'CREATE TABLE linked_safe (id bigint);' > "$SAFE_LINK_ROOT/payload.txt"
+ln -s ../../payload.txt "$SAFE_LINK_ROOT/db/migration/V998__linked.sql"
+if OUT=$(node "$GATE" "$SAFE_LINK_ROOT" 2>&1) && echo "$OUT" | grep -q "마이그레이션 SQL 1개"; then
+  echo "PASS: 내부 regular file symlink를 실제 migration으로 검사"; PASS=$((PASS+1))
+else
+  echo "FAIL: 내부 regular file symlink 검사 누락"; FAIL=$((FAIL+1))
+fi
+
+EXTERNAL_LINK_ROOT="$TMP/external-file-link-root"
+mkdir -p "$EXTERNAL_LINK_ROOT/db/migration"
+printf '%s\n' 'CREATE TABLE external_safe (id bigint);' > "$TMP/external-safe.sql"
+ln -s "$TMP/external-safe.sql" "$EXTERNAL_LINK_ROOT/db/migration/V997__external.sql"
+check "외부 regular file symlink → fail-closed" 1 "$EXTERNAL_LINK_ROOT"
+
+DANGLING_LINK_ROOT="$TMP/dangling-file-link-root"
+mkdir -p "$DANGLING_LINK_ROOT/db/migration"
+ln -s "$TMP/missing.sql" "$DANGLING_LINK_ROOT/db/migration/V996__dangling.sql"
+check "dangling migration file symlink → fail-closed" 1 "$DANGLING_LINK_ROOT"
+
+NONREGULAR_LINK_ROOT="$TMP/nonregular-file-link-root"
+mkdir -p "$NONREGULAR_LINK_ROOT/db/migration"
+mkfifo "$NONREGULAR_LINK_ROOT/payload.pipe"
+ln -s ../../payload.pipe "$NONREGULAR_LINK_ROOT/db/migration/V995__pipe.sql"
+check "비정규 migration file symlink → fail-closed" 1 "$NONREGULAR_LINK_ROOT"
 
 # ── AC-10: --help → 0 · 미인식 플래그 → 2 ──
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과(AC-10)"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }

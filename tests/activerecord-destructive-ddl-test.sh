@@ -17,6 +17,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GATE="$ROOT/scripts/check-activerecord-destructive-ddl.mjs"
 FIX="$ROOT/tests/fixtures/activerecord-destructive-ddl"
 PASS=0; FAIL=0
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
 
 check() { # desc, expected_exit, target_path
   local desc="$1" want="$2" target="$3"
@@ -32,6 +34,7 @@ check() { # desc, expected_exit, target_path
 check "drop_table 미승인 → FAIL(AC-1)"                 1 "$FIX/bad-drop-table"
 check "remove_column 미승인 → FAIL(AC-1)"              1 "$FIX/bad-remove-column"
 check "drop_join_table(파렌) 미승인 → FAIL(AC-1)"      1 "$FIX/bad-drop-join-table"
+check "깊이 13 ActiveRecord drop_table → FAIL"         1 "$FIX/bad-deep-migration"
 # ── AC-3: execute 내 raw DROP/TRUNCATE(문자열·heredoc) 미승인 → 차단 ──
 check "execute heredoc DROP 미승인 → FAIL(AC-3)"       1 "$FIX/bad-execute-heredoc-drop"
 check "execute 문자열 DROP 미승인 → FAIL(AC-3)"        1 "$FIX/bad-execute-string-drop"
@@ -93,6 +96,48 @@ check "execute heredoc 비-DDL → 통과(FP가드)"          0 "$FIX/good-hered
 check "비-마이그레이션 .rb → skip 통과(AC-11)"         0 "$FIX/good-non-migration"
 # ── AC-8: 마이그레이션 .rb 없음 → self-skip 통과 ──
 check "마이그레이션 없음 → skip 통과(AC-8)"            0 "$FIX/skip-empty"
+
+# exact scan root 밖의 migration과 symlink alias는 스캔하지 않는다.
+SYMLINK_ROOT="$TMP/symlink-root"
+mkdir -p "$SYMLINK_ROOT"
+ln -s "$SYMLINK_ROOT" "$SYMLINK_ROOT/cycle"
+for alias in 1 2 3 4 5 6 7 8; do
+  ln -s "$FIX/bad-drop-table" "$SYMLINK_ROOT/external-$alias"
+done
+check "directory symlink cycle·외부 escape·alias fan-out → fail-closed" 1 "$SYMLINK_ROOT"
+
+LINK_ROOT="$TMP/file-link-root"
+mkdir -p "$LINK_ROOT"
+cp "$FIX/bad-drop-table/db/migrate/0001_drop_events.rb" "$LINK_ROOT/payload.txt"
+ln -s payload.txt "$LINK_ROOT/linked.rb"
+check "내부 regular .rb symlink의 drop_table → FAIL" 1 "$LINK_ROOT"
+
+SAFE_LINK_ROOT="$TMP/safe-file-link-root"
+mkdir -p "$SAFE_LINK_ROOT"
+cp "$FIX/good-down-only/db/migrate/0004_down_only.rb" "$SAFE_LINK_ROOT/payload.txt"
+ln -s payload.txt "$SAFE_LINK_ROOT/linked.rb"
+if OUT=$(node "$GATE" "$SAFE_LINK_ROOT" 2>&1) && echo "$OUT" | grep -q "마이그레이션 1개"; then
+  echo "PASS: 내부 regular .rb symlink를 실제 migration으로 검사"; PASS=$((PASS+1))
+else
+  echo "FAIL: 내부 regular .rb symlink 검사 누락"; FAIL=$((FAIL+1))
+fi
+
+EXTERNAL_LINK_ROOT="$TMP/external-file-link-root"
+mkdir -p "$EXTERNAL_LINK_ROOT"
+printf '%s\n' 'value = 1' > "$TMP/external-safe.rb"
+ln -s "$TMP/external-safe.rb" "$EXTERNAL_LINK_ROOT/external.rb"
+check "외부 regular .rb symlink → fail-closed" 1 "$EXTERNAL_LINK_ROOT"
+
+DANGLING_LINK_ROOT="$TMP/dangling-file-link-root"
+mkdir -p "$DANGLING_LINK_ROOT"
+ln -s "$TMP/missing.rb" "$DANGLING_LINK_ROOT/dangling.rb"
+check "dangling .rb symlink → fail-closed" 1 "$DANGLING_LINK_ROOT"
+
+NONREGULAR_LINK_ROOT="$TMP/nonregular-file-link-root"
+mkdir -p "$NONREGULAR_LINK_ROOT"
+mkfifo "$NONREGULAR_LINK_ROOT/payload.pipe"
+ln -s payload.pipe "$NONREGULAR_LINK_ROOT/pipe.rb"
+check "비정규 .rb symlink → fail-closed" 1 "$NONREGULAR_LINK_ROOT"
 
 # ── AC-10: --help → 0 · 미인식 플래그 → 2 ──
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과(AC-10)"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
