@@ -110,17 +110,17 @@ mkfifo "$NONREGULAR_FILE_LINK_REPO/payload.pipe"
 ln -s payload.pipe "$NONREGULAR_FILE_LINK_REPO/package.json"
 check "비정규 package.json symlink → fail-closed" 1 "$NONREGULAR_FILE_LINK_REPO"
 
-cp -R "$GOOD/." "$TMP/missing-commitlint-config-path"
+cp -R "$GOOD/." "$TMP/wrong-commitlint-validator-input"
 printf '%s\n' \
   'name: commitlint' \
   'jobs:' \
   '  commitlint:' \
   '    runs-on: ubuntu-latest' \
   '    steps:' \
-  '      - uses: wagoid/commitlint-github-action@v6' \
-  > "$TMP/missing-commitlint-config-path/.github/workflows/commitlint.yml"
-check "bad(commitlint action이 .cjs 정본을 지정하지 않음) → MISSING/FAIL" 1 "$TMP/missing-commitlint-config-path"
-cp -R "$GOOD/." "$TMP/missing-commitlint-action"
+  '      - run: node scripts/check-commit-message.cjs --stdin' \
+  > "$TMP/wrong-commitlint-validator-input/.github/workflows/commitlint.yml"
+check "bad(commitlint validator가 PR range를 검사하지 않음) → MISSING/FAIL" 1 "$TMP/wrong-commitlint-validator-input"
+cp -R "$GOOD/." "$TMP/missing-commitlint-validator"
 printf '%s\n' \
   'name: commitlint' \
   'jobs:' \
@@ -128,22 +128,20 @@ printf '%s\n' \
   '    runs-on: ubuntu-latest' \
   '    steps:' \
   '      - run: echo no-lint' \
-  > "$TMP/missing-commitlint-action/.github/workflows/commitlint.yml"
-check "bad(commitlint 파일만 있고 action 없음) → MISSING/FAIL" 1 "$TMP/missing-commitlint-action"
-cp -R "$GOOD/." "$TMP/disabled-commitlint-action"
+  > "$TMP/missing-commitlint-validator/.github/workflows/commitlint.yml"
+check "bad(commitlint 파일만 있고 validator 없음) → MISSING/FAIL" 1 "$TMP/missing-commitlint-validator"
+cp -R "$GOOD/." "$TMP/disabled-commitlint-validator"
 printf '%s\n' \
   'name: commitlint' \
   'jobs:' \
   '  commitlint:' \
   '    runs-on: ubuntu-latest' \
   '    steps:' \
-  '      - uses: wagoid/commitlint-github-action@v6' \
+  '      - run: node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA"' \
   '        if: false' \
-  '        with:' \
-  '          configFile: ./commitlint.config.cjs' \
-  > "$TMP/disabled-commitlint-action/.github/workflows/commitlint.yml"
-check "bad(commitlint action이 if:false로 비활성) → MISSING/FAIL" 1 "$TMP/disabled-commitlint-action"
-cp -R "$GOOD/." "$TMP/block-scalar-fake-action"
+  > "$TMP/disabled-commitlint-validator/.github/workflows/commitlint.yml"
+check "bad(commitlint validator가 if:false로 비활성) → MISSING/FAIL" 1 "$TMP/disabled-commitlint-validator"
+cp -R "$GOOD/." "$TMP/block-scalar-fake-validator"
 printf '%s\n' \
   'name: commitlint' \
   'jobs:' \
@@ -151,25 +149,20 @@ printf '%s\n' \
   '    runs-on: ubuntu-latest' \
   '    steps:' \
   '      - run: |' \
-  '          - uses: wagoid/commitlint-github-action@v6' \
-  '            with:' \
-  '              configFile: ./commitlint.config.cjs' \
-  > "$TMP/block-scalar-fake-action/.github/workflows/commitlint.yml"
-check "bad(block scalar 안 가짜 commitlint action) → MISSING/FAIL" 1 "$TMP/block-scalar-fake-action"
-cp -R "$GOOD/." "$TMP/fail-open-commitlint-action"
+  '          echo '\''node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA"'\''' \
+  > "$TMP/block-scalar-fake-validator/.github/workflows/commitlint.yml"
+check "bad(block scalar 안 가짜 commitlint validator) → MISSING/FAIL" 1 "$TMP/block-scalar-fake-validator"
+cp -R "$GOOD/." "$TMP/fail-open-commitlint-validator"
 printf '%s\n' \
   'name: commitlint' \
   'jobs:' \
   '  commitlint:' \
   '    runs-on: ubuntu-latest' \
   '    steps:' \
-  '      - uses: wagoid/commitlint-github-action@v6' \
+  '      - run: node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA"' \
   '        continue-on-error: true' \
-  '        with:' \
-  '          configFile: ./commitlint.config.cjs' \
-  '          failOnErrors: false' \
-  > "$TMP/fail-open-commitlint-action/.github/workflows/commitlint.yml"
-check "bad(commitlint action fail-open 옵션) → MISSING/FAIL" 1 "$TMP/fail-open-commitlint-action"
+  > "$TMP/fail-open-commitlint-validator/.github/workflows/commitlint.yml"
+check "bad(commitlint validator fail-open 옵션) → MISSING/FAIL" 1 "$TMP/fail-open-commitlint-validator"
 cp -R "$GOOD/." "$TMP/nested-commitlint-workflow"
 mkdir -p "$TMP/nested-commitlint-workflow/.github/workflows/archive"
 mv "$TMP/nested-commitlint-workflow/.github/workflows/commitlint.yml" \

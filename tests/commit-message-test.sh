@@ -56,6 +56,12 @@ case_message "필수 이유 누락 거부" 1 'refactor(order): 주문 검증기 
 case_message "header 뒤 빈 줄 누락 거부" 1 $'perf(query): 조회 쿼리 단순화\n이유: 중복 조인을 제거'
 case_message "요약 마침표 거부" 1 'docs: 설치 설명 보완.'
 case_message "50자 초과 요약 거부" 1 "docs: $(printf '가%.0s' {1..51})"
+case_message "100자 header 허용" 0 "docs($(printf 'a%.0s' {1..90})): 설명"
+case_message "100자 초과 header 거부" 1 "docs($(printf 'a%.0s' {1..91})): 설명"
+case_message "header 후행 공백 거부" 1 'docs: 설치 설명 보완 '
+case_message "100자 footer 허용" 0 "docs: 설치 설명 보완"$'\n\n'"Refs: $(printf 'a%.0s' {1..94})"
+case_message "100자 초과 footer 거부" 1 "docs: 설치 설명 보완"$'\n\n'"Refs: $(printf 'a%.0s' {1..95})"
+case_message "100자 초과 body label은 현 계약대로 허용" 0 "docs: 설치 설명 보완"$'\n\n'"이유: $(printf '가%.0s' {1..101})"
 case_message "미등록 타입 거부" 1 'update(core): 설정 파일 갱신'
 case_message "형식 없는 메시지 거부" 1 '주문 검증 추가'
 case_message "Revert 접두사 스푸핑 거부" 1 'Revert "규칙 우회"'
@@ -84,11 +90,11 @@ for (const configPath of [`${root}/commitlint.config.cjs`, `${root}/templates/co
   if (!valid) process.exit(1)
 }
 
-for (const workflowPath of [`${root}/.github/workflows/commitlint.yml`, `${root}/templates/ci/commitlint.yml`]) {
-  const workflow = readFileSync(workflowPath, 'utf8')
-  if (!/- uses: wagoid\/commitlint-github-action@[0-9a-f]{40} # v6\n\s+if: github\.base_ref == 'develop'\n\s+with:\n\s+configFile: \.\/commitlint\.config\.cjs/m.test(workflow)) {
-    process.exit(1)
-  }
+const workflowPaths = [`${root}/.github/workflows/commitlint.yml`, `${root}/templates/ci/commitlint.yml`]
+const workflows = workflowPaths.map((workflowPath) => readFileSync(workflowPath, 'utf8'))
+if (workflows[0] !== workflows[1]) process.exit(1)
+for (const workflow of workflows) {
+  if (/wagoid\/commitlint-github-action|docker:\/\//.test(workflow)) process.exit(1)
   if (!/BASE_REF: \$\{\{ github\.base_ref \}\}/.test(workflow)) process.exit(1)
   if (!/git fetch --no-tags origin develop/.test(workflow)) process.exit(1)
   if (!/check-commit-message\.cjs --range "\$BASE_SHA\.\.\$HEAD_SHA" --exclude "\$DEVELOP_SHA"/.test(workflow)) process.exit(1)
@@ -97,10 +103,10 @@ for (const workflowPath of [`${root}/.github/workflows/commitlint.yml`, `${root}
 }
 NODE
 then
-  echo "PASS: root/template commitlint action·ignore가 동일 custom validator 사용"
+  echo "PASS: root/template commitlint가 외부 action 없이 동일 custom validator 사용"
   PASS=$((PASS+1))
 else
-  echo "FAIL: commitlint action config 경로 또는 ignore 배선 누락"
+  echo "FAIL: commitlint workflow 단일 validator 배선 불일치"
   FAIL=$((FAIL+1))
 fi
 
