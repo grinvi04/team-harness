@@ -20,9 +20,9 @@
  *
  * 단일 출처: docs/harness-maintenance.md · scripts/new-repo.sh(신규=대칭)
  */
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
+import { readFileSync, readdirSync, statSync, lstatSync, existsSync, realpathSync } from 'node:fs'
 import { createHash } from 'node:crypto'
-import { join, basename, dirname, resolve } from 'node:path'
+import { join, basename, dirname, resolve, relative, isAbsolute, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -78,20 +78,48 @@ if (!existsSync(REPO)) {
 // ── 파일 탐색 ─────────────────────────────────────────────
 const IGNORE = new Set(['node_modules', '.git', 'build', 'target', '.gradle', 'dist', '.next', 'out', 'vendor', '.venv', '__pycache__', '.team-harness'])
 
-function walk(dir, onEntry, depth = 0) {
-  if (depth > 12 || !existsSync(dir)) return
-  let entries
-  try { entries = readdirSync(dir) } catch { return }
-  for (const name of entries) {
-    if (IGNORE.has(name)) continue
-    const p = join(dir, name)
-    const rel = p.slice(REPO.length).replace(/\\/g, '/').replace(/^\/+/, '')
-    if (IS_HARNESS_SELF && SELF_IGNORED_PREFIXES.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`))) continue
-    let s
-    try { s = statSync(p) } catch { continue }
-    if (s.isDirectory()) { onEntry(p, name, true); walk(p, onEntry, depth + 1) }
-    else onEntry(p, name, false)
+function isWithinRoot(rootIdentity, targetIdentity) {
+  const rel = relative(rootIdentity, targetIdentity)
+  return rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel)
+}
+
+function failSymlink(p, reason) {
+  console.error(`✖ symlink 탐색 경계 위반: ${p} — ${reason}`)
+  process.exit(1)
+}
+
+function walk(root, onEntry) {
+  if (!existsSync(root)) return
+  let rootIdentity
+  try { rootIdentity = realpathSync(root) } catch { return }
+
+  function visit(dir) {
+    let entries
+    try { entries = readdirSync(dir) } catch { return }
+    for (const name of entries) {
+      if (IGNORE.has(name)) continue
+      const p = join(dir, name)
+      const rel = p.slice(REPO.length).replace(/\\/g, '/').replace(/^\/+/, '')
+      if (IS_HARNESS_SELF && SELF_IGNORED_PREFIXES.some((prefix) => rel === prefix || rel.startsWith(`${prefix}/`))) continue
+      let s
+      try { s = lstatSync(p) } catch { continue }
+      if (s.isSymbolicLink()) {
+        let target
+        try { target = statSync(p) } catch { failSymlink(p, 'dangling target') }
+        if (target.isDirectory()) failSymlink(p, 'directory symlink unsupported')
+        if (!target.isFile()) failSymlink(p, 'target is not a regular file')
+        let targetIdentity
+        try { targetIdentity = realpathSync(p) } catch { failSymlink(p, 'target resolution failed') }
+        if (!isWithinRoot(rootIdentity, targetIdentity)) failSymlink(p, 'target escapes scan root')
+        onEntry(p, name, false)
+      } else if (s.isDirectory()) {
+        onEntry(p, name, true)
+        visit(p)
+      } else if (s.isFile()) onEntry(p, name, false)
+    }
   }
+
+  visit(root)
 }
 
 // 신호 수집 (한 번 순회)

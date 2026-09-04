@@ -30,8 +30,8 @@
  *
  * 단일 출처: docs/db-standards.md · docs/specs/secret-runbook-ddl-gate.md
  */
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs'
-import { join, basename } from 'node:path'
+import { readFileSync, readdirSync, statSync, lstatSync, existsSync, realpathSync } from 'node:fs'
+import { join, basename, relative, isAbsolute, sep } from 'node:path'
 
 const args = process.argv.slice(2)
 if (args.includes('--help') || args.includes('-h')) {
@@ -69,25 +69,55 @@ const IGNORE = new Set(['node_modules', '.git', 'build', 'target', '.gradle', 'd
 // 마이그레이션 디렉터리 경로 세그먼트(파일명 규약 무관 — 내용이 문제). 경로 구분자는 정규화해 비교.
 const MIG_DIR_RE = /(^|\/)(db\/migration|prisma\/migrations|supabase\/migrations)(\/|$)/i
 
-function walk(dir, onFile, depth = 0) {
-  if (depth > 12 || !existsSync(dir)) return
-  let entries
-  try { entries = readdirSync(dir) } catch { return }
-  for (const name of entries) {
-    if (IGNORE.has(name)) continue
-    const p = join(dir, name)
-    let s
-    try { s = statSync(p) } catch { continue }
-    if (s.isDirectory()) walk(p, onFile, depth + 1)
-    else onFile(p, name)
+function isWithinRoot(rootIdentity, targetIdentity) {
+  const rel = relative(rootIdentity, targetIdentity)
+  return rel !== '..' && !rel.startsWith(`..${sep}`) && !isAbsolute(rel)
+}
+
+function failSymlink(p, reason) {
+  console.error(`✖ symlink 탐색 경계 위반: ${p} — ${reason}`)
+  process.exit(1)
+}
+
+function walk(root, onFile, isRelevant) {
+  if (!existsSync(root)) return
+  let rootIdentity
+  try { rootIdentity = realpathSync(root) } catch { return }
+
+  function visit(dir) {
+    let entries
+    try { entries = readdirSync(dir) } catch { return }
+    for (const name of entries) {
+      if (IGNORE.has(name)) continue
+      const p = join(dir, name)
+      let s
+      try { s = lstatSync(p) } catch { continue }
+      if (s.isSymbolicLink()) {
+        let target
+        try { target = statSync(p) } catch {
+          if (isRelevant(p, name)) failSymlink(p, 'dangling target')
+          continue
+        }
+        // Directory link는 exact root·cycle·fan-out 경계를 모호하게 하므로 순회하지 않고 차단한다.
+        if (target.isDirectory()) failSymlink(p, 'directory symlink unsupported')
+        if (!isRelevant(p, name)) continue
+        if (!target.isFile()) failSymlink(p, 'target is not a regular file')
+        let targetIdentity
+        try { targetIdentity = realpathSync(p) } catch { failSymlink(p, 'target resolution failed') }
+        if (!isWithinRoot(rootIdentity, targetIdentity)) failSymlink(p, 'target escapes scan root')
+        onFile(p, name)
+      } else if (s.isDirectory()) visit(p)
+      else if (s.isFile() && isRelevant(p, name)) onFile(p, name)
+    }
   }
+
+  visit(root)
 }
 
 const sqlFiles = []
 for (const root of roots) {
-  walk(root, (p, name) => {
-    if (/\.sql$/i.test(name) && MIG_DIR_RE.test(p.replace(/\\/g, '/'))) sqlFiles.push(p)
-  })
+  const isMigrationSql = (p, name) => /\.sql$/i.test(name) && MIG_DIR_RE.test(p.replace(/\\/g, '/'))
+  walk(root, (p) => { sqlFiles.push(p) }, isMigrationSql)
 }
 
 // ── skip: 마이그레이션 SQL 없음 (오탐 금지) ────────────────

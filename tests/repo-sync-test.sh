@@ -41,6 +41,75 @@ check() { # desc, expected_exit, repo_path
 
 # 자산 완비(java+flyway) → sync 통과
 check "good(자산 완비) → 통과"              0 "$GOOD"
+
+# 깊은 monorepo 경로도 스택 탐색 범위다. 공통 자산만 남긴 repo의 depth 13 Flyway를 놓치면
+# 스택 없음으로 false-pass하지만, 전수 순회하면 migration-safety/destructive-DDL 누락으로 실패해야 한다.
+DEEP_FLYWAY="$TMP/deep-flyway"
+cp -R "$GOOD/." "$DEEP_FLYWAY"
+rm -rf "$DEEP_FLYWAY/src"
+rm -f "$DEEP_FLYWAY/build.gradle" \
+  "$DEEP_FLYWAY/.github/workflows/migration-safety.yml" \
+  "$DEEP_FLYWAY/.github/workflows/destructive-ddl.yml" \
+  "$DEEP_FLYWAY/scripts/check-migration-safety.mjs" \
+  "$DEEP_FLYWAY/scripts/check-destructive-ddl.mjs" \
+  "$DEEP_FLYWAY/.claude/rules/flyway.md" \
+  "$DEEP_FLYWAY/.claude/rules/java.md"
+DEEP_PATH="$DEEP_FLYWAY"
+for segment in l01 l02 l03 l04 l05 l06 l07 l08 l09 l10 l11 l12; do
+  DEEP_PATH="$DEEP_PATH/$segment"
+done
+mkdir -p "$DEEP_PATH/db/migration"
+touch "$DEEP_PATH/db/migration/V0001__deep.sql"
+if OUT=$(node "$GATE" --repo "$DEEP_FLYWAY" --harness "$ROOT" 2>&1); then
+  echo "FAIL: depth 13 Flyway 스택 누락"; FAIL=$((FAIL+1))
+elif echo "$OUT" | grep -q "감지된 스택: flyway" &&
+     echo "$OUT" | grep -q "migration-safety 워크플로" &&
+     echo "$OUT" | grep -q "✗ MISSING"; then
+  echo "PASS: depth 13 Flyway 스택 감지·전용 게이트 누락 차단"; PASS=$((PASS+1))
+else
+  echo "FAIL: depth 13 Flyway 판정 불일치"; FAIL=$((FAIL+1))
+fi
+
+# exact consumer root 밖의 stack 신호와 symlink alias는 판정에 섞지 않는다.
+SYMLINK_REPO="$TMP/symlink-boundary"
+SYMLINK_OUTSIDE="$TMP/symlink-outside"
+cp -R "$GOOD/." "$SYMLINK_REPO"
+mkdir -p "$SYMLINK_OUTSIDE"
+printf '%s\n' '{"dependencies":{"next":"latest"}}' > "$SYMLINK_OUTSIDE/package.json"
+ln -s "$SYMLINK_REPO" "$SYMLINK_REPO/cycle"
+for alias in 1 2 3 4 5 6 7 8; do
+  ln -s "$SYMLINK_OUTSIDE" "$SYMLINK_REPO/external-$alias"
+done
+check "directory symlink cycle·외부 escape·alias fan-out → fail-closed" 1 "$SYMLINK_REPO"
+
+INTERNAL_FILE_LINK_REPO="$TMP/internal-file-link"
+cp -R "$GOOD/." "$INTERNAL_FILE_LINK_REPO"
+printf '%s\n' '{"dependencies":{"next":"latest"}}' > "$INTERNAL_FILE_LINK_REPO/payload.json"
+ln -s payload.json "$INTERNAL_FILE_LINK_REPO/package.json"
+if OUT=$(node "$GATE" --repo "$INTERNAL_FILE_LINK_REPO" --harness "$ROOT" 2>&1) &&
+   echo "$OUT" | grep -qx "감지된 스택: java, flyway, typescript, nextjs"; then
+  echo "PASS: 내부 regular package.json symlink를 stack 신호로 검사"; PASS=$((PASS+1))
+else
+  echo "FAIL: 내부 regular package.json symlink 검사 누락"; FAIL=$((FAIL+1))
+fi
+
+EXTERNAL_FILE_LINK_REPO="$TMP/external-file-link"
+cp -R "$GOOD/." "$EXTERNAL_FILE_LINK_REPO"
+printf '%s\n' '{"name":"external-safe"}' > "$TMP/external-package.json"
+ln -s "$TMP/external-package.json" "$EXTERNAL_FILE_LINK_REPO/package.json"
+check "외부 regular package.json symlink → fail-closed" 1 "$EXTERNAL_FILE_LINK_REPO"
+
+DANGLING_FILE_LINK_REPO="$TMP/dangling-file-link"
+cp -R "$GOOD/." "$DANGLING_FILE_LINK_REPO"
+ln -s "$TMP/missing-package.json" "$DANGLING_FILE_LINK_REPO/package.json"
+check "dangling package.json symlink → fail-closed" 1 "$DANGLING_FILE_LINK_REPO"
+
+NONREGULAR_FILE_LINK_REPO="$TMP/nonregular-file-link"
+cp -R "$GOOD/." "$NONREGULAR_FILE_LINK_REPO"
+mkfifo "$NONREGULAR_FILE_LINK_REPO/payload.pipe"
+ln -s payload.pipe "$NONREGULAR_FILE_LINK_REPO/package.json"
+check "비정규 package.json symlink → fail-closed" 1 "$NONREGULAR_FILE_LINK_REPO"
+
 cp -R "$GOOD/." "$TMP/missing-commitlint-config-path"
 printf '%s\n' \
   'name: commitlint' \

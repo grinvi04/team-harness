@@ -16,6 +16,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GATE="$ROOT/scripts/check-alembic-destructive-ddl.mjs"
 FIX="$ROOT/tests/fixtures/alembic-destructive-ddl"
 PASS=0; FAIL=0
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
 
 check() { # desc, expected_exit, target_path
   local desc="$1" want="$2" target="$3"
@@ -30,6 +32,7 @@ check() { # desc, expected_exit, target_path
 # ── AC-1: 승인마커 없는 upgrade() 파괴 op → 차단(exit 1) ──
 check "upgrade op.drop_table 미승인 → FAIL(AC-1)"        1 "$FIX/bad-drop-table"
 check "upgrade op.drop_column 미승인 → FAIL(AC-1)"       1 "$FIX/bad-drop-column"
+check "깊이 13 Alembic drop_table → FAIL"               1 "$FIX/bad-deep-migration"
 # ── AC-3: op.execute 내 raw DROP 미승인 → 차단 ──
 check "upgrade op.execute DROP 미승인 → FAIL(AC-3)"      1 "$FIX/bad-op-execute-drop"
 # ── AC-5: 마커가 문자열 값 안(실제 # 주석 아님) → 크레딧 거부 → FAIL ──
@@ -86,6 +89,48 @@ check "바로 앞 줄 승인마커 → 통과(T3)"                0 "$FIX/good-p
 check "execute SQL 문자열 값 DROP → 통과(FP가드)"     0 "$FIX/good-exec-sql-string"
 # FP 가드: batch context 비파괴 op만 → 통과
 check "batch 비파괴 op만 → 통과(FP가드)"              0 "$FIX/good-batch-safe"
+
+# exact scan root 밖의 migration과 symlink alias는 스캔하지 않는다.
+SYMLINK_ROOT="$TMP/symlink-root"
+mkdir -p "$SYMLINK_ROOT"
+ln -s "$SYMLINK_ROOT" "$SYMLINK_ROOT/cycle"
+for alias in 1 2 3 4 5 6 7 8; do
+  ln -s "$FIX/bad-drop-table" "$SYMLINK_ROOT/external-$alias"
+done
+check "directory symlink cycle·외부 escape·alias fan-out → fail-closed" 1 "$SYMLINK_ROOT"
+
+LINK_ROOT="$TMP/file-link-root"
+mkdir -p "$LINK_ROOT"
+cp "$FIX/bad-drop-table/alembic/versions/0001_drop.py" "$LINK_ROOT/payload.txt"
+ln -s payload.txt "$LINK_ROOT/linked.py"
+check "내부 regular .py symlink의 drop_table → FAIL" 1 "$LINK_ROOT"
+
+SAFE_LINK_ROOT="$TMP/safe-file-link-root"
+mkdir -p "$SAFE_LINK_ROOT"
+cp "$FIX/good-downgrade-only/alembic/versions/0103_addcol.py" "$SAFE_LINK_ROOT/payload.txt"
+ln -s payload.txt "$SAFE_LINK_ROOT/linked.py"
+if OUT=$(node "$GATE" "$SAFE_LINK_ROOT" 2>&1) && echo "$OUT" | grep -q "마이그레이션 1개"; then
+  echo "PASS: 내부 regular .py symlink를 실제 migration으로 검사"; PASS=$((PASS+1))
+else
+  echo "FAIL: 내부 regular .py symlink 검사 누락"; FAIL=$((FAIL+1))
+fi
+
+EXTERNAL_LINK_ROOT="$TMP/external-file-link-root"
+mkdir -p "$EXTERNAL_LINK_ROOT"
+printf '%s\n' 'value = 1' > "$TMP/external-safe.py"
+ln -s "$TMP/external-safe.py" "$EXTERNAL_LINK_ROOT/external.py"
+check "외부 regular .py symlink → fail-closed" 1 "$EXTERNAL_LINK_ROOT"
+
+DANGLING_LINK_ROOT="$TMP/dangling-file-link-root"
+mkdir -p "$DANGLING_LINK_ROOT"
+ln -s "$TMP/missing.py" "$DANGLING_LINK_ROOT/dangling.py"
+check "dangling .py symlink → fail-closed" 1 "$DANGLING_LINK_ROOT"
+
+NONREGULAR_LINK_ROOT="$TMP/nonregular-file-link-root"
+mkdir -p "$NONREGULAR_LINK_ROOT"
+mkfifo "$NONREGULAR_LINK_ROOT/payload.pipe"
+ln -s payload.pipe "$NONREGULAR_LINK_ROOT/pipe.py"
+check "비정규 .py symlink → fail-closed" 1 "$NONREGULAR_LINK_ROOT"
 
 # ── AC-10: --help → 0 · 미인식 플래그 → 2 ──
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과(AC-10)"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
