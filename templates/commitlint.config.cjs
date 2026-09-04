@@ -7,11 +7,18 @@ const { join } = require('node:path')
 const validatorPath = existsSync(join(__dirname, 'scripts/check-commit-message.cjs'))
   ? './scripts/check-commit-message.cjs'
   : '../scripts/check-commit-message.cjs'
-const { commitlintRule, isGitGenerated, TYPES } = require(validatorPath)
+const {
+  commitlintRule,
+  isGitGenerated,
+  hasConventionalConflictComments,
+  TYPES,
+} = require(validatorPath)
 
 module.exports = {
   defaultIgnores: false,
-  ignores: [isGitGenerated],
+  // 외부 action은 parent metadata를 읽지 못한다. provenance는 선행 validator가 검사하므로
+  // action은 Git conflict block이 붙은 규약형 merge를 중복 판정하지 않는다.
+  ignores: [isGitGenerated, hasConventionalConflictComments],
   extends: ['@commitlint/config-conventional'],
   plugins: [{ rules: { 'team-harness-message': commitlintRule } }],
   rules: {

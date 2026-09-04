@@ -3,7 +3,12 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.65.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.66.0` and replace this file with its output.
+
+## v0.66.0 - 2026-09-04
+
+- fix(commit): 보조 action merge 판정 정합화
+- fix(commit): 릴리즈 PR 누적 이력 재검사 차단
 
 ## v0.65.0 - 2026-09-04
 

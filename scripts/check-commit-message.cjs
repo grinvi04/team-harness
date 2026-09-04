@@ -27,8 +27,17 @@ function isGitGenerated(input) {
     || TAG_MERGE_MESSAGE_RE.test(message)
 }
 
-function validateCommitMessage(input, { allowGitGenerated = false } = {}) {
+function hasConventionalConflictComments(input) {
   const message = String(input ?? '').replace(/\r\n?/g, '\n').replace(/\n+$/, '')
+  const withoutConflictComments = message.replace(MERGE_CONFLICT_COMMENTS_RE, '')
+  return withoutConflictComments !== message && HEADER_RE.test(withoutConflictComments.split('\n')[0])
+}
+
+function validateCommitMessage(input, { allowGitGenerated = false } = {}) {
+  const rawMessage = String(input ?? '').replace(/\r\n?/g, '\n').replace(/\n+$/, '')
+  const message = allowGitGenerated
+    ? rawMessage.replace(MERGE_CONFLICT_COMMENTS_RE, '')
+    : rawMessage
   const errors = []
 
   if (!message.trim()) return { valid: false, errors: ['커밋 메시지가 비어 있습니다.'] }
@@ -122,10 +131,16 @@ function printValidationErrors(result, prefix = '✖ 커밋 메시지 규칙 위
 
 function main(argv) {
   const rangeIndex = argv.indexOf('--range')
+  const excludeIndex = argv.indexOf('--exclude')
   const commitIndex = argv.indexOf('--commit')
   const fileIndex = argv.indexOf('--file')
   let message
   let allowGitGenerated = argv.includes('--allow-git-generated')
+
+  if (excludeIndex >= 0 && rangeIndex < 0) {
+    console.error('--exclude는 --range와 함께 사용해야 합니다.')
+    return 2
+  }
 
   if (rangeIndex >= 0) {
     const range = argv[rangeIndex + 1]
@@ -133,9 +148,16 @@ function main(argv) {
       console.error('--range에는 <40/64자 SHA>..<40/64자 SHA> 형식이 필요합니다.')
       return 2
     }
+    const exclude = excludeIndex >= 0 ? argv[excludeIndex + 1] : null
+    if (exclude !== null && !FULL_SHA_RE.test(exclude ?? '')) {
+      console.error('--exclude에는 40자 또는 64자 전체 commit SHA가 필요합니다.')
+      return 2
+    }
     let commits
     try {
-      commits = execFileSync('git', ['rev-list', '--reverse', range], { encoding: 'utf8' })
+      const revListArgs = ['rev-list', '--reverse', range]
+      if (exclude) revListArgs.push('--not', exclude)
+      commits = execFileSync('git', revListArgs, { encoding: 'utf8' })
         .trim()
         .split(/\s+/)
         .filter(Boolean)
@@ -192,7 +214,7 @@ function main(argv) {
   } else {
     const file = fileIndex >= 0 ? argv[fileIndex + 1] : argv[0]
     if (!file) {
-      console.error('사용법: node scripts/check-commit-message.cjs --file <파일> | --stdin | --commit <SHA> | --range <SHA>..<SHA>')
+      console.error('사용법: node scripts/check-commit-message.cjs --file <파일> | --stdin | --commit <SHA> | --range <SHA>..<SHA> [--exclude <SHA>]')
       return 2
     }
     try {
@@ -210,6 +232,12 @@ function main(argv) {
   return 1
 }
 
-module.exports = { TYPES, validateCommitMessage, commitlintRule, isGitGenerated }
+module.exports = {
+  TYPES,
+  validateCommitMessage,
+  commitlintRule,
+  isGitGenerated,
+  hasConventionalConflictComments,
+}
 
 if (require.main === module) process.exitCode = main(process.argv.slice(2))
