@@ -1,0 +1,3 @@
+GRANT SELECT TO [app]
+IF 1 = 1 TRUNCATE TABLE dbo.orders
+GRANT SELECT ON OBJECT::dbo.t TO [app]

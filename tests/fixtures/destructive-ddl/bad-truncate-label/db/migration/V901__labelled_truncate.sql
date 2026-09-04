@@ -1,0 +1,1 @@
+cleanup: TRUNCATE TABLE orders;

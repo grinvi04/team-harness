@@ -1,0 +1,1 @@
+SELECT 'x\''; TRUNCATE TABLE orders;
