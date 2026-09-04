@@ -221,11 +221,29 @@ check "E1: alembic 완비(heads 有) → 통과"     0 "$GOOD_ALEMBIC"
 check "E1: alembic-heads 누락 → MISSING/FAIL" 1 "$FIX/alembic-missing-heads"
 
 # E2: nextjs·vue 감지 + 룰 점검(검증기 ruleMap 대칭) — 감지 스택·룰 자산이 출력에 나타나야 한다.
+cp "$ROOT/templates/rules/stacks/nextjs.md" "$GOOD_ALEMBIC/.claude/rules/nextjs.md"
 OUT=$(node "$GATE" --repo "$GOOD_ALEMBIC" --harness "$ROOT" 2>&1)
-if echo "$OUT" | grep -q "nextjs, vue, alembic\|nextjs" && echo "$OUT" | grep -q "룰: nextjs.md" && echo "$OUT" | grep -q "룰: vue.md"; then
+if echo "$OUT" | grep -q "nextjs, vue, alembic\|nextjs" \
+   && echo "$OUT" | grep -Eq '✓ OK +룰: nextjs\.md' \
+   && echo "$OUT" | grep -q "룰: vue.md"; then
   echo "PASS: E2 nextjs·vue 감지+룰 점검"; PASS=$((PASS+1))
 else
   echo "FAIL: E2 nextjs·vue 감지+룰 점검"; FAIL=$((FAIL+1))
+fi
+# #425: 파일이 있어도 old root-only paths면 src/·모노레포에서 로드되지 않으므로 WARN이어야 한다.
+NEXTJS_STALE="$TMP/nextjs-stale-paths"
+cp -R "$GOOD_ALEMBIC/." "$NEXTJS_STALE"
+printf '%s\n' \
+  '---' \
+  'paths: ["app/**/*.tsx", "app/**/*.ts", "pages/**/*.tsx", "middleware.ts", "next.config.*"]' \
+  '---' \
+  '# stale Next.js rule' \
+  > "$NEXTJS_STALE/.claude/rules/nextjs.md"
+OUT=$(node "$GATE" --repo "$NEXTJS_STALE" --harness "$ROOT" 2>&1)
+if echo "$OUT" | grep -Eq '! WARN +룰: nextjs\.md'; then
+  echo "PASS: E2 nextjs stale path rule → WARN"; PASS=$((PASS+1))
+else
+  echo "FAIL: E2 nextjs stale path rule을 OK로 오인"; FAIL=$((FAIL+1))
 fi
 # E3: rails 감지 — Gemfile → rails 스택, ruby.md 룰 + activerecord 파괴 DDL 게이트(3번째 스텝) 대칭.
 check "E3: rails 완비(ruby.md+AR게이트) → 통과"  0 "$GOOD_RAILS"
