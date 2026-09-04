@@ -21,6 +21,7 @@ jobs:
       - name: 커밋 metadata·메시지 provenance 검사
         env:
           BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
@@ -28,6 +29,15 @@ jobs:
             git fetch --no-tags origin develop
             DEVELOP_SHA="$(git rev-parse FETCH_HEAD)"
             node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA" --exclude "$DEVELOP_SHA"
+          elif [[ "$BASE_REF" = "develop" && "$HEAD_REF" == sync/backmerge-* ]]; then
+            git fetch --no-tags origin main
+            MAIN_SHA="$(git rev-parse FETCH_HEAD)"
+            BACKMERGE_COMMITS="$(git rev-list "$BASE_SHA..$HEAD_SHA" "^$MAIN_SHA" --)"
+            if [ -z "$BACKMERGE_COMMITS" ]; then
+              echo "main에 없는 backmerge commit이 없어 검사를 마칩니다."
+            else
+              node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA" --exclude "$MAIN_SHA"
+            fi
           else
             node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA"
           fi
