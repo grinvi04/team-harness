@@ -1,5 +1,5 @@
 ---
-paths: ["app/**/*.tsx", "app/**/*.ts", "pages/**/*.tsx", "middleware.ts", "next.config.*"]
+paths: ["**/app/**/*.tsx", "**/app/**/*.ts", "**/pages/**/*.tsx", "**/pages/**/*.ts", "**/middleware.ts", "**/next.config.*"]
 ---
 
 # Next.js 작업 규칙 (App Router 기준)
