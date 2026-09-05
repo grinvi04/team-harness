@@ -3,7 +3,11 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.67.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.68.0` and replace this file with its output.
+
+## v0.68.0 - 2026-09-05
+
+- fix(ddl): ALTER 승인과 배열 문장 경계 교정
 
 ## v0.67.0 - 2026-09-04
 
