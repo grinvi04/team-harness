@@ -75,13 +75,16 @@ check "PostgreSQL 다차원 ARRAY 뒤 TRUNCATE → FAIL" 1 "$FIX/bad-pg-array-tr
 **Interface:** 검증·병합된 정본 commit을 소비 파일의 byte 비교 기준으로 사용한다.
 
 - [x] 두 manifest의 `"version": "0.68.0"`와 README 배지를 함께 갱신하고 결정·이유·반증 범위를 기록한다.
-- [ ] 구현 커밋 후 `node scripts/generate-changelog.mjs --release v0.68.0` 출력으로 CHANGELOG를 갱신한다.
-  전량 quality 1차의 58단계 중 이 커밋 기반 생성물 계약만 미충족(57 PASS / 1 FAIL)이므로 생성 후 전량 재검증한다.
-- [ ] `bash -n tests/destructive-ddl-test.sh`, `node --check scripts/check-destructive-ddl.mjs`,
+- [x] 구현 커밋 후 `node scripts/generate-changelog.mjs --release v0.68.0` 출력으로 CHANGELOG를 갱신한다.
+  1차 quality의 생성물 불일치는 `caeb25f`에서 교정했고, develop `37503e2` 기준 생성 출력과 byte 일치한다.
+- [x] `bash -n tests/destructive-ddl-test.sh`, `node --check scripts/check-destructive-ddl.mjs`,
   `git diff --check`와 `.github/workflows/ci-gate.yml` quality의 모든 검증을 실행한다.
-- [ ] 독립 리뷰 후 `pr-create.sh` / `pr-merge.sh --auto`로 develop에 반영한다.
+  v0.68.0 release-check에서 develop `37503e2`의 전량 quality 58단계를 다시 실행해 모두 exit 0을 확인했다.
+- [x] 독립 리뷰 후 `pr-create.sh` / `pr-merge.sh --auto`로 develop에 반영한다.
   현재 head의 필수 CI·리뷰·외부 commit status를 직접 확인하고 보호 설정을 보존한다.
-- [ ] #442의 두 draft PR을 수정된 정본 revision으로 갱신한다. 동일 6파일의 byte 일치,
+  정본 PR #444는 develop `37503e2`로 병합됐다.
+- [x] #442의 두 draft PR을 수정된 정본 revision으로 갱신한다. 동일 6파일의 byte 일치,
   새로운 정본 회귀 suite·각 앱 품질·필수 CI·리뷰를 재검증한 뒤 develop에 병합한다.
+  DriveTree #84(`bd634e6`)와 webhook-service #70(`83cd398`)이 병합됐고 6파일은 정본과 byte 일치한다.
 - [ ] 정식 main 릴리즈와 태그는 release-check/release 경로의 별도 완료 조건으로 구분한다.
   진행하지 않은 릴리즈·설치 갱신을 완료라고 보고하지 않는다.
