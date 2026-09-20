@@ -41,6 +41,7 @@ Team Harness는 팀이 LLM으로 백엔드·프론트엔드·인프라 업무를
 그 설치 버전의 hash 확인 제거 절차를 검토한 뒤 처리하며, 출처가 불분명하면 덮어쓰거나 삭제하지 않는다.
 제품의 과거 작업 기록·JSON 증거는 이력으로 보존한다. 과거 시험의 예외를 새 작업에 적용하지 않는다.
 
-통합 후보는 0.69.0이며 [PR #447](https://github.com/grinvi04/team-harness/pull/447)에서 검토한다.
+0.69.0 통합은 [PR #447](https://github.com/grinvi04/team-harness/pull/447)로 develop에 병합됐다(1fa7373).
+정식 릴리즈는 별도 main PR의 승인·검증과 태그 발행을 거친다.
 전역 plugin 갱신·새 native 역할 활성화·회사 전체 도입 완료를 뜻하지 않는다.
 수용 기준과 선택·제거 근거는 [통합 명세](specs/agent-orchestration-integration.md)를 따른다.
