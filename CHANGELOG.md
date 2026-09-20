@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.69.0` and repl
 
 ## v0.69.0 - 2026-09-20
 
+- fix(orchestration): 필요한 인계와 재개 지침만 통합
 - fix(orchestration): 소비 경계와 문서 연결 보완
 - feat(orchestration): 개발 조정을 선택 워크플로로 통합
 
