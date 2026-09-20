@@ -93,10 +93,10 @@ Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native �
 | `hooks/hooks.json:UserPromptSubmit` | `route-intent.mjs` | native command hook이 같은 router 호출 | source-native 공통 | `route-intent-test.sh`, native loader test |
 | `.codex-plugin/plugin.json` | 해당 없음 | native skill·hook entry point | Codex 공식 loader 계약 | `codex-native-loader-test.sh` |
 | `codex/hooks/hooks.json` | 해당 없음 | `PLUGIN_ROOT` 기반 command hook 2개 | Codex 공식 hook 계약 | `codex-native-loader-test.sh` |
-| `codex/skills/*.md` | 해당 없음 | 16개 native wrapper가 공용 skill 계약 참조 | cache 변형 없는 skill 연결 | native loader + mapping tests |
+| `codex/skills/*.md` | 해당 없음 | 17개 native wrapper가 공용 skill 계약 참조 | cache 변형 없는 skill 연결 | native loader + mapping tests |
 | `scripts/codex-security-guidance-adapter.mjs` | Claude security-guidance raw output | Codex-safe output adapter | Codex-native 대체, PostToolUse 실측 | `codex-security-guidance-adapter-test.sh` |
 | `scripts/patch-codex-security-guidance.mjs` | 해당 없음 | cache command patch + enable | Codex-native 설치 절차 | adapter patch test |
-| `scripts/check-codex-native-plugin.mjs` | 해당 없음 | 설치 source의 manifest·hooks·16 skills read-only 검사 | native 상태 검증 | launcher·doctor tests |
+| `scripts/check-codex-native-plugin.mjs` | 해당 없음 | 설치 source의 manifest·hooks·17 skills read-only 검사 | native 상태 검증 | launcher·doctor tests |
 | `scripts/sync-codex-plugin-cache.mjs` | 해당 없음 | source가 더 새로울 때 team-harness marketplace·plugin만 갱신 | Codex-native 설치 절차 | `codex-plugin-cache-sync-test.sh` |
 | `scripts/codex-hardened.sh` | 해당 없음 | plugin sync·native 계약 확인 후 인자 그대로 전달 | 얇은 CLI 검증 경로 | launcher + sync tests + fresh probe |
 | `scripts/install-codex-managed-requirements.sh` | 해당 없음 | system requirements에 hooks=true만 pin | hook 활성화 통제, exec lifecycle은 native | managed requirements test + surface probes |
@@ -155,7 +155,7 @@ wrapper command position은 shell-word/segment 스캐너로 판정해 선행 ass
    0.144.1 probe에서 `approval: never`였으므로 이 설정이 non-interactive 승인 경계를 보장한다고 주장하지 않는다.
    `sandbox_workspace_write.network_access = false`만으로 egress를 막는다고도 주장하지 않는다.
 3. Codex에 `harness-guard` **v0.61.0 이상**을 설치/갱신한다.
-4. `node scripts/check-codex-native-plugin.mjs`로 설치 source의 manifest·hooks·16개 skill을 확인한다.
+4. `node scripts/check-codex-native-plugin.mjs`로 설치 source의 manifest·hooks·17개 skill을 확인한다.
 5. `/hooks`에서 새 command hash를 review/trust한다.
 6. hardened CLI, 일반 CLI, cmux CLI, Desktop/app-server의 새 session에서 benign·파괴·egress fixture와
    `UserPromptSubmit` 라우팅을 확인한다. 실제 시크릿이나 실제 전송 endpoint는 사용하지 않는다.

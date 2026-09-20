@@ -147,6 +147,29 @@ check_contains "CI가 flagship test 구문 검사" "$CI" \
   'bash -n tests/flagship-skills-test\.sh'
 check_contains "CI가 flagship test 실행" "$CI" 'run: bash tests/flagship-skills-test\.sh'
 
+if node - "$ROOT" <<'NODE'
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.argv[2];
+const skillRoot = path.join(root, 'plugins/harness-guard/skills');
+const names = fs.readdirSync(skillRoot).filter(name => fs.existsSync(path.join(skillRoot, name, 'SKILL.md'))).sort();
+const intro = fs.readFileSync(path.join(root, 'docs/intro.html'), 'utf8');
+const cards = [...intro.matchAll(/class="name">\/([a-z-]+)<\/div>/g)].map(match => match[1]).sort();
+assert.deepEqual(cards, names, 'every actual skill must have exactly one introduction card');
+const hero = intro.match(/class="n">(\d+)<\/div><div class="l">Skills/);
+assert.equal(Number(hero?.[1]), names.length, 'hero count must match source inventory');
+const matrix = fs.readFileSync(path.join(root, 'docs/specs/codex-guard-compatibility.md'), 'utf8');
+for (const match of matrix.matchAll(/(\d+)(?:개)? (?:native wrapper|skills|skill을)/g)) {
+  assert.equal(Number(match[1]), names.length, 'current mapping/runbook count must match source inventory');
+}
+NODE
+then
+  pass "소개 카드·hero·현행 매핑 수가 실제 skill 집합과 일치"
+else
+  fail "소개 또는 현행 매핑 inventory 불일치"
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
