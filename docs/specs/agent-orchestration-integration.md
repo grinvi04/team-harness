@@ -62,6 +62,8 @@
 
 로컬 상세 로그는 `.runtime/integration/quality.json`, `affected-quality.json`과 각 suite 로그에 있다. 제품별 지문·전환 증거는 제품 `docs/orchestration/team-harness-integration.md`가 소유한다. 패키지 초기 검사 실패의 원인이었던 타 fixture의 일시 worktree 변경은 순차 검사에서 재현되지 않았으며 builder 원본 상태 비교를 유지했다.
 
-독립 검증: `/root/harness_integration_verifier`가 b356525·9105af2에서 결함을 지적했고 마지막 후보 279d29e에서 해소를 확인했다. 같은 구현자의 자체 PASS로 대체하지 않았다. 이 검토는 논리적 읽기 전용 작업이며 기술적 권한 강제/G1 판정이 아니다.
+독립 검증: 검증자 `harness_integration_verifier`가 b356525·9105af2에서 결함을 지적했고 마지막 후보 279d29e에서 해소를 확인했다. 같은 구현자의 자체 PASS로 대체하지 않았다. 이 검토는 논리적 읽기 전용 작업이며 기술적 권한 강제/G1 판정이 아니다.
+
+원격 검사 보완: fd7b07f의 공개 문서 검사에서 검증자 식별자 앞의 슬래시 표기가 홈 절대경로 패턴으로 잡혔다. 식별자 이름을 유지하며 경로처럼 보이는 접두사만 제거했다. 탐지 규칙은 그대로 유지한다.
 
 남은 경계: 원격 PR·CI·리뷰·develop 병합·릴리즈는 해당 실제 상태에서 판정한다. 전역 plugin 갱신·새 native 활성화·권한/격리·G1·회사 전체 도입·Jev는 실행하지 않았다. split package는 기존대로 installable:false이며 Codex wrapper/runtime 연결 미검증을 문서에 명시한다.
