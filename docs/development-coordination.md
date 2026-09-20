@@ -1,33 +1,46 @@
 # Team Harness로 제품 개발하기
 
-Team Harness는 팀이 LLM으로 백엔드·프론트엔드·인프라 업무를 수행할 때 사용하는 공통 개발 기반이다. 기술·리뷰·배포 기준에 **선택형 개발 조정**을 연결한다. Agent Orchestration의 현재 개발과 배포 원본을 이 저장소로 통합했다.
+Team Harness는 팀이 LLM으로 백엔드·프론트엔드·인프라 업무를 수행할 때 공통 기술 기준과
+리뷰·품질·배포 절차를 함께 사용하는 기반이다. Agent Orchestration에서는 **필요한 인계·검증·재개 원칙만** 가져왔다.
+별도 개발 도구 패키지나 역할 체계를 설치하지 않는다.
 
 ## 개발자가 하는 일
 
-1. 제품 저장소에 팀이 채택할 규칙과 기술 선택을 정한다. [기술 가이드](stack-guide.md), [아키텍처·인프라](architecture-infra.md), [온보딩](onboarding.md)을 참고한다. 아직 회사 기준을 채택하지 않았다면 Harness 제안과 실제 회사 정책을 구분한다.
-2. 제품에서 만들거나 고칠 내용을 설명한다. `ao-coordinate`가 필요한 경우 에이전트가 목표·수용 기준을 정리하고 기존 이슈·작업 문서에 진행을 기록한다.
-3. 에이전트가 구현·인계·검증을 이어간다. 간단한 수정은 단독으로 처리하고 필요한 조사·독립 검증만 나눈다. 사용자는 범위·권한·정책상 필요한 판단을 한다.
-4. 현재 후보의 테스트·리뷰·CI 등 필수 기준을 확인한 후 인수한다. 로컬 완료와 원격 머지·릴리즈는 해당 정책에 따라 구분한다.
+1. 제품에 맞는 기술과 기준을 정한다. [기술 가이드](stack-guide.md), [아키텍처·인프라](architecture-infra.md),
+   [온보딩](onboarding.md)을 참고한다. 회사에서 아직 채택하지 않은 제안은 의무 정책과 구분한다.
+2. 제품 저장소에서 만들거나 고칠 내용을 설명한다. 에이전트는 현재 코드와 요구를 확인하고 기존 개발 절차를 따른다.
+3. 여러 영역이 연결되거나 중단 뒤 이어갈 때는 `ao-coordinate`를 사용한다. API와 화면이 공유할 조건,
+   담당 범위, 검증 결과, 다음 행동을 기존 이슈·PR·스펙에 연결한다. 단순 수정은 바로 처리한다.
+4. 현재 변경의 테스트·필수 리뷰·CI를 확인한다. 구현 완료와 병합·릴리즈 완료는 구분한다.
 
-예를 들어 Spring Boot API와 Vue 화면을 함께 바꾸면 API 필드와 오류 응답, 프론트의 실패 상태, 저장 데이터 호환성을 같은 수용 기준으로 묶는다. 인프라 변경이 없다면 인프라 역할을 추가하지 않는다. 이후 다른 개발자가 같은 제품 기록을 읽고 이어간다.
+예를 들어 Spring Boot API와 Vue 화면을 함께 바꾼다면 필드·오류 응답·실패 화면을 같은 완료 조건으로 확인한다.
+인프라 변경이 없다면 인프라 역할은 만들지 않는다. 다음 개발자는 제품 기록을 보고 이어간다.
 
-## 구성과 정본
+## 필요한 구성만 유지
 
-| 구성 | 정본 |
+| 구성 | 책임 |
 | --- | --- |
-| 협업 진입점 | [ao-coordinate skill](../plugins/harness-guard/skills/ao-coordinate/SKILL.md) |
-| 요청·진행·재개·인수 | [조정 절차](../plugins/harness-guard/tools/orchestration/docs/coordination-workflow.md) |
-| 역할 책임·독립성 | [역할 계약](../plugins/harness-guard/tools/orchestration/docs/role-contracts.md) |
-| 선택형 검사기·이전 설치 전환 | [도구 사용 안내](../plugins/harness-guard/tools/orchestration/docs/usage.md) |
-| 패키지 경계·설치 profile | [제품 경계](product-boundaries.md) |
-| 이전 실험과 검증 한계 | [이관 이력](../plugins/harness-guard/tools/orchestration/docs/history.md) |
+| 기존 Harness 문서·workflow | 기술 기준, 계획·구현·PR·리뷰·릴리즈 절차 |
+| [ao-coordinate](../plugins/harness-guard/skills/ao-coordinate/SKILL.md) | 단계 사이의 인계·재개와 현재 증거 연결 |
+| 제품 저장소·GitHub | 코드, 요구사항, 결정, 실제 진행과 검증 기록 |
+| 현재 실행 플랫폼 | 역할 실행과 도구 권한·중단 |
 
-`ao-coordinate`와 검사기는 기존 `workflow-pack` 소속이다. core와 native adapter는 기존 책임을 유지한다. 새 profile·권한 엔진·scheduler·대시보드를 추가하지 않는다. Codex에서는 현재 agent가 파일 수정·Git 작업을 수행하며 독립 탐색·반증만 native subagent에 맡기는 기존 실행 계약을 유지한다.
+`ao-coordinate`는 기존 workflow-pack의 선택 skill이다. Codex에서는 현재 에이전트가 파일 수정·Git 작업을
+담당하고 독립 조사·검토만 기존 native 실행 계약 안에서 위임한다. core는 이 skill에 의존하지 않는다.
+일반 위임을 기술적 권한 집행으로 주장하지 않으며, 실제로 필요한 권한·독립성 조건은 그대로 확인한다.
 
-기본 조정에 npm 설치는 필요 없다. 구조화된 Task/Assignment/Artifact 검사가 필요한 팀만 Node.js 22 이상에서 `team-harness-orchestration` 로컬 tgz를 고정한다. 이 패키지는 별도 npm 공개 제품이나 agent 설치기가 아니다. split package는 여전히 `installable:false`인 staged 산출물이며 실제 공개 설치의 기본 경로는 기존 단일 plugin이다.
+초기 통합본의 npm 패키지, JSON schema·검사기, 작업 기록 생성 CLI와 장문의 역할·상태 계약은 제거했다.
+선언을 서로 비교하는 검사만으로 실제 권한이나 품질을 확인할 수 없고, 현재 제품 흐름에 별도 API가 필요하지 않기 때문이다.
+현재 조정에는 npm 설치, Task/Assignment/Artifact 작성, 역할 profile 복사가 필요 없다.
 
-## 통합의 범위
+## 초기 통합본에서 전환
 
-현재 통합 후보 버전은 0.69.0이다. 기존 계약 검사와 실패 사례를 보존하고, 독립 패키지에서 관리하던 역할 TOML·skill stub 설치를 제거했다. 과거 Agent Orchestration 저장소는 Git 이력·실험 증거 보존용으로 남긴다. 제품별 실행 기록은 해당 제품에 유지한다.
+`team-harness-orchestration` 또는 이전 `agent-orchestration-contracts`를 설치했다면 먼저 제품에서 실제 호출부와
+수정된 관리 파일을 확인한다. 현재 안내를 기존 제품 지침에 연결하고 불필요한 의존성·설치 명령만 제거한다.
+다른 용도가 있는 package.json이나 사용자가 수정한 파일은 지우지 않는다. 관리 profile이 남은 이전 설치는
+그 설치 버전의 hash 확인 제거 절차를 검토한 뒤 처리하며, 출처가 불분명하면 덮어쓰거나 삭제하지 않는다.
+제품의 과거 작업 기록·JSON 증거는 이력으로 보존한다. 과거 시험의 예외를 새 작업에 적용하지 않는다.
 
-선언 검사 통과는 실제 권한 집행·G1·회사 도입 준비를 뜻하지 않는다. 이번 통합은 Jev, 전역 설정, 새 모델·sandbox 실행 실험을 포함하지 않는다. 상세 수용 기준과 검증 상태는 [통합 명세](specs/agent-orchestration-integration.md)에 기록한다.
+통합 후보는 0.69.0이며 [PR #447](https://github.com/grinvi04/team-harness/pull/447)에서 검토한다.
+전역 plugin 갱신·새 native 역할 활성화·회사 전체 도입 완료를 뜻하지 않는다.
+수용 기준과 선택·제거 근거는 [통합 명세](specs/agent-orchestration-integration.md)를 따른다.

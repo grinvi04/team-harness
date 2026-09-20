@@ -15,7 +15,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
-| **Agent Orchestration을 Team Harness 선택형 개발 조정으로 통합** — 공통 기준·품질 gate와 요청·역할·인계·검증을 한 저장소에서 관리한다. core 비의존 선택 workflow, 기존 native 실행 계약, 선언 검사 4개와 회귀 계약을 유지한다. 별도 profile installer·전역 수정·Jev·새 runtime 실험은 추가하지 않는다. 기존 저장소는 과거 증거를 보존한다. 후보 버전 0.69.0, 배포·머지는 별도 실제 gate로 판정한다. | 2026-09-20 | development-coordination.md, specs/agent-orchestration-integration.md | product-direction.md, product-boundaries.md, ai-collaboration.md, onboarding.md, README.md |
+| **Agent Orchestration에서 필요한 인계·재개 원칙만 선택 통합** — 사용자 정정에 따라 초안의 별도 npm 패키지·선언 검사 4개·기록 생성 CLI·연구용 역할 체계를 제거한다. 현재 요구·담당 범위·후보별 검증·다음 행동만 짧은 ao-coordinate로 연결하고 기존 workflow와 core gate를 유지한다. 초기 전체 이관 초안과 과거 증거는 Git에 보존한다. 후보 0.69.0; 전역 변경·Jev·새 runtime 실험은 제외한다. | 2026-09-20 | development-coordination.md, specs/agent-orchestration-integration.md | product-direction.md, product-boundaries.md, ai-collaboration.md, onboarding.md, README.md |
 | **⚠️ #79에서 솔로 표준(승인요건 0)으로 대체됨** — git-flow + main/develop branch protection (원안: PR·승인 1+·스레드 resolve 서버 강제 / 현행: 승인 0·enforce_admins=on·CI-gate, 팀 모드는 #105 opt-in) | 2026-06 | onboarding.md | code-review.md, AGENTS.md, guard.sh |
 | 거버넌스 배포 = 플러그인 버전 배포 (파일 복사·동기화 스크립트 금지) | 2026-06 | README.md | harness-maintenance.md |
 | 규약 단일 출처 = AGENTS.md (도구별 전용 지침은 각 도구 파일에만) | 2026-06 | templates/AGENTS.md | CLAUDE.md, ai-collaboration.md |

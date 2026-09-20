@@ -64,7 +64,7 @@ Codex adapter는 Claude adapter에 의존하지 않는다. 외부 runtime이 없
 - core의 승인 spec, wrapper, 증거 게이트를 호출할 수 있지만 새로운 commit·push·PR·merge·release 권한은 만들지 않는다.
 - 제거해도 저장소 정책과 GitHub 게이트가 바뀌지 않으며, 산출물은 repo 문서·GitHub Issue·commit에 남는다.
 
-개발 조정의 계약·검사기는 `tools/orchestration/`에 함께 포함한다. 별도 역할 installer 없이 기존 workflow-assisted 선택을 사용한다. 기본 prose workflow는 npm 설치를 요구하지 않으며 기계 검사는 Node.js 22 이상 선택 의존성이다.
+개발 조정은 `skills/ao-coordinate/SKILL.md`의 짧은 인계·재개 지침으로 제공한다. 별도 npm 패키지·검사기·역할 installer 없이 기존 workflow-assisted 선택을 사용한다.
 
 workflow-pack은 범용 agent runtime, 필수 개발 방법론, 독립된 정책 정본이 아니다.
 

@@ -18,4 +18,4 @@ of an agent runtime or operating system is compatible.
 Claude Code, Codex, GitHub, Node.js, or Git itself. Report an environment regression with exact versions and the
 smallest reproducer; report security-sensitive findings through [`SECURITY.md`](../SECURITY.md).
 
-The optional orchestration declaration tools require Node.js 22+. Their local tests do not establish runtime permission enforcement or G1. Historical v0.61.0 live-loader evidence remains pinned to its original 16-skill artifact.
+The optional coordination skill ships no orchestration runtime or npm dependencies. Its guidance does not establish runtime permission enforcement or G1. Historical v0.61.0 live-loader evidence remains pinned to its original 16-skill artifact.

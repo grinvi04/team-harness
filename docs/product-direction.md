@@ -126,4 +126,4 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
 
 ## 공통 개발 기반과 선택형 개발 조정
 
-여러 개발자가 LLM으로 백엔드·프론트엔드·인프라를 다루는 공통 기반으로 사용한다. 기술 기준·governance core·native adapter에 [개발 조정](development-coordination.md)을 선택적으로 연결한다. Agent Orchestration의 계약·인계·선언 검사는 이 저장소의 workflow-pack이 소유한다. 제품 코드·진행은 제품 저장소, 모델 실행·권한은 native 플랫폼, 품질 gate는 기존 core가 책임진다. 새 실행 엔진이나 별도 정책 체계를 만들지 않는다. 회사의 실제 기준 채택 여부는 제품 원본에서 확인한다.
+여러 개발자가 LLM으로 백엔드·프론트엔드·인프라를 다루는 공통 기반으로 사용한다. 기술 기준·governance core·native adapter에 [개발 조정](development-coordination.md)을 선택적으로 연결한다. Agent Orchestration에서는 인계·현재 증거 확인·재개 원칙만 선택해 workflow-pack의 짧은 skill로 연결한다. 별도 선언 검사 패키지·역할 상태 체계는 가져오지 않는다. 제품 코드·진행은 제품 저장소, 모델 실행·권한은 native 플랫폼, 품질 gate는 기존 core가 책임진다. 새 실행 엔진이나 별도 정책 체계를 만들지 않는다. 회사의 실제 기준 채택 여부는 제품 원본에서 확인한다.

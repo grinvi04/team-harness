@@ -1,6 +1,6 @@
 ---
 name: ao-coordinate
-description: 승인된 제품 개발 요청의 진행·인계·검증·인수를 이어갈 때 사용. 단순 단독 수정·배포 실행·전역 설치·권한 집행은 제외
+description: 여러 개발 단계의 인계나 중단된 작업의 재개를 조정할 때 사용. 단순 단독 수정·개별 구현 절차·배포 실행·전역 설치는 제외
 ---
 
 # ao-coordinate — Codex native wrapper

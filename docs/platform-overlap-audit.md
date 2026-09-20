@@ -48,7 +48,7 @@
 | `skill:systematic-debugging` | **위임** | 공용 core에서 제거 | 일반 디버깅 방법론은 플랫폼 native skill과 에이전트 추론에 맡긴다. |
 | `skill:verification-before-completion` | **소유** | 유지 | 완료·PR·머지·릴리스 주장을 현재 상태의 새 증거에 묶는 결과 계약이다. |
 
-개발 조정의 `tools/orchestration/`은 workflow-pack에 귀속되는 Node 선언 검사·DRAFT 기록 도구다. 모델이나 Codex를 호출하지 않아 Codex 호환 실행 파일 수에는 포함하지 않는다.
+개발 조정은 선택형 skill 하나로 연결한다. 초기 통합본의 선언 검사·DRAFT 기록 도구와 연구용 역할 체계는 실제 소비 필요성이 없어 제거했다. 기존 native 실행과 core gate를 사용한다.
 
 ### Agent 정의
 

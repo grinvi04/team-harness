@@ -13,6 +13,5 @@ docs/milestones/
 *.key
 *.pem
 
-# Optional orchestration tool dependencies and local validation output
-node_modules/
+# Local validation output
 .runtime/

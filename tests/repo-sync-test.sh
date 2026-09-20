@@ -274,19 +274,6 @@ else
   echo "FAIL: self-repo docs/goals 중첩 checkout 스택 오탐"; FAIL=$((FAIL+1))
 fi
 
-# The exact bundled tool path is exempt only in Harness itself, never in consumer repos.
-CONSUMER_WITH_TOOL="$TMP/consumer-with-tool"
-cp -R "$GOOD/." "$CONSUMER_WITH_TOOL"
-mkdir -p "$CONSUMER_WITH_TOOL/plugins/harness-guard/tools/orchestration"
-printf '{"name":"consumer-node-app","dependencies":{}}\n' >"$CONSUMER_WITH_TOOL/plugins/harness-guard/tools/orchestration/package.json"
-check "consumer repo의 같은 tool 경로는 기존 WARN 종료 정책 유지" 0 "$CONSUMER_WITH_TOOL"
-OUT=$(node "$GATE" --repo "$CONSUMER_WITH_TOOL" --harness "$ROOT" 2>&1)
-if echo "$OUT" | grep -q "typescript" && echo "$OUT" | grep -q "룰: typescript.md"; then
-  echo "PASS: consumer tool 경로의 실제 스택과 누락 규칙 탐지"; PASS=$((PASS+1))
-else
-  echo "FAIL: consumer tool 경로를 self 도구로 잘못 제외"; FAIL=$((FAIL+1))
-fi
-
 # Consumer repo: 같은 docs/goals 경로도 self-check가 아니면 실제 stack 신호로 취급한다.
 CONSUMER_WITH_GOAL="$TMP/consumer-with-goal-checkout"
 mkdir -p "$CONSUMER_WITH_GOAL/docs/goals/run/repo/db/migration"

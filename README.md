@@ -19,7 +19,7 @@
 
 ## 제품 개발 조정
 
-Agent Orchestration을 선택형 `ao-coordinate` workflow로 통합했다. 팀의 기술·품질 기준과 요청 → 구현 → 인계 → 검증 → 인수를 같은 Team Harness 안에서 연결한다. 제품 코드·요구·진행은 제품 저장소에 두며, 역할 실행은 native 도구를 쓴다. [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.
+Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `ao-coordinate`로 통합했다. 팀의 기술·품질 기준과 요청 → 구현 → 인계 → 검증 → 인수를 같은 Team Harness 안에서 연결한다. 제품 코드·요구·진행은 제품 저장소에 두며, 역할 실행은 native 도구를 쓴다. [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.
 
 ## 목차
 

@@ -134,4 +134,4 @@ Team/Enterprise 없이도 파일 기반 managed settings로 본인 머신에서 
 
 ## 선택형 개발 조정 연결
 
-제품의 기술·품질 기준을 채택한 후 [개발 조정 안내](development-coordination.md)를 연결한다. 기본 조정에는 별도 npm 설치나 역할 profile 복사가 필요 없다. 기존 Agent Orchestration을 사용했다면 [전환 절차](../plugins/harness-guard/tools/orchestration/docs/usage.md#이전-패키지에서-전환)로 관리 파일과 작업 증거를 보존한다. 이 선택만으로 GitHub 정책·회사 기준 채택이나 새 권한이 승인된 것은 아니다.
+제품의 기술·품질 기준을 채택한 후 [개발 조정 안내](development-coordination.md)를 연결한다. 조정에는 별도 npm 설치나 역할 profile 복사가 필요 없다. 초기 통합본의 도구를 사용했다면 [전환 절차](development-coordination.md#초기-통합본에서-전환)를 따라 실제 호출부를 확인하고 제품 기록을 보존한다. 이 선택만으로 GitHub 정책·회사 기준 채택이나 새 권한이 승인된 것은 아니다.

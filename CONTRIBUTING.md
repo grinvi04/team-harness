@@ -24,4 +24,4 @@ Security reports do not belong in public pull requests. Follow [`SECURITY.md`](S
 
 ## Development coordination module
 
-The optional workflow lives in `plugins/harness-guard/skills/ao-coordinate` and `plugins/harness-guard/tools/orchestration`. Add new files to Git before running `bash tests/orchestration-integration-test.sh` (Node.js 22+). Preserve the four declaration-only APIs and their failure cases. Product-specific facts and run evidence remain in the product repository; see [the integration guide](docs/development-coordination.md).
+The optional handoff and resume guidance lives in `plugins/harness-guard/skills/ao-coordinate`. Keep it self-contained and use the existing Harness workflows and gates. After committing the candidate, run `bash tests/orchestration-integration-test.sh` to check the built artifact. No separate orchestration npm package or JSON contracts are shipped. Product facts and evidence remain in the product repository; see [the guide](docs/development-coordination.md).
