@@ -1,6 +1,6 @@
 # Agent Orchestration의 필요한 부분만 통합
 
-상태: 사용자 수정 지시에 따른 선택 통합 진행 중. [PR #447](https://github.com/grinvi04/team-harness/pull/447).
+상태: 선택 통합 구현·로컬 품질·독립 검토 완료, 원격 PR gate 단계. [PR #447](https://github.com/grinvi04/team-harness/pull/447).
 
 ## 목표와 판단
 
@@ -36,7 +36,15 @@
 
 - 새 경계 검사는 초기 후보에서 AssertionError: retired AO toolchain is still shipped로 RED였다.
 - 이전 초안의 372개 테스트·CI 통과는 36e59bd와 PR 이력에 보존하며 현재 범위의 완료 근거로 재사용하지 않는다.
-- 현재 후보의 배포·전체 품질·소비 제품 보존·독립 검토 결과는 검사 후 여기에 기록한다.
+- 후보 2a1657e(기능 7189549): 새 배포 경계 검사 GREEN, skill 형식 검사 통과, 관련 Markdown의 로컬 링크 95개 정상.
+- CI quality 59개 명령을 순차 실행해 첫 실행 58개 통과. repo-sync 한 건은 로컬에 보관한 이전 의존성 캐시가 비표준 디렉터리 이름으로 탐지된 실패였다. 캐시를 표준 node_modules 하위로 이동한 뒤 원래 검사 36/36 통과. 검사 규칙·소비 repo 스택 탐지를 완화하지 않았다.
+- 로컬 Python에 YAML 의존성이 없어 임시 uv 환경의 PyYAML 6.0.2로 skill 검사·CI 명령 추출을 실행했다. Ruff도 CI와 같은 0.15.15를 격리 환경에서 실행했으며 전역 도구를 설치하지 않았다.
+- team-task-board 후보 08fdb35: 도구 전용 루트 package/lock/tgz 제거. 앱·데이터·과거 증거 91개 파일 지문 불변. 앱 기능 변경이나 앱 테스트 재실행은 하지 않았다.
+- 독립 검증자 selective_integration_verifier가 2a1657e의 현재 지침·실제 차이·소비 경로와 단순 수정/오래된 후보 재개/필수 검증 불가 시나리오를 읽기 전용으로 검토해 PASS. 별도 역할 엔진·필수 JSON·중복 core 구현 없음.
+- 기존 core guard·PR·라우팅·정책 스크립트는 develop 원본과 동일하다. 모듈만을 위한 스택 탐지 예외와 해당 fixture도 원래 상태로 복구했다.
+- 상세 로컬 로그는 .runtime/selective-quality/results.json 및 18-rerun.log다. 원격 결과는 PR의 최신 head checks가 정본이다. 이 완료 기록은 검토한 실행 코드·skill을 바꾸지 않는다.
+
+자동 검사는 배포 경계·참조와 기존 실행 코드의 회귀를 판정한다. prose 지침에 대한 독립 검토를 실제 모델 실행·권한 집행/G1 증거로 확대하지 않는다.
 
 ## 범위 밖
 
