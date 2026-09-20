@@ -21,3 +21,7 @@ plugin, hook, skill, script, or template behavior must follow the version policy
 [`docs/harness-maintenance.md`](docs/harness-maintenance.md).
 
 Security reports do not belong in public pull requests. Follow [`SECURITY.md`](SECURITY.md).
+
+## Development coordination module
+
+The optional handoff and resume guidance lives in `plugins/harness-guard/skills/ao-coordinate`. Keep it self-contained and use the existing Harness workflows and gates. After committing the candidate, run `bash tests/orchestration-integration-test.sh` to check the built artifact. No separate orchestration npm package or JSON contracts are shipped. Product facts and evidence remain in the product repository; see [the guide](docs/development-coordination.md).

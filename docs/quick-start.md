@@ -68,3 +68,7 @@ node scripts/build-release-bundle.mjs --output /tmp/team-harness-release
 
 The command uses committed `HEAD`, not dirty working-tree files. It creates evidence for release review; it does not
 create a tag, GitHub Release, marketplace entry, or deployment.
+
+## Optional development coordination
+
+Selected handoff and resume practices from Agent Orchestration are available through `ao-coordinate` in Team Harness. Follow [the development guide](development-coordination.md) to connect a product request, ownership, handoff, verification, and acceptance to the existing core gates. Simple tasks stay with one agent. No orchestration npm package, JSON contracts, or record generator is required or shipped. No separate role-profile installer is added. Historical runtime experiments are not bundled.

@@ -73,3 +73,10 @@
 - guard/secret-scan 훅·가드를 **우회 목적으로 완화** 금지(정당한 개선은 테스트·decisions 동반).
 - 소비 repo에 영향 주는 변경 시 **버전 bump 누락** 금지.
 - 테스트 스킵, `main`/`develop` 직접 push, 시크릿 커밋 금지.
+
+## 선택형 개발 조정
+
+- 정본은 `plugins/harness-guard/skills/ao-coordinate/SKILL.md`다. 사용 흐름은 `docs/development-coordination.md`를 따른다.
+- Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택했다. 과거 JSON 계약·검사기·역할 체계를 재도입하지 않는다.
+- 배포 경계는 `bash tests/orchestration-integration-test.sh`로 확인한다. builder는 커밋된 후보를 사용한다.
+- 제품 상태는 제품에 두고 기존 workflow·권한·품질 gate를 따른다. native 실행과 정책을 복제하지 않는다.

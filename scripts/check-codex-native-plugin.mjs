@@ -12,6 +12,7 @@ import {
 
 const pluginId = 'harness-guard@team-harness'
 const expectedSkills = [
+  'ao-coordinate',
   'feature-add',
   'feature-merge',
   'feature-modify',

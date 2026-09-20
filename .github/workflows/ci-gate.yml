@@ -18,6 +18,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 선택형 개발 조정 배포 경계 검사
+        run: bash tests/orchestration-integration-test.sh
+
       - name: 쉘 구문 검사
         run: |
           bash -n plugins/harness-guard/scripts/guard.sh
