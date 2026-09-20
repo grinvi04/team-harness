@@ -1,6 +1,6 @@
 # Agent Orchestration의 필요한 부분만 통합
 
-상태: 선택 통합 구현·검증 완료. [PR #447](https://github.com/grinvi04/team-harness/pull/447)이 develop에 병합됐다(1fa7373, 2026-09-21 KST). 0.69.0 정식 릴리즈는 별도 main PR·승인·태그 단계로 진행한다.
+상태: 선택 통합 구현·검증 완료. [PR #447](https://github.com/grinvi04/team-harness/pull/447)이 develop에 병합됐다(1fa7373, 2026-09-21 KST). 0.69.0 정식 릴리즈의 현재 검증·승인·후속 절차는 [PR #448](https://github.com/grinvi04/team-harness/pull/448)에서 관리한다.
 
 ## 목표와 판단
 
