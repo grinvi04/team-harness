@@ -75,7 +75,7 @@ for (const skill of shared) {
     fail(`${skill}: custom agent dependency remained`)
   }
 }
-console.log('PASS: native manifest, command hooks, and 16 Codex skill wrappers')
+console.log('PASS: native manifest, command hooks, and 17 Codex skill wrappers')
 NODE
 
 EXTRA_EVENT_PLUGIN="$TMP/extra-event-plugin"

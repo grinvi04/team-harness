@@ -19,8 +19,8 @@ runtime binding을 실측한다. 사용자 plugin cache/config와 marketplace는
 경로도 그대로 유지한다. 이 결과는 독립 package의 공식 marketplace 공개가 아니라 승격 전 검증 surface다.
 `check-plugin-coexistence.mjs`는 같은 clean filesystem session의 외부 plugin을 실행하지 않고 두 runtime manifest
 identity, namespaced skill과 hook matcher overlap을 읽는다. overlap 순서는 플랫폼에 위임하며 승자를 정하지 않는다.
-v0.61.0부터 monolith Codex 경로는 `.codex-plugin/plugin.json`과 native command hook·17개 skill wrapper를
-source에서 직접 제공한다. 설치 cache patch, overlay, Codex custom agent 복사와 unified exec 비활성화는 제거했고
+v0.61.0부터 monolith Codex 경로는 `.codex-plugin/plugin.json`과 native command hook·skill wrapper를
+source에서 직접 제공한다. 현재 통합 후보의 wrapper는 17개다. 설치 cache patch, overlay, Codex custom agent 복사와 unified exec 비활성화는 제거했고
 doctor는 설치 source를 읽기 전용으로 검증한다. 이는 monolith adapter의 공식 loader 전환이며 네 split package의
 `installable:false` 또는 marketplace 공개 판정을 바꾸지 않는다.
 v0.62.0 이후 exact commit `d580808`의 staged package는 Codex 0.144.6 공식 local marketplace loader에서 세
@@ -180,3 +180,7 @@ surface와 분리 core+adapter의 native hook·skill session parity다. 따라�
   제거 안전성 테스트는 유지한다.
 - 지원 runtime, 조직 규모, GitHub 정책 모델이 바뀌면 profile과 단위 책임을 재검토하되 server-backed
   enforcement와 evidence-before-claims 원칙은 유지한다.
+
+## 개발 조정의 staged split 제한
+
+통합 후보 0.69.0에서도 공개 사용 경로는 monolith다. split Codex adapter의 wrapper는 다른 artifact의 공용 skill을 가리키며, 생성된 workflow Codex manifest는 공용 `skills/`를 직접 가리킨다. wrapper의 native 실행 계약까지 자동 연결되는 것은 검증되지 않았다. 따라서 파일 inventory·profile doctor 통과만으로 split Codex 조정 실행을 지원한다고 주장하지 않는다. `installable:false`를 유지하며 별도 runtime resolver나 중복 installer를 이번 통합에 추가하지 않는다.

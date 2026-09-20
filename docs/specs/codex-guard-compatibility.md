@@ -103,6 +103,7 @@ Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native �
 | `scripts/pr-create.sh` | skill이 호출 | 같은 wrapper | 공통 | `pr-create-test.sh` |
 | `scripts/pr-merge.sh` | skill이 호출 | 같은 wrapper | 공통 | `pr-merge-auto-test.sh` |
 | `scripts/solo-merge.sh` | skill이 호출 | 같은 wrapper | 공통 | `solo-merge-test.sh` |
+| `skills/ao-coordinate/SKILL.md` | shared coordination contract | native wrapper + current agent write, independent read-only review | Codex-native mapping; declaration scope only | `codex-skill-mapping-test.sh`, `orchestration-integration-test.sh` |
 | `skills/feature-add/SKILL.md` | slash skill + Claude tool prose | current agent write + explorer/verifier read-only roles | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/feature-merge/SKILL.md` | slash skill + Claude tool prose | `codex review` + same wrapper/GitHub gate | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/feature-modify/SKILL.md` | slash skill + Claude tool prose | current agent write + explorer/verifier read-only roles | Codex-native mapping | `codex-skill-mapping-test.sh` |

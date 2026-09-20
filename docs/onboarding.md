@@ -116,7 +116,7 @@ Team/Enterprise 없이도 파일 기반 managed settings로 본인 머신에서 
   `/path/to/team-harness/scripts/install-codex-managed-requirements.sh`로 `hooks=true`를 머신에 고정한다.
   unified exec lifecycle은 현재 Codex native hook 구현에 위임한다.
 - 최초 plugin 설치 뒤와 이후 갱신 때는 Team Harness checkout에서 아래 단일 launcher 명령을 실행한다.
-  launcher는 필요할 때만 marketplace/plugin을 갱신하고 native manifest·command hook·16개 skill을 검사한 뒤
+  launcher는 필요할 때만 marketplace/plugin을 갱신하고 native manifest·command hook·17개 skill을 검사한 뒤
   범위 밖의 `security-guidance` adapter 패치만 적용한다. 이어서 doctor probe로 실제 새 세션의 두 guard 차단을
   확인하고 `/hooks`의 변경 hash를 review/trust한다. Codex agent 실행은 플랫폼에 위임한다.
   ```bash

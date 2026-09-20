@@ -13,7 +13,7 @@ function invoke(args, executable = script) {
   return result;
 }
 function product(t) {
-  const root = mkdtempSync(join(tmpdir(), 'harness-record-'));
+  const root = mkdtempSync(join(tmpdir(), 'harness record-'));
   t.after(() => rmSync(root, { recursive: true, force: true }));
   const result = spawnSync('git', ['init', root], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr);

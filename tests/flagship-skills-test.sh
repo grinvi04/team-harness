@@ -134,9 +134,10 @@ check_contains "개발자 가이드가 systematic-debugging 안내" "$DEVELOPER_
   'systematic-debugging'
 check_contains "개발자 가이드가 verification-before-completion 안내" "$DEVELOPER_GUIDE" \
   'verification-before-completion'
-check_contains "소개 페이지가 스킬 16종 안내" "$INTRO" '스킬 16종'
+check_contains "소개 페이지가 스킬 17종 안내" "$INTRO" '스킬 17종'
 check_not_contains "소개 페이지에 스킬 14종 잔재 없음" "$INTRO" '스킬 14종'
-check_contains "소개 페이지 v0.61.0" "$INTRO" 'harness-guard v0\.61\.0'
+check_contains "소개 페이지 v0.69.0 후보" "$INTRO" 'harness-guard v0\.69\.0'
+check_contains "소개 페이지가 개발 조정 안내" "$INTRO" '/ao-coordinate'
 check_contains "소개 페이지가 systematic-debugging 안내" "$INTRO" '/systematic-debugging'
 check_contains "소개 페이지가 verification-before-completion 안내" "$INTRO" \
   '/verification-before-completion'

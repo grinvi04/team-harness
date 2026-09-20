@@ -108,13 +108,13 @@ Role Instance는 직책과 일대일이 아니다. 하나의 주 세션이 Produ
 
 ## 7. 상태의 원본
 
-| 정보 | 원본 위치 | 이 프로젝트의 관계 |
+| 정보 | 원본 위치 | 개발 조정 모듈의 관계 |
 | --- | --- | --- |
-| 재사용 역할·라우팅·평가 정의 | `agent-orchestration` | 직접 소유하고 Git으로 version 관리 |
+| 재사용 역할·라우팅·인계 정의 | Team Harness 개발 조정 모듈 | 같은 저장소에서 Git으로 version 관리 |
 | 제품 요구사항·ADR·코드·backlog | 해당 제품 저장소와 GitHub | 실행 때 읽고 결과를 돌려주며 복제하지 않음 |
 | 작업 중간 상태 | 해당 주 세션과 제품 이슈/PR | 세션은 일시적, 내구성이 필요한 내용만 제품 쪽에 기록 |
 | 공통 정책·권한·리뷰·릴리즈 | Team Harness | 유효 정책과 gate를 입력으로 받고 우회하지 않음 |
-| 평가 원시 데이터·비교 결과 | 향후 이 프로젝트의 평가 영역 | fixture run만 저장하며 실제 제품 운영 상태는 저장하지 않음 |
+| 과거 평가 원시 데이터·비교 계획 | 이전 Agent Orchestration 보존 저장소 | 역사적 자료만 보존; 새 시험은 이번 통합 범위가 아님 |
 
 세션 요약, 에이전트 memory, Orchestrator의 이전 대화는 편의를 위한 cache일 뿐 원본이 아니다. ref, 정책, 테스트 결과처럼 결정에 영향을 주는 사실은 실행 시 원본에서 다시 읽는다.
 
@@ -264,7 +264,7 @@ flowchart LR
 
 ## 13. Team Harness 접점
 
-Team Harness와 agent-orchestration의 관계는 **정책 집행**과 **작업 조정**의 분리다.
+같은 Team Harness 안에서 governance core의 **정책 집행**과 선택형 workflow의 **작업 조정**을 구분한다. 저장소나 별도 제품을 나누는 경계가 아니다.
 
 ### Team Harness에서 받는 것
 
@@ -272,7 +272,7 @@ Team Harness와 agent-orchestration의 관계는 **정책 집행**과 **작업 �
 - 필수 품질·보안 gate와 사람 승인 조건
 - PR·릴리즈·감사 증거가 기록되어야 하는 위치와 형식
 
-### agent-orchestration이 제공하는 것
+### 개발 조정 모듈이 제공하는 것
 
 - 어떤 역할이 어떤 범위를 소유했는지 보여 주는 owner map
 - acceptance 항목과 역할 산출물·검증 증거의 추적 관계
@@ -284,8 +284,8 @@ Team Harness와 agent-orchestration의 관계는 **정책 집행**과 **작업 �
 - 프로젝트·Team Harness 규칙이 역할 template보다 우선한다.
 - Orchestrator는 merge, release, 운영 변경 권한을 스스로 확장하지 않는다.
 - 필요한 gate가 없거나 실행할 수 없으면 우회하지 않고 `INCONCLUSIVE` 또는 `BLOCKED`로 남긴다.
-- Team Harness의 정책 본문이나 제품별 증거를 이 저장소에 복사하지 않는다. 호환성에 필요한 최소 version·interface만 참조한다.
-- 이번 설계 작업은 `/Users/grinvi04/team-harness`를 읽거나 수정하는 통합 작업이 아니다. 실제 접점 검증은 로드맵의 제품 pilot에서 수행한다.
+- Team Harness core의 정책 본문이나 제품별 증거를 이 모듈에 복사하지 않는다. 호환성에 필요한 최소 version·interface만 참조한다.
+- 현재 정본은 Team Harness 내부 모듈이다. 과거 독립 저장소의 시험 범위는 [이관 이력](history.md)에 보존하며 현재 통합 검증과 구분한다.
 
 ## 14. 플랫폼 매핑 원칙
 

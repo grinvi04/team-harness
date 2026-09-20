@@ -33,7 +33,6 @@ const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
 const { existsSync, readFileSync, writeFileSync } = require('node:fs');
 const path = require('node:path');
-const { pathToFileURL } = require('node:url');
 const root = process.argv[2];
 const installed = path.join(root, 'node_modules/team-harness-orchestration');
 const example = name => path.join(installed, 'examples', name + '.json');
@@ -57,11 +56,24 @@ const staleFile = path.join(root, 'stale.json');
 writeFileSync(staleFile, JSON.stringify(stale));
 assert.equal(JSON.parse(bin('ao-dispatch-check', [example('task'), staleFile], 1).stdout).valid, false);
 bin('ao-contract-check', [], 2);
-(async () => {
-  for (const [file, name] of Object.entries({ envelope: 'validateEnvelope', contract: 'validateContract', assignment: 'validateAssignment', dispatch: 'validateDispatch' })) {
-    const module = await import(pathToFileURL(path.join(installed, 'scripts', `validate-${file}.mjs`)));
-    assert.equal(typeof module[name], 'function');
+const api = spawnSync(process.execPath, ['--input-type=module', '--eval', `
+  import assert from 'node:assert/strict';
+  import { readFileSync } from 'node:fs';
+  const load = name => JSON.parse(readFileSync('node_modules/team-harness-orchestration/examples/' + name + '.json'));
+  const cases = [
+    ['envelope', 'validateEnvelope', [load('task')], 'schema-only'],
+    ['contract', 'validateContract', [load('task'), load('artifact')], 'contract-only'],
+    ['assignment', 'validateAssignment', [load('task'), load('assignment'), load('artifact')], 'assignment-only'],
+    ['dispatch', 'validateDispatch', [load('task'), load('assignment-ready')], 'dispatch-only'],
+  ];
+  for (const [subpath, name, args, scope] of cases) {
+    const module = await import('team-harness-orchestration/' + subpath);
+    const result = module[name](...args);
+    assert.equal(result.valid, true);
+    assert.equal(result.scope, scope);
   }
-})().catch(error => { console.error(error); process.exitCode = 1; });
+`], { cwd: root, encoding: 'utf8' });
+assert.ifError(api.error);
+assert.equal(api.status, 0, api.stderr);
 NODE
 echo 'PASS: isolated package install, all public CLI entry points, rejected stale declaration, and DRAFT-only creation'

@@ -555,7 +555,7 @@ try {
     },
   )
   report.loader.installed = true
-  report.loader.nativeSkills = 16
+  report.loader.nativeSkills = 17
 
   const smokeEvidenceDir = path.join(pilotHome, 'smoke-evidence')
   const smokeResult = spawnSync(
