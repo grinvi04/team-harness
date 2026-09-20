@@ -1,0 +1,205 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agent-orchestration:envelopes:0.1.0",
+  "title": "Task and Artifact Envelope — structural validation only",
+  "oneOf": [{"$ref": "#/$defs/task"}, {"$ref": "#/$defs/artifact"}],
+  "$defs": {
+    "text": {"type": "string", "pattern": "\\S"},
+    "texts": {"type": "array", "items": {"$ref": "#/$defs/text"}, "uniqueItems": true},
+    "count": {"type": "integer", "minimum": 0},
+    "verdict": {"enum": ["PASS", "FAIL", "INCONCLUSIVE"]},
+    "ref": {
+      "type": "object", "additionalProperties": false,
+      "required": ["uri", "revision", "observed_at"],
+      "properties": {
+        "uri": {"type": "string", "format": "uri"},
+        "revision": {"$ref": "#/$defs/text"},
+        "observed_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/ref"}},
+    "method": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": {"enum": ["command", "observation", "judge"]},
+        "value": {"$ref": "#/$defs/text"}
+      }
+    },
+    "role": {
+      "type": "object", "additionalProperties": false,
+      "required": ["role", "instance_id"],
+      "properties": {"role": {"$ref": "#/$defs/text"}, "instance_id": {"$ref": "#/$defs/text"}}
+    },
+    "claim": {
+      "type": "object", "additionalProperties": false,
+      "required": ["acceptance_id", "verdict"],
+      "properties": {"acceptance_id": {"$ref": "#/$defs/text"}, "verdict": {"$ref": "#/$defs/verdict"}}
+    },
+    "evidence": {
+      "type": "object", "additionalProperties": false,
+      "required": ["acceptance_id", "candidate_ref", "method", "environment", "exit_code", "verdict", "location", "observed_at"],
+      "properties": {
+        "acceptance_id": {"$ref": "#/$defs/text"},
+        "candidate_ref": {"$ref": "#/$defs/text"},
+        "method": {"$ref": "#/$defs/method"},
+        "environment": {"$ref": "#/$defs/text"},
+        "exit_code": {"type": ["integer", "null"]},
+        "verdict": {"$ref": "#/$defs/verdict"},
+        "location": {"$ref": "#/$defs/text"},
+        "observed_at": {"type": "string", "format": "date-time"}
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"method": {"type": "object", "properties": {"kind": {"const": "command"}}}}},
+          "then": {"properties": {"exit_code": {"type": "integer"}}},
+          "else": {"properties": {"exit_code": {"type": "null"}}}
+        },
+        {
+          "if": {"properties": {"verdict": {"const": "PASS"}}},
+          "then": {"properties": {"exit_code": {"enum": [0, null]}}}
+        }
+      ]
+    },
+    "task": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "task_id", "task_revision", "run_id", "goal", "non_goals", "source", "start_ref", "input_refs", "acceptance", "risk", "reversibility", "dependencies", "ownership", "authority", "topology", "roles", "verification", "budgets"],
+      "properties": {
+        "kind": {"const": "task"},
+        "schema_version": {"const": "0.1.0"},
+        "task_id": {"$ref": "#/$defs/text"},
+        "task_revision": {"$ref": "#/$defs/text"},
+        "run_id": {"$ref": "#/$defs/text"},
+        "goal": {"$ref": "#/$defs/text"},
+        "non_goals": {"$ref": "#/$defs/texts"},
+        "source": {"$ref": "#/$defs/ref"},
+        "start_ref": {"$ref": "#/$defs/text"},
+        "input_refs": {"$ref": "#/$defs/refs"},
+        "acceptance": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "description", "required", "critical", "method"],
+            "properties": {
+              "id": {"$ref": "#/$defs/text"}, "description": {"$ref": "#/$defs/text"},
+              "required": {"type": "boolean"}, "critical": {"type": "boolean"},
+              "method": {"$ref": "#/$defs/method"}
+            }
+          }
+        },
+        "risk": {
+          "type": "object", "additionalProperties": false, "required": ["level", "triggers"],
+          "properties": {"level": {"enum": ["low", "medium", "high"]}, "triggers": {"$ref": "#/$defs/texts"}}
+        },
+        "reversibility": {
+          "type": "object", "additionalProperties": false, "required": ["rollback"],
+          "properties": {"rollback": {"$ref": "#/$defs/text"}}
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["task_id", "owner", "state"],
+            "properties": {
+              "task_id": {"$ref": "#/$defs/text"}, "owner": {"$ref": "#/$defs/text"},
+              "state": {"enum": ["DRAFT", "READY", "RUNNING", "VERIFYING", "BLOCKED", "ACCEPTED", "FAILED", "CANCELLED", "SUPERSEDED"]}
+            }
+          }
+        },
+        "ownership": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["owner", "kind", "target", "epoch"],
+            "properties": {
+              "owner": {"$ref": "#/$defs/text"}, "kind": {"enum": ["path", "decision", "resource"]},
+              "target": {"$ref": "#/$defs/text"}, "epoch": {"$ref": "#/$defs/count"}
+            }
+          }
+        },
+        "authority": {
+          "type": "object", "additionalProperties": false,
+          "required": ["allowed_tools", "denied_actions", "network", "environment", "writable_paths", "approval_required"],
+          "properties": {
+            "allowed_tools": {"$ref": "#/$defs/texts"}, "denied_actions": {"$ref": "#/$defs/texts"},
+            "network": {"enum": ["deny", "allow"]}, "environment": {"$ref": "#/$defs/text"},
+            "writable_paths": {"$ref": "#/$defs/texts"}, "approval_required": {"$ref": "#/$defs/texts"}
+          }
+        },
+        "topology": {
+          "type": "object", "additionalProperties": false, "required": ["mode", "reason"],
+          "properties": {"mode": {"enum": ["single", "fixed", "orchestrated"]}, "reason": {"$ref": "#/$defs/text"}}
+        },
+        "roles": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/role"}},
+        "verification": {
+          "type": "object", "additionalProperties": false,
+          "required": ["mode", "verifier_instance_id", "oracle_refs", "required_gates"],
+          "properties": {
+            "mode": {"enum": ["self", "independent", "external"]},
+            "verifier_instance_id": {"anyOf": [{"$ref": "#/$defs/text"}, {"type": "null"}]},
+            "oracle_refs": {"$ref": "#/$defs/refs"}, "required_gates": {"$ref": "#/$defs/texts"}
+          },
+          "if": {"properties": {"mode": {"enum": ["independent", "external"]}}},
+          "then": {"properties": {"verifier_instance_id": {"$ref": "#/$defs/text"}}}
+        },
+        "budgets": {
+          "type": "object", "additionalProperties": false,
+          "required": ["wall_clock_seconds", "max_cost_usd", "transient_retries", "repair_loops"],
+          "properties": {
+            "wall_clock_seconds": {"type": "number", "exclusiveMinimum": 0},
+            "max_cost_usd": {"type": "number", "minimum": 0},
+            "transient_retries": {"$ref": "#/$defs/count"}, "repair_loops": {"$ref": "#/$defs/count"}
+          }
+        }
+      }
+    },
+    "artifact": {
+      "type": "object", "additionalProperties": false,
+      "required": ["kind", "schema_version", "artifact_id", "task_id", "task_revision", "run_id", "attempt_id", "ownership_epoch", "producer", "input_refs", "base_ref", "candidate_ref", "owned_scope", "actual_scope", "claims", "evidence", "complete", "verdict", "rationale", "unresolved_risks", "unchecked_items", "assumptions", "budget_used", "consumers"],
+      "properties": {
+        "kind": {"const": "artifact"}, "schema_version": {"const": "0.1.0"},
+        "artifact_id": {"$ref": "#/$defs/text"}, "task_id": {"$ref": "#/$defs/text"},
+        "task_revision": {"$ref": "#/$defs/text"}, "run_id": {"$ref": "#/$defs/text"},
+        "attempt_id": {"$ref": "#/$defs/text"}, "ownership_epoch": {"$ref": "#/$defs/count"},
+        "producer": {"$ref": "#/$defs/role"}, "input_refs": {"$ref": "#/$defs/refs"},
+        "base_ref": {"$ref": "#/$defs/text"}, "candidate_ref": {"$ref": "#/$defs/text"},
+        "owned_scope": {"$ref": "#/$defs/texts"}, "actual_scope": {"$ref": "#/$defs/texts"},
+        "claims": {"type": "array", "items": {"$ref": "#/$defs/claim"}},
+        "evidence": {"type": "array", "items": {"$ref": "#/$defs/evidence"}},
+        "complete": {"type": "boolean"}, "verdict": {"$ref": "#/$defs/verdict"},
+        "rationale": {"$ref": "#/$defs/text"},
+        "unresolved_risks": {"$ref": "#/$defs/texts"}, "unchecked_items": {"$ref": "#/$defs/texts"},
+        "assumptions": {"$ref": "#/$defs/texts"},
+        "budget_used": {
+          "type": "object", "additionalProperties": false, "required": ["wall_clock_seconds", "cost_usd"],
+          "properties": {"wall_clock_seconds": {"type": "number", "minimum": 0}, "cost_usd": {"type": ["number", "null"], "minimum": 0}}
+        },
+        "consumers": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false, "required": ["instance_id", "required_action"],
+            "properties": {"instance_id": {"$ref": "#/$defs/text"}, "required_action": {"$ref": "#/$defs/text"}}
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {"properties": {"complete": {"const": false}}},
+          "then": {"properties": {"verdict": {"enum": ["FAIL", "INCONCLUSIVE"]}}}
+        },
+        {
+          "if": {"properties": {"verdict": {"const": "PASS"}}},
+          "then": {"properties": {
+            "claims": {"type": "array", "minItems": 1, "items": {"type": "object", "properties": {"verdict": {"const": "PASS"}}}},
+            "evidence": {"type": "array", "minItems": 1, "items": {"type": "object", "properties": {"verdict": {"const": "PASS"}}}}
+          }}
+        },
+        {
+          "if": {"anyOf": [
+            {"properties": {"evidence": {"type": "array", "contains": {"type": "object", "properties": {"verdict": {"const": "FAIL"}}, "required": ["verdict"]}}}},
+            {"properties": {"claims": {"type": "array", "contains": {"type": "object", "properties": {"verdict": {"const": "FAIL"}}, "required": ["verdict"]}}}}
+          ]},
+          "then": {"properties": {"verdict": {"const": "FAIL"}}}
+        }
+      ]
+    }
+  }
+}

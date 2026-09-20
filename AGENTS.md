@@ -73,3 +73,10 @@
 - guard/secret-scan 훅·가드를 **우회 목적으로 완화** 금지(정당한 개선은 테스트·decisions 동반).
 - 소비 repo에 영향 주는 변경 시 **버전 bump 누락** 금지.
 - 테스트 스킵, `main`/`develop` 직접 push, 시크릿 커밋 금지.
+
+## 선택형 개발 조정 모듈
+
+- 현재 정본: `plugins/harness-guard/skills/ao-coordinate/`와 `plugins/harness-guard/tools/orchestration/`. 제품 흐름은 `docs/development-coordination.md`를 따른다.
+- 이관 전 Agent Orchestration 저장소는 이력 보존용이다. 현재 기능·버그·문서 변경은 Team Harness에서 수행한다.
+- 선언 도구 변경 시 Node.js 22+에서 `bash tests/orchestration-integration-test.sh`로 고정 의존성·회귀·독립 tgz 설치를 확인한다. 새 파일은 이 검사 전에 추적 대상으로 등록한다.
+- schema/contract/assignment/dispatch-only 통과를 실제 권한·신선도·수용 판정으로 확대하지 않는다. core 정책과 native 역할 실행을 복제하지 않는다.

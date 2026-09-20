@@ -12,3 +12,7 @@ docs/milestones/
 !.env.example
 *.key
 *.pem
+
+# Optional orchestration tool dependencies and local validation output
+node_modules/
+.runtime/

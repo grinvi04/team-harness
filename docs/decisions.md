@@ -15,6 +15,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
+| **Agent Orchestration을 Team Harness 선택형 개발 조정으로 통합** — 공통 기준·품질 gate와 요청·역할·인계·검증을 한 저장소에서 관리한다. core 비의존 선택 workflow, 기존 native 실행 계약, 선언 검사 4개와 회귀 계약을 유지한다. 별도 profile installer·전역 수정·Jev·새 runtime 실험은 추가하지 않는다. 기존 저장소는 과거 증거를 보존한다. 후보 버전 0.69.0, 배포·머지는 별도 실제 gate로 판정한다. | 2026-09-20 | development-coordination.md, specs/agent-orchestration-integration.md | product-direction.md, product-boundaries.md, ai-collaboration.md, onboarding.md, README.md |
 | **⚠️ #79에서 솔로 표준(승인요건 0)으로 대체됨** — git-flow + main/develop branch protection (원안: PR·승인 1+·스레드 resolve 서버 강제 / 현행: 승인 0·enforce_admins=on·CI-gate, 팀 모드는 #105 opt-in) | 2026-06 | onboarding.md | code-review.md, AGENTS.md, guard.sh |
 | 거버넌스 배포 = 플러그인 버전 배포 (파일 복사·동기화 스크립트 금지) | 2026-06 | README.md | harness-maintenance.md |
 | 규약 단일 출처 = AGENTS.md (도구별 전용 지침은 각 도구 파일에만) | 2026-06 | templates/AGENTS.md | CLAUDE.md, ai-collaboration.md |

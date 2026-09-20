@@ -62,7 +62,7 @@ const shared = fs.readdirSync(sharedRoot)
 const wrappers = fs.existsSync(wrapperRoot)
   ? fs.readdirSync(wrapperRoot).filter((name) => fs.existsSync(path.join(wrapperRoot, name, 'SKILL.md'))).sort()
   : []
-if (shared.length !== 16 || JSON.stringify(wrappers) !== JSON.stringify(shared)) {
+if (shared.length !== 17 || JSON.stringify(wrappers) !== JSON.stringify(shared)) {
   fail(`Codex wrapper inventory mismatch: shared=${shared.length} wrappers=${wrappers.length}`)
 }
 for (const skill of shared) {

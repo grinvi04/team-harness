@@ -84,8 +84,8 @@ expected_counts = Counter(expected)
 counts = Counter(identifier for identifier, *_ in rows)
 
 errors = []
-if len([item for item in expected if item.startswith("skill:")]) != 16:
-    errors.append("source skill count is not 16")
+if len([item for item in expected if item.startswith("skill:")]) != 17:
+    errors.append("source skill count is not 17")
 if len([item for item in expected if item.startswith("agent:")]) != 2:
     errors.append("source agent count is not 2")
 if len([item for item in expected if item.startswith("hook:")]) != 4:
@@ -110,7 +110,7 @@ if errors:
 print(f"PASS: implementation inventory classified exactly once ({len(expected)} items)")
 PY
 then
-  pass "현재 구현 인벤토리 35개 전수 단일 판정"
+  pass "현재 구현 인벤토리 36개 전수 단일 판정"
 else
   fail "현재 구현 인벤토리와 감사 분류 불일치"
 fi

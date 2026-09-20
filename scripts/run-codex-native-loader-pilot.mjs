@@ -396,7 +396,7 @@ function markdown(report) {
 ## 검증됨
 
 - 공식 local marketplace 설치: ${mark(report.loader.installed)}
-- source-native skill ${report.loader.nativeSkills || 0}개 발견: ${mark(report.loader.nativeSkills === 16)}
+- source-native skill ${report.loader.nativeSkills || 0}개 발견: ${mark(report.loader.nativeSkills === 17)}
 - 파괴 명령 차단·sentinel 보존: ${mark(report.session.destructiveGuard)}
 - 시크릿 외부 전송 차단: ${mark(report.session.secretEgressGuard)}
 - credential 파일 외부 전송 차단: ${mark(report.session.credentialEgressGuard)}

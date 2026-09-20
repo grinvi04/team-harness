@@ -5,16 +5,16 @@
 
 ## 감사 기준과 범위
 
-- 기준일: 2026-07-24
+- 기준일: 2026-07-24; 개발 조정 연결 추가: 2026-09-20
 - 기준 브랜치: `develop`의 플랫폼 중복 감사 작업 시작 시점
-- 대상: skill 16개, agent 정의 2개, hook handler 4개, Codex 호환 실행 파일 13개. 합계 35개다.
+- 대상: skill 17개, agent 정의 2개, hook handler 4개, Codex 호환 실행 파일 13개. 합계 36개다.
 - 근거: 각 구현, 직접 호출자, 회귀 테스트, 결정 기록과 로컬 `codex-cli 0.144.6`의 read-only 출력.
 - 로컬 확인: `codex features list`에서 `hooks`, `plugins`, `multi_agent`가 stable이고 `codex plugin --help`가
   설치·목록·marketplace 관리 명령을 제공했다. 이는 이 버전의 시점 증거이며 향후 버전까지 보장하지 않는다.
 - 탐지: 파일명에 `codex`가 있거나 Codex CLI·호환 실행 파일을 직접 호출하는 script를 포함한다. 따라서 이름에
   `codex`가 없는 `harness-doctor.sh`도 실행 표면으로 계산한다.
 - 제외: 문서·테스트·spec과 Codex native skill wrapper는 구현 표면 수에 넣지 않았다. wrapper는 공용 skill의
-  전달 계층이며 `codex-native-loader-test.sh`가 16개 일대일 대응을 별도로 고정한다.
+  전달 계층이며 `codex-native-loader-test.sh`가 17개 일대일 대응을 별도로 고정한다.
 
 판정의 의미는 다음과 같다.
 
@@ -30,6 +30,7 @@
 
 | 식별자 | 판정 | 목표 상태 | 근거·후속 조치 |
 |---|---|---|---|
+| `skill:ao-coordinate` | **연결** | 선택 기능 | native 역할을 작업·인계·독립 검증 계약과 core gate에 연결한다. 별도 runner·권한 엔진은 만들지 않는다. |
 | `skill:feature-add` | **연결** | 축소 유지 | 일반 TDD 수행은 플랫폼에 맡기고 승인 spec·브랜치·RED/GREEN 증거·커밋 계약만 남긴다. |
 | `skill:feature-merge` | **소유** | 유지 | 품질·리뷰·승인·CI를 develop 머지와 연결하는 delivery 계약이다. |
 | `skill:feature-modify` | **연결** | 축소 유지 | 일반 수정 방법론은 위임하고 변경분 RED와 repo 게이트만 연결한다. |
@@ -46,6 +47,8 @@
 | `skill:solo-merge` | **소유** | 유지 | 자기승인 불가 조건만 원자적으로 풀고 복구하는 감사·복구 계약이다. |
 | `skill:systematic-debugging` | **위임** | 공용 core에서 제거 | 일반 디버깅 방법론은 플랫폼 native skill과 에이전트 추론에 맡긴다. |
 | `skill:verification-before-completion` | **소유** | 유지 | 완료·PR·머지·릴리스 주장을 현재 상태의 새 증거에 묶는 결과 계약이다. |
+
+개발 조정의 `tools/orchestration/`은 workflow-pack에 귀속되는 Node 선언 검사·DRAFT 기록 도구다. 모델이나 Codex를 호출하지 않아 Codex 호환 실행 파일 수에는 포함하지 않는다.
 
 ### Agent 정의
 

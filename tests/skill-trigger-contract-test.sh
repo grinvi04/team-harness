@@ -12,7 +12,7 @@ import sys
 
 root = Path(sys.argv[1])
 skills = sorted((root / "plugins/harness-guard/skills").glob("*/SKILL.md"))
-assert len(skills) == 16, f"expected 16 skills, got {len(skills)}"
+assert len(skills) == 17, f"expected 17 skills, got {len(skills)}"
 
 for path in skills:
     text = path.read_text(encoding="utf-8")

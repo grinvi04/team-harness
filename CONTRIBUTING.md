@@ -21,3 +21,7 @@ plugin, hook, skill, script, or template behavior must follow the version policy
 [`docs/harness-maintenance.md`](docs/harness-maintenance.md).
 
 Security reports do not belong in public pull requests. Follow [`SECURITY.md`](SECURITY.md).
+
+## Development coordination module
+
+The optional workflow lives in `plugins/harness-guard/skills/ao-coordinate` and `plugins/harness-guard/tools/orchestration`. Add new files to Git before running `bash tests/orchestration-integration-test.sh` (Node.js 22+). Preserve the four declaration-only APIs and their failure cases. Product-specific facts and run evidence remain in the product repository; see [the integration guide](docs/development-coordination.md).

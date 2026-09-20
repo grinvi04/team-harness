@@ -131,3 +131,7 @@ Team/Enterprise 없이도 파일 기반 managed settings로 본인 머신에서 
 ## E. 솔로 머지 권한 (auto-mode · 새 머신 1회 셋업)
 
 솔로 환경에서 `/solo-merge`가 main 브랜치 보호의 승인요건을 잠시 조정하려 하면, auto-mode 분류기가 이를 보안 변경으로 보고 차단한다. 이 권한은 **보안 경계상 에이전트가 스스로 부여할 수 없다 — 사람이 1회** `~/.claude/settings.json`의 `permissions.allow`에 해당 허용 규칙을 직접 추가해야 한다(전역이라 모든 repo 적용, 설정은 sync되지 않아 새 PC마다 반복). 규칙 상세는 본인 보안정책에 따라 구성한다.
+
+## 선택형 개발 조정 연결
+
+제품의 기술·품질 기준을 채택한 후 [개발 조정 안내](development-coordination.md)를 연결한다. 기본 조정에는 별도 npm 설치나 역할 profile 복사가 필요 없다. 기존 Agent Orchestration을 사용했다면 [전환 절차](../plugins/harness-guard/tools/orchestration/docs/usage.md#이전-패키지에서-전환)로 관리 파일과 작업 증거를 보존한다. 이 선택만으로 GitHub 정책·회사 기준 채택이나 새 권한이 승인된 것은 아니다.

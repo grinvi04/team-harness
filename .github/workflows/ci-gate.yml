@@ -18,6 +18,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'
+
+      - name: 개발 조정 계약과 독립 패키지 검증
+        run: bash tests/orchestration-integration-test.sh
+
       - name: 쉘 구문 검사
         run: |
           bash -n plugins/harness-guard/scripts/guard.sh

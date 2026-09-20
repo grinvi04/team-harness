@@ -1,0 +1,22 @@
+{
+  "kind": "task",
+  "schema_version": "0.1.0",
+  "task_id": "fixture-label",
+  "task_revision": "revision-1",
+  "run_id": "example-run-1",
+  "goal": "Handle blank input in a local display helper.",
+  "non_goals": ["No network, authentication, or deployment changes."],
+  "source": {"uri": "urn:fixture:label-task", "revision": "revision-1", "observed_at": "2026-09-05T00:00:00Z"},
+  "start_ref": "snapshot:example-base-1",
+  "input_refs": [{"uri": "urn:fixture:label-source", "revision": "snapshot:example-base-1", "observed_at": "2026-09-05T00:00:00Z"}],
+  "acceptance": [{"id": "AC-1", "description": "Blank input returns the documented placeholder.", "required": true, "critical": true, "method": {"kind": "command", "value": "node --test test/label.test.mjs"}}],
+  "risk": {"level": "low", "triggers": []},
+  "reversibility": {"rollback": "Discard the isolated candidate; preserve the base snapshot."},
+  "dependencies": [],
+  "ownership": [{"owner": "writer-1", "kind": "path", "target": "src/label.mjs", "epoch": 1}],
+  "authority": {"allowed_tools": ["local-read", "local-edit", "local-test"], "denied_actions": ["external-write", "deploy"], "network": "deny", "environment": "isolated-fixture", "writable_paths": ["src/label.mjs"], "approval_required": []},
+  "topology": {"mode": "single", "reason": "One low-risk module with a direct oracle."},
+  "roles": [{"role": "implementation-worker", "instance_id": "writer-1"}],
+  "verification": {"mode": "self", "verifier_instance_id": null, "oracle_refs": [{"uri": "urn:fixture:label-tests", "revision": "tests-v1", "observed_at": "2026-09-05T00:00:00Z"}], "required_gates": []},
+  "budgets": {"wall_clock_seconds": 300, "max_cost_usd": 1, "transient_retries": 1, "repair_loops": 2}
+}

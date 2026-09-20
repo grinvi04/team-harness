@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agent-orchestration:assignment:0.1.0",
+  "title": "Assignment Context — declared snapshot only",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["kind", "schema_version", "source", "task_ref", "task_id", "task_revision", "run_id", "producer", "attempt_id", "ownership_epoch", "base_ref", "mode", "candidate_ref", "state", "bindings", "candidate_writers", "writer_history_ref", "integration_owner", "consumers", "analysis_scope", "scratch_paths", "runtime_refs", "previous_attempt"],
+  "$defs": {
+    "text": {"$ref": "urn:agent-orchestration:envelopes:0.1.0#/$defs/text"},
+    "texts": {"$ref": "urn:agent-orchestration:envelopes:0.1.0#/$defs/texts"},
+    "ref": {"$ref": "urn:agent-orchestration:envelopes:0.1.0#/$defs/ref"},
+    "epoch": {"type": "integer", "minimum": 0, "maximum": 9007199254740991}
+  },
+  "properties": {
+    "kind": {"const": "assignment"},
+    "schema_version": {"const": "0.1.0"},
+    "source": {"$ref": "#/$defs/ref"},
+    "task_ref": {"$ref": "#/$defs/ref"},
+    "task_id": {"$ref": "#/$defs/text"},
+    "task_revision": {"$ref": "#/$defs/text"},
+    "run_id": {"$ref": "#/$defs/text"},
+    "producer": {"$ref": "urn:agent-orchestration:envelopes:0.1.0#/$defs/role"},
+    "attempt_id": {"$ref": "#/$defs/text"},
+    "ownership_epoch": {"$ref": "#/$defs/epoch"},
+    "base_ref": {"$ref": "#/$defs/text"},
+    "mode": {"enum": ["write", "read-only"]},
+    "candidate_ref": {"anyOf": [{"$ref": "#/$defs/text"}, {"type": "null"}]},
+    "state": {"enum": ["DRAFT", "READY", "RUNNING", "VERIFYING", "BLOCKED", "ACCEPTED", "FAILED", "CANCELLED", "SUPERSEDED"]},
+    "bindings": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["instance_id", "agent_id"],
+        "properties": {"instance_id": {"$ref": "#/$defs/text"}, "agent_id": {"$ref": "#/$defs/text"}}
+      }
+    },
+    "candidate_writers": {"$ref": "#/$defs/texts"},
+    "writer_history_ref": {"$ref": "#/$defs/ref"},
+    "integration_owner": {"$ref": "#/$defs/text"},
+    "consumers": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+    "analysis_scope": {"$ref": "#/$defs/texts"},
+    "scratch_paths": {"$ref": "#/$defs/texts"},
+    "runtime_refs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["ownership", "permissions"],
+      "properties": {"ownership": {"$ref": "#/$defs/ref"}, "permissions": {"$ref": "#/$defs/ref"}}
+    },
+    "previous_attempt": {
+      "anyOf": [
+        {"type": "null"},
+        {
+          "type": "object", "additionalProperties": false,
+          "required": ["attempt_id", "ownership_epoch", "stop_ref"],
+          "properties": {"attempt_id": {"$ref": "#/$defs/text"}, "ownership_epoch": {"$ref": "#/$defs/epoch"}, "stop_ref": {"$ref": "#/$defs/ref"}}
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {"if": {"properties": {"mode": {"const": "write"}}}, "then": {"properties": {"candidate_ref": {"type": "null"}}}},
+    {"if": {"properties": {"mode": {"const": "read-only"}}}, "then": {"properties": {"candidate_ref": {"$ref": "#/$defs/text"}}}}
+  ]
+}

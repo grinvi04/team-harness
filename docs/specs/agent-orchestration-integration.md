@@ -22,7 +22,7 @@
 ## 구현 선택
 
 - `plugins/harness-guard/skills/ao-coordinate/`: 공통 workflow와 재사용 계약 참조. Codex 전달은 기존 wrapper 방식이며 새 agent profile을 배포하지 않는다.
-- `tools/orchestration/`: schema·검사기·잠긴 npm 의존성과 기존 회귀 테스트. 고급 선언 검사가 필요한 제품의 선택형 개발 도구다. 기본 조정에는 별도 npm 설치를 강제하지 않는다.
+- `plugins/harness-guard/tools/orchestration/`: schema·검사기·잠긴 npm 의존성과 기존 회귀 테스트. 고급 선언 검사가 필요한 제품의 선택형 개발 도구다. 기본 조정에는 별도 npm 설치를 강제하지 않는다.
 - 기존 ao-project의 역할/skill 파일 설치는 이관하지 않는다. 통합 CLI는 작업 기록 생성만 담당한다. 예전 설치 제거는 기존 버전의 remove로 내용 보존을 확인한 후 수행한다.
 - 현재 유효한 계약만 이관하며 종료 실험·원시 자료·이전 태그와 이력은 원래 저장소에 보존한다. 역사 문서를 현재 계획으로 복사하지 않는다.
 - Jev·전역 설정·운영·클라우드·공개 배포·새 runtime 실험은 비목표다. 일반 위임 조건과 과거 D-013 한 건의 한계는 유지한다.
@@ -35,3 +35,9 @@
 4. 제품의 로컬 연결, 전체 검사와 독립 검토 → AC6와 전체 기준.
 
 구현과 고정 후보 검사 결과는 이 스펙의 완료 기록 및 Git 이력에 남긴다. Team Harness의 PR·리뷰 절차를 그대로 사용하며 로컬 구현 완료를 원격 머지·배포 완료로 보고하지 않는다.
+
+## 구현 중 확인한 결과
+
+- 2026-09-20: 기존 선언 검사 소스·schema·364개 테스트를 이관했다. 새 DRAFT-only CLI 8개 테스트는 이전 설치 의존 코드에서 6개 assertion 실패·2개 기존 거부 통과, 구현 후 전체 8개 통과했다.
+- 독립 임시 패키지에서 `npm ci --ignore-scripts`, 총 372개 테스트, check, tgz 설치, 네 CLI 정상·stale 거부·인자 오류와 DRAFT 생성을 확인했다. 로딩·권한 집행 시험은 아니다.
+- package builder는 커밋된 HEAD를 검사하므로 통합 후보를 먼저 커밋한 뒤 전체 package/profile/CI 회귀를 수행한다. 결과가 나오기 전 릴리즈·통합 완료로 판정하지 않는다.
