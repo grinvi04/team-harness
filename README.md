@@ -17,8 +17,13 @@
 도구마다 동작이 다르다. 그래서 강제력의 원천을 GitHub(서버)까지 내려보내고, 위 계층은
 그 위에서 *편의와 자동화*를 제공하도록 역할을 나눈다.
 
+## 제품 개발 조정
+
+Agent Orchestration을 선택형 `ao-coordinate` workflow로 통합했다. 팀의 기술·품질 기준과 요청 → 구현 → 인계 → 검증 → 인수를 같은 Team Harness 안에서 연결한다. 제품 코드·요구·진행은 제품 저장소에 두며, 역할 실행은 native 도구를 쓴다. [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.
+
 ## 목차
 
+- [제품 개발 조정](#제품-개발-조정)
 - [✨ 주요 기능](#-주요-기능)
 - [🧭 제품 방향](#-제품-방향)
 - [🧱 기술 스택](#-기술-스택)
@@ -372,7 +377,3 @@ team-harness/
 ## 📄 라이선스
 
 MIT — 2026-07 public 전환(decisions #73). 루트 [`LICENSE`](LICENSE) 참조.
-
-## 제품 개발 조정
-
-Agent Orchestration을 선택형 `ao-coordinate` workflow로 통합했다. 팀의 기술·품질 기준과 요청 → 구현 → 인계 → 검증 → 인수를 같은 Team Harness 안에서 연결한다. 제품 코드·요구·진행은 제품 저장소에 두며, 역할 실행은 native 도구를 쓴다. [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.

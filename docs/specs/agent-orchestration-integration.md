@@ -1,6 +1,6 @@
 # Agent Orchestration 통합
 
-상태: 구현 중. 2026-09-20 사용자가 Team Harness 통합과 관련 Markdown 갱신을 승인했다. 별도 설계 승인 대기를 반복하지 않는다.
+상태: 로컬 통합·소비 전환 검증 완료, PR/원격 gate 단계. 2026-09-20 사용자가 Team Harness 통합과 관련 Markdown 갱신을 승인했다. 별도 설계 승인 대기를 반복하지 않는다.
 
 ## 목표와 경계
 
@@ -46,3 +46,22 @@
 - self-repo 기존 테스트는 새 모듈이 앱 스택으로 오인돼 실패했다. 정확한 bundled tool 경로만 self-check에서 제외하고 소비 repo의 같은 경로는 계속 탐지한다. 신규 소비자 테스트 초안의 exit 1 가정은 기존 룰 누락 WARN/exit 0 계약과 달라 원본과 대조해 수정했으며, 실제 TypeScript 탐지·규칙 점검 단언은 유지했다.
 
 - 독립 검토(b356525)에서 구 소유권 문구, 소개 페이지 16종 잔재, 공백 ROOT 회귀와 공개 subpath API 검사의 누락을 발견해 보완했다. 상세 증거와 맞지 않는 합성 시나리오 사본은 새 배포에서 제외하고 원본 보존 저장소에 남겼다. 테스트는 공백 경로와 실제 공개 import 계약을 더 강하게 확인하도록 확장했다. 기존 v0.61.0 태그의 16개 실측 증거는 역사적 검사이므로 바꾸지 않는다.
+
+## 로컬 완료 판정
+
+검사한 기능 후보: `9105af2`(기능 수정 `f47a5a8`). 이후 `279d29e`는 현행 안내·과거 명세 구분과 문서 inventory 회귀 보강이며, 독립 검증자가 해당 후보에서 남은 문서 findings 해소를 확인했다. 아래 결과 기록과 README 입구 정리는 실행 코드·패키지 내용을 바꾸지 않는다.
+
+| 기준 | 결과와 근거 |
+| --- | --- |
+| AC1 | PASS — 공통/Codex skill 17개 일대일 매핑, optional workflow 8/core 9 분류, native source inventory·parity·소개 카드 전수 일치 |
+| AC2 | PASS — 원본 4004bd4의 schema·검사 소스·기존 테스트 17개 파일 byte 동일; 기존 364 + 새 기록 8 = 372개 통과 |
+| AC3 | PASS — 공백 ROOT·다른 cwd·중복·symlink 거부·요청 보존, 독립 tgz의 공개 bin 5개와 JS subpath 4개 검증 |
+| AC4 | PASS (로컬) — CI quality 59단계를 모두 실행. 1차 53통과 뒤 실패 6개 수정, 영향 suite 14개 순차 재실행 모두 통과. 그 뒤 문서 inventory 추가 검사는 RED→GREEN. guard·core gate 완화 없음 |
+| AC5 | PASS — 현재 입구·설치·아키텍처·소유권·버전·경계·관련 명세 갱신, 기존 AO에 이관 안내·활성 문서의 이력 표시. 독립 검토 findings 해소 |
+| AC6 | PASS — team-task-board 후보 4c563e1 도구 전환, 6827674 인수 기록. 이전 관리 파일 hash 검증 제거, 보존 대상 90개 지문 동일, 공백 경로 clone의 offline npm ci·기록·선언 검사 통과 |
+
+로컬 상세 로그는 `.runtime/integration/quality.json`, `affected-quality.json`과 각 suite 로그에 있다. 제품별 지문·전환 증거는 제품 `docs/orchestration/team-harness-integration.md`가 소유한다. 패키지 초기 검사 실패의 원인이었던 타 fixture의 일시 worktree 변경은 순차 검사에서 재현되지 않았으며 builder 원본 상태 비교를 유지했다.
+
+독립 검증: `/root/harness_integration_verifier`가 b356525·9105af2에서 결함을 지적했고 마지막 후보 279d29e에서 해소를 확인했다. 같은 구현자의 자체 PASS로 대체하지 않았다. 이 검토는 논리적 읽기 전용 작업이며 기술적 권한 강제/G1 판정이 아니다.
+
+남은 경계: 원격 PR·CI·리뷰·develop 병합·릴리즈는 해당 실제 상태에서 판정한다. 전역 plugin 갱신·새 native 활성화·권한/격리·G1·회사 전체 도입·Jev는 실행하지 않았다. split package는 기존대로 installable:false이며 Codex wrapper/runtime 연결 미검증을 문서에 명시한다.
