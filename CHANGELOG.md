@@ -3,7 +3,12 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.68.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.69.0` and replace this file with its output.
+
+## v0.69.0 - 2026-09-20
+
+- fix(orchestration): 소비 경계와 문서 연결 보완
+- feat(orchestration): 개발 조정을 선택 워크플로로 통합
 
 ## v0.68.0 - 2026-09-05
 
