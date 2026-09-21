@@ -147,7 +147,7 @@ wrapper command position은 shell-word/segment 스캐너로 판정해 선행 ass
 
 ## Codex Native Refresh Runbook
 
-일반 plugin 갱신은 Codex 공식 CLI로 **승인된 발행 태그**를 지정한다. 다음은 v0.69.1 태그 발행 후 사용하는 예시다. `/path/to/release-source`는 `marketplace add`가 반환한 `installedRoot`이며, 그 Git commit이 발행 태그와 일치하는지 확인한다. 검사기와 `--trusted-root` 모두 이 원본을 사용한다. 이전 개발 checkout의 검사기는 스킬 목록 등이 다를 수 있으므로 사용하지 않는다.
+일반 plugin 갱신은 Codex 공식 CLI로 **승인된 발행 태그**를 지정한다. 다음은 v0.70.0 태그 발행 후 사용하는 예시다. `/path/to/release-source`는 `marketplace add`가 반환한 `installedRoot`이며, 그 Git commit이 발행 태그와 일치하는지 확인한다. 검사기와 `--trusted-root` 모두 이 원본을 사용한다. 이전 개발 checkout의 검사기는 스킬 목록 등이 다를 수 있으므로 사용하지 않는다.
 
 **기존 source 전환:** `marketplace add`는 같은 이름에 다른 ref·source가 등록돼 있으면 거부한다.
 `marketplace upgrade team-harness`는 등록된 ref의 snapshot을 갱신하므로 새 태그 선택을 대신하지 않는다.
@@ -163,10 +163,10 @@ codex plugin marketplace remove team-harness --json
 사용자의 개발 checkout이나 plugin cache를 직접 삭제하지 않는다. 모델·역할·다른 marketplace 설정도 보존한다.
 
 ```bash
-codex plugin marketplace add grinvi04/team-harness --ref v0.69.1 --json
+codex plugin marketplace add grinvi04/team-harness --ref v0.70.0 --json
 codex plugin add harness-guard@team-harness --json
 codex plugin list --json
-node /path/to/release-source/scripts/check-codex-native-plugin.mjs --expected-version 0.69.1 --trusted-root /path/to/release-source/plugins/harness-guard
+node /path/to/release-source/scripts/check-codex-native-plugin.mjs --expected-version 0.70.0 --trusted-root /path/to/release-source/plugins/harness-guard
 ```
 
 1. 현재 설치 버전·enabled·marketplace 원본을 확인한다. 로컬 개발 checkout이 원본이면 그 브랜치를 바꾸지 않고 위 기존 source 전환으로 발행 태그를 지정한다. 다음 태그 갱신도 같은 절차를 따른다.
