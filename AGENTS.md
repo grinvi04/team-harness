@@ -48,6 +48,12 @@
 
 - 표준 = `docs/`, 결정·이유 = `docs/decisions.md`, 백로그·할 일 = **GitHub Issues**, 스펙 = `docs/specs/`, 작업로그 = git 히스토리·커밋.
 
+## Markdown 동기화 완료 기준
+
+- 코드·설정·결정·진행 단계 변경 시 관련 현재 안내와 직접 소비 문서를 같은 변경 범위에서 대조·갱신한다.
+- 문서 상태는 실제 Git·PR·태그와 맞추고, 변하는 상태는 원본으로 연결한다. 과거 검증 기록은 당시 후보·날짜·한계를 보존한다.
+- 완료 전 참조 경로·버전·실행 명령·완료/미완료 표현을 확인한다. 세부 기준은 `docs/ai-collaboration.md`의 Markdown 동기화를 따른다.
+
 ## Skill 실행 가시성
 
 - harness skill을 적용할 때 첫 작업 업데이트에 **적용 skill과 현재 phase**를 표시한다. Git flow 단계가
@@ -73,3 +79,10 @@
 - guard/secret-scan 훅·가드를 **우회 목적으로 완화** 금지(정당한 개선은 테스트·decisions 동반).
 - 소비 repo에 영향 주는 변경 시 **버전 bump 누락** 금지.
 - 테스트 스킵, `main`/`develop` 직접 push, 시크릿 커밋 금지.
+
+## 선택형 개발 조정
+
+- 정본은 `plugins/harness-guard/skills/ao-coordinate/SKILL.md`다. 사용 흐름은 `docs/development-coordination.md`를 따른다.
+- Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택했다. 과거 JSON 계약·검사기·역할 체계를 재도입하지 않는다.
+- 배포 경계는 `bash tests/orchestration-integration-test.sh`로 확인한다. builder는 커밋된 후보를 사용한다.
+- 제품 상태는 제품에 두고 기존 workflow·권한·품질 gate를 따른다. native 실행과 정책을 복제하지 않는다.

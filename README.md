@@ -2,7 +2,7 @@
 
 > **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.68.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.69.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
 
@@ -17,8 +17,13 @@
 도구마다 동작이 다르다. 그래서 강제력의 원천을 GitHub(서버)까지 내려보내고, 위 계층은
 그 위에서 *편의와 자동화*를 제공하도록 역할을 나눈다.
 
+## 제품 개발 조정
+
+Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `ao-coordinate`로 통합했다. 팀의 기술·품질 기준과 요청 → 구현 → 인계 → 검증 → 인수를 같은 Team Harness 안에서 연결한다. 제품 코드·요구·진행은 제품 저장소에 두며, 역할 실행은 native 도구를 쓴다. [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.
+
 ## 목차
 
+- [제품 개발 조정](#제품-개발-조정)
 - [✨ 주요 기능](#-주요-기능)
 - [🧭 제품 방향](#-제품-방향)
 - [🧱 기술 스택](#-기술-스택)
@@ -51,7 +56,7 @@ Team Harness는 코딩 에이전트나 개발 방법론을 새로 만드는 프�
 |---|---|
 | 🛡️ 가드 훅 | main/develop 직접 커밋·force push·맨손 `gh pr` 차단 — 차단 시 audit 로그 기록 |
 | 📋 의도 라우터 | 캐주얼 지시("진행해/해줘") → 현재 git 상태에서 다음 하네스 스킬 자동 안내 |
-| 🧠 맥락 기반 skill 선택 | 16개 description의 사용·제외 경계로 Claude Code·Codex implicit invocation 지원 |
+| 🧠 맥락 기반 skill 선택 | 17개 description의 사용·제외 경계로 Claude Code·Codex implicit invocation 지원 |
 | ✍️ 커밋 메시지 계약 | Conventional Commits 호환 한국어 형식을 로컬 `commit-msg`와 CI에서 강제하고 merge 예외는 Git metadata로 확인 |
 | 🧭 체계적 디버깅 | `/systematic-debugging` — 재현·가설·판별 실험으로 근본 원인을 확정한 뒤 최소 수정 |
 | ✅ 완료 증거 게이트 | `/verification-before-completion` — 현재 worktree·HEAD의 새 증거 없이는 완료 판정 차단 |
@@ -133,7 +138,7 @@ node scripts/build-packages.mjs --output /tmp/team-harness-packages
 |---|---|
 | **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, **검증기·마이그레이션 삭제**, 핵심 디렉터리 `rm -rf`, npm 글로벌 설치, **맨손 `gh pr create`·`gh pr merge`**(PR 생성·머지는 래퍼 스크립트=스킬 경유만 — 반사적 우회 차단) 차단 (`cd` 체인·서브셸·`git -C` 우회 포함, 보조 장치 — 최종 강제는 계층 0). **차단 시 `~/.claude/hooks/guard-block.log`에 session_id·cwd·명령(크레덴셜·토큰 마스킹) 기록**(멀티세션 위반 시도 감사). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
 | **PR 래퍼 스크립트** | `pr-create.sh`(base 자동감지·push·생성) · `pr-merge.sh`(CI·스레드·mergeable 게이트 후 머지) — guard가 맨손 gh를 막으므로 **PR 생성·머지의 유일 경로**. 스킬이 이 스크립트를 호출(내부 gh는 자식 프로세스라 훅에 안 걸림) |
-| **skill 자동 선택 + 의도 라우터** | 일반 자연어 작업은 16개 description의 사용·제외 경계로 runtime이 implicit selection. `route-intent.mjs`는 "진행해"처럼 이미 시작된 Git/PR 작업의 다음 상태만 결정한다. substring 키워드 주입과 권한 확대는 하지 않는다. |
+| **skill 자동 선택 + 의도 라우터** | 일반 자연어 작업은 17개 description의 사용·제외 경계로 runtime이 implicit selection. `route-intent.mjs`는 "진행해"처럼 이미 시작된 Git/PR 작업의 다음 상태만 결정한다. substring 키워드 주입과 권한 확대는 하지 않는다. |
 | **마일스톤 커맨드** | `/milestone` — 제품·마일스톤 정의→기능 분해→GitHub 마일스톤 생성→진행률 대시보드. `/plan` 위에 놓이는 목표 레이어. Claude Code 내장 `/goal`(세션 stopping condition)과 보완 관계 |
 | **계획 커맨드** | `/plan` — 스펙·플랜·태스크 분해(git 무관, `docs/specs/` 산출). 코드 전에 의도·수용기준 박제 |
 | **개발 커맨드** | `/feature-add` · `/feature-modify` — TDD(RED→GREEN→Refactor), 태스크당 원자적 커밋. 빌드·테스트 명령은 AGENTS.md에서 읽는다 |
@@ -247,7 +252,7 @@ bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe
 ```
 
 첫 명령은 설치 버전이 checkout보다 오래됐을 때 marketplace/plugin을 갱신하고 source-native
-manifest·command hook·16개 skill을 검사한 뒤 외부 security-guidance 호환 단계만 적용한다. 두 번째 명령은
+manifest·command hook·17개 skill을 검사한 뒤 외부 security-guidance 호환 단계만 적용한다. 두 번째 명령은
 실제 새 Codex 세션에서 destructive guard와 secret-egress guard 차단까지 확인한다.
 
 ### 현재 상태 종합 점검

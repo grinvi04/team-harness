@@ -12,3 +12,6 @@ docs/milestones/
 !.env.example
 *.key
 *.pem
+
+# Local validation output
+.runtime/

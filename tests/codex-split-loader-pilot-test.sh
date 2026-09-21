@@ -157,7 +157,7 @@ const fail = (message) => { console.error(`FAIL: ${message}`); process.exit(1) }
 const sha256 = /^sha256:[0-9a-f]{64}$/
 if (report.status !== 'pass' || report.evidence?.mode !== 'fixture') fail('pilot status/mode')
 if (report.harness?.revision !== revision || !/^[0-9a-f]{40}$/.test(report.harness?.tree || '')) fail('exact revision/tree')
-if (report.packages?.version !== '0.61.0' || report.packages?.installable !== false) fail('package version/verdict')
+if (report.packages?.version !== '0.69.0' || report.packages?.installable !== false) fail('package version/verdict')
 if (!sha256.test(report.codex?.binary?.digest || '')) fail('Codex binary digest')
 const expected = {
   'repository-only': ['harness-governance-core'],

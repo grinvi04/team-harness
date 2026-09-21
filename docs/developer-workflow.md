@@ -219,3 +219,7 @@ skill과 phase는 작업 업데이트에서 확인할 수 있어야 한다. 라�
 | 가드 차단과 복구 | [troubleshooting.md](troubleshooting.md) |
 | team-harness 자체를 변경·배포 | [harness-maintenance.md](harness-maintenance.md) |
 | 개별 절차의 최신 실행 계약 | [`plugins/harness-guard/skills/`](../plugins/harness-guard/skills/) |
+
+## 제품 요청의 진행과 인수 관리
+
+승인된 요청을 여러 단계에 걸쳐 이어갈 때는 [Team Harness 개발 조정](development-coordination.md)의 `ao-coordinate`를 사용한다. 기존 구현·PR·릴리즈 workflow를 중첩 실행하지 않고 제품 기록의 현재 단계와 유효한 증거를 연결한다. 단순 수정은 직접 처리하고 필수 독립 검증은 별도 인스턴스가 수행한다.

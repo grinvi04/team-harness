@@ -1,5 +1,7 @@
 # 제품 package manifest 분리 스펙
 
+> 구현 당시 범위·수치의 기록이다. 2026-09-20 개발 조정 통합으로 현재 skill은 17개(core 9, workflow 8)이며 현행 범위는 [통합 명세](agent-orchestration-integration.md)와 [제품 경계](../product-boundaries.md)를 따른다. 당시 실행 증거와 수용 기록은 변경하지 않는다.
+
 ## 1. 목표 & Why
 
 현재 `harness-guard` 단일 source를 제품 경계에 따라 재현 가능한 네 package artifact로 조립할 정본을 만든다.

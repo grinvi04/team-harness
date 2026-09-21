@@ -62,7 +62,7 @@ const shared = fs.readdirSync(sharedRoot)
 const wrappers = fs.existsSync(wrapperRoot)
   ? fs.readdirSync(wrapperRoot).filter((name) => fs.existsSync(path.join(wrapperRoot, name, 'SKILL.md'))).sort()
   : []
-if (shared.length !== 16 || JSON.stringify(wrappers) !== JSON.stringify(shared)) {
+if (shared.length !== 17 || JSON.stringify(wrappers) !== JSON.stringify(shared)) {
   fail(`Codex wrapper inventory mismatch: shared=${shared.length} wrappers=${wrappers.length}`)
 }
 for (const skill of shared) {
@@ -75,7 +75,7 @@ for (const skill of shared) {
     fail(`${skill}: custom agent dependency remained`)
   }
 }
-console.log('PASS: native manifest, command hooks, and 16 Codex skill wrappers')
+console.log('PASS: native manifest, command hooks, and 17 Codex skill wrappers')
 NODE
 
 EXTRA_EVENT_PLUGIN="$TMP/extra-event-plugin"

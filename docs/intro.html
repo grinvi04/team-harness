@@ -208,7 +208,7 @@
     <a href="#arch">아키텍처</a>
 
     <div class="section-label">핵심 구성</div>
-    <a href="#skills">스킬 16종</a>
+    <a href="#skills">스킬 17종</a>
     <a href="#guard">가드 훅</a>
     <a href="#model">모델 티어링</a>
 
@@ -228,14 +228,14 @@
 
   <!-- 히어로 -->
   <section class="hero" id="top">
-    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.61.0</div>
+    <div class="tag">AI 코딩 거버넌스 · harness-guard v0.69.0 후보</div>
     <h1>team-harness</h1>
     <p class="lead">
       AI 코딩 에이전트를 팀에서 안전하게 쓰기 위한 거버넌스 레이어.<br>
       <b>규약은 AGENTS.md 하나, 강제는 서버에.</b>
     </p>
     <div class="stats">
-      <div class="stat"><div class="n">16</div><div class="l">Skills</div></div>
+      <div class="stat"><div class="n">17</div><div class="l">Skills</div></div>
       <div class="stat"><div class="n">5</div><div class="l">방어 계층</div></div>
       <div class="stat"><div class="n">8</div><div class="l">스택 템플릿</div></div>
       <div class="stat"><div class="n">7</div><div class="l">가드 규칙</div></div>
@@ -270,7 +270,7 @@
   <h2 id="arch">아키텍처</h2>
   <div class="layers">
     <div class="layer l3"><span class="lv">계층 3</span><span class="lw">역할별 에이전트 (security-reviewer 등)</span><span class="scope">Claude Code · Codex</span></div>
-    <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 16종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code · Codex</span></div>
+    <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 17종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code · Codex</span></div>
     <div class="layer l1"><span class="lv">계층 1</span><span class="lw">AGENTS.md + .claude/ 설정 (플러그인·rules)</span><span class="scope">clone한 전원</span></div>
     <div class="layer l05"><span class="lv">계층 0.5</span><span class="lw">git hooks (보호 브랜치·커밋 메시지 검증)</span><span class="scope">전원</span></div>
     <div class="layer l0"><span class="lv">계층 0</span><span class="lw">branch protection + CI gate — 우회 불가</span><span class="scope">전원 · 모든 도구</span></div>
@@ -281,11 +281,16 @@
   </div>
 
   <!-- 스킬 -->
-  <h2 id="skills">스킬 16종</h2>
-  <p>Claude Code와 Codex는 자연어 요청을 16개 description의 <b>사용·제외 경계</b>와 맞춰 스킬을 자동 선택할 수 있다. <code>route-intent</code>는 “진행해” 같은 요청에서 현재 Git/PR 상태의 다음 단계만 안내한다. 어떤 자동 선택도 새 권한을 만들지 않는다.</p>
+  <h2 id="skills">스킬 17종</h2>
+  <p>Claude Code와 Codex는 자연어 요청을 17개 description의 <b>사용·제외 경계</b>와 맞춰 스킬을 자동 선택할 수 있다. <code>route-intent</code>는 “진행해” 같은 요청에서 현재 Git/PR 상태의 다음 단계만 안내한다. 어떤 자동 선택도 새 권한을 만들지 않는다.</p>
 
   <h3>개발 워크플로</h3>
   <div class="skill-list">
+    <div class="sk">
+      <div class="name">/ao-coordinate</div>
+      <div class="badges"><span class="badge auto">선택형 개발 조정</span></div>
+      <div class="desc">제품 요청·진행·인계·독립 검증을 기존 품질 gate에 연결. 단순 작업은 직접 처리하고 실제 실행·권한은 native 도구에 맡긴다. <a href="development-coordination.md">사용 흐름</a></div>
+    </div>
     <div class="sk">
       <div class="name">/plan</div>
       <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
@@ -646,13 +651,13 @@
 
   <!-- Codex 호환성 -->
   <h2 id="codex">Codex 호환성</h2>
-  <p>team-harness는 Claude Code 원본을 보존하면서 Codex에 전용 overlay·hook adapter·agent 설정을 적용해 동일한 거버넌스 의미를 제공한다. 두 도구 모두 description 기반 implicit skill 선택을 사용하지만 모델 제어 방식은 다르다.</p>
+  <p>team-harness는 Claude Code 원본을 보존하면서 Codex에 native skill wrapper·command hook adapter를 연결해 동일한 거버넌스 의미를 제공한다. 두 도구 모두 description 기반 implicit skill 선택을 사용하지만 모델 제어 방식은 다르다.</p>
 
   <div class="skill-list" style="gap:.4rem">
     <div class="sk" style="border-color: rgba(63,185,80,.3)">
       <div class="name" style="color:var(--green)">✓ Codex 동작</div>
       <div class="badges"></div>
-      <div class="desc">AGENTS.md · CI · git hooks · stack rules · skill 16종 · native plugin · command hooks</div>
+      <div class="desc">AGENTS.md · CI · git hooks · stack rules · skill 17종 · native plugin · command hooks</div>
     </div>
     <div class="sk" style="border-color: rgba(210,153,34,.3)">
       <div class="name" style="color:var(--orange)">⚠ 런타임 차이</div>

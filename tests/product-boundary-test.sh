@@ -62,7 +62,7 @@ core = {
 }
 workflow = {
     "feature-add", "feature-modify", "loop", "milestone", "plan", "qa",
-    "systematic-debugging",
+    "systematic-debugging", "ao-coordinate",
 }
 expected = {
     **{name: ("governance-core", "기본") for name in core},
@@ -83,15 +83,15 @@ if parsed != expected:
 duplicates = sorted(name for name, count in counts.items() if count != 1)
 if duplicates:
     errors.append(f"duplicate skill rows={duplicates}")
-if len(actual_skills) != 16 or len(core) != 9 or len(workflow) != 7:
-    errors.append("skill boundary counts are not total=16 core=9 workflow=7")
+if len(actual_skills) != 17 or len(core) != 9 or len(workflow) != 8:
+    errors.append("skill boundary counts are not total=17 core=9 workflow=8")
 if errors:
     print("\n".join(f"FAIL: {error}" for error in errors))
     raise SystemExit(1)
-print("PASS: 16 skills mapped exactly once (core=9, workflow=7)")
+print("PASS: 17 skills mapped exactly once (core=9, workflow=8)")
 PY
 then
-  pass "16개 skill 목표 단위·활성화 전수 계약"
+  pass "17개 skill 목표 단위·활성화 전수 계약"
 else
   fail "skill 집합 또는 제품 단위 배치 불일치"
 fi
