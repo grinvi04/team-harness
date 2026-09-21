@@ -3,9 +3,13 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.69.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.69.1` and replace this file with its output.
 
-## v0.69.0 - 2026-09-20
+## v0.69.1 - 2026-09-21
+
+- fix(onboarding): Vue 검사 범위를 소비 규칙에 연결
+
+## v0.69.0 - 2026-09-21
 
 - fix(orchestration): 필요한 인계와 재개 지침만 통합
 - fix(orchestration): 소비 경계와 문서 연결 보완
