@@ -85,8 +85,8 @@ node scripts/check-external-pilot-provenance.mjs \
 
 - **플러그인(가드·커맨드·스킬·에이전트 기준)**: Claude Code와 Codex 모두 **설치된 버전을 실행**하므로 버전 업 후
   갱신해야 실린다. Claude Code는 `/plugin marketplace update team-harness` 후 `/plugin` 메뉴에서
-  harness-guard를 업데이트한다. Codex는 최신 Team Harness checkout에서 아래 한 경로로 plugin 동기화,
-  source-native 계약 검사, 외부 security 호환 단계, 새 세션 검증을 순서대로 수행한다.
+  harness-guard를 업데이트한다. Codex는 [Native Refresh Runbook](specs/codex-guard-compatibility.md#codex-native-refresh-runbook)의 공식 CLI로 승인된 발행 태그를 지정해 설치하고 native 계약과 새 작업의 skill 로딩을 확인한다. 현재 개발 checkout·다른 plugin·모델/권한 설정을 갱신 부수 효과로 수정하지 않는다.
+  외부 `security-guidance` 패치도 승인된 환경에서는 아래 기존 launcher를 선택할 수 있다. `--probe`는 별도 격리 fixture·모델 실행 검증이다.
   ```bash
   bash /path/to/team-harness/scripts/codex-hardened.sh --version
   bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe
