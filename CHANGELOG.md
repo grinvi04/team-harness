@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.70.0` and repl
 
 ## v0.70.0 - 2026-09-22
 
+- fix(setup): 신뢰 검사 준비 전 보호 변경 차단
 - fix(ci): 신뢰 커밋 검사를 배포 표준에 연결
 - fix(ci): PR과 분리된 커밋 검사 원본 추가
 
