@@ -147,7 +147,20 @@ wrapper command position은 shell-word/segment 스캐너로 판정해 선행 ass
 
 ## Codex Native Refresh Runbook
 
-일반 plugin 갱신은 Codex 공식 CLI로 **승인된 발행 태그**를 지정한다. 다음은 v0.69.1 태그 발행 후 사용하는 예시다. `/path/to/release-source`는 첫 명령이 반환한 `installedRoot`이며, 그 Git commit이 발행 태그와 일치하는지 확인한다. 검사기와 `--trusted-root` 모두 이 원본을 사용한다. 이전 개발 checkout의 검사기는 스킬 목록 등이 다를 수 있으므로 사용하지 않는다.
+일반 plugin 갱신은 Codex 공식 CLI로 **승인된 발행 태그**를 지정한다. 다음은 v0.69.1 태그 발행 후 사용하는 예시다. `/path/to/release-source`는 `marketplace add`가 반환한 `installedRoot`이며, 그 Git commit이 발행 태그와 일치하는지 확인한다. 검사기와 `--trusted-root` 모두 이 원본을 사용한다. 이전 개발 checkout의 검사기는 스킬 목록 등이 다를 수 있으므로 사용하지 않는다.
+
+**기존 source 전환:** `marketplace add`는 같은 이름에 다른 ref·source가 등록돼 있으면 거부한다.
+`marketplace upgrade team-harness`는 등록된 ref의 snapshot을 갱신하므로 새 태그 선택을 대신하지 않는다.
+먼저 현재 `marketplaces.team-harness`의 source/ref와 plugin 버전·enabled 상태를 기록한다.
+승인된 태그가 실제 발행됐고 기존 source와 다른 경우에만 아래로 등록을 제거한 뒤 이어서 새 source를 추가한다.
+최초 설치이거나 같은 source/ref라면 제거 단계는 생략한다.
+
+```bash
+codex plugin marketplace remove team-harness --json
+```
+
+제거 직후 아래 `marketplace add`가 실패하면 기록한 이전 source/ref로 다시 등록하고 기존 설치 상태를 확인한다.
+사용자의 개발 checkout이나 plugin cache를 직접 삭제하지 않는다. 모델·역할·다른 marketplace 설정도 보존한다.
 
 ```bash
 codex plugin marketplace add grinvi04/team-harness --ref v0.69.1 --json
@@ -156,7 +169,7 @@ codex plugin list --json
 node /path/to/release-source/scripts/check-codex-native-plugin.mjs --expected-version 0.69.1 --trusted-root /path/to/release-source/plugins/harness-guard
 ```
 
-1. 현재 설치 버전·enabled·marketplace 원본을 확인한다. 로컬 개발 checkout이 원본이면 브랜치를 바꾸지 않고 위 명령으로 발행 태그를 지정한다. 다음 갱신 때는 새 태그를 명시한다.
+1. 현재 설치 버전·enabled·marketplace 원본을 확인한다. 로컬 개발 checkout이 원본이면 그 브랜치를 바꾸지 않고 위 기존 source 전환으로 발행 태그를 지정한다. 다음 태그 갱신도 같은 절차를 따른다.
 2. 설치 결과의 버전·enabled, marketplace의 실제 commit과 발행 태그 일치를 확인한다. 필요하면 native 검사에 `--trusted-root`로 해당 태그의 plugin 원본을 지정해 파일 inventory·digest를 비교한다.
 3. 새 작업 또는 새 app-server의 `skills/list`로 native skill 발견과 로딩 오류를 확인한다. 이미 열린 대화의 skill 목록이 자동 교체됐다고 가정하지 않는다.
 4. 모델·승인·sandbox·역할 설정과 다른 plugin은 보존한다. 머신의 managed requirements 변경은 별도 관리자 작업이며 단순 plugin 갱신에 묶지 않는다.
