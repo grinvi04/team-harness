@@ -243,7 +243,7 @@ main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
 
 ### Codex 플러그인 갱신
 
-Codex 설치·갱신은 [Native Refresh Runbook](docs/specs/codex-guard-compatibility.md#codex-native-refresh-runbook)의 공식 CLI 경로를 따른다. v0.69.1 태그 발행 후 아래 명령으로 해당 버전에 고정해 설치한다. 아래 `/path/to/release-source`는 첫 명령이 반환한 `installedRoot`다. 검사기와 비교 원본도 해당 태그에서 가져오며, 보존한 이전 개발 checkout의 검사기를 사용하지 않는다.
+Codex 설치·갱신은 [Native Refresh Runbook](docs/specs/codex-guard-compatibility.md#codex-native-refresh-runbook)의 공식 CLI 경로를 따른다. v0.69.1 태그 발행 후 아래 명령으로 해당 버전에 고정해 설치한다. **다른 태그·경로로 이미 등록돼 있으면 runbook의 기존 source 전환을 먼저 수행한다.** 아래 `/path/to/release-source`는 `marketplace add`가 반환한 `installedRoot`다. 검사기와 비교 원본도 해당 태그에서 가져오며, 보존한 이전 개발 checkout의 검사기를 사용하지 않는다.
 
 ```bash
 codex plugin marketplace add grinvi04/team-harness --ref v0.69.1 --json
