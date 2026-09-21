@@ -90,17 +90,17 @@ for (const configPath of [`${root}/commitlint.config.cjs`, `${root}/templates/co
   if (!valid) process.exit(1)
 }
 
-const workflowPaths = [`${root}/.github/workflows/commitlint.yml`, `${root}/templates/ci/commitlint.yml`]
+const workflowPaths = [`${root}/.github/workflows/commitlint-trusted.yml`, `${root}/templates/ci/commitlint.yml`]
 const workflows = workflowPaths.map((workflowPath) => readFileSync(workflowPath, 'utf8'))
 if (workflows[0] !== workflows[1]) process.exit(1)
 for (const workflow of workflows) {
   if (/wagoid\/commitlint-github-action|docker:\/\//.test(workflow)) process.exit(1)
   if (!/BASE_REF: \$\{\{ github\.base_ref \}\}/.test(workflow)) process.exit(1)
   if (!workflow.includes('HEAD_REF: ${{ github.head_ref }}')) process.exit(1)
-  if (!/git fetch --no-tags origin develop/.test(workflow)) process.exit(1)
+  if (!/fetch_objects develop/.test(workflow)) process.exit(1)
   if (!/check-commit-message\.cjs --range "\$BASE_SHA\.\.\$HEAD_SHA" --exclude "\$DEVELOP_SHA"/.test(workflow)) process.exit(1)
   if (!workflow.includes('"$HEAD_REF" == sync/backmerge-*')) process.exit(1)
-  if (!workflow.includes('git fetch --no-tags origin main')) process.exit(1)
+  if (!workflow.includes('fetch_objects main')) process.exit(1)
   if (!workflow.includes('BACKMERGE_COMMITS="$(git rev-list "$BASE_SHA..$HEAD_SHA" "^$MAIN_SHA" --)"')) process.exit(1)
   if (!workflow.includes('[ -z "$BACKMERGE_COMMITS" ]')) process.exit(1)
   if (!workflow.includes('check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA" --exclude "$MAIN_SHA"')) process.exit(1)

@@ -43,3 +43,13 @@ GitHub는 공개 repo의 기본 `pull_request_target` 제한 정책을 2026-11-0
 
 근거: [target 이벤트 보안](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target),
 [필수 검사 조건](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks).
+
+## 배포 자산
+
+루트 `.github/workflows/commitlint-trusted.yml`과 신규 repo용 `templates/ci/commitlint.yml`은 byte가
+동일하다. 신규 repo의 파일명은 기존 `commitlint.yml`을 유지하지만 job/context는 `commitlint-trusted`다.
+`new-repo.sh`가 그 이름을 required check 목록에 넣으며, repo-sync의 설치형 fallback digest도 같은
+workflow를 가리킨다. 기존 소비 repo를 설치 도구로 덮어쓰지 않으며 드리프트는 별도 전환 대상으로 보고한다.
+`new-repo.sh`는 기존 브랜치 보호를 보존한다. 보호가 없는 브랜치도 기본 브랜치의 workflow·validator
+Git blob이 배포 정본과 일치하는지 확인한 뒤에만 새 보호를 적용한다. 조회 실패·미배치·이전 자산이면
+보호를 쓰지 않고 실패를 반환한다. 이 사전 확인은 실제 PR 성공 확인을 대신하지 않는다.

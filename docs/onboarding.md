@@ -78,6 +78,12 @@ bash /path/to/team-harness/scripts/new-repo.sh
 
 ### 3. 최종 검증
 
+- [ ] 기본 브랜치에 표준 `commitlint.yml`·validator가 올라간 뒤 보호 설정 적용. `new-repo.sh`는
+      원격 자산이 정본과 다르거나 조회에 실패하면 새 보호를 적용하지 않으며, 기존 보호는 재실행해도
+      변경하지 않는다. 이전 `commitlint`에서 전환할 때는 [전환 절차](specs/trusted-commitlint.md)를 따른다.
+- [ ] `commitlint-trusted` target 검사가 실제 PR에 연결되어 통과하는지 확인. 공개 repo는 해당 이벤트의
+      허용 정책도 확인한다(2026-11-02 기본 제한 시행).
+
 - [ ] 테스트 PR 1개 생성 → ci-gate 통과 확인 (`pull_request` 트리거 전용 — push로는 실행 안 됨)
       체크명은 스택별로 다름: Node/Python/Rails=`quality`·`secret-scan`, Spring/NestJS 풀스택=`backend`·`frontend`·`secret-scan`
 - [ ] CI가 §2의 제품 검사 명령을 실제로 실행하고, 결과의 커밋이 PR 후보와 일치하는지 확인

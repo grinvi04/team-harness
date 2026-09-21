@@ -4,10 +4,17 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
+# Final deployment has one trusted source and a matching consumer template.
+if [ -e "$ROOT/.github/workflows/commitlint.yml" ]; then
+  echo 'FAIL: legacy workflow must be retired after the required-check handoff'
+  exit 1
+fi
+cmp "$ROOT/.github/workflows/commitlint-trusted.yml" "$ROOT/templates/ci/commitlint.yml"
+grep -Fq 'STACK_CHECKS+=("test-guard" "commitlint-trusted"' "$ROOT/scripts/new-repo.sh"
+
 # Parse the workflow contract, then execute its actual shell against local Git objects.
 ruby -ryaml -e '
   file, output = ARGV
-  file = File.join(File.dirname(file), "commitlint.yml") unless File.file?(file)
   doc = YAML.safe_load(File.read(file))
   events = doc["on"] || doc[true]
   abort "FAIL: trusted event" unless events.keys == ["pull_request_target"]
