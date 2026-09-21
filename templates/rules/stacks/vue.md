@@ -30,4 +30,9 @@ paths: ["**/*.vue", "src/**/*.ts"]
 - 순수 프레젠테이셔널 컴포넌트는 단위 테스트 생략 — e2e + `/qa`로 커버.
 
 ## 빌드
-- `vite build`. 디자인 토큰 게이트(`lint:design`)는 프레임워크 무관 동일 적용.
+- `vite build`. 디자인 토큰 원칙은 공통이며 `lint:design`은 Vue/CSS 형식에 맞게 연결한다.
+- `check-design-tokens.mjs`는 `.vue`·CSS를 검사하지 않는다. Stylelint와 Vue `<style>`을 읽는 parser
+  (예: `postcss-html`)를 설정하고 `src/**/*.{css,vue}`를 검사 대상으로 삼는다. 색상 정의를 허용할 토큰 원본을 명시한다.
+  직접 색상·미정의 변수는 거부하고 정상 토큰은 허용하는지 격리된 예제로 확인한다.
+- template 접근성 lint와 브라우저의 라이트/다크·모바일·키보드/초점 검사는 별도로 연결한다.
+  상세 수용 기준과 자동 판정 불가 항목의 기록은 공통 `docs/frontend-design-standards.md` §8을 따른다.
