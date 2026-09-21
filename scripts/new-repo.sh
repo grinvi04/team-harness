@@ -64,7 +64,7 @@ esac
 # + integration-e2e: "실 IdP 인증 + 실 백엔드 데이터 통합 e2e" 결정(decisions.md)을 자동 배선.
 #   job-level `if: vars.E2E_ENABLED` 라 미설정 repo는 잡이 skip → required여도 통과(머지 안 막힘).
 #   E2E_ENABLED=true 등록한 repo에서만 강제된다.
-STACK_CHECKS+=("test-guard" "commitlint" "integration-e2e" "destructive-ddl")
+STACK_CHECKS+=("test-guard" "commitlint-trusted" "integration-e2e" "destructive-ddl")
 
 # Flyway 스택 — 마이그레이션 안전성 게이트(접두사 대역 + out-of-order 정합성)
 HAS_FLYWAY=false

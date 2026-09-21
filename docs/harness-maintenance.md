@@ -99,6 +99,9 @@ node scripts/check-external-pilot-provenance.mjs \
   `enabledPlugins`에 커밋하면 캐시가 라이브 편집을 가리므로 금지. (스킬 매니페스트는 대문자 `SKILL.md` — 소문자면 발견 불가.)
 - **templates/**: 새 프로젝트 셋업에만 적용된다 — **기존 프로젝트에 자동 전파되지 않음**.
   기존 프로젝트에 반영이 필요한 변경(CI 게이트, gitignore 등)은 각 프로젝트에 별도 PR + 공지
+  커밋 검사의 필수 context는 `commitlint-trusted`다. 이전 `commitlint`를 사용하는 repo는
+  [신뢰 원본 검사 전환 순서](specs/trusted-commitlint.md)를 따른다. 새 workflow와 validator가 기본
+  브랜치에 배치되고 실제 PR에서 성공하기 전에 기존 검사를 제거하거나 새 검사만 요구하지 않는다.
 - **docs/**: 별도 배포 없음 — AGENTS.md 표의 주소가 단일 출처를 가리킨다
 
 ## 신규 셋업 ↔ 기존 repo 드리프트 점검 (대칭 도구)
@@ -134,5 +137,5 @@ node scripts/check-external-pilot-provenance.mjs \
 
 - **develop 채택(v0.14.x)**: team-harness도 다른 repo처럼 `기본=main + develop` gitflow를 쓴다.
   feature→develop→release→main. `ci-gate.yml`은 실제로 있으며 `[main, develop]` PR마다 실행된다.
-- **branch protection 적용됨**(2026-07 public 전환 #73 이후) — main·develop에 required status checks·force-push/삭제 차단·대화 resolve·`enforce_admins=on`. 현재 team-harness는 **팀 모드(main 승인1 + stale 승인 무효화, develop 승인0)** 다. `guard.sh` 훅·`.githooks/pre-commit`(dogfooding)은 직접커밋·맨손 gh 머지를 로컬에서 선차단하는 **방어심화 계층**으로 병존(서버 강제와 이중). 드리프트 점검 = `set-branch-protection.sh --check --approvals 1 --contexts quality,secret-scan,test-guard,commitlint,atomic-trust-macos`; `--contexts`를 주면 개수만이 아니라 exact set을 검증한다. main은 승인 수를 명시하고 develop 승인0과 나머지 불변식도 엄격하게 확인한다.
+- **branch protection 적용됨**(2026-07 public 전환 #73 이후) — main·develop에 required status checks·force-push/삭제 차단·대화 resolve·`enforce_admins=on`. 현재 team-harness는 **팀 모드(main 승인1 + stale 승인 무효화, develop 승인0)** 다. `guard.sh` 훅·`.githooks/pre-commit`(dogfooding)은 직접커밋·맨손 gh 머지를 로컬에서 선차단하는 **방어심화 계층**으로 병존(서버 강제와 이중). 전환 완료 후 드리프트 점검 = `set-branch-protection.sh --check --approvals 1 --contexts quality,secret-scan,test-guard,commitlint-trusted,atomic-trust-macos`; `--contexts`를 주면 개수만이 아니라 exact set을 검증한다. main은 승인 수를 명시하고 develop 승인0과 나머지 불변식도 엄격하게 확인한다. 전환 진행 증거는 [#432](https://github.com/grinvi04/team-harness/issues/432)와 연결 PR이 정본이다.
 - `presentation.html` 등 발표 자료는 커밋 대상이 아니다 — repo는 운영 자산만

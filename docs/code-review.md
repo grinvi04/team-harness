@@ -26,9 +26,9 @@ Conventional Commits 1.0.0의 `<type>[optional scope][!]: <description>` 구조�
   허용한다. 메시지 모양만 흉내 낸 일반 commit은 거부한다. 기본 `Revert "..."`는 1-parent 메시지만으로 실제
   revert 여부를 증명할 수 없어 예외로 두지 않으며, `revert(order): 주문 한도 변경 되돌림`처럼 규약을 따른다.
 
-Node.js가 있는 환경에서는 `commit-msg` 훅이 로컬에서 즉시 검사하고, PR의 commitlint가 같은 validator로
+Node.js가 있는 환경에서는 `commit-msg` 훅이 로컬에서 즉시 검사하고, PR의 `commitlint-trusted`가 기본 브랜치의 validator로
 다시 검사한다. non-Node 소비 repo의 개발 환경에 Node.js가 없으면 훅은 경고 후 로컬 검사를 건너뛰며,
-PR의 필수 CI commitlint가 규칙을 강제한다. `--no-verify`로 로컬 훅을 건너뛰어도 CI 규칙은 그대로 남는다.
+PR의 필수 CI가 규칙을 강제한다. `--no-verify`로 로컬 훅을 건너뛰어도 CI 규칙은 그대로 남는다.
 
 PR 자체가 검사 코드를 바꾸는 경계는 [신뢰 원본 커밋 검사 전환](specs/trusted-commitlint.md)으로
 보완한다. 새 `commitlint-trusted`는 기본 브랜치 코드를 사용하고 PR의 Git metadata만 읽는다.

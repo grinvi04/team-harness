@@ -225,7 +225,7 @@ function sentinelStatus(sentinelRe, filenameHintRe) {
 
 function commitlintWorkflowStatus() {
   return canonicalWorkflowContract(
-    ['.github/workflows/commitlint.yml', 'templates/ci/commitlint.yml'],
+    ['.github/workflows/commitlint-trusted.yml', 'templates/ci/commitlint.yml'],
     BUNDLED_COMMITLINT_WORKFLOW_SHA256,
   ) ? 'OK' : 'MISSING'
 }
@@ -235,7 +235,7 @@ function existsAnywhere(re) {
   return files.some((f) => re.test(f.name))
 }
 
-const BUNDLED_COMMITLINT_WORKFLOW_SHA256 = '409a356512d2d2df3379a06128e2fa1d259961c40f0fa40521abe5c21d30c3db'
+const BUNDLED_COMMITLINT_WORKFLOW_SHA256 = '4cb08ade57baf059a1c8d40a1e4ebf5fd32d5df91e1fa94f7d1fe4e96432b4cc'
 const BUNDLED_COMMIT_VALIDATOR_SHA256 = '0e16c0b6d7ebfd88bf48bcc952726149f0c00e3a136ac8dffcdff9653475cb61'
 const BUNDLED_COMMITLINT_SHA256 = [
   '2080abae45b3595f0a93a84aae3c14911cc325fb25b3798aa2401523459525a3',
