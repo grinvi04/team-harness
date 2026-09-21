@@ -115,16 +115,13 @@ Team/Enterprise 없이도 파일 기반 managed settings로 본인 머신에서 
 - Codex는 `harness-guard` v0.61.0 이상을 설치하고, 관리자가
   `/path/to/team-harness/scripts/install-codex-managed-requirements.sh`로 `hooks=true`를 머신에 고정한다.
   unified exec lifecycle은 현재 Codex native hook 구현에 위임한다.
-- 최초 plugin 설치 뒤와 이후 갱신 때는 Team Harness checkout에서 아래 단일 launcher 명령을 실행한다.
-  launcher는 필요할 때만 marketplace/plugin을 갱신하고 native manifest·command hook·17개 skill을 검사한 뒤
-  범위 밖의 `security-guidance` adapter 패치만 적용한다. 이어서 doctor probe로 실제 새 세션의 두 guard 차단을
-  확인하고 `/hooks`의 변경 hash를 review/trust한다. Codex agent 실행은 플랫폼에 위임한다.
+- 최초 plugin 설치와 갱신은 [Native Refresh Runbook](specs/codex-guard-compatibility.md#codex-native-refresh-runbook)의 공식 CLI 경로로 발행 태그를 지정한다. 로컬 개발 브랜치를 설치 원본으로 썼다면 기존 checkout은 보존하고 marketplace 원본만 발행 태그로 바꾼다. 설치 후 버전·enabled·native 계약과 새 작업의 skill 로딩을 확인한다.
+- 외부 `security-guidance` 수정까지 별도로 승인한 환경에서만 기존 launcher를 사용한다. `--probe`는 별도 격리 fixture·모델 실행 검증이며, 일반 plugin 갱신만으로 실행 승인된 것으로 간주하지 않는다.
   ```bash
   bash /path/to/team-harness/scripts/codex-hardened.sh --version
   bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe
   ```
-- Codex 설치·갱신·실측 절차의 정본은
-  [`specs/codex-guard-compatibility.md`](specs/codex-guard-compatibility.md)다.
+- hook 실행을 검증해야 한다면 `/hooks`에서 새 command hash를 review/trust하고 승인된 안전한 fixture로 확인한다. skill 발견·파일 검사를 실제 hook 차단·권한 집행의 증거로 확대하지 않는다.
 - 전용 plugin/hook 적합성을 검증하지 않은 기타 AI 도구는 `AGENTS.md` + git hook +
   branch protection + CI 범위로 제한한다.
 
