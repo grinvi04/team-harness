@@ -147,28 +147,26 @@ wrapper command position은 shell-word/segment 스캐너로 판정해 선행 ass
 
 ## Codex Native Refresh Runbook
 
-`harness-guard`가 새 버전으로 갱신된 뒤에는 아래 순서로 적용한다.
+일반 plugin 갱신은 Codex 공식 CLI로 **승인된 발행 태그**를 지정한다. 다음은 v0.69.1 태그 발행 후 사용하는 예시다. `/path/to/release-source`는 첫 명령이 반환한 `installedRoot`이며, 그 Git commit이 발행 태그와 일치하는지 확인한다. 검사기와 `--trusted-root` 모두 이 원본을 사용한다. 이전 개발 checkout의 검사기는 스킬 목록 등이 다를 수 있으므로 사용하지 않는다.
 
-1. `sudo bash scripts/install-codex-managed-requirements.sh --install`로 system requirements를 설치하고
-   `--check`로 `hooks=true`를 확인한다. 기존 v1의 `unified_exec=false` pin은 제거된다.
-2. `~/.codex/config.toml`의 `approval_policy = "untrusted"`를 interactive 세션용으로 유지한다. `codex exec`는
-   0.144.1 probe에서 `approval: never`였으므로 이 설정이 non-interactive 승인 경계를 보장한다고 주장하지 않는다.
-   `sandbox_workspace_write.network_access = false`만으로 egress를 막는다고도 주장하지 않는다.
-3. Codex에 `harness-guard` **v0.61.0 이상**을 설치/갱신한다.
-4. `node scripts/check-codex-native-plugin.mjs`로 설치 source의 manifest·hooks·17개 skill을 확인한다.
-5. `/hooks`에서 새 command hash를 review/trust한다.
-6. hardened CLI, 일반 CLI, cmux CLI, Desktop/app-server의 새 session에서 benign·파괴·egress fixture와
-   `UserPromptSubmit` 라우팅을 확인한다. 실제 시크릿이나 실제 전송 endpoint는 사용하지 않는다.
-7. subagent 선택은 Codex native 기능에 맡기며 `~/.codex/agents`에 harness 전용 파일을 복사하지 않는다.
+```bash
+codex plugin marketplace add grinvi04/team-harness --ref v0.69.1 --json
+codex plugin add harness-guard@team-harness --json
+codex plugin list --json
+node /path/to/release-source/scripts/check-codex-native-plugin.mjs --expected-version 0.69.1 --trusted-root /path/to/release-source/plugins/harness-guard
+```
 
-`security-guidance` patch도 별도다. Codex는 startup/cache refresh 때 marketplace snapshot의 raw Claude hook을
-cache에 다시 복사할 수 있으므로, v0.43.0 이상의
-`node plugins/harness-guard/scripts/patch-codex-security-guidance.mjs`는 **실행 cache와 Codex local marketplace
-snapshot 둘 다** adapter command로 보정한다. marketplace upgrade 뒤에 이 명령을 실행하고 `/hooks` hash를 trust한다.
+1. 현재 설치 버전·enabled·marketplace 원본을 확인한다. 로컬 개발 checkout이 원본이면 브랜치를 바꾸지 않고 위 명령으로 발행 태그를 지정한다. 다음 갱신 때는 새 태그를 명시한다.
+2. 설치 결과의 버전·enabled, marketplace의 실제 commit과 발행 태그 일치를 확인한다. 필요하면 native 검사에 `--trusted-root`로 해당 태그의 plugin 원본을 지정해 파일 inventory·digest를 비교한다.
+3. 새 작업 또는 새 app-server의 `skills/list`로 native skill 발견과 로딩 오류를 확인한다. 이미 열린 대화의 skill 목록이 자동 교체됐다고 가정하지 않는다.
+4. 모델·승인·sandbox·역할 설정과 다른 plugin은 보존한다. 머신의 managed requirements 변경은 별도 관리자 작업이며 단순 plugin 갱신에 묶지 않는다.
+5. hook 신뢰·실제 차단 검증은 별개다. `/hooks`에서 변경 hash를 검토하고, 필요한 경우에만 승인된 격리 환경의 합성 fixture로 발화를 확인한다. 실제 인증 파일·시크릿을 probe 입력으로 쓰지 않는다. skill 로딩 성공을 hook 발화·권한 집행으로 보고하지 않는다.
+
+`security-guidance` adapter patch는 외부 plugin cache와 marketplace snapshot 및 활성화 설정을 바꾸는 별도 작업이다. 이 변경까지 명시적으로 승인된 환경에서만 기존 patch/launcher를 사용한다. Team Harness 갱신에 필수로 묶지 않는다.
 
 ### CLI 자동 복구 launcher
 
-cmux에서 시작하는 Codex CLI는 `scripts/codex-hardened.sh`를 사용한다. 이 launcher는 시작 직전에
+외부 `security-guidance` 수정까지 승인된 기존 cmux 환경은 `scripts/codex-hardened.sh`를 선택할 수 있다. 이 launcher는 시작 직전에
 source manifest가 설치 plugin보다 새로울 때만 공식 Codex CLI로 `team-harness` marketplace와
 `harness-guard` plugin을 갱신한다. 이어서 native 계약 검사와 `security-guidance` adapter patch를 순서대로
 적용하며, 동기화나 검사가 하나라도 실패하면 Codex를 실행하지 않는다. 버전이 같거나 설치본이 더 새로우면

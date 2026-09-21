@@ -33,6 +33,12 @@ Team Harness는 Codex 전용 agent TOML이나 model slug를 배포하지 않는�
 모델·reasoning effort·sandbox는 Codex의 지원 surface와 사용자 설정이 결정한다. 하네스 skill은 필요한 경우
 읽기 전용 증거 수집·보안 검토·반증 수용기준만 전달한다.
 
+사용자가 전역 custom agent에 특정 모델·effort를 설정했다면 그것은 개인/조직의 실행 설정이다.
+Harness 설치가 그 값을 같은 이름의 역할 기본값으로 덮어쓰거나 모든 역할에 일괄 적용하지 않는다.
+확인할 때는 현재 플랫폼의 전역·프로젝트·역할 설정과 실제 실행 정보를 구분한다.
+Fast mode는 reasoning effort와 별도의 속도·사용량 선택이며 Harness는 이를 켜거나 강제하지 않는다.
+저장된 기본값만으로 작업별 실제 적용을 확정하지 않는다. 설정 방법은 [Codex 공식 Speed 안내](https://developers.openai.com/codex/speed/)를 따른다.
+
 | 역할 | model | model_reasoning_effort | 권한 |
 |---|---|---|---|
 | native 탐색 역할 | Codex 선택 | Codex 선택 | read-only 요청 |

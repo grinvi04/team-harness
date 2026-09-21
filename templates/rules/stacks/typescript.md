@@ -7,9 +7,12 @@ paths: ["**/*.ts", "**/*.tsx"]
 ## 포맷·디자인 토큰은 게이트가 강제 (prose 아님)
 - **포맷은 Prettier가 강제** — `prettier --check`를 CI에 둔다. 손으로 맞추지 말 것: `prettier --write .`로 자동수정.
   설정은 `templates/.prettierrc`(no-semi·single-quote·2-space·trailingComma=all·printWidth 100)를 repo 루트(또는 `frontend/`)에 복사.
-- **하드코딩 색 금지는 `lint:design` 게이트가 강제** — `templates/frontend/check-design-tokens.mjs`를 `scripts/check-design-tokens.mjs`로 복사하고
-  `package.json` scripts에 `"lint:design": "node scripts/check-design-tokens.mjs"`를 추가, CI(ci-gate)에 `npm run lint:design` 스텝을 둔다.
-  숫자 스케일 색(`gray-500`·`blue-600`)·`bg-white` 금지 → 시맨틱 토큰만(다크모드 보장). 의도적 예외는 줄 끝 `// design-token-ok`.
+- **색상 토큰 검사는 파일 형식에 맞게 `lint:design`에 연결** — JS/TS/JSX/TSX의 Tailwind 클래스 검사에는
+  `templates/frontend/check-design-tokens.mjs`를 `scripts/check-design-tokens.mjs`로 복사하고
+  `package.json`에 `"lint:design": "node scripts/check-design-tokens.mjs"`, CI에 `npm run lint:design`을 연결한다.
+  이 스크립트는 `src`의 숫자 스케일 색(`gray-500`·`blue-600`)·`bg-white`를 검사하며, 의도적 예외는 줄 끝 `// design-token-ok`다.
+  `.vue`·CSS·동적 스타일은 검사하지 않는다. Vue/순수 CSS에는 Stylelint 등 해당 형식의 검사를 연결한다(`vue.md`, 공통 `docs/frontend-design-standards.md` §8).
+  정상 토큰은 허용하고 직접 색상·미정의 변수는 거부하는지 확인하며, 다크모드의 실제 화면은 별도 검증한다.
 - **lint 설정은 프레임워크에 맞춘다** — React/Next.js는 `eslint-config-next`(`react-hooks`·`jsx-a11y`·`@typescript-eslint` 포함), **Vue는 `eslint-plugin-vue`**(+`eslint-plugin-vuejs-accessibility`). 어느 쪽이든 `npm run lint` 한 줄로 CI가 강제. (Next.js·Vue 특화는 `nextjs.md`·`vue.md` 참조.)
 - **`as any`/`any` 금지는 prose가 아니라 lint 규칙으로 강제** — eslint 설정에 `@typescript-eslint/no-explicit-any: "error"`를 배선한다(많은 preset이 기본 warn이라 CI를 못 막음 — `error`로 올린다). 이미 켜져 있으면 레벨만 확인. 의도적 예외는 그 줄에 사유 주석과 함께 `// eslint-disable-next-line @typescript-eslint/no-explicit-any`.
 
