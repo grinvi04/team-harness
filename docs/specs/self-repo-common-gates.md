@@ -1,5 +1,9 @@
 # team-harness 공통 게이트 self-dogfood
 
+> 아래는 v0.48.0 도입 당시 기록이다. 현재 commitlint config는 루트의 직접 경로와 템플릿의
+> 설치 위치 resolver가 다르며, 동일 validator·규칙 계약을 테스트한다. workflow 정본 전환은
+> [PR과 분리된 커밋 검사](trusted-commitlint.md)를 따른다.
+
 ## 문제
 
 v0.48.0의 repo-sync self-check 교정으로 `templates/`가 repo 루트 자산을 대신 인정하던 오탐이
@@ -31,7 +35,8 @@ team-harness가 소비 repo에 배포하는 공통 게이트 정본을 자기 PR
 1. `check-repo-sync.mjs --repo <team-harness> --harness <team-harness>`가 MISSING 없이 exit 0이다.
 2. 새 PR에서 `test-guard`와 `commitlint` job이 모두 성공한다.
 3. 기존 `ci-gate` quality/secret-scan과 전체 로컬 테스트가 회귀 없이 통과한다.
-4. workflow/config 내용은 해당 `templates/` 정본과 동일하다.
+4. workflow 내용은 해당 `templates/` 정본과 동일하다. config는 설치 위치에 맞는 resolver를 사용하며
+   동일 validator·규칙을 연결한다(후속 구현에 맞춰 정정).
 
 ## 롤백
 
