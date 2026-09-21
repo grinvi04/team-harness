@@ -223,6 +223,35 @@ apply_protection() {
     return
   fi
 
+  # Existing policies belong to the operator. Setup reruns never migrate or replace them.
+  local protected default_branch workflow_blob validator_blob
+  if ! protected=$(gh api "repos/$OWNER_REPO/branches/$branch" --jq '.protected'); then
+    echo "  ❌  $branch — 기존 보호 확인 실패; 변경하지 않습니다."
+    PROT_FAILED=1
+    return
+  fi
+  if [ "$protected" = true ]; then
+    echo "  ⏭  $branch — 기존 보호 유지. commitlint 전환은 docs/specs/trusted-commitlint.md 참고"
+    return
+  fi
+  if [ "$protected" != false ]; then
+    echo "  ❌  $branch — 보호 상태를 판정할 수 없습니다."
+    PROT_FAILED=1
+    return
+  fi
+
+  # target workflows execute from the default branch, not necessarily this protected branch.
+  if ! default_branch=$(gh api "repos/$OWNER_REPO" --jq '.default_branch') \
+    || ! workflow_blob=$(gh api "repos/$OWNER_REPO/contents/.github/workflows/commitlint.yml" -X GET -f "ref=$default_branch" --jq '.sha') \
+    || ! validator_blob=$(gh api "repos/$OWNER_REPO/contents/scripts/check-commit-message.cjs" -X GET -f "ref=$default_branch" --jq '.sha') \
+    || [ "$workflow_blob" != "$(git hash-object "$HARNESS_DIR/templates/ci/commitlint.yml")" ] \
+    || [ "$validator_blob" != "$(git hash-object "$HARNESS_DIR/scripts/check-commit-message.cjs")" ]; then
+    echo "  ❌  $branch — 기본 브랜치의 신뢰 workflow·validator 미확인; 보호를 변경하지 않습니다."
+    echo "      기본 브랜치에 표준 자산을 먼저 반영하세요. 기존 repo는 명시적 전환 절차를 따르세요."
+    PROT_FAILED=1
+    return
+  fi
+
   # 부트스트랩 데드락 방지: CI 워크플로가 원격 브랜치에 아직 없으면 required-check 보호를 걸지 않는다.
   # (워크플로 push 전에 보호를 걸면 초기 설정 커밋 push가 "required status checks are expected"로 거부돼
   #  워크플로를 올릴 방법이 없어진다. develop처럼 '설정 push 후 재실행' 2-스텝으로 유도.)
