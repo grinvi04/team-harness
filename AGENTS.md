@@ -48,6 +48,12 @@
 
 - 표준 = `docs/`, 결정·이유 = `docs/decisions.md`, 백로그·할 일 = **GitHub Issues**, 스펙 = `docs/specs/`, 작업로그 = git 히스토리·커밋.
 
+## Markdown 동기화 완료 기준
+
+- 코드·설정·결정·진행 단계 변경 시 관련 현재 안내와 직접 소비 문서를 같은 변경 범위에서 대조·갱신한다.
+- 문서 상태는 실제 Git·PR·태그와 맞추고, 변하는 상태는 원본으로 연결한다. 과거 검증 기록은 당시 후보·날짜·한계를 보존한다.
+- 완료 전 참조 경로·버전·실행 명령·완료/미완료 표현을 확인한다. 세부 기준은 `docs/ai-collaboration.md`의 Markdown 동기화를 따른다.
+
 ## Skill 실행 가시성
 
 - harness skill을 적용할 때 첫 작업 업데이트에 **적용 skill과 현재 phase**를 표시한다. Git flow 단계가
