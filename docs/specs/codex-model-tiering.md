@@ -2,6 +2,11 @@
 
 Issue: #311
 
+> **과거 설계 기록:** 아래 agent TOML 배포·cache patch·고정 effort 수용 기준은 당시 설계다.
+> 현재는 [모델 티어링](../model-tiering.md#codex-매핑)과
+> [선택 통합 명세](agent-orchestration-integration.md)를 따른다. Team Harness는 Codex agent TOML을
+> 배포하지 않으며 실제 모델·effort는 플랫폼과 사용자 설정이 결정한다. 아래를 현재 설치·검사 지침으로 사용하지 않는다.
+
 ## 목표
 
 Codex custom agent가 특정 model slug를 강제하지 않고 현재 부모 세션의 사용자 플랜·`/model` 선택을
