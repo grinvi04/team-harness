@@ -37,11 +37,30 @@ validator를 실행한다. PR은 base 저장소의 `refs/pull/<number>/head`에�
 - 고정 후보의 독립 보안 검토와 CI를 거친다. 로컬 검사는 GitHub 이벤트·fork 정책의 실제 실행을
   대신하지 않는다. 모든 GitHub Actions 결과의 위조 방지를 보장하는 별도 App identity 계약은 아니다.
 
+## 공개 저장소 이벤트 정책 (#458)
+
 GitHub는 공개 repo의 기본 `pull_request_target` 제한 정책을 2026-11-02부터 강제한다고 안내한다.
-배포 관리자는 이 metadata 전용 workflow의 이벤트 허용 정책을 확인해야 한다. 제한을 자동 완화하지
-않으며, 이벤트가 차단되면 required check를 제거해 우회하지 않는다.
+이 검사는 PR 자체가 수정한 validator를 실행하지 않기 위해 target 이벤트를 유지한다.
+운영자 승인 후 GitHub Actions의 저장소 이벤트 정책으로 해당 workflow 경로만 명시적으로 허용한다.
+Team Harness의 적용 범위는 다음과 같다. 정책 ID·적용 시점·실제 PR 검증 결과는
+[이슈 #458](https://github.com/grinvi04/team-harness/issues/458)와 현재 원격 설정이 정본이다.
+
+- 정책 이름: `Trusted commit metadata event`, enforcement: `active`.
+- `conditions.workflow_path.include`: `[".github/workflows/commitlint-trusted.yml"]`, exclude: `[]`.
+- 유일한 rule: `restrict_action_events`, `allowed_events`: `["pull_request_target"]`.
+- actor 제한·bypass·토큰·시크릿 권한을 추가하지 않는다. 다른 workflow와 다른 repo는 이 정책의 대상이 아니다.
+
+적용 전 기존 정책과 main/develop 보호 설정을 보관하고, 적용 후 서버에서 정책 전체를 다시 읽어
+경로·이벤트·enforcement가 요청과 일치하는지 확인한다. 정상 PR의 새 target 검사와 다른 필수 CI가
+현재 후보에서 성공하고 기존 보호 설정이 동일해야 완료다. 조회 실패·scope 불일치 시 완료로 보고하지 않는다.
+잘못 생성한 정책은 기록한 ID로만 되돌리며, required check 제거·수동 성공 상태 게시로 우회하지 않는다.
+
+소비 repo는 실제 배치 경로를 사용해야 한다. 신규 템플릿의 경로는 `.github/workflows/commitlint.yml`이므로
+이 저장소의 경로를 그대로 복사하지 않는다. `new-repo.sh`와 plugin 갱신은 원격 이벤트 정책을 자동 변경하지 않는다.
+workflow 경로·트리거를 바꾸거나 상위 정책이 추가되면 적용 범위를 다시 확인한다.
 
 근거: [target 이벤트 보안](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target),
+[이벤트 정책 API](https://docs.github.com/en/rest/actions/policies#create-a-repository-actions-policy),
 [필수 검사 조건](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks).
 
 ## 배포 자산
