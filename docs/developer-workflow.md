@@ -91,7 +91,8 @@ fix(auth): 만료 토큰 재사용 차단
 
 `feat|fix|refactor|perf`는 `이유:`가 필수이고, `영향:`·`검증:`은 필요한 경우에만 쓴다. `docs|chore|ci`
 같은 단순 변경은 한국어 헤더만으로 충분하다. Node.js가 있으면 로컬 `commit-msg`가 즉시 검사하고 PR
-commitlint가 같은 규칙을 다시 검사한다. Node.js가 없는 non-Node 개발 환경은 로컬 경고 후 필수 CI가 강제한다.
+`commitlint-trusted`가 기본 브랜치의 규칙으로 다시 검사한다. Node.js가 없는 non-Node 개발 환경은 로컬 경고 후 필수 CI가 강제한다.
+검사 규칙 자체를 바꾸는 PR도 기존 신뢰 규칙을 충족해야 하며, 변경한 규칙은 기본 브랜치 반영 후 적용된다.
 Git 기본 merge 메시지는 실제 merge 상태·parent metadata가 확인될 때만 예외이며, 되돌림은 기본
 `Revert "..."` 대신 `revert(order): 주문 한도 변경 되돌림` 형식을 쓴다.
 

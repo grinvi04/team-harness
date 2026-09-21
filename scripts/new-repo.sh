@@ -64,7 +64,7 @@ esac
 # + integration-e2e: "실 IdP 인증 + 실 백엔드 데이터 통합 e2e" 결정(decisions.md)을 자동 배선.
 #   job-level `if: vars.E2E_ENABLED` 라 미설정 repo는 잡이 skip → required여도 통과(머지 안 막힘).
 #   E2E_ENABLED=true 등록한 repo에서만 강제된다.
-STACK_CHECKS+=("test-guard" "commitlint" "integration-e2e" "destructive-ddl")
+STACK_CHECKS+=("test-guard" "commitlint-trusted" "integration-e2e" "destructive-ddl")
 
 # Flyway 스택 — 마이그레이션 안전성 게이트(접두사 대역 + out-of-order 정합성)
 HAS_FLYWAY=false
@@ -220,6 +220,35 @@ apply_protection() {
   if ! git ls-remote --exit-code --heads origin "$branch" > /dev/null 2>&1; then
     echo "  ⚠️  $branch — 원격 브랜치 없음 → 보호 미적용 (직접 push 가능)"
     echo "      push 후 반드시 재실행: bash $0"
+    return
+  fi
+
+  # Existing policies belong to the operator. Setup reruns never migrate or replace them.
+  local protected default_branch workflow_blob validator_blob
+  if ! protected=$(gh api "repos/$OWNER_REPO/branches/$branch" --jq '.protected'); then
+    echo "  ❌  $branch — 기존 보호 확인 실패; 변경하지 않습니다."
+    PROT_FAILED=1
+    return
+  fi
+  if [ "$protected" = true ]; then
+    echo "  ⏭  $branch — 기존 보호 유지. commitlint 전환은 docs/specs/trusted-commitlint.md 참고"
+    return
+  fi
+  if [ "$protected" != false ]; then
+    echo "  ❌  $branch — 보호 상태를 판정할 수 없습니다."
+    PROT_FAILED=1
+    return
+  fi
+
+  # target workflows execute from the default branch, not necessarily this protected branch.
+  if ! default_branch=$(gh api "repos/$OWNER_REPO" --jq '.default_branch') \
+    || ! workflow_blob=$(gh api "repos/$OWNER_REPO/contents/.github/workflows/commitlint.yml" -X GET -f "ref=$default_branch" --jq '.sha') \
+    || ! validator_blob=$(gh api "repos/$OWNER_REPO/contents/scripts/check-commit-message.cjs" -X GET -f "ref=$default_branch" --jq '.sha') \
+    || [ "$workflow_blob" != "$(git hash-object "$HARNESS_DIR/templates/ci/commitlint.yml")" ] \
+    || [ "$validator_blob" != "$(git hash-object "$HARNESS_DIR/scripts/check-commit-message.cjs")" ]; then
+    echo "  ❌  $branch — 기본 브랜치의 신뢰 workflow·validator 미확인; 보호를 변경하지 않습니다."
+    echo "      기본 브랜치에 표준 자산을 먼저 반영하세요. 기존 repo는 명시적 전환 절차를 따르세요."
+    PROT_FAILED=1
     return
   fi
 
