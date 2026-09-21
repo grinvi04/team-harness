@@ -15,6 +15,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
+| **커밋 검사 신뢰 경계 분리** — 기본 브랜치의 metadata 전용 target workflow를 사용한다. 기존 필수 검사는 새 `commitlint-trusted`의 실제 PR 성공 확인 후 교체하며, PR 코드 실행·별도 App·수동 성공 상태 게시 없이 단계적으로 적용한다. | 2026-09-21 | specs/trusted-commitlint.md | code-review.md, specs/self-repo-common-gates.md |
 | **Agent Orchestration에서 필요한 인계·재개 원칙만 선택 통합** — 사용자 정정에 따라 초안의 별도 npm 패키지·선언 검사 4개·기록 생성 CLI·연구용 역할 체계를 제거한다. 현재 요구·담당 범위·후보별 검증·다음 행동만 짧은 ao-coordinate로 연결하고 기존 workflow와 core gate를 유지한다. 초기 전체 이관 초안과 과거 증거는 Git에 보존한다. 후보 0.69.0; 전역 변경·Jev·새 runtime 실험은 제외한다. | 2026-09-20 | development-coordination.md, specs/agent-orchestration-integration.md | product-direction.md, product-boundaries.md, ai-collaboration.md, onboarding.md, README.md |
 | **⚠️ #79에서 솔로 표준(승인요건 0)으로 대체됨** — git-flow + main/develop branch protection (원안: PR·승인 1+·스레드 resolve 서버 강제 / 현행: 승인 0·enforce_admins=on·CI-gate, 팀 모드는 #105 opt-in) | 2026-06 | onboarding.md | code-review.md, AGENTS.md, guard.sh |
 | 거버넌스 배포 = 플러그인 버전 배포 (파일 복사·동기화 스크립트 금지) | 2026-06 | README.md | harness-maintenance.md |

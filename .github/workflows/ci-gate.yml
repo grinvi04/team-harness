@@ -162,7 +162,9 @@ jobs:
         run: bash tests/skill-trigger-contract-test.sh
 
       - name: 커밋 메시지 로컬·CI 공통 계약
-        run: bash tests/commit-message-test.sh
+        run: |
+          bash tests/commit-message-test.sh
+          bash tests/commitlint-trusted-test.sh
 
       - name: loop 실행 안전장치 계약
         run: bash tests/loop-skill-test.sh
