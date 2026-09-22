@@ -2,7 +2,7 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.71.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.72.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
@@ -10,7 +10,9 @@
 구성하지 않도록 돕는다. 실제 프로젝트에서 검증된 구성을 재사용하고, 유용한 부분부터 동료에게 공유한다.
 현재 스택별 기준·템플릿·검사 연결 안내와 개발 조정 절차를 제공하며, 새 앱 전체를 자동 생성하지는 않는다.
 
-로컬 프로젝트는 [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다. GitHub에 연결할 때는
+로컬 프로젝트는 [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.
+준비된 Spring Boot+Vue 프로젝트에는 [로컬 검사 시작 구성](docs/local-development.md)으로 공통 검사 진입점을
+미리 보고 추가할 수 있다. 기존 파일을 덮어쓰지 않으며 앱 생성·검사 도구 설정은 제품에서 준비한다. GitHub에 연결할 때는
 다음 세 계층으로 기존 품질·리뷰·배포 정책을 적용한다:
 
 1. **Claude Code·Codex 플러그인 경로** — 가드·스킬·절차를 버전 있는 플러그인으로 배포
