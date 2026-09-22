@@ -483,7 +483,7 @@
   <p style="margin-top:.8rem"><b>공통 원칙</b> — 가장 낮은 추론량으로 시작하되 설계·보안·릴리즈처럼 누락 비용이 큰 작업은 높인다. Claude의 <code>effort:</code>와 Codex의 <code>model_reasoning_effort</code>는 서로 다른 런타임 설정이다. 단일 출처는 <code>docs/model-tiering.md</code>.</p>
 
   <h3 style="margin-top:1.8rem; font-size:1.05rem;">실측 검증 <span style="font-size:.8rem; color:var(--muted); font-weight:400;">— 강제가 실제로 먹히는지 측정했다</span></h3>
-  <div class="callout ok"><b>Claude Code 경로의 강제는 실측됐다.</b> Codex 경로는 model 고정 대신 agent TOML의 reasoning effort·read-only sandbox를 테스트한다.</div>
+  <div class="callout ok"><b>아래는 기존 Claude Code 경로의 측정 기록이다.</b> Codex의 현재 역할·모델·effort 적용이나 권한 격리를 증명하지 않는다. Codex는 승인된 설정과 실제 실행 기록을 따로 확인한다.</div>
   <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; margin:1rem 0;">
     <div class="tier">
       <div style="font-weight:700; margin-bottom:.5rem;">① Claude effort <span class="badge effort-max">frontmatter 강제</span></div>
@@ -506,7 +506,7 @@
       <p style="font-size:.85rem; margin:.6rem 0 0;">실제 세션 로그에서 opus 메인 → <b>서브에이전트 haiku/sonnet 다운그레이드</b> 확인.</p>
     </div>
   </div>
-  <div class="callout"><b>관측성 차이</b> — Claude effort는 A/B, Claude 역할 모델은 hook 로그, Codex 역할은 agent TOML과 mapping test로 확인한다. 런타임별 증거를 섞어 같은 강제라고 주장하지 않는다.</div>
+  <div class="callout"><b>관측성 차이</b> — Claude의 과거 측정과 hook 로그, Codex의 설정·실제 실행 기록은 서로 다른 증거다. Codex mapping test는 wrapper 연결을 확인하며 실제 model·effort·권한 격리를 보장하지 않는다. 로컬 토큰 집계도 계정 전체 사용량이나 구독 차감량은 아니다.</div>
 
   <!-- Git Flow -->
   <h2 id="gitflow">Git Flow</h2>

@@ -3,7 +3,11 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.70.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.71.0` and replace this file with its output.
+
+## v0.71.0 - 2026-09-22
+
+- feat(workflow): 개인 개발 흐름과 문서 현행화 연결
 
 ## v0.70.0 - 2026-09-22
 
