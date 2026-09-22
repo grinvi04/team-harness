@@ -264,7 +264,7 @@
   <p>규약은 각 repo의 <code>AGENTS.md</code> 하나. 중복·복붙 없이 이 파일을 업데이트하면 AI가 따른다. 절차는 team-harness의 스킬 파일이 단일 출처 — 개별 repo에 복사하지 않는다.</p>
 
   <h3>4. 배포는 버전으로</h3>
-  <p>플러그인 버전 업 하나로 모든 repo에 최신 스킬·가드·에이전트가 배포된다. 파일 복사·수동 동기화 없음.</p>
+  <p>스킬·가드는 플러그인 버전으로 배포한다. 소스 버전 변경만으로 설치본이 갱신되지는 않는다. 발행된 버전을 설치·갱신하고 새 작업에서 로딩을 확인한다. 제품별로 복사된 템플릿·설정은 별도 적용 상태를 확인한다.</p>
 
   <!-- 아키텍처 -->
   <h2 id="arch">아키텍처</h2>
@@ -441,7 +441,7 @@
 
   <!-- 모델 티어링 -->
   <h2 id="model">모델 티어링</h2>
-  <p>작업 난이도는 낮음·중간·높음으로 공통 분류하되 제어 방법은 런타임별로 다르다. 아래 모델명은 Claude Code 매핑이며, Codex는 현재 모델을 유지하고 <code>model_reasoning_effort</code>를 조절한다.</p>
+  <p>작업 난이도는 낮음·중간·높음으로 공통 분류하되 제어 방법은 런타임별로 다르다. 아래 모델명은 Claude Code 매핑이며, Codex는 사용자에게 승인된 native 역할의 모델과 추론 강도를 따른다.</p>
   <div class="tiers">
     <div class="tier">
       <div class="model haiku">Claude · Haiku</div>
@@ -476,7 +476,7 @@
     </div>
   </div>
   <div class="callout">
-    <b>Claude Code</b> — Explore→Haiku, general-purpose→Sonnet, verifier/security→Opus로 역할을 나눈다.<br><b>Codex</b> — agent TOML에 model을 고정하지 않고 현재 선택 모델을 상속하며 explorer는 low, verifier/security는 high reasoning effort를 쓴다.
+    <b>Claude Code</b> — Explore→Haiku, general-purpose→Sonnet, verifier/security→Opus로 역할을 나눈다.<br><b>Codex</b> — 하네스가 역할 TOML을 배포하지 않는다. 사용자가 승인한 역할 설정을 유지하며 명확한 저위험 구현은 적합한 worker에 맡길 수 있다. Luna/max 구현 역할과 Luna/high 탐색 역할은 다르며 실제 호출의 모델·effort를 확인한다. Git 통합·최종 판정은 부모가, 독립 반증은 다른 인스턴스가 맡는다.
   </div>
   <p style="margin-top:.8rem"><b>왜 Agent C는 Sonnet인가</b> — DB 마이그레이션 안전 감사(out-of-order·forward-only·증분 적용 관점)는 릴리즈 게이트의 <b>판단형</b> 작업이라 Haiku로 내리면 회귀. 반면 Phase 5 배포 후 헬스체크는 명령 실행·상태 확인뿐이라 Explore(Haiku)가 맞다.</p>
   <p style="margin-top:.8rem">release-check의 Agent A·B·C는 <b>동시에 spawn</b>된다 — 병렬 실행으로 전체 검증 시간을 단축.</p>

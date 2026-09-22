@@ -343,7 +343,7 @@ team-harness/
 | [ai-collaboration.md](docs/ai-collaboration.md) | AI 협업 책임 원칙 · 도구 공통 금지사항 |
 | [operations.md](docs/operations.md) | 장애 대응 · 로그 레벨 기준 · traceId 전파 (서비스 오픈 시 활성화) |
 | [troubleshooting.md](docs/troubleshooting.md) | 가드 차단 사유별 해법 · 훅 미발동 · 의존성 fail-closed · 감사/복구 |
-| [model-tiering.md](docs/model-tiering.md) | 모델 티어링 정책 — Haiku(단순)·Sonnet(빌드·메인 기본)·Opus(검증·설계·리서치) |
+| [model-tiering.md](docs/model-tiering.md) | Claude 역할 매핑·Codex 승인된 native 역할·실제 모델/effort 사용 점검 |
 | [decisions.md](docs/decisions.md) | 확정 결정의 단일 출처 — 결정·정본 문서·영향 문서 |
 | [harness-maintenance.md](docs/harness-maintenance.md) | 하네스 자체 변경 절차 · 플러그인 버전 정책 · 전파 방식 |
 | [readme-standards.md](docs/readme-standards.md) | 프로젝트 repo README 표준 양식 |
@@ -354,7 +354,7 @@ team-harness/
   올린다 — 프로젝트별 동기화 스크립트·버전 마커가 필요 없다.
 - **스택/프로젝트별 변형은 플러그인에 넣지 않는다.** 전용 가드·검증 훅은 각 프로젝트
   `.claude/settings.json`에 커밋한다 (플러그인 훅과 공존).
-- **추측성 선행 작성 금지.** 문서 체계는 프로젝트 시작 전 단계로는 완결 상태다.
+- **추측성 선행 작성 금지.** 현재 제공 범위와 남은 작업은 제품 로드맵에서 관리한다.
   아래 시점이 오면 그때 해당 문서를 추가한다:
 
 | 트리거 | 추가할 문서 |
@@ -373,17 +373,18 @@ team-harness/
 
 ## 로드맵
 
-제품 방향과 우선순위의 정본은 [`docs/product-direction.md`](docs/product-direction.md)다. 아래는 구축 이력과
-현재 운영 트리거만 유지한다.
+제품 방향과 현재 우선순위의 정본은 [`docs/product-direction.md`](docs/product-direction.md#우선순위-로드맵)다.
+개인 개발 흐름 보완 → 첫 재사용 시작 구성 → 실제 업무의 부족한 영역 → 점진적 공유 순서로 진행한다.
+아래는 과거 구축 이력이며 새로운 작업 순서가 아니다.
 
 - [x] v0.1 스캐폴딩 — 마켓플레이스 + harness-guard(가드·게이트·커맨드·에이전트) + 템플릿 + 온보딩
 - [x] 로컬 마켓플레이스 설치·가드 실동작 검증 (cd 우회 차단, settings 키 포맷 스키마 대조)
 - [x] 파일럿 리허설 — 온보딩 절차 풀 드릴, 발견 사항 반영
 - [x] GitHub push (개인 private repo, 임시) + 문서 체계 구축
 - [x] 팀 환경 정합화 — back-merge PR 절차, 사람 승인 게이트, AI 리뷰(`/code-review` 스킬) 연결
-- [ ] 첫 회사 파일럿: 비민감 repo 1개에 스택 확정 → AGENTS.md·CI 구체화 → 계층 0~2 실측
-- [ ] 사내 git 호스팅으로 이전, 템플릿의 마켓 주소 교체
-- [ ] server-managed settings로 권한 강제 (Team/Enterprise 플랜 확보 시) / agent teams 재검토 (GA 시)
+
+회사 파일럿·사내 Git 이전·조직 managed settings는 실제 도입 요구가 생길 때만 검토한다.
+현재 개인 개발을 시작하거나 공통 구성을 재사용하기 위한 선행 작업이 아니다.
 
 ## 📄 라이선스
 
