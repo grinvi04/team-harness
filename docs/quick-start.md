@@ -10,6 +10,10 @@ Prepared Spring Boot+Vue projects can use the [local check setup](local-developm
 portable check entry point without overwriting existing files. Application generation and configuring the
 underlying test tools remain product responsibilities; broader reuse follows the [product roadmap](product-direction.md).
 
+Use natural-language requests; skill commands are optional. Use one development methodology (such as installed
+Superpowers) for design, TDD, and debugging. Harness connects project standards, checks, handoffs, and delivery
+gates without repeating that workflow. Native execution remains available without installing another methodology.
+
 ## Prerequisites
 
 - Git and a GitHub repository where you can configure Actions and branch protection

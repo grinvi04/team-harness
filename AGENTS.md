@@ -58,6 +58,13 @@
 
 ## Skill 실행 가시성
 
+- 사용자는 목표를 자연어로 요청하며 스킬 이름을 외울 필요가 없다. 일반 설계·TDD·디버깅은 사용자
+  선택을 우선하고 설치된 Superpowers를 활용한다. 미설치면 native 방식으로 같은 프로젝트 계약을 지킨다.
+- 일반 방법론 하나에 Harness의 프로젝트 기준·검사·인계·delivery 계약을 연결한다. 같은 계획·승인·
+  테스트를 별도 workflow로 반복하지 않는다. 이미 승인된 범위와 현재 후보에 유효한 증거를 재사용한다.
+- 현재 요청·원본 상태에 맞는 선택과 단계를 짧게 알린다. 질문·진단은 수정·Git·배포 권한을 만들지 않으며,
+  route-intent의 안내도 실행 승인이나 올바른 스킬 선택의 증명이 아니다.
+
 - harness skill을 적용할 때 첫 작업 업데이트에 **적용 skill과 현재 phase**를 표시한다. Git flow 단계가
   바뀌면 새 skill/phase도 짧게 알린다.
 - Claude Code는 slash skill surface를 사용할 수 있고, Codex는 로드된 `SKILL.md`를 현재 agent가 직접

@@ -78,6 +78,11 @@ Claude Code의 slash skill과 Codex의 skill 로딩은 UI가 다르다. Claude�
 후보로 skill을 선택할 수 있다. 그래서 각 description은 앞부분에 “언제 사용하고 무엇은 제외하는지”를 둔다.
 일반 단어의 substring으로 `/loop`·`hotfix`·`repo-sync`를 강제 주입하지 않는다.
 
+일반 개발 방법론은 사용자 선택을 우선하고 설치된 Superpowers를 활용한다. Harness의 계획·구현·진단
+스킬은 프로젝트 계약을 연결하며 별도 방법론으로 중첩하지 않는다. 미설치면 native 방식으로 같은 계약을
+지킨다. 기존 계획·승인과 현재 후보/환경/범위가 같은 검증 증거를 재사용한다. 필수 gate와 신선도 요구는
+유지한다. 구체적인 요청 예시는 [개발 안내](development-coordination.md#자연어-요청과-역할-분담)를 따른다.
+
 `route-intent`는 의미 분류기가 아니라 현재 Git/PR 상태를 보는 좁은 라우터다. “진행해”처럼 다음 Git 단계가
 필요한 요청에만 spec→개발, 커밋된 branch→PR, 열린 PR→review gate를 안내한다. 자동 선택은 편의 기능이며
 사용자가 허용하지 않은 commit·push·PR·merge·release 권한을 새로 만들지 않는다.

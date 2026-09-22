@@ -54,7 +54,7 @@ check_contains "metadata가 실패·CI·빌드·런타임 trigger를 선언" "$D
 check_contains "기대값과 실제값을 분리" "$DEBUG_SKILL" '기대.*실제'
 check_contains "재현 명령과 종료 코드를 증거로 수집" "$DEBUG_SKILL" '재현.*명령.*종료 코드'
 check_contains "사실과 추론을 분리" "$DEBUG_SKILL" '사실.*추론'
-check_contains "가설을 최대 3개로 제한" "$DEBUG_SKILL" '최대 3개'
+# 가설 개수는 선택한 방법론의 판단이다. 아래 판별 증거·원인 확정·무수정 경계는 유지한다.
 check_contains "가설마다 판별 실험을 요구" "$DEBUG_SKILL" '가설.*판별 실험'
 check_contains "근본 원인 확정 전 수정 금지" "$DEBUG_SKILL" '근본 원인.*확정.*수정하지'
 check_contains "진단 전용 요청은 작업트리 불변" "$DEBUG_SKILL" '진단 전용.*파일.*수정하지'

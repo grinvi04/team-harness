@@ -2,13 +2,15 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.72.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.73.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
 한 개발자가 프론트엔드·백엔드·DB·인프라를 맡아도 매번 기술 기준·설정·검사 방법을 처음부터 찾고
 구성하지 않도록 돕는다. 실제 프로젝트에서 검증된 구성을 재사용하고, 유용한 부분부터 동료에게 공유한다.
 현재 스택별 기준·템플릿·검사 연결 안내와 개발 조정 절차를 제공하며, 새 앱 전체를 자동 생성하지는 않는다.
+
+일반 설계·TDD·디버깅은 선택한 방법론(설치된 Superpowers 등)에 맡기고, Harness는 프로젝트 기준·검사·인계·delivery 조건을 연결한다. 스킬 이름을 외우지 않고 목표를 자연어로 요청한다.
 
 로컬 프로젝트는 [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.
 준비된 Spring Boot+Vue 프로젝트에는 [로컬 검사 시작 구성](docs/local-development.md)으로 공통 검사 진입점을
@@ -64,8 +66,8 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 | 📋 의도 라우터 | 캐주얼 지시("진행해/해줘") → 현재 git 상태에서 다음 하네스 스킬 자동 안내 |
 | 🧠 맥락 기반 skill 선택 | 17개 description의 사용·제외 경계로 Claude Code·Codex implicit invocation 지원 |
 | ✍️ 커밋 메시지 계약 | Conventional Commits 호환 한국어 형식을 로컬 `commit-msg`와 CI에서 강제하고 merge 예외는 Git metadata로 확인 |
-| 🧭 체계적 디버깅 | `/systematic-debugging` — 재현·가설·판별 실험으로 근본 원인을 확정한 뒤 최소 수정 |
-| ✅ 완료 증거 게이트 | `/verification-before-completion` — 현재 worktree·HEAD의 새 증거 없이는 완료 판정 차단 |
+| 🧭 체계적 디버깅 | `/systematic-debugging` — 선택한 진단 방법에 프로젝트 재현 증거·무수정 경계·수정 인계를 연결 |
+| ✅ 완료 증거 게이트 | `/verification-before-completion` — 현재 worktree·HEAD에 유효한 증거 없이는 완료 판정 차단 |
 | 🔄 git-flow 커맨드 | `/plan`·`/feature-add`·`/feature-merge`·`/release-check`·`/release`·`/hotfix` 전 구간 |
 | 🔍 PR 게이트 스킬 | `pr-review-gate` — AI 리뷰·사람 승인·CI·commit-status 단일 절차 |
 | 🔒 솔로 머지 | `/solo-merge` — 자기 PR 승인 불가 제약을 review 보호 일시 해제·복구로 처리 |
@@ -146,10 +148,10 @@ node scripts/build-packages.mjs --output /tmp/team-harness-packages
 | **PR 래퍼 스크립트** | `pr-create.sh`(base 자동감지·push·생성) · `pr-merge.sh`(CI·스레드·mergeable 게이트 후 머지) — guard가 맨손 gh를 막으므로 **PR 생성·머지의 유일 경로**. 스킬이 이 스크립트를 호출(내부 gh는 자식 프로세스라 훅에 안 걸림) |
 | **skill 자동 선택 + 의도 라우터** | 일반 자연어 작업은 17개 description의 사용·제외 경계로 runtime이 implicit selection. `route-intent.mjs`는 "진행해"처럼 이미 시작된 Git/PR 작업의 다음 상태만 결정한다. substring 키워드 주입과 권한 확대는 하지 않는다. |
 | **마일스톤 커맨드** | `/milestone` — 제품·마일스톤 정의→기능 분해→GitHub 마일스톤 생성→진행률 대시보드. `/plan` 위에 놓이는 목표 레이어. Claude Code 내장 `/goal`(세션 stopping condition)과 보완 관계 |
-| **계획 커맨드** | `/plan` — 스펙·플랜·태스크 분해(git 무관, `docs/specs/` 산출). 코드 전에 의도·수용기준 박제 |
-| **개발 커맨드** | `/feature-add` · `/feature-modify` — TDD(RED→GREEN→Refactor), 태스크당 원자적 커밋. 빌드·테스트 명령은 AGENTS.md에서 읽는다 |
-| **진단 스킬** | `/systematic-debugging` — 실패·CI·빌드·런타임 오동작을 재현하고 사실과 가설을 분리해 근본 원인을 증거로 확정. 수정 요청일 때만 RED→GREEN으로 연결 |
-| **완료 검증 스킬** | `/verification-before-completion` — 완료·PR·머지·릴리즈 준비 주장을 현재 worktree·HEAD SHA의 새 증거로 검증. 실패·미확인은 fail-closed |
+| **계획 계약** | `/plan` — 선택된 방법론의 계획·승인을 프로젝트 spec·수용 기준에 연결. 기존 계획을 재사용하고 Git은 변경하지 않음 |
+| **개발 계약** | `/feature-add` · `/feature-modify` — 선택된 구현 방법론에 테스트 무결성·AGENTS.md 검사·제품 커밋 규약을 연결 |
+| **진단 계약** | `/systematic-debugging` — 선택된 진단 방법에 프로젝트 재현 증거·무수정 경계를 연결. 원인 확인과 수정 승인 후 구현 계약으로 인계 |
+| **완료 검증 스킬** | `/verification-before-completion` — 현재 worktree·HEAD에 유효한 증거로 검증하며 같은 후보·환경·범위의 결과를 재사용. 변경·gate 신선도 조건에는 재검사, 실패·미확인은 fail-closed |
 | **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 timeout·max·내용 기반 stuck·안전 checkpoint 안에서 자동화. 맥락 자동 선택은 명시적 요청 없이 commit하지 않으며 시간 예약 polling과 별개 |
 | **품질 커맨드** | `/qa` — 프론트엔드 QA: 디자인 토큰 준수 + WCAG 2.2 접근성 검증 (`/feature-add`의 TDD 로직과 직교한 비주얼·a11y 축) |
 | **릴리즈 검증** | `/release-check` — 릴리즈 전 품질(Agent A)·보안(Agent B)·DB 마이그레이션(Agent C) 병렬 검증 + manifest가 있을 때 외부 파일럿 live provenance |
@@ -162,23 +164,18 @@ node scripts/build-packages.mjs --output /tmp/team-harness-packages
 
 ### git-flow와 커맨드의 관계
 
-![git-flow 다이어그램](docs/architecture-gitflow.png)
-
-<details>
-<summary>mermaid 소스 (GitHub 웹에선 차트로 렌더)</summary>
-
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#6b7280', 'background': '#f8fafc', 'mainBkg': '#f8fafc', 'fontSize': '14px'}}}%%
 flowchart LR
     G["📊 /milestone<br/>목표·마일스톤<br/>(GitHub Milestone)"]
-    P["📋 /plan<br/>스펙·플랜·태스크 분해<br/>(git 무관)"]
+    P["📋 /plan<br/>기존 계획·승인을<br/>프로젝트 spec에 연결"]
     F["feature/* · fix/*"]
     D[develop]
     M[main]
     L["🔁 /loop<br/>조건 달성까지<br/>자율 반복"]
 
     G -->|"기능 분해 → 목표 연결"| P
-    P -->|"승인 후 /feature-add<br/>TDD · 태스크당 커밋"| F
+    P -->|"/feature-add 계약<br/>선택 방법론 · 제품 검사·커밋"| F
     F -->|"/feature-merge<br/>품질검증 → PR → 게이트"| D
     D --> L
     L -->|"통과 후 커밋"| D
@@ -195,9 +192,7 @@ flowchart LR
     style L fill:#953800,color:#fff
 ```
 
-</details>
-
-흐름: `/milestone`(목표·마일스톤 정의) → `/plan`(기능 단위 계획·승인, plan mode 강제) → **`feature/*` 한 브랜치**에서 태스크별 `/feature-add`(TDD) →
+흐름: `/milestone`(목표·마일스톤 정의) → `/plan`(기존 계획·승인을 프로젝트 spec에 연결) → **`feature/*` 한 브랜치**에서 선택한 방법론과 `/feature-add` 프로젝트 계약 →
 `/feature-merge`(한 PR). *한 기능 = 한 브랜치 = 한 PR.*
 `/loop`: 작업 브랜치에서 CI·lint·테스트 등 반복 수정을 exit 0까지 동기 자율 실행. 자연어 맥락으로 자동
 선택되면 명시적 commit 요청이 없는 한 검증된 변경을 작업트리에 둔다.
