@@ -1,6 +1,7 @@
 # 개인 개발에서 시작하는 공통 기반
 
-상태: 소스 0.71.0 구현·검증 완료. 병합은 이 변경의 PR, 정식 릴리즈는 버전 태그가 정본이다.
+상태: 소스 0.71.0 구현·검증 완료. 병합 상태는 [PR #463](https://github.com/grinvi04/team-harness/pull/463),
+정식 릴리즈는 [버전 태그](https://github.com/grinvi04/team-harness/tags)가 정본이다.
 제품 목표와 우선순위의 정본은 [제품 방향](../product-direction.md)이다.
 
 ## 요구와 범위
