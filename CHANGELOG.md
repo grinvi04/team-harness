@@ -3,7 +3,11 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.71.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.72.0` and replace this file with its output.
+
+## v0.72.0 - 2026-09-22
+
+- feat(setup): 로컬 Spring Vue 검사 시작 구성 추가
 
 ## v0.71.0 - 2026-09-22
 
