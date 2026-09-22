@@ -136,7 +136,11 @@ check_contains "개발자 가이드가 verification-before-completion 안내" "$
   'verification-before-completion'
 check_contains "소개 페이지가 스킬 17종 안내" "$INTRO" '스킬 17종'
 check_not_contains "소개 페이지에 스킬 14종 잔재 없음" "$INTRO" '스킬 14종'
-check_contains "소개 페이지 v0.69.0 후보" "$INTRO" 'harness-guard v0\.69\.0'
+if grep -Fq "harness-guard v$PLUGIN_VERSION " "$INTRO"; then
+  pass "소개 페이지와 plugin manifest 버전 일치"
+else
+  fail "소개 페이지와 plugin manifest 버전 불일치"
+fi
 check_contains "소개 페이지가 개발 조정 안내" "$INTRO" '/ao-coordinate'
 check_contains "소개 페이지가 systematic-debugging 안내" "$INTRO" '/systematic-debugging'
 check_contains "소개 페이지가 verification-before-completion 안내" "$INTRO" \

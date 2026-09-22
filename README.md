@@ -1,13 +1,17 @@
-# 🛡️ team-harness — AI 코딩 거버넌스 하네스
+# 🛡️ team-harness — AI와 함께 쓰는 개발 기반
 
-> **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
+> **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.70.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.71.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
-![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
+![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
-5–10명이 각자의 방식으로 AI 코딩 도구를 쓰면, 코드 편차는 AI 도입 전보다 오히려 커진다.
-이 repo는 그 문제를 세 가지 축으로 푼다:
+한 개발자가 프론트엔드·백엔드·DB·인프라를 맡아도 매번 기술 기준·설정·검사 방법을 처음부터 찾고
+구성하지 않도록 돕는다. 실제 프로젝트에서 검증된 구성을 재사용하고, 유용한 부분부터 동료에게 공유한다.
+현재 스택별 기준·템플릿·검사 연결 안내와 개발 조정 절차를 제공하며, 새 앱 전체를 자동 생성하지는 않는다.
+
+로컬 프로젝트는 [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다. GitHub에 연결할 때는
+다음 세 계층으로 기존 품질·리뷰·배포 정책을 적용한다:
 
 1. **Claude Code·Codex 플러그인 경로** — 가드·스킬·절차를 버전 있는 플러그인으로 배포
 2. **repo 커밋 설정** — 규약의 단일 출처(`AGENTS.md`)를 도구 무관하게 공유
@@ -41,8 +45,8 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 
 ## 🧭 제품 방향
 
-Team Harness는 코딩 에이전트나 개발 방법론을 새로 만드는 프로젝트가 아니다. 실행 플랫폼의 공식 기능을
-우선 사용하고, **GitHub 정책·검증 증거·감사·PR/릴리스 delivery 강제**를 연결하는 계층에 집중한다.
+개인 개발에서 반복 설정·조사·검사 구성을 줄이는 것이 우선이다. 실행 플랫폼의 공식 기능을 사용하고,
+검증된 구성의 재사용과 **GitHub 정책·검증 증거·감사·PR/릴리스 delivery 강제**를 필요한 프로젝트에 연결한다.
 
 신규 기능은 `소유 / 연결 / 위임`으로 판정한다. 서버 강제와 증거 계약은 직접 소유하고, skill·hook·subagent 등
 플랫폼이 안정적으로 제공하는 실행 기능은 복제하지 않는다. 상세 원칙과 로드맵의 정본은
@@ -339,7 +343,7 @@ team-harness/
 | [ai-collaboration.md](docs/ai-collaboration.md) | AI 협업 책임 원칙 · 도구 공통 금지사항 |
 | [operations.md](docs/operations.md) | 장애 대응 · 로그 레벨 기준 · traceId 전파 (서비스 오픈 시 활성화) |
 | [troubleshooting.md](docs/troubleshooting.md) | 가드 차단 사유별 해법 · 훅 미발동 · 의존성 fail-closed · 감사/복구 |
-| [model-tiering.md](docs/model-tiering.md) | 모델 티어링 정책 — Haiku(단순)·Sonnet(빌드·메인 기본)·Opus(검증·설계·리서치) |
+| [model-tiering.md](docs/model-tiering.md) | Claude 역할 매핑·Codex 승인된 native 역할·실제 모델/effort 사용 점검 |
 | [decisions.md](docs/decisions.md) | 확정 결정의 단일 출처 — 결정·정본 문서·영향 문서 |
 | [harness-maintenance.md](docs/harness-maintenance.md) | 하네스 자체 변경 절차 · 플러그인 버전 정책 · 전파 방식 |
 | [readme-standards.md](docs/readme-standards.md) | 프로젝트 repo README 표준 양식 |
@@ -350,7 +354,7 @@ team-harness/
   올린다 — 프로젝트별 동기화 스크립트·버전 마커가 필요 없다.
 - **스택/프로젝트별 변형은 플러그인에 넣지 않는다.** 전용 가드·검증 훅은 각 프로젝트
   `.claude/settings.json`에 커밋한다 (플러그인 훅과 공존).
-- **추측성 선행 작성 금지.** 문서 체계는 프로젝트 시작 전 단계로는 완결 상태다.
+- **추측성 선행 작성 금지.** 현재 제공 범위와 남은 작업은 제품 로드맵에서 관리한다.
   아래 시점이 오면 그때 해당 문서를 추가한다:
 
 | 트리거 | 추가할 문서 |
@@ -369,17 +373,18 @@ team-harness/
 
 ## 로드맵
 
-제품 방향과 우선순위의 정본은 [`docs/product-direction.md`](docs/product-direction.md)다. 아래는 구축 이력과
-현재 운영 트리거만 유지한다.
+제품 방향과 현재 우선순위의 정본은 [`docs/product-direction.md`](docs/product-direction.md#우선순위-로드맵)다.
+개인 개발 흐름 보완 → 첫 재사용 시작 구성 → 실제 업무의 부족한 영역 → 점진적 공유 순서로 진행한다.
+아래는 과거 구축 이력이며 새로운 작업 순서가 아니다.
 
 - [x] v0.1 스캐폴딩 — 마켓플레이스 + harness-guard(가드·게이트·커맨드·에이전트) + 템플릿 + 온보딩
 - [x] 로컬 마켓플레이스 설치·가드 실동작 검증 (cd 우회 차단, settings 키 포맷 스키마 대조)
 - [x] 파일럿 리허설 — 온보딩 절차 풀 드릴, 발견 사항 반영
 - [x] GitHub push (개인 private repo, 임시) + 문서 체계 구축
 - [x] 팀 환경 정합화 — back-merge PR 절차, 사람 승인 게이트, AI 리뷰(`/code-review` 스킬) 연결
-- [ ] 첫 회사 파일럿: 비민감 repo 1개에 스택 확정 → AGENTS.md·CI 구체화 → 계층 0~2 실측
-- [ ] 사내 git 호스팅으로 이전, 템플릿의 마켓 주소 교체
-- [ ] server-managed settings로 권한 강제 (Team/Enterprise 플랜 확보 시) / agent teams 재검토 (GA 시)
+
+회사 파일럿·사내 Git 이전·조직 managed settings는 실제 도입 요구가 생길 때만 검토한다.
+현재 개인 개발을 시작하거나 공통 구성을 재사용하기 위한 선행 작업이 아니다.
 
 ## 📄 라이선스
 

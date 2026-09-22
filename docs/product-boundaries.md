@@ -31,6 +31,10 @@ core+adapter의 model·hook session은 아직 없으므로 `installable:false`�
 
 ## 목표 제품 단위
 
+아래 단위는 배포 책임의 구분이다. 사용자의 시작 순서는 [개인 개발부터 시작하는 제품 방향](product-direction.md)과
+[온보딩의 범위 선택](onboarding.md#먼저-사용할-범위-선택)을 따른다. 로컬 개발에 원격 저장소를 만들거나
+모든 거버넌스 설정을 도입할 의무는 없다. GitHub 프로젝트에는 기존 core의 서버 gate를 유지한다.
+
 ### `unit:governance-core`
 
 Team Harness가 항상 소유하고 기본 설치하는 제품 본체다.

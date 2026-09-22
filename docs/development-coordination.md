@@ -1,7 +1,8 @@
 # Team Harness로 제품 개발하기
 
-Team Harness는 팀이 LLM으로 백엔드·프론트엔드·인프라 업무를 수행할 때 공통 기술 기준과
-리뷰·품질·배포 절차를 함께 사용하는 기반이다. Agent Orchestration에서는 **필요한 인계·검증·재개 원칙만** 가져왔다.
+Team Harness는 한 개발자가 LLM으로 백엔드·프론트엔드·DB·인프라 업무를 수행하면서 기술 기준·설정·검사
+절차를 재사용하고, 실제로 도움이 된 구성을 동료에게 확산하는 기반이다.
+Agent Orchestration에서는 **필요한 인계·검증·재개 원칙만** 가져왔다.
 별도 개발 도구 패키지나 역할 체계를 설치하지 않는다.
 
 ## 개발자가 하는 일
@@ -12,6 +13,11 @@ Team Harness는 팀이 LLM으로 백엔드·프론트엔드·인프라 업무를
 3. 여러 영역이 연결되거나 중단 뒤 이어갈 때는 `ao-coordinate`를 사용한다. API와 화면이 공유할 조건,
    담당 범위, 검증 결과, 다음 행동을 기존 이슈·PR·스펙에 연결한다. 단순 수정은 바로 처리한다.
 4. 현재 변경의 테스트·필수 리뷰·CI를 확인한다. 구현 완료와 병합·릴리즈 완료는 구분한다.
+
+로컬 전용 프로젝트라면 기존 Git·검사 명령·제품 문서로 시작한다. 원격 생성이나 공개는 필요하지 않으며,
+GitHub 연결을 선택했을 때만 해당 PR·CI 절차를 적용한다. 같은 설정·검사 방법을 매번 다시 설계하지 않도록
+이미 채택한 스택 기준과 제품 검사 명령을 우선 재사용한다. 변경한 코드의 검사는 새로 실행한다.
+현재 공용 시작 자동화의 남은 범위는 [제품 로드맵](product-direction.md#우선순위-로드맵)에 기록한다.
 
 검사 명령을 처음 구성할 때는 [온보딩의 스택별 검사 연결](onboarding.md#스택별-검사를-연결하는-방법)을 따른다.
 인계에는 같은 후보의 실행 결과와 자동 판정 불가·미실행 범위를 함께 연결한다. 상세 로그를 별도 중앙 상태로 복제하지 않는다.
@@ -28,8 +34,9 @@ Team Harness는 팀이 LLM으로 백엔드·프론트엔드·인프라 업무를
 | 제품 저장소·GitHub | 코드, 요구사항, 결정, 실제 진행과 검증 기록 |
 | 현재 실행 플랫폼 | 역할 실행과 도구 권한·중단 |
 
-`ao-coordinate`는 기존 workflow-pack의 선택 skill이다. Codex에서는 현재 에이전트가 파일 수정·Git 작업을
-담당하고 독립 조사·검토만 기존 native 실행 계약 안에서 위임한다. core는 이 skill에 의존하지 않는다.
+`ao-coordinate`는 기존 workflow-pack의 선택 skill이다. Codex에서는 현재 에이전트가 요구·테스트 계약 검수와
+Git 통합·최종 인수를 담당한다. 명확한 저위험 구현과 독립 조사·검토는 [native 실행 계약](../plugins/harness-guard/codex/native-runtime.md)
+안에서 기존 역할에 위임할 수 있다. 모델은 [승인된 실행 설정](model-tiering.md)을 따른다. core는 이 skill에 의존하지 않는다.
 일반 위임을 기술적 권한 집행으로 주장하지 않으며, 실제로 필요한 권한·독립성 조건은 그대로 확인한다.
 
 초기 통합본의 npm 패키지, JSON schema·검사기, 작업 기록 생성 CLI와 장문의 역할·상태 계약은 제거했다.
@@ -45,6 +52,6 @@ Team Harness는 팀이 LLM으로 백엔드·프론트엔드·인프라 업무를
 제품의 과거 작업 기록·JSON 증거는 이력으로 보존한다. 과거 시험의 예외를 새 작업에 적용하지 않는다.
 
 0.69.0 통합은 [PR #447](https://github.com/grinvi04/team-harness/pull/447)로 develop에 병합됐다(1fa7373).
-정식 릴리즈의 현재 검증·승인·후속 절차는 [PR #448](https://github.com/grinvi04/team-harness/pull/448)에서 확인한다. 태그 발행 여부는 [버전 태그](https://github.com/grinvi04/team-harness/tags)가 정본이다.
+당시 0.69.0 릴리즈 기록은 [PR #448](https://github.com/grinvi04/team-harness/pull/448)에 보존한다. 현재 릴리즈는 [버전 태그](https://github.com/grinvi04/team-harness/tags)가 정본이다.
 전역 plugin 갱신·새 native 역할 활성화·회사 전체 도입 완료를 뜻하지 않는다.
 수용 기준과 선택·제거 근거는 [통합 명세](specs/agent-orchestration-integration.md)를 따른다.

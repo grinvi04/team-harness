@@ -1,7 +1,12 @@
 # Team Harness Quick Start
 
-Team Harness is a GitHub-native governance layer for teams using AI coding agents. It connects local guidance and
-guards to server-enforced pull-request, CI, review, and release evidence.
+Team Harness helps a developer reuse technical conventions, setup, and checks across frontend, backend, database,
+and infrastructure work, then share useful practices with colleagues. For GitHub projects, it also connects local
+guidance and guards to server-enforced pull-request, CI, review, and release evidence.
+
+For local development, start with the [development guide](development-coordination.md) and the product's existing
+checks; a remote repository is not required. The instructions below cover GitHub rollout and package evaluation.
+Turnkey application generation and local setup automation remain on the [product roadmap](product-direction.md).
 
 ## Prerequisites
 
