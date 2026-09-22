@@ -1,13 +1,17 @@
-# 🛡️ team-harness — AI 코딩 거버넌스 하네스
+# 🛡️ team-harness — AI와 함께 쓰는 개발 기반
 
-> **"팀을 위한 AI 코딩 거버넌스 — 합의는 문서 한 곳에, 강제는 서버에."**
+> **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.70.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.71.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
-![scope](https://img.shields.io/badge/team-5–10인·프로덕션-green)
+![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
-5–10명이 각자의 방식으로 AI 코딩 도구를 쓰면, 코드 편차는 AI 도입 전보다 오히려 커진다.
-이 repo는 그 문제를 세 가지 축으로 푼다:
+한 개발자가 프론트엔드·백엔드·DB·인프라를 맡아도 매번 기술 기준·설정·검사 방법을 처음부터 찾고
+구성하지 않도록 돕는다. 실제 프로젝트에서 검증된 구성을 재사용하고, 유용한 부분부터 동료에게 공유한다.
+현재 스택별 기준·템플릿·검사 연결 안내와 개발 조정 절차를 제공하며, 새 앱 전체를 자동 생성하지는 않는다.
+
+로컬 프로젝트는 [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다. GitHub에 연결할 때는
+다음 세 계층으로 기존 품질·리뷰·배포 정책을 적용한다:
 
 1. **Claude Code·Codex 플러그인 경로** — 가드·스킬·절차를 버전 있는 플러그인으로 배포
 2. **repo 커밋 설정** — 규약의 단일 출처(`AGENTS.md`)를 도구 무관하게 공유
@@ -41,8 +45,8 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 
 ## 🧭 제품 방향
 
-Team Harness는 코딩 에이전트나 개발 방법론을 새로 만드는 프로젝트가 아니다. 실행 플랫폼의 공식 기능을
-우선 사용하고, **GitHub 정책·검증 증거·감사·PR/릴리스 delivery 강제**를 연결하는 계층에 집중한다.
+개인 개발에서 반복 설정·조사·검사 구성을 줄이는 것이 우선이다. 실행 플랫폼의 공식 기능을 사용하고,
+검증된 구성의 재사용과 **GitHub 정책·검증 증거·감사·PR/릴리스 delivery 강제**를 필요한 프로젝트에 연결한다.
 
 신규 기능은 `소유 / 연결 / 위임`으로 판정한다. 서버 강제와 증거 계약은 직접 소유하고, skill·hook·subagent 등
 플랫폼이 안정적으로 제공하는 실행 기능은 복제하지 않는다. 상세 원칙과 로드맵의 정본은

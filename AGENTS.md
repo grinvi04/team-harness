@@ -7,7 +7,7 @@
 
 ## 정체성·범위
 
-이 repo는 **AI 코딩 거버넌스 하네스 자체**다 — 제품 앱이 아니다(런타임 서버·DB·프론트 없음).
+이 repo는 **개인 개발에서 시작해 공유하는 AI 개발 기반 자체**다 — 제품 앱이 아니다(런타임 서버·DB·프론트 없음).
 
 - **harness-guard 플러그인**(`plugins/harness-guard/`): `guard.sh`(PreToolUse 가드), `route-intent.mjs`(UserPromptSubmit), PR 래퍼(`pr-create.sh`·`pr-merge.sh`), 스킬(`skills/`), 에이전트.
 - **팀 표준 문서**(`docs/`): 전 소비 repo가 상속하는 표준의 **단일 출처**. 설계 결정 = `docs/decisions.md`.
@@ -18,7 +18,7 @@
 
 - 제품 방향의 정본은 `docs/product-direction.md`다. 신규 기능·호환 계층·공용 workflow를 제안하거나 수정하기
   전에 문서의 **신규 기능 판단 게이트**로 `소유 / 연결 / 위임` 중 하나를 먼저 판정한다.
-- Team Harness는 GitHub 정책·증거·감사·delivery 강제를 소유한다. skill 로딩, hook lifecycle, subagent,
+- Team Harness는 재사용 개발 구성·검사 연결과 GitHub 정책·증거·감사·delivery 강제를 소유한다. skill 로딩, hook lifecycle, subagent,
   sandbox·permission처럼 실행 플랫폼이 안정적으로 제공하는 기능은 native-first로 위임하고 필요한 결과 검증만 남긴다.
 - 특정 소비 repo 요구는 공용 하네스에 올리지 않는다. 플랫폼 기본 기능 복제나 장기 cache patch는 공식 surface로
   대체할 수 있는지 먼저 확인하고, 유지 이유가 없으면 새 기능이 아니라 제거·축소 대상으로 분류한다.
@@ -51,7 +51,9 @@
 ## Markdown 동기화 완료 기준
 
 - 코드·설정·결정·진행 단계 변경 시 관련 현재 안내와 직접 소비 문서를 같은 변경 범위에서 대조·갱신한다.
+- 시작 시 관련 로드맵·체크리스트·스펙·진행 안내를 확인한다. 단계 변경·취소·완료 시 해당 상태와 다음 행동을 함께 갱신한다.
 - 문서 상태는 실제 Git·PR·태그와 맞추고, 변하는 상태는 원본으로 연결한다. 과거 검증 기록은 당시 후보·날짜·한계를 보존한다.
+- PR 또는 인계에서 갱신한 진행 문서·상태 근거를 연결한다. 영향이 없으면 이유를 남긴다. 관련 문서가 오래된 상태면 완료로 판정하지 않는다.
 - 완료 전 참조 경로·버전·실행 명령·완료/미완료 표현을 확인한다. 세부 기준은 `docs/ai-collaboration.md`의 Markdown 동기화를 따른다.
 
 ## Skill 실행 가시성
