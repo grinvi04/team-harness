@@ -2,13 +2,15 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.72.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.73.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
 한 개발자가 프론트엔드·백엔드·DB·인프라를 맡아도 매번 기술 기준·설정·검사 방법을 처음부터 찾고
 구성하지 않도록 돕는다. 실제 프로젝트에서 검증된 구성을 재사용하고, 유용한 부분부터 동료에게 공유한다.
 현재 스택별 기준·템플릿·검사 연결 안내와 개발 조정 절차를 제공하며, 새 앱 전체를 자동 생성하지는 않는다.
+
+일반 설계·TDD·디버깅은 선택한 방법론(설치된 Superpowers 등)에 맡기고, Harness는 프로젝트 기준·검사·인계·delivery 조건을 연결한다. 스킬 이름을 외우지 않고 목표를 자연어로 요청한다.
 
 로컬 프로젝트는 [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.
 준비된 Spring Boot+Vue 프로젝트에는 [로컬 검사 시작 구성](docs/local-development.md)으로 공통 검사 진입점을
@@ -64,7 +66,7 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 | 📋 의도 라우터 | 캐주얼 지시("진행해/해줘") → 현재 git 상태에서 다음 하네스 스킬 자동 안내 |
 | 🧠 맥락 기반 skill 선택 | 17개 description의 사용·제외 경계로 Claude Code·Codex implicit invocation 지원 |
 | ✍️ 커밋 메시지 계약 | Conventional Commits 호환 한국어 형식을 로컬 `commit-msg`와 CI에서 강제하고 merge 예외는 Git metadata로 확인 |
-| 🧭 체계적 디버깅 | `/systematic-debugging` — 재현·가설·판별 실험으로 근본 원인을 확정한 뒤 최소 수정 |
+| 🧭 체계적 디버깅 | `/systematic-debugging` — 선택한 진단 방법에 프로젝트 재현 증거·무수정 경계·수정 인계를 연결 |
 | ✅ 완료 증거 게이트 | `/verification-before-completion` — 현재 worktree·HEAD의 새 증거 없이는 완료 판정 차단 |
 | 🔄 git-flow 커맨드 | `/plan`·`/feature-add`·`/feature-merge`·`/release-check`·`/release`·`/hotfix` 전 구간 |
 | 🔍 PR 게이트 스킬 | `pr-review-gate` — AI 리뷰·사람 승인·CI·commit-status 단일 절차 |

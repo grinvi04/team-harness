@@ -1,6 +1,6 @@
 ---
 name: feature-add
-description: 승인된 스펙으로 새 기능을 TDD 구현할 때 사용. 브랜치·RED·GREEN·검증·커밋을 수행하며 기존 기능 변경·버그 수정·계획만 작성은 제외
+description: 승인된 새 기능을 추가할 때 프로젝트 기준·테스트 계약·검사·커밋을 연결하는 데 사용. 일반 TDD 방법론의 중복 실행·기존 기능 수정·계획만 작성·PR 머지는 제외
 ---
 
 # feature-add — Codex native wrapper
