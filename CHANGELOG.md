@@ -3,7 +3,11 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.72.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.73.0` and replace this file with its output.
+
+## v0.73.0 - 2026-09-22
+
+- feat(workflow): 일반 방법론과 프로젝트 계약 역할 분리
 
 ## v0.72.0 - 2026-09-22
 

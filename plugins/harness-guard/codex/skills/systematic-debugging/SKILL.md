@@ -1,6 +1,6 @@
 ---
 name: systematic-debugging
-description: 원인이 불명확한 실패 테스트·CI 오류·빌드 실패·런타임 오동작을 재현하고 가설 실험으로 근본 원인을 확정할 때 사용. 원인이 명확한 구현·광범위 정리·릴리즈는 제외
+description: 원인 불명 실패 테스트·CI 오류·빌드 실패·런타임 오동작을 조사할 때 프로젝트 재현 증거·진단 권한·수정 인계를 연결하는 데 사용. 원인이 명확한 구현·광범위 정리·릴리즈는 제외
 ---
 
 # systematic-debugging — Codex native wrapper

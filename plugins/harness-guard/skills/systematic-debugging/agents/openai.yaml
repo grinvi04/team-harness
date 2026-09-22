@@ -1,4 +1,4 @@
 interface:
   display_name: "Systematic Debugging"
-  short_description: "재현·가설·증거로 근본 원인을 확정하는 체계적 디버깅"
-  default_prompt: "Use $systematic-debugging to reproduce the failure and prove the root cause before changing code."
+  short_description: "프로젝트 재현 증거·진단 권한·수정 인계를 연결"
+  default_prompt: "Use $systematic-debugging to connect diagnosis evidence, project permissions, and the handoff to an approved fix."

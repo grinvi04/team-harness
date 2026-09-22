@@ -228,7 +228,7 @@
 
   <!-- 히어로 -->
   <section class="hero" id="top">
-    <div class="tag">AI 개발 기반 · harness-guard v0.72.0 소스 후보</div>
+    <div class="tag">AI 개발 기반 · harness-guard v0.73.0 소스 후보</div>
     <h1>team-harness</h1>
     <p class="lead">
       개인이 여러 기술 영역의 설정·검사 경험을 재사용하고 팀에 공유하는 개발 기반.<br>
@@ -294,17 +294,17 @@
     <div class="sk">
       <div class="name">/plan</div>
       <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
-      <div class="desc">기능 개발 전 스펙·태스크 분해. 의도·수용기준·롤백 가능한 태스크를 <code>docs/specs/</code>에 박제. git 없음 — 계획 전용.</div>
+      <div class="desc">선택한 설계 방법론의 결과를 프로젝트 기준·수용 조건·승인된 <code>docs/specs/</code>에 연결. 기존 계획·승인 재사용, 계획 요청은 Git 미변경.</div>
     </div>
     <div class="sk">
       <div class="name">/feature-add</div>
       <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
-      <div class="desc">TDD 기반 신규 기능 개발. Red → Green → Refactor. 브랜치 생성·테스트 계약·구현·커밋까지. 스택 무관.</div>
+      <div class="desc">선택한 구현 방법론에 프로젝트 기준·브랜치·테스트 무결성·검사·커밋 계약을 연결. 별도 TDD 루프를 반복하지 않음.</div>
     </div>
     <div class="sk">
       <div class="name">/feature-modify</div>
       <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
-      <div class="desc">기존 기능 수정. 변경 대상만 RED, 나머지 GREEN 유지. 회귀 방지에 집중.</div>
+      <div class="desc">기존 기능 변경의 프로젝트 계약. 변경 테스트 RED·유지 테스트 보존·전체 품질·인계를 선택한 방법론에 연결.</div>
     </div>
     <div class="sk">
       <div class="name">/pr-create</div>
@@ -342,12 +342,12 @@
     <div class="sk">
       <div class="name">/systematic-debugging</div>
       <div class="badges"><span class="badge auto">상황 기반 선택</span></div>
-      <div class="desc">실패·CI·빌드·런타임 오동작을 재현하고 사실과 가설을 분리해 근본 원인을 판별. 원인이 확정된 수정 요청만 RED → GREEN으로 연결.</div>
+      <div class="desc">선택한 진단 방법에 프로젝트 재현 증거·진단 전용 무수정 경계·승인된 수정 인계를 연결.</div>
     </div>
     <div class="sk">
       <div class="name">/verification-before-completion</div>
       <div class="badges"><span class="badge auto">상황 기반 선택</span></div>
-      <div class="desc">완료·PR·머지·릴리즈 준비 주장을 현재 worktree·HEAD SHA의 새 증거로 검증. 실패·미확인은 완료로 판정하지 않는 fail-closed 게이트.</div>
+      <div class="desc">완료·PR·머지·릴리즈 준비 주장을 현재 worktree·HEAD SHA에 유효한 증거로 검증. 실패·미확인은 완료로 판정하지 않는 fail-closed 게이트.</div>
     </div>
     <div class="sk">
       <div class="name">/pr-review-gate</div>

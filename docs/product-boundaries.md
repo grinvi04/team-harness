@@ -80,13 +80,13 @@ workflow-pack은 범용 agent runtime, 필수 개발 방법론, 독립된 정책
 | 식별자 | 목표 단위 | 활성화 | 이유 |
 |---|---|---|---|
 | `skill:ao-coordinate` | **workflow-pack** | **선택** | 요청·역할·인계·검증을 제품 기록과 core gate에 연결하며 실행 엔진은 native에 맡긴다. |
-| `skill:feature-add` | **workflow-pack** | **선택** | 일반 TDD 수행은 선택 절차이며 core에는 승인 spec·브랜치·증거 계약만 남긴다. |
+| `skill:feature-add` | **workflow-pack** | **선택** | 선택된 일반 방법론에 프로젝트 구현·테스트 계약을 연결하며 core의 승인 spec·브랜치·증거 게이트를 따른다. |
 | `skill:feature-merge` | **governance-core** | **기본** | 품질·리뷰·승인·CI를 develop 머지에 연결하는 delivery gate다. |
-| `skill:feature-modify` | **workflow-pack** | **선택** | 일반 수정 방법론은 선택 절차이고 실제 머지 정책은 core가 소유한다. |
+| `skill:feature-modify` | **workflow-pack** | **선택** | 선택된 수정 방법론에 변경·유지 테스트와 프로젝트 검사를 연결하며 머지 정책은 core가 소유한다. |
 | `skill:hotfix` | **governance-core** | **기본** | main 패치·태그·develop 역병합과 복구 증거를 보존한다. |
 | `skill:loop` | **workflow-pack** | **선택** | 반복 수행은 편의 workflow이며 종료 증거만 core 계약을 사용한다. |
 | `skill:milestone` | **workflow-pack** | **선택** | GitHub milestone을 이용하는 제품 관리 편의 기능이다. |
-| `skill:plan` | **workflow-pack** | **선택** | 계획 방법은 선택 사항이고 core는 승인 spec 형식만 검증한다. |
+| `skill:plan` | **workflow-pack** | **선택** | 선택된 설계 방법의 기존 계획·승인을 프로젝트 spec 계약에 연결하며 별도 승인 루프를 만들지 않는다. |
 | `skill:pr-create` | **governance-core** | **기본** | guard가 맨손 PR 생성을 막으므로 검증된 wrapper 진입점을 항상 제공해야 한다. |
 | `skill:pr-review-gate` | **governance-core** | **기본** | 현재 SHA의 CI·리뷰·승인·배포 상태를 머지 증거로 합성한다. |
 | `skill:qa` | **workflow-pack** | **선택** | 일반 WCAG·디자인 검토는 소비 repo와 플랫폼이 선택한다. |
@@ -94,7 +94,7 @@ workflow-pack은 범용 agent runtime, 필수 개발 방법론, 독립된 정책
 | `skill:release` | **governance-core** | **기본** | release branch·tag·back-merge·health 결과 계약을 수행한다. |
 | `skill:repo-sync` | **governance-core** | **기본** | 소비 repo와 정책 자산의 드리프트를 검출한다. |
 | `skill:solo-merge` | **governance-core** | **기본** | 승인 제약만 원자적으로 풀고 보호 설정을 복구한다. |
-| `skill:systematic-debugging` | **workflow-pack** | **선택** | 일반 디버깅 방법론은 플랫폼 native 기능으로 대체 가능하다. |
+| `skill:systematic-debugging` | **workflow-pack** | **선택** | 선택된 진단 방법에 제품 재현 증거·무수정 경계·수정 인계를 연결한다. |
 | `skill:verification-before-completion` | **governance-core** | **기본** | 완료·PR·머지·릴리스 주장을 현재 상태의 새 증거에 묶는다. |
 
 runtime별 skill metadata와 agent 기준은 위 skill의 제품 소속이 아니라 `native-adapter`의 전달 메커니즘이다.
@@ -109,7 +109,7 @@ runtime별 skill metadata와 agent 기준은 위 skill의 제품 소속이 아�
 |---|---|---|---|
 | `profile:repository-only` | governance-core | AI plugin 없이 Git·CI·GitHub 정책만 사용하는 repo | 지원 |
 | `profile:agent-governed` | governance-core + 해당 native-adapter | 하나의 지원 AI runtime에서 조기 가드와 delivery skill을 사용하는 팀 | **권장 기본** |
-| `profile:workflow-assisted` | governance-core + 해당 native-adapter + 선택 workflow pack | 하네스의 계획·TDD·QA 편의 절차까지 원하는 팀 | opt-in |
+| `profile:workflow-assisted` | governance-core + 해당 native-adapter + 선택 workflow pack | 일반 방법론과 프로젝트 계약의 연결·QA 지원을 원하는 팀 | opt-in |
 
 여러 AI runtime을 함께 쓰는 팀은 core 하나에 adapter를 각각 독립 설치한다. workflow-pack 활성화 여부도 runtime별
 UI가 아니라 repo 정책으로 기록하되, 어느 profile도 사용자의 기존 권한을 확대하지 않는다.
