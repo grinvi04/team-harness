@@ -1,7 +1,7 @@
 # 개인 개발에서 시작하는 공통 기반
 
 상태: 소스 0.71.0 구현·검증 완료. 병합 상태는 [PR #463](https://github.com/grinvi04/team-harness/pull/463),
-정식 릴리즈는 [v0.71.0 태그](https://github.com/grinvi04/team-harness/releases/tag/v0.71.0)가 정본이다.
+정식 릴리즈는 [v0.71.0 태그](https://github.com/grinvi04/team-harness/tree/v0.71.0)가 정본이다.
 릴리즈 [PR #464](https://github.com/grinvi04/team-harness/pull/464)와 develop 반영
 [PR #465](https://github.com/grinvi04/team-harness/pull/465)는 병합됐다.
 제품 목표와 우선순위의 정본은 [제품 방향](../product-direction.md)이다.

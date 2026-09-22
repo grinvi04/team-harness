@@ -90,9 +90,9 @@ Team Harness에 이미 있는 겹치는 기능은 즉시 제거하지 않는다.
    [선택 통합](specs/agent-orchestration-integration.md)은 완료됐지만 모든 스택의 시작 자동화는 아니다.
 2. [x] **개인 사용 흐름·위임·문서 현행화 보완:** [현재 명세](specs/personal-development-flow.md)의
    수용 기준으로 로컬 사용, 승인된 worker 활용, 로드맵·체크리스트 갱신을 연결한다.
-3. [ ] **첫 재사용 시작 구성:** [실행 태스크 #462](https://github.com/grinvi04/team-harness/issues/462)의
+3. [x] **첫 재사용 시작 구성:** [실행 태스크 #462](https://github.com/grinvi04/team-harness/issues/462)의
    [명세](specs/local-spring-vue-setup.md)에 따라 준비된 Spring Boot+Vue 프로젝트에 검사 진입점을 추가하는
-   경로를 구현하고 검증 중이다. [사용 안내](local-development.md)에 준비 조건·미리보기·적용·실행을 정리했다.
+   경로를 구현하고 검사·독립 검토를 통과했다. [사용 안내](local-development.md)에 준비 조건·미리보기·적용·실행을 정리했다.
    원격 생성·기존 파일 덮어쓰기가 없고 제품 전용 검사는 제품에 남긴다. 앱 생성·검사 도구 초기 설정이나
    모든 스택 자동화는 포함하지 않는다. `new-repo.sh`는 기존 GitHub 온보딩 전용이다.
 4. [ ] **실제 업무에서 필요한 다음 영역:** 실제 제품 요구가 생길 때 DB·인프라 또는 다른 스택의 부족한
