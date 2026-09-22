@@ -1,6 +1,9 @@
 # Agent Orchestration의 필요한 부분만 통합
 
-상태: 선택 통합 구현·검증 완료. [PR #447](https://github.com/grinvi04/team-harness/pull/447)이 develop에 병합됐다(1fa7373, 2026-09-21 KST). 0.69.0 정식 릴리즈의 현재 검증·승인·후속 절차는 [PR #448](https://github.com/grinvi04/team-harness/pull/448)에서 관리한다.
+상태: 선택 통합 구현·검증 완료. [PR #447](https://github.com/grinvi04/team-harness/pull/447)이 develop에 병합됐다(1fa7373, 2026-09-21 KST). 당시 0.69.0 릴리즈 기록은 [PR #448](https://github.com/grinvi04/team-harness/pull/448)에 보존한다.
+
+이 완료는 선택 통합 범위다. 개인의 여러 기술 영역 개발과 재사용 시작 구성의 현재 우선순위는
+[제품 로드맵](../product-direction.md#우선순위-로드맵), 위임·문서 현행화 보완은 [후속 명세](personal-development-flow.md)를 따른다.
 
 ## 목표와 판단
 

@@ -1,5 +1,16 @@
 # 신규 프로젝트 / 신규 팀원 온보딩
 
+## 먼저 사용할 범위 선택
+
+개인이 로컬 프로젝트에서 시작하고, 검증된 구성만 차츰 동료에게 공유할 수 있다. 회사 공통 기준이나
+원격 저장소가 선행 조건은 아니다. **아래 A절은 GitHub 온보딩을 선택한 프로젝트 전용**이며 로컬 샘플에는 실행하지 않는다.
+
+- **로컬 개발:** 제품의 실제 루트·스택·검사 명령을 AGENTS.md에 기록하고 [개발 흐름](development-coordination.md)과
+  [스택별 검사 연결](#스택별-검사를-연결하는-방법)을 사용한다. 기존 검사·설정을 먼저 재사용한다.
+  현재 `new-repo.sh`에는 로컬 전용 셋업이나 앱 생성 기능이 없다. 로컬 셋업 자동화는 [로드맵](product-direction.md#우선순위-로드맵)의 미완료 항목이다.
+- **GitHub 연결:** 접근·공개 범위와 회사 정책을 확인한 뒤 A절을 적용한다. 기존 원격의 CI·승인 기준은 유지한다.
+  아래 개인 저장소의 가시성·라이선스 기본값을 회사 코드 공개나 라이선스 변경 승인으로 사용하지 않는다.
+
 > **가시성·라이선스(개인/솔로 코드 프로젝트)**: **public repo + MIT 라이선스**가 기본.
 > 사유 — GitHub Free는 **public repo에서만 branch protection 무료**(계층0 강제의 전제)라, "강제는 서버에"가
 > 솔로에서도 성립하려면 public이어야 한다. private가 필요하면 Pro. **예외**: 프로필/문서 전용 repo는
@@ -82,7 +93,8 @@ bash /path/to/team-harness/scripts/new-repo.sh
       원격 자산이 정본과 다르거나 조회에 실패하면 새 보호를 적용하지 않으며, 기존 보호는 재실행해도
       변경하지 않는다. 이전 `commitlint`에서 전환할 때는 [전환 절차](specs/trusted-commitlint.md)를 따른다.
 - [ ] `commitlint-trusted` target 검사가 실제 PR에 연결되어 통과하는지 확인. 공개 repo는 해당 이벤트의
-      허용 정책도 확인한다(2026-11-02 기본 제한 시행).
+      [경로별 허용 정책](specs/trusted-commitlint.md#공개-저장소-이벤트-정책-458)도 확인한다(2026-11-02 기본 제한 시행).
+      이 정책은 셋업·플러그인 갱신으로 자동 적용되지 않는다. 소비 repo의 실제 workflow 경로를 사용한다.
 
 - [ ] 테스트 PR 1개 생성 → ci-gate 통과 확인 (`pull_request` 트리거 전용 — push로는 실행 안 됨)
       체크명은 스택별로 다름: Node/Python/Rails=`quality`·`secret-scan`, Spring/NestJS 풀스택=`backend`·`frontend`·`secret-scan`

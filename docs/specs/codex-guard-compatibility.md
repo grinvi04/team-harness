@@ -103,10 +103,10 @@ Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native �
 | `scripts/pr-create.sh` | skill이 호출 | 같은 wrapper | 공통 | `pr-create-test.sh` |
 | `scripts/pr-merge.sh` | skill이 호출 | 같은 wrapper | 공통 | `pr-merge-auto-test.sh` |
 | `scripts/solo-merge.sh` | skill이 호출 | 같은 wrapper | 공통 | `solo-merge-test.sh` |
-| `skills/ao-coordinate/SKILL.md` | shared coordination contract | native wrapper + current agent write, independent read-only review | Codex-native mapping; handoff guidance only | `codex-skill-mapping-test.sh`, `orchestration-integration-test.sh` |
-| `skills/feature-add/SKILL.md` | slash skill + Claude tool prose | current agent write + explorer/verifier read-only roles | Codex-native mapping | `codex-skill-mapping-test.sh` |
+| `skills/ao-coordinate/SKILL.md` | shared coordination contract | native wrapper + scoped low-risk worker, parent integration, independent read-only review | Codex-native mapping; handoff guidance only | `codex-skill-mapping-test.sh`, `orchestration-integration-test.sh` |
+| `skills/feature-add/SKILL.md` | slash skill + Claude tool prose | scoped low-risk worker + parent integration + independent read-only verifier | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/feature-merge/SKILL.md` | slash skill + Claude tool prose | `codex review` + same wrapper/GitHub gate | Codex-native mapping | `codex-skill-mapping-test.sh` |
-| `skills/feature-modify/SKILL.md` | slash skill + Claude tool prose | current agent write + explorer/verifier read-only roles | Codex-native mapping | `codex-skill-mapping-test.sh` |
+| `skills/feature-modify/SKILL.md` | slash skill + Claude tool prose | scoped low-risk worker + parent integration + independent read-only verifier | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/hotfix/SKILL.md` | slash skill + Claude tool prose | current agent write + read-only evidence roles | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/loop/SKILL.md` | slash skill + Claude subagent prose | bounded current-agent loop + Codex automation boundary | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/milestone/SKILL.md` | slash skill + Claude tool prose | Codex `/goal` + GitHub milestone contract | Codex-native mapping | `codex-skill-mapping-test.sh` |
