@@ -6,7 +6,9 @@ guidance and guards to server-enforced pull-request, CI, review, and release evi
 
 For local development, start with the [development guide](development-coordination.md) and the product's existing
 checks; a remote repository is not required. The instructions below cover GitHub rollout and package evaluation.
-Turnkey application generation and local setup automation remain on the [product roadmap](product-direction.md).
+Prepared Spring Boot+Vue projects can use the [local check setup](local-development.md) to preview and add a
+portable check entry point without overwriting existing files. Application generation and configuring the
+underlying test tools remain product responsibilities; broader reuse follows the [product roadmap](product-direction.md).
 
 ## Prerequisites
 

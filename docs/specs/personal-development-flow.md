@@ -1,7 +1,9 @@
 # 개인 개발에서 시작하는 공통 기반
 
 상태: 소스 0.71.0 구현·검증 완료. 병합 상태는 [PR #463](https://github.com/grinvi04/team-harness/pull/463),
-정식 릴리즈는 [버전 태그](https://github.com/grinvi04/team-harness/tags)가 정본이다.
+정식 릴리즈는 [v0.71.0 태그](https://github.com/grinvi04/team-harness/tree/v0.71.0)가 정본이다.
+릴리즈 [PR #464](https://github.com/grinvi04/team-harness/pull/464)와 develop 반영
+[PR #465](https://github.com/grinvi04/team-harness/pull/465)는 병합됐다.
 제품 목표와 우선순위의 정본은 [제품 방향](../product-direction.md)이다.
 
 ## 요구와 범위
@@ -44,5 +46,9 @@ Codex wrapper·배포 경계·제품 방향·템플릿 검사를 실행하고, �
   추가한 로컬 문서 참조의 파일·앵커도 확인했다. 이 검증은 모든 미래 작업의 문서 누락 방지를 자동 보장하지 않는다.
 - 모델 점검은 설정과 호스트의 최근 168시간 실행 metadata를 분리했다. 개인 집계 수치는 저장소에 게시하지 않는다.
   이 변경은 배정 계약 보완이며 실제 Luna/max 활용 비중 개선이나 비용·품질 우위를 입증한 비교 시험이 아니다.
-- 다음 구현은 [첫 재사용 시작 구성 #462](https://github.com/grinvi04/team-harness/issues/462)이다.
+- 0.71.0 릴리즈 후보의 quality 59단계·독립 보안 검토·필수 CI 5개를 통과했다.
+  승인된 호스트의 설치 갱신과 새 loader의 스킬 17개 활성화·로딩 오류 0개를 확인했다.
+  모델·역할과 다른 plugin은 보존했다. 이는 해당 호스트의 로딩 확인이며 runtime 권한 집행 증거는 아니다.
+- 후속 구현은 [첫 재사용 시작 구성 #462](https://github.com/grinvi04/team-harness/issues/462)와
+  [현재 명세](local-spring-vue-setup.md)에서 관리한다.
   릴리즈·설치와 전체 제품 목표는 이 명세의 구현 완료와 구분한다.
