@@ -1,7 +1,8 @@
 # 개발 방법론과 프로젝트 계약의 역할 정리
 
-상태: 구현·로컬 샘플 검사 완료, 독립 검토·통합 진행 중. 현재 순서는 [제품 방향](../product-direction.md),
-배포 진행은 [이슈 #469](https://github.com/grinvi04/team-harness/issues/469)가 소유한다.
+상태: 구현·로컬 샘플 검사·독립 검토 완료, [PR #470](https://github.com/grinvi04/team-harness/pull/470)으로
+develop에 통합했다(`db7f97e`). 현재 순서는 [제품 방향](../product-direction.md),
+변하는 릴리즈·설치 진행은 [이슈 #469](https://github.com/grinvi04/team-harness/issues/469)가 소유한다.
 릴리즈·설치 상태는 [태그](https://github.com/grinvi04/team-harness/tags)와 호스트에서 별도로 확인한다.
 
 ## 목표와 범위
@@ -45,8 +46,10 @@ Stagehand 도입, 샘플의 GitHub 공개·운영 변경은 하지 않는다.
 - [x] 승인 범위·역할 경계·기존 소비자 확인
 - [x] 스킬·wrapper·현재 사용 안내·버전 현행화
 - [x] 로컬 샘플의 실제 작업·검사·문서 현행화
-- [ ] 전체 품질·독립 검토·PR 통합
-- [ ] 정식 릴리즈·설치 갱신 및 현재 상태 확인
+- [x] 전체 품질·독립 검토·PR 통합
+
+정식 릴리즈·설치 갱신의 완료 체크는 [이슈 #469](https://github.com/grinvi04/team-harness/issues/469)에
+태그·병합 SHA·설치 확인 결과와 함께 남긴다. 이 문서의 구현 완료를 설치 완료로 해석하지 않는다.
 
 ### 실행 증거와 한계 (2026-09-22)
 
@@ -63,3 +66,5 @@ Stagehand 도입, 샘플의 GitHub 공개·운영 변경은 하지 않는다.
   시험한 것은 아니다. 제품 상세 기록은 로컬 제품의 `docs/verification.md`에 둔다.
 - 보안 경계의 독립 정적 검토는 승인·테스트 잠금·진단 무수정·필수 독립 검증·delivery gate의 완화를
   발견하지 못했다. 일반 독립 검토에서 찾은 README의 예전 절차 설명은 현재 계약과 맞췄다.
+- 최종 검토 후보 `ecd15dc`: 독립 품질 검토 GO, PR #470의 필수 CI 5개 통과 후 develop 통합.
+  통합 트리와 검토 후보가 동일함을 확인했다. 이후 릴리즈 준비는 진행 문서 갱신만 포함한다.
