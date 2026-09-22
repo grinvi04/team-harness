@@ -307,3 +307,23 @@
 | **공개 저장소 target 이벤트의 경로별 정책 (#458)** — 커밋 검사의 신뢰 원본을 유지하면서 GitHub 기본 이벤트 제한에 대응한다. 운영자 승인 범위에서 저장소 정책을 `.github/workflows/commitlint-trusted.yml`과 `pull_request_target` 하나에 한정하고, 다른 workflow·actor·토큰·브랜치 보호는 변경하지 않는다. 정책 실행은 GitHub에 `위임`, 경로·이벤트와 실제 PR 증거는 `연결`한다. 소비 repo 자동 전파·공용 정책 실행기·새 plugin 릴리즈는 추가하지 않는다. | 2026-09-22 | docs/specs/trusted-commitlint.md, GitHub Actions 저장소 정책 | docs/onboarding.md, [#458](https://github.com/grinvi04/team-harness/issues/458) |
 
 (시점 2026-06은 하네스 구축 시 일괄 소급 기재 — 이후 결정부터 개별 날짜로 기록)
+
+## 브라우저 자동화 도구 선택 (2026-09-22)
+
+현재 로컬 Spring Boot+Vue 검사 연결은 Playwright Test를 유지한다. Stagehand v4 도입 검토는
+브라우저 실행을 외부 도구에 **위임**하는 선택이며 새 공용 실행기나 호환 계층을 만들지 않는다.
+
+Stagehand v4는 테스트 프레임워크가 아니며 Playwright Page와 직접 호환되지 않는다.
+현재 샘플이 사용하는 역할·라벨 locator, 요청 모킹, assertion과 Playwright 전용 접근성 연결은
+그대로 옮길 수 없다. 테스트 실행·실패 진단까지 다시 구성할 근거가 아직 없다.
+공식 근거: [Playwright 이관 안내](https://docs.stagehand.dev/v4/migrations/playwright).
+
+자연어로 화면을 탐색·조작하는 별도 업무가 생기면 Stagehand를 선택 후보로 검토한다.
+Codex 연결은 현재 실험적 통합이며, 모델·인증·비용 경로는 Codex 전역 모델 설정과 별개로 확인해야 한다.
+로컬 브라우저 실행도 모델 추론까지 로컬이라는 뜻은 아니다.
+공식 근거: [Codex 통합](https://docs.stagehand.dev/v4/integrations/codex),
+[모델 설정](https://docs.stagehand.dev/v4/configuration/models).
+
+이번 판정은 공식 문서와 기존 테스트 호출부를 대조한 결과다. Stagehand 설치·유료 호출·성능 비교는
+실행하지 않았으며 공급자의 속도·비용 수치를 이 프로젝트의 측정 결과로 취급하지 않는다.
+현재 테스트와 로컬 검사 구성·전역 브라우저 도구는 변경하지 않는다.
