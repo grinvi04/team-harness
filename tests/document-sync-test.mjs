@@ -139,3 +139,9 @@ test('들여쓴 코드 예시는 실제 체크박스와 중복 계산하지 않�
   fs.writeFileSync(path.join(root, 'plan.md'), '    - [x] 구현\n');
   expectFailure(run(), 'ITEM');
 });
+
+test('들여쓴 fence 모양의 예시가 뒤의 실제 항목을 숨기지 않음', t => {
+  const { root, run } = fixture(t);
+  fs.writeFileSync(path.join(root, 'plan.md'), '    ```example\n\n- [x] 구현\n');
+  assert.equal(run().status, 0);
+});

@@ -83,7 +83,7 @@ function check(repo, input, committed) {
     let fence = null;
     const boxes = [];
     for (const line of documents.get(item.document).split(/\r?\n/)) {
-      const marker = line.match(/^\s*(`{3,}|~{3,})(.*)$/);
+      const marker = line.match(/^ {0,3}(`{3,}|~{3,})(.*)$/);
       if (marker) {
         if (!fence) fence = marker[1];
         else if (marker[1][0] === fence[0] && marker[1].length >= fence.length && !marker[2].trim()) fence = null;
