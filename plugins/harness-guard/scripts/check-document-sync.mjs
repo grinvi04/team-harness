@@ -19,7 +19,7 @@ function declaration(markdown) {
   if (starts.length !== 1 || matches.length !== 1) fail('DECLARATION', 'exactly one closed harness-doc-sync block required');
   try { return JSON.parse(matches[0][1]); } catch { fail('SCHEMA', 'invalid JSON'); }
 }
-function check(repo, input, committed) {
+function check(repo, input, committed, recordPath) {
   const root = fs.realpathSync(repo);
   const loaded = new Map();
   function checkCommitted() {
@@ -48,6 +48,11 @@ function check(repo, input, committed) {
     const result = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8' });
     if (result.error || !allowed.includes(result.status)) fail('GIT', `cannot inspect ${args[0]}`);
     return result;
+  }
+  // Exported PR bodies/stdin may live outside the repo; in-repo records are part of the candidate.
+  if (committed && recordPath && recordPath !== '/dev/stdin') {
+    const record = path.join(fs.realpathSync(path.dirname(path.resolve(recordPath))), path.basename(recordPath));
+    if (record.startsWith(root + path.sep)) file(path.relative(root, record));
   }
   let data = declaration(input);
   if (data?.record !== undefined) {
@@ -136,7 +141,7 @@ try {
   const input = options['--record'] ? fs.readFileSync(options['--record'], 'utf8') :
     JSON.parse(fs.readFileSync(options['--event'], 'utf8')).pull_request?.body;
   if (typeof input !== 'string') fail('DECLARATION', 'PR body is missing');
-  check(options['--repo'] || '.', input, options['--committed']);
+  check(options['--repo'] || '.', input, options['--committed'], options['--record']);
   console.log('document-sync: PASS (declared scope only; meaning and omitted targets require review)');
 } catch (error) {
   console.error(`document-sync: ${error.message}`);

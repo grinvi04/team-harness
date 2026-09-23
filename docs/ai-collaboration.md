@@ -139,7 +139,9 @@ bash plugins/harness-guard/scripts/pr-create.sh --title "제목" --body-file /tm
 ```
 
 PR wrapper는 선언이 있으면 push 전에 `--committed`로 검사해 모든 연결 파일이 HEAD에 있고 내용도 같은지
-확인한다. 일반 로컬 명령은 작성 중 작업트리를 읽으며, 커밋 후보를 확인하려면 `--committed`를 추가한다. 기존 소비 repo의 선언 없는 PR 생성은 호환성을 유지한다.
+확인한다. 저장소 안에서 직접 지정한 선언 파일도 비교한다. 저장소 밖의 PR 본문 파일·stdin은 입력
+스냅샷이며 HEAD 결박 대상은 그 안에서 연결한 파일이다. 일반 로컬 명령은 작성 중 작업트리를 읽으며,
+커밋 후보를 확인하려면 `--committed`를 추가한다. 기존 소비 repo의 선언 없는 PR 생성은 호환성을 유지한다.
 **이 저장소의 `quality` 잡은 PR 본문의 선언을 필수로 검사**하며 본문 편집에도 다시 실행한다. 소비 repo는
 checker를 검토해 복사하거나 설치 경로를 사용해 기존 로컬 검사에 위 명령을 추가한다. PR CI에는 Node와
 전체 Git 이력·태그를 준비한 뒤 `--record` 대신 `--event "$GITHUB_EVENT_PATH"`를 사용하고

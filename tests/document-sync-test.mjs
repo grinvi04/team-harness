@@ -124,7 +124,7 @@ test('커밋 후보 검사에서 untracked 근거와 수정된 파일을 거부'
   fs.writeFileSync(body, fence(record));
   const wrapper = spawnSync('bash', [path.resolve('plugins/harness-guard/scripts/pr-create.sh'), '--title', 'test', '--body-file', body], { cwd: root, encoding: 'utf8' });
   expectFailure(wrapper, 'COMMITTED');
-  git('add', 'plan.md', 'result.md'); git('commit', '-qm', 'documents');
+  git('add', 'plan.md', 'result.md', 'record.md'); git('commit', '-qm', 'documents');
   assert.equal(run(record, ['--committed']).status, 0);
   fs.writeFileSync(path.join(root, 'result.md'), 'new evidence');
   record.items[0].evidence.sha256 = hash('new evidence');
@@ -144,4 +144,14 @@ test('들여쓴 fence 모양의 예시가 뒤의 실제 항목을 숨기지 않�
   const { root, run } = fixture(t);
   fs.writeFileSync(path.join(root, 'plan.md'), '    ```example\n\n- [x] 구현\n');
   assert.equal(run().status, 0);
+});
+
+test('직접 입력한 저장소 안 선언 파일도 커밋 후보와 결박', t => {
+  const { run, git } = fixture(t);
+  const original = { version: 1, noImpact: 'committed reason' };
+  assert.equal(run(original).status, 0);
+  git('init', '-q'); git('config', 'user.email', 'fixture@example.invalid'); git('config', 'user.name', 'fixture');
+  git('add', '.'); git('commit', '-qm', 'record');
+  assert.equal(run(original, ['--committed']).status, 0);
+  expectFailure(run({ version: 1, noImpact: 'uncommitted changed reason' }, ['--committed']), 'COMMITTED');
 });
