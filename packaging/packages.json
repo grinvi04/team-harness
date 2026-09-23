@@ -20,6 +20,7 @@
         "skills/solo-merge",
         "skills/verification-before-completion",
         "scripts/check-repo-sync.mjs",
+        "scripts/check-document-sync.mjs",
         "scripts/guard.sh",
         "scripts/lib/tokenize.sh",
         "scripts/pr-create.sh",
