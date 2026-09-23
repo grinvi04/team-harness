@@ -97,31 +97,41 @@ CLI로 설치·제거하고, 각 installed cache가 생성 artifact와 byte-equi
 | 1 | 공식 loader·cache 무결성·rollback runner RED→GREEN | AC-1~7 | `tests/codex-split-loader-pilot-test.sh`, `scripts/run-codex-split-loader-pilot.mjs` | `bash tests/codex-split-loader-pilot-test.sh` | — | |
 | 2 | CI 연결과 exact v0.62.0 live 보고서·제품 판정 기록 | AC-8~10 | `.github/workflows/ci-gate.yml`, `docs/pilots/codex-split-loader-v0.61.0.{md,json}`, `docs/product-{direction,boundaries}.md`, `docs/decisions.md` | 신규 테스트 + package/profile/native-loader 회귀 + CI quality 로컬 재현 | #1 | |
 
-### Task 1 실행 계획
+### 실행 결과 연결
 
-- [ ] `tests/codex-split-loader-pilot-test.sh`에 상태를 실제 파일로 보존하는 fixture `codex`를 만들고 성공 profile
+2026-09-23에 [PR #411](https://github.com/grinvi04/team-harness/pull/411)의 병합·커밋·검사 기록과
+[당시 실행 보고서](../pilots/codex-split-loader-v0.61.0.md)를 대조해 남아 있던 체크 표시를 정정했다.
+아래는 확인 가능한 구현·검사 결과이며 과거 test-first 실행 순서 전체를 재구성한 기록은 아니다.
+당초 계획의 v0.62.0 source 이후 실제 시험 후보는 `d580808f48751adb598fc38dd307e51183a64583`,
+생성 split package의 manifest 버전은 0.61.0이었다. 당시 수치·후보는 보고서 그대로 보존한다.
+loader·rollback 범위는 완료했으며 runtime·승격 보류는 [이슈 #412](https://github.com/grinvi04/team-harness/issues/412)에서 관리한다.
+
+### Task 1 구현·검사 결과
+
+- [x] `tests/codex-split-loader-pilot-test.sh`에 상태를 실제 파일로 보존하는 fixture `codex`를 만들고 성공 profile
   세 개의 설치 집합, core-first 설치, reverse rollback, user-state digest, temp cleanup을 literal 값으로 단언한다.
-- [ ] 같은 테스트에 `malformed-list`, `escaped-installed-path`, `mutated-cache`, `install-failure`,
-  `rollback-failure` mode를 추가하고 runner가 각 mode에서 nonzero이며 PASS 보고서를 남기지 않음을 RED로 확인한다.
-- [ ] `scripts/run-codex-split-loader-pilot.mjs`에 CLI
+- [x] 같은 테스트에 `malformed-list`, `escaped-installed-path`, `mutated-cache`, `install-failure`,
+  `rollback-failure` mode를 추가했고 runner가 각 mode에서 nonzero이며 PASS 보고서를 남기지 않는 회귀 검사를 통과했다.
+  최초 RED의 개별 실행 기록은 이번 대조에서 확인하지 않았으며 최종 회귀 결과와 구분한다.
+- [x] `scripts/run-codex-split-loader-pilot.mjs`에 CLI
   `--revision <commit> --json-report <path> --markdown-report <path> [--source <path>]`를 구현한다. fixture에서만
   `CODEX_BIN` override를 허용하고, revision은 commit으로
   resolve하고 generated artifact metadata의 exact SHA를 대조한다.
-- [ ] `runCodex(args, env, label)`은 nonzero·malformed JSON을 거부하고, `verifyInstalledArtifact()`는 CLI의
+- [x] `runCodex(args, env, label)`은 nonzero·malformed JSON을 거부하고, `verifyInstalledArtifact()`는 CLI의
   installedPath canonical containment, manifest identity/version, generated-vs-installed tree digest를 검사한다.
-- [ ] `runProfile(profile, units)`은 독립 격리 HOME에서 install→observe→reverse remove→marketplace remove를
+- [x] `runProfile(profile, units)`은 독립 격리 HOME에서 install→observe→reverse remove→marketplace remove를
   수행하고 `finally` cleanup 결과까지 구조화해 반환한다.
-- [ ] target test를 GREEN으로 만든 뒤 `node --check scripts/run-codex-split-loader-pilot.mjs`와 mutation
+- [x] target test 통과와 `node --check scripts/run-codex-split-loader-pilot.mjs`와 mutation
   반증(설치 순서 또는 digest 검사를 제거하면 test FAIL)을 확인한다.
-- [ ] Task 1 파일과 승인된 스펙을 `feat(packaging): Codex split loader rollback pilot 추가`로 원자 커밋한다.
+- [x] Task 1 파일과 승인된 스펙을 `feat(packaging): Codex split loader rollback pilot 추가`로 원자 커밋한다.
 
-### Task 2 실행 계획
+### Task 2 통합·기록 결과
 
-- [ ] CI quality job에 `bash tests/codex-split-loader-pilot-test.sh`를 추가하고 기존 명령 순서를 보존한다.
-- [ ] Task 1 commit을 exact revision으로 실제 `codex-cli 0.144.6` pilot에 전달해 JSON/Markdown을 생성하고
+- [x] CI quality job에 `bash tests/codex-split-loader-pilot-test.sh`를 추가하고 기존 명령 순서를 보존한다.
+- [x] Task 1 commit을 exact revision으로 실제 `codex-cli 0.144.6` pilot에 전달해 JSON/Markdown을 생성하고
   report의 revision·tree·package version·binary digest·세 profile·rollback·user-state 값을 원본과 대조한다.
-- [ ] `product-direction.md`와 `product-boundaries.md`에 공식 loader 설치·제거 PASS, dependency/runtime binding·
+- [x] `product-direction.md`와 `product-boundaries.md`에 공식 loader 설치·제거 PASS, dependency/runtime binding·
   model session 미검증, `installable:false` 유지 판정을 기록하고 `decisions.md`에 **연결** 결정을 남긴다.
-- [ ] 신규 test, `package-build-test.sh`, `profile-lifecycle-test.sh`, `codex-native-loader-test.sh`,
+- [x] 신규 test, `package-build-test.sh`, `profile-lifecycle-test.sh`, `codex-native-loader-test.sh`,
   `codex-native-loader-pilot-test.sh`를 실행하고 CI quality job을 로컬 재현한다.
-- [ ] 보고서·문서·CI wiring을 `docs(pilot): Codex split loader rollback 증거 기록`으로 원자 커밋한다.
+- [x] 보고서·문서·CI wiring을 `docs(pilot): Codex split loader rollback 증거 기록`으로 원자 커밋한다.
