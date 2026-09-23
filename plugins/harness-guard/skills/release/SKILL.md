@@ -65,11 +65,34 @@ release-check는 그 커밋을 본 적이 없다 — 머지 전 **변경 범위 
 
 Phase 2(해당 시) ✅인 경우에만 진행.
 
+`HARNESS_RELEASE_PLUGIN_ROOT`를 현재 사용할 플러그인의 실제 절대 경로로 설정한다.
+Team Harness 소스 후보를 작업할 때는 해당 체크아웃의 `plugins/harness-guard`를 사용한다
+(repo 루트에서 `HARNESS_RELEASE_PLUGIN_ROOT="$PWD/plugins/harness-guard"`). 소비 repo에서는
+현재 실행 플랫폼이 제공하는 설치 경로를 사용하고, 설치본과 소스 후보를 혼동하지 않는다.
+
+```bash
+: "${HARNESS_RELEASE_PLUGIN_ROOT:?현재 사용할 플러그인의 실제 절대 경로를 설정하세요}"
+test -f "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh"
+```
+
+먼저 `/tmp/release-main-pr.md`에 버전·변경 내용·검증한 후보와 결과·남은 단계를 작성한다.
+진행 문서 검사를 채택한 repo(team-harness 포함)는 AGENTS.md의 문서 동기화 계약에 따라
+`harness-doc-sync` 선언 하나를 본문에 포함한다. 기존 작업 기록을 연결할 때도 현재 후보와
+관련 문서·완료/대기 상태를 대조하고, 아직 실행하지 않은 태그·역병합을 완료로 기록하지 않는다.
+관련 문서 변경을 커밋한 뒤, 채택 repo에서는 push 전에 본문을 검사한다:
+
+```bash
+node "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/check-document-sync.mjs" \
+  --repo . --record /tmp/release-main-pr.md --committed
+```
+
+미채택 repo에는 선언을 새로 강제하지 않는다. 아래 PR 생성은 준비한 본문 파일을 사용한다.
+
 ```bash
 # 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base main \
+bash "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh" --base main \
   --title "release: v$VERSION" \
-  --body "릴리즈 v$VERSION"
+  --body-file /tmp/release-main-pr.md
 PR=$(gh pr view --json number --jq .number)
 ```
 
@@ -98,17 +121,23 @@ develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **
 단, `main`은 head로 PR 불가(pr-create가 base 브랜치를 head로 거부)이고 release 브랜치는 머지로 정리됐다
 → **main 기준 `sync/` 브랜치를 만들어 그것을 head로** develop에 PR한다.
 
+`/tmp/release-backmerge-pr.md`에 main PR 번호·태그와 develop 반영 범위를 작성한다.
+문서 검사 채택 repo는 Phase 3과 같은 계약으로 선언을 포함하되, main 머지·태그 발행 후의
+현재 상태를 다시 대조한다. 태그 발행 전 본문을 그대로 복사하지 않는다. 연결 기록 수정이 필요하면
+sync 브랜치에서 커밋하고, PR 생성 전에 이 본문으로 `--committed` 검사를 통과시킨다.
+
 ```bash
 # main 최신(태그·버전범프 포함)을 담은 back-merge용 sync 브랜치 생성(sync/* 는 F5 plan-게이트 무관)
 git checkout main && git pull origin main
 git checkout -b sync/backmerge-v$VERSION
-git push -u origin sync/backmerge-v$VERSION
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
+# 위 본문·문서 검사를 마친 뒤 래퍼가 push와 PR 생성을 수행한다.
+bash "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh" --base develop \
   --title "chore: release/v$VERSION develop 반영" \
-  --body "main PR과 동일 내용의 back-merge — 버전 범프 커밋을 develop에 반영."
+  --body-file /tmp/release-backmerge-pr.md
 ```
 
-**`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 사람 승인 + CI + 머지만.
+**`pr-review-gate` 부록(back-merge 간소 게이트)** 적용: 대상 브랜치의 현재 보호 정책이 요구하는
+사람 승인(4단계 해당 시) + CI + 머지. 추가 수정이 있다면 부록의 동일 내용 조건부터 다시 확인한다.
 충돌 시 (release 브랜치는 이미 정리됨) back-merge PR의 head인 `sync/backmerge-v$VERSION`에서 develop을 merge해 해소 후 재푸시.
 
 ```bash

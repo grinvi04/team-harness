@@ -161,7 +161,10 @@ echo 'PASS: native PreToolUse preserves benign commands and blocks destructive/e
 node - "$TMP/route.json" <<'NODE'
 const result = require(process.argv[2])
 const context = result.hookSpecificOutput?.additionalContext || ''
-if (!context.includes('현재=feature-add') || !context.includes('적용 skill과 현재 phase')) process.exit(1)
+if (!context.includes('상태 기반 후보=feature-add') || !context.includes('승인 범위')
+  || context.includes('[하네스] 현재=') || !context.includes('적용 skill과 현재 phase')) {
+  throw new Error('native routing context must expose a scoped candidate, not an asserted phase')
+}
 NODE
 echo 'PASS: native UserPromptSubmit exposes the feature-add routing context'
 

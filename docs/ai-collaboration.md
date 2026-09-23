@@ -171,7 +171,9 @@ Claude Code의 slash skill과 Codex의 skill 로딩은 UI가 다르다. Claude�
 
 `route-intent`는 의미 분류기가 아니라 현재 Git/PR 상태를 보는 좁은 라우터다. “진행해”처럼 다음 Git 단계가
 필요한 요청에만 spec→개발, 커밋된 branch→PR, 열린 PR→review gate를 안내한다. 자동 선택은 편의 기능이며
-사용자가 허용하지 않은 commit·push·PR·merge·release 권한을 새로 만들지 않는다.
+사용자가 허용하지 않은 commit·push·PR·merge·release 권한을 새로 만들지 않는다. 출력의 `상태 기반 후보`는 확정된 현재 단계가 아니다.
+과거 스펙이 남아 있거나 현재 요청과 다른 Git 단계가 관측될 수 있으므로, 실제 요청·기존 승인 범위·
+제품 원본을 대조한 뒤 적합한 skill을 선택한다. 라우터 안내만으로 새 작업을 시작하거나 재승인을 요구하지 않는다.
 특히 자연어 맥락으로 자동 선택된 `/loop`는 사용자가 commit을 명시하지 않으면 no-commit으로 실행한다.
 
 사용자가 실제 적용 여부를 확인할 수 있도록 AI는 skill을 적용하는 첫 업데이트와 Git flow 단계 전환 때
