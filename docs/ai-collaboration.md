@@ -118,7 +118,8 @@ GitHub를 쓰지 않는 제품은 기존 제품 스펙·개발 안내를 진행 
 - `documents`는 존재하는 저장소 상대 파일과 대조·갱신 사유다. 변경 없음·과거 기록·재사용 서식도
   사유를 적을 수 있다. 서식의 미체크 항목을 `items`에 넣거나 일괄 완료 처리하지 않는다.
 - `items`는 대상 문서에서 정확히 한 번 나타나는 체크박스 문구다. `done`은 `[x]`, `pending/deferred`는
-  `[ ]`와 일치해야 한다. 코드 블록의 예시는 제외한다. 상태 항목이 없는 문서는 `items: []`로 둔다.
+  `[ ]`와 일치해야 한다. 선언 대상은 줄 앞 공백 0–3개의 `-/*/+` 체크박스다. fence 안이나 4칸 이상
+  들여쓴 코드 예시는 제외하며, 더 깊은 중첩 목록 등 일반 Markdown 전체 구문은 해석하지 않는다. 상태 항목이 없는 문서는 `items: []`로 둔다.
 - `done`에는 `evidence`가 필수다. 파일 근거는 `{"path":"docs/result.md","sha256":"전체 SHA-256"}`로
   연결한다(`shasum -a 256 docs/result.md`). 근거가 바뀌면 실패하므로 결과와 원래 계획을 다시 대조한다.
   digest만 새로 복사해서 통과시키지 않는다. 파일 존재·digest 일치는 실행 결과의 진실이나 후보 적합성의 증명이 아니다.
@@ -137,7 +138,8 @@ node plugins/harness-guard/scripts/check-document-sync.mjs --repo . --record doc
 bash plugins/harness-guard/scripts/pr-create.sh --title "제목" --body-file /tmp/pr-body.md
 ```
 
-PR wrapper는 선언이 있으면 push 전에 검사한다. 기존 소비 repo의 선언 없는 PR 생성은 호환성을 유지한다.
+PR wrapper는 선언이 있으면 push 전에 `--committed`로 검사해 모든 연결 파일이 HEAD에 있고 내용도 같은지
+확인한다. 일반 로컬 명령은 작성 중 작업트리를 읽으며, 커밋 후보를 확인하려면 `--committed`를 추가한다. 기존 소비 repo의 선언 없는 PR 생성은 호환성을 유지한다.
 **이 저장소의 `quality` 잡은 PR 본문의 선언을 필수로 검사**하며 본문 편집에도 다시 실행한다. 소비 repo는
 checker를 검토해 복사하거나 설치 경로를 사용해 기존 로컬 검사에 위 명령을 추가한다. PR CI에는 Node와
 전체 Git 이력·태그를 준비한 뒤 `--record` 대신 `--event "$GITHUB_EVENT_PATH"`를 사용하고

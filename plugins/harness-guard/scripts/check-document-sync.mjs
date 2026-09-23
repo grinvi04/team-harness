@@ -19,8 +19,18 @@ function declaration(markdown) {
   if (starts.length !== 1 || matches.length !== 1) fail('DECLARATION', 'exactly one closed harness-doc-sync block required');
   try { return JSON.parse(matches[0][1]); } catch { fail('SCHEMA', 'invalid JSON'); }
 }
-function check(repo, input) {
+function check(repo, input, committed) {
   const root = fs.realpathSync(repo);
+  const loaded = new Map();
+  function checkCommitted() {
+    if (!committed) return;
+    for (const [relative, bytes] of loaded) {
+      const result = spawnSync('git', ['-C', root, 'show', `HEAD:${relative}`]);
+      if (result.status !== 0 || !bytes.equals(result.stdout)) {
+        fail('COMMITTED', `file is missing from HEAD or differs: ${relative}`);
+      }
+    }
+  }
   function file(relative) {
     if (!text(relative) || path.isAbsolute(relative) || relative.includes('\\') ||
         relative.split('/').some(part => ['', '.', '..'].includes(part))) fail('PATH', 'repository-relative file required');
@@ -30,7 +40,9 @@ function check(repo, input) {
       if (!fs.existsSync(current) || fs.lstatSync(current).isSymbolicLink()) fail('PATH', `missing or symlink: ${relative}`);
     }
     if (!fs.statSync(current).isFile()) fail('PATH', `not a file: ${relative}`);
-    return fs.readFileSync(current);
+    const bytes = fs.readFileSync(current);
+    loaded.set(relative, bytes);
+    return bytes;
   }
   function git(args, allowed = [0]) {
     const result = spawnSync('git', ['-C', root, ...args], { encoding: 'utf8' });
@@ -47,6 +59,7 @@ function check(repo, input) {
   if (data.version !== 1) fail('SCHEMA', 'version must be 1');
   if ('noImpact' in data) {
     if (!text(data.noImpact) || 'documents' in data || 'items' in data) fail('SCHEMA', 'noImpact requires a reason and no targets');
+    checkCommitted();
     return;
   }
   if (!Array.isArray(data.documents) || !data.documents.length) fail('DOCUMENTS', 'declare related documents');
@@ -77,7 +90,7 @@ function check(repo, input) {
         continue;
       }
       if (fence) continue;
-      const box = line.match(/^\s*[-*+] \[([ xX])\] (.+?)\s*$/);
+      const box = line.match(/^ {0,3}[-*+] \[([ xX])\] (.+?)\s*$/);
       if (box && box[2] === item.item) boxes.push(box[1].toLowerCase() === 'x');
     }
     if (boxes.length !== 1) fail('ITEM', `${item.document}: checkbox label must match once: ${item.item}`);
@@ -109,11 +122,13 @@ function check(repo, input) {
       }
     }
   }
+  checkCommitted();
 }
 try {
   const args = process.argv.slice(2), options = {};
   while (args.length) {
     const flag = args.shift();
+    if (flag === '--committed' && !options[flag]) { options[flag] = true; continue; }
     if (!['--repo', '--record', '--event'].includes(flag) || options[flag] || !args.length) fail('USAGE', '--repo DIR and exactly one of --record FILE / --event FILE');
     options[flag] = args.shift();
   }
@@ -121,7 +136,7 @@ try {
   const input = options['--record'] ? fs.readFileSync(options['--record'], 'utf8') :
     JSON.parse(fs.readFileSync(options['--event'], 'utf8')).pull_request?.body;
   if (typeof input !== 'string') fail('DECLARATION', 'PR body is missing');
-  check(options['--repo'] || '.', input);
+  check(options['--repo'] || '.', input, options['--committed']);
   console.log('document-sync: PASS (declared scope only; meaning and omitted targets require review)');
 } catch (error) {
   console.error(`document-sync: ${error.message}`);

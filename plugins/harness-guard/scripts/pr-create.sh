@@ -42,7 +42,7 @@ fi
 # Validate before any push. The body is data, never interpolated into shell code.
 if [[ "$BODY" == *'```harness-doc-sync'* ]]; then
   SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-  printf '%s\n' "$BODY" | node "$SCRIPT_DIR/check-document-sync.mjs" --repo . --record /dev/stdin
+  printf '%s\n' "$BODY" | node "$SCRIPT_DIR/check-document-sync.mjs" --repo . --record /dev/stdin --committed
 fi
 
 BRANCH=$(git branch --show-current)

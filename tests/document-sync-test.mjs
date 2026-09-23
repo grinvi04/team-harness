@@ -113,3 +113,29 @@ test('PR 래퍼가 선언의 모순을 push 이전에 차단', t => {
   const result = spawnSync('bash', [path.resolve('plugins/harness-guard/scripts/pr-create.sh'), '--title', 'test', '--body-file', body], { cwd: root, encoding: 'utf8' });
   expectFailure(result, 'STATE');
 });
+
+test('커밋 후보 검사에서 untracked 근거와 수정된 파일을 거부', t => {
+  const { root, record, run, git } = fixture(t);
+  git('init', '-q'); git('config', 'user.email', 'fixture@example.invalid'); git('config', 'user.name', 'fixture');
+  fs.writeFileSync(path.join(root, 'base.txt'), 'base');
+  git('add', 'base.txt'); git('commit', '-qm', 'base');
+  expectFailure(run(record, ['--committed']), 'COMMITTED');
+  const body = path.join(root, 'body.md');
+  fs.writeFileSync(body, fence(record));
+  const wrapper = spawnSync('bash', [path.resolve('plugins/harness-guard/scripts/pr-create.sh'), '--title', 'test', '--body-file', body], { cwd: root, encoding: 'utf8' });
+  expectFailure(wrapper, 'COMMITTED');
+  git('add', 'plan.md', 'result.md'); git('commit', '-qm', 'documents');
+  assert.equal(run(record, ['--committed']).status, 0);
+  fs.writeFileSync(path.join(root, 'result.md'), 'new evidence');
+  record.items[0].evidence.sha256 = hash('new evidence');
+  assert.equal(run(record).status, 0);
+  expectFailure(run(record, ['--committed']), 'COMMITTED');
+});
+
+test('들여쓴 코드 예시는 실제 체크박스와 중복 계산하지 않음', t => {
+  const { root, run } = fixture(t);
+  fs.appendFileSync(path.join(root, 'plan.md'), '\n    - [x] 구현\n\n```markdown\n- [x] 구현\n```\n');
+  assert.equal(run().status, 0);
+  fs.writeFileSync(path.join(root, 'plan.md'), '    - [x] 구현\n');
+  expectFailure(run(), 'ITEM');
+});
