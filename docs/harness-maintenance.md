@@ -24,6 +24,13 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 `plugins/harness-guard/.codex-plugin/plugin.json` + README 배지.
 동작 변경을 머지하고 버전을 안 올리면 팀원에게 배포되지 않은 것과 같다.
 
+## 진행 문서 검사 배포 경계
+
+v0.74.0은 plugin의 `scripts/check-document-sync.mjs`와 PR wrapper의 선언 사전 검사를 제공한다.
+이 repo의 quality CI는 선언을 필수 검사하지만 소비 repo의 CI·기존 체크 스크립트는 자동 변경하지 않는다.
+연결 방법·입력·한계는 [Markdown 동기화](ai-collaboration.md#선언한-문서의-기계적-검사)를 따른다.
+구현과 develop 병합은 정식 릴리즈·설치 완료를 뜻하지 않는다.
+
 ## 팀원에게 전파되는 방식
 
 ### 분리 package artifact (전환 단계)

@@ -341,3 +341,12 @@ plan·feature-add·feature-modify·systematic-debugging은 기존 이름을 유�
 추가하지 않는다. Superpowers 미설치에도 native 방식으로 동일 계약을 지킨다. 외부 플러그인이나
 전역 모델 설정은 수정하지 않는다. 기존 로컬 샘플의 실제 결함 수정으로 연결을 확인하고 적용 범위·
 한계를 기록한다. 상태와 수용 기준은 [명세](specs/workflow-responsibilities.md)를 따른다.
+
+
+## 2026-09-23 진행 문서 동기화 검사
+
+기존 스펙/PR에 선언한 문서·체크박스·파일 digest·정확한 태그를 같은 로컬/PR 검사로 연결한다.
+의미·대상 누락은 독립 검토하며 중앙 상태 저장소·전체 Markdown 판정기·상시 LLM 호출은 두지 않는다.
+제품 방향의 **소유** 영역이며 입력·수용 기준·배포 경계는 [명세](specs/progress-document-check.md)와
+[사용 계약](ai-collaboration.md#선언한-문서의-기계적-검사)을 따른다. 기존 PR wrapper는 선언이 있을 때
+사전 검사하고, 이 저장소 CI에서 먼저 선언을 필수화한다. 기존 소비 repo의 CI는 자동 변경하지 않는다.

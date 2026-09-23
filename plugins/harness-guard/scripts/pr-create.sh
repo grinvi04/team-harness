@@ -3,7 +3,7 @@
 # PR 생성은 이 스크립트를 통해서만 한다(내부 gh는 자식 프로세스라 PreToolUse 훅에 안 걸린다).
 # base를 자동 감지(develop 있으면 develop, 없으면 origin 기본 브랜치=main)하고 push 후 생성한다.
 #
-# 사용: pr-create.sh --title "<t>" --body "<b>" [--base <branch>] [--draft] [--milestone <m>]
+# 사용: pr-create.sh --title "<t>" --body "<b>" [--body-file <file>] [--base <branch>] [--draft] [--milestone <m>]
 #   --base 미지정 시 자동 감지. hotfix/release처럼 base를 강제해야 하면 --base로 지정.
 set -euo pipefail
 
@@ -25,6 +25,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --title)     TITLE="${2:-}"; shift 2;;
     --body)      BODY="${2:-}"; shift 2;;
+    --body-file) BODY="$(cat "${2:?body file required}")"; shift 2;;
     --base)      BASE="${2:-}"; shift 2;;
     --milestone) MILESTONE="${2:-}"; shift 2;;
     --draft)     DRAFT="--draft"; shift;;
@@ -35,6 +36,13 @@ done
 # title/body는 함께 주거나 둘 다 생략(--fill). 한쪽만은 gh가 비대화형에서 에러 → push 전에 거절.
 if ! valid_title_body "$TITLE" "$BODY"; then
   echo "pr-create.sh: --title과 --body는 함께 주세요(둘 다 생략 시 --fill 사용)." >&2; exit 2
+fi
+
+# Opt-in declaration for existing consumers; adopting CI can require its presence.
+# Validate before any push. The body is data, never interpolated into shell code.
+if [[ "$BODY" == *'```harness-doc-sync'* ]]; then
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  printf '%s\n' "$BODY" | node "$SCRIPT_DIR/check-document-sync.mjs" --repo . --record /dev/stdin
 fi
 
 BRANCH=$(git branch --show-current)
