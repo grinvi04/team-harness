@@ -3,7 +3,11 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.74.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.75.0` and replace this file with its output.
+
+## v0.75.0 - 2026-09-23
+
+- fix(workflow): 상태 후보와 릴리즈 인계 계약 정합성 수정
 
 ## v0.74.0 - 2026-09-23
 
