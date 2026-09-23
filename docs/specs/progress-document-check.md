@@ -41,6 +41,6 @@
 - [ ] 전체 품질 검사와 독립 검토
 
 관련 문서: 이 스펙, `docs/ai-collaboration.md`, `docs/developer-workflow.md`, `docs/harness-maintenance.md`,
-`docs/code-review.md`, `docs/decisions.md`, `AGENTS.md`, `README.md`, `templates/PULL_REQUEST_TEMPLATE.md`.
+`docs/code-review.md`, `docs/decisions.md`, `AGENTS.md`, `README.md`, `docs/intro.html`, `templates/PULL_REQUEST_TEMPLATE.md`.
 `docs/product-direction.md`의 실제 업무 확장·점진적 공유, #412와 #172 대기는 영향 없이 유지한다.
 PR을 만들면 병합·CI 상태는 그 PR을 정본으로 연결한다. 릴리즈·설치는 사용자 요청 시 별도 기존 절차로 진행한다.
