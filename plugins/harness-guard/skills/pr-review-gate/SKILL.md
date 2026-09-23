@@ -130,4 +130,7 @@ bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-
 ## 부록 — back-merge PR 간소 게이트
 
 `hotfix`·`release`의 develop 반영 PR(내용이 main PR과 동일한 back-merge)은 1~3단계를 생략하고
-**4(승인)·5(CI)·7(머지)만** 적용한다. 승인 요청 시 "main PR #N과 동일 내용의 back-merge"임을 본문에 명시.
+**4(대상 브랜치의 현재 보호 정책이 요구할 때만 사람 승인)·5(CI)·7(머지)**를 적용한다.
+승인요건이 0이거나 없으면 4단계는 해당 없음이며, 1 이상이면 승인 확인을 유지한다.
+본문에 "main PR #N과 동일 내용의 back-merge"임을 명시한다. 문서 상태 갱신·충돌 해소 등
+추가 변경이 있으면 동일 내용으로 간주하지 않고 전체 절차로 그 변경을 검토한다.

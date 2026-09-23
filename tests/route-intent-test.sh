@@ -73,6 +73,9 @@ fi
 # AC-2a-contract: Codex에는 별도 Skill tool이 없다. SKILL.md 적용 + 사용자 가시성 계약이어야 한다.
 if echo "$out_2a" | grep -q 'SKILL.md' \
   && echo "$out_2a" | grep -q '적용 skill과 현재 phase' \
+  && echo "$out_2a" | grep -q '상태 기반 후보=' \
+  && echo "$out_2a" | grep -q '승인 범위' \
+  && ! echo "$out_2a" | grep -q '\[하네스\] 현재=' \
   && ! echo "$out_2a" | grep -q 'Skill 도구'; then
   echo "PASS: AC-2a-contract: 도구 중립 skill 실행·가시성 계약"; PASS=$((PASS+1))
 else
