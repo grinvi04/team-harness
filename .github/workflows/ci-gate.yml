@@ -5,6 +5,7 @@ name: ci-gate
 on:
   pull_request:
     branches: [main, develop]
+    types: [opened, synchronize, reopened, edited]
 
 permissions:
   contents: read
@@ -17,6 +18,11 @@ jobs:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
           fetch-depth: 0
+
+      - name: 진행 문서 동기화 선언 검사
+        run: |
+          node plugins/harness-guard/scripts/check-document-sync.mjs --repo . --event "$GITHUB_EVENT_PATH"
+          node --test tests/document-sync-test.mjs
 
       - name: 선택형 개발 조정 배포 경계 검사
         run: bash tests/orchestration-integration-test.sh

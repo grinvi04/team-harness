@@ -3,7 +3,14 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.73.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.74.0` and replace this file with its output.
+
+## v0.74.0 - 2026-09-23
+
+- fix(docs): 직접 지정한 선언도 커밋 후보에 결박
+- fix(docs): 들여쓴 fence 예시의 상태 간섭 방지
+- fix(docs): 커밋 후보와 코드 예시 검사 경계 보완
+- feat(docs): 진행 문서 동기화 검사 연결
 
 ## v0.73.0 - 2026-09-22
 

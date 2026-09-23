@@ -46,6 +46,7 @@ develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, �
 
 - **작게**: 리뷰 가능한 단위 ±400라인 가이드 (마이그레이션·자동생성 제외) — 넘으면 분리 우선 검토
 - 템플릿(`templates/PULL_REQUEST_TEMPLATE.md`) 필수 작성, 미완성 공유는 **Draft**로
+- 진행 문서 검사 채택 repo는 PR 본문에 [동기화 선언](ai-collaboration.md#선언한-문서의-기계적-검사)을 연결한다. team-harness 자체 quality는 이를 필수 검사한다. 선언의 대상 누락·근거 의미·비적용 이유는 리뷰어가 diff와 대조한다.
 - **셀프 리뷰 먼저**: 본인이 diff를 한 번 훑고 나서 리뷰 요청 (AI 생성 코드는 특히 — `ai-collaboration.md`)
 - CI 통과 + 리뷰 스레드 전부 resolve = 공통 머지 조건 (branch protection 강제). **승인**은 조건부 — **팀 모드**(리뷰어 有)는 사람 승인 1명 이상, **솔로 표준**은 승인요건 0이라 CI-gate·enforce_admins=on이 대신한다(아래 "솔로/리뷰어 부재" 참조)
 - **솔로/리뷰어 부재**: 자기 PR 자기승인이 불가하므로 승인요건 충족이 구조적으로 막힌다. 두 운용을 **자유롭게 선택**한다(품질 게이트=CI·스레드 resolve는 항상 유지):

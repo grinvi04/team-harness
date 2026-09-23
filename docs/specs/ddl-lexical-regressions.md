@@ -86,5 +86,8 @@ check "PostgreSQL 다차원 ARRAY 뒤 TRUNCATE → FAIL" 1 "$FIX/bad-pg-array-tr
 - [x] #442의 두 draft PR을 수정된 정본 revision으로 갱신한다. 동일 6파일의 byte 일치,
   새로운 정본 회귀 suite·각 앱 품질·필수 CI·리뷰를 재검증한 뒤 develop에 병합한다.
   DriveTree #84(`bd634e6`)와 webhook-service #70(`83cd398`)이 병합됐고 6파일은 정본과 byte 일치한다.
-- [ ] 정식 main 릴리즈와 태그는 release-check/release 경로의 별도 완료 조건으로 구분한다.
-  진행하지 않은 릴리즈·설치 갱신을 완료라고 보고하지 않는다.
+- [x] 정식 main 릴리즈와 태그: [PR #445](https://github.com/grinvi04/team-harness/pull/445)가
+  2026-09-05에 병합됐고 [v0.68.0](https://github.com/grinvi04/team-harness/tree/v0.68.0)은
+  `28b9cc8023969f5c3b40353278073913fb6907e7`을 가리킨다.
+  [역병합 PR #446](https://github.com/grinvi04/team-harness/pull/446)도 같은 날 완료됐다.
+  2026-09-23에 원본을 대조해 누락된 상태를 정정했다. 이 기록은 사용자별 설치 갱신을 증명하지 않는다.
