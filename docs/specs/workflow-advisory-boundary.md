@@ -45,7 +45,8 @@ develop 반영과 정식 릴리즈·설치 갱신은 구분한다. 이번 점검
 [PR #477](https://github.com/grinvi04/team-harness/pull/477)로 develop에 병합됐다.
 사전 검증 후보 `5695cdcba2323fa6236da949215828b759093d64`에서 quality 실행 단계 61개 전체 재실행 PASS,
 독립 보안 검토 PASS, 외부 파일럿 원격 원본 7건 PASS, 배포 묶음 SHA-256 검증 PASS를 확인했다.
-실행 앱·DB·배포 환경 설정과 SVG 생성기가 없는 저장소이므로 관련 앱·DB 운영 검사는 해당하지 않는다.
+실행 앱·DB가 없어 관련 앱·DB 운영 검사는 해당하지 않는다. `docs/gen_arch_svg.py`가 없어
+SVG 신선도 검사는 SKIP이며, `templates/gen_arch_svg.py`는 소비 프로젝트용 서식이다.
 
 릴리즈 준비 변경은 이 검증 기록 추가뿐이며 스크립트·스킬·권한 설정은 동일하다. 실제 배포 상태는
 `release/v0.75.0 → main` PR, `v0.75.0` 태그, `sync/backmerge-v0.75.0 → develop` PR을 정본으로 확인한다.
