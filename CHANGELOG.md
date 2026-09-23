@@ -7,6 +7,7 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.75.0` and repl
 
 ## v0.75.0 - 2026-09-23
 
+- fix(workflow): 릴리즈 경로와 승인 조회 실패 조건 명시
 - fix(workflow): 상태 후보와 릴리즈 인계 계약 정합성 수정
 
 ## v0.74.0 - 2026-09-23
