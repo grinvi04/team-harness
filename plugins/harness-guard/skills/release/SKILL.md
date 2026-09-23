@@ -65,6 +65,16 @@ release-check는 그 커밋을 본 적이 없다 — 머지 전 **변경 범위 
 
 Phase 2(해당 시) ✅인 경우에만 진행.
 
+`HARNESS_RELEASE_PLUGIN_ROOT`를 현재 사용할 플러그인의 실제 절대 경로로 설정한다.
+Team Harness 소스 후보를 작업할 때는 해당 체크아웃의 `plugins/harness-guard`를 사용한다
+(repo 루트에서 `HARNESS_RELEASE_PLUGIN_ROOT="$PWD/plugins/harness-guard"`). 소비 repo에서는
+현재 실행 플랫폼이 제공하는 설치 경로를 사용하고, 설치본과 소스 후보를 혼동하지 않는다.
+
+```bash
+: "${HARNESS_RELEASE_PLUGIN_ROOT:?현재 사용할 플러그인의 실제 절대 경로를 설정하세요}"
+test -f "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh"
+```
+
 먼저 `/tmp/release-main-pr.md`에 버전·변경 내용·검증한 후보와 결과·남은 단계를 작성한다.
 진행 문서 검사를 채택한 repo(team-harness 포함)는 AGENTS.md의 문서 동기화 계약에 따라
 `harness-doc-sync` 선언 하나를 본문에 포함한다. 기존 작업 기록을 연결할 때도 현재 후보와
@@ -72,7 +82,7 @@ Phase 2(해당 시) ✅인 경우에만 진행.
 관련 문서 변경을 커밋한 뒤, 채택 repo에서는 push 전에 본문을 검사한다:
 
 ```bash
-node ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/check-document-sync.mjs \
+node "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/check-document-sync.mjs" \
   --repo . --record /tmp/release-main-pr.md --committed
 ```
 
@@ -80,7 +90,7 @@ node ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/che
 
 ```bash
 # 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base main \
+bash "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh" --base main \
   --title "release: v$VERSION" \
   --body-file /tmp/release-main-pr.md
 PR=$(gh pr view --json number --jq .number)
@@ -121,7 +131,7 @@ sync 브랜치에서 커밋하고, PR 생성 전에 이 본문으로 `--committe
 git checkout main && git pull origin main
 git checkout -b sync/backmerge-v$VERSION
 # 위 본문·문서 검사를 마친 뒤 래퍼가 push와 PR 생성을 수행한다.
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
+bash "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh" --base develop \
   --title "chore: release/v$VERSION develop 반영" \
   --body-file /tmp/release-backmerge-pr.md
 ```
