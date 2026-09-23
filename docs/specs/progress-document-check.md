@@ -40,9 +40,15 @@
 
 - [x] 검사 구현과 정상·거부·경계 테스트
 - [x] 로컬·PR CI 연결과 사용 안내 현행화
-- [ ] 전체 품질 검사와 독립 검토
+- [x] 전체 품질 검사와 독립 검토
 
 관련 문서: 이 스펙, `docs/ai-collaboration.md`, `docs/developer-workflow.md`, `docs/harness-maintenance.md`,
 `docs/code-review.md`, `docs/decisions.md`, `AGENTS.md`, `README.md`, `docs/intro.html`, `CHANGELOG.md`, `templates/PULL_REQUEST_TEMPLATE.md`.
 `docs/product-direction.md`의 실제 업무 확장·점진적 공유, #412와 #172 대기는 영향 없이 유지한다.
-PR을 만들면 병합·CI 상태는 그 PR을 정본으로 연결한다. 릴리즈·설치는 사용자 요청 시 별도 기존 절차로 진행한다.
+검증: 로컬 quality의 실행 단계 61개를 수행했고, 소개 페이지·생성 CHANGELOG 누락을 수정 후 해당
+검사를 재실행했다. 독립 검토의 커밋 결박·들여쓴 코드 예시 지적을 반영한 `f564e36`에서 동기화
+24개·관련 소비 검사 통과와 독립 검토 **VERIFIED**를 확인했다. 변경하지 않은 검사 결과는 재사용했다.
+이 기록은 전체 문서의 의미·미선언 대상까지 자동 검증했다는 뜻이 아니다.
+
+병합·최종 CI 상태는 [PR #474](https://github.com/grinvi04/team-harness/pull/474)를 정본으로 조회한다.
+릴리즈·설치는 수행하지 않았으며 사용자 요청 시 별도 기존 절차로 진행한다.
