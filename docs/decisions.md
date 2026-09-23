@@ -15,6 +15,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
+| **상태 라우팅은 후보, delivery는 현재 계약에 연결** — 과거 스펙·Git 상태로 고른 skill을 현재 단계로 단정하지 않고 실제 요청·기존 승인과 대조한다. 릴리즈·역병합 PR은 채택 repo의 문서 선언을 사전에 검사하고, 역병합의 사람 승인 여부는 대상 브랜치의 현재 보호 정책을 따른다. 라우팅 판정·JSON 계약·보호 게이트·소비 repo의 선택 도입 범위는 유지한다. | 2026-09-23 | ai-collaboration.md, specs/workflow-advisory-boundary.md | route-intent.mjs, release·pr-review-gate skill |
 | **개인 개발부터 재사용·점진적 확산** — 사용자 목표에 맞춰 반복 설정·조사·검사 구성을 줄이는 것을 우선한다. 기존 GitHub 거버넌스는 연결 프로젝트에서 유지하고 로컬 샘플에 원격 생성·공개를 강요하지 않는다. 전체 시작 자동화는 아직 미완료로 추적한다. 기존 제품 방향의 거버넌스 전용 정체성은 이 결정으로 대체한다. | 2026-09-22 | product-direction.md, specs/personal-development-flow.md | README.md, AGENTS.md, onboarding.md, quick-start.md, product-boundaries.md, development-coordination.md |
 | **Codex 저위험 구현 위임과 문서 현행화** — 현재 agent가 모든 구현을 해야 한다는 native wrapper 제한을 수정한다. 승인된 모델·effort의 scoped worker를 허용하고, 테스트 계약 검수·Git 통합·최종 판정은 부모가, 독립 반증은 다른 인스턴스가 맡는다. 기술적 권한 제한·CI·리뷰는 완화하지 않는다. 로드맵·체크리스트·진행 문서의 상태 대조를 개발·인계·완료 기준에 연결한다. 전역 설정 변경이나 특정 모델 사용량 할당제는 도입하지 않는다. | 2026-09-22 | specs/personal-development-flow.md, model-tiering.md, ai-collaboration.md | codex/native-runtime.md, Codex feature-add·feature-modify·ao-coordinate wrapper, 공용 개발·검증 skill, templates/AGENTS.md |
 | **커밋 검사 신뢰 경계 분리** — 기본 브랜치의 metadata 전용 target workflow를 사용한다. 기존 필수 검사는 새 `commitlint-trusted`의 실제 PR 성공 확인 후 교체하며, PR 코드 실행·별도 App·수동 성공 상태 게시 없이 단계적으로 적용한다. | 2026-09-21 | specs/trusted-commitlint.md | code-review.md, specs/self-repo-common-gates.md |

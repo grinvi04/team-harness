@@ -45,7 +45,7 @@ function inject(skill) {
     inject: true,
     phase: skill,
     skill,
-    message: `[하네스] 현재=${skill}. 사용자 지시를 다음 단계로 해석한다. ${skill}/SKILL.md를 읽고 그 절차와 wrapper를 적용하라. 별도 skill 호출 surface가 없는 도구는 현재 agent가 절차를 직접 수행한다. 사용자 업데이트에 적용 skill과 현재 phase를 표시하라.`,
+    message: `[하네스] 상태 기반 후보=${skill}. 이 후보는 현재 작업 단계나 실행 승인을 확정하지 않는다. 실제 사용자 요청·기존 승인 범위·프로젝트 원본과 대조해 적합한 skill을 선택하라. 후보가 맞으면 ${skill}/SKILL.md를 읽고 그 절차와 wrapper를 적용하라. 맞지 않으면 요청에 맞는 계약을 따른다. 별도 skill 호출 surface가 없는 도구는 현재 agent가 절차를 직접 수행한다. 선택 후 사용자 업데이트에 적용 skill과 현재 phase를 표시하라.`,
   }
 }
 
