@@ -15,6 +15,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
+| **QA 보고는 명령별 원문에 결박, 프로젝트 계약은 AGENTS로 연결** — 같은 이름의 일반 검증 스킬을 Harness 계약 적용으로 간주하지 않는다. 제공된 Harness 계약을 실제 경로로 연결하고 미제공 시 최소 QA 기준과 미로딩을 밝힌다. native 선택/로딩은 복제하지 않으며 보고의 명령·디렉터리·후보·시도를 대조한다. | 2026-09-29 | verification-before-completion skill, qa-evidence-guide.md | AGENTS.md, templates/AGENTS.md, specs/qa-command-binding-validation.md |
 | **요구·위험에서 QA 범위와 완료 기준 도출** — 기존 테스트 목록 대신 요구·소비자 경계·실패 영향으로 필수 사례와 관찰 가능한 품질 기준을 정한다. 에이전트가 검증을 수행하며 발견 결함의 수정과 원래 목표 달성을 구분한다. 결과 계약은 Harness가 소유하고 기존 개발 흐름에 연결하며 제품별 테스트·브라우저 실행은 위임한다. | 2026-09-29 | ai-collaboration.md, verification-before-completion skill | plan·feature-add·feature-modify·systematic-debugging·qa skill, frontend-design-standards.md, api-standards.md, development-coordination.md, specs/qa-scope-contract.md |
 | **상태 라우팅은 후보, delivery는 현재 계약에 연결** — 과거 스펙·Git 상태로 고른 skill을 현재 단계로 단정하지 않고 실제 요청·기존 승인과 대조한다. 릴리즈·역병합 PR은 채택 repo의 문서 선언을 사전에 검사하고, 역병합의 사람 승인 여부는 대상 브랜치의 현재 보호 정책을 따른다. 라우팅 판정·JSON 계약·보호 게이트·소비 repo의 선택 도입 범위는 유지한다. | 2026-09-23 | ai-collaboration.md, specs/workflow-advisory-boundary.md | route-intent.mjs, release·pr-review-gate skill |
 | **개인 개발부터 재사용·점진적 확산** — 사용자 목표에 맞춰 반복 설정·조사·검사 구성을 줄이는 것을 우선한다. 기존 GitHub 거버넌스는 연결 프로젝트에서 유지하고 로컬 샘플에 원격 생성·공개를 강요하지 않는다. 전체 시작 자동화는 아직 미완료로 추적한다. 기존 제품 방향의 거버넌스 전용 정체성은 이 결정으로 대체한다. | 2026-09-22 | product-direction.md, specs/personal-development-flow.md | README.md, AGENTS.md, onboarding.md, quick-start.md, product-boundaries.md, development-coordination.md |

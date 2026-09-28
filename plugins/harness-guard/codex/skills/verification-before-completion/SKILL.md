@@ -1,6 +1,6 @@
 ---
 name: verification-before-completion
-description: 확인·검증 요청이나 완료·PR·머지·릴리즈 준비를 주장하기 전에 현재 상태의 새 증거로 판정할 때 사용. 구현·실패 수정·머지·릴리즈 실행 자체는 제외
+description: Harness 프로젝트의 확인·검증·완료·PR·머지·릴리즈 판정에 QA 범위와 증거 계약이 필요할 때 사용. Superpowers 등 일반 검증 방법론과 함께 적용. 구현·실패 수정·delivery 실행 자체는 제외
 ---
 
 # verification-before-completion — Codex native wrapper

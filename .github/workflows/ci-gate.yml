@@ -223,6 +223,11 @@ jobs:
       - name: QA 실제 과제 판정자 자체 검증 (모델 호출 없음)
         run: node --test tests/qa-practical-test.mjs
 
+      - name: QA 명령별 증거 판정자 자체 검증 (모델 호출 없음)
+        run: |
+          node --check tests/fixtures/qa-command-binding.mjs
+          node --test tests/qa-command-binding-test.mjs
+
       - name: 제품 방향·신규 기능 판단 게이트 계약
         run: bash tests/product-direction-test.sh
 
