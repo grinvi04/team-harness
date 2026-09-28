@@ -220,6 +220,9 @@ jobs:
       - name: 대표 디버깅·완료 검증 스킬 계약
         run: bash tests/flagship-skills-test.sh
 
+      - name: QA 실제 과제 판정자 자체 검증 (모델 호출 없음)
+        run: node --test tests/qa-practical-test.mjs
+
       - name: 제품 방향·신규 기능 판단 게이트 계약
         run: bash tests/product-direction-test.sh
 
