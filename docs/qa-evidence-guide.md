@@ -80,3 +80,10 @@ Harness QA 계약의 현장 적합성을 평가하며 각 제품의 출시 승�
   사용자 정책이 바뀌지 않은 한 실패 뒤 필수 검사를 빼거나 임계값을 낮출 수 없다.
 - **제품 전체 QA·릴리즈:** 남아 있는 실제 DB/인증/브라우저·운영 적합성 경계와 각 제품의 delivery gate가
   별도로 충족돼야 한다. 조사 종료나 대표 단위 시험 통과는 제품 출시 승인이 아니다.
+
+## 실행 계약에 연결
+
+현장 교훈 중 재사용할 관찰 경계는 plugin에 함께 배포되는
+[위험별 QA 참조](../plugins/harness-guard/skills/verification-before-completion/risk-boundaries.md)에
+연결했다. 범위 선정 시 관련 위험에만 적용하며 제품별 상세 설정은 위 적용 기록에 남긴다.
+공통 스킬의 판단·범위 유지 평가는 [별도 기록](specs/qa-behavior-validation.md)을 따른다.

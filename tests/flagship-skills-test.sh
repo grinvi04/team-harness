@@ -174,6 +174,25 @@ else
   fail "소개 또는 현행 매핑 inventory 불일치"
 fi
 
+# 구조 검사일 뿐 행동 평가의 대체물이 아니다. 설치 package에서도 상대 참조가 살아 있어야 한다.
+if node - "$ROOT" <<'NODE'
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.argv[2];
+const dir = path.join(root, 'plugins/harness-guard/skills/verification-before-completion');
+const skill = fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8');
+assert.ok(skill.includes('(risk-boundaries.md)'), 'canonical skill must link its packaged reference');
+assert.ok(fs.readFileSync(path.join(dir, 'risk-boundaries.md'), 'utf8').length > 0);
+const catalog = JSON.parse(fs.readFileSync(path.join(root, 'packaging/packages.json')));
+assert.ok(catalog.packages.find(p => p.id === 'governance-core').sources.includes('skills/verification-before-completion'));
+NODE
+then
+  pass "QA 위험 참조가 공통 스킬과 package source에 연결됨 (구조 검사)"
+else
+  fail "QA 위험 참조 연결 누락"
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
