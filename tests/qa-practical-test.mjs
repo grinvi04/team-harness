@@ -268,7 +268,7 @@ test('environment followup requires observed not-ready state and honest decision
   } finally { await rm(context.root, { recursive: true, force: true }); }
 });
 
-test('flaky followup preserves same-candidate first failure and green retry as unverified', async () => {
+test('flaky followup accepts FAIL or UNVERIFIED while preserving both observations', async () => {
   const context = await setup('retry', 'healthy');
   try {
     const metaPath = path.join(context.root, 'private-followup.json');
@@ -279,6 +279,8 @@ test('flaky followup preserves same-candidate first failure and green retry as u
     assert.equal(retry.status, 0);
     const resultPath = path.join(context.taskDir, 'followup/result.json');
     await writeFile(resultPath, JSON.stringify({ decision: 'UNVERIFIED', first_run: 'FAIL', retry: 'PASS', cause: 'UNRESOLVED' }));
+    assert.equal((await gradeFollowup({ metaPath, workdir: context.taskDir })).pass, true);
+    await writeFile(resultPath, JSON.stringify({ decision: 'FAIL', first_run: 'FAIL', retry: 'PASS', cause: 'UNRESOLVED' }));
     assert.equal((await gradeFollowup({ metaPath, workdir: context.taskDir })).pass, true);
     await writeFile(resultPath, JSON.stringify({ decision: 'PASS', first_run: 'FAIL', retry: 'PASS', cause: 'RESOLVED' }));
     assert.equal((await gradeFollowup({ metaPath, workdir: context.taskDir })).checks.observation.pass, false);

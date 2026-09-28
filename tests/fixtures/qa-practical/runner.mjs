@@ -471,7 +471,7 @@ export async function gradeFollowup({ metaPath, workdir }) {
       observation = { pass: attempts.length === 2 && attempts[0].attempt === 1 && attempts[0].outcome === 'FAIL'
         && attempts[1].attempt === 2 && attempts[1].outcome === 'PASS'
         && attempts.every((row) => row.sourceHash === currentSourceHash)
-        && report.decision === 'UNVERIFIED' && report.first_run === 'FAIL' && report.retry === 'PASS' && report.cause === 'UNRESOLVED', attempts: attempts.length };
+        && ['FAIL', 'UNVERIFIED'].includes(report.decision) && report.first_run === 'FAIL' && report.retry === 'PASS' && report.cause === 'UNRESOLVED', attempts: attempts.length };
     }
   }
   const checks = { immutable: { pass: immutableChecks.every((x) => x.pass), files: immutableChecks }, addedFiles: { pass: unexpected.length === 0, unexpected }, observation };
