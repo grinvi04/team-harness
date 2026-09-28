@@ -65,6 +65,7 @@ codex exec -m gpt-6-sol -c 'model_reasoning_effort="high"' \
     {"path":"docs/specs/qa-scope-contract.md","reason":"후속 행동 평가 연결"},
     {"path":"docs/specs/multi-project-qa-validation.md","reason":"제품 작업 보류와 Harness 평가 경계"},
     {"path":"docs/qa-evidence-guide.md","reason":"현장 교훈의 실행 계약 연결"},
+    {"path":"docs/specs/multi-project-integration-evidence.json","reason":"공개 안전성 검사에서 발견한 홈 경로 표기 정정, 원본 digest·판정 보존"},
     {"path":"docs/decisions.md","reason":"사례별 참조·native 평가 연결 결정"},
     {"path":"plugins/harness-guard/skills/verification-before-completion/SKILL.md","reason":"위험별 참조와 작업 범위 유지"},
     {"path":"plugins/harness-guard/skills/verification-before-completion/risk-boundaries.md","reason":"배포되는 QA 관찰 경계"},
