@@ -237,6 +237,19 @@ test('scope oracle detects protected consumer edit and unrelated new files', asy
   } finally { await rm(context.root, { recursive: true, force: true }); }
 });
 
+test('scope documentation accepts equivalent field-name wording and flags semantic review', async () => {
+  const context = await setup('scope', 'healthy');
+  try {
+    await simulateIdeal(context, 'scope', false);
+    await writeFile(path.join(context.taskDir, 'docs/qa-policy.md'), '# Harness QA policy\n\nVerdict: PASS\nRule: PASS iff evidence is PASS and candidateMatches is true.\nConsumer follow-up: deferred\n');
+    const result = await context.grade();
+    assert.equal(result.checks.product.pass, true);
+    assert.equal(result.checks.docEvidence.pass, true);
+    assert.equal(result.checks.docEvidence.semanticReviewRequired, true);
+    assert.equal(result.pass, true);
+  } finally { await rm(context.root, { recursive: true, force: true }); }
+});
+
 test('wording followup accepts only the heading repair', async () => {
   const context = await setup('blocks', 'healthy');
   try {
