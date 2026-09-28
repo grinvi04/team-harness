@@ -225,9 +225,37 @@ Siku 반례는 실제로 실행해 2 FAIL을 확인했고 ERP에는 실제 변�
 [근거 가이드](../qa-evidence-guide.md)에 상태 잠금·캐시·비동기 완료의 사례를 연결한다.
 
 **통합 조사 결과와 재현 증거는 확보했으나 제품 전체 QA는 NOT VERIFIED**다.
-Siku·DriveTree의 확인된 결함을 고치고 실패 시험을 통과시키는 것이 다음 우선순위다.
+2차 종료 시점에는 Siku·DriveTree의 확인된 결함 수정과 실패 시험 재검증이 다음 우선순위였다.
+후속 로컬 수정 결과는 아래 3차 기록에서 구분한다.
 webhook은 JWT/audience·tenant 권한 계약 및 실패 payload 영속 보존을 별도 필수 항목으로 남긴다.
 Harness 0.76.0 후보를 릴리즈·설치한 결과나 모든 향후 작업의 자동 준수 증거로 확대하지 않는다.
+
+## 3차 결과 — 확인된 두 결함 수정 (2026-09-29)
+
+사용자가 후속 수정을 승인해 Siku와 DriveTree의 별도 로컬 작업 브랜치에서 수정했다.
+운영 DB·배포와 원본 `develop` 작업트리는 변경하지 않았다. 앞선 1·2차 FAIL은 당시 후보의 역사적
+증거로 보존한다. 새 후보의 로컬 통과를 이전 후보나 실제 배포 상태에 소급하지 않는다.
+
+| 제품 | 수정 후보와 구현 | 검증 |
+|---|---|---|
+| Siku | `13d11faf2af8803ae0d6d5ec9277a75dfe719d3e`, `codex/fix-settlement-parent-lock`. 새 migration 0018에서 OLD/NEW 부모 양쪽 잠금 확인 | 같은 회귀 4 FAIL·2 PASS → 6 PASS. 소유자·일반 멤버 이동, 확정 추가/삭제/분담금 차단, 취소 후 허용. 단위 79, 전체 Playwright 24(기존 브라우저 18 + 직접 DB 6), lint·format·build PASS. 기존 DB 업그레이드·새 DB 전체 migration PASS |
+| DriveTree | `2f7f08c3078c906645af6fc641dcffcf61896386`, `codex/fix-content-cache-consistency`. 콘텐츠 목록/검색 HTTP 캐시와 사용처 없는 전역 등록 제거 | 같은 회귀 3 FAIL·1 PASS → 4 PASS. 단위 70, 전체 DB/HTTP E2E 17, format·lint·build PASS. 인증·DB soft-delete·embedding 보존 유지 |
+
+재현 시험은 이제 각 제품 소스에 포함된다. Siku `tests/e2e/settlement-lock.spec.ts`와
+`docs/specs/settlement-parent-lock.md` 및 같은 이름의 `-evidence.json`, DriveTree
+`backend/test/content-cache-consistency.e2e-spec.ts`와 `docs/specs/content-cache-consistency.md`에서
+실행 조건·로그 digest·수용 기준과 한계를 확인한다. 기존 E2E 명령이 새 시험을 발견한다.
+
+독립 검토에서 Siku의 INSERT/DELETE 유지 사례를 보강했고, DriveTree 시험의 하드코딩된 관리자
+fixture가 기존 CI 계정과 맞지 않는 문제를 수정했다. DriveTree는 서로 다른 로컬 관리자 설정으로
+동일 시험을 원래 코드와 수정 코드에 실행해 RED/GREEN을 다시 확인했다. 로그인 대역이나 기대값
+완화로 해결하지 않았다. 최종 코드·시험 후보를 읽기 전용으로 재검토했고 남은 차단 지적은 없었다.
+
+판정은 **확인된 두 결함의 로컬 수정·회귀 검증 PASS, 병합·배포 미실행**이다. Siku 운영 migration,
+동시 정산 확정 경쟁 조건, DriveTree 프런트 상세 페이지의 별도 1시간 ISR은 검증 범위 밖이다.
+DriveTree 목록 캐시 제거로 요청마다 DB를 조회하는 비용이 생기며 성능 SLO 통과를 주장하지 않는다.
+webhook 실제 JWT/audience·사용자 tenant 권한 및 실패 payload 영속 보존은 여전히 미확인이다.
+따라서 다섯 제품 전체 QA·출시가 완료됐다는 판정으로 확대하지 않는다.
 
 ## 문서 동기화 대상
 
