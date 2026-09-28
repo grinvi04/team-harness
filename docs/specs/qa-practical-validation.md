@@ -2,7 +2,7 @@
 
 2026-09-29. 상태: **실행·판정 완료, 후보 충분성 NOT VERIFIED**. 정본 계획은 [QA 충분성 조사](qa-strategy-research-plan.md)다.
 이 기록은 격리한 작은 Node 과제에서의 지침 행동 평가다. 소비 제품 전체 QA·릴리즈·설치 검증이 아니다.
-당시 남은 보고·계약 연결 문제는 [별도 후속 평가](qa-command-binding-validation.md)에서 진행한다.
+당시 남은 보고·계약 연결 문제는 [별도 후속 평가](qa-command-binding-validation.md)에서 보강·검증했다.
 아래 과거 점수와 충분성 판정은 후속 수정으로 소급 변경하지 않는다.
 
 ## 후보와 실험 조건

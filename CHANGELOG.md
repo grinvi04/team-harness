@@ -3,10 +3,11 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.78.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.79.0` and replace this file with its output.
 
-## v0.78.0 - 2026-09-29
+## v0.79.0 - 2026-09-29
 
+- fix(qa): 명령별 보고 증거와 프로젝트 계약 연결
 - fix(qa): 문서 판정 표기의 형식 차이 허용
 - fix(qa): 문서 형식과 의미 검토 판정 분리
 - fix(qa): 근거 없는 원인 라벨 제한 제거
