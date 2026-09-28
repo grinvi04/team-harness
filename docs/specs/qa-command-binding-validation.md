@@ -61,6 +61,7 @@ Harness 제공 계약을 읽도록 연결하며, 미제공 때 최소 기준과 
   {"path":"docs/specs/qa-practical-validation.md","reason":"과거 결과 보존과 후속 연결"},
   {"path":"docs/specs/qa-strategy-research-plan.md","reason":"남은 문제의 후속 근거 연결"},
   {"path":"docs/qa-evidence-guide.md","reason":"명령 증거·계약 연결 안내"},
+  {"path":"docs/product-direction.md","reason":"제품 로드맵에서 공통 QA 보강의 완료 범위와 후속 기록 연결"},
   {"path":"docs/decisions.md","reason":"native 선택과 계약 전달의 경계"},
   {"path":"AGENTS.md","reason":"자체 프로젝트 계약 연결"},
   {"path":"templates/AGENTS.md","reason":"소비 프로젝트 최소 QA 계약"},
