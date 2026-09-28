@@ -47,7 +47,7 @@ ERP의 기존 미추적 `.codex/`를 보존한다. 원본 HEAD와 상태를 시�
 | 3 | 격리 사본의 대표 검사 | 아래 명령의 실행 결과, 실패/차단 분리 | 완료 |
 | 4 | 샘플 회귀 검출력 RED/GREEN | 같은 테스트로 과거 결함 실패·현재 통과 | 완료 |
 | 5 | 독립 범위·결과 검토 | 요구에서 누락한 위험, 근거 없는 통과/비적용 판정 대조 | 완료 |
-| 6 | 공통 계약의 부족한 부분 판정 | 프로젝트별 후속 검사·필수 환경과 Harness 보강 필요를 증거로 연결 | 완료; 실제 통합 검증은 미완료 |
+| 6 | 공통 계약의 부족한 부분 판정 | 프로젝트별 후속 검사·필수 환경과 Harness 보강 필요를 증거로 연결 | 완료; 2차 통합 결과는 아래 참조 |
 
 대표 명령(원본이 아닌 임시 사본; 기존 설치 의존성 재사용, `.env` 제외):
 
@@ -58,7 +58,7 @@ ERP의 기존 미추적 `.codex/`를 보존한다. 원본 HEAD와 상태를 시�
 - webhook-service: 격리 환경 변수로 `pytest tests/test_unit_signatures.py tests/test_unit_repositories.py -q`.
   `.env` 자동 로딩은 사본에 파일을 넣지 않아 차단하고 공용 engine 생성에는 연결하지 않을 loopback PostgreSQL URL, repository fixture에는 기존 SQLite 메모리 DB, queue에는 메모리용 값을 사용한다.
 
-## 현재 결과
+## 1차 결과 — 대표 검사와 검출력 대조
 
 2026-09-29에 아래 검사를 새로 실행했다. [실행 증거](multi-project-qa-evidence.json)에 실제 명령·종료 코드·
 출력·원본 로그 digest·후보와 원본 보존 대조를 남겼다. 기존 61단계 Harness 검사는 이 제품 실행에 합산하지 않는다.
@@ -91,8 +91,9 @@ Siku는 조사 시 로컬 `develop`이 캐시된 원격 추적 ref보다 4커밋
 이 대조는 알려진 중복 결함을 해당 시험이 잡는다는 증거다. Harness가 미지의 결함을 스스로 찾는 능력이나
 모든 작업에서 올바른 QA 범위를 고른다는 증거는 아니다.
 
-### 환경 진입 조건과 다음 통합 검증
+### 1차 종료 시 환경 진입 조건과 다음 통합 검증
 
+아래는 1차 종료 시점의 기록이다. 이후 실행은 아래 **2차 결과**에서 구분한다.
 Docker 상태를 권한 있는 읽기 전용 호출로 확인했으나 daemon이 실행 중이지 않았다. Supabase CLI도
 현재 PATH에서 찾지 못했다. 아래 실제 서비스 검사는 **UNVERIFIED**이며 비적용 SKIP이 아니다.
 환경 준비를 제품 실패나 모델 추론 실패로 분류하지 않는다. 기존 `.env`·운영 DB·유료 API를 사용하지 않았다.
@@ -134,7 +135,7 @@ Docker 상태를 권한 있는 읽기 전용 호출로 확인했으나 daemon이
   같은 그룹 흐름을 중심으로 검사한다. 제품에서 별도 2그룹 DB·Storage 거부 시험을 추가하고 실행해야 하며,
   기존 E2E가 모두 green이어도 이 필수 기준은 미확인이다.
 
-### Harness에 대한 판정
+### 1차 Harness 판정
 
 기존 계약의 요구→위험→판정자 연결, mock과 실제 경계 구분, UNVERIFIED 처리 방식은 다섯 스택에
 적용할 수 있었다. 추가로 구체화할 핵심은 **시험 진입 조건(격리·fixture 부작용·실제 엔진)**과
@@ -150,6 +151,84 @@ Siku의 타 그룹 DB·Storage 거부 시험 누락을 지적받았다. 위 재�
 판정: **근거 조사·계획과 안전한 대표 실행·독립 검토는 완료**했다. 다섯 제품 전체 QA는 **NOT VERIFIED**다.
 공식 자료를 읽은 것만으로 표준 준수나 인증을 주장하지 않는다.
 
+## 2차 결과 — 실제 통합 경계 (2026-09-29)
+
+사용자의 이어 진행 요청에 따라 동일 제품 후보의 Git archive 사본에서 전용 DB·인증·큐를 준비했다.
+제품 원본·기존 `.env`·운영 데이터는 사용하거나 변경하지 않았다. 임시 시험 구성과 진단 시험만 추가했다.
+[2차 실행 증거](multi-project-integration-evidence.json)에 명령·결과·원본 로그 SHA-256·안전한 출력과
+추가 시험 원문을 보존했다. 1차 증거와 샘플 시험을 다시 실행한 결과로 세지 않는다.
+
+| 대상 | 실제 관찰·결과 | 판정과 한계 |
+|---|---|---|
+| ERP | PostgreSQL16 backend check/bootJar: 171 suites, 936 PASS, 실패·skip 0. 별도 Keycloak26 + 기본 보안 Spring API + Next BFF: 준비 1개, 업무 흐름 3개 PASS; 교차 테넌트 변경 단언 추가 후 준비 1개·업무 3개 재실행 PASS | AP/AR→GL·보고서/VAT, 재고 결재·감사, 타 테넌트 GET 404/목록 제외·POST 취소/DELETE 거부와 소유자 응답 불변, 저권한 403 확인. 브라우저 OAuth 전체와 만료 JWT 서버 거부는 미확인; BFF cookie와 만료 메타데이터는 시험이 구성 |
+| Siku | 실제 Supabase Auth/DB/Storage + Chromium 기존 흐름 10 PASS. 일반 사용자 API 진단 5개 중 3 PASS·2 FAIL | 타 그룹 events/사진 접근 차단과 정상 확정/취소 PASS. 확정 지출·참여 내역의 부모 이동 잠금 우회 **FAIL** |
+| webhook-service | 실제 PostgreSQL15·Redis7·Celery worker에서 중복 DB 저장 방지, tenant별 키 분리, enqueue 실패 후 예약 해제·재시도 PASS. 기존 mock/SQLite 23개도 별도 PASS | 실제 JWT 검증은 대체되어 미확인. worker 실패→DLQ 작업 실행은 PASS이나 영속 실패 payload 보존·복구는 미확인 |
+| DriveTree | 실제 pgvector/PostgreSQL16에서 Prisma migration 3개 및 기존 E2E 13 PASS. 실제 AppModule HTTP 진단 4개 중 3 PASS·1 FAIL | 익명 읽기·익명 쓰기 거부·관리자 쓰기 PASS. DB soft-delete·embedding 보존·단건 404와 달리 기존 검색 캐시에 삭제 항목이 남음 **FAIL** |
+
+ERP 추가 권한 시험은 `finance:write`·`inventory:write`가 있는 실제 테넌트 B 토큰을 사용했다.
+테넌트 A의 DRAFT invoice에 `POST /api/finance/invoices/{id}/cancel`, A의 item에
+`DELETE /api/inventory/items/{id}`를 요청해 모두 404를 확인했다. 소유자 재조회에서 invoice와 item의
+전체 응답이 이전과 같았다. 이는 대표 재무·재고 변경 경계의 통과이며 모든 endpoint·역할 조합의 보장은 아니다.
+첫 UAT와 변경 거부 단언을 보강한 재실행을 구분해 기록하며 같은 업무 사례를 서로 다른 기능 수로 합산하지 않는다.
+
+### 재현된 결함과 수정 수용 기준
+
+**Siku — 확정 상태에서 부모 참조 변경 우회.** 일반 사용자 인증을 받은 그룹 소유자로 정산을 확정한 뒤,
+`expenses.event_id`를 미확정 행사로 옮기면 성공하고 기존 정산은 `closed`다.
+`expense_participants.expense_id`를 미확정 지출로 옮기는 요청도 성공해 원래 참여 관계가 사라진다.
+일반 금액 변경은 P0001로 거부되므로 정상 잠금 시험만으로는 이 결함을 놓친다.
+기대 결과는 두 이동의 거부·원본 관계와 확정 상태 불변이다. 수정 시 OLD/NEW 부모 잠금 또는 부모 변경
+금지 정책을 제품에서 결정하고, 두 실패 시험의 GREEN과 정상 reopen·그룹 접근 회귀를 확인한다.
+다른 그룹 침입이나 비소유 그룹 멤버의 재현을 증명한 결과는 아니다.
+
+**DriveTree — 쓰기 후 목록·검색 캐시 불일치.** 검색 URL을 먼저 읽은 뒤 항목을 삭제했다.
+DB 삭제 표시·단건 ID/slug 404·새 검색 URL 제외는 정상이나 같은 검색 URL은 삭제 항목을 반환했다.
+61초 뒤 같은 URL에서는 사라졌다. 정확한 만료 경계나 다중 인스턴스 동작은 미검증이다.
+초기 생성 캐시 실험에서도 미반영이 보고됐으나 당시 probe 원문은 보존되지 않았다.
+최종 원문과 실행이 함께 남은 확정 재현 증거는 삭제 시험으로 한정한다.
+수정 수용 기준은 create/update/delete 후 관련 기존 검색·목록의 즉시 일관성과 단건/DB 상태 일치다.
+제품의 기존 삭제 수용 조건에 따른 것이며 이번 시험에서 제품 캐시 코드를 수정하지 않았다.
+
+### 통과로 확대하면 안 되는 경계
+
+- ERP backend 검사 상당수는 `TestSecurityConfig`를 사용한다. 실제 Keycloak 증거는 별도 UAT에서 얻었다.
+  UAT의 실제 토큰/API 업무 검증과 시험이 직접 구성한 브라우저 세션을 구분한다.
+- Siku API 진단은 Playwright runner로 실행했지만 브라우저를 조작한 10개와 별개다. `events`와 시험한
+  `photos` 작업만 RLS 통과이며 모든 테이블·권한 조합의 통과가 아니다. OCR은 대역이며 외부 Edge Function은 미실행이다.
+- webhook replay 401/403/404/202 중 역할 판정은 검증된 JWT 대신 dependency override를 사용했다.
+  URL tenant와 event 소유자 불일치 거부를 사용자 자체의 테넌트 격리로 확대하지 않는다.
+  소스의 audience 검사 비활성화는 추가 확인 대상이며 다른 audience 토큰의 실제 공격 재현은 하지 않았다.
+- webhook 재전달 시험의 고정 1초 대기는 반복 실행의 보장으로 부족하다. 이번 실행의 worker 로그에는
+  DB unique 제약 중복 처리와 해당 작업 완료가 있어 **이번 실행의 단일 DB 행** 판정을 뒷받침한다.
+  제품 회귀 시험으로 옮길 때 task 완료를 기다린 후 단언해야 한다. 모든 외부 부작용의 exactly-once 증거가 아니다.
+- webhook DLQ 함수는 task ID·customer ID·오류 같은 실패 메타데이터만 로그로 남기며
+  원본 이벤트 payload의 복구 가능한 영속 보존은 제공하지 않는다. 잘못된 payload는 event 생성 전에 실패하므로 FAILED 행도
+  생성되지 않는다. DLQ task 실행 성공을 장애 자료의 영속 보존·재처리 가능으로 판정하지 않는다.
+- 실제 유료 임베딩/OCR, 전체 UI·접근성·성능, 배포 환경, clean install 재현성은 이번 통합 범위에서 미확인이다.
+
+### 환경·증거·정리
+
+기존 의존성을 복사해 사용하고 모든 쓰기는 임시 사본과 폐기 DB를 대상으로 했다. ERP/Siku의 임시
+자격증명은 보고서에 넣지 않았다. Siku CLI 2.107의 실행 종료137과 누락된 Chromium은 환경 문제로
+분리하고, 임시 경로에 공식 CLI 2.118.0과 해당 브라우저를 설치해 실행했다. 서명 검사를 우회하지 않았다.
+Supabase CLI는 전용 네트워크의 loopback 기본 설정에도 `0.0.0.0`에 포트를 게시했으며 ERP backend도
+전체 인터페이스에 바인딩됐다. 폐기 데이터만 사용했지만 이 실행을 loopback 전용 격리라고 주장하지 않는다.
+실행 후 이번 작업의 서버·컨테이너·볼륨·네트워크와 임시 자격증명을 정리하고 부재를 확인했다.
+사용자의 기존 앱은 건드리지 않았다. 원본 다섯 repo의 HEAD·브랜치·상태도 시작 기록과 같았다.
+
+### Harness에 남길 교훈과 현재 판정
+
+이번 공통 계약은 테스트 개수에 기대지 않고 실제 경계의 반례로 이어져 새로운 결함을 검출했다.
+읽기 전용 독립 검토가 Siku 부모 이동 반례, ERP 교차 테넌트 변경 단언 누락, webhook 증거 범위를 지적했다.
+Siku 반례는 실제로 실행해 2 FAIL을 확인했고 ERP에는 실제 변경 거부·원본 불변 단언을 추가해 재통과했다.
+구체적인 도구 구현은 제품에 두고
+[근거 가이드](../qa-evidence-guide.md)에 상태 잠금·캐시·비동기 완료의 사례를 연결한다.
+
+**통합 조사 결과와 재현 증거는 확보했으나 제품 전체 QA는 NOT VERIFIED**다.
+Siku·DriveTree의 확인된 결함을 고치고 실패 시험을 통과시키는 것이 다음 우선순위다.
+webhook은 JWT/audience·tenant 권한 계약 및 실패 payload 영속 보존을 별도 필수 항목으로 남긴다.
+Harness 0.76.0 후보를 릴리즈·설치한 결과나 모든 향후 작업의 자동 준수 증거로 확대하지 않는다.
+
 ## 문서 동기화 대상
 
 ```harness-doc-sync
@@ -157,7 +236,8 @@ Siku의 타 그룹 DB·Storage 거부 시험 누락을 지적받았다. 위 재�
   "version": 1,
   "documents": [
     {"path":"docs/specs/multi-project-qa-validation.md","reason":"범위·실행·미확인 경계와 재개 조건"},
-    {"path":"docs/specs/multi-project-qa-evidence.json","reason":"후보·명령·출력 및 원본 보존 증거"},
+    {"path":"docs/specs/multi-project-qa-evidence.json","reason":"1차 후보·명령·출력 및 원본 보존 증거(보존)"},
+    {"path":"docs/specs/multi-project-integration-evidence.json","reason":"2차 실제 경계·실패 재현·진단 시험 원문과 한계"},
     {"path":"docs/qa-evidence-guide.md","reason":"공식 근거와 제품별 적용 판단"},
     {"path":"docs/ai-collaboration.md","reason":"정본 계약에서 보조 근거와 적용 기록 연결"},
     {"path":"docs/specs/qa-scope-contract.md","reason":"기존 계약 구현과 후속 현장 검증의 구분"}
