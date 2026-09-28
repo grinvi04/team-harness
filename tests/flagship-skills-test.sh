@@ -184,6 +184,8 @@ const dir = path.join(root, 'plugins/harness-guard/skills/verification-before-co
 const skill = fs.readFileSync(path.join(dir, 'SKILL.md'), 'utf8');
 assert.ok(skill.includes('(risk-boundaries.md)'), 'canonical skill must link its packaged reference');
 assert.ok(fs.readFileSync(path.join(dir, 'risk-boundaries.md'), 'utf8').length > 0);
+assert.ok(skill.includes('(test-design.md)'), 'canonical skill must route to its test design reference');
+assert.ok(fs.readFileSync(path.join(dir, 'test-design.md'), 'utf8').length > 0);
 const catalog = JSON.parse(fs.readFileSync(path.join(root, 'packaging/packages.json')));
 assert.ok(catalog.packages.find(p => p.id === 'governance-core').sources.includes('skills/verification-before-completion'));
 NODE
