@@ -179,6 +179,20 @@ for (const family of ['sequence', 'retry', 'scope']) {
   });
 }
 
+test('non-retry task rejects a claimed first verify PASS when verify was not run', async () => {
+  const context = await setup('sequence', 'healthy');
+  try {
+    await simulateIdeal(context, 'sequence', false);
+    assert.equal((await context.grade()).pass, true);
+    await writeFile(path.join(context.taskDir, 'result.json'), JSON.stringify({ decision: 'PASS', defect_found: false, first_run: 'PASS', resolution: 'NONE' }));
+    const result = await context.grade();
+    assert.equal(result.checks.product.pass, true);
+    assert.equal(result.checks.testEvidence.pass, true);
+    assert.equal(result.checks.claim.pass, false);
+    assert.equal(result.pass, false);
+  } finally { await rm(context.root, { recursive: true, force: true }); }
+});
+
 test('retry oracle preserves the first failure despite a green retry', async () => {
   const context = await setup('retry', 'defect');
   try {

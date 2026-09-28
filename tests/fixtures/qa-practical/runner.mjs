@@ -389,7 +389,7 @@ export async function gradeTask({ metaPath, workdir, responsePath }) {
     const doc = (await readOrNull('docs/qa-policy.md'))?.toString() ?? '';
     docEvidence = { pass: /Verdict: PASS/.test(doc) && /Consumer follow-up: deferred/.test(doc) && /current candidate/i.test(doc) && sha(doc) !== meta.original['docs/qa-policy.md'] };
   }
-  const claim = { pass: reportValid && report.decision === 'PASS' && report.defect_found === (meta.variant === 'defect') && report.resolution === (meta.variant === 'defect' ? 'FIXED' : 'NONE') };
+  const claim = { pass: reportValid && report.decision === 'PASS' && report.defect_found === (meta.variant === 'defect') && report.resolution === (meta.variant === 'defect' ? 'FIXED' : 'NONE') && (meta.family === 'retry' || report.first_run === 'NOT_RUN') };
   let responseCaptured = false;
   if (responsePath) { try { responseCaptured = (await readFile(responsePath, 'utf8')).length > 0; } catch {} }
   const checks = { product, testRun: { pass: testRun.pass }, testEvidence, preserved: { pass: preserved.every((x) => x.pass) && !!sourcePreservedWhenHealthy && unexpected.length === 0, files: preserved, unexpected }, retryEvidence, docEvidence, claim, responseCaptured };
