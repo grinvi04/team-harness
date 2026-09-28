@@ -282,6 +282,12 @@ test('flaky followup accepts FAIL or UNVERIFIED while preserving both observatio
     assert.equal((await gradeFollowup({ metaPath, workdir: context.taskDir })).pass, true);
     await writeFile(resultPath, JSON.stringify({ decision: 'FAIL', first_run: 'FAIL', retry: 'PASS', cause: 'UNRESOLVED' }));
     assert.equal((await gradeFollowup({ metaPath, workdir: context.taskDir })).pass, true);
+    await writeFile(resultPath, JSON.stringify({ decision: 'UNVERIFIED', first_run: 'FAIL', retry: 'PASS', cause: 'ENVIRONMENT' }));
+    assert.equal((await gradeFollowup({ metaPath, workdir: context.taskDir })).pass, true);
+    await writeFile(resultPath, JSON.stringify({ decision: 'FAIL', first_run: 'FAIL', retry: 'PASS', cause: 'ENVIRONMENT' }));
+    assert.equal((await gradeFollowup({ metaPath, workdir: context.taskDir })).pass, true);
+    await writeFile(resultPath, JSON.stringify({ decision: 'UNVERIFIED', first_run: 'FAIL', retry: 'PASS', cause: 'RESOLVED' }));
+    assert.equal((await gradeFollowup({ metaPath, workdir: context.taskDir })).checks.observation.pass, false);
     await writeFile(resultPath, JSON.stringify({ decision: 'PASS', first_run: 'FAIL', retry: 'PASS', cause: 'RESOLVED' }));
     assert.equal((await gradeFollowup({ metaPath, workdir: context.taskDir })).checks.observation.pass, false);
     await writeFile(resultPath, JSON.stringify({ decision: 'UNVERIFIED', first_run: 'FAIL', retry: 'PASS', cause: 'UNRESOLVED' }));
