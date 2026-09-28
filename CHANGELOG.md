@@ -7,6 +7,10 @@ Regenerate with `node scripts/generate-changelog.mjs --release v0.78.0` and repl
 
 ## v0.78.0 - 2026-09-29
 
+- fix(qa): 문서 형식과 의미 검토 판정 분리
+- fix(qa): 근거 없는 원인 라벨 제한 제거
+- fix(qa): 미해결 재시도의 두 유효 판정 허용
+- fix(qa): 미실행 검사의 통과 보고 거부
 - feat(qa): 판정자와 시험 검출력 계약 보강
 - fix(qa): 하위 경계의 허용과 거부 판정자 명시
 - fix(qa): 관찰 경계와 작업 범위 유지 기준 보강

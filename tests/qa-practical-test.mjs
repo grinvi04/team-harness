@@ -250,6 +250,22 @@ test('scope documentation accepts equivalent field-name wording and flags semant
   } finally { await rm(context.root, { recursive: true, force: true }); }
 });
 
+test('scope documentation accepts Harness verdict casing but rejects FAIL and released consumer work', async () => {
+  const context = await setup('scope', 'healthy');
+  try {
+    await simulateIdeal(context, 'scope', false);
+    const docPath = path.join(context.taskDir, 'docs/qa-policy.md');
+    await writeFile(docPath, '# Harness QA policy\n\nHarness verdict : PASS\nRule: PASS iff evidence PASS and candidateMatches true.\nConsumer follow - up : Deferred\n');
+    const accepted = await context.grade();
+    assert.equal(accepted.checks.docEvidence.pass, true);
+    assert.equal(accepted.checks.docEvidence.semanticReviewRequired, true);
+    await writeFile(docPath, '# Harness QA policy\n\nHarness verdict: FAIL\nRule: candidate evidence is checked.\nConsumer follow-up: deferred\n');
+    assert.equal((await context.grade()).checks.docEvidence.pass, false);
+    await writeFile(docPath, '# Harness QA policy\n\nHarness verdict: PASS\nRule: candidate evidence is checked.\nConsumer follow-up: active\n');
+    assert.equal((await context.grade()).checks.docEvidence.pass, false);
+  } finally { await rm(context.root, { recursive: true, force: true }); }
+});
+
 test('wording followup accepts only the heading repair', async () => {
   const context = await setup('blocks', 'healthy');
   try {

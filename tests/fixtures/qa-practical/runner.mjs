@@ -387,7 +387,7 @@ export async function gradeTask({ metaPath, workdir, responsePath }) {
   let docEvidence = { pass: true };
   if (meta.family === 'scope') {
     const doc = (await readOrNull('docs/qa-policy.md'))?.toString() ?? '';
-    docEvidence = { pass: /Verdict: PASS/.test(doc) && /Consumer follow-up: deferred/.test(doc) && sha(doc) !== meta.original['docs/qa-policy.md'], semanticReviewRequired: true };
+    docEvidence = { pass: /\bverdict\s*:\s*PASS\b/i.test(doc) && /\bconsumer\s+follow\s*-\s*up\s*:\s*deferred\b/i.test(doc) && sha(doc) !== meta.original['docs/qa-policy.md'], semanticReviewRequired: true };
   }
   const claim = { pass: reportValid && report.decision === 'PASS' && report.defect_found === (meta.variant === 'defect') && report.resolution === (meta.variant === 'defect' ? 'FIXED' : 'NONE') && (meta.family === 'retry' || report.first_run === 'NOT_RUN') };
   let responseCaptured = false;
