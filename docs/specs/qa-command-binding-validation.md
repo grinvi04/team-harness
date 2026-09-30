@@ -201,3 +201,33 @@ Codex native wrapper에 따라 앞서 수행한 독립 검토와 현재 후보�
 위 PASS는 명시한 후보의 기록이며 후속 head까지 자동 승계하지 않는다. PR이 열려 있으면 최신 후보의
 게이트 통과 후 `pr-merge.sh`로 develop에 통합한다. 병합됐으면 다음 단계는 **0.80.0 릴리즈 검증**이며,
 실제 태그·릴리즈·전역 설치·샘플 재검증은 각 단계의 실행 증거가 있어야 완료다. 소비 프로젝트 수정·배포는 계속 보류한다.
+
+
+### 0.80.0 릴리즈 사전 검증 (2026-10-01)
+
+**판정: release-check GO — 아래 검증 후보에서 정식 릴리즈 절차 진행 가능.**
+대상은 병합된 `develop` 후보 `3c5b4b39a99baf42d79268788faae1d0f9f4b780`, 비교 기준은 이전 정식
+태그 `v0.75.0`이다. 최신 `origin/develop`과 일치하고 작업트리가 깨끗한 상태에서 검증했다.
+다른 작업트리가 사용하는 develop 브랜치를 이동하지 않고 이 체크아웃에서 동일 커밋을 검증했다.
+
+| 항목 | 판정 | 실행·근거와 한계 |
+|---|---|---|
+| A 품질 | PASS | `.github/workflows/ci-gate.yml` quality의 63개 run 단계 전부 1회 실행, 63/63 exit 0. macOS 로컬에서 GitHub event 대신 이 기록을 `--record`로 사용하고 기존 Ruff 0.15.15를 확인해 같은 검사를 실행했다. 원격 Ubuntu 재실행을 뜻하지 않는다. |
+| B 보안 | PASS | 별도 읽기 전용 검토에서 변경된 검사기의 인자 전달·경로·바이트 비교·실패 차단과 fixture 실제 거부 경로를 확인했다. `gitleaks git . --log-opts='v0.75.0..3c5b4b39a99baf42d79268788faae1d0f9f4b780' --redact --no-banner` exit 0, 26커밋 검출 0건. 지정 변경 범위에서 확인된 보안 결함이 없다는 판정이다. |
+| C 마이그레이션·DB 표준 | 적용성 확인 PASS / 제품 DB 검사 SKIP | 제품 DB·적용된 마이그레이션·신규 엔티티가 없다. 변경 파일·추적 경로를 확인했고 `node scripts/check-migration-safety.mjs`도 exit 0과 Flyway 파일 없음 SKIP을 반환했다. 기존 적용본 수정·undo·소프트/하드 삭제·금액 컬럼 검사는 비적용이다. 템플릿·검사기 시험과 소비 제품 DB 검증을 혼동하지 않는다. |
+| D 외부 파일럿 원본 | PASS | `node scripts/check-external-pilot-provenance.mjs --manifest docs/pilots/external-pilot-provenance.json`을 `--offline` 없이 실행, exit 0. 고정 GitHub 커밋 원본과 로컬 근거 7개를 대조했다. |
+| 릴리즈 묶음 | PASS | `node scripts/build-release-bundle.mjs --output /tmp/harness-release080-bundle-20261001` exit 0. 같은 폴더의 `shasum -a 256 -c SHA256SUMS` exit 0, 73개 일치. manifest의 version=0.80.0과 sourceCommit이 검증 후보와 일치했다. |
+
+품질 검증 시작·종료 시 추적 파일 722개의 SHA-256이 모두 같았다. 배포 환경변수 이름 대조는 제품
+서버·프론트 런타임이 없어 비적용이다. 새 환경변수 참조는 시험 fixture의 npm 실행 확인뿐이며,
+`docs/gen_arch_svg.py`도 없어 해당 SVG 신선도 검사는 비적용이다. 이를 실행 실패의 SKIP 전환으로 세지 않는다.
+
+릴리즈 묶음 manifest SHA-256은 `7f14db62f767cdf15d7cc777d79a58761ce684a320ae858ef842e66728ec4d19`,
+소스 tar SHA-256은 `132397e21a6ea01bf484a95e29b5cd30bf3b01814a03b39160784dd2e61b8fb9`다.
+분리 package의 `installable: false`는 그대로이며 marketplace 승격·설치 완료를 뜻하지 않는다.
+actor가 쓰는 trace와 판정자의 PASS만으로 실행 provenance를 증명하지 않는다는 기존 평가 한계도 유지한다.
+
+이 결과를 기록하는 후속 변경은 이 문서와 제품 로드맵뿐이다. **다음 단계는 정식 0.80.0 릴리즈**이며,
+릴리즈 브랜치에 이 결과 기록을 함께 반영하고 그 후보의 문서·CI 게이트를 확인한다. 최종 커밋이 달라지면
+묶음·checksum을 그 커밋으로 다시 만들고, 코드가 달라지면 영향받은 검증도 다시 수행한다.
+main 통합·태그 발행·역병합·전역 설치·샘플 설치 검증은 아직 수행하지 않았다. 소비 프로젝트 수정·배포는 보류한다.
