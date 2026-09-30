@@ -25,7 +25,10 @@ function check(repo, input, committed, recordPath) {
   function checkCommitted() {
     if (!committed) return;
     for (const [relative, bytes] of loaded) {
-      const result = spawnSync('git', ['-C', root, 'show', `HEAD:${relative}`]);
+      // Bound output by the bytes already loaded, while allowing large matching evidence.
+      const result = spawnSync('git', ['-C', root, 'show', `HEAD:${relative}`], {
+        maxBuffer: Math.max(1024 * 1024, bytes.length + 1),
+      });
       if (result.status !== 0 || !bytes.equals(result.stdout)) {
         fail('COMMITTED', `file is missing from HEAD or differs: ${relative}`);
       }
