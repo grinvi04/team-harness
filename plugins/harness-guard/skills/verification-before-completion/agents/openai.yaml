@@ -1,4 +1,4 @@
 interface:
-  display_name: "Verification Before Completion"
+  display_name: "Harness Completion Evidence"
   short_description: "현재 상태의 새 증거로 완료 주장을 검증하는 안전 게이트"
-  default_prompt: "Use $verification-before-completion to verify every completion claim with fresh evidence from the current state."
+  default_prompt: "Use the harness-guard plugin's $verification-before-completion to connect project QA criteria to command-specific evidence."

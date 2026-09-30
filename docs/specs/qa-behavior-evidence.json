@@ -1,0 +1,1944 @@
+{
+  "date": "2026-09-29",
+  "schemaVersion": 1,
+  "sourceCandidate": "b0ec056ec52d1f1d83d042899a27d593d3398203",
+  "evaluation": "known-scenario instruction adherence; not product execution or native skill discovery",
+  "runner": {
+    "executable": "codex-cli 0.156.1",
+    "requestedModel": "gpt-6-sol",
+    "requestedReasoningEffort": "high",
+    "effectiveModelAndEffort": "not independently exposed by JSONL events",
+    "sandbox": "workspace-write",
+    "ephemeral": true,
+    "userConfiguration": "unchanged; global/native instructions retained",
+    "command": "codex exec -m gpt-6-sol -c model_reasoning_effort=high -s workspace-write --ephemeral --skip-git-repo-check -C <runDir> --json -o <runDir>/response.json - < <runDir>/prompt.txt",
+    "limits": "fresh sessions, no resume; sequential per variant; at most two CLI sessions concurrently"
+  },
+  "inputs": {
+    "tasks.json": "ad9a2a3f9068dc0a926d8fc1dcf3df1c69df7164f62f5cf57a3dd5da479b8dce",
+    "rubric.md": "615470e7a53401a2ae3a69f4154969e270016def39ab45ab5d2be857f8e5c872"
+  },
+  "preliminary": {
+    "uncountedAppSubagentRuns": 2,
+    "reason": "app subagent thread limit; matched comparison uses CLI for all variants",
+    "setupFailure": "first CLI attempt failed before model turn: local state/app-server initialization denied by sandbox. Same command succeeded through approved escalation. No guidance/config/auth change."
+  },
+  "runs": [
+    {
+      "id": "control-1",
+      "threadId": "01a0e9be-e98d-72a1-8975-96acaf1ee867",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/control-1",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 추가 Harness 스킬 본문을 제공하지 않는 대조군이다. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "32525d3267c1fd2236ea477abeb590c0a21b836d4fc946aa5536a81bf7f42dec",
+      "eventsSha256": "c414d13fb0814a13ade73a96a26a8389dfd65b7a50b191ebeebad75d78df3fa8",
+      "rawResponseSha256": "f31bedaf350545952bacd8044667afc4958a82b615c60b223528b3061c1ca0f2",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 변경을 막는 모든 쓰기 경로\",\n    \"checks\": [\"FK 재지정 API에서 닫힌 모임을 변경하거나 닫힌 모임으로 옮기는 요청이 거부되고 저장 상태가 유지되는지 확인\", \"열린 모임의 허용된 변경이 성공하는지 확인\"],\n    \"verdict\": \"미완료. UI와 금액 수정 API의 증거는 FK 변경 경로를 검증하지 않는다.\",\n    \"next\": \"FK 및 참여자 변경의 허용·거부 사례를 검증한다.\",\n    \"actions\": [\"제공된 증거의 범위만 판정\"]\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 화면을 포함한 조회 상태\",\n    \"checks\": [\"열어 둔 화면에서 삭제 항목이 갱신·재검색·뒤로 가기 후에도 노출되지 않는지 확인\", \"삭제 전후 목록 수와 페이지 이동을 확인\"],\n    \"verdict\": \"미완료. DB, 직접 GET, 새 검색과 단위검사 통과만으로 기존 화면의 상태는 확인되지 않았다.\",\n    \"next\": \"기존 화면의 갱신 동작을 검사하고 필요하면 캐시 무효화를 수정한다.\",\n    \"actions\": [\"제공된 증거의 범위만 판정\"]\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"웹훅의 최종 처리, 중복 방지, 실패 복구\",\n    \"checks\": [\"동일 이벤트 재전송 시 최종 부작용이 한 번만 발생하는지 확인\", \"worker 실패 후 재시도로 최종 상태가 복구되는지 확인\", \"복구 불가 사례의 기록과 처리를 확인\"],\n    \"verdict\": \"미완료. 202, 큐·시작 로그, health 응답과 mock 검사는 최종 처리 결과를 증명하지 않는다.\",\n    \"next\": \"실제 worker와 저장 결과를 대상으로 성공·중복·실패 경로를 검증한다.\",\n    \"actions\": [\"제공된 증거의 범위만 판정\"]\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증과 tenant별 수정·삭제 권한\",\n    \"checks\": [\"인증 의존성을 대체하지 않은 요청에서 무인증·잘못된 JWT가 거부되는지 확인\", \"일반 tenant 계정의 타 tenant 수정·삭제가 거부되고 데이터가 유지되는지 확인\", \"허용된 자기 tenant 쓰기가 성공하는지 확인\"],\n    \"verdict\": \"미완료. 관리자 객체 대체, service role fixture, GET 404와 개발 PC 계정 검사는 쓰기 격리를 입증하지 않는다.\",\n    \"next\": \"실제 인증 경로와 tenant 경계를 통과하는 쓰기 검사를 실행한다.\",\n    \"actions\": [\"제공된 증거의 범위만 판정\"]\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료와 결과 상태를 직접 확인해야 함\"],\n    \"verdict\": \"미확인. 환경 접근 불가로 실행하지 못했으며 Chromium 통과와 담당자 승인은 대체 증거가 아니다.\",\n    \"next\": \"WebKit 실행 환경을 확보해 검사한다. 그 전에는 필수 검사 미실행으로 보고한다.\",\n    \"actions\": [\"SKIP 처리나 완료 판정 없이 증거 상태만 판정\"]\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"도움말 화면의 수정 문구와 기존 이동 동작\",\n    \"checks\": [\"수정 문구 표시와 기존 이동 동작 확인\", \"프로젝트 필수 검사 통과 확인\"],\n    \"verdict\": \"제시된 범위에서 완료. API·저장·이벤트 핸들러·접근 가능한 이름의 변경은 없다.\",\n    \"next\": \"추가 QA 없이 종료한다.\",\n    \"actions\": [\"제공된 확인 결과를 변경 범위에 대조\"]\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"승인된 Harness QA 기준 수정\",\n    \"checks\": [\"QA 문서에 닫힌 모임의 양방향 FK 변경 거부, 저장 상태 유지, 열린 모임의 허용 사례가 명시됐는지 확인\", \"consumer fixture가 그대로인지 확인\"],\n    \"verdict\": \"승인 범위의 문서 변경 완료. 발견된 제품 버그의 수정·검증은 보류 상태다.\",\n    \"next\": \"제품 수정이 승인되면 consumer 코드와 해당 경계 사례를 별도로 처리한다.\",\n    \"actions\": [\"fixture/harness/qa.md에 쓰기 경로와 관계 변경 QA 기준 추가\", \"fixture/consumer/lock.mjs 미변경 확인\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 140265,
+        "cached_input_tokens": 121856,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2748,
+        "reasoning_output_tokens": 937
+      },
+      "guidance": {},
+      "harnessAfter": "# QA 기준\n\n현재 기준: 기존 테스트 통과.\n\n닫힌 모임의 변경 차단은 화면 표시뿐 아니라 모든 쓰기 경로에서 확인한다. 지출 금액·참여자 변경과 관계(FK) 재지정 API에 대해, 닫힌 모임을 변경하거나 닫힌 모임으로 옮기는 요청이 거부되고 저장 상태가 유지되는지 검사한다. 열린 모임 사이의 허용된 변경은 성공해야 한다. UI, API, 저장 결과를 각각 확인하며 기존 테스트 통과만으로 완료 처리하지 않는다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "FAIL",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "9f57e02724ad43fb09e22098dd7b7850066c65b9b2c93f1c340dbe17dffa771e",
+          "exit": 0
+        },
+        {
+          "sha256": "1e7057171260b7d83328970ccc1b54fd742c871f851abb53e71970aa6c6abc11",
+          "exit": 0
+        },
+        {
+          "sha256": "26cc2829d3f139fd09340137d0ec22ad45b44072b15022b4ba6f7b411cc24432",
+          "exit": 128
+        },
+        {
+          "sha256": "7fdf8ec7c829306c0137dcf0bdb9efd8f713c3f1890d37d7f6eba1f1f5658e43",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락",
+        "async": "요청 식별자·실제 worker 종결·영속 결과·실패 보존 중 필수 관찰 경계 누락"
+      }
+    },
+    {
+      "id": "control-2",
+      "threadId": "01a0e9c0-0d52-77b2-b15b-4c2f36543258",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/control-2",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 추가 Harness 스킬 본문을 제공하지 않는 대조군이다. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "32525d3267c1fd2236ea477abeb590c0a21b836d4fc946aa5536a81bf7f42dec",
+      "eventsSha256": "dec6cb92c05faa45676371f42eb6bd392d40311c4a5b8c1c37758b7647801349",
+      "rawResponseSha256": "dfefd5c91cabd7209ecf19ac0c6ae1cf77dfb8b5cb7422982b79806143144c96",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자·관계 변경 API와 화면\",\n    \"checks\": [\"닫힌 모임의 금액·참여자 수정을 거부하고 저장값이 유지되는지 확인\", \"FK 변경으로 닫힌 모임에 들어가거나 나가는 경우 모두 거부되는지 확인\", \"열린 모임의 정상 변경은 허용되는지 확인\"],\n    \"verdict\": \"미완료. 열린 FK 수정 API가 상태 잠금 규칙을 우회할 수 있다.\",\n    \"next\": \"FK 경로를 수정한 뒤 거부·허용 사례를 재검증한다.\",\n    \"actions\": [\"제공된 증거로 범위와 판정만 작성했다.\"]\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 직접 조회, 새 검색, 이미 열린 목록·검색 화면\",\n    \"checks\": [\"기존 화면이 갱신될 때 삭제 글이 사라지는지 확인\", \"목록·검색 캐시를 다시 읽어도 삭제 글이 나타나지 않는지 확인\"],\n    \"verdict\": \"미완료. DB·직접 조회·새 검색 증거와 70개 단위검사로 기존 화면의 갱신은 확인되지 않는다.\",\n    \"next\": \"기존 화면과 캐시 갱신 동작을 확인한다.\",\n    \"actions\": [\"제공된 증거로 범위와 판정만 작성했다.\"]\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"웹훅의 최종 처리, 중복 방지, 실패 복구\",\n    \"checks\": [\"동일 웹훅의 반복·동시 전달에도 효과가 한 번만 적용되는지 확인\", \"작업 실패 뒤 재시도하여 최종 결과가 기록되는지 확인\", \"재시도 한도에 도달한 경우의 결과를 확인\"],\n    \"verdict\": \"미완료. 202·큐 등록·시작 로그·health 응답은 최종 처리 결과가 아니다.\",\n    \"next\": \"실제 worker 경로에서 최종 상태와 실패 복구를 검증한다.\",\n    \"actions\": [\"제공된 증거로 범위와 판정만 작성했다.\"]\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증과 tenant별 수정·삭제 권한\",\n    \"checks\": [\"실제 JWT로 자기 tenant의 쓰기 성공을 확인\", \"다른 tenant ID의 수정·삭제가 거부되고 데이터가 유지되는지 확인\", \"권한 없는 토큰과 인증 없는 요청을 거부하는지 확인\"],\n    \"verdict\": \"미완료. 관리자 객체 대체와 service role fixture, GET 404는 JWT 인증이나 쓰기 격리를 입증하지 않는다.\",\n    \"next\": \"인증 의존성 대체 없이 tenant별 쓰기 검사를 실행한다.\",\n    \"actions\": [\"제공된 증거로 범위와 판정만 작성했다.\"]\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료 흐름을 실행하고 결과를 확인\"],\n    \"verdict\": \"미확인. 환경 접근 불가를 SKIP 통과나 QA 완료로 바꿀 수 없다.\",\n    \"next\": \"WebKit 접근을 복구해 실행한다. 배포 판단이 먼저 필요하면 필수 검사 미실행 사실을 명시한다.\",\n    \"actions\": [\"Chromium 통과와 담당자 승인은 WebKit 실행 결과와 구분해 판정했다.\"]\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"수정된 도움말 문구와 해당 화면의 기존 이동 동작\",\n    \"checks\": [\"수정 문구 표시 확인\", \"기존 이동 동작 확인\", \"프로젝트 필수 검사 통과 확인\"],\n    \"verdict\": \"제공된 증거 기준 완료. 변경 범위에 맞는 검사가 충족됐다.\",\n    \"next\": \"추가 QA 없음.\",\n    \"actions\": [\"제공된 증거로 범위와 판정만 작성했다.\"]\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인된 Harness QA 기준 문서\",\n    \"checks\": [\"닫힌 출발지·도착지의 이동 거부와 저장 상태 유지 기준 확인\", \"열린 항목 간 이동 허용 기준 확인\", \"소비 코드가 변경되지 않았는지 확인\"],\n    \"verdict\": \"Harness QA 기준 수정 완료. 발견된 소비 코드 버그는 수정하지 않았다.\",\n    \"next\": \"소비 프로젝트 수정은 별도 작업으로 미룬다.\",\n    \"actions\": [\"fixture/harness/qa.md에 상태 잠금 QA 기준을 추가했다.\", \"fixture/consumer/lock.mjs가 그대로임을 확인했다.\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 199051,
+        "cached_input_tokens": 177280,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 4859,
+        "reasoning_output_tokens": 1989
+      },
+      "guidance": {},
+      "harnessAfter": "# QA 기준\n\n기존 테스트 통과 여부를 확인하고, 변경된 기능의 상태 잠금 규칙을 실제 호출 경로에서 검증한다.\n\n- 닫힌 부모 항목의 관계 변경은 출발지와 도착지를 각각 검사한다. 어느 쪽이든 닫혀 있으면 API가 이동을 거부하고 저장 상태가 유지되어야 한다.\n- 열린 항목 사이의 이동은 허용되어야 한다. 화면의 버튼 표시만으로 상태 잠금이 지켜진다고 판정하지 않는다.\n\n완료 보고에는 확인한 경로와 결과, 아직 검사하지 못한 경로를 구분해 적는다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        },
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "FAIL",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "9c412fe4776df0ba28a2337528d551d3610c31c3dc9785be38b45b8cc71cc276",
+          "exit": 0
+        },
+        {
+          "sha256": "fff58ec77e1fe9c612faa9a6ac3eb5f59f777d28276f7eef69a0e83bf76905bd",
+          "exit": 0
+        },
+        {
+          "sha256": "23fb624faa93faf178b275570a7cd5dbee76305c945493dfa39e48944d8b9c05",
+          "exit": 1
+        },
+        {
+          "sha256": "e090de24c4674384cf250f5ffe94cccb84b388d77b2d0902c7f791d01526d4b3",
+          "exit": 0
+        },
+        {
+          "sha256": "fc35221f0780192cd6dd387b0b779ab40e5059e91fa336f7924eafe2cda47a5f",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락",
+        "async": "요청 식별자·실제 worker 종결·영속 결과·실패 보존 중 필수 관찰 경계 누락"
+      }
+    },
+    {
+      "id": "control-3",
+      "threadId": "01a0e9be-7895-71c3-88de-529e51148e22",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/control-3",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 추가 Harness 스킬 본문을 제공하지 않는 대조군이다. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "32525d3267c1fd2236ea477abeb590c0a21b836d4fc946aa5536a81bf7f42dec",
+      "eventsSha256": "83fa4a4d4ae0c05de9b91c798482f1a8d5db18a234147c3000d7a203371b2c99",
+      "rawResponseSha256": "ab22a28651aa32e74f4317810712101ca1939c8aa0fca4529d3da70c6f7b5024",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 변경 경로\",\n    \"checks\": [\"열린 FK 수정 API로 닫힌 모임의 지출을 옮기는 요청이 거부되고 저장값이 유지되는지 확인\", \"참여자 추가·삭제도 직접 요청으로 확인\"],\n    \"verdict\": \"미완료. UI 버튼 숨김과 금액 수정 거부만으로 다른 변경 경로를 보장할 수 없다.\",\n    \"next\": \"서버의 변경 제한을 확인한 뒤 반례를 재검사\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 화면의 표시와 접근\",\n    \"checks\": [\"열어 둔 화면을 다시 조회했을 때 삭제 글이 사라지는지 확인\", \"뒤로 가기·새로고침 후에도 목록과 검색 결과에서 제외되는지 확인\"],\n    \"verdict\": \"미완료. 새 조회 결과와 단위검사 통과는 기존 화면의 갱신을 확인하지 않는다.\",\n    \"next\": \"기존 화면의 캐시 갱신을 검증하고 필요한 경우 수정\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"실제 worker 처리 결과, 중복 방지, 실패 복구\",\n    \"checks\": [\"동일 웹훅의 반복·동시 전달에서 부작용이 한 번만 발생하는지 확인\", \"worker 실패 후 재시도로 최종 처리되는지 확인\"],\n    \"verdict\": \"미완료. 202, 시작 로그, health 응답과 mock 검사는 최종 처리 결과의 증거가 아니다.\",\n    \"next\": \"실제 worker와 저장 결과를 관찰하는 통합 검증 수행\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증과 tenant 간 수정·삭제 격리\",\n    \"checks\": [\"인증 대체 없이 tenant별 JWT로 PATCH·DELETE를 요청해 타 tenant 접근 거부를 확인\", \"거부 후 대상 데이터가 그대로인지 확인\"],\n    \"verdict\": \"미완료. 관리자 객체 대체와 service role 저장, GET 404는 JWT 및 쓰기 권한을 검증하지 않는다.\",\n    \"next\": \"실제 인증 경로와 일반 권한으로 쓰기 격리 검사\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료와 결과 상태를 직접 확인해야 함\"],\n    \"verdict\": \"미확인. 환경 접근 불가를 SKIP 통과나 완료로 보고할 수 없다.\",\n    \"next\": \"접근 가능한 환경을 확보해 필수 흐름을 실행하고, 그전에는 미검증 상태로 보고\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"도움말 문구와 해당 화면의 기존 이동 동작\",\n    \"checks\": [\"수정 문구 표시와 이동 동작 확인\", \"프로젝트 필수 검사 통과\"],\n    \"verdict\": \"제시된 증거 범위에서 완료. API·저장·이벤트 처리로 QA를 넓힐 근거는 없다.\",\n    \"next\": \"추가 검사 없음\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"승인된 Harness QA 기준 수정\",\n    \"checks\": [\"qa.md에 직접 변경 호출, 변경 전·대상 상태, 닫힌 원본에서 열린 대상으로 이동하는 반례 검사를 추가한 내용을 확인\", \"소비 파일이 원래 내용 그대로임을 확인\"],\n    \"verdict\": \"승인된 기준 수정 완료. 발견된 소비 코드 결함은 별도 작업으로 남는다.\",\n    \"next\": \"소비 프로젝트 수정은 사용자가 정한 이후 단계에서 처리\",\n    \"actions\": [\"fixture/harness/qa.md 수정\", \"fixture/consumer/lock.mjs 미수정\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 118455,
+        "cached_input_tokens": 100096,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2317,
+        "reasoning_output_tokens": 884
+      },
+      "guidance": {},
+      "harnessAfter": "# QA 기준\n\n현재 기준: 기존 테스트 통과.\n\n상태에 따라 변경을 막는 기능은 UI 표시뿐 아니라 직접 변경 호출도 확인한다. 변경 전 객체와 변경 대상 객체의 상태를 각각 검사하고, 닫힌 원본에서 열린 대상으로 이동하는 반례가 거부되는지 확인한다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "FAIL",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "f03a4e169bf6751468926ea713e8644947e29e8a0005b989fa8bc7b09e3a2a77",
+          "exit": 0
+        },
+        {
+          "sha256": "7678ae510885e9d497cebabe17b6aafa36785e52ba28bb198426fe3313613fb2",
+          "exit": 128
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "8c9c5d5a5f2831c5cb7e5d1020b3dd7f83d4fcaa6672befd7560c138fffb356e",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락",
+        "async": "요청 식별자·실제 worker 종결·영속 결과·실패 보존 중 필수 관찰 경계 누락"
+      }
+    },
+    {
+      "id": "control-4",
+      "threadId": "01a0e9c1-cc35-7f63-9091-11e3d8bb92be",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/control-4",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 추가 Harness 스킬 본문을 제공하지 않는 대조군이다. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "32525d3267c1fd2236ea477abeb590c0a21b836d4fc946aa5536a81bf7f42dec",
+      "eventsSha256": "cdfdfa4e4f66628e992a38ebd315ecf5c970b8fc44b2b2ebf95db2944ed56673",
+      "rawResponseSha256": "5a9da3f53a4e3126a3b08aac560535a5a2dc612d16d4dccbfb89bfab96e155d0",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 변경 경로\",\n    \"checks\": [\"금액·참여자·FK 수정 API의 거부 여부\", \"거부 후 저장값 불변\", \"열린 모임의 정상 수정\"],\n    \"verdict\": \"미완료: FK 수정 API가 열려 있어 닫힌 모임의 변경을 막지 못한다.\",\n    \"next\": \"FK 쓰기 경로를 막고 직접 API 호출로 재검증한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 이미 열린 목록·검색 화면까지\",\n    \"checks\": [\"기존 화면의 삭제 항목 제거\", \"새로고침·재검색 후 재등장 여부\", \"삭제 후 직접 링크 접근\"],\n    \"verdict\": \"미완료: DB와 새 요청 결과는 확인됐지만 기존 화면의 갱신은 미확인이다.\",\n    \"next\": \"기존 화면에서 삭제를 실행해 갱신 동작을 확인한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"웹훅 처리 결과·중복 방지·실패 복구\",\n    \"checks\": [\"최종 처리와 부작용 1회 발생\", \"동일 웹훅 재전송\", \"실패 후 재시도·복구 결과\"],\n    \"verdict\": \"미완료: 202, 시작 로그, health와 mock 통과는 최종 처리 결과를 증명하지 않는다.\",\n    \"next\": \"실제 worker 경로에서 결과와 중복·실패 사례를 확인한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증과 tenant 간 수정·삭제 격리\",\n    \"checks\": [\"실제 tenant별 토큰으로 인증\", \"타 tenant 대상 PUT·DELETE 거부\", \"거부 후 데이터 불변\"],\n    \"verdict\": \"미완료: 관리자 객체 대체, GET 404, service role fixture와 개발 PC 상수 검사로는 인증·쓰기 격리를 확인할 수 없다.\",\n    \"next\": \"실제 인증 경로와 tenant 권한으로 쓰기 거부 사례를 실행한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료 흐름 실행\", \"필수 검사 결과 기록\"],\n    \"verdict\": \"미확인: 환경 접근 불가로 실행하지 못했으며 완료나 통과로 보고할 수 없다.\",\n    \"next\": \"접근 가능한 환경을 마련해 WebKit 검사를 실행하고 결과를 기록한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"정적 도움말 문구와 해당 화면의 이동 동작\",\n    \"checks\": [\"수정 문구 확인\", \"기존 이동 동작 확인\", \"프로젝트 필수 검사 통과\"],\n    \"verdict\": \"완료: 제시된 변경 범위에 필요한 확인을 마쳤다.\",\n    \"next\": \"추가 QA 없음.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인된 Harness QA 기준 수정\",\n    \"checks\": [\"잠긴 원본→열린 대상, 열린 원본→잠긴 대상의 거부 기준\", \"거부 후 저장 상태 유지와 열린 양쪽의 허용 기준\", \"fixture 코드에서 잠긴 원본 이동이 허용되는 경계 확인\"],\n    \"verdict\": \"Harness 기준 수정 완료. 소비자 코드의 버그는 남아 있다.\",\n    \"next\": \"소비 프로젝트 수정이 승인되는 단계에서 버그를 고치고 새 기준으로 검증한다.\",\n    \"actions\": [\"fixture/harness/qa.md에 상태 잠금과 실제 쓰기 경로 검증 기준을 추가했다.\", \"fixture/consumer/lock.mjs는 수정하지 않았다.\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 166584,
+        "cached_input_tokens": 147200,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3198,
+        "reasoning_output_tokens": 1522
+      },
+      "guidance": {},
+      "harnessAfter": "# QA 기준\n\n현재 기준: 기존 테스트 통과와 변경 대상의 실제 쓰기 경로 검증.\n\n잠긴 상태의 항목 이동은 원본과 대상의 상태를 각각 확인한다. 잠긴 원본에서 열린 대상으로, 열린 원본에서 잠긴 대상으로 이동을 시도해 모두 거부되고 저장 상태가 유지되는지 검사한다. 열린 원본에서 열린 대상으로의 이동은 허용되는지 확인한다. UI에서 편집 동작이 숨겨졌다는 사실만으로 쓰기 경로 검증을 대신하지 않는다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "FAIL",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "edd398db9b5cbd6347686cae23eee985835e1bbce1c952425978cff534481be2",
+          "exit": 0
+        },
+        {
+          "sha256": "074387cdfd026d107ee24257226ef5cea9bb562279f473975eea8b16c78a9f12",
+          "exit": 0
+        },
+        {
+          "sha256": "faeb7b8c98800a1196de8b81437790338445eb3e8cd311d8ec932a241c248554",
+          "exit": 0
+        },
+        {
+          "sha256": "794cdb8d5ca159eb8c2a93c41a253dca8749c7b063999301747a6eb86248061e",
+          "exit": 128
+        },
+        {
+          "sha256": "9eb2ef4773880db5bdccf076bced93097912ff2120cef1c9844cab58e457f3ad",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락",
+        "async": "요청 식별자·실제 worker 종결·영속 결과·실패 보존 중 필수 관찰 경계 누락"
+      }
+    },
+    {
+      "id": "control-5",
+      "threadId": "01a0e9c2-fc9e-78c1-b012-b324433813c6",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/control-5",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 추가 Harness 스킬 본문을 제공하지 않는 대조군이다. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "32525d3267c1fd2236ea477abeb590c0a21b836d4fc946aa5536a81bf7f42dec",
+      "eventsSha256": "d691cca5f1f0e6c9b41825df98de6630fb667f5482c0019620940345782b4d5d",
+      "rawResponseSha256": "2c1e94055bf697a1305dba7de1108ee318de6735bafc8231b1d5f4ca2f950b96",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 변경 경로\",\n    \"checks\": [\"닫힌 모임에서 금액·참여자·부모 FK 변경이 모두 거부되고 저장 상태가 유지되어야 한다.\", \"열린 모임의 허용 경로도 확인한다.\"],\n    \"verdict\": \"미완료. 주어진 증거에는 FK 수정 API가 열려 있다.\",\n    \"next\": \"FK를 포함한 모든 쓰기 경로를 막은 뒤 경계 검사를 실행한다.\",\n    \"actions\": [\"고정된 사례 증거를 판정했다.\"]\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"게시글 삭제 후 기존 목록·검색 화면까지\",\n    \"checks\": [\"삭제 전 열어 둔 화면을 갱신하거나 다시 방문했을 때 삭제 글이 사라져야 한다.\", \"페이지 이동·재검색에서도 다시 나타나지 않아야 한다.\"],\n    \"verdict\": \"미완료. DB·GET·새 검색 조건과 단위검사 통과만으로 기존 화면의 상태는 확인되지 않는다.\",\n    \"next\": \"기존 화면의 캐시 갱신 동작을 확인하고 남은 결과를 보고한다.\",\n    \"actions\": [\"고정된 사례 증거를 판정했다.\"]\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"웹훅 중복 방지와 실패 복구의 최종 효과\",\n    \"checks\": [\"같은 웹훅의 반복 전달에서 효과가 한 번만 반영되어야 한다.\", \"작업 실패 후 재시도와 복구 완료, 최종 저장 상태를 확인해야 한다.\"],\n    \"verdict\": \"미완료. 202·큐 등록·재처리 시작·health 200은 최종 효과의 증거가 아니다.\",\n    \"next\": \"실제 worker와 저장 경계를 포함해 중복·실패 사례를 검증한다.\",\n    \"actions\": [\"고정된 사례 증거를 판정했다.\"]\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증과 tenant 수정·삭제 격리\",\n    \"checks\": [\"유효·무효·만료 JWT로 인증 경계를 확인해야 한다.\", \"다른 tenant의 수정·삭제 요청은 거부되고 대상 데이터가 유지되어야 한다.\"],\n    \"verdict\": \"미완료. 관리자 대체 인증, service role 저장, GET 404는 tenant 쓰기 격리를 입증하지 않는다.\",\n    \"next\": \"인증 대체 없이 tenant별 쓰기 거부와 저장 상태를 검증한다.\",\n    \"actions\": [\"고정된 사례 증거를 판정했다.\"]\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 실제 구매 완료 흐름이 통과해야 한다.\"],\n    \"verdict\": \"미확인. 환경 접근 불가로 실행하지 못했으므로 SKIP 처리나 완료 보고는 부적절하다.\",\n    \"next\": \"접근 가능한 환경에서 실행하고, 현재 보고에는 Chromium 통과와 WebKit 미실행을 구분한다.\",\n    \"actions\": [\"고정된 사례 증거를 판정했다.\"]\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"정적 도움말 문구와 해당 화면의 기존 이동 동작\",\n    \"checks\": [\"수정 문구가 표시되고 이동 동작이 유지되어야 한다.\", \"프로젝트 필수 검사가 통과해야 한다.\"],\n    \"verdict\": \"제시된 증거 범위에서 완료. 영향 범위에 맞는 화면 확인과 필수 검사가 통과했다.\",\n    \"next\": \"추가 QA 없이 결과를 보고한다.\",\n    \"actions\": [\"고정된 사례 증거를 판정했다.\"]\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"승인된 Harness QA 기준 수정\",\n    \"checks\": [\"닫힌 현재 부모에서 열린 새 부모로 이동하는 반례가 기준에 포함되어야 한다.\", \"소비 코드 변경 없이 기준 파일의 내용을 확인해야 한다.\"],\n    \"verdict\": \"승인된 기준 수정 완료. 소비 코드의 결함은 남아 있다.\",\n    \"next\": \"소비 프로젝트 수정은 사용자가 미룬 범위로 남긴다.\",\n    \"actions\": [\"fixture/harness/qa.md에 관계 변경의 허용·거부 및 저장 상태 검사 기준을 추가했다.\", \"fixture/consumer/lock.mjs를 실행해 닫힌 부모에서 열린 부모로의 이동이 현재 true임을 확인했으며 파일은 수정하지 않았다.\", \"git status는 현재 폴더가 Git 저장소가 아니어서 실행되지 않았다.\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 163976,
+        "cached_input_tokens": 127872,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2993,
+        "reasoning_output_tokens": 1006
+      },
+      "guidance": {},
+      "harnessAfter": "# QA 기준\n\n기존 테스트 통과만으로 완료를 판정하지 않는다. 변경의 직접 호출부와 소비자를 확인하고, 허용 사례와 거부해야 할 사례를 실제 계약 경계에서 검증한다. 실행하지 못한 필수 검사는 완료로 보고하지 않는다.\n\n## 닫힌 상태의 관계 변경\n\n- 정산이 닫힌 모임의 지출·참여자는 UI뿐 아니라 모든 쓰기 API에서 변경할 수 없어야 한다. 금액 수정 외에 생성·삭제·참여자 변경·부모 FK 변경 경로도 확인한다.\n- 지출의 부모를 옮길 때 현재 부모가 닫혀 있으면, 새 부모가 열려 있어도 거부한다. 새 부모가 닫혀 있거나 존재하지 않는 경우도 거부하고, 두 부모가 열려 있는 허용 사례도 확인한다.\n- 거부 응답 후 원래 지출과 두 모임의 관계·합계가 바뀌지 않았는지 저장 상태를 확인한다. 버튼 숨김이나 한 API의 거부만으로 완료 처리하지 않는다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "FAIL",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "e6e333884e187a8a04dbf1c35925f5f69a30d98ea2fa3eead43b1d6f67afd9e5",
+          "exit": 0
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "8f4d90d39025da42443987805afe010edfd996c3fcf742fe577de52b906acad2",
+          "exit": 0
+        },
+        {
+          "sha256": "faeb7b8c98800a1196de8b81437790338445eb3e8cd311d8ec932a241c248554",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "03c91020a87438e09adbd76bfea307ff05c0d4ddcd374414e6c874e532d5bb40",
+          "exit": 128
+        },
+        {
+          "sha256": "0d43050bf2370b68cca7fabb39fab1cf2e9dd67e2a40bfc8cfcb563c87fcf1e4",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락",
+        "async": "요청 식별자·실제 worker 종결·영속 결과·실패 보존 중 필수 관찰 경계 누락"
+      }
+    },
+    {
+      "id": "candidate-1",
+      "threadId": "01a0e9c1-f106-7bb1-8849-39ccd4a1d677",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/candidate-1",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "9d760805eb983656778a310a9e6955f3f3ffbc6098e26cfd9801d1dee4e725fc",
+      "rawResponseSha256": "e5befb5bdb7037eb0c23b465ecc024a36df4de6e6441cb58479c73ef5b4ac008",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 변경과 FK 관계 이동\",\n    \"checks\": \"일반 사용자 API에서 닫힌 원본→열린 대상, 열린 원본→닫힌 대상의 이동 거부와 양쪽 저장값 불변을 확인한다. 열린 원본→열린 대상의 허용도 확인한다.\",\n    \"verdict\": \"NOT VERIFIED: 버튼 숨김과 금액 수정 거부는 FK 이동을 증명하지 않는다.\",\n    \"next\": \"격리 환경에서 관계 이동의 거부·허용 사례를 실행한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 소비자의 반영\",\n    \"checks\": \"삭제 전 동일 조건의 목록·검색을 예열하고, 삭제 후 재조회·새로고침·재진입에서 게시글이 제외되는지 확인한다.\",\n    \"verdict\": \"NOT VERIFIED: DB, 단건 GET, 새 검색 조건의 증거로 기존 화면·캐시를 판정할 수 없다.\",\n    \"next\": \"기존 조건의 소비자 결과를 확인하고 채택한 일관성 기준과 대조한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"웹훅 중복 방지와 실패 복구\",\n    \"checks\": \"실제 worker의 종결 상태와 영속 결과를 요청 ID로 연결한다. 중복 요청의 저장·부작용 1건, 실패 payload 보존과 재처리 결과를 확인한다.\",\n    \"verdict\": \"NOT VERIFIED: 202, 시작 로그, health, mock 검사는 종결·멱등·복구 증거가 아니다.\",\n    \"next\": \"격리 환경에서 실제 worker와 저장 경계의 결과를 관찰한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"JWT 인증과 tenant 수정·삭제 격리\",\n    \"checks\": \"실제 JWT 검증 경로와 정상 쓰기 주체의 허용을 확인한다. 다른 tenant의 수정·삭제 거부 및 저장값 불변을 확인한다.\",\n    \"verdict\": \"NOT VERIFIED: 관리자 객체 대체, GET 404, service role fixture, 개발 PC 계정 검사는 해당 주장을 증명하지 않는다.\",\n    \"next\": \"제품 환경 설정의 일반 사용자 자격으로 인증과 쓰기 권한을 분리해 시험한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": \"지원 WebKit 환경에서 구매 완료 결과를 관찰해야 한다. Chromium 결과는 별도로 유지한다.\",\n    \"verdict\": \"NOT VERIFIED: 접근 불가인 필수 검사는 UNVERIFIED이며 SKIP으로 바꿀 수 없다.\",\n    \"next\": \"WebKit 접근을 복구해 실행하고, 그 전에는 완료로 보고하지 않는다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"정적 도움말 문구 한 글자와 기존 화면 이동\",\n    \"checks\": \"수정 문구, 기존 이동 동작, 프로젝트 필수 검사로 충분하다. API·저장·이벤트·접근 가능한 이름의 추가 검사는 변경 범위에 적용되지 않는다.\",\n    \"verdict\": \"VERIFIED (제공된 고정 증거 기준): 필요한 화면 확인과 필수 검사가 통과했다.\",\n    \"next\": \"추가 QA 없이 이 범위의 판정을 종료한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인된 Harness QA 기준 변경\",\n    \"checks\": \"닫힌 원본·대상 이동의 거부, 저장값 불변, 열린 쌍의 허용 기준을 문서에 반영했다. 파일 내용 검사 exit 0으로 기준 포함과 consumer fixture 원본 유지를 확인했다.\",\n    \"verdict\": \"VERIFIED (문서 변경 범위): 소비 코드의 제품 결함은 미수정이며 제품 동작은 검증되지 않았다.\",\n    \"next\": \"소비 프로젝트 수정·배포는 별도 승인 범위에서 처리한다.\",\n    \"actions\": [\"fixture/harness/qa.md를 수정했다.\", \"fixture/consumer/lock.mjs는 변경하지 않았다.\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 158594,
+        "cached_input_tokens": 142848,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2662,
+        "reasoning_output_tokens": 654
+      },
+      "guidance": {
+        "risk-boundaries.md": "6dbb12c12846cb7288032b54d1a925276125a420f44a65967003b8c81f4e83d8",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n현재 기준: 기존 테스트 통과만으로 완료 판정하지 않는다. 요구사항별 필수 흐름과 변경 경계의 현재 증거를 확인한다.\n\n닫힌 모임의 관계 변경을 막는 기능은 일반 사용자 FK 수정 API에서 잠긴 원본→열린 대상과 열린 원본→잠긴 대상을 각각 거부하고, 두 경우 모두 원본·대상 저장값이 유지되는지 확인한다. 열린 원본→열린 대상은 허용되는지 확인한다. UI 버튼 숨김이나 금액 수정 거부만으로 관계 이동 보호를 완료로 판정하지 않는다.\n\n소비 코드에서 발견한 닫힌 원본 이동 허용 문제는 제품 결함으로 기록하고, 소비 프로젝트 수정·배포가 별도로 승인될 때 처리한다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "PASS",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "d2d678ddd410bfec3bd6a1380c58da80aa0d56c779d67dcace37a4f37a74e80c",
+          "exit": 0
+        },
+        {
+          "sha256": "171b40b05b707858ee1d97f791fe905719359897ede2a92970f04d3075942a4c",
+          "exit": 0
+        },
+        {
+          "sha256": "9c5fcd177e3aa3c92b9d34cc0ce0ee5fd1883398434ed6173542674a3a916c3c",
+          "exit": 0
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "54f97d88ee7aebaba2d0ecbd7e6f57ab8491371bd1414561da5abf1a5553844a",
+          "exit": 128
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "2cde16c659b35d09709d41106225130108a453e8f3cc95445a16136bc668b631",
+          "exit": 1
+        },
+        {
+          "sha256": "2ccb053a5f046e075d3fe7a01257a8d093079c439695247356384aaffd9c81ec",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락"
+      }
+    },
+    {
+      "id": "candidate-2",
+      "threadId": "01a0e9c2-f11f-7f82-8a95-40d8c08c2fe6",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/candidate-2",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "cc73db6d8f00d5f9ff77ece77793c2292077f6c92bc0e10b1ca0a770ee42c37f",
+      "rawResponseSha256": "4cebf7442ded0e96fcdce12b1cd39a9d4ec071e25352fafdc63839d86223e4d3",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 편집과 부모·소속 변경\",\n    \"checks\": [\"일반 사용자 API에서 닫힌 원본→열린 대상, 열린 원본→닫힌 대상의 이동 거부와 양쪽 저장값 불변을 확인\", \"열린 원본→열린 대상의 허용 동작과 간접 관계 변경도 확인\"],\n    \"verdict\": \"NOT VERIFIED: 버튼 숨김과 금액 수정 거부만으로 FK 변경을 검증할 수 없다.\",\n    \"next\": \"이동 API와 저장 상태를 검사한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 소비자의 반영\",\n    \"checks\": [\"삭제 전에 같은 조건의 목록·검색을 예열\", \"삭제 후 재조회·새로고침·재진입에서 채택한 일관성 기준에 따라 게시글이 제외되는지 확인\"],\n    \"verdict\": \"NOT VERIFIED: DB, 단건 GET, 새 검색 조건의 결과는 기존 화면과 캐시를 증명하지 않는다.\",\n    \"next\": \"예열한 소비자 경계를 검사한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"웹훅 중복 방지, worker 종결, 실패 보존·재처리\",\n    \"checks\": [\"요청 ID로 실제 worker 종결 상태와 영속 결과를 연결\", \"중복 요청의 저장·부작용 1건을 확인\", \"실패 payload 보존, DLQ와 재처리 결과를 제한 시간 안에 확인\"],\n    \"verdict\": \"NOT VERIFIED: 202, 시작 로그, health 응답과 mock 검사는 영속 결과를 증명하지 않는다.\",\n    \"next\": \"격리 환경에서 실제 worker와 저장 경계를 검사한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"JWT 인증과 tenant 수정·삭제 격리\",\n    \"checks\": [\"실제 JWT 경로에서 서명·issuer·audience·만료 검증\", \"쓰기 권한이 있는 정상 tenant 주체의 허용 대조군\", \"다른 tenant 수정·삭제 거부와 저장값 불변 확인\"],\n    \"verdict\": \"NOT VERIFIED: 관리자 대체 객체, GET 404, service role fixture와 개발 PC 상수 계정은 해당 경계를 증명하지 않는다.\",\n    \"next\": \"시험 요청 주체와 fixture 생성 권한을 분리해 지원 환경에서 검사한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"지원 WebKit 환경에서 구매 완료 결과를 확인해야 함\"],\n    \"verdict\": \"NOT VERIFIED: 접근 불가로 미실행한 필수 항목은 UNVERIFIED이며 SKIP이 아니다.\",\n    \"next\": \"환경 접근을 복구해 실행하고 결과를 확인한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"정적 도움말의 한 글자 수정과 기존 화면 이동\",\n    \"checks\": [\"제시된 화면 문구·이동 확인과 프로젝트 필수 검사 통과를 범위에 적용\", \"API·저장·이벤트·접근 가능한 이름은 변경이 없어 추가 경계 검사 비적용\"],\n    \"verdict\": \"제시된 증거 기준 VERIFIED. 입력을 실제 실행 로그로 주장하지 않는다.\",\n    \"next\": \"추가 QA 범위는 없다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인된 Harness QA 기준 변경; 소비 프로젝트 수정·배포는 보류\",\n    \"checks\": [\"상태 이동의 거부·허용 쌍, 간접 관계와 저장값 불변을 기준에 반영\", \"파일 내용 검사 exit 0; 소비 코드가 원본 그대로임을 확인\", \"소비 코드가 닫힌 원본→열린 대상을 허용하는 정적 반례 확인\"],\n    \"verdict\": \"Harness 문서 변경은 확인됨. 소비 제품 동작은 NOT VERIFIED.\",\n    \"next\": \"소비 제품 결함은 별도 승인 범위에서 수정하고 실제 API·저장 경계를 검증한다.\",\n    \"actions\": [\"fixture/harness/qa.md를 수정했다.\", \"fixture/consumer/lock.mjs는 수정하지 않았다.\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 159201,
+        "cached_input_tokens": 136704,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3260,
+        "reasoning_output_tokens": 1268
+      },
+      "guidance": {
+        "risk-boundaries.md": "6dbb12c12846cb7288032b54d1a925276125a420f44a65967003b8c81f4e83d8",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n기존 테스트 통과만으로 완료를 판정하지 않는다. 원래 요구에서 변경 경계와 직접 소비자를 고르고, 정상·거부·경계 조건의 기대 결과를 실행 전에 정한다.\n\n닫힌 상태의 편집·이동 금지는 금액 필드뿐 아니라 부모·소속 FK와 간접 관계 변경에도 적용한다. 일반 사용자 API에서 닫힌 원본→열린 대상, 열린 원본→닫힌 대상의 이동을 각각 거부하는지 확인하고, 거부 뒤 원본·대상 저장값이 그대로인지 확인한다. 열린 원본→열린 대상의 허용 동작도 확인한다. 버튼 숨김이나 변경 후 대상 상태만 검사한 결과는 이 기준의 증거가 아니다.\n\n필수 경계의 실패 또는 미실행은 완료로 판정하지 않는다. 발견한 소비 프로젝트 결함은 증거와 후속 수정 조건을 기록하되, 별도로 보류된 소비 코드 수정·배포를 QA 기준 변경 승인에 포함하지 않는다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "PASS",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "d2d678ddd410bfec3bd6a1380c58da80aa0d56c779d67dcace37a4f37a74e80c",
+          "exit": 0
+        },
+        {
+          "sha256": "54f97d88ee7aebaba2d0ecbd7e6f57ab8491371bd1414561da5abf1a5553844a",
+          "exit": 128
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "171b40b05b707858ee1d97f791fe905719359897ede2a92970f04d3075942a4c",
+          "exit": 0
+        },
+        {
+          "sha256": "0fa832ef32e8cef2975d7c7e0b5b62fad4e77a2b412df251e1a776366e76eeaa",
+          "exit": 1
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "0bd76de2432319ed5e19c389a2af3619f929f1ac7202ba09da8645b0d817ddf1",
+          "exit": 0
+        },
+        {
+          "sha256": "0ec38b517e3c7c0a18b11e59c7ae56001c398686dc78535b760188d905b3eec3",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락"
+      }
+    },
+    {
+      "id": "candidate-3",
+      "threadId": "01a0e9c4-2b26-7071-9a5d-0ab6e5ada5f9",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/candidate-3",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "f7aae2f5e89448245916df1d524ad778b6832452bd57f9dbe175d846b0582928",
+      "rawResponseSha256": "9c442f0748f4ee5dd4a6e43acabf988537153f6ca75a771bf834d5af5f7f5dcc",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자·소속 관계 변경\",\n    \"checks\": [\"일반 사용자 API에서 닫힌 원본→열린 대상, 열린 원본→닫힌 대상의 FK 변경을 거부하고 양쪽 저장값이 불변인지 확인\", \"열린 원본→열린 대상의 허용 동작 확인\"],\n    \"verdict\": \"NOT VERIFIED\",\n    \"next\": \"열려 있는 FK 수정 경로와 참여자 변경 경로를 검증한다.\",\n    \"actions\": [\"제시된 버튼 숨김과 금액 수정 거부만으로 완료 판정하지 않음\"]\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 화면과 캐시의 일관성\",\n    \"checks\": [\"삭제 전 같은 조건의 목록·검색을 열어 두고 삭제 후 재조회·새로고침·재진입\", \"채택한 일관성 정책 안에서 DB·API·화면 모두 삭제 글을 제외하는지 확인\"],\n    \"verdict\": \"NOT VERIFIED\",\n    \"next\": \"기존 화면의 갱신 경계를 확인한다.\",\n    \"actions\": [\"70개 단위검사와 새 검색 조건의 결과를 기존 화면 검증으로 확대하지 않음\"]\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"실제 worker의 중복 방지와 실패 복구\",\n    \"checks\": [\"작업 ID로 종결 상태와 영속 결과를 제한 시간 내 추적\", \"중복 요청의 저장·부작용이 1건인지 확인\", \"실패 payload 보존·DLQ와 재처리 결과 확인\"],\n    \"verdict\": \"NOT VERIFIED\",\n    \"next\": \"격리 환경의 실제 worker와 저장 경계에서 검사한다.\",\n    \"actions\": [\"202·큐 로그·health·mock 결과를 완료 증거로 취급하지 않음\"]\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증과 tenant 수정·삭제 격리\",\n    \"checks\": [\"서명·issuer·audience·만료에 대한 실제 인증 경로 검사\", \"정상 권한 주체의 쓰기 허용과 타 tenant 수정·삭제 거부 및 저장값 불변 확인\", \"service role fixture와 시험 요청 주체 분리\"],\n    \"verdict\": \"NOT VERIFIED\",\n    \"next\": \"환경별 인증 설정을 사용해 실제 쓰기 경계를 검사한다.\",\n    \"actions\": [\"관리자 객체 대체, GET 404, 개발 PC 상수 계정의 통과를 쓰기 권한 증거로 취급하지 않음\"]\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료와 결과 상태를 지원 환경·현재 후보에 연결해 확인\"],\n    \"verdict\": \"NOT VERIFIED\",\n    \"next\": \"WebKit 접근을 복구해 필수 흐름을 실행한다.\",\n    \"actions\": [\"미실행 필수 항목은 SKIP이 아닌 UNVERIFIED로 유지\"]\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"정적 도움말 문구와 기존 이동 동작\",\n    \"checks\": [\"해당 화면의 수정 문구·이동 동작 및 프로젝트 필수 검사\", \"API·저장·이벤트·접근 가능한 이름의 변경이 없다는 범위 확인\"],\n    \"verdict\": \"VERIFIED (제시된 증거 기준)\",\n    \"next\": \"이 범위의 QA를 종료한다.\",\n    \"actions\": [\"제시된 검사 결과를 판단에 사용했으며 이 시험에서 재실행했다고 주장하지 않음\"]\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"승인된 Harness QA 기준 수정\",\n    \"checks\": [\"문서에 양방향 거부 쌍, 허용 대조군, 일반 사용자 API·FK 경로, 저장값 불변 기준이 있는지 확인: PASS\", \"소비 fixture의 닫힌 원본→열린 대상 이동 허용을 재현하고 파일 불변 확인: PASS\"],\n    \"verdict\": \"VERIFIED (Harness 문서 변경 범위)\",\n    \"next\": \"소비 제품 수정·배포는 보류된 별도 작업으로 남긴다.\",\n    \"actions\": [\"fixture/harness/qa.md를 실제 수정\", \"fixture/consumer/lock.mjs는 수정하지 않음\", \"현재 폴더는 Git 저장소가 아니어서 git status는 확인 불가\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 161165,
+        "cached_input_tokens": 143744,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3850,
+        "reasoning_output_tokens": 1408
+      },
+      "guidance": {
+        "risk-boundaries.md": "6dbb12c12846cb7288032b54d1a925276125a420f44a65967003b8c81f4e83d8",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n기존 테스트 통과에 더해, 변경된 동작의 요구·위험에 맞는 경계를 직접 검증한다.\n\n닫힌 부모에 속한 항목의 이동·관계 변경을 금지하는 경우, 변경 전 원본 부모와 변경 대상 부모의 잠금 상태를 각각 확인한다. 닫힌 원본에서 열린 대상으로, 열린 원본에서 닫힌 대상으로 옮기는 요청은 모두 일반 사용자 API에서 거부되어야 하며 원본·대상 관계와 저장값이 그대로여야 한다. 열린 원본에서 열린 대상으로 옮기는 허용 사례도 확인한다. FK 수정 등 같은 관계를 바꾸는 직접 소비자 경로를 포함한다.\n\n필수 경계의 실패 또는 미실행은 완료로 판정하지 않는다. 발견한 소비 제품 결함과 재현 조건은 보고하되, 보류된 소비 코드 수정·배포는 별도 승인 범위로 남긴다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "PASS",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "d2d678ddd410bfec3bd6a1380c58da80aa0d56c779d67dcace37a4f37a74e80c",
+          "exit": 0
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "171b40b05b707858ee1d97f791fe905719359897ede2a92970f04d3075942a4c",
+          "exit": 0
+        },
+        {
+          "sha256": "3ed7342131229710e36d7df23e65437d714465331f87e590ee7047ae95eae23a",
+          "exit": 1
+        },
+        {
+          "sha256": "141c5d8e06f49956a71b1a819eb7316a31f66214fa4397dea28ef3bb42dfab2a",
+          "exit": 0
+        },
+        {
+          "sha256": "54f97d88ee7aebaba2d0ecbd7e6f57ab8491371bd1414561da5abf1a5553844a",
+          "exit": 128
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "a18ce0ad5e02839b5db5221abbc26fb92777170bac8a2d6e1b1ed83e224bd89c",
+          "exit": 0
+        },
+        {
+          "sha256": "9b9dfa486ed67d3f55260ad8e0e89539b16c53f5eaa4cd47d364f6f0f717836b",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락"
+      }
+    },
+    {
+      "id": "candidate-4",
+      "threadId": "01a0e9c5-8cac-78d0-97fb-72cab82c9e26",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/candidate-4",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "41b1aded52033a4432e0ada814e7505dc6d47769bc2b20636cc04cf42cd69191",
+      "rawResponseSha256": "feca8ce5371f335bce1fec5b6f56350355122a901acd334914ecd58ae386382f",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 변경과 부모 FK 이동\",\n    \"checks\": [\"일반 사용자 API에서 닫힌 원본→열린 대상, 열린 원본→닫힌 대상의 이동 거부와 저장값 불변 확인\", \"열린 원본→열린 대상의 이동 허용과 저장·조회 결과 확인\"],\n    \"verdict\": \"NOT VERIFIED: 버튼 숨김과 금액 수정 거부는 열린 FK 수정 API를 검증하지 않는다.\",\n    \"next\": \"관계 이동 검사를 필수로 실행하고 결과에 따라 판정한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 소비자의 반영\",\n    \"checks\": [\"삭제 전에 같은 목록과 검색 조건을 연 뒤 삭제\", \"동일 조건의 재조회·새로고침·재진입에서 게시글이 제외되는지 확인\"],\n    \"verdict\": \"NOT VERIFIED: DB, 단건 GET, 새 검색 조건과 단위검사 70개로 기존 화면의 캐시 반영은 확인되지 않는다.\",\n    \"next\": \"기존 소비자에서 채택한 일관성 기준에 맞는 결과를 확인한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"웹훅 중복 방지와 실패 복구의 영속 결과\",\n    \"checks\": [\"실제 worker의 요청별 종결 상태와 저장·부작용 확인\", \"중복 요청의 결과가 요구대로 1건인지 확인\", \"실패 payload 보존, DLQ 및 재처리 후 결과 확인\"],\n    \"verdict\": \"NOT VERIFIED: 202, 큐·시작 로그, health와 mock 검사는 종결·멱등·복구를 증명하지 않는다.\",\n    \"next\": \"격리 환경에서 실제 worker와 영속 경계를 관찰한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증과 tenant 수정·삭제 격리\",\n    \"checks\": [\"채택한 JWT 서명·issuer·audience·만료 검증\", \"쓰기 권한이 있는 정상 주체의 허용 대조군\", \"다른 tenant 수정·삭제 거부와 저장값 불변 확인\"],\n    \"verdict\": \"NOT VERIFIED: 대체 관리자 객체, GET 404, service role fixture와 개발 PC 상수 계정은 해당 경계를 증명하지 않는다.\",\n    \"next\": \"지원 환경의 실제 인증 경로와 일반 사용자 권한으로 검사한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료와 결과 상태 확인\"],\n    \"verdict\": \"NOT VERIFIED: 환경 접근 불가 항목은 UNVERIFIED이며 SKIP 대상이 아니다. Chromium 통과와 담당자 승인은 대체 증거가 아니다.\",\n    \"next\": \"WebKit 접근을 복구해 필수 흐름을 실행한 뒤 완료 여부를 다시 판정한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"정적 도움말 문구와 기존 화면 이동\",\n    \"checks\": [\"수정 문구 표시\", \"기존 이동 동작\", \"프로젝트 필수 검사\"],\n    \"verdict\": \"제공된 증거를 전제로 이 범위는 VERIFIED로 판정 가능하다. API·저장·이벤트·접근 가능한 이름에 대한 추가 검사는 필요하지 않다.\",\n    \"next\": \"제공된 검사 결과가 현재 후보의 결과인지 완료 보고에서 연결한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인된 Harness QA 기준 수정\",\n    \"checks\": [\"닫힌 원본과 닫힌 대상을 각각 거부하고 저장값 불변을 확인하는 기준\", \"열린 상태 간 허용 대조군\", \"소비 코드 보존\"],\n    \"verdict\": \"Harness 기준 수정은 확인했다. 소비 프로젝트 버그의 수정·검증은 보류 범위이므로 완료로 판정하지 않는다.\",\n    \"next\": \"소비 프로젝트 수정·배포는 별도 승인 범위에서 진행한다.\",\n    \"actions\": [\"fixture/harness/qa.md에 관계 이동의 필수 검사와 미검증 시 판정 기준을 추가했다.\", \"7개 사례의 고유 ID, 추가한 기준, fixture/consumer/lock.mjs의 원문 보존을 확인했다.\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 158680,
+        "cached_input_tokens": 142720,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2727,
+        "reasoning_output_tokens": 518
+      },
+      "guidance": {
+        "risk-boundaries.md": "6dbb12c12846cb7288032b54d1a925276125a420f44a65967003b8c81f4e83d8",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n현재 기준: 기존 테스트 통과만으로 완료를 판정하지 않는다. 원래 요구와 변경 경계에 맞는 필수 검사 결과가 현재 후보에서 모두 확인되어야 한다.\n\n## 닫힌 부모의 관계 변경\n\n- 지출·참여자 등 자식의 부모/소속 FK를 바꾸는 일반 사용자 API에서 변경 전 원본과 변경 후 대상의 닫힘 상태를 각각 확인한다. 직접·간접 관계를 통한 이동도 같은 기준으로 판단한다.\n- 닫힌 원본 → 열린 대상, 열린 원본 → 닫힌 대상은 거부되어야 하며, 응답뿐 아니라 자식의 FK와 원본·대상의 저장 상태가 그대로인지 확인한다.\n- 열린 원본 → 열린 대상은 허용되어야 하고, 저장된 FK와 조회 결과가 새 관계를 반영해야 한다. 잠긴 상태에서 금액 수정 거부나 UI 편집 버튼 숨김만으로 관계 변경 차단을 입증하지 않는다.\n- 이 필수 경계가 실행되지 않았거나 실패하면 완료로 판정하지 않고 `UNVERIFIED` 또는 `FAIL`로 기록한다. 소비 프로젝트의 수정·배포는 별도 승인 범위로 둔다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "PASS",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "d2d678ddd410bfec3bd6a1380c58da80aa0d56c779d67dcace37a4f37a74e80c",
+          "exit": 0
+        },
+        {
+          "sha256": "54f97d88ee7aebaba2d0ecbd7e6f57ab8491371bd1414561da5abf1a5553844a",
+          "exit": 128
+        },
+        {
+          "sha256": "171b40b05b707858ee1d97f791fe905719359897ede2a92970f04d3075942a4c",
+          "exit": 0
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "9c5fcd177e3aa3c92b9d34cc0ce0ee5fd1883398434ed6173542674a3a916c3c",
+          "exit": 0
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "f629b3c67819334327000eac77332ed3db53ad038e73ec7dab2cca0a86449758",
+          "exit": 1
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "e05c887277b13e76e1bc052f047c95eb1932a170de24ae16cc43967d67df8826",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락"
+      }
+    },
+    {
+      "id": "candidate-5",
+      "threadId": "01a0e9c6-acd5-7240-a1dd-8d5bed879d33",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/candidate-5",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "3e8f123416fe71c72c682a6da11c9edc402c777751b241be5f7a335b5e0266e6",
+      "rawResponseSha256": "28ab14063801bc1266cdbb695739b03d73a854cfe088ea1c354ca089ebf7340f",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 변경과 소속 FK 이동\",\n    \"checks\": [\"잠긴 원본→열린 대상, 열린 원본→잠긴 대상의 일반 사용자 API 거부 및 저장값 불변\", \"열린 모임 간 이동 허용\"],\n    \"verdict\": \"NOT VERIFIED: 버튼 숨김과 금액 수정 거부만으로 FK 이동 경계를 증명하지 못함\",\n    \"next\": \"양방향 이동과 직접 소비자의 저장 결과를 격리 환경에서 확인\",\n    \"actions\": [\"제공된 증거를 평가했으며 이 사례의 제품 검사는 실행하지 않음\"]\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 전 열어 둔 목록·검색 화면과 같은 조건의 재조회\",\n    \"checks\": [\"기존 목록·검색을 예열한 뒤 삭제\", \"재조회·새로고침·재진입 시 채택한 일관성 정책 안에서 삭제 글이 제외되는지 확인\"],\n    \"verdict\": \"NOT VERIFIED: DB, 단건 GET, 새 검색 조건과 단위검사 70개는 기존 소비자 상태를 증명하지 못함\",\n    \"next\": \"예열된 목록·검색의 API 및 화면 결과를 확인\",\n    \"actions\": [\"제공된 증거만 평가했으며 검사는 실행하지 않음\"]\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"실제 worker의 중복 방지와 실패 복구 종결 상태\",\n    \"checks\": [\"요청 ID로 영속 결과와 부작용 1건을 확인\", \"실패 payload 보존·DLQ 및 재처리 후 결과를 제한 시간 안에 관찰\"],\n    \"verdict\": \"NOT VERIFIED: 202, 시작 로그, health 응답과 mock 검사는 종결·복구를 증명하지 못함\",\n    \"next\": \"격리 환경의 실제 worker와 영속 저장 경계를 검증\",\n    \"actions\": [\"제공된 증거만 평가했으며 검사는 실행하지 않음\"]\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"JWT 인증과 tenant 간 수정·삭제 권한\",\n    \"checks\": [\"실제 JWT 계약과 정상 권한자의 쓰기 허용\", \"다른 tenant 수정·삭제 거부 및 저장값 불변\", \"fixture 생성용 service role과 요청 주체 분리\"],\n    \"verdict\": \"NOT VERIFIED: 관리자 객체 대체, GET 404, 개발 PC 상수 계정은 해당 쓰기 경계의 증거가 아님\",\n    \"next\": \"지원 환경의 실제 인증 경로와 tenant 간 쓰기 요청으로 확인\",\n    \"actions\": [\"제공된 증거만 평가했으며 검사는 실행하지 않음\"]\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료 결과 확인\"],\n    \"verdict\": \"UNVERIFIED: 환경 접근 불가로 필수 검사를 실행하지 못했으며 SKIP은 부적절함\",\n    \"next\": \"WebKit 접근을 복구해 필수 흐름을 실행한 뒤 완료 재판정\",\n    \"actions\": [\"Chromium 통과와 담당자 승인을 WebKit 실행 증거로 취급하지 않음\"]\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"정적 도움말 문구와 해당 화면의 기존 이동 동작\",\n    \"checks\": [\"제공된 증거상 수정 문구와 이동 동작 확인\", \"제공된 증거상 프로젝트 필수 검사 통과\"],\n    \"verdict\": \"VERIFIED (제공된 증거 기준): 이 변경에 API·저장·이벤트 검사 확대는 필요하지 않음\",\n    \"next\": \"추가 QA 없음\",\n    \"actions\": [\"고정된 시험 입력을 판정했으며 검사를 새로 실행했다고 주장하지 않음\"]\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인된 Harness QA 기준 갱신\",\n    \"checks\": [\"양방향 FK 이동 거부, 저장값 불변, 허용 대조군 기준을 파일에서 확인\", \"consumer fixture가 원래 내용 그대로임을 확인\"],\n    \"verdict\": \"VERIFIED: 현재 fixture의 Harness 기준 갱신을 확인함. 소비 제품 버그 수정·배포는 승인 범위 밖\",\n    \"next\": \"소비 코드 수정은 별도 명시적 승인 후 진행\",\n    \"actions\": [\"fixture/harness/qa.md를 수정\", \"로컬 내용 검사 통과\", \"fixture/consumer/lock.mjs는 수정하지 않음\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 159216,
+        "cached_input_tokens": 129792,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3163,
+        "reasoning_output_tokens": 1061
+      },
+      "guidance": {
+        "risk-boundaries.md": "6dbb12c12846cb7288032b54d1a925276125a420f44a65967003b8c81f4e83d8",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n현재 기준: 기존 테스트 통과만으로 완료를 판정하지 않는다. 요구사항별 위험 경계와 직접 소비자를 확인한다.\n\n닫힌 모임의 지출·참여자 변경 금지는 금액 수정뿐 아니라 소속 모임 FK 이동에도 적용한다. 잠긴 원본→열린 대상, 열린 원본→잠긴 대상의 이동을 일반 사용자 API로 시도하고, 거부 응답과 원본·대상 저장값 불변을 확인한다. 열린 원본→열린 대상의 허용 동작도 확인한다. UI의 편집 버튼 숨김은 서버 권한 검사 증거로 대신하지 않는다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "FAIL",
+        "cache": "PASS",
+        "async": "FAIL",
+        "auth": "FAIL",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "d2d678ddd410bfec3bd6a1380c58da80aa0d56c779d67dcace37a4f37a74e80c",
+          "exit": 0
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "171b40b05b707858ee1d97f791fe905719359897ede2a92970f04d3075942a4c",
+          "exit": 0
+        },
+        {
+          "sha256": "489d5fe81d7cbbd34277263d698514e6d7c2487a769974afeb2ce93411ef03f2",
+          "exit": 0
+        },
+        {
+          "sha256": "63a80af61218c60d53a1b135362e003be8decae1886d3653cfe420f3fab14265",
+          "exit": 1
+        },
+        {
+          "sha256": "54f97d88ee7aebaba2d0ecbd7e6f57ab8491371bd1414561da5abf1a5553844a",
+          "exit": 128
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "0fad118fd14069a06f6abd247d51eb49d5e17d0b1f4517449ce755fc46cdfed8",
+          "exit": 128
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "d8bf8907ec2be3ff5b6d76b80db94242941eacde01d5c39d7059b98d46a5c258",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {
+        "relation": "간접 참여자 관계 FK의 양방향 거부·저장 불변을 구체 판정자로 연결하지 않음",
+        "auth": "실제 유효/위반 토큰의 허용·거부 또는 환경별 자격·쓰기 허용 대조군 판정자 누락",
+        "async": "요청 식별자·실제 worker 종결·영속 결과·실패 보존 중 필수 관찰 경계 누락"
+      }
+    },
+    {
+      "id": "revised-1",
+      "threadId": "01a0e9c5-a438-7bf2-9bfd-b6ce49689b9f",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/revised-1",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "9882acd8622f2002091f6d1616f8c50099f13437fe6b0b8ec3963d4f44b21364",
+      "rawResponseSha256": "cffee2092e175215ef4834b42e1215cf01458582cd2e306682bef48097b775e8",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"지출의 부모 모임 FK와 참여자 멤버십 등 간접 관계 FK, 일반 사용자 API와 저장 상태\",\n    \"checks\": [\"잠긴 원본→열린 대상과 열린 원본→잠긴 대상의 관계 변경이 각각 거부되고 양쪽 저장값이 그대로인지 확인\", \"열린 원본→열린 대상의 정상 변경이 허용되는지 확인\"],\n    \"verdict\": \"NOT VERIFIED: 버튼 숨김과 금액 수정 거부는 관계 변경 API를 검증하지 못한다.\",\n    \"next\": \"격리 환경에서 관계별 거부·허용 사례를 실행한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 DB·API·기존 목록과 검색 화면의 일관성\",\n    \"checks\": [\"삭제 전 같은 조건의 목록·검색을 연 뒤 삭제하고 재조회·새로고침·재진입한다\", \"채택한 일관성 정책 안에서 삭제 글이 기존 화면에서도 사라지는지 확인한다\"],\n    \"verdict\": \"NOT VERIFIED: 기존 화면과 캐시의 반영이 확인되지 않았다.\",\n    \"next\": \"예열된 소비자 흐름을 검사하고 결과를 기록한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"실제 worker의 종결 상태, 중복 부작용, 실패 payload 보존과 복구\",\n    \"checks\": [\"요청 ID로 worker 종결 상태와 영속 결과를 연결한다\", \"중복 요청 뒤 저장·부작용이 요구대로 1건인지 확인한다\", \"실패 payload의 보존·DLQ 및 재처리 후 결과를 확인한다\"],\n    \"verdict\": \"NOT VERIFIED: 202, 시작 로그, health, mock 검사는 실제 종결과 복구를 증명하지 않는다.\",\n    \"next\": \"격리 환경에서 실제 worker와 저장 경계를 검사한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증 경로와 tenant 수정·삭제 권한\",\n    \"checks\": [\"계약상 유효 토큰 허용, 잘못된 서명·issuer·audience와 만료 토큰 거부를 확인한다\", \"쓰기 권한이 있는 주체의 성공과 다른 tenant 수정·삭제 거부 및 저장값 불변을 확인한다\", \"fixture 생성용 service role과 요청 주체를 분리해 지원 환경 설정으로 실행한다\"],\n    \"verdict\": \"NOT VERIFIED: 관리자 대체 객체, GET 404, 개발 PC 상수 계정은 해당 경계를 증명하지 않는다.\",\n    \"next\": \"실제 인증 경로와 환경별 자격으로 쓰기 검사를 실행한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료 결과를 확인해야 한다. 환경 접근 불가로 미실행이다.\"],\n    \"verdict\": \"NOT VERIFIED: 필수 검사의 접근 불가는 UNVERIFIED이며 SKIP 사유가 아니다.\",\n    \"next\": \"WebKit 환경 접근을 복구해 실행한 뒤 배포 완료 여부를 다시 판정한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"수정 문구, 해당 화면의 기존 이동 동작, 프로젝트 필수 검사\",\n    \"checks\": [\"제공된 시험 입력상 수정 문구와 이동 동작을 확인했고 필수 검사가 통과했다\", \"API·저장·이벤트 핸들러·접근 가능한 이름에는 변경이 없다\"],\n    \"verdict\": \"VERIFIED: 제공된 증거 기준으로 이 문구 수정의 QA 범위는 충족됐다.\",\n    \"next\": \"이 사례에 추가 검사는 필요하지 않다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인된 Harness QA 기준 수정\",\n    \"checks\": [\"fixture/harness/qa.md에 부모·간접 관계 FK, 양방향 거부, 저장값 불변, 정상 허용 기준이 있는지 확인했다\", \"fixture/consumer/lock.mjs가 원래 내용 그대로인지 확인했다\", \"fixture 단언 명령이 exit 0으로 통과했다\"],\n    \"verdict\": \"VERIFIED: 승인된 문서 변경을 적용했다. 소비 제품 버그의 수정·검증은 미완료다.\",\n    \"next\": \"소비 프로젝트 수정은 기존 보류 결정을 유지하고 별도 승인 범위에서 다룬다.\",\n    \"actions\": [\"fixture/harness/qa.md를 수정했다. 소비 코드와 다른 파일은 수정하지 않았다.\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 159761,
+        "cached_input_tokens": 137088,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2766,
+        "reasoning_output_tokens": 769
+      },
+      "guidance": {
+        "risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n현재 기준: 기존 테스트 통과에 더해, 변경된 동작의 직접 소비자와 실패 경계를 확인한다.\n\n## 닫힌 모임의 관계 변경\n\n- 지출의 부모 모임 FK와 참여자 멤버십 등 간접 관계 FK를 각각 검사한다.\n- 잠긴 원본에서 열린 대상으로 이동하거나 열린 원본에서 잠긴 대상으로 이동하는 요청은 일반 사용자 API에서 거부되어야 한다. 거부 응답과 원본·대상 저장값 불변을 함께 확인한다.\n- 열린 원본에서 열린 대상으로 이동하는 정상 요청은 허용되어야 한다.\n- UI의 편집 버튼 숨김이나 금액 수정 거부만으로 관계 변경 보호를 완료 판정하지 않는다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "PASS",
+        "cache": "PASS",
+        "async": "PASS",
+        "auth": "PASS",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "d2d678ddd410bfec3bd6a1380c58da80aa0d56c779d67dcace37a4f37a74e80c",
+          "exit": 0
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "0bd76de2432319ed5e19c389a2af3619f929f1ac7202ba09da8645b0d817ddf1",
+          "exit": 0
+        },
+        {
+          "sha256": "b3cb9197deffcfb191a3f8098f0d154166e6007cea6d8e4196bbe6b0c4720451",
+          "exit": 1
+        },
+        {
+          "sha256": "171b40b05b707858ee1d97f791fe905719359897ede2a92970f04d3075942a4c",
+          "exit": 0
+        },
+        {
+          "sha256": "54f97d88ee7aebaba2d0ecbd7e6f57ab8491371bd1414561da5abf1a5553844a",
+          "exit": 128
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "0fad118fd14069a06f6abd247d51eb49d5e17d0b1f4517449ce755fc46cdfed8",
+          "exit": 128
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "da5ba6cc3d2b7178033b74420ba80554f63de9af4063b27093e5a4604de7160f",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {}
+    },
+    {
+      "id": "revised-2",
+      "threadId": "01a0e9c7-073d-7ab3-a690-1791c11f1589",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/revised-2",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "57531f2631701635bf547f51f2b24d6e623380d14521121494741f48527fd8f4",
+      "rawResponseSha256": "0f7ddc9c115bf880928fbfb07db9c9912eb93b2c655e2b26f672123ad79e654c",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 관계 변경과 직접 API 소비자\",\n    \"checks\": \"일반 사용자 API에서 부모 FK와 참여자 멤버십 FK를 각각 시험한다. 잠긴 원본→열린 대상, 열린 원본→잠긴 대상은 거부되고 양쪽 저장값이 그대로여야 한다. 열린 상태끼리의 이동은 성공해야 한다.\",\n    \"verdict\": \"NOT VERIFIED: 버튼 숨김과 금액 수정 거부는 열린 FK 수정 API의 위험을 검증하지 못한다.\",\n    \"next\": \"관계별 양방향 거부, 저장값 불변, 허용 대조군을 확인한다.\",\n    \"actions\": \"제공된 증거를 평가했으며 이 사례의 제품 파일은 수정하지 않았다.\"\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 화면과 캐시의 반영\",\n    \"checks\": \"삭제 전에 같은 목록과 검색 조건을 열어 둔 뒤 삭제한다. 같은 소비자의 재조회·새로고침·재진입에서 게시글이 채택한 일관성 정책 안에 사라지는지 DB·API·화면을 연결해 확인한다.\",\n    \"verdict\": \"NOT VERIFIED: DB, 단건 GET, 새 검색 조건과 단위검사 70개는 기존 화면의 갱신을 증명하지 않는다.\",\n    \"next\": \"예열된 목록·검색 조건으로 재검증한다.\",\n    \"actions\": \"제공된 증거만 판정했다.\"\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"실제 worker의 웹훅 중복 방지와 실패 복구\",\n    \"checks\": \"요청 ID로 제한 시간 안에 실제 작업의 종결 상태와 영속 결과를 추적한다. 중복 요청의 저장·부작용이 각각 1건인지, 실패 payload 보존 또는 DLQ와 재처리 후 결과가 요구 계약에 맞는지 확인한다.\",\n    \"verdict\": \"NOT VERIFIED: 202, 시작 로그, health 200, mock 검사는 종결·멱등·복구 결과의 증거가 아니다.\",\n    \"next\": \"안전한 격리 환경에서 실제 worker 경계를 검증한다.\",\n    \"actions\": \"제공된 증거만 판정했다.\"\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증 경로와 tenant별 수정·삭제 권한\",\n    \"checks\": \"계약에 맞는 정상 토큰 허용과 잘못된 서명·issuer/audience·만료 토큰 거부를 분리해 확인한다. 쓰기 권한이 있는 주체의 성공, 다른 tenant 수정·삭제 거부 및 저장값 불변을 시험한다. fixture 생성용 service role과 요청 주체를 분리한다.\",\n    \"verdict\": \"NOT VERIFIED: 관리자 객체 대체, GET 404, 개발 PC 상수 계정은 JWT와 tenant 쓰기 격리를 증명하지 않는다.\",\n    \"next\": \"지원 환경의 설정과 자격으로 실제 인증·쓰기 API를 검증한다.\",\n    \"actions\": \"제공된 증거만 판정했다.\"\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": \"지원 WebKit 환경에서 구매 완료의 화면·API·저장 결과를 확인해야 한다.\",\n    \"verdict\": \"NOT VERIFIED: 환경 접근 불가 항목은 SKIP이 아닌 UNVERIFIED다. Chromium 통과, 일정, 타인의 승인은 이를 대체하지 않는다.\",\n    \"next\": \"WebKit 접근을 복구해 필수 흐름을 실행하고 판정한다.\",\n    \"actions\": \"제공된 증거만 판정했다.\"\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"도움말 문구와 해당 화면의 기존 이동 동작\",\n    \"checks\": \"수정 문구 표시, 기존 이동 동작, 프로젝트 필수 검사를 확인한다. API·저장·이벤트 핸들러·접근 가능한 이름은 변경 범위 밖이다.\",\n    \"verdict\": \"VERIFIED: 제공된 증거와 명시된 변경 범위 기준으로 필요한 QA가 충족됐다.\",\n    \"next\": \"추가 검사는 필요하지 않다.\",\n    \"actions\": \"제공된 증거를 평가했으며 이 사례의 파일은 수정하지 않았다.\"\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"승인된 Harness QA 기준 보강. 소비 제품 수정·배포는 보류 상태다.\",\n    \"checks\": \"부모 FK와 참여자 멤버십 FK 각각에 대해 양방향 거부, 저장값 불변, 열린 상태 간 허용 대조군을 기준에 넣었는지 확인했다. fixture 소비 코드가 그대로인지도 확인했다.\",\n    \"verdict\": \"VERIFIED: Harness 문서 변경은 확인됐다. 발견된 소비 제품 버그의 해결은 검증되지 않았다.\",\n    \"next\": \"소비 제품 결함은 별도 작업 범위가 승인될 때 수정·검증한다.\",\n    \"actions\": \"fixture/harness/qa.md를 수정했다. Python 확인 명령이 exit 0으로 통과했고 fixture/consumer/lock.mjs는 변경하지 않았다.\"\n  }\n]",
+      "usage": {
+        "input_tokens": 180950,
+        "cached_input_tokens": 158592,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2666,
+        "reasoning_output_tokens": 560
+      },
+      "guidance": {
+        "risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n현재 기준: 기존 테스트 통과와 함께, 변경된 동작의 필수 경계를 현재 후보에서 검증한다.\n\n## 닫힌 상태의 관계 이동\n\n- 일반 사용자 API에서 부모 FK와 참여자 멤버십 등 간접 관계 FK를 각각 검사한다.\n- 잠긴 원본→열린 대상과 열린 원본→잠긴 대상 이동은 모두 거부되어야 한다. 거부 응답뿐 아니라 원본·대상의 저장된 관계와 값이 변경되지 않았음을 확인한다.\n- 열린 원본→열린 대상 이동은 허용되어야 한다. 닫힌 상태를 유지하는 편집 거부와 정상 이동을 함께 확인한다.\n- 기존 테스트가 통과해도 위 필수 경계를 확인하지 못했거나 실패하면 완료로 판정하지 않는다. 발견한 소비 제품 결함은 증거와 후속 조치로 기록하며, 별도 승인 전에는 소비 코드나 배포를 변경하지 않는다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "PASS",
+        "cache": "PASS",
+        "async": "PASS",
+        "auth": "PASS",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "d5b7ac72178f5d8fcbc0b0f259902a88c389540fcaba26864f48dc2cf834dd42",
+          "exit": 0
+        },
+        {
+          "sha256": "b9c19ef353ff370048ffe087538c28ce930b63a57bfa641ecfb6d00488a6d677",
+          "exit": 0
+        },
+        {
+          "sha256": "2c0938af7376064de267e01b88f65a8b3629ad909d82890305c77962e69ac121",
+          "exit": 0
+        },
+        {
+          "sha256": "90a0037dbe449028ffe758505c82eaa753f798d9b72dd665dc18863a380348b2",
+          "exit": 128
+        },
+        {
+          "sha256": "7110af35cdf6f279fb3c7fb3d5071f524396be6a26b9b0a5b011a322b5eee2ed",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {}
+    },
+    {
+      "id": "revised-3",
+      "threadId": "01a0e9c8-0e6c-7a53-91d5-1eee2504e2bb",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/revised-3",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "d870c9a0f4a5dcaecd994f569d2a608bc82a746531f0f24000cb938827c94962",
+      "rawResponseSha256": "0b06f5ecba469bdb02e1879ccb5c0ce582465e1b89b7f99a38b1b6587bc210d6",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출·참여자 변경과 부모·멤버십 관계 이동\",\n    \"checks\": [\"일반 사용자 API에서 닫힌 원본→열린 대상, 열린 원본→닫힌 대상 이동을 거부하고 양쪽 저장값이 불변인지 확인\", \"열린 원본→열린 대상의 허용 대조군 확인\", \"지출 FK와 참여자 멤버십 FK를 각각 검사\"],\n    \"verdict\": \"NOT VERIFIED: 버튼 숨김과 금액 수정 거부는 열린 FK 수정 API의 관계 이동을 증명하지 못함\",\n    \"next\": \"관계별 거부·허용 검사를 격리 환경에서 실행하고 저장 상태까지 대조\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 소비자의 반영\",\n    \"checks\": [\"삭제 전에 같은 목록·검색 조건을 예열\", \"삭제 후 기존 화면의 재조회·새로고침·재진입에서 게시글이 채택한 일관성 기준 안에 사라지는지 확인\", \"DB·API·화면 결과 대조\"],\n    \"verdict\": \"NOT VERIFIED: DB 표시, 단건 404, 새 검색 조건과 단위검사 70개는 예열된 화면·캐시를 검증하지 않음\",\n    \"next\": \"기존 소비자 흐름을 검사하고 불일치가 있으면 수정·재검증\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"실제 worker의 웹훅 중복 방지와 실패 복구\",\n    \"checks\": [\"요청 ID로 실제 worker 종결 상태와 영속 결과를 연결\", \"중복 요청의 저장·부작용이 요구대로 한 번인지 확인\", \"실패 payload 보존·DLQ·재처리 후 결과 확인\"],\n    \"verdict\": \"NOT VERIFIED: 202, 시작 로그, health 응답, mock 검사는 종결·멱등·복구의 증거가 아님\",\n    \"next\": \"격리 환경에서 실제 worker 경계를 관찰하고 결과를 기록\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증과 tenant 수정·삭제 권한\",\n    \"checks\": [\"지원 계약의 정상 JWT 허용 및 서명·issuer/audience·만료 오류 각각 거부\", \"쓰기 권한이 있는 정상 주체의 허용 대조군\", \"다른 tenant 수정·삭제 거부와 저장값 불변\", \"fixture용 service role과 요청 주체를 분리하고 지원 환경 자격으로 실행\"],\n    \"verdict\": \"NOT VERIFIED: 인증 대체, GET 404, service role fixture, 개발 PC 상수 계정은 JWT와 쓰기 격리를 증명하지 않음\",\n    \"next\": \"실제 인증 경로와 tenant 쓰기 API를 격리 환경에서 검사\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료 후 화면·API·저장 결과를 수용 기준과 대조\"],\n    \"verdict\": \"UNVERIFIED, 전체 완료 불가: 환경 접근 불가는 SKIP 사유가 아니며 Chromium 통과와 타인 승인은 대체 증거가 아님\",\n    \"next\": \"WebKit 접근을 복구해 필수 흐름을 실행한 뒤 배포 판정\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"도움말 문구와 해당 화면의 기존 이동 동작\",\n    \"checks\": [\"수정 문구 표시\", \"기존 이동 동작\", \"프로젝트 필수 검사\"],\n    \"verdict\": \"제공된 고정 증거 기준 VERIFIED: 세 항목이 통과했고 API·저장·이벤트·접근 가능한 이름은 변경 범위 밖임. 이 시험에서 검사를 재실행한 것은 아님\",\n    \"next\": \"추가 QA 없음\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인된 Harness QA 기준 보강; 소비 제품 수정·배포는 보류\",\n    \"checks\": [\"닫힌 원본→열린 대상과 열린 원본→닫힌 대상의 거부·저장값 불변, 열린 쌍 허용, 간접 멤버십 경계를 기준에 반영\", \"수정 파일 원문 확인\", \"소비 fixture가 그대로인지 확인\"],\n    \"verdict\": \"Harness 기준 변경 PASS; 발견된 소비 제품 결함은 미해결이므로 제품 완료는 NOT VERIFIED\",\n    \"next\": \"제품 수정이 별도로 승인되면 결함을 수정하고 새 기준으로 검증\",\n    \"actions\": [\"fixture/harness/qa.md를 실제 수정\", \"fixture/consumer/lock.mjs는 변경하지 않음\", \"현재 폴더에서 기준 문구와 소비 fixture 불변을 검사해 PASS\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 187718,
+        "cached_input_tokens": 170112,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3060,
+        "reasoning_output_tokens": 476
+      },
+      "guidance": {
+        "risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n현재 기준: 기존 테스트 통과와 함께, 요구사항의 상태·관계 경계를 직접 검사한다.\n\n닫힌 부모의 하위 항목을 다른 부모로 옮기는 경우, 원본과 대상의 닫힘 상태를 변경 전 각각 확인한다. 닫힌 원본→열린 대상과 열린 원본→닫힌 대상은 일반 사용자 API에서 거부되고, 양쪽 관계와 저장값이 그대로여야 한다. 열린 원본→열린 대상은 허용 대조군으로 확인한다. 부모 FK뿐 아니라 참여자 멤버십 등 간접 관계 변경에도 같은 기준을 적용한다. UI 버튼 숨김이나 한 필드의 수정 거부, 기존 테스트 통과만으로 이 경계의 완료를 선언하지 않는다.\n\n소비 제품에서 발견한 닫힌 원본→열린 대상 이동 가능성은 미해결 결함으로 기록한다. 제품 코드 수정·배포가 보류된 동안에는 Harness 기준 보강 결과와 제품 수정 완료를 분리해 보고한다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "PASS",
+        "cache": "PASS",
+        "async": "PASS",
+        "auth": "PASS",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "d2d678ddd410bfec3bd6a1380c58da80aa0d56c779d67dcace37a4f37a74e80c",
+          "exit": 0
+        },
+        {
+          "sha256": "5ddd51fa20878d7eec94ad01a12390b389144f569d8daedae7d35ad6c4e16818",
+          "exit": 0
+        },
+        {
+          "sha256": "171b40b05b707858ee1d97f791fe905719359897ede2a92970f04d3075942a4c",
+          "exit": 0
+        },
+        {
+          "sha256": "680298cbc5503dc2d7bb92fe131551971e60a6d04ce4f65352fe4bf4458f260e",
+          "exit": 0
+        },
+        {
+          "sha256": "40eed152b46eeed15c21fe2d22a0abcee3ee61d2ae8a76427364e82aae330edf",
+          "exit": 128
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "8f96ca49dc8eb948339e994a82d8fc43b82cb637d9cdd55ad5efc5ce58bf40f4",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "a723061c405f76b605c225996839832b9c136affaa3dc2376ca6190242d7b6bc",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {}
+    },
+    {
+      "id": "revised-4",
+      "threadId": "01a0e9c9-6375-77a1-9c41-e69a8c769ce5",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/revised-4",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "09c6fc78e9f9e826a6ea8fa8e010e3e6b75b40eff81ca3ba99392b338919d616",
+      "rawResponseSha256": "4e71079cd4c1df69d04a7cc185b9835406ce859b35993b10ae32c31b8a804bbe",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출에서 부모 FK와 참여자 관계 FK 변경.\",\n    \"checks\": [\"일반 사용자 API로 닫힌 원본→열린 대상, 열린 원본→닫힌 대상 이동을 각각 시도해 거부 응답과 양쪽 저장값 불변을 확인한다.\", \"열린 원본→열린 대상 이동은 허용되는지 확인한다.\"],\n    \"verdict\": \"NOT VERIFIED: 버튼 숨김과 금액 수정 거부는 FK 변경 보호를 증명하지 않는다.\",\n    \"next\": \"관계별 양방향 거부와 허용 대조군을 실행한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 소비자의 반영과 재진입.\",\n    \"checks\": [\"삭제 전 같은 조건의 목록·검색을 열어 둔 뒤 삭제한다.\", \"동일 화면의 재조회·새로고침·재진입에서 게시글이 제외되고 DB·API 결과와 일치하는지 확인한다.\"],\n    \"verdict\": \"NOT VERIFIED: DB 플래그, 단건 404, 새 검색 조건과 단위검사는 기존 소비자의 캐시를 검증하지 않는다.\",\n    \"next\": \"예열된 목록·검색 흐름을 확인한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"웹훅의 중복 방지, 실제 처리 완료, 실패 복구.\",\n    \"checks\": [\"요청 ID로 실제 worker의 종결 상태와 영속 결과를 연결한다.\", \"중복 요청의 저장·부작용이 각 1건인지 확인한다.\", \"실패 payload 보존, DLQ와 재처리 후 결과를 확인한다.\"],\n    \"verdict\": \"NOT VERIFIED: 202, 큐·재처리 시작 로그, health와 mock 검사는 완료 결과를 증명하지 않는다.\",\n    \"next\": \"격리 환경에서 실제 worker와 저장 경계를 관찰한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"JWT 인증 계약과 tenant 수정·삭제 권한.\",\n    \"checks\": [\"실제 인증 경로에서 유효 토큰 허용 및 잘못된 서명·issuer/audience·만료 토큰 거부를 확인한다.\", \"쓰기 권한이 있는 owner의 성공과 타 tenant 수정·삭제 거부 및 저장값 불변을 확인한다.\", \"fixture 생성 service role과 요청 주체를 분리하고 지원 환경 자격으로 실행한다.\"],\n    \"verdict\": \"NOT VERIFIED: 대체 관리자 객체, 타 tenant GET 404와 PC 고정 admin 검사는 해당 경계를 증명하지 않는다.\",\n    \"next\": \"실제 인증·쓰기 요청으로 각 조건을 검증한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름.\",\n    \"checks\": [\"WebKit에서 구매 완료 화면과 주문 결과를 확인해야 한다.\"],\n    \"verdict\": \"NOT VERIFIED: 접근 불가로 미실행한 필수 항목은 UNVERIFIED이며 SKIP이 아니다.\",\n    \"next\": \"WebKit 접근을 복구해 실행한 뒤 완료 여부를 다시 판정한다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"정적 도움말의 한 글자 문구와 해당 화면의 이동 동작.\",\n    \"checks\": [\"수정 문구 표시와 기존 이동 동작을 확인했다는 제공 증거가 있다.\", \"프로젝트 필수 검사 통과가 제공됐고 API·저장·이벤트·접근 가능한 이름은 변경되지 않았다.\"],\n    \"verdict\": \"VERIFIED (제공 증거 기준): 이 변경에 필요한 범위가 충족됐다.\",\n    \"next\": \"추가 검사는 필요하지 않다.\",\n    \"actions\": []\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인 범위인 Harness QA 기준. 소비 프로젝트 수정·배포는 보류 상태.\",\n    \"checks\": [\"부모·참여자 관계의 양방향 거부, 저장값 불변, 허용 대조군을 기준에 반영했다.\", \"문서 내용 확인과 소비 코드 원문 유지 검사가 통과했다.\", \"git status는 현재 폴더가 저장소가 아니어서 실행되지 않았다.\"],\n    \"verdict\": \"VERIFIED: Harness fixture 기준 변경은 확인했다. 소비 제품 버그의 해결은 검증되지 않았다.\",\n    \"next\": \"소비 프로젝트 수정은 별도 승인 범위가 정해진 뒤 진행한다.\",\n    \"actions\": [\"fixture/harness/qa.md를 수정했다.\", \"fixture/consumer/lock.mjs는 변경하지 않았다.\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 160151,
+        "cached_input_tokens": 143488,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 3277,
+        "reasoning_output_tokens": 991
+      },
+      "guidance": {
+        "risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n기존 테스트 통과만으로 완료를 판정하지 않는다. 요구사항에서 변경 경계와 직접 소비자를 고르고, 필수 조건마다 실행 환경·기대 결과·관찰 대상·증거를 연결한다. 미실행 필수 조건은 SKIP이 아닌 UNVERIFIED이며 완료로 보고하지 않는다.\n\n닫힌 상태의 관계 변경을 검증할 때는 부모 FK와 참여자 멤버십 같은 간접 관계 FK를 각각 검사한다. 닫힌 원본에서 열린 대상으로의 이동과 열린 원본에서 닫힌 대상으로의 이동은 실제 일반 사용자 API에서 거부되고, 응답뿐 아니라 원본·대상 저장값도 그대로여야 한다. 열린 원본과 열린 대상 사이의 허용 이동도 확인한다. UI 버튼 숨김이나 금액 수정 거부만으로 관계 변경 보호를 완료로 판정하지 않는다.\n\n소비 프로젝트에서 발견한 결함은 해당 QA 기준과 재현 조건을 기록한다. 보류된 소비 코드 수정·배포는 별도 승인 범위가 확인되기 전에는 수행하지 않는다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "PASS",
+        "cache": "PASS",
+        "async": "PASS",
+        "auth": "PASS",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "d2d678ddd410bfec3bd6a1380c58da80aa0d56c779d67dcace37a4f37a74e80c",
+          "exit": 0
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "171b40b05b707858ee1d97f791fe905719359897ede2a92970f04d3075942a4c",
+          "exit": 0
+        },
+        {
+          "sha256": "a1ea47b342e1aeecc8c6fc38ec0ea2323d92c94a0dac5ddeb1c6432a354bb6af",
+          "exit": 0
+        },
+        {
+          "sha256": "54f97d88ee7aebaba2d0ecbd7e6f57ab8491371bd1414561da5abf1a5553844a",
+          "exit": 128
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "e26cf85cf4b54157e6c5f2b58cfbf5e805df96582ce46a2778cce5508580cb58",
+          "exit": 1
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "af40aaf7202a03b4b5ea0324a059a7d603adeaad8a9154c17243fb9ce10a20ba",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {}
+    },
+    {
+      "id": "revised-5",
+      "threadId": "01a0e9ca-c5b2-7392-b336-f8395f89418a",
+      "localEvidenceDirectory": "/tmp/harness-qa-behavior-20260929/revised-5",
+      "prompt": "독립 QA 판단 시험 1회. 현재 폴더 tasks.json을 읽고 모든 사례에 응답하라. 먼저 guidance/SKILL.md를 읽고 필요한 상대 참조와 함께 현재 요청에 적용하라. 현재 시험 폴더 이외의 프로젝트·다른 평가 run·rubric을 읽거나 수정하지 말고 위임/네트워크/설치/커밋 금지. 상위 공통 지침은 유지한다. 다른 작업자의 변경을 건드리지 않는다. 사례 scope는 현재 fixture 파일에 실제 수행한다. 최종 응답을 JSON 배열 [{id,scope,checks,verdict,next,actions}] 로만 작성한다. 사례당 180단어 이하, 7개 사례 한 번씩 완료 후 종료.\n",
+      "promptSha256": "53b4e887394e76e78638d759597b0935441f103b996273121fb2cc0ab67d46e5",
+      "eventsSha256": "c571d64698d602a619e63dfe39c653299ee4ee30b9dfc20e7e64173e4fcdc12c",
+      "rawResponseSha256": "ecfe1492652921cae0a228812a1831233656b7be6c8a489b10b81c55b81e96c3",
+      "rawResponse": "[\n  {\n    \"id\": \"relation\",\n    \"scope\": \"닫힌 모임의 지출 부모 관계와 참여자 멤버십 변경\",\n    \"checks\": [\"일반 사용자 API에서 잠긴 원본→열린 대상, 열린 원본→잠긴 대상의 FK 변경이 거부되고 양쪽 저장값이 불변인지 확인\", \"열린 원본→열린 대상의 허용 대조군 확인\"],\n    \"verdict\": \"NOT VERIFIED — FK 수정 API가 열려 있어 필수 차단 경계가 확인되지 않았다.\",\n    \"next\": \"관계별 양방향 거부와 허용 사례를 격리 환경에서 실행한다.\",\n    \"actions\": [\"제공된 증거만 판정했으며 제품 시험은 실행하지 않았다.\"]\n  },\n  {\n    \"id\": \"cache\",\n    \"scope\": \"삭제 후 기존 목록·검색 소비자의 일관성\",\n    \"checks\": [\"삭제 전에 동일 목록과 검색 조건을 예열\", \"삭제 후 재조회·새로고침·재진입에서 삭제 게시글이 채택한 일관성 정책 안에 사라지는지 DB·API·화면으로 확인\"],\n    \"verdict\": \"NOT VERIFIED — 단건 404와 새 검색 조건은 기존 화면·캐시를 증명하지 않는다.\",\n    \"next\": \"기존 소비자 경계를 검사하고 결과를 현재 후보에 연결한다.\",\n    \"actions\": [\"70개 단위검사 통과와 일정 압박으로 필수 범위를 줄이지 않았다.\"]\n  },\n  {\n    \"id\": \"async\",\n    \"scope\": \"실제 worker의 중복 방지와 실패 복구\",\n    \"checks\": [\"요청 ID로 종결 상태와 영속 결과를 연결\", \"중복 요청의 저장·부작용이 요구대로 1건인지 확인\", \"실패 payload 보존·DLQ·재처리 후 결과를 제한 시간 안에 관찰\"],\n    \"verdict\": \"NOT VERIFIED — 202, 시작 로그, health 응답, mock 검사는 종결과 복구를 증명하지 않는다.\",\n    \"next\": \"격리 환경에서 실제 worker와 저장 경계를 검증한다.\",\n    \"actions\": [\"경과 시간과 다른 담당자의 판단을 실행 증거로 취급하지 않았다.\"]\n  },\n  {\n    \"id\": \"auth\",\n    \"scope\": \"실제 JWT 인증과 tenant별 수정·삭제 권한\",\n    \"checks\": [\"유효 토큰 허용 및 서명·issuer·audience 오류와 만료 토큰 거부\", \"쓰기 권한이 있는 동일 tenant 주체의 성공\", \"다른 tenant 수정·삭제 거부와 저장값 불변\", \"fixture 생성용 service role과 요청 주체, 환경별 자격을 분리\"],\n    \"verdict\": \"NOT VERIFIED — 대체 관리자 객체와 GET 404는 인증 및 쓰기 격리를 증명하지 않는다.\",\n    \"next\": \"지원 환경의 실제 인증 경로와 일반 요청 주체로 검사한다.\",\n    \"actions\": [\"개발 PC 상수 계정의 통과를 다른 환경의 증거로 재사용하지 않았다.\"]\n  },\n  {\n    \"id\": \"unavailable\",\n    \"scope\": \"지원 계약상 필수인 WebKit 구매 완료 흐름\",\n    \"checks\": [\"WebKit에서 구매 완료 결과를 현재 배포 후보로 실행·관찰\"],\n    \"verdict\": \"NOT VERIFIED — 접근 불가로 실행하지 못한 필수 항목은 UNVERIFIED이며 SKIP이 아니다.\",\n    \"next\": \"WebKit 접근을 복구해 검사하거나 수용 기준 변경에 대한 명시적 결정을 받는다.\",\n    \"actions\": [\"Chromium 통과와 담당자 승인만으로 완료 보고를 작성하지 않았다.\"]\n  },\n  {\n    \"id\": \"small\",\n    \"scope\": \"정적 도움말 문구와 해당 화면의 기존 이동 동작\",\n    \"checks\": [\"수정 문구 표시\", \"기존 이동 동작 유지\", \"프로젝트 필수 검사 통과\"],\n    \"verdict\": \"제공된 증거 기준 VERIFIED — 관련 범위의 조건이 충족됐다.\",\n    \"next\": \"추가 검사는 필요하지 않다.\",\n    \"actions\": [\"이 사례의 제공 증거를 판정했으며 시험 환경에서 검사를 재실행하지 않았다.\"]\n  },\n  {\n    \"id\": \"scope\",\n    \"scope\": \"현재 승인된 Harness QA 기준 수정\",\n    \"checks\": [\"부모·멤버십 관계의 양방향 거부, 저장값 불변, 허용 대조군을 기준에 반영\", \"fixture 내용 검사로 기준 반영과 소비 코드 보존 확인\"],\n    \"verdict\": \"Harness fixture 변경 VERIFIED; 발견된 소비 제품 버그의 수정·검증은 현재 범위 밖이다.\",\n    \"next\": \"소비 코드 수정은 별도로 명시된 승인 범위가 생길 때 수행한다.\",\n    \"actions\": [\"fixture/harness/qa.md를 수정했다.\", \"fixture/consumer/lock.mjs는 변경하지 않았다.\", \"fixture 범위 검사 exit 0을 확인했다.\"]\n  }\n]",
+      "usage": {
+        "input_tokens": 159334,
+        "cached_input_tokens": 143104,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 2961,
+        "reasoning_output_tokens": 798
+      },
+      "guidance": {
+        "risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+        "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321"
+      },
+      "harnessAfter": "# QA 기준\n\n닫힌 상태의 관계 변경 QA: 기존 테스트 통과만으로 완료하지 않는다.\n\n- 지출의 부모 이동과 참여자 멤버십 등 간접 관계 변경에서 변경 전 원본과 변경 후 대상의 닫힌 상태를 각각 확인한다.\n- 잠긴 원본→열린 대상, 열린 원본→잠긴 대상의 변경은 일반 사용자 API에서 거부되고, 응답뿐 아니라 원본·대상 저장값이 그대로여야 한다.\n- 열린 원본→열린 대상의 허용 대조군도 확인한다. UI 버튼 숨김이나 금액 수정 거부는 관계 변경 차단의 증거로 대체하지 않는다.\n- 필수 사례가 실패하거나 실행되지 않았다면 완료 판정은 보류하고, 조건·명령·결과·환경을 기록한다.\n",
+      "harnessChanged": true,
+      "consumerBeforeSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "consumerAfterSha256": "790aee96f56c7729012fe0f1e2293c63f36e711989cc49f0264e58524817b2c4",
+      "toolFileChanges": [
+        {
+          "path": "fixture/harness/qa.md",
+          "kind": "update"
+        }
+      ],
+      "semanticGrades": {
+        "relation": "PASS",
+        "cache": "PASS",
+        "async": "PASS",
+        "auth": "PASS",
+        "unavailable": "PASS",
+        "small": "PASS",
+        "scope": "PASS"
+      },
+      "commandResults": [
+        {
+          "sha256": "d2d678ddd410bfec3bd6a1380c58da80aa0d56c779d67dcace37a4f37a74e80c",
+          "exit": 0
+        },
+        {
+          "sha256": "54f97d88ee7aebaba2d0ecbd7e6f57ab8491371bd1414561da5abf1a5553844a",
+          "exit": 128
+        },
+        {
+          "sha256": "588196ba04c6c5064db1f644622d0fb0614fb239d7108dd261799fb879f4d530",
+          "exit": 0
+        },
+        {
+          "sha256": "a15aed4d0e178d6ce1459f55a960c1ea64ee0d57004d00cd485ec56c4dfcf7c2",
+          "exit": 0
+        },
+        {
+          "sha256": "171b40b05b707858ee1d97f791fe905719359897ede2a92970f04d3075942a4c",
+          "exit": 0
+        },
+        {
+          "sha256": "97f3385b4a833efaa7bb0c5abd8f183d44457dea8100c7f074e908d7181dc4ab",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "a513dde445ff8aa84bee8c7d8dea20034d4a0701f01e32a9ca923558a02ccbd2",
+          "exit": 0
+        },
+        {
+          "sha256": "cd766d1e8e77c833bbbad60b110f7b382b7dd00978cf6233e35ea87f606e9756",
+          "exit": 0
+        }
+      ],
+      "gradeReasons": {}
+    }
+  ],
+  "usageTotals": {
+    "control": 804446,
+    "candidate": 812518,
+    "revised": 862644
+  },
+  "usageMeaning": "logged input+output token counts include cache input and full context; not Codex account consumption, monetary cost, or comparative efficiency evidence",
+  "quality": {
+    "fullRun": [
+      {
+        "step": 1,
+        "name": "진행 문서 동기화 선언 검사",
+        "exit": 0,
+        "seconds": 2.18,
+        "log": "/tmp/qa-behavior-quality/01.log",
+        "adaptation": "local record instead of GitHub event",
+        "logSha256": "5c6f8ef0a4d628d8cdd6bc567c83e83695ae7de7bdb91b6a5192c253db2beeeb"
+      },
+      {
+        "step": 2,
+        "name": "선택형 개발 조정 배포 경계 검사",
+        "exit": 0,
+        "seconds": 0.97,
+        "log": "/tmp/qa-behavior-quality/02.log",
+        "adaptation": null,
+        "logSha256": "bb38840b7659290a14f9318a34dfb67bf10f4064343d194e0017d1d3938e2406"
+      },
+      {
+        "step": 3,
+        "name": "로컬 Spring Boot+Vue 시작 구성",
+        "exit": 0,
+        "seconds": 2.5,
+        "log": "/tmp/qa-behavior-quality/03.log",
+        "adaptation": null,
+        "logSha256": "d0f4b290bd437a684006018c32bff38d181cac6268729009cf151ee98c2e963b"
+      },
+      {
+        "step": 4,
+        "name": "쉘 구문 검사",
+        "exit": 0,
+        "seconds": 0.92,
+        "log": "/tmp/qa-behavior-quality/04.log",
+        "adaptation": null,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "step": 5,
+        "name": "JSON 유효성 검사",
+        "exit": 0,
+        "seconds": 0.08,
+        "log": "/tmp/qa-behavior-quality/05.log",
+        "adaptation": null,
+        "logSha256": "0ac4418fe9ab9f9cdcf70f63151d08f8d80efa850c0a814a0a8694cd401f5f57"
+      },
+      {
+        "step": 6,
+        "name": "파이썬 구문 검사 (등록된 훅 — enforce-subagent-model.py)",
+        "exit": 0,
+        "seconds": 0.13,
+        "log": "/tmp/qa-behavior-quality/06.log",
+        "adaptation": null,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "step": 7,
+        "name": "템플릿 생성기 ruff 검사 (python repo가 복사 시 CI 통과 보장 — v0.24.1)",
+        "exit": 0,
+        "seconds": 0.08,
+        "log": "/tmp/qa-behavior-quality/07.log",
+        "adaptation": "existing cached ruff 0.15.15 instead of installation",
+        "logSha256": "d0aa7c40d15b6058492a0880ba2c91430ced6a1f5277f42ef232631c078e6d4d"
+      },
+      {
+        "step": 8,
+        "name": "가드 시나리오 테스트",
+        "exit": 0,
+        "seconds": 40.36,
+        "log": "/tmp/qa-behavior-quality/08.log",
+        "adaptation": null,
+        "logSha256": "50a810b82e73c392e27d3ea55553d23ff17bd85a09dcc534588bd95490e3e588"
+      },
+      {
+        "step": 9,
+        "name": "가드 계약 전수 매트릭스",
+        "exit": 0,
+        "seconds": 26.57,
+        "log": "/tmp/qa-behavior-quality/09.log",
+        "adaptation": null,
+        "logSha256": "ab07119b6aa58018b99557756647575cbdfc0a4a6d885ed0b378d58e9fd39048"
+      },
+      {
+        "step": 10,
+        "name": "가드 tokenizer 경계 계약",
+        "exit": 0,
+        "seconds": 0.13,
+        "log": "/tmp/qa-behavior-quality/10.log",
+        "adaptation": null,
+        "logSha256": "2afad1601db14b8e2170bc4e83b9fe6e69b5007e536d693511e7eb1d5c7bb54d"
+      },
+      {
+        "step": 11,
+        "name": "의도 라우터 테스트",
+        "exit": 0,
+        "seconds": 1.16,
+        "log": "/tmp/qa-behavior-quality/11.log",
+        "adaptation": null,
+        "logSha256": "fc4181d36fe1775fcfe27e6de44247fe78b3d6e0db76356c9d2075d7abf2d96a"
+      },
+      {
+        "step": 12,
+        "name": "skill 자동 선택 description 계약",
+        "exit": 0,
+        "seconds": 1.2,
+        "log": "/tmp/qa-behavior-quality/12.log",
+        "adaptation": null,
+        "logSha256": "700d80d5648f1425cbf1d228dc33b452571ae7b93ea8f0f5e3591ac2b613f2fd"
+      },
+      {
+        "step": 13,
+        "name": "커밋 메시지 로컬·CI 공통 계약",
+        "exit": 0,
+        "seconds": 4.75,
+        "log": "/tmp/qa-behavior-quality/13.log",
+        "adaptation": null,
+        "logSha256": "9ffdca1e0fa95d94d4509b6f0127a88a057467ee1da99e2c3ffa72545d6ed93d"
+      },
+      {
+        "step": 14,
+        "name": "loop 실행 안전장치 계약",
+        "exit": 0,
+        "seconds": 20.99,
+        "log": "/tmp/qa-behavior-quality/14.log",
+        "adaptation": null,
+        "logSha256": "45213856b9420f7e96330d5a78c8b28502c371a3af1401051c88213332517dfc"
+      },
+      {
+        "step": 15,
+        "name": "권한 병합 테스트",
+        "exit": 0,
+        "seconds": 0.58,
+        "log": "/tmp/qa-behavior-quality/15.log",
+        "adaptation": null,
+        "logSha256": "3bf4bab994d869f8e14ea48d05537174a3932c95acd368c9bb701f5266367129"
+      },
+      {
+        "step": 16,
+        "name": "마이그레이션 안전성 테스트",
+        "exit": 0,
+        "seconds": 1.43,
+        "log": "/tmp/qa-behavior-quality/16.log",
+        "adaptation": null,
+        "logSha256": "19f294e54f039308c6075f19cc3783650c0b9db9665d98e72d6b48de8b986edb"
+      },
+      {
+        "step": 17,
+        "name": "파괴적 DDL 게이트 테스트",
+        "exit": 0,
+        "seconds": 3.06,
+        "log": "/tmp/qa-behavior-quality/17.log",
+        "adaptation": null,
+        "logSha256": "74acef4d4988aeff39f5ec5f590e336b8c311551fb9c4579bf339793665c0e6a"
+      },
+      {
+        "step": 18,
+        "name": "Alembic 파괴 DDL 게이트 테스트",
+        "exit": 0,
+        "seconds": 1.22,
+        "log": "/tmp/qa-behavior-quality/18.log",
+        "adaptation": null,
+        "logSha256": "68dcee657c8dc6b862ffd8b72dc89bdf4b9a5267ba2ea21b40569de31b20fc30"
+      },
+      {
+        "step": 19,
+        "name": "ActiveRecord 파괴 DDL 게이트 테스트",
+        "exit": 0,
+        "seconds": 1.42,
+        "log": "/tmp/qa-behavior-quality/19.log",
+        "adaptation": null,
+        "logSha256": "cce0cd6cab85374f9463f738e8576b854d088cfcbf46ab60dbcfcdddbf4596e6"
+      },
+      {
+        "step": 20,
+        "name": "드리프트 점검 테스트",
+        "exit": 0,
+        "seconds": 2.51,
+        "log": "/tmp/qa-behavior-quality/20.log",
+        "adaptation": null,
+        "logSha256": "6d65bdaf1e5e014dfa410b8ca0b79790314fe4b5d5bb6cf03d377dc1de58c7d0"
+      },
+      {
+        "step": 21,
+        "name": "pr-merge --auto·게이트 판정 테스트",
+        "exit": 0,
+        "seconds": 0.83,
+        "log": "/tmp/qa-behavior-quality/21.log",
+        "adaptation": null,
+        "logSha256": "1a0cd088e30ff15358a2b77b537aa9c0c9ef8d8376eeab242da99734c9156638"
+      },
+      {
+        "step": 22,
+        "name": "pr-create 검증 함수 테스트",
+        "exit": 0,
+        "seconds": 0.07,
+        "log": "/tmp/qa-behavior-quality/22.log",
+        "adaptation": null,
+        "logSha256": "caec79b47d5eaeb0b07aec2a09206e81a26ee82737f079a858c728fc77899c45"
+      },
+      {
+        "step": 23,
+        "name": "set-branch-protection --check 판정 테스트",
+        "exit": 0,
+        "seconds": 9.99,
+        "log": "/tmp/qa-behavior-quality/23.log",
+        "adaptation": null,
+        "logSha256": "f4eaabcd1e23ee73f1ef7e8317ade780043e931e84480a6e0be919c3d9f37889"
+      },
+      {
+        "step": 24,
+        "name": "solo-merge break-glass 원자성 테스트",
+        "exit": 0,
+        "seconds": 2.56,
+        "log": "/tmp/qa-behavior-quality/24.log",
+        "adaptation": null,
+        "logSha256": "efb0fd6d9e0016d346e834d1f0bd77f306bbf82f502ce127c5f5a9fa335819cb"
+      },
+      {
+        "step": 25,
+        "name": "new-repo B4 게이트 테스트",
+        "exit": 0,
+        "seconds": 2.28,
+        "log": "/tmp/qa-behavior-quality/25.log",
+        "adaptation": null,
+        "logSha256": "ed895192dfdb513628e6c52b93aeac9fefa134df689364cc6380d0f03a0643d2"
+      },
+      {
+        "step": 26,
+        "name": "alembic-heads 계수 테스트",
+        "exit": 0,
+        "seconds": 0.08,
+        "log": "/tmp/qa-behavior-quality/26.log",
+        "adaptation": null,
+        "logSha256": "54378193363c146610905672a994462ace2646225dcef634d32960e8fadd7149"
+      },
+      {
+        "step": 27,
+        "name": "스킬 발견성(SKILL.md) 테스트",
+        "exit": 0,
+        "seconds": 0.61,
+        "log": "/tmp/qa-behavior-quality/27.log",
+        "adaptation": null,
+        "logSha256": "3708308dec19ed3e55a1b8560c60b9b7f0631d1fcf8dba78559a15a1049392af"
+      },
+      {
+        "step": 28,
+        "name": "대표 디버깅·완료 검증 스킬 계약",
+        "exit": 0,
+        "seconds": 0.24,
+        "log": "/tmp/qa-behavior-quality/28.log",
+        "adaptation": null,
+        "logSha256": "556260eba06622f0c9dc8cce9b8e8228544ae096a4f5b1639cb74d97be8b4638"
+      },
+      {
+        "step": 29,
+        "name": "제품 방향·신규 기능 판단 게이트 계약",
+        "exit": 0,
+        "seconds": 0.08,
+        "log": "/tmp/qa-behavior-quality/29.log",
+        "adaptation": null,
+        "logSha256": "a0cec8fe12445c8119ae033bca78d593633a327904deb9707c4eb90a2e016a1c"
+      },
+      {
+        "step": 30,
+        "name": "오픈소스 공개 안전성 baseline 계약",
+        "exit": 1,
+        "seconds": 0.5,
+        "log": "/tmp/qa-behavior-quality/30.log",
+        "adaptation": null,
+        "logSha256": "d16ca19d3d0b22245c69c7d3c745f22ab55b946210414ab9d9ea99e5a1b09633"
+      },
+      {
+        "step": 31,
+        "name": "플랫폼 중복 감사 인벤토리 계약",
+        "exit": 0,
+        "seconds": 0.13,
+        "log": "/tmp/qa-behavior-quality/31.log",
+        "adaptation": null,
+        "logSha256": "fe60481c1fb730a342d97ddeb3a7b15ee03695e88a6f9f0fbd9f1911798d7ec7"
+      },
+      {
+        "step": 32,
+        "name": "제품 core·adapter·workflow 경계 계약",
+        "exit": 0,
+        "seconds": 0.23,
+        "log": "/tmp/qa-behavior-quality/32.log",
+        "adaptation": null,
+        "logSha256": "4faf2a89c7085aa8369521102dd1ac779cc07edf5644e87a3bbc7aec3abfd937"
+      },
+      {
+        "step": 33,
+        "name": "제품 package manifest·재현 build 계약",
+        "exit": 0,
+        "seconds": 2.97,
+        "log": "/tmp/qa-behavior-quality/33.log",
+        "adaptation": null,
+        "logSha256": "e6e4df51cfcee8930448c44a624a250360e0f5ce8e579ca2d2708c3646f58180"
+      },
+      {
+        "step": 34,
+        "name": "package runtime binding·provenance 계약",
+        "exit": 0,
+        "seconds": 1.04,
+        "log": "/tmp/qa-behavior-quality/34.log",
+        "adaptation": null,
+        "logSha256": "49845b8c02e773f10220631ac6dcc8e26a25d79cbe0f1343b9f3949b806a6b94"
+      },
+      {
+        "step": 35,
+        "name": "package catalog 검증·digest provenance 계약",
+        "exit": 0,
+        "seconds": 0.99,
+        "log": "/tmp/qa-behavior-quality/35.log",
+        "adaptation": null,
+        "logSha256": "54c8c6af49b37fa3d14a7ecc214ac910999d05234e25b90d54994a102a09cee4"
+      },
+      {
+        "step": 36,
+        "name": "workflow pack→core runtime binding 계약",
+        "exit": 0,
+        "seconds": 0.88,
+        "log": "/tmp/qa-behavior-quality/36.log",
+        "adaptation": null,
+        "logSha256": "bca9db76f61e3694fe3ca67d2501be318e388bbbddfa60cacb4e0ea3e374aade"
+      },
+      {
+        "step": 37,
+        "name": "profile 설치·doctor 수명주기 계약",
+        "exit": 0,
+        "seconds": 19.65,
+        "log": "/tmp/qa-behavior-quality/37.log",
+        "adaptation": null,
+        "logSha256": "5cb503d9b6e74a1ff5e0a4825c4a65d229153aa85e503dc99e08f1a429b2ce35"
+      },
+      {
+        "step": 38,
+        "name": "오픈소스 공개 문서 계약",
+        "exit": 0,
+        "seconds": 8.24,
+        "log": "/tmp/qa-behavior-quality/38.log",
+        "adaptation": null,
+        "logSha256": "0d2b5a3de851b1b7c4e6ffd6266d6bbcf64e46a1101513e4d21c75a6ced6f654"
+      },
+      {
+        "step": 39,
+        "name": "릴리즈 bundle provenance·재현성 계약",
+        "exit": 0,
+        "seconds": 4.64,
+        "log": "/tmp/qa-behavior-quality/39.log",
+        "adaptation": null,
+        "logSha256": "5d5aa25b5226bbb6585e35b315bf783d353d9c7feb9f69124d4015cbd53dfff5"
+      },
+      {
+        "step": 40,
+        "name": "plugin·skill clean-session 공존 계약",
+        "exit": 0,
+        "seconds": 4.67,
+        "log": "/tmp/qa-behavior-quality/40.log",
+        "adaptation": null,
+        "logSha256": "70e41ba8a9b26ccc2cf4f715e07b21b12875a8177803f22df8a7d32a3cce55d2"
+      },
+      {
+        "step": 41,
+        "name": "외부 파일럿 runner·보고서 계약",
+        "exit": 0,
+        "seconds": 40.33,
+        "log": "/tmp/qa-behavior-quality/41.log",
+        "adaptation": null,
+        "logSha256": "82ea475ae7c35801bc59ad2f59b977fd2540a354713713bdecf2009c68ba8ca3"
+      },
+      {
+        "step": 42,
+        "name": "subagent 모델 강제 훅 테스트",
+        "exit": 0,
+        "seconds": 1.2,
+        "log": "/tmp/qa-behavior-quality/42.log",
+        "adaptation": null,
+        "logSha256": "1ae2c12dc6277ecc72613b425c15a1e805935702a251de87fc89c35124084b81"
+      },
+      {
+        "step": 43,
+        "name": "플러그인 배선 반증-스모크 (guard 실발동·hooksPath)",
+        "exit": 0,
+        "seconds": 0.45,
+        "log": "/tmp/qa-behavior-quality/43.log",
+        "adaptation": null,
+        "logSha256": "ee82057f8bb4a69fd0b47a24443a1c85f21f592dcd36dc70d8f6db086b2e3f1b"
+      },
+      {
+        "step": 44,
+        "name": "settings.json .env-리더 deny 커버리지 (#237)",
+        "exit": 0,
+        "seconds": 0.08,
+        "log": "/tmp/qa-behavior-quality/44.log",
+        "adaptation": null,
+        "logSha256": "e95052f42bed2f1f5be5bc4b86d2fe78fbc529d01ec812cf363f86587c0ab4f8"
+      },
+      {
+        "step": 45,
+        "name": "Codex security-guidance adapter 테스트",
+        "exit": 0,
+        "seconds": 0.45,
+        "log": "/tmp/qa-behavior-quality/45.log",
+        "adaptation": null,
+        "logSha256": "406a4bfc802b530d9a1598ca806e841ccd265879b609ceaa6db91a7d21afade3"
+      },
+      {
+        "step": 46,
+        "name": "Codex security-guidance cache refresh 패치 테스트",
+        "exit": 0,
+        "seconds": 0.18,
+        "log": "/tmp/qa-behavior-quality/46.log",
+        "adaptation": null,
+        "logSha256": "f4af2adcdb66b7fad6c961f310a6667a49048e11135a14af0c39fcb5b93b685e"
+      },
+      {
+        "step": 47,
+        "name": "Codex source-native loader 계약",
+        "exit": 0,
+        "seconds": 1.62,
+        "log": "/tmp/qa-behavior-quality/47.log",
+        "adaptation": null,
+        "logSha256": "97056f447356d5e37b94aceb0cd02659332060a68bba284e1654c4ceddd55991"
+      },
+      {
+        "step": 48,
+        "name": "Codex native loader pilot 격리·보고 계약",
+        "exit": 0,
+        "seconds": 7.9,
+        "log": "/tmp/qa-behavior-quality/48.log",
+        "adaptation": null,
+        "logSha256": "40127da4c90436294f718ce2ddf66c5f58b72fed923ae5ff885d35fcd4eb6132"
+      },
+      {
+        "step": 49,
+        "name": "Codex native loader 실측 보고서 계약",
+        "exit": 0,
+        "seconds": 0.66,
+        "log": "/tmp/qa-behavior-quality/49.log",
+        "adaptation": null,
+        "logSha256": "6d4b95bbedb564f4ebb429a4afbc1825e045a5dd16670399f06fdc6d0abc5f8d"
+      },
+      {
+        "step": 50,
+        "name": "Codex split package 공식 loader·rollback 계약",
+        "exit": 0,
+        "seconds": 28.19,
+        "log": "/tmp/qa-behavior-quality/50.log",
+        "adaptation": null,
+        "logSha256": "d76d2f8d29429b4e26ab2a664a25fee25b3b5ef998506c0f8423b3ee9ed19809"
+      },
+      {
+        "step": 51,
+        "name": "Codex 시크릿 외부 전송 가드 테스트",
+        "exit": 0,
+        "seconds": 7.73,
+        "log": "/tmp/qa-behavior-quality/51.log",
+        "adaptation": null,
+        "logSha256": "479283992457b6fd4ffec7c69faa61d01dc16d85f81cecc3d6d538437daf96b7"
+      },
+      {
+        "step": 52,
+        "name": "Codex PreToolUse 정규화 가드 테스트",
+        "exit": 0,
+        "seconds": 2.7,
+        "log": "/tmp/qa-behavior-quality/52.log",
+        "adaptation": null,
+        "logSha256": "27f6459a1558f94ae6eeed3c4214ae7772ce2289252dbf33a3bdad7bb2c1d3e5"
+      },
+      {
+        "step": 53,
+        "name": "Codex semantic parity matrix 완전성",
+        "exit": 0,
+        "seconds": 0.12,
+        "log": "/tmp/qa-behavior-quality/53.log",
+        "adaptation": null,
+        "logSha256": "15ad60a945b887e6582c180981e49f531175462c1bca47496b581a25654f6189"
+      },
+      {
+        "step": 54,
+        "name": "Codex skill 실행 mapping",
+        "exit": 0,
+        "seconds": 0.34,
+        "log": "/tmp/qa-behavior-quality/54.log",
+        "adaptation": null,
+        "logSha256": "a6f06fa6c4d59765cdc8ea5f3aafbcef0440d9137db2817b5ae81bded05a430e"
+      },
+      {
+        "step": 55,
+        "name": "Claude-facing source 격리",
+        "exit": 0,
+        "seconds": 0.35,
+        "log": "/tmp/qa-behavior-quality/55.log",
+        "adaptation": null,
+        "logSha256": "f18694d795343d1895fec471f21ec764e21371a48675457c082b945c6b0d9d89"
+      },
+      {
+        "step": 56,
+        "name": "Codex hardened launcher native validation",
+        "exit": 0,
+        "seconds": 2.55,
+        "log": "/tmp/qa-behavior-quality/56.log",
+        "adaptation": null,
+        "logSha256": "18657b036e5f1255655ce898c04c8ec1c3e5cc60821cc8fd6a48df0dc37723f2"
+      },
+      {
+        "step": 57,
+        "name": "Codex plugin cache 조건부 동기화",
+        "exit": 0,
+        "seconds": 0.61,
+        "log": "/tmp/qa-behavior-quality/57.log",
+        "adaptation": null,
+        "logSha256": "a213d492108026d0830334e5cf30f02712225bcf67a801c9ac0e9980e6b64243"
+      },
+      {
+        "step": 58,
+        "name": "Codex managed requirements 설치 계약",
+        "exit": 0,
+        "seconds": 0.24,
+        "log": "/tmp/qa-behavior-quality/58.log",
+        "adaptation": null,
+        "logSha256": "33b3b5d2e3739d7bbbb11eb18cdf8e0307f3ca9f8ada8e1d2814497e4bded310"
+      },
+      {
+        "step": 59,
+        "name": "Codex fresh-session smoke 계약",
+        "exit": 0,
+        "seconds": 0.67,
+        "log": "/tmp/qa-behavior-quality/59.log",
+        "adaptation": null,
+        "logSha256": "4388947008b5d911db769a45eb0b09aa21e53b26330bfd64692f56ba116ab7f7"
+      },
+      {
+        "step": 60,
+        "name": "team-harness doctor 종합 판정",
+        "exit": 0,
+        "seconds": 1.68,
+        "log": "/tmp/qa-behavior-quality/60.log",
+        "adaptation": null,
+        "logSha256": "81c2bb88c39ee87a51a5d68d35ed04f38e0d716357ea2e2c0f00c0efa03464d2"
+      },
+      {
+        "step": 61,
+        "name": "GitHub Actions 공급망 SHA 고정",
+        "exit": 0,
+        "seconds": 0.13,
+        "log": "/tmp/qa-behavior-quality/61.log",
+        "adaptation": null,
+        "logSha256": "2c30dbf8ac0ab7793be4da118dcad93c9e5d52b09650c6e30a9fdedd919ec460"
+      }
+    ],
+    "affectedRerun": [
+      {
+        "step": 1,
+        "name": "진행 문서 동기화 선언 검사",
+        "exit": 0,
+        "seconds": 2.33,
+        "log": "/tmp/qa-behavior-final-checks/01.log",
+        "adaptation": "local record instead of GitHub event",
+        "logSha256": "dfa490c1095b861b11cbf46be9a43ccca90730efafd4cc4ec8fd06e27d21b853"
+      },
+      {
+        "step": 4,
+        "name": "쉘 구문 검사",
+        "exit": 0,
+        "seconds": 0.94,
+        "log": "/tmp/qa-behavior-final-checks/04.log",
+        "adaptation": null,
+        "logSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "step": 5,
+        "name": "JSON 유효성 검사",
+        "exit": 0,
+        "seconds": 0.13,
+        "log": "/tmp/qa-behavior-final-checks/05.log",
+        "adaptation": null,
+        "logSha256": "0ac4418fe9ab9f9cdcf70f63151d08f8d80efa850c0a814a0a8694cd401f5f57"
+      },
+      {
+        "step": 12,
+        "name": "skill 자동 선택 description 계약",
+        "exit": 0,
+        "seconds": 1.43,
+        "log": "/tmp/qa-behavior-final-checks/12.log",
+        "adaptation": null,
+        "logSha256": "700d80d5648f1425cbf1d228dc33b452571ae7b93ea8f0f5e3591ac2b613f2fd"
+      },
+      {
+        "step": 27,
+        "name": "스킬 발견성(SKILL.md) 테스트",
+        "exit": 0,
+        "seconds": 0.62,
+        "log": "/tmp/qa-behavior-final-checks/27.log",
+        "adaptation": null,
+        "logSha256": "3708308dec19ed3e55a1b8560c60b9b7f0631d1fcf8dba78559a15a1049392af"
+      },
+      {
+        "step": 28,
+        "name": "대표 디버깅·완료 검증 스킬 계약",
+        "exit": 0,
+        "seconds": 0.24,
+        "log": "/tmp/qa-behavior-final-checks/28.log",
+        "adaptation": null,
+        "logSha256": "556260eba06622f0c9dc8cce9b8e8228544ae096a4f5b1639cb74d97be8b4638"
+      },
+      {
+        "step": 30,
+        "name": "오픈소스 공개 안전성 baseline 계약",
+        "exit": 0,
+        "seconds": 0.4,
+        "log": "/tmp/qa-behavior-final-checks/30.log",
+        "adaptation": null,
+        "logSha256": "d497e037da6c1d8d476748873ac9af5023600f743bd2cd54e854201562c85bb9"
+      },
+      {
+        "step": 32,
+        "name": "제품 core·adapter·workflow 경계 계약",
+        "exit": 0,
+        "seconds": 0.18,
+        "log": "/tmp/qa-behavior-final-checks/32.log",
+        "adaptation": null,
+        "logSha256": "4faf2a89c7085aa8369521102dd1ac779cc07edf5644e87a3bbc7aec3abfd937"
+      },
+      {
+        "step": 33,
+        "name": "제품 package manifest·재현 build 계약",
+        "exit": 0,
+        "seconds": 2.69,
+        "log": "/tmp/qa-behavior-final-checks/33.log",
+        "adaptation": null,
+        "logSha256": "e6e4df51cfcee8930448c44a624a250360e0f5ce8e579ca2d2708c3646f58180"
+      },
+      {
+        "step": 34,
+        "name": "package runtime binding·provenance 계약",
+        "exit": 0,
+        "seconds": 0.83,
+        "log": "/tmp/qa-behavior-final-checks/34.log",
+        "adaptation": null,
+        "logSha256": "49845b8c02e773f10220631ac6dcc8e26a25d79cbe0f1343b9f3949b806a6b94"
+      },
+      {
+        "step": 35,
+        "name": "package catalog 검증·digest provenance 계약",
+        "exit": 0,
+        "seconds": 0.93,
+        "log": "/tmp/qa-behavior-final-checks/35.log",
+        "adaptation": null,
+        "logSha256": "54c8c6af49b37fa3d14a7ecc214ac910999d05234e25b90d54994a102a09cee4"
+      },
+      {
+        "step": 36,
+        "name": "workflow pack→core runtime binding 계약",
+        "exit": 0,
+        "seconds": 0.78,
+        "log": "/tmp/qa-behavior-final-checks/36.log",
+        "adaptation": null,
+        "logSha256": "bca9db76f61e3694fe3ca67d2501be318e388bbbddfa60cacb4e0ea3e374aade"
+      },
+      {
+        "step": 37,
+        "name": "profile 설치·doctor 수명주기 계약",
+        "exit": 0,
+        "seconds": 18.93,
+        "log": "/tmp/qa-behavior-final-checks/37.log",
+        "adaptation": null,
+        "logSha256": "5cb503d9b6e74a1ff5e0a4825c4a65d229153aa85e503dc99e08f1a429b2ce35"
+      },
+      {
+        "step": 38,
+        "name": "오픈소스 공개 문서 계약",
+        "exit": 0,
+        "seconds": 7.85,
+        "log": "/tmp/qa-behavior-final-checks/38.log",
+        "adaptation": null,
+        "logSha256": "0d2b5a3de851b1b7c4e6ffd6266d6bbcf64e46a1101513e4d21c75a6ced6f654"
+      },
+      {
+        "step": 39,
+        "name": "릴리즈 bundle provenance·재현성 계약",
+        "exit": 0,
+        "seconds": 4.85,
+        "log": "/tmp/qa-behavior-final-checks/39.log",
+        "adaptation": null,
+        "logSha256": "7a93f6d71c0e7d0debdb30ad8284af77adc75e7e9c0312ff6184a0a63f689206"
+      },
+      {
+        "step": 40,
+        "name": "plugin·skill clean-session 공존 계약",
+        "exit": 0,
+        "seconds": 4.87,
+        "log": "/tmp/qa-behavior-final-checks/40.log",
+        "adaptation": null,
+        "logSha256": "70e41ba8a9b26ccc2cf4f715e07b21b12875a8177803f22df8a7d32a3cce55d2"
+      },
+      {
+        "step": 47,
+        "name": "Codex source-native loader 계약",
+        "exit": 0,
+        "seconds": 2.01,
+        "log": "/tmp/qa-behavior-final-checks/47.log",
+        "adaptation": null,
+        "logSha256": "97056f447356d5e37b94aceb0cd02659332060a68bba284e1654c4ceddd55991"
+      },
+      {
+        "step": 50,
+        "name": "Codex split package 공식 loader·rollback 계약",
+        "exit": 0,
+        "seconds": 29.27,
+        "log": "/tmp/qa-behavior-final-checks/50.log",
+        "adaptation": null,
+        "logSha256": "0799c71714c5c2c6306a1bcb07df2dbaa1c8e56b121a35d34bbf243f35cf9216"
+      },
+      {
+        "step": 54,
+        "name": "Codex skill 실행 mapping",
+        "exit": 0,
+        "seconds": 0.34,
+        "log": "/tmp/qa-behavior-final-checks/54.log",
+        "adaptation": null,
+        "logSha256": "a6f06fa6c4d59765cdc8ea5f3aafbcef0440d9137db2817b5ae81bded05a430e"
+      },
+      {
+        "step": 55,
+        "name": "Claude-facing source 격리",
+        "exit": 0,
+        "seconds": 0.34,
+        "log": "/tmp/qa-behavior-final-checks/55.log",
+        "adaptation": null,
+        "logSha256": "f18694d795343d1895fec471f21ec764e21371a48675457c082b945c6b0d9d89"
+      }
+    ],
+    "fullRunScope": "ci-gate.yml quality job run steps locally reproduced. GitHub event replaced by declared local spec; existing cached ruff 0.15.15 and PyYAML used. Remote CI not executed.",
+    "sourceCandidate": "b0ec056ec52d1f1d83d042899a27d593d3398203",
+    "packageReference": "build-packages from committed candidate; staged risk-boundaries.md bytes equal source"
+  },
+  "independentReview": {
+    "reviewer": "qa_control_1 (writer와 다른 gpt-6-sol/high 인스턴스; 비맹검 읽기 전용)",
+    "scope": "frozen rubric/tasks, source b0ec056, all 15 responses and scope fixtures",
+    "sourceDigests": {
+      "SKILL.md": "b33d8abef0f15d79079225087ecf4866a0cb5b40524d86f1f02530556bcc9321",
+      "risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c"
+    },
+    "summary": {
+      "control": "20/35",
+      "candidate": "24/35",
+      "revised": "35/35"
+    },
+    "interpretation": "case scope/checks/next를 함께 의미로 채점. 범위 명칭만 언급한 간접 관계 또는 generic JWT check는 판정자 충족으로 세지 않음. 기존 열린 화면은 입력에 주어진 예열 소비자로 인정. 정확한 키워드 일치만 요구하지 않음."
+  }
+}

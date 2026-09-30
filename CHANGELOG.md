@@ -3,7 +3,21 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.75.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.80.0` and replace this file with its output.
+
+## v0.80.0 - 2026-10-01
+
+- fix(docs): 큰 검증 근거의 커밋 일치 오판 수정
+- fix(qa): 명령별 보고 증거와 프로젝트 계약 연결
+- fix(qa): 문서 판정 표기의 형식 차이 허용
+- fix(qa): 문서 형식과 의미 검토 판정 분리
+- fix(qa): 근거 없는 원인 라벨 제한 제거
+- fix(qa): 미해결 재시도의 두 유효 판정 허용
+- fix(qa): 미실행 검사의 통과 보고 거부
+- feat(qa): 판정자와 시험 검출력 계약 보강
+- fix(qa): 하위 경계의 허용과 거부 판정자 명시
+- fix(qa): 관찰 경계와 작업 범위 유지 기준 보강
+- fix(qa): 요구 기반 검사 범위와 완료 기준 연결
 
 ## v0.75.0 - 2026-09-23
 

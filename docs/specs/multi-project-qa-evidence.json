@@ -1,0 +1,256 @@
+{
+  "date": "2026-09-29",
+  "scope": "Representative QA-contract application audit, not full product release QA",
+  "candidates_and_preservation": {
+    "team-task-board": {
+      "before": {
+        "head": "232d18e69ffb304204bd1cd7f25a007a1ea0c567",
+        "branch": "codex/board-search-and-bugfix",
+        "status": ""
+      },
+      "after": {
+        "head": "232d18e69ffb304204bd1cd7f25a007a1ea0c567",
+        "branch": "codex/board-search-and-bugfix",
+        "status": ""
+      },
+      "unchanged": true
+    },
+    "erp": {
+      "before": {
+        "head": "085d0cebb6aefd3152e475e8337ff988a281f5ff",
+        "branch": "feature/tenant-user-onboarding",
+        "status": "?? .codex/"
+      },
+      "after": {
+        "head": "085d0cebb6aefd3152e475e8337ff988a281f5ff",
+        "branch": "feature/tenant-user-onboarding",
+        "status": "?? .codex/"
+      },
+      "unchanged": true
+    },
+    "siku": {
+      "before": {
+        "head": "08cad8f8e24b19710d462dd3f34c3d28588e5611",
+        "branch": "develop",
+        "status": ""
+      },
+      "after": {
+        "head": "08cad8f8e24b19710d462dd3f34c3d28588e5611",
+        "branch": "develop",
+        "status": ""
+      },
+      "unchanged": true
+    },
+    "webhook-service": {
+      "before": {
+        "head": "20669abdf576f1020b64fdaeba8d4f9786959a14",
+        "branch": "develop",
+        "status": ""
+      },
+      "after": {
+        "head": "20669abdf576f1020b64fdaeba8d4f9786959a14",
+        "branch": "develop",
+        "status": ""
+      },
+      "unchanged": true
+    },
+    "DriveTree": {
+      "before": {
+        "head": "ab86d1394b3b52b8acb56a794854ce49995f5c21",
+        "branch": "develop",
+        "status": ""
+      },
+      "after": {
+        "head": "ab86d1394b3b52b8acb56a794854ce49995f5c21",
+        "branch": "develop",
+        "status": ""
+      },
+      "unchanged": true
+    }
+  },
+  "environment": {
+    "isolation": "git archive snapshots, no .env files; separately copied node_modules and Gradle caches; explicit clean process environment",
+    "java": "Amazon Corretto 21",
+    "database": "sample H2 memory/file; webhook unit repository SQLite memory; real PostgreSQL/Supabase/Redis/Keycloak/pgvector NOT VERIFIED",
+    "docker": "Read-only docker info failed: daemon not running; no service started",
+    "sandbox": "Initial Gradle run could not open local lock socket. Scoped escalated isolated run passed. This was environment failure, not product failure."
+  },
+  "comparison": {
+    "frontend_and_tests": "232d18e69ffb304204bd1cd7f25a007a1ea0c567",
+    "green_backend": "232d18e69ffb304204bd1cd7f25a007a1ea0c567",
+    "red_backend": "fcbb1e449fb238b93e528f01fdca6f90917cf8ea",
+    "test_path": "frontend/tests/create-retry.spec.ts",
+    "test_sha256": "81e292ce28f5e3bc80904a1f373b25a138b4f303436482519078f07b1f0739e0",
+    "test_matches_committed_source": true,
+    "difference": "Alternate Playwright config changes backend jar path only. Same frontend, tests, assertion, H2 memory settings, workers, ports and browser. Current full run includes the two selected red cases.",
+    "red_observation": "First case: API list length expected 1, actual 2 at line 107. Second: visible heading count expected 1, actual 2 at line 105.",
+    "interpretation": "Known-defect detection for these two cases only; not evidence of unknown-bug discovery or optimal scope selection."
+  },
+  "backend_xml_counts": [
+    {
+      "name": "dev.local.taskboard.LegacySchemaTest",
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "dev.local.taskboard.TaskApiTest",
+      "tests": "12",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "checks": [
+    {
+      "name": "erp-unit",
+      "cwd": "erp/frontend",
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "src/lib/auth-session.test.ts",
+        "src/lib/navigation-access.test.ts"
+      ],
+      "exit": 0,
+      "seconds": 1.57,
+      "log_sha256": "f7ba0a1096edbe3853f1dce2d1deb2afd842e1fbe7087d4a35535d2d122ada1a",
+      "output": "\n> erp-frontend@0.13.0 test\n> vitest run src/lib/auth-session.test.ts src/lib/navigation-access.test.ts\n\n\n RUN  v4.1.9 <snapshot>/erp/frontend\n\n ✓ src/lib/auth-session.test.ts (3 tests) 3ms\n ✓ src/lib/navigation-access.test.ts (15 tests) 5ms\n\n Test Files  2 passed (2)\n      Tests  18 passed (18)\n   Start at  04:03:01\n   Duration  406ms (transform 68ms, setup 0ms, import 90ms, tests 8ms, environment 0ms)\n\n"
+    },
+    {
+      "name": "siku-unit",
+      "cwd": "siku",
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "src/core/settlement/settlement.test.ts"
+      ],
+      "exit": 0,
+      "seconds": 1.73,
+      "log_sha256": "47c3c921b5a7d5bd33cbee18a356af3367445e491c4d956255411a47d30169d0",
+      "output": "\n> siku@0.4.9 test\n> vitest run src/core/settlement/settlement.test.ts\n\n\n RUN  v4.1.8 <snapshot>/siku\n\n ✓ src/core/settlement/settlement.test.ts (28 tests) 10ms\n\n Test Files  1 passed (1)\n      Tests  28 passed (28)\n   Start at  04:03:01\n   Duration  169ms (transform 40ms, setup 0ms, import 53ms, tests 10ms, environment 0ms)\n\n"
+    },
+    {
+      "name": "drivetree-unit",
+      "cwd": "DriveTree/backend",
+      "command": [
+        "npm",
+        "test",
+        "--",
+        "--runInBand",
+        "src/auth/auth.service.spec.ts",
+        "src/content/content.service.spec.ts"
+      ],
+      "exit": 0,
+      "seconds": 3.19,
+      "log_sha256": "c967596efef4307cea366f9877ed05de1e9f67dfca972cae093a38796cca70ff",
+      "output": "\n> backend@1.7.0 test\n> jest --runInBand src/auth/auth.service.spec.ts src/content/content.service.spec.ts\n\nPASS src/content/content.service.spec.ts\nPASS src/auth/auth.service.spec.ts\n\nTest Suites: 2 passed, 2 total\nTests:       23 passed, 23 total\nSnapshots:   0 total\nTime:        1.996 s\nRan all test suites matching src/auth/auth.service.spec.ts|src/content/content.service.spec.ts.\n"
+    },
+    {
+      "name": "webhook-unit",
+      "cwd": "webhook-service",
+      "command": [
+        "<existing-webhook-venv>/bin/python",
+        "-m",
+        "pytest",
+        "-o",
+        "env_files=",
+        "tests/test_unit_signatures.py",
+        "tests/test_unit_repositories.py",
+        "-q"
+      ],
+      "exit": 0,
+      "seconds": 2.85,
+      "log_sha256": "895ed4480909554fd3e9871f617da4e02bbfa66c17246b1ec1db5959b68a90cf",
+      "output": ".....................                                                    [100%]\n21 passed in 1.66s\n"
+    },
+    {
+      "name": "sample-unit",
+      "cwd": "team-task-board/frontend",
+      "command": [
+        "npm",
+        "run",
+        "test:unit"
+      ],
+      "exit": 0,
+      "seconds": 1.13,
+      "log_sha256": "cfeab5c68cb43cba20ae0455c74df783ce7ad43746ab6ec72dfae0a61bd78898",
+      "output": "\n> team-task-board-ui@0.1.0 test:unit\n> vitest run\n\n\n RUN  v5.0.1 <snapshot>/team-task-board/frontend\n\n ✓ src/api.test.ts (12 tests) 20ms\n ✓ src/api-response.test.ts (64 tests) 29ms\n\n Test Files  2 passed (2)\n      Tests  76 passed (76)\n   Start at  04:04:43\n   Duration  152ms (tests 41%, transform 40%, import 14%, worker 5%)\n\n"
+    },
+    {
+      "name": "sample-build",
+      "cwd": "team-task-board/backend",
+      "command": [
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "check",
+        "bootJar"
+      ],
+      "exit": 0,
+      "seconds": 12.03,
+      "log_sha256": "60c46074d312386decdabfe6a0ab757ae1937eeb6471549c09bb77179b863521",
+      "output": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.\nDaemon will be stopped at the end of the build \n> Task :spotlessInternalRegisterDependencies\n> Task :spotlessJava\n> Task :spotlessJavaCheck\n> Task :spotlessCheck\n> Task :compileJava\n> Task :processResources\n> Task :classes\n> Task :resolveMainClassName\n> Task :bootJar\n\n> Task :compileTestJava\nNote: <snapshot>/team-task-board/backend/src/test/java/dev/local/taskboard/TaskApiTest.java uses or overrides a deprecated API.\nNote: Recompile with -Xlint:deprecation for details.\n\n> Task :processTestResources NO-SOURCE\n> Task :testClasses\nOpenJDK 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended\n2026-09-29T04:05:09.579+09:00  INFO 83564 --- [team-task-board] [ionShutdownHook] o.s.boot.tomcat.GracefulShutdown         : Commencing graceful shutdown. Waiting for active requests to complete\n2026-09-29T04:05:09.581+09:00  INFO 83564 --- [team-task-board] [tomcat-shutdown] o.s.boot.tomcat.GracefulShutdown         : Graceful shutdown complete\n2026-09-29T04:05:09.582+09:00  INFO 83564 --- [team-task-board] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...\n2026-09-29T04:05:09.583+09:00  INFO 83564 --- [team-task-board] [ionShutdownHook] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.\n> Task :test\n> Task :check\n\n[Incubating] Problems report is available at: file://<snapshot>/team-task-board/backend/build/reports/problems/problems-report.html\n\nBUILD SUCCESSFUL in 11s\n9 actionable tasks: 9 executed\nConsider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.1/userguide/configuration_cache_enabling.html\n"
+    },
+    {
+      "name": "sample-e2e",
+      "cwd": "team-task-board/frontend",
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "tests/create-retry.spec.ts",
+        "--reporter=list"
+      ],
+      "exit": 0,
+      "seconds": 8.24,
+      "log_sha256": "aa31adf1aa4105cf0a0f17429764bb11347737ec50461ce177dd7b4d6441a9c8",
+      "output": "\nRunning 13 tests using 1 worker\n\n  ✓   1 tests/create-retry.spec.ts:7:1 › 같은 등록 요청의 반복·동시 재전송은 한 행을 반환한다 (133ms)\n  ✓   2 tests/create-retry.spec.ts:29:1 › 등록 요청 키에 다른 내용을 보내면 기존 작업을 바꾸지 않는다 (20ms)\n  ✓   3 tests/create-retry.spec.ts:44:1 › 다른 등록 키와 기존 키 없는 호출은 같은 내용도 별도 작업을 만든다 (18ms)\n  ✓   4 tests/create-retry.spec.ts:62:1 › 잘못된 등록 키는 행을 만들지 않는다 (13ms)\n  ✓   5 tests/create-retry.spec.ts:73:3 › 서버 저장 후 응답 유실: 재시도와 목록 유지에도 중복이 없다 (819ms)\n  ✓   6 tests/create-retry.spec.ts:73:3 › 서버 저장 후 응답 유실: 재시도와 목록 재조회에도 중복이 없다 (640ms)\n  ✓   7 tests/create-retry.spec.ts:121:1 › 실패한 등록의 내용을 수정하면 새 내용으로 재시도한다 (511ms)\n  ✓   8 tests/create-retry.spec.ts:147:1 › 같은 키로 다른 내용을 동시에 등록해도 하나만 저장한다 (39ms)\n  ✓   9 tests/create-retry.spec.ts:166:1 › 재전송은 이후 바뀐 상태를 유지하고 내용 변경을 덮어쓰지 않는다 (68ms)\n  ✓  10 tests/create-retry.spec.ts:192:1 › 빈 키와 축약 UUID는 거부하고 정규 UUID는 대소문자를 구별하지 않는다 (19ms)\n  ✓  11 tests/create-retry.spec.ts:218:1 › 기존 작업 ID를 키로 사용해도 중복이나 덮어쓰기가 없다 (15ms)\n  ✓  12 tests/create-retry.spec.ts:234:1 › 성공 응답이 손상돼도 초안과 재시도 키를 유지한다 (439ms)\n  ✓  13 tests/create-retry.spec.ts:259:1 › 실패한 여러 초안 사이를 오가도 같은 초안은 중복 등록하지 않는다 (536ms)\n\n  13 passed (7.5s)\n"
+    },
+    {
+      "name": "sample-persistence",
+      "cwd": "team-task-board",
+      "command": [
+        "python3",
+        "scripts/check-persistence.py"
+      ],
+      "exit": 0,
+      "seconds": 4.73,
+      "log_sha256": "58cb2e723fd3a8de9bd2c22562d83e65ade91b3143f8fd0443804b60bab7a641",
+      "output": "PASS: keyed creation replay after restart does not duplicate or reset the task.\nPASS: updated task survives application restart with identical data and version; both processes stopped.\n"
+    },
+    {
+      "name": "sample-defective-build",
+      "cwd": "sample-defective/backend",
+      "command": [
+        "./gradlew",
+        "--offline",
+        "--no-daemon",
+        "bootJar"
+      ],
+      "exit": 0,
+      "seconds": 7.84,
+      "log_sha256": "0bf20dbd784777a31b1a13efe17b185d677a61c84a936b2b137e090109473c4b",
+      "output": "To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.7.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.\nDaemon will be stopped at the end of the build \n> Task :compileJava\n> Task :processResources\n> Task :classes\n> Task :resolveMainClassName\n> Task :bootJar\n\nBUILD SUCCESSFUL in 7s\n4 actionable tasks: 4 executed\nConsider enabling configuration cache to speed up this build: https://docs.gradle.org/9.7.1/userguide/configuration_cache_enabling.html\n"
+    },
+    {
+      "name": "sample-red",
+      "cwd": "team-task-board/frontend",
+      "command": [
+        "node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "tests/create-retry.spec.ts",
+        "--config=playwright.defective.config.ts",
+        "--grep=서버 저장 후 응답 유실",
+        "--reporter=list"
+      ],
+      "exit": 1,
+      "seconds": 11.23,
+      "log_sha256": "b549f64f711b06968814fcee55df56e6fe4173b22ef6b48b4b7eb24345b89fa4",
+      "output": "\nRunning 2 tests using 1 worker\n\n  ✘  1 tests/create-retry.spec.ts:73:3 › 서버 저장 후 응답 유실: 재시도와 목록 유지에도 중복이 없다 (741ms)\n  ✘  2 tests/create-retry.spec.ts:73:3 › 서버 저장 후 응답 유실: 재시도와 목록 재조회에도 중복이 없다 (5.6s)\n\n\n  1) tests/create-retry.spec.ts:73:3 › 서버 저장 후 응답 유실: 재시도와 목록 유지에도 중복이 없다 ──────────────────────────\n\n    Error: expect(received).toHaveLength(expected)\n\n    Expected length: 1\n    Received length: 2\n    Received array:  [{\"assignee\": \"\", \"createdAt\": \"2026-09-28T19:10:10.307978Z\", \"description\": \"\", \"id\": \"328512a2-eaba-402c-bb85-249b1794baa4\", \"status\": \"TODO\", \"title\": \"응답 유실 845a08af-9226-45c7-84e6-8c2c17f0ecf1\", \"version\": 0}, {\"assignee\": \"\", \"createdAt\": \"2026-09-28T19:10:10.219438Z\", \"description\": \"\", \"id\": \"407b1807-d25d-448e-a12d-4613472623c3\", \"status\": \"TODO\", \"title\": \"응답 유실 845a08af-9226-45c7-84e6-8c2c17f0ecf1\", \"version\": 0}]\n\n      105 |     ).toHaveCount(1);\n      106 |     const tasks: Task[] = await (await request.get(endpoint)).json();\n    > 107 |     expect(tasks.filter((task) => task.title === title)).toHaveLength(1);\n          |                                                          ^\n      108 |     await page.reload();\n      109 |     await expect(\n      110 |       page.getByRole(\"heading\", { name: title, exact: true }),\n        at <snapshot>/team-task-board/frontend/tests/create-retry.spec.ts:107:58\n\n    Error Context: test-results/create-retry-서버-저장-후-응답-유실-재시도와-목록-유지에도-중복이-없다/error-context.md\n\n    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/create-retry-서버-저장-후-응답-유실-재시도와-목록-유지에도-중복이-없다/trace.zip\n    Usage:\n\n        npx playwright show-trace test-results/create-retry-서버-저장-후-응답-유실-재시도와-목록-유지에도-중복이-없다/trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  2) tests/create-retry.spec.ts:73:3 › 서버 저장 후 응답 유실: 재시도와 목록 재조회에도 중복이 없다 ─────────────────────────\n\n    Error: expect(locator).toHaveCount(expected) failed\n\n    Locator:  getByRole('heading', { name: '응답 유실 be769706-7b25-4308-9cdb-988ea0e6fd18', exact: true })\n    Expected: 1\n    Received: 2\n    Timeout:  5000ms\n\n    Call log:\n      - Expect \"toHaveCount\" getByRole('heading', { name: '응답 유실 be769706-7b25-4308-9cdb-988ea0e6fd18', exact: true }) with timeout 5000ms\n      - waiting for getByRole('heading', { name: '응답 유실 be769706-7b25-4308-9cdb-988ea0e6fd18', exact: true })\n        14 × locator resolved to 2 elements\n           - unexpected value \"2\"\n\n\n      103 |     await expect(\n      104 |       page.getByRole(\"heading\", { name: title, exact: true }),\n    > 105 |     ).toHaveCount(1);\n          |       ^\n      106 |     const tasks: Task[] = await (await request.get(endpoint)).json();\n      107 |     expect(tasks.filter((task) => task.title === title)).toHaveLength(1);\n      108 |     await page.reload();\n        at <snapshot>/team-task-board/frontend/tests/create-retry.spec.ts:105:7\n\n    Error Context: test-results/create-retry-서버-저장-후-응답-유실-재시도와-목록-재조회에도-중복이-없다/error-context.md\n\n    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────\n    test-results/create-retry-서버-저장-후-응답-유실-재시도와-목록-재조회에도-중복이-없다/trace.zip\n    Usage:\n\n        npx playwright show-trace test-results/create-retry-서버-저장-후-응답-유실-재시도와-목록-재조회에도-중복이-없다/trace.zip\n\n    ────────────────────────────────────────────────────────────────────────────────────────────────\n\n  2 failed\n    tests/create-retry.spec.ts:73:3 › 서버 저장 후 응답 유실: 재시도와 목록 유지에도 중복이 없다 ───────────────────────────\n    tests/create-retry.spec.ts:73:3 › 서버 저장 후 응답 유실: 재시도와 목록 재조회에도 중복이 없다 ──────────────────────────\n"
+    }
+  ]
+}
