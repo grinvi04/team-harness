@@ -347,3 +347,40 @@ hook 실제 발화나 앱 재시작 완료를 자동 포함하지 않는다. 실
 
 실행 근거의 첫 정합성 검사에서 설치 계약 읽기를 3회로 가정한 단언이 실패했다. 실제로 위험 경계 문서도
 추가로 읽어 4회였으며, 원문을 보존한 채 필수 세 경로의 존재를 대조해 확인했다. 제품 시험 실패는 아니었다.
+
+### 샘플의 전체 로컬 자동 검증 (2026-10-03)
+
+사용자가 후속 검증을 승인해 같은 샘플 후보 `232d18e69ffb304204bd1cd7f25a007a1ea0c567`의
+정본 명령 `bash scripts/check-local.sh`를 제품 루트에서 최초 1회 실행했다. 설치된 0.80.0 Codex
+검증 wrapper·native-runtime·공통 계약·위험 경계를 현재 agent가 읽고 적용했다. 현재 대화에
+주입된 skill catalog도 0.80.0 경로를 제공한다. 위의 제한된 세션 결과는 당시 범위대로 보존한다.
+
+시험 전에 제품의 필수 명령과 실제 저장·소비 경계를 완료 기준으로 선정했다. 기대 결과는 제품
+AGENTS·README와 기존 테스트의 수용 단언이며, 테스트 개수만으로 충분성을 판정하지 않는다.
+
+| 필수 범위·선정 이유 | 조건·기대 결과 / 관찰 경계 | 실행 결과 |
+|---|---|---|
+| 실행 관리·품질 gate | 자식 프로세스 관리 회귀, backend check/bootJar, frontend 타입·lint·unit·build 모두 exit 0 | PASS: 실행 관리 16개, backend 13개(실패·오류·skip 0), unit 2파일/76개, 나머지 명령 통과 |
+| 실제 API·화면 연결과 오류 복구 | 등록·검색·상태 변경·수정·새로고침 보존; 실패 시 초안/기존 상태 보존; URL·IME·초점과 버전 충돌 회귀 | PASS: Chromium E2E 49개, 실패 0. 실제 API 흐름과 선택적 mock 오류 흐름을 구분 |
+| 저장 후 응답 유실·중복 위험 | 같은 키 재전송·동시 등록은 1건, 다른 payload 거부, 후속 수정 유지; 브라우저 재시도와 실제 API 결과 연결 | PASS: create-retry와 version-conflicts 사례가 실제 격리 서버/DB 경계를 검사 |
+| DB 재시작 보존 | 임시 file DB에 등록/수정 후 재시작; 전체 저장값과 version 동일, 기존 키 재등록은 중복·초기화 없음 | PASS: check-persistence.py 두 단언 통과, 생성한 서버 종료 |
+| 자동 접근성·키보드 | 밝음/어두움 × 폭 1440/390 × 목록/편집/오류에서 axe violations 0, 키보드 편집/취소·초점 회귀 | PASS: 12개 axe 첨부의 violations 0. color-contrast incomplete는 별도 미확인 |
+| 기존 자산 보존 | 새 격리 서버·DB만 사용, 원래 추적 파일·개발 DB·화면 이미지 보존 | PASS: HEAD와 추적 파일 122개 동일, 개발 데이터 2개 지문 동일, Git clean |
+
+정본 명령의 최초 종료 코드는 **0**, 전체 로컬 자동 gate 범위는 **VERIFIED**다. Node 22.18.0,
+Java 21.0.11, Python 3.9.6/macOS 환경에서 실행했다. E2E는 8081/5180 포트의 새 서버와
+`jdbc:h2:mem:e2e`를 사용하고 기존 서버를 재사용하지 않았다. 재시작 검사는 임시 H2 file DB와
+동적 loopback 포트를 사용했다. 의존성·build·보고서 등 무시되는 산출물 외 제품 변경은 없다.
+
+**남은 한계:** axe 첨부 12개 모두 `color-contrast` incomplete 1개가 있어 수동 색상 대비 확인은
+UNVERIFIED다. 접근성 fixture와 일부 오류 흐름은 mock 응답이며 실제 저장은 별도 API·DB 검사로
+확인했다. 자동 검사 통과를 전체 WCAG·스크린리더·모든 브라우저·제품 무결함 보장으로 확대하지 않는다.
+새 hook 차단 시험, 다른 소비 프로젝트 수정·배포와 원격 CI/게시도 포함하지 않는다.
+
+원문 전체 로그·명령/cwd·후보·최초 종료 코드·보고서 판정·전후 보존 결과는
+[설치본 실행 근거의 sampleFullQa](qa-install-v0.80.0-evidence.json)에 보존했다.
+보고서 추출은 최초 zip 표현 가정과 다음 attachment 타입 가정 때문에 각각 실패했으나 현재 HTML의
+실제 template와 상세 attachment 구조를 읽어 12개를 추출했다. 이는 증거 추출 진단이며 제품 시험을
+재실행하거나 성공 결과로 덮어쓰지 않았다. 이번 기록은 Harness 로컬 문서 브랜치에만 반영한다.
+문서 검사도 최초에 잘못된 `scripts/` 경로로 실행해 module-not-found였고, 실제
+`plugins/harness-guard/scripts/check-document-sync.mjs` 경로로 바로잡아 선언 범위 PASS를 확인했다.
