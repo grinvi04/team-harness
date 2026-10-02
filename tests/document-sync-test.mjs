@@ -155,3 +155,28 @@ test('직접 입력한 저장소 안 선언 파일도 커밋 후보와 결박', 
   assert.equal(run(original, ['--committed']).status, 0);
   expectFailure(run({ version: 1, noImpact: 'uncommitted changed reason' }, ['--committed']), 'COMMITTED');
 });
+
+
+test('1 MiB보다 큰 커밋 문서·근거는 허용하고 실제 변경은 거부', t => {
+  const { root, record, run, git } = fixture(t);
+  git('init', '-q'); git('config', 'user.email', 'fixture@example.invalid'); git('config', 'user.name', 'fixture');
+  const original = '큰 검증 근거\n'.repeat(120000);
+  assert.ok(Buffer.byteLength(original) > 1024 * 1024);
+  fs.appendFileSync(path.join(root, 'plan.md'), original);
+  fs.writeFileSync(path.join(root, 'result.md'), original);
+  record.items[0].evidence.sha256 = hash(original);
+  run(record);
+  git('add', '.'); git('commit', '-qm', 'large evidence');
+  const unchanged = run(record, ['--committed']);
+  assert.equal(unchanged.status, 0, unchanged.stderr);
+  for (const modified of [original.replace('큰', '긴'), 'short evidence', original + 'extra']) {
+    fs.writeFileSync(path.join(root, 'result.md'), modified);
+    record.items[0].evidence.sha256 = hash(modified);
+    fs.writeFileSync(path.join(root, 'record.md'), fence(record));
+    git('add', 'record.md'); git('commit', '-qm', 'declare current evidence');
+    assert.equal(run(record).status, 0);
+    const rejected = run(record, ['--committed']);
+    expectFailure(rejected, 'COMMITTED');
+    assert.match(rejected.stderr, /result\.md/);
+  }
+});
