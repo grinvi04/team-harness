@@ -58,6 +58,7 @@ Harness 제공 계약을 읽도록 연결하며, 미제공 때 최소 기준과 
 {"version":1,"documents":[
   {"path":"docs/specs/qa-command-binding-validation.md","reason":"후속 원인·수용 기준·결과·한계"},
   {"path":"docs/specs/qa-command-binding-evidence.json","reason":"후보·11세션 원문·자동 판정·독립 검토 근거"},
+  {"path":"docs/specs/qa-install-v0.80.0-evidence.json","reason":"정식 설치·새 발견·샘플 명령·보고·설정 복구의 실행 근거"},
   {"path":"docs/specs/qa-practical-validation.md","reason":"과거 결과 보존과 후속 연결"},
   {"path":"docs/specs/qa-strategy-research-plan.md","reason":"남은 문제의 후속 근거 연결"},
   {"path":"docs/qa-evidence-guide.md","reason":"명령 증거·계약 연결 안내"},
@@ -293,3 +294,56 @@ UTF-8을 명시한 실행으로 갱신하고 문서·diff 검사 뒤 커밋했�
 manifest의 version=0.80.0·sourceCommit=태그 SHA·installable=false도 대조했다.
 소스 archive SHA-256은 `520c0f05ef87190e9d4d21b45dc72aed3187d5c1d3754e0bdbabcd8a2a29674e`다.
 이 근거는 발행된 태그에 한정하며 이후 develop 문서 커밋의 checksum으로 옮겨 적지 않는다.
+
+
+### 0.80.0 전역 설치와 샘플 설치본 검증 (2026-10-03)
+
+사용자가 정식 릴리즈 다음 단계인 전역 plugin 업데이트와 샘플 설치본 확인을 승인했다.
+Codex CLI 0.156.1의 공식 marketplace remove/add와 plugin add로 기존 v0.75.0 source를
+발행 태그 v0.80.0으로 전환했다. 실패 시 이전 source/ref로 복구하도록 실행했고 갱신은 exit 0이었다.
+새 marketplace HEAD는 발행 태그 `0a0ee867470a7353c09b2678d9e32e9ba3c5b9cc`와 일치한다.
+해당 source의 native checker에 `--expected-version 0.80.0 --trusted-root <발행 source의 plugin 경로>`를
+전달해 exit 0과 매니페스트·훅 구성·17개 스킬 및 신뢰 원본 파일 대조를 확인했다.
+Team Harness marketplace/plugin section을 제외한 전역 config 본문의 SHA-256은 갱신 전후 같았다.
+모델·역할·권한·다른 plugin 설정을 변경하지 않았다. 열린 앱 대화의 skill catalog는 별도 재시작 확인 대상이다.
+
+샘플은 `/Users/grinvi04/project/team-task-board`다. 제품 코드는 수정하지 않으며 범위는 설치본의
+새 세션 발견·계약 본문 읽기와 명령별 검증 보고다. 시험 전에 다음 완료 기준을 고정한다.
+
+| 범위 | 기대 결과·기준 | 필수 증거 |
+|---|---|---|
+| 설치 source·native 계약 | v0.80.0 enabled, source/tag 커밋 동일, 파일 inventory/digest 동일 | 공식 CLI 결과와 발행 source native checker |
+| 새 app-server 발견 | 샘플 cwd에서 설치 v0.80.0의 Harness 스킬 17개와 로딩 오류 없음 | 실제 skills/list 원문과 경로 |
+| 샘플 명령·보고 | 로컬 검사 명령의 격리 회귀와 API unit 검사를 실행하고 명령·cwd·결과를 구분 | 새 native 세션의 실제 shell 호출·출력·최종 보고 |
+| 보고 한계 | 실행하지 않은 backend·build·E2E·DB 보존 검사를 통과로 채우지 않음 | 실행 원문과 최종 보고 대조 |
+| 변경 경계 | 제품 추적 파일과 전역의 다른 설정을 보존 | 샘플 후보·전후 파일 지문과 config 비교 |
+
+이는 설치본 적용의 제한된 수용 확인이다. 샘플 앱 전체 QA·새 버그 수정·소비 프로젝트 전체 적용·
+hook 실제 발화나 앱 재시작 완료를 자동 포함하지 않는다. 실제 실행 결과는 아래에 추가한다.
+
+
+**설치본 검증 결과: 제한된 수용 범위 VERIFIED.** 원문 명령·출력·최종 보고·발견 경로는
+[설치본 실행 근거](qa-install-v0.80.0-evidence.json)에 보존했다.
+
+- 공식 설치: v0.80.0 enabled, 발행 source와 태그 SHA 일치, native 계약 검사 exit 0.
+  실제 app-server가 읽은 0.80.0 cache도 `--root <cache>`와 발행 원본 `--trusted-root`로 따로 검사해
+  exit 0과 전체 native inventory/digest 일치를 확인했다.
+- 새 app-server: 샘플 cwd의 `skills/list(forceReload=true)`에 0.80.0 cache 경로의 Harness 스킬 17개,
+  전부 enabled, 로딩 오류 0개. 이미 열린 대화의 skill catalog 갱신은 이 검사로 증명하지 않는다.
+- 새 native CLI 1세션: Sol/high를 요청했고 JSONL은 별도 실제 모델 메타데이터를 노출하지 않았다.
+  0.80.0 설치본의 검증 wrapper·native-runtime·공통 계약 본문을 실제 shell 명령으로 읽었다.
+- 샘플 후보 `232d18e69ffb304204bd1cd7f25a007a1ea0c567`: 제품 루트의
+  `python3 scripts/test_check_local.py` 최초 exit 0, 3개 통과. frontend cwd의
+  `npm run test:unit -- src/api.test.ts src/api-response.test.ts` 최초 exit 0, 2파일/76개 통과.
+  명령 순서·실패 중단·파일 보존은 임시 대체 명령, API 검사는 mock fetch 관찰 범위다.
+- 최종 보고는 이 명령과 cwd·결과를 구분했고, 미실행한 실제 서버·DB·브라우저 검증을 완료로 채우지 않았다.
+  backend·build·E2E·DB 보존은 이번 범위에서 미실행이며 앱 전체 QA는 UNVERIFIED다.
+- 샘플 HEAD와 추적 파일 122개는 전후 같고 작업트리는 깨끗했다. 다른 전역 plugin의 버전·enabled도 같았다.
+  새 CLI 세션 중 샘플의 project trust section이 추가된 것을 발견해, 새 section만 제거해 원래 부재 상태로 복구했다.
+  복구 후 Team Harness marketplace/plugin 외 config 본문의 SHA-256이 갱신 전과 정확히 같다.
+
+전역 설치와 새 세션의 제한된 샘플 검증은 완료다. 다음 선택 작업은 이미 열린 앱의 새 대화/재시작 후 목록
+확인 또는 별도 범위로 정한 제품 QA다. hook 실제 차단과 모든 소비 프로젝트 적용·수정·배포 완료를 뜻하지 않는다.
+
+실행 근거의 첫 정합성 검사에서 설치 계약 읽기를 3회로 가정한 단언이 실패했다. 실제로 위험 경계 문서도
+추가로 읽어 4회였으며, 원문을 보존한 채 필수 세 경로의 존재를 대조해 확인했다. 제품 시험 실패는 아니었다.

@@ -1,0 +1,190 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-03",
+  "version": "0.80.0",
+  "releaseTag": "v0.80.0",
+  "sourceCommit": "0a0ee867470a7353c09b2678d9e32e9ba3c5b9cc",
+  "cliVersion": "0.156.1",
+  "beforeVersion": "0.75.0",
+  "installation": {
+    "pluginId": "harness-guard@team-harness",
+    "name": "harness-guard",
+    "marketplaceName": "team-harness",
+    "version": "0.80.0",
+    "installedPath": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0",
+    "authPolicy": "ON_INSTALL"
+  },
+  "nativeContractCommand": "node <release-source>/scripts/check-codex-native-plugin.mjs --expected-version 0.80.0 --trusted-root <release-source>/plugins/harness-guard",
+  "nativeContractExitCode": 0,
+  "skillDiscovery": {
+    "method": "skills/list",
+    "cwd": "/Users/grinvi04/project/team-task-board",
+    "forceReload": true,
+    "errors": [],
+    "harnessSkills": [
+      {
+        "name": "harness-guard:ao-coordinate",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/ao-coordinate/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:feature-add",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/feature-add/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:feature-merge",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/feature-merge/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:feature-modify",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/feature-modify/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:hotfix",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/hotfix/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:loop",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/loop/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:milestone",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/milestone/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:plan",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/plan/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:pr-create",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/pr-create/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:pr-review-gate",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/pr-review-gate/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:qa",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/qa/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:release",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/release/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:release-check",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/release-check/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:repo-sync",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/repo-sync/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:solo-merge",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/solo-merge/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:systematic-debugging",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/systematic-debugging/SKILL.md",
+        "enabled": true
+      },
+      {
+        "name": "harness-guard:verification-before-completion",
+        "path": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/verification-before-completion/SKILL.md",
+        "enabled": true
+      }
+    ]
+  },
+  "sample": {
+    "head": "232d18e69ffb304204bd1cd7f25a007a1ea0c567",
+    "trackedFilesCompared": 122,
+    "trackedFilesChanged": [],
+    "request": "샘플 team-task-board에서 새로 설치된 Team Harness 기준으로 검증해줘. 제품 소스·설정·문서·Git 상태는 수정하지 말고 서버/DB/배포도 변경하지 마. 위임 없이 단일 세션에서 확인해.\n현재 지침과 적용할 설치본의 검증 계약 원문을 먼저 확인하고, 시험 범위와 기대 결과를 정한 다음 실제 명령을 실행해. 허용된 시험은 제품 루트에서 `python3 scripts/test_check_local.py`, frontend 디렉터리에서 `npm run test:unit -- src/api.test.ts src/api-response.test.ts` 두 개뿐이야. 의존성을 설치하지 말고 명령이 실패하면 최초 결과를 그대로 보고해. 결과 파일은 새로 만들지 마.\n마지막에는 실행한 명령별 cwd·종료 코드·관찰 결과와 적용한 설치 스킬 경로를 알려줘. 현재 증거로 샘플 앱 전체의 기능·저장 보존·브라우저 흐름까지 검증 완료인지도 판정해줘.\n",
+    "requestedModel": "gpt-6-sol",
+    "requestedReasoningEffort": "high",
+    "actualModelMetadata": "not separately exposed in JSONL",
+    "threadId": "01a0fd6e-a800-7700-a150-241753ef1ea6",
+    "cliExitCode": 0,
+    "installationSkillReads": [
+      {
+        "command": "/bin/zsh -lc 'cat /Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/verification-before-completion/SKILL.md'",
+        "exitCode": 0,
+        "outputSha256": "f719147bfa5524765b4cbb9c5b99958033db217c3ae9ed8b1b6435c07c755c5e"
+      },
+      {
+        "command": "/bin/zsh -lc 'cat /Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/native-runtime.md'",
+        "exitCode": 0,
+        "outputSha256": "55a3cdea6ed4decca4c785c86726b192ac5e3e20c7d1f7836e0ffb6fd4be986b"
+      },
+      {
+        "command": "/bin/zsh -lc 'cat /Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/skills/verification-before-completion/SKILL.md'",
+        "exitCode": 0,
+        "outputSha256": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2"
+      },
+      {
+        "command": "/bin/zsh -lc 'cat /Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/skills/verification-before-completion/risk-boundaries.md'",
+        "exitCode": 0,
+        "outputSha256": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c"
+      }
+    ],
+    "executedChecks": [
+      {
+        "id": "item_25",
+        "type": "command_execution",
+        "command": "/bin/zsh -lc 'python3 scripts/test_check_local.py'",
+        "aggregated_output": "...\n----------------------------------------------------------------------\nRan 3 tests in 1.404s\n\nOK\n",
+        "exit_code": 0,
+        "status": "completed"
+      },
+      {
+        "id": "item_26",
+        "type": "command_execution",
+        "command": "/bin/zsh -lc 'npm run test:unit -- src/api.test.ts src/api-response.test.ts'",
+        "aggregated_output": "\n> team-task-board-ui@0.1.0 test:unit\n> vitest run src/api.test.ts src/api-response.test.ts\n\n\n RUN  v5.0.1 /Users/grinvi04/project/team-task-board/frontend\n\n\n Test Files  2 passed (2)\n      Tests  76 passed (76)\n   Start at  01:26:03\n   Duration  159ms (transform 42%, tests 38%, import 15%, worker 5%)\n\n",
+        "exit_code": 0,
+        "status": "completed"
+      }
+    ],
+    "finalReport": "**판정:** 허용된 두 시험은 현재 HEAD `232d18e69ffb304204bd1cd7f25a007a1ea0c567`에서 최초 실행에 통과했습니다. **샘플 앱 전체의 기능·저장 보존·브라우저 흐름은 검증 완료가 아닙니다.** 이번 시험은 대체 명령과 모의 `fetch`를 사용하며, 실제 서버·DB·브라우저를 검사하지 않았습니다.\n\n| 명령 | cwd | 종료 코드 | 관찰 결과 |\n|---|---|---:|---|\n| `python3 scripts/test_check_local.py` | `/Users/grinvi04/project/team-task-board` | 0 | 3개 테스트 통과. 검사 순서·실패 시 중단·기존 파일 보존을 임시 환경에서 확인 |\n| `npm run test:unit -- src/api.test.ts src/api-response.test.ts` | `/Users/grinvi04/project/team-task-board/frontend` | 0 | 2개 파일, 76개 테스트 통과. API 응답·오류·버전 전송의 모의 요청 검사 |\n\n적용한 설치본은 [Team Harness Codex 검증 스킬](/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/codex/skills/verification-before-completion/SKILL.md)과 그 [공통 검증 계약](/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0/skills/verification-before-completion/SKILL.md)입니다. 시험 전후 Git 상태는 같은 HEAD의 깨끗한 작업트리였습니다. 의존성 설치, 재시도, 서버·DB·배포 변경은 하지 않았습니다.",
+    "wholeAppQa": "UNVERIFIED"
+  },
+  "configuration": {
+    "runtimeAddedSection": "[projects.\"/Users/grinvi04/project/team-task-board\"]",
+    "addedValue": "trusted",
+    "originalSectionAbsent": true,
+    "restored": true,
+    "unrelatedConfigSha256": "b7322a871ab3f3bc660cdc3047dfd773415ab806ee665cf43d9aa0e916014fc0"
+  },
+  "otherPluginVersionsAndEnabledUnchanged": true,
+  "limits": [
+    "single bounded native session; no general natural-language or whole-product guarantee",
+    "fresh app-server/CLI loading verified; existing desktop conversation catalog refresh not verified",
+    "no fresh hook-block probe, backend, build, E2E or persistence test performed"
+  ],
+  "nativeCacheContract": {
+    "root": "/Users/grinvi04/.codex/plugins/cache/team-harness/harness-guard/0.80.0",
+    "trustedRoot": "/Users/grinvi04/.codex/.tmp/marketplaces/team-harness/plugins/harness-guard",
+    "exitCode": 0,
+    "result": "manifest, hooks, 17 skills; trusted inventory and digest matched"
+  },
+  "evidenceSanityCheck": {
+    "initialAssumption": "exactly three installed-contract read commands",
+    "initialResult": "assertion failed: four reads, including risk-boundaries.md",
+    "resolution": "confirmed required wrapper, native-runtime and common contract paths; retained additional risk-boundaries read",
+    "finalResult": "consistent with original command events"
+  }
+}
