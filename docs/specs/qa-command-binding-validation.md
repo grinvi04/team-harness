@@ -277,7 +277,7 @@ PR #481의 최종 후보 `b566caed4b3b4a32536b71da1bac0c79899a55ec`가 바뀌지
 그 커밋에 `v0.80.0`을 생성하고 `git push origin refs/tags/v0.80.0` exit 0으로 발행했다.
 다른 작업트리의 main/develop 브랜치를 이동하지 않고 해당 커밋을 detached checkout으로 확인했다.
 main 병합·태그 발행은 완료됐으며 develop 반영은 같은 main 커밋에서 생성한
-`sync/backmerge-v0.80.0`의 PR 원본에서 추적한다. 이번 역병합의 추가 변경은 이 진행 기록과 제품 로드맵뿐이다.
+[역병합 PR #482](https://github.com/grinvi04/team-harness/pull/482) 원본에서 추적한다. 이번 역병합의 추가 변경은 이 진행 기록과 제품 로드맵뿐이다.
 
 정식 태그는 source plugin 0.80.0을 가리킨다. 분리 package의 `installable: false`는 유지한다.
 전역 plugin 설치·샘플 설치 재검증과 소비 프로젝트 수정·배포는 후속 작업이다.
