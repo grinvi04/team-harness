@@ -284,3 +284,12 @@ main 병합·태그 발행은 완료됐으며 develop 반영은 같은 main 커�
 제품 런타임이 없어 HTTP 헬스체크는 비적용이며 실제 태그·원본 버전·checksum을 발행 검증으로 확인한다.
 문서 갱신의 첫 Python 실행은 한글 입력 인코딩 오류로 파일을 바꾸지 못했고 커밋도 생성되지 않았다.
 UTF-8을 명시한 실행으로 갱신하고 문서·diff 검사 뒤 커밋했다.
+
+
+독립 검토는 첫 역병합 후보 `d1e6e10`에서 태그 기준 checksum 원본 기록이 없음을 지적했다.
+이 후보의 문서만으로 태그 산출물 검증을 완료로 판정하지 않고, 태그 `0a0ee867470a7353c09b2678d9e32e9ba3c5b9cc`를
+직접 checkout해 `node scripts/build-release-bundle.mjs --output /tmp/harness-release080-tag-20261003` exit 0을 확인했다.
+그 묶음 디렉터리에서 `shasum -a 256 -c SHA256SUMS` exit 0, 73/73 일치를 확인했다.
+manifest의 version=0.80.0·sourceCommit=태그 SHA·installable=false도 대조했다.
+소스 archive SHA-256은 `520c0f05ef87190e9d4d21b45dc72aed3187d5c1d3754e0bdbabcd8a2a29674e`다.
+이 근거는 발행된 태그에 한정하며 이후 develop 문서 커밋의 checksum으로 옮겨 적지 않는다.
