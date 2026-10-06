@@ -358,5 +358,525 @@
       "correctedExitCode": 0,
       "result": "PASS (declared scope only)"
     }
+  },
+  "contrastFollowup": {
+    "date": "2026-10-06",
+    "candidate": "232d18e69ffb304204bd1cd7f25a007a1ea0c567",
+    "contract": "installed harness-guard 0.80.0 qa + native-runtime; current verification contract reused",
+    "firstRunExitCode": 0,
+    "attempts": 1,
+    "expectedCriterion": "resolve the two glyph categories from historical axe incomplete; use actual Chromium computed foreground/opaque background colors, reject unsupported paint effects, require unrounded ratio >=4.5 in every selected state",
+    "sources": [
+      "https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html",
+      "https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html"
+    ],
+    "execution": {
+      "command": "node /tmp/harness-contrast-review.mjs",
+      "cwd": "/Users/grinvi04/project/team-task-board/frontend",
+      "port": 5182,
+      "mockedList": true,
+      "results": [
+        {
+          "theme": "light",
+          "width": 1440,
+          "state": "board",
+          "glyph": "▦",
+          "contrastRatio": 6.251879904349716,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 1440,
+          "state": "board",
+          "glyph": "⌕",
+          "contrastRatio": 5.446642681822732,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 1440,
+          "state": "edit",
+          "glyph": "▦",
+          "contrastRatio": 6.251879904349716,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 1440,
+          "state": "edit",
+          "glyph": "⌕",
+          "contrastRatio": 5.446642681822732,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 1440,
+          "state": "error",
+          "glyph": "▦",
+          "contrastRatio": 6.251879904349716,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 1440,
+          "state": "error",
+          "glyph": "⌕",
+          "contrastRatio": 5.446642681822732,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 390,
+          "state": "board",
+          "glyph": "▦",
+          "contrastRatio": 6.251879904349716,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 390,
+          "state": "board",
+          "glyph": "⌕",
+          "contrastRatio": 5.446642681822732,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 390,
+          "state": "edit",
+          "glyph": "▦",
+          "contrastRatio": 6.251879904349716,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 390,
+          "state": "edit",
+          "glyph": "⌕",
+          "contrastRatio": 5.446642681822732,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 390,
+          "state": "error",
+          "glyph": "▦",
+          "contrastRatio": 6.251879904349716,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "light",
+          "width": 390,
+          "state": "error",
+          "glyph": "⌕",
+          "contrastRatio": 5.446642681822732,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 1440,
+          "state": "board",
+          "glyph": "▦",
+          "contrastRatio": 7.12941272750048,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 1440,
+          "state": "board",
+          "glyph": "⌕",
+          "contrastRatio": 8.001475264707407,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 1440,
+          "state": "edit",
+          "glyph": "▦",
+          "contrastRatio": 7.12941272750048,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 1440,
+          "state": "edit",
+          "glyph": "⌕",
+          "contrastRatio": 8.001475264707407,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 1440,
+          "state": "error",
+          "glyph": "▦",
+          "contrastRatio": 7.12941272750048,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 1440,
+          "state": "error",
+          "glyph": "⌕",
+          "contrastRatio": 8.001475264707407,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 390,
+          "state": "board",
+          "glyph": "▦",
+          "contrastRatio": 7.12941272750048,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 390,
+          "state": "board",
+          "glyph": "⌕",
+          "contrastRatio": 8.001475264707407,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 390,
+          "state": "edit",
+          "glyph": "▦",
+          "contrastRatio": 7.12941272750048,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 390,
+          "state": "edit",
+          "glyph": "⌕",
+          "contrastRatio": 8.001475264707407,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 390,
+          "state": "error",
+          "glyph": "▦",
+          "contrastRatio": 7.12941272750048,
+          "verdict": "PASS"
+        },
+        {
+          "theme": "dark",
+          "width": 390,
+          "state": "error",
+          "glyph": "⌕",
+          "contrastRatio": 8.001475264707407,
+          "verdict": "PASS"
+        }
+      ],
+      "paintEvidence": [
+        {
+          "theme": "light",
+          "selector": ".brand-mark",
+          "foreground": "rgb(255, 255, 255)",
+          "background": "rgb(34, 85, 216)",
+          "paintChain": [
+            {
+              "tag": "SPAN",
+              "color": "rgb(34, 85, 216)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "A",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "HEADER",
+              "color": "rgb(255, 255, 255)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "BODY",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "HTML",
+              "color": "rgb(243, 246, 250)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            }
+          ]
+        },
+        {
+          "theme": "light",
+          "selector": ".search > span[aria-hidden=\"true\"]",
+          "foreground": "rgb(89, 107, 131)",
+          "background": "rgb(255, 255, 255)",
+          "paintChain": [
+            {
+              "tag": "SPAN",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "LABEL",
+              "color": "rgb(255, 255, 255)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "MAIN",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "BODY",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "HTML",
+              "color": "rgb(243, 246, 250)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            }
+          ]
+        },
+        {
+          "theme": "dark",
+          "selector": ".brand-mark",
+          "foreground": "rgb(21, 35, 67)",
+          "background": "rgb(142, 174, 255)",
+          "paintChain": [
+            {
+              "tag": "SPAN",
+              "color": "rgb(142, 174, 255)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "A",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "HEADER",
+              "color": "rgb(27, 39, 57)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "BODY",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "HTML",
+              "color": "rgb(17, 24, 39)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            }
+          ]
+        },
+        {
+          "theme": "dark",
+          "selector": ".search > span[aria-hidden=\"true\"]",
+          "foreground": "rgb(178, 190, 208)",
+          "background": "rgb(27, 39, 57)",
+          "paintChain": [
+            {
+              "tag": "SPAN",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "LABEL",
+              "color": "rgb(27, 39, 57)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "MAIN",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "DIV",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "BODY",
+              "color": "rgba(0, 0, 0, 0)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            },
+            {
+              "tag": "HTML",
+              "color": "rgb(17, 24, 39)",
+              "image": "none",
+              "opacity": "1",
+              "filter": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "runnerSource": "import { createRequire } from 'node:module';\nimport { spawn } from 'node:child_process';\nimport { writeFileSync } from 'node:fs';\nconst root='/Users/grinvi04/project/team-task-board/frontend';\nconst require=createRequire(root+'/package.json');\nconst { chromium }=require('@playwright/test');\nconst server=spawn(process.execPath,[root+'/node_modules/vite/bin/vite.js','--host','127.0.0.1','--port','5182','--strictPort'],{cwd:root,stdio:['ignore','pipe','pipe']});\nlet logs=''; server.stdout.on('data',x=>logs+=x);server.stderr.on('data',x=>logs+=x);\nlet browser; const results=[];\nfunction luminance(rgb){const c=rgb.map(x=>{x/=255;return x<=0.04045?x/12.92:((x+0.055)/1.055)**2.4});return .2126*c[0]+.7152*c[1]+.0722*c[2]}\nfunction ratio(a,b){const l=[luminance(a),luminance(b)].sort((a,b)=>b-a);return (l[0]+.05)/(l[1]+.05)}\ntry{\n let ready=false;\n for(let i=0;i<100;i++){if(server.exitCode!==null)throw Error('own server exited: '+logs);try{const r=await fetch('http://127.0.0.1:5182');if(r.ok){ready=true;break}}catch{} await new Promise(r=>setTimeout(r,100));}\n if(!ready)throw Error('server not ready');\n browser=await chromium.launch();\n for(const theme of ['light','dark'])for(const width of [1440,390]){\n const page=await browser.newPage({colorScheme:theme,viewport:{width,height:1000}});let failed=false;\n await page.route('**/api/tasks',route=>route.fulfill({status:failed?500:200,json:failed?{message:'retry'}:[{id:'review-task',title:'contrast review',description:'fixture',assignee:'review',status:'TODO',createdAt:'2026-10-06T00:00:00Z',version:0}]}));\n await page.goto('http://127.0.0.1:5182');await page.getByRole('article').waitFor();\n async function inspect(state){for(const selector of ['.brand-mark','.search > span[aria-hidden=\"true\"]']){\n const el=page.locator(selector);if(!await el.isVisible())continue;\n const d=await el.evaluate(e=>{const s=getComputedStyle(e);const chain=[];for(let p=e;p;p=p.parentElement){const c=getComputedStyle(p);chain.push({tag:p.tagName,color:c.backgroundColor,image:c.backgroundImage,opacity:c.opacity,filter:c.filter});}return {selector:e.className,text:e.textContent,foreground:s.color,chain,fontSize:s.fontSize,ariaHidden:e.getAttribute('aria-hidden')};});\n const fg=d.foreground.match(/[\\d.]+/g).map(Number);if(fg.length>3&&fg[3]!==1)throw Error('unsupported translucent foreground');\n const bgNode=d.chain.find(c=>{const n=c.color.match(/[\\d.]+/g).map(Number);return n.length===3||n[3]===1});if(!bgNode)throw Error('opaque background absent');\n const bg=bgNode.color.match(/[\\d.]+/g).map(Number);for(const c of d.chain.slice(0,d.chain.indexOf(bgNode)+1)){if(c.image!=='none'||c.opacity!=='1'||c.filter!=='none')throw Error('unsupported paint effect');}\n const value=ratio(fg.slice(0,3),bg.slice(0,3));if(value<4.5)throw Error('conservative contrast threshold failed: '+value);\n results.push({theme,width,state,selector,...d,background:bgNode.color,contrastRatio:value,threshold:4.5,verdict:'PASS'});\n }}\n await inspect('board');await page.getByRole('button',{name:'수정',exact:true}).click();await inspect('edit');await page.getByRole('button',{name:'취소',exact:true}).click();failed=true;await page.getByRole('button',{name:'새로고침',exact:true}).click();await page.getByRole('alert').waitFor();await inspect('error');await page.close();\n }\n writeFileSync('/tmp/harness-contrast-review-result.json',JSON.stringify({command:'node /tmp/harness-contrast-review.mjs',cwd:root,port:5182,mockedList:true,results},null,2));\n console.log(JSON.stringify({observations:results.length,minContrast:Math.min(...results.map(r=>r.contrastRatio)),pairs:[...new Set(results.map(r=>r.selector+' '+r.theme+' '+r.contrastRatio))]},null,2));\n}finally{if(browser)await browser.close();server.kill('SIGTERM');await new Promise(resolve=>{if(server.exitCode!==null)resolve();else server.once('exit',resolve)});}\n",
+    "minimumRatio": 5.446642681822732,
+    "verdict": "PASS for historical brand/search glyph needs-review; whole WCAG conformance not established",
+    "process": "own strict-port Vite 5182 and browser closed; no listener after run",
+    "preservation": "same HEAD, git diff HEAD/index exit 0, no untracked non-ignored files",
+    "diagnostics": [
+      "historical temporary baseline JSON no longer exists; attempted historical SHA-256 comparison returned FileNotFoundError",
+      "used current sample HEAD and Git tracked/index/untracked comparisons instead; no fresh claim of old full-file baseline comparison"
+    ],
+    "limits": [
+      "selected two glyph categories, four theme/width combinations and three states only",
+      "mock list/error fixtures; no backend or real development DB accessed",
+      "screenshots/screen-reader/all-WCAG audit not performed"
+    ],
+    "axeIncompleteReview": {
+      "attachmentsReviewed": 12,
+      "rule": "color-contrast",
+      "messageKey": "nonBmp",
+      "uniqueNodes": [
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "messageKey": "nonBmp"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element content contains only non-text characters"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<span class=\"brand-mark\" aria-hidden=\"true\">▦</span>",
+          "target": [
+            ".brand-mark"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element content contains only non-text characters"
+        },
+        {
+          "any": [
+            {
+              "id": "color-contrast",
+              "data": {
+                "messageKey": "nonBmp"
+              },
+              "relatedNodes": [],
+              "impact": "serious",
+              "message": "Element content contains only non-text characters"
+            }
+          ],
+          "all": [],
+          "none": [],
+          "impact": "serious",
+          "html": "<span aria-hidden=\"true\">⌕</span>",
+          "target": [
+            ".search > span[aria-hidden=\"true\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Element content contains only non-text characters"
+        }
+      ]
+    },
+    "extractionNote": "runner selector field is className (empty for search span); original glyph text and reviewed axe targets identify the elements; paintEvidence supplies selectors explicitly"
   }
 }

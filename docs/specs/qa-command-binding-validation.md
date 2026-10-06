@@ -384,3 +384,34 @@ UNVERIFIED다. 접근성 fixture와 일부 오류 흐름은 mock 응답이며 �
 재실행하거나 성공 결과로 덮어쓰지 않았다. 이번 기록은 Harness 로컬 문서 브랜치에만 반영한다.
 문서 검사도 최초에 잘못된 `scripts/` 경로로 실행해 module-not-found였고, 실제
 `plugins/harness-guard/scripts/check-document-sync.mjs` 경로로 바로잡아 선언 범위 PASS를 확인했다.
+
+### 색상 대비 needs-review 후속 확인 (2026-10-06)
+
+이전의 미확인은 당시 결과로 보존하고, 사용자 요청에 따라 설치된 `harness-guard:qa`와 native-runtime
+계약을 적용해 해당 경계만 추가 확인했다. 현재 샘플 HEAD는 동일하고 Git 추적/index 차이·비무시
+미추적 파일이 없다. 이전 임시 baseline JSON은 없어 과거 전체 지문 비교를 재실행했다는 주장은 하지 않는다.
+
+원래 HTML 보고서의 12개 axe 첨부를 직접 읽었다. `color-contrast`의 실제 이유는 색상 위반이 아니라
+`nonBmp`(비텍스트 문자)였고, 대상은 `.brand-mark`의 `▦`와 검색 label 안의 `⌕` 두 종류였다.
+브랜드 장식·검색 보조 아이콘에는 각각 주변 브랜드 문구와 검색 이름/placeholder가 있다. `aria-hidden`
+속성만으로 면제하지 않았으며, 기호의 비텍스트 성격은 [W3C 1.4.3 설명](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html)과
+[1.4.11 설명](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html)을 대조했다.
+
+기호 대비에는 보수적으로 4.5:1을 적용했다(관련 비텍스트 최소 기준은 3:1). 실제 Chromium의
+computed style에서 전경·가장 가까운 불투명 배경을 수집하고, 해당 배경까지 이미지/필터/opacity 등
+계산을 왜곡하는 효과가 없음을 확인한 뒤 sRGB 상대휘도 공식으로 반올림 전 비율을 판정했다.
+밝음/어두움 × 폭 1440/390 × 목록/편집/오류 × 두 기호의 **24개 관찰이 모두 PASS**다.
+
+| 기호 | 밝은 테마 대비 | 어두운 테마 대비 | 선정 범위 판정 |
+|---|---:|---:|---|
+| 브랜드 장식 | 6.251879904349716:1 | 7.12941272750048:1 | PASS |
+| 검색 보조 아이콘 | 5.446642681822732:1 | 8.001475264707407:1 | PASS |
+
+`node /tmp/harness-contrast-review.mjs` 최초 exit 0, 재실행 없음. 별도 strict-port Vite 5182와
+브라우저를 직접 생성/종료했고, 목록·오류 mock fixture만 사용해 실제 서버·개발 DB를 건드리지 않았다.
+스크립트·관찰 원문·axe 대상·출처·종료 코드·비율은 [실행 근거의 contrastFollowup](qa-install-v0.80.0-evidence.json)에 보존한다.
+이전 임시 지문 파일 부재로 비교가 실패한 사실과 현재 Git 후보/변경 대조로 확인한 범위도 구분했다.
+
+**판정:** 기존 두 기호의 needs-review는 해소됐다. 전체 WCAG·스크린리더·모든 브라우저 검증이나
+제품 무결함 보장은 여전히 이 결과의 범위가 아니다. 샘플 제품 수정·다른 소비 프로젝트 변경·배포는 없다.
+설치·자동 검사·이 후속 확인 기록은 현재 Harness 로컬 문서 브랜치에 있으며 아직 원격 병합되지 않았다.
