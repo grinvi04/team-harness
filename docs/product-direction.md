@@ -157,6 +157,15 @@ upstream PR #78의 깊이 보완을 설치 지문 검사와 연결했고, 제품
 제품 docs/specs/dependency-security.md가 현재 상태·정식 수정판 확인 후 보완 제거 조건을 소유한다.
 이는 샘플 전용 보완이며 Harness 공통 패치 기능을 추가하지 않는다. 소비 프로젝트 수정·배포는 계속 보류한다.
 
+2026-10-07 사용자 승인으로 [네 소비 프로젝트 적용 준비](pilots/consumer-readiness-2026-10-07.md)를
+읽기 전용으로 대조했다. 로컬과 원격 develop 후보를 분리했고, 최신 정본 차이는 ERP 1·siku 3·
+webhook-service 1·DriveTree 1이다. 네 프로젝트의 QA 증거/문서 완료 계약 연결, 과거 Proposed
+문서 현행화, ERP UAT 목적지 검증과 webhook 게시 분리의 진입 조건을 적용 계획에 남겼다.
+앱 QA는 미실행/UNVERIFIED이며 소비 변경·배포 보류를 유지한다. 후속 권고 순서는
+DriveTree → webhook-service → siku → erp이며, 첫 소비 변경·격리 실행은 승인 범위를 정한 뒤 진행한다.
+후속 범위는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496), 기록 전달·CI·병합은
+[PR #495](https://github.com/grinvi04/team-harness/pull/495) 원본을 따른다.
+
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
 
