@@ -307,7 +307,7 @@ Codex CLI 0.156.1의 공식 marketplace remove/add와 plugin add로 기존 v0.75
 Team Harness marketplace/plugin section을 제외한 전역 config 본문의 SHA-256은 갱신 전후 같았다.
 모델·역할·권한·다른 plugin 설정을 변경하지 않았다. 열린 앱 대화의 skill catalog는 별도 재시작 확인 대상이다.
 
-샘플은 `/Users/grinvi04/project/team-task-board`다. 제품 코드는 수정하지 않으며 범위는 설치본의
+샘플은 `<USER_HOME>/project/team-task-board`다. 제품 코드는 수정하지 않으며 범위는 설치본의
 새 세션 발견·계약 본문 읽기와 명령별 검증 보고다. 시험 전에 다음 완료 기준을 고정한다.
 
 | 범위 | 기대 결과·기준 | 필수 증거 |
@@ -322,7 +322,7 @@ Team Harness marketplace/plugin section을 제외한 전역 config 본문의 SHA
 hook 실제 발화나 앱 재시작 완료를 자동 포함하지 않는다. 실제 실행 결과는 아래에 추가한다.
 
 
-**설치본 검증 결과: 제한된 수용 범위 VERIFIED.** 원문 명령·출력·최종 보고·발견 경로는
+**당시 설치본 검증 보고: 제한된 수용 범위 VERIFIED.** 구조화된 발췌·부분 시험 출력·최종 보고·발견 경로는
 [설치본 실행 근거](qa-install-v0.80.0-evidence.json)에 보존했다.
 
 - 공식 설치: v0.80.0 enabled, 발행 source와 태그 SHA 일치, native 계약 검사 exit 0.
@@ -415,3 +415,22 @@ computed style에서 전경·가장 가까운 불투명 배경을 수집하고, 
 **판정:** 기존 두 기호의 needs-review는 해소됐다. 전체 WCAG·스크린리더·모든 브라우저 검증이나
 제품 무결함 보장은 여전히 이 결과의 범위가 아니다. 샘플 제품 수정·다른 소비 프로젝트 변경·배포는 없다.
 설치·자동 검사·이 후속 확인 기록은 현재 Harness 로컬 문서 브랜치에 있으며 아직 원격 병합되지 않았다.
+
+### PR 전달 전 증거·공개 범위 보완 (2026-10-06)
+
+독립 검토에서 설치 전환의 원본 CLI 출력·skills/list 전체 응답·설정 비교 전후 원본은 보존되지 않았음을
+확인했다. 위의 역사적 보고와 구조화된 값은 남기되, 이 기록만으로 당시 설치 전환·설정 복구를 독립
+재검증하는 것은 **UNVERIFIED**다. 부모 agent가 실행한 전체 QA/대비의 최초 횟수·exit 값도 당시
+실행자의 보고이며, 전체 tool-event 원본을 보존했다는 뜻이 아니다. 재설치로 과거 증거를 만들지 않았다.
+
+대신 현재 공식 CLI plugin/marketplace 조회, source HEAD, source-vs-cache native 검사와 새 app-server
+skills/list를 다시 확인했다. enabled 0.80.0, 발행 source SHA 일치, native 계약 exit 0, Harness 스킬
+17개 enabled/로딩 오류 0의 **현재 상태는 VERIFIED**다. 대상 응답 발췌·실제 명령·결과와 역사적 한계는
+실행 근거의 `currentInstallationRecheck`·`evidenceRetention`에 구분한다.
+
+전체 quality 로컬 재현은 최초 후보 e77aa89에서 31개 단계 통과 후 32번째 공개 안전성 검사에서
+개인 홈 경로 때문에 실패했다. 나머지는 그 실행에서 미실행이다. 기록의 개인 홈 접두어를
+`<USER_HOME>`으로 정규화해 공개용 표현으로 바꿨고 검사는 완화하지 않았다. 원래 raw log SHA는
+정규화 전 bytes의 값으로 유지하며 정규화 후 SHA도 따로 기록한다. 실행 스크립트·명령 표현은
+실제 경로를 그대로 재실행할 파일이 아니라 공개용 치환본임을 명시한다. 설치 전환 원문 미보존과
+공개 경로 실패는 지우지 않고 보존한다. 코드/플러그인 동작·샘플은 변경하지 않았다.
