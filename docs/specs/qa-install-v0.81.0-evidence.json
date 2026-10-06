@@ -438,5 +438,89 @@
     },
     "status": "available patch VERIFIED; overall vulnerability removal NOT VERIFIED/FAIL",
     "nextAction": "compatible upstream patched release then audit/full QA; no automatic deployment"
+  },
+  "bracesMitigationFollowup": {
+    "date": "2026-10-07",
+    "authorizedScope": "explicit user choice: sample-only fixed PR78 local depth backport plus QA; consumers/deployment/global settings held",
+    "sampleCommit": "431523d02cbe97e959df0b4c87a1d3ebc8ac46b0",
+    "upstream": {
+      "pr": "https://github.com/micromatch/braces/pull/78",
+      "sha": "97308a01d091b211cf015314a2d0696da28a5392",
+      "base": "npm braces 3.0.3",
+      "files": 6
+    },
+    "change": "postinstall exact version/source/result fingerprints, all-file preflight before writes, idempotent reapply; mandatory security regression in canonical QA; no audit exclusion",
+    "rawEvidenceLocal": "<USER_HOME>/project/team-task-board/.runtime/braces-patch-20261007/results.json",
+    "rawResultSha256": "ecf547ab29809600ece520c6c06427f37fdba0754333cff8db4a2f97ba4b5990",
+    "canonicalQaExitCode": 0,
+    "checks": {
+      "security": 7,
+      "commandRegression": 4,
+      "lifecycle": 18,
+      "unit": 76,
+      "chromium": 49,
+      "typeLintBuild": "PASS",
+      "backend": "UP-TO-DATE reuse",
+      "persistence": "real isolated restart/keyed replay PASS",
+      "consumerProbe": "micromatch/fast-glob deep SyntaxError and fixed patterns PASS",
+      "sampleDocumentSync": "committed PASS"
+    },
+    "redGreen": {
+      "behaviorInitial": "1 PASS/3 FAIL",
+      "lockedSecurity": "3 PASS/4 FAIL -> same seven PASS",
+      "expandedCommand": "baseline 2 PASS/2 FAIL -> current four PASS",
+      "firstInstallerFailure": "replacement special syntax changed digest, preflight rejected before writes; literal callback correction",
+      "preparationFailures": "missing scratch directory and relative test file path; not valid RED"
+    },
+    "audit": {
+      "exitCode": 1,
+      "high": 5,
+      "productionExitCode": 0,
+      "productionTotal": 0
+    },
+    "preservation": {
+      "lockedTests": "three file digests unchanged",
+      "existingAppTests": "unchanged; command sequence test intentionally expanded without dropping prior assertions",
+      "imagesAndDb": "equal to prior verified 140b6dc baseline",
+      "limitation": "no fresh pre-execution snapshot claimed"
+    },
+    "independentReview": {
+      "role": "harness-security-reviewer",
+      "result": "bounded PASS, no finding",
+      "installer": "original six files applied, reapply zero; last-file drift rejected with all source files unchanged",
+      "matchedSource": {
+        "baseTag": "3.0.3",
+        "baseSha": "74b2db2938fad48a2ea54a9c8bf27a37a62c350d",
+        "originalTests": 764,
+        "newTests": 14,
+        "passing": 778,
+        "exitCode": 0,
+        "candidate": "official index/lib source plus same installed six-file backport",
+        "environment": "Node22.18.0/npm11.6.2"
+      },
+      "upstreamHeadReference": {
+        "passing": 908,
+        "exitCode": 0,
+        "limitation": "different parser base; not evidence of 908 tests on product backport"
+      },
+      "limits": "malformed AST, regex CPU, output cardinality not covered; full product QA reviewed rather than rerun by reviewer"
+    },
+    "status": "approved bounded local mitigation VERIFIED; overall vulnerability removal FAIL/high5",
+    "nextAction": "review compatible official patched release, remove local patch then same QA/audit; no automatic deployment",
+    "independentDocumentationReview": {
+      "role": "harness-verifier",
+      "finding": "none in three-document followup",
+      "scope": "sample clean commit, raw18 digests, QA/audit counts, installer scratch, matched-source result, previous preservation baseline and limits, upstream PR78 state",
+      "limitations": "reviewer did not rerun product QA or 778 suite; final Harness CI/PR/merge excluded"
+    },
+    "harnessLocalQuality": {
+      "workflow": ".github/workflows/ci-gate.yml quality",
+      "steps": 63,
+      "passed": 63,
+      "candidateBase": "78804bb3a7071f0594db42f7eefd1b90140e75ad",
+      "scope": "three-document followup; no Harness code change",
+      "rawRecordSha256": "281af74cee154c52682f4c30f6be5ca6b547c3353e3f5ae1567c03bfccf72555",
+      "preparation": "ruff0.15.15 temporary venv already installed; identical ruff command, pipx install omitted"
+    }
   }
 }

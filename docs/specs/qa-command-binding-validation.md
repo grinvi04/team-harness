@@ -545,3 +545,32 @@ Stylelint의 개발용 의존 관계가 남는다. 독립 검토자도 격리 No
 부분 패치 PASS와 전체 취약점 제거 FAIL/미완료를 구분한다. 후속은 호환 upstream 수정 버전
 발행 후 감사·전체 QA이며, 네 소비 프로젝트 수정·배포는 재개하지 않았다.
 제품 전용 수정이며 Harness 런타임·버전·전역 설정 변경은 없다. 기록 전달·CI·병합의 최신 상태는 [PR #493](https://github.com/grinvi04/team-harness/pull/493)의 원본을 따른다.
+
+
+### 샘플 승인된 로컬 깊이 보완 (2026-10-07)
+
+사용자가 공식 수정판 없는 braces에 대해 고정 [PR #78](https://github.com/micromatch/braces/pull/78)
+기반 샘플 로컬 보완과 전체 QA를 명시적으로 선택했다. 샘플 로컬 커밋
+`431523d02cbe97e959df0b4c87a1d3ebc8ac46b0`은 npm 3.0.3의 lib 6파일에 고정 diff를
+적용하며 패키지 버전·원본/결과 지문을 전 파일에서 검증한 후 쓴다. drift는 설치 실패이며
+재실행은 쓰기 없이 성공한다. canonical 명령에 보안 회귀와 그 실패 중단을 연결했다.
+공용 Harness의 설치/guard 동작·버전은 바꾸지 않는다.
+
+제품 첫 전체 QA exit 0: 보안 7·명령 회귀 4·lifecycle 18·unit 76·Chromium 49,
+타입/lint/build·실제 격리 DB 재시작/동일 등록 키 재요청 PASS다. backend는 재사용이다.
+micromatch/fast-glob 깊은 입력 제어 거부와 고정 lint 패턴 정상도 확인했다.
+독립 보안 검토는 설치기의 실제 적용·재실행·마지막 파일 drift 전 파일 무변경을 시험했고
+현재 후보·QA 원문에 finding 없음/PASS다. 공식 3.0.3 태그/npm 원문과 기존 764개 시험을
+보존하고 PR의 새 14개만 추가해 같은 제품 백포트로 778 PASS를 확인했다.
+upstream head의 908 PASS는 별도 parser 변경이 있는 후보여서 같은 제품 증거로 쓰지 않는다.
+
+보완과 정상 parser/정상 형태 AST의 깊이 차단은 VERIFIED다. 비정상 AST·regex CPU·출력
+조합 폭증은 미보장이다. 기존 앱 시험과 잠근 새 시험 원문은 유지했으며 명령 회귀만 새
+단계에 맞게 확장했다. 이미지/DB는 이전 검증 baseline과 동일하며 새 실행 전 snapshot으로
+주장하지 않는다. 최초 실패·재시도와 후보 지문은
+[bracesMitigationFollowup](qa-install-v0.81.0-evidence.json)과 제품 원문에 보존한다.
+
+전체 감사 exit 1/high 5와 전체 취약점 제거 FAIL/미완료는 유지한다. 운영 감사 exit 0/0건은
+별도 범위다. 정식 호환 수정 릴리즈를 검토해 보완을 제거한 뒤 전체 감사·동일 QA를 확인한다.
+제품 원격 게시·배포·기존 서버 재시작·네 소비 프로젝트·전역 설정은 수행하지 않았다.
+기록 전달·필수 CI·병합의 최신 상태는 [PR #494](https://github.com/grinvi04/team-harness/pull/494)의 원본을 따른다.
