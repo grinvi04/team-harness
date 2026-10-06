@@ -16,6 +16,7 @@ Python 환경 생성·interpreter 수명주기는 도구에 위임한다. 소비
 | 제외 조건으로 외부 탐색 우회 | venv directory symlink 또는 외부 cfg symlink | exit 1 유지 | 거부 fixture |
 | 기존 경계 회귀 | 깊은 Flyway, 내부 일반 파일 링크, 외부·dangling·FIFO 링크 등 기존 사례 | 기존 허용·거부 결과 유지 | repo-sync 전체 시나리오 |
 | 직접 소비자에서 원래 중단 해소 | 네 repo 읽기 전용 재실행 | 네 자산 보고서 생성; webhook은 python/alembic 감지 | 실제 repo별 stdout·exit code |
+| 파일럿 환경 복사 경쟁 | 임시 Git fixture의 실제 자동 repack과 복사/정리 경계 | 자동 정리 유지·동기 완료 후 복사, 기존 신뢰 거부 검사 유지 | 실제 Git trace2와 loader pilot 회귀 |
 | 공통 배포 자산 정합성 | 버전·문서·구문·전체 품질 검사 | 정본 CI quality와 독립 검토 통과 | 현재 후보 검사·PR CI |
 
 위 항목은 모두 필수다. 제품 UI/DB/성능 시험은 검사기 변경에 비적용이며 소비 제품의 품질을 판정하지 않는다.
@@ -46,6 +47,24 @@ MISSING은 checker의 필수 표준 미충족 분류다. 특히 커밋 체인은
 파일 자체의 부재와 동일하지 않다. 다른 언어의 DDL 검사도 현행 공통 bundle 계약에 따라 포함된다.
 네 repo의 drift-free 기준은 **FAIL**이며 검사기 수정의 수용 기준인 보고 생성은 **PASS**다.
 기존 역사적 zero-drift 기록을 덮어쓰지 않는다. 그 당시 후보와 지금 자산은 다르다.
+
+## 원격 CI 최초 실패와 환경 보완
+
+최초 원격 후보 `b2ec0dec7cb0b96f7c4225c12991686ed23fc316`의
+[run 37450797111](https://github.com/grinvi04/team-harness/actions/runs/37450797111)은 quality **FAIL**이었다.
+`codex-native-loader-pilot-test.sh`에서 임시 `.git/objects/*`를 cp 하던 중 경로가 사라지고
+EXIT cleanup의 `.git` 제거도 실패했다. 가상환경 회귀는 이 run에서 통과했으며, 실패를 재시도 PASS로 덮지 않는다.
+
+가설은 임시 fixture commit의 detached Git maintenance가 객체를 재배치하며 복사·삭제와 경쟁한다는 것이다.
+격리 실행에서 `gc.auto=1`로 실제 repack을 유도했고 trace2에 commit이 `maintenance --detach`를
+실행함을 확인했다. 새 동기 완료 판정은 수정 전 **FAIL**이었다. 최초 CI에는 Git trace가 없어
+그 실행의 프로세스 identity까지 직접 확인한 것은 아니며, 증상·코드 경계·격리 재현에 기반한 원인 판정이다.
+
+[Git 공식 maintenance 계약](https://git-scm.com/docs/git-maintenance#_configuration)에 따라 임시 source
+repo에만 `maintenance.autoDetach=false`와 구버전 fallback `gc.autoDetach=false`를 설정한다.
+`maintenance.auto=true`·강제 auto repack을 실제 수행하고 trace2로 foreground 실행과 repack 발생을
+단언하므로 정리 기능을 꺼서 통과시키지 않는다. 기존 신뢰/서명/소스 승인/인증 격리 거부 시험도 유지한다.
+전역·소비 repo 설정과 production runner는 수정하지 않는다. 보완 후 해당 전체 pilot은 exit 0이었다.
 
 ## 진행·다음 행동
 
