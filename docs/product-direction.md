@@ -134,6 +134,11 @@ main에 병합했고 [v0.80.0 태그](https://github.com/grinvi04/team-harness/t
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
 
+열린 [split runtime 이슈 #412](https://github.com/grinvi04/team-harness/issues/412)는 2026-10-06에
+CLI 0.156.1과 공식 manifest 문서를 재확인했으나 필요한 cross-plugin dependency/root binding 계약이
+확인되지 않아 WAIT를 유지한다. 새 root manifest 권장과 기존 호환 형식 지원을 구분하며,
+[최신 capability 기록](pilots/codex-split-runtime-v0.61.0.md#2026-10-06-capability-재확인)에 근거·미실행 범위를 연결한다.
+
 ## 기존 거버넌스 작업과 보류 항목
 
 아래는 기존 개발 결과와 플랫폼 조건 때문에 보류한 항목이다. 개인 개발의 현재 우선순위를 대신하지 않는다.

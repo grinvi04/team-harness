@@ -57,3 +57,35 @@ native dependency 연결 선행조건이 없으므로 fresh-session outcome pari
 
 재검토 시에는 core+adapter를 독립 설치한 새 세션에서 PreToolUse·UserPromptSubmit·skill 결과 동등성을 검증하고,
 adapter 제거 후에도 GitHub server-side core enforcement와 사용자 상태가 보존되는지 확인한다.
+
+## 2026-10-06 capability 재확인
+
+사용자가 남은 Harness 작업을 이어가도록 요청해 [이슈 #412](https://github.com/grinvi04/team-harness/issues/412)의
+재개 조건만 확인했다. 위 0.144.6/v0.61.0 artifact 실행은 당시 증거로 보존하며 새 실행으로 바꾸지 않는다.
+이번 대상 Harness 후보는 `d166d53a574bddfb483a1668c7d3ed00f5043a92`, 현재 CLI는 **0.156.1**이다.
+`codex --version`과 `codex plugin add --help` 각각 exit 0이며, 실제 stdout과 binary SHA는 기존
+JSON의 `followups`에 보존했다. 모델 세션·설치·전역 설정·소비 repo 변경은 없다.
+
+현재 [패키징 설명](https://developers.openai.com/plugins/build/plugins)과
+[manifest 필드 참조](https://developers.openai.com/plugins/deploy/submission)를 직접 읽었다.
+공식 문서는 새 패키지에 루트 `plugin.json`과 `extensions.com.openai`를 권장하고, 기존
+`.codex-plugin/plugin.json`은 호환 fallback으로 계속 지원한다. inline extension이 있으면 overlay
+설정과 병합하지 않고 교체한다. 이 새 root 형식은 다른 plugin의 root를 전달하는 계약과 다르다.
+문서의 hook 환경은 해당 설치 plugin의 `PLUGIN_ROOT`·`PLUGIN_DATA`이며, 검토한 필드 참조와
+CLI help에서 cross-plugin dependency와 dependency-root binding 계약을 확인하지 못했다.
+
+**판정: WAIT 유지.** 이는 확인한 공식 surface의 제한된 부정 증거이며 숨은/미문서화 기능 부재의
+전수 증명이 아니다. 설치 선행조건이 성립하지 않아 split fresh-session outcome parity와 adapter 제거
+후 enforcement 시험은 미실행/UNVERIFIED다. monolith·split `installable:false`·marketplace 보류는
+유지하고 자체 resolver·cache patch·core 복제를 만들지 않는다. 기존 호환 manifest는 지원되므로
+이번 조사를 곧바로 강제 마이그레이션이나 사용자 설치 변경의 근거로 쓰지 않는다.
+
+문서가 현재 root 형식을 설명한다는 변화와 split 재개 조건 충족을 구분한다. 다음 행동은 이전과 같이
+공식 dependency와 root binding 계약이 함께 확인될 때 독립 core+adapter outcome을 시험하는 것이다.
+
+기록의 문서 동기화·공개 안전성(20/0)·제품 방향·split loader pilot 계약 검사는 통과했다.
+마지막 검사는 모의 fixture의 runner/rollback 회귀이며 실제 split outcome parity 실행이 아니다.
+
+```harness-doc-sync
+{"version":1,"documents":[{"path":"docs/pilots/codex-split-runtime-v0.61.0.md","reason":"과거 artifact 실행 보존과 현재 공식 capability 재확인·대기 판정"},{"path":"docs/pilots/codex-split-runtime-v0.61.0.json","reason":"현재 CLI 원문·binary 지문·문서 관찰·미실행 범위"},{"path":"docs/product-direction.md","reason":"열린 split runtime 이슈의 최신 대기 근거 연결"}],"items":[]}
+```
