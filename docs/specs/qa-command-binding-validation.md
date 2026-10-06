@@ -493,3 +493,38 @@ Harness 문서 전달을 위한 로컬 quality 63단계는 모두 exit 0이었�
 
 설치·실패 기록 전달과 최신 원격 CI·검토·병합 상태는
 [PR #491](https://github.com/grinvi04/team-harness/pull/491)의 현재 후보 원본을 따른다.
+
+
+### 승인된 샘플 종료 결함 수정과 최종 통합 (2026-10-07)
+
+PR #491 이후 사용자가 샘플 종료 결함만 수정하고 전체 검증을 이어가도록 승인했다.
+제품 로컬 커밋 `0c905a07c6a91a1f2e69c58fc186a07525c7cb83`에서 그룹 존재 조회 EPERM이
+cleanup 밖으로 전파돼 관리자를 조기 종료하는 경로를 확인하고 3줄을 수정했다.
+조회 권한을 우회하거나 오류를 그룹 소멸로 간주하지 않는다. 실제 부재가 확인될 때까지 소유권을 유지한다.
+제품 전용 실행기는 샘플에 두며 공용 Harness 런타임·스킬·버전은 바꾸지 않았다.
+
+[현재 근거의 completionFollowup](qa-install-v0.81.0-evidence.json)에 최초 실패와 후속 해결을 분리한다.
+기존 `overall`과 `limitations`는 첫 설치/샘플 검사 시점의 역사적 snapshot이다. 현재 결과는 이 후속
+객체·제품 커밋과 제품 docs/specs/local-dev-lifecycle.md, docs/verification.md가 소유한다.
+
+새 회귀 RED 2개 후 같은 잠긴 시험 GREEN 2개, 명령 회귀 3개, canonical 전체 QA exit 0을 확인했다.
+전체 QA는 실행 관리자 18개·frontend 단위 76개·Chromium 49개·실제 격리 DB 재시작·등록 재요청을
+포함했다. backend check/bootJar는 Java 입력이 동일해 UP-TO-DATE로 재사용했으며 새 시험 실행으로
+세지 않았다. 기존 이미지·사용자 DB 파일 지문 동일, test 계약 digest 동일, 제품 Git clean이다.
+독립 `harness-security-reviewer`는 요구·diff·RED/GREEN·잠긴 시험·전체 QA 원문을 대조하고 finding
+없음으로 제한된 검토 VERIFIED를 반환했다. 새 시험 2개는 검토자가 직접 재실행했고 전체 QA/DB는
+재실행하지 않았다. 제품 문서 checker는 커밋 결박까지 통과했다.
+
+최종 설치 계약 검사 exit 0과 새 app-server의 forceReload에서도 cache 0.81.0·17개 enabled·로딩
+오류 0을 다시 확인했다. 이번 대화의 제공 catalogue 경로도 0.81.0이다. hook 실제 발화나 권한 강제를
+스킬 발견으로 증명하지 않으며, 기존 실행 중 앱/관리자 재시작·배포는 수행하지 않았다.
+
+이전 설치 때 설정 사본과 이번 현재 설정의 재대조는 불일치했다. Team Harness 외 변경은
+node_repl 환경 키 2개와 security-guidance hook 신뢰 상태이며, 현재 파일 수정 시각은 이번 최초
+진단 파일보다 앞선다. 변경 주체는 미확인이고 다른 설정을 복원하거나 수정하지 않았다. 이전
+동일성 검사는 당시 결과로 보존하며 이번 전체 기간의 설정 불변성으로 확대하지 않는다.
+
+**현재 판정:** 승인된 설치·새 세션 로딩·샘플 종료 결함 수정·전체 로컬 QA 범위는 VERIFIED다.
+변경하지 않은 제품 의존성의 npm audit는 exit 1, high 6건/critical 0을 보고했다. 이 잔여 보안 작업을
+이번 종료 결함의 gate와 구분해 공개하며 전체 제품 보안/모든 OS/브라우저 검증으로 확대하지 않는다.
+네 소비 프로젝트 수정·배포는 계속 보류한다. 기록 전달·최종 CI·검토·병합은 후속 PR 원본을 따른다.
