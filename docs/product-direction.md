@@ -145,7 +145,9 @@ main 승인·CI·병합은 [릴리즈 PR #489](https://github.com/grinvi04/team-
 PR #489 main 병합과 필수 승인 요건 1명·전체 보호 원상복구를 확인했고 동일 main SHA에 v0.81.0 태그를 발행했다.
 [태그 원본 발행 기록](pilots/release-v0.81.0-publication.json)의 checksum 73/73이 통과했다.
 develop 역병합·최종 검토·CI·병합은 [PR #490](https://github.com/grinvi04/team-harness/pull/490) 원본으로 추적한다.
-전역 설치·소비 프로젝트 수정·배포는 보류한다.
+전역 Codex 설치는 0.81.0으로 갱신했고 새 세션에서 스킬 17개 로딩을 확인했다.
+[설치·샘플 통합 기록](specs/qa-command-binding-validation.md#0810-전역-설치와-완료-경계-2026-10-07)의
+샘플 전체 gate는 종료 시험 실패로 NOT VERIFIED이며 완료를 보류한다. 소비 프로젝트 수정·배포는 계속 보류한다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
