@@ -58,6 +58,7 @@ Harness 제공 계약을 읽도록 연결하며, 미제공 때 최소 기준과 
 {"version":1,"documents":[
   {"path":"docs/specs/qa-command-binding-validation.md","reason":"후속 원인·수용 기준·결과·한계"},
   {"path":"docs/specs/qa-command-binding-evidence.json","reason":"후보·11세션 원문·자동 판정·독립 검토 근거"},
+  {"path":"docs/specs/qa-install-v0.81.0-evidence.json","reason":"0.81.0 설치와 샘플 최초 실패·진단·완료 경계"},
   {"path":"docs/specs/qa-install-v0.80.0-evidence.json","reason":"정식 설치·새 발견·샘플 명령·보고·설정 복구의 실행 근거"},
   {"path":"docs/specs/qa-practical-validation.md","reason":"과거 결과 보존과 후속 연결"},
   {"path":"docs/specs/qa-strategy-research-plan.md","reason":"남은 문제의 후속 근거 연결"},
@@ -447,3 +448,48 @@ ruff 0.15.15는 임시 venv에 미리 설치해 같은 실제 ruff 명령을 실
 원본과 대조해 지적 해소/추가 지적 없음으로 판정했다. 최신 문서 상태와 이 전달 기록도 최종 후보에서
 대조한다. 원격 CI·스레드·외부 status·현재 develop 보호 요건은 로컬 green으로 대체하지 않는다.
 제품·플러그인 동작·버전·설치 상태는 이 전달 변경으로 수정하지 않는다.
+
+
+### 0.81.0 전역 설치와 완료 경계 (2026-10-07)
+
+사용자가 완료 시점까지 계속 진행하도록 요청했다. 범위는 발행 태그 설치 → 새 세션 로딩 → 샘플
+통합 검증 → 관련 기록 현행화와 독립 검토다. 네 소비 프로젝트 수정·배포와 모델·역할 변경은 보류한다.
+
+| 필수 범위 / 선정 이유 | 기대 결과와 관찰 경계 | 결과 |
+|---|---|---|
+| 발행본 설치 / 개발 후보 혼입 방지 | 공식 CLI 태그 v0.81.0, source HEAD=main 태그, cache inventory·digest 일치 | PASS |
+| 설정 보존 / 전역 영향 제한 | Team Harness 두 설정 구역 외 문자열 동일 | PASS |
+| 샘플 새 세션 발견 / 실제 소비 경계 | forceReload skills/list에서 17개 enabled·0.81.0 경로·로딩 오류 0 | PASS |
+| 설치 계약 읽기 / 발견만으로 실행 계약 전달을 보장하지 않음 | 설치 cache의 native wrapper·common contract·native-runtime·risk-boundaries 읽기 | PASS |
+| 샘플 전체 gate / 제품 통합 및 격리·종료·저장 경계 | 같은 제품 후보의 check-local.sh 모든 단계 exit 0, 제품 Git 변경 없음 | FAIL |
+| 기록 대조 / 과거 결과와 현재 상태 구분 | 최초 실패와 미실행·설치 완료·통합 미완료 및 검토 상태 연결 | 실행 근거와 전달 PR 참조 |
+
+[실행 근거](qa-install-v0.81.0-evidence.json)에 공식 CLI 출력·원본 digest·새 skills/list 발췌를 보존했다.
+공식 절차는 [OpenAI plugin 안내](https://developers.openai.com/plugins/build/plugins)의 marketplace 명령과
+[Native Refresh Runbook](codex-guard-compatibility.md#codex-native-refresh-runbook)을 따른다.
+0.80.0의 당시 기록은 보존한다. 현재 설치는 0.81.0이며 새 app-server에서만 로딩을 검증했다.
+기존 열린 대화의 catalogue 교체와 hook 런타임 발화·권한 집행은 이 결과로 증명하지 않는다.
+
+샘플 전체 명령의 최초 실행은 실행 관리자 16개 시험 중 재시작 후 stop returncode=1로 exit 1이었다.
+그 뒤 backend·frontend·영속성 단계는 미실행이다. 임시 관찰 wrapper로 해당 시험의 stop 응답을 수집한
+1회 진단은 exit 0이었다. 최초 실패를 해소하지 못했으므로 통합 판정은 **NOT VERIFIED**다.
+샘플 코드는 수정하지 않았고, 불안정 시험을 재시도 PASS로 바꾸거나 기준을 내리지 않는다.
+완료에는 이 실패의 원인·복구 근거와 전체 gate 성공이 필요하다. 제품 수정이 필요하면 보류 범위의
+변경 승인 후 처리하며, 새 실패·진단 결과를 기존 기록에 연결한다.
+
+
+같은 16개 시험에 stop 응답과 manager log 관찰만 추가한 진단은 다른 dead-control-socket 시험에서
+실패했다. stop은 관리자 연결 실패, manager log는 `Operation not permitted` 였다.
+권한 오류를 일으킨 시스템 호출과 최초 실패의 원인은 미확인이다. 권한 우회나 제품 수정은 하지 않았다.
+
+
+독립 `harness-verifier`는 현재 문서 3개·raw digest·설치 inventory·새 skills 응답·전역 설정의
+두 구역 외 동일성과 샘플 HEAD/clean 상태를 대조해 추가 finding 없음으로 보고했다.
+최초 CLI 종료 코드는 실행 tool 결과에 의존하며 저장 stdout만으로 종료 코드를 재검증할 수 없다는
+한계를 유지한다. 샘플 실패 원인·전체 gate·hook 발화는 여전히 미확인이다.
+
+Harness 문서 전달을 위한 로컬 quality 63단계는 모두 exit 0이었다. 임시 venv의 ruff 0.15.15를
+사용해 같은 검사 명령을 실행했다. 이 결과는 샘플 전체 gate 실패를 대체하지 않는다.
+
+설치·실패 기록 전달과 최신 원격 CI·검토·병합 상태는
+[PR #491](https://github.com/grinvi04/team-harness/pull/491)의 현재 후보 원본을 따른다.

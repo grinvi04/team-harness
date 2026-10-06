@@ -1,0 +1,303 @@
+{
+  "date": "2026-10-07",
+  "targetTag": "v0.81.0",
+  "sourceCommit": "9838c2ef288b4566f81fae03acb56530ee165c06",
+  "cliVersion": "0.156.1",
+  "sampleCommit": "232d18e69ffb304204bd1cd7f25a007a1ea0c567",
+  "scope": "Codex global Team Harness install and sample validation; no product source changes or deployments",
+  "overall": "NOT VERIFIED: sample full QA first run failed; diagnostic pass does not resolve instability",
+  "commands": [
+    {
+      "command": "codex plugin marketplace remove team-harness --json",
+      "exitCode": 0
+    },
+    {
+      "command": "codex plugin marketplace add grinvi04/team-harness --ref v0.81.0 --json",
+      "exitCode": 0
+    },
+    {
+      "command": "codex plugin add harness-guard@team-harness --json",
+      "exitCode": 0
+    },
+    {
+      "command": "node <USER_HOME>/.codex/.tmp/marketplaces/team-harness/scripts/check-codex-native-plugin.mjs --root <USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0 --expected-version 0.81.0 --trusted-root <USER_HOME>/.codex/.tmp/marketplaces/team-harness/plugins/harness-guard",
+      "exitCode": 0
+    }
+  ],
+  "skillsList": {
+    "method": "skills/list",
+    "params": {
+      "cwds": [
+        "<USER_HOME>/project/team-task-board"
+      ],
+      "forceReload": true
+    },
+    "transportExitCode": 0,
+    "skills": [
+      {
+        "name": "harness-guard:ao-coordinate",
+        "description": "여러 개발 단계의 인계나 중단된 작업의 재개를 조정할 때 사용. 단순 단독 수정·개별 구현 절차·배포 실행·전역 설치는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/ao-coordinate/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:feature-add",
+        "description": "승인된 새 기능을 추가할 때 프로젝트 기준·테스트 계약·검사·커밋을 연결하는 데 사용. 일반 TDD 방법론의 중복 실행·기존 기능 수정·계획만 작성·PR 머지는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/feature-add/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:feature-merge",
+        "description": "완성된 feature/fix 브랜치를 develop에 머지할 때 사용. 품질·리뷰·승인·CI 게이트를 거치며 코드 구현·PR만 생성·main 릴리즈는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/feature-merge/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:feature-modify",
+        "description": "기존 기능을 바꾸거나 확인된 버그를 고칠 때 변경·유지 테스트와 프로젝트 검사·커밋을 연결하는 데 사용. 일반 TDD 방법론의 중복 실행·완전 신규 기능·진단만 요청·PR 머지는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/feature-modify/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:hotfix",
+        "description": "운영 장애를 긴급 수정해 main에 패치 배포할 때 사용. hotfix PR·태그·develop 역병합을 수행하며 일반 버그·정기 릴리즈·운영 인프라 직접 조작은 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/hotfix/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:loop",
+        "description": "반복 수정으로 명령 exit 0을 달성해야 할 때 사용. CI·lint·기존 테스트·의존성 정리에 적합하며 신규 기능·불명확한 설계·시간 예약 polling은 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/loop/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:milestone",
+        "description": "여러 기능을 묶는 제품 목표와 마일스톤을 정의·추적할 때 사용. GitHub 진행률을 관리하며 단일 기능 계획·코드 구현·세션 종료조건 설정은 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/milestone/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:plan",
+        "description": "새 기능을 설계하거나 복잡한 변경을 계획할 때 프로젝트 기준·수용 조건·승인된 스펙을 연결하는 데 사용. 구현·Git 변경·자명한 소규모 수정은 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/plan/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:pr-create",
+        "description": "현재 feature/fix 브랜치의 품질을 확인하고 올바른 base로 PR만 생성할 때 사용. 코드 수정·리뷰 처리·머지·릴리즈는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/pr-create/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:pr-review-gate",
+        "description": "열린 PR의 AI 리뷰·사람 승인·CI·외부 배포 상태를 처리해 머지 준비를 확인할 때 사용. PR 없는 코드 개발·PR 생성만 수행·게이트 우회는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/pr-review-gate/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:qa",
+        "description": "프론트엔드 디자인 토큰과 WCAG 2.2 접근성을 검증할 때 사용. 백엔드 로직·기능 테스트·원인 불명 버그 분석은 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/qa/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:release",
+        "description": "사전 검증된 버전을 정식 릴리즈할 때 사용. release 브랜치·main 태그·develop 역병합·헬스체크를 수행하며 hotfix·일반 develop 머지·사전검증 없는 배포는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/release/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:release-check",
+        "description": "정식 릴리즈 직전에 품질·보안·DB 마이그레이션 준비를 검증할 때 사용. 실제 태그·배포·기능 PR 검증·버그 구현은 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/release-check/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:repo-sync",
+        "description": "소비 프로젝트와 team-harness 표준 자산의 드리프트를 읽기 전용으로 점검할 때 사용. 앱 데이터 동기화·파일 자동 수정·브랜치 보호 적용은 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/repo-sync/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:solo-merge",
+        "description": "솔로 repo에서 자기승인 불가능 조건만 원자적으로 해제·복구하며 PR을 머지할 때 사용. CI·리뷰 우회·팀 승인 우회·main 릴리즈는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/solo-merge/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:systematic-debugging",
+        "description": "원인 불명 실패 테스트·CI 오류·빌드 실패·런타임 오동작을 조사할 때 프로젝트 재현 증거·진단 권한·수정 인계를 연결하는 데 사용. 원인이 명확한 구현·광범위 정리·릴리즈는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/systematic-debugging/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      },
+      {
+        "name": "harness-guard:verification-before-completion",
+        "description": "Harness 프로젝트의 확인·검증·완료·PR·머지·릴리즈 판정에 QA 범위와 증거 계약이 필요할 때 사용. Superpowers 등 일반 검증 방법론과 함께 적용. 구현·실패 수정·delivery 실행 자체는 제외",
+        "path": "<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0/codex/skills/verification-before-completion/SKILL.md",
+        "scope": "user",
+        "enabled": true,
+        "pluginId": "harness-guard@team-harness"
+      }
+    ],
+    "loadingErrors": [
+      []
+    ],
+    "rawResponseSha256": "b713ac4eeee45078a160984c50e93efcaa60673a83f856cbe11260ac7367ace7"
+  },
+  "raw": {
+    "remove.json": {
+      "sha256Original": "d6db1100ff729ff03971372605d6ccb60edc6d700b317a05e63254211de2db55",
+      "stdout": "{\n  \"marketplaceName\": \"team-harness\",\n  \"installedRoot\": \"<USER_HOME>/.codex/.tmp/marketplaces/team-harness\"\n}\n"
+    },
+    "add-marketplace.json": {
+      "sha256Original": "277428afe074063cac9e1dc181c0d016896372157f704385bbd9c8c8b6f2bf8d",
+      "stdout": "{\n  \"marketplaceName\": \"team-harness\",\n  \"installedRoot\": \"<USER_HOME>/.codex/.tmp/marketplaces/team-harness\",\n  \"alreadyAdded\": false\n}\n"
+    },
+    "add-plugin.json": {
+      "sha256Original": "6c3d7839e6999c46b6098336c9284ecf040b66d476eda441c5411032c550eef6",
+      "stdout": "{\n  \"pluginId\": \"harness-guard@team-harness\",\n  \"name\": \"harness-guard\",\n  \"marketplaceName\": \"team-harness\",\n  \"version\": \"0.81.0\",\n  \"installedPath\": \"<USER_HOME>/.codex/plugins/cache/team-harness/harness-guard/0.81.0\",\n  \"authPolicy\": \"ON_INSTALL\"\n}\n"
+    },
+    "native-check.log": {
+      "sha256Original": "b0bd7f80fe96efbddffdbc4222956a6dac128b848443ac92aaa2d31bc1a34861",
+      "stdout": "native harness-guard 0.81.0: manifest, hooks, 17 skills\n"
+    },
+    "source-sha.txt": {
+      "sha256Original": "4a2280d26ffcce4165390c176c34f11555fe80aa19a4e9071d5699fdb2bccbb9",
+      "stdout": "9838c2ef288b4566f81fae03acb56530ee165c06\n"
+    },
+    "config-preservation.json": {
+      "sha256Original": "25408f59d7c4c0f56f1c5451adca06d9eea397dc48b239b6f127a83a7bc6cf81",
+      "stdout": "{\n  \"outsideTeamHarnessEqual\": true,\n  \"sha256\": \"214bca27545e89d98ecbc15a916c7ff80d632015c143bff7b37aa29eacfcf186\"\n}"
+    },
+    "sample-check.log": {
+      "sha256Original": "222a8fd23f172fce8990501d314a852d28c7f73d8eaa7de8727dd02185bdeda0",
+      "stdout": ".........F......\n======================================================================\nFAIL: test_start_status_restart_stop_preserve_data_and_use_project_directories (__main__.DevTest)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<USER_HOME>/project/team-task-board/scripts/test_dev.py\", line 153, in test_start_status_restart_stop_preserve_data_and_use_project_directories\n    self.assertEqual(self.call(\"stop\").returncode, 0)\nAssertionError: 1 != 0\n\n----------------------------------------------------------------------\nRan 16 tests in 17.684s\n\nFAILED (failures=1)\n"
+    },
+    "lifecycle-diagnostic.log": {
+      "sha256Original": "6f5017afb5485206eca91a91fb83fdc553aa7ed2fd4198b5a974abd50017b6ec",
+      "stdout": "{\"action\": \"status\", \"exitCode\": 1, \"stdout\": \"\\uad00\\ub9ac\\uc790 \\uc5f0\\uacb0 \\ub300\\uae30 \\uc911\\uc785\\ub2c8\\ub2e4.\\n\", \"stderr\": \"\"}\n{\"action\": \"status\", \"exitCode\": 1, \"stdout\": \"\\uc2dc\\uc791 \\uc900\\ube44\\n\", \"stderr\": \"\"}\n{\"action\": \"status\", \"exitCode\": 1, \"stdout\": \"\\ube4c\\ub4dc\\u00b7\\uc758\\uc874\\uc131 \\uc900\\ube44 \\uc911\\n\", \"stderr\": \"\"}\n{\"action\": \"status\", \"exitCode\": 1, \"stdout\": \"\\ube4c\\ub4dc\\u00b7\\uc758\\uc874\\uc131 \\uc900\\ube44 \\uc911\\n\", \"stderr\": \"\"}\n{\"action\": \"status\", \"exitCode\": 1, \"stdout\": \"\\ube4c\\ub4dc\\u00b7\\uc758\\uc874\\uc131 \\uc900\\ube44 \\uc911\\n\", \"stderr\": \"\"}\n{\"action\": \"status\", \"exitCode\": 1, \"stdout\": \"\\uc751\\ub2f5 \\uc900\\ube44 \\uc911\\n\", \"stderr\": \"\"}\n{\"action\": \"status\", \"exitCode\": 1, \"stdout\": \"\\uc2dc\\uc791 \\uc900\\ube44\\n\", \"stderr\": \"\"}\n{\"action\": \"stop\", \"exitCode\": 0, \"stdout\": \"\\uc911\\ub2e8 \\uc0c1\\ud0dc\\uc785\\ub2c8\\ub2e4.\\n\", \"stderr\": \"\"}\n{\"action\": \"status\", \"exitCode\": 1, \"stdout\": \"\\uc911\\ub2e8 \\uc0c1\\ud0dc\\uc785\\ub2c8\\ub2e4.\\n\", \"stderr\": \"\"}\n.\n----------------------------------------------------------------------\nRan 1 test in 2.071s\n\nOK\n"
+    },
+    "failures.json": {
+      "sha256Original": "d43a737d883caab2b09153b85cb8740c60e856c66211c77c63bc439558b4f205",
+      "stdout": "{\"sampleFullQa\":{\"command\":\"bash scripts/check-local.sh\",\"exitCode\":1,\"stage\":\"scripts/test_dev.py\",\"failedTest\":\"test_start_status_restart_stop_preserve_data_and_use_project_directories\",\"laterStages\":\"NOT_RUN\"},\"diagnostic\":{\"exitCode\":0,\"scope\":\"one instrumented lifecycle test\",\"limitation\":\"isolated pass does not resolve first failure\"},\"preparationFailures\":[{\"command\":\"python3 import tomllib\",\"exitCode\":1,\"reason\":\"host Python 3.9 lacks tomllib; used section-aware text comparison\"},{\"command\":\"sed scripts/check-doc-sync.mjs\",\"exitCode\":1,\"reason\":\"incorrect path; located actual check-document-sync.mjs\"}]}"
+    },
+    "lifecycle-suite-diagnostic.log": {
+      "sha256Original": "11c039fe3c53a3a81c74a277feee0ed150c25b3567b46df2a9addb09a733eb98",
+      "stdout": "test_crashed_child_cleans_remaining_server (board_test.DevTest) ... ok\ntest_dead_control_socket_is_replaced_without_pid_signals (board_test.DevTest) ... {\"test\": \"board_test.DevTest.test_dead_control_socket_is_replaced_without_pid_signals\", \"action\": \"stop\", \"exitCode\": 1, \"stdout\": \"\", \"stderr\": \"\\uc2e4\\ud328: \\uad00\\ub9ac\\uc790 \\uc5f0\\uacb0 \\uc2e4\\ud328. \\ub85c\\uadf8\\uc640 \\uc2e4\\ud589 \\uc0c1\\ud0dc\\ub97c \\ud655\\uc778\\ud558\\uc138\\uc694.\\n\"}\nmanager-0.log 빌드·의존성 준비 중\n실행 중: http://127.0.0.1:58421/ (종료: Ctrl+C 또는 dev.py stop)\n실패: [Errno 1] Operation not permitted\n\nFAIL\ntest_duplicate_start_does_not_touch_live_children (board_test.DevTest) ... ok\ntest_failed_build_or_install_does_not_start_servers (board_test.DevTest) ... ok\ntest_failed_frontend_start_cleans_backend (board_test.DevTest) ... ok\ntest_foreign_control_socket_cannot_receive_stop (board_test.DevTest) ... {\"test\": \"board_test.DevTest.test_foreign_control_socket_cannot_receive_stop\", \"action\": \"stop\", \"exitCode\": 1, \"stdout\": \"\", \"stderr\": \"\\uc2e4\\ud328: \\ub2e4\\ub978 \\ud504\\ub85c\\uc81d\\ud2b8\\uc758 \\uad00\\ub9ac\\uc790\\uc785\\ub2c8\\ub2e4. \\uc790\\ub3d9 \\uc870\\uc791\\ud558\\uc9c0 \\uc54a\\uc2b5\\ub2c8\\ub2e4.\\n\"}\nok\ntest_interrupt_cleans_servers (board_test.DevTest) ... ok\ntest_missing_java_is_reported_before_build (board_test.DevTest) ... ok\ntest_shutdown_waits_for_remaining_owned_process_group (board_test.DevTest) ... {\"test\": \"board_test.DevTest.test_shutdown_waits_for_remaining_owned_process_group\", \"action\": \"stop\", \"exitCode\": 1, \"stdout\": \"\", \"stderr\": \"\\uc2e4\\ud328: \\uc885\\ub8cc \\ub300\\uae30: \\uc790\\uc2dd \\ud504\\ub85c\\uc138\\uc2a4\\uac00 \\uc751\\ub2f5\\ud558\\uc9c0 \\uc54a\\uc2b5\\ub2c8\\ub2e4. \\uad00\\ub9ac \\uc7a0\\uae08\\uc744 \\uc720\\uc9c0\\ud558\\uba70 \\uc790\\ub3d9 \\uac15\\uc81c \\uc885\\ub8cc\\ud558\\uc9c0 \\uc54a\\uc2b5\\ub2c8\\ub2e4.\\n\"}\nmanager-0.log 빌드·의존성 준비 중\n종료 대기: 자식 프로세스가 끝날 때까지 관리 잠금을 유지합니다. 자동 강제 종료하지 않습니다.\n\nok\ntest_start_status_restart_stop_preserve_data_and_use_project_directories (board_test.DevTest) ... {\"test\": \"board_test.DevTest.test_start_status_restart_stop_preserve_data_and_use_project_directories\", \"action\": \"stop\", \"exitCode\": 0, \"stdout\": \"\\uc911\\ub2e8 \\uc0c1\\ud0dc\\uc785\\ub2c8\\ub2e4.\\n\", \"stderr\": \"\"}\nok\ntest_start_tolerates_brief_status_lock (board_test.DevTest) ... {\"test\": \"board_test.DevTest.test_start_tolerates_brief_status_lock\", \"action\": \"stop\", \"exitCode\": 0, \"stdout\": \"\\uc911\\ub2e8 \\uc0c1\\ud0dc\\uc785\\ub2c8\\ub2e4.\\n\", \"stderr\": \"\"}\nok\ntest_stop_during_build_cancels_owned_build (board_test.DevTest) ... {\"test\": \"board_test.DevTest.test_stop_during_build_cancels_owned_build\", \"action\": \"stop\", \"exitCode\": 0, \"stdout\": \"\\uc911\\ub2e8 \\uc0c1\\ud0dc\\uc785\\ub2c8\\ub2e4.\\n\", \"stderr\": \"\"}\nok\ntest_stop_waits_for_owner_release_when_control_connection_closes (board_test.DevTest) ... {\"test\": \"board_test.DevTest.test_stop_waits_for_owner_release_when_control_connection_closes\", \"action\": \"stop\", \"exitCode\": 0, \"stdout\": \"\\uc911\\ub2e8 \\uc0c1\\ud0dc\\uc785\\ub2c8\\ub2e4.\\n\", \"stderr\": \"\"}\nok\ntest_tool_versions_and_missing_project_files_are_rejected (board_test.DevTest) ... ok\ntest_unmanaged_port_is_never_stopped_or_adopted (board_test.DevTest) ... {\"test\": \"board_test.DevTest.test_unmanaged_port_is_never_stopped_or_adopted\", \"action\": \"stop\", \"exitCode\": 1, \"stdout\": \"\", \"stderr\": \"\\uc2e4\\ud328: \\ubbf8\\uad00\\ub9ac \\ub610\\ub294 \\uc885\\ub8cc\\ub418\\uc9c0 \\uc54a\\uc740 \\uc11c\\ubc84\\uac00 \\ud3ec\\ud2b8 [58502]\\ub97c \\uc0ac\\uc6a9 \\uc911\\uc785\\ub2c8\\ub2e4. \\uc790\\ub3d9 \\uc885\\ub8cc\\ud558\\uc9c0 \\uc54a\\uc2b5\\ub2c8\\ub2e4.\\n\"}\nok\ntest_unresponsive_child_keeps_ownership_and_reports_incomplete_stop (board_test.DevTest) ... {\"test\": \"board_test.DevTest.test_unresponsive_child_keeps_ownership_and_reports_incomplete_stop\", \"action\": \"stop\", \"exitCode\": 1, \"stdout\": \"\", \"stderr\": \"\\uc2e4\\ud328: \\uc885\\ub8cc \\ub300\\uae30: \\uc790\\uc2dd \\ud504\\ub85c\\uc138\\uc2a4\\uac00 \\uc751\\ub2f5\\ud558\\uc9c0 \\uc54a\\uc2b5\\ub2c8\\ub2e4. \\uad00\\ub9ac \\uc7a0\\uae08\\uc744 \\uc720\\uc9c0\\ud558\\uba70 \\uc790\\ub3d9 \\uac15\\uc81c \\uc885\\ub8cc\\ud558\\uc9c0 \\uc54a\\uc2b5\\ub2c8\\ub2e4.\\n\"}\nmanager-0.log 빌드·의존성 준비 중\n종료 대기: 자식 프로세스가 끝날 때까지 관리 잠금을 유지합니다. 자동 강제 종료하지 않습니다.\n\nok\n\n======================================================================\nFAIL: test_dead_control_socket_is_replaced_without_pid_signals (board_test.DevTest)\n----------------------------------------------------------------------\nTraceback (most recent call last):\n  File \"<USER_HOME>/project/team-task-board/scripts/test_dev.py\", line 245, in test_dead_control_socket_is_replaced_without_pid_signals\n    self.assertEqual(self.call(\"stop\").returncode, 0)\nAssertionError: 1 != 0\n\n----------------------------------------------------------------------\nRan 16 tests in 18.031s\n\nFAILED (failures=1)\n"
+    }
+  },
+  "limitations": [
+    "Existing desktop conversation catalog still advertises 0.80.0; fresh app-server discovery only verified.",
+    "Hook file integrity does not establish runtime hook execution or permission enforcement.",
+    "Global config full backup retained privately; only outside-Team-Harness equality and digest published.",
+    "Sample full QA stopped in lifecycle tests; backend/frontend/persistence stages NOT_RUN.",
+    "Targeted instrumented lifecycle test passed once; unresolved original failure cannot be treated as PASS.",
+    "Public raw excerpts replace home prefix with <USER_HOME>; digests describe original bytes.",
+    "Diagnostic suite failed in another lifecycle test with Operation not permitted; root system call unverified, no permission bypass attempted."
+  ],
+  "diagnosticSuite": {
+    "command": "temporary import wrapper around original scripts/test_dev.py; unittest loadTestsFromTestCase; stop response and manager logs observed without product edits",
+    "exitCode": 1,
+    "tests": 16,
+    "failedTest": "test_dead_control_socket_is_replaced_without_pid_signals",
+    "observation": "stop: manager connection failed; manager log: [Errno 1] Operation not permitted",
+    "interpretation": "second lifecycle failure confirms unresolved instability; permission error observed but responsible system call and original failure cause unverified"
+  },
+  "installedPlugin": {
+    "pluginId": "harness-guard@team-harness",
+    "name": "harness-guard",
+    "marketplaceName": "team-harness",
+    "version": "0.81.0",
+    "installed": true,
+    "enabled": true,
+    "source": {
+      "source": "local",
+      "path": "<USER_HOME>/.codex/.tmp/marketplaces/team-harness/plugins/harness-guard"
+    },
+    "marketplaceSource": {
+      "sourceType": "git",
+      "source": "https://github.com/grinvi04/team-harness.git"
+    },
+    "installPolicy": "AVAILABLE",
+    "authPolicy": "ON_INSTALL"
+  },
+  "contractReads": [
+    {
+      "cachePath": "codex/skills/verification-before-completion/SKILL.md",
+      "sha256": "f719147bfa5524765b4cbb9c5b99958033db217c3ae9ed8b1b6435c07c755c5e",
+      "reference": "common contract read from current released source earlier; native checker source/cache integrity matched; cache wrapper, native-runtime and risk-boundaries displayed during this run"
+    },
+    {
+      "cachePath": "skills/verification-before-completion/SKILL.md",
+      "sha256": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+      "reference": "common contract read from current released source earlier; native checker source/cache integrity matched; cache wrapper, native-runtime and risk-boundaries displayed during this run"
+    },
+    {
+      "cachePath": "codex/native-runtime.md",
+      "sha256": "55a3cdea6ed4decca4c785c86726b192ac5e3e20c7d1f7836e0ffb6fd4be986b",
+      "reference": "common contract read from current released source earlier; native checker source/cache integrity matched; cache wrapper, native-runtime and risk-boundaries displayed during this run"
+    },
+    {
+      "cachePath": "skills/verification-before-completion/risk-boundaries.md",
+      "sha256": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+      "reference": "common contract read from current released source earlier; native checker source/cache integrity matched; cache wrapper, native-runtime and risk-boundaries displayed during this run"
+    }
+  ],
+  "independentReview": {
+    "role": "harness-verifier",
+    "scope": "three documentation files, retained raw outputs/digests, fresh skills response, private config equality, source/cache native check and sample git state",
+    "finding": "no additional finding in inspected scope",
+    "limitations": [
+      "Initial CLI exit codes rely on executor tool result; stdout files alone do not prove exit code.",
+      "Sample root cause and full gate unresolved; hook runtime unverified.",
+      "Harness quality was still running at review time."
+    ]
+  },
+  "harnessLocalQuality": {
+    "workflow": ".github/workflows/ci-gate.yml quality",
+    "steps": 63,
+    "passed": 63,
+    "candidateBase": "7ef9218fae3f0a743fd543ea86869cbb16ae9db1",
+    "scope": "current document working tree; later product checks not covered",
+    "rawRecordSha256": "873e43e27745f48bf52d5a999c0db723be3d4da17cbfa51fe1cadda6ce2537e4",
+    "preparation": "ruff 0.15.15 preinstalled temporary venv; same ruff invocation, pipx installation omitted"
+  },
+  "additionalPreparationFailure": {
+    "command": "bash tests/public-safety-test.sh",
+    "exitCode": 127,
+    "stderr": "No such file or directory",
+    "effect": "post-edit checks/commit chain stopped; original 63-step quality remains passed; corrected actual public-safety-audit-test.sh and open-source-docs-test.sh paths"
+  }
+}
