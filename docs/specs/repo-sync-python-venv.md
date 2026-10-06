@@ -111,7 +111,8 @@ PATH-shadow 및 unsigned self-trust live 시험이 필수 `--approved-*`를 생�
 
 종합 **NO-GO**: 보안 필수 FAIL이 남아 0.81.0 태그·정식 발행·전역 설치를 진행하지 않았다.
 2026-10-07 후속 [#486 보완 명세](binary-trust-oracle.md)에서 실제 거부 시험·변이 검출·로컬 품질 63단계·
-독립 보안 검토를 통과했다. PR 전달 후 수정 후보의 사전검증을 다시 판정한다.
+독립 보안 검토를 통과했다. 전달·최종 CI·병합은 [PR #488](https://github.com/grinvi04/team-harness/pull/488),
+수정 후보의 최종 사전검증은 [이슈 #486](https://github.com/grinvi04/team-harness/issues/486) 원본에서 추적한다.
 소비 repo 수정·배포와 split 전환 보류는 유지한다. 이 사전검증 기록 변경은 문서·증거만이며
 원래 시험 결함을 구현에서 고쳤다는 뜻이 아니다. 기록 전달·병합 상태는 [PR #487](https://github.com/grinvi04/team-harness/pull/487) 원본에서 추적한다.
 
