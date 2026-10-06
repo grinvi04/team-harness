@@ -528,3 +528,20 @@ node_repl 환경 키 2개와 security-guidance hook 신뢰 상태이며, 현재 
 변경하지 않은 제품 의존성의 npm audit는 exit 1, high 6건/critical 0을 보고했다. 이 잔여 보안 작업을
 이번 종료 결함의 gate와 구분해 공개하며 전체 제품 보안/모든 OS/브라우저 검증으로 확대하지 않는다.
 네 소비 프로젝트 수정·배포는 계속 보류한다. 기록 전달·최종 CI·검토·병합은 [PR #492](https://github.com/grinvi04/team-harness/pull/492)의 현재 원본을 따른다.
+
+
+### 샘플 의존성 보안 후속 (2026-10-07)
+
+사용자가 잔여 작업 진행을 승인해 제품 로컬 커밋 `140b6dc727fd7d925e231dbe65c8db470c0ca887`에서
+source-map-js 잠금 한 노드만 1.2.1→1.2.2로 갱신했다. 제품의 실제 설치 트리 1.2.2,
+전체 최초 QA exit 0(18 lifecycle·76 unit·49 Chromium·실제 격리 DB 재시작/등록 재요청),
+기존 시험·이미지·사용자 DB 보존, 독립 보안 검토와 커밋 결박 문서 검사를 확인했다.
+backend UP-TO-DATE는 재사용이다. 원문/한계는 제품 docs/specs/dependency-security.md와
+[dependencySecurityFollowup](qa-install-v0.81.0-evidence.json)에 연결한다.
+
+이전 high 6건은 당시 감사 결과로 유지한다. 현재 전체 감사는 exit 1/high 5, 운영 의존성만
+exit 0/0건이다. [braces 공지](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)는 수정 버전 없음이며
+Stylelint의 개발용 의존 관계가 남는다. 독립 검토자도 격리 Node에서 중첩 brace 오류를 재현했다.
+부분 패치 PASS와 전체 취약점 제거 FAIL/미완료를 구분한다. 후속은 호환 upstream 수정 버전
+발행 후 감사·전체 QA이며, 네 소비 프로젝트 수정·배포는 재개하지 않았다.
+제품 전용 수정이며 Harness 런타임·버전·전역 설정 변경은 없다. 기록 전달·CI·병합의 최신 상태는 [PR #493](https://github.com/grinvi04/team-harness/pull/493)의 원본을 따른다.

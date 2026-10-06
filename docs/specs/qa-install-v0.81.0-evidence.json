@@ -403,5 +403,40 @@
       "rawRecordSha256": "862d62d1e12fdccb4679fdaaca52c16f4d9af1a60439ccf750a01c5cc61e845c",
       "preparation": "ruff 0.15.15 preinstalled temporary venv; identical ruff invocation; pipx installation omitted"
     }
+  },
+  "dependencySecurityFollowup": {
+    "date": "2026-10-07",
+    "authorizedScope": "sample dependency security remediation; consumers/deployment/global settings held",
+    "sampleCommit": "140b6dc727fd7d925e231dbe65c8db470c0ca887",
+    "change": "lock one source-map-js node 1.2.1 to 1.2.2, compatible with all consumers; no lint/test removal",
+    "rawEvidenceLocal": "<USER_HOME>/project/team-task-board/.runtime/dependency-security-20261007/results.json",
+    "rawResultSha256": "8bd8abf1a400b6434ca1d2f745f2dfd7695dca545235e3154b580af32c700307",
+    "canonicalQaExitCode": 0,
+    "checks": {
+      "lifecycle": 18,
+      "unit": 76,
+      "chromium": 49,
+      "persistence": "real isolated restart/keyed replay PASS",
+      "backend": "UP-TO-DATE reuse",
+      "preservation": "existing tests/images/user DB unchanged",
+      "sampleDocumentSync": "committed PASS"
+    },
+    "audit": {
+      "beforeHigh": 6,
+      "afterHigh": 5,
+      "afterExitCode": 1,
+      "productionFindings": 0,
+      "productionExitCode": 0,
+      "remainingCause": "braces GHSA-vfj7-8cjw-p6xm, no patched version; dev Stylelint chain"
+    },
+    "independentReview": {
+      "role": "harness-security-reviewer",
+      "partialPatch": "PASS, no new finding",
+      "overallRemediation": "FAIL, high5 remain",
+      "directProbe": "isolated Node 9001-character nested brace RangeError; fixed lint pattern normal; initial 16001-character pattern rejected by length cap",
+      "limits": "full QA/DB not rerun by reviewer; no app data to glob path found, arbitrary external patterns/config not safe"
+    },
+    "status": "available patch VERIFIED; overall vulnerability removal NOT VERIFIED/FAIL",
+    "nextAction": "compatible upstream patched release then audit/full QA; no automatic deployment"
   }
 }
