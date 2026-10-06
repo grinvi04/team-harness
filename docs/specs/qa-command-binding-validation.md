@@ -544,4 +544,4 @@ exit 0/0건이다. [braces 공지](https://github.com/advisories/GHSA-vfj7-8cjw-
 Stylelint의 개발용 의존 관계가 남는다. 독립 검토자도 격리 Node에서 중첩 brace 오류를 재현했다.
 부분 패치 PASS와 전체 취약점 제거 FAIL/미완료를 구분한다. 후속은 호환 upstream 수정 버전
 발행 후 감사·전체 QA이며, 네 소비 프로젝트 수정·배포는 재개하지 않았다.
-제품 전용 수정이며 Harness 런타임·버전·전역 설정 변경은 없다. 기록 전달의 최신 상태는 후속 PR 원본으로 연결한다.
+제품 전용 수정이며 Harness 런타임·버전·전역 설정 변경은 없다. 기록 전달·CI·병합의 최신 상태는 [PR #493](https://github.com/grinvi04/team-harness/pull/493)의 원본을 따른다.
