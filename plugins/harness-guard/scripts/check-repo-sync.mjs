@@ -114,6 +114,13 @@ function walk(root, onEntry) {
         if (!isWithinRoot(rootIdentity, targetIdentity)) failSymlink(p, 'target escapes scan root')
         onEntry(p, name, false)
       } else if (s.isDirectory()) {
+        // A real Python venv is generated dependency data, not project source.
+        // Do not hide ordinary source directories or follow a symlink marker.
+        if (name === 'venv') {
+          let marker
+          try { marker = lstatSync(join(p, 'pyvenv.cfg')) } catch { /* not a venv */ }
+          if (marker?.isFile()) continue
+        }
         onEntry(p, name, true)
         visit(p)
       } else if (s.isFile()) onEntry(p, name, false)
