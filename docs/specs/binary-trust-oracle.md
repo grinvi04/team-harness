@@ -54,7 +54,22 @@ checksum 73개 모두 exit 0이고 `installable:false`를 유지한다. 이 bund
 exit 0의 명시적 Flyway skip을 확인했다. 실제 앱 DB·마이그레이션은 비적용 SKIP이며 소비 DB 상태
 검증을 뜻하지 않는다. 신규 DB 위험 finding 0이다.
 수정 후보의 최종 사전검증 판정은 [이슈 #486](https://github.com/grinvi04/team-harness/issues/486)에서 추적한다.
-정식 발행·전역 설치·소비 배포는 수행하지 않았다.
+2026-10-07 PR #488은 develop에 병합됐고 #486은 해결로 종료했다. merge `2a1f1b249b582bd0b3ffb005c7cab5a7aa89818a`에서
+최종 후보와 전체 tree 동일, 현재 원본 문서 검사 PASS, 새 bundle checksum 73/73을 확인했다.
+사전검증은 GO이며 해당 issue의 후보별 A/B/C/D·checksum 기록을 정본으로 삼는다.
+
+## 0.81.0 정식 릴리즈 진행
+
+사용자가 후속 릴리즈 진행을 승인했다. 위 clean develop 후보에서 `release/v0.81.0`을 생성했다.
+두 plugin manifest·README·intro의 소스 버전은 이미 0.81.0이고 CHANGELOG 재생성 결과도 byte 동일하다.
+기존 사전검증의 코드·환경 증거는 재사용하며 release PR의 현재 HEAD에 CI 5개와 독립 검토를 연결한다.
+앱 서버·DB·운영 배포가 없는 하네스이므로 staging/production HTTP health는 비적용 SKIP이다.
+하네스의 발행 health는 버전 일치·tag 원본·source/package bundle checksum·main/develop 전달로 확인한다.
+
+완료 조건은 main PR의 CI·독립 검토·사람 승인 gate 통과 → main merge SHA의 v0.81.0 태그 →
+태그 원본 bundle 대조 → develop 역병합 PR 통과·문서 현행화다. 현재 main은 승인 1명과 관리자 강제를
+유지한다. 이 준비 문서는 승인·main 병합·태그·역병합·전역 설치 완료를 뜻하지 않는다.
+소비 프로젝트 수정·배포와 전역 설치는 이번 정식 발행 범위에 포함하지 않는다.
 기존 [0.81.0 NO-GO](../pilots/release-v0.81.0-check.json)는 당시 후보의 기록으로 보존한다.
 
 ## 문서 동기화
