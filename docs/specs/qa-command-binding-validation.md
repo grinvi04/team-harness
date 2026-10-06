@@ -490,3 +490,6 @@ ruff 0.15.15는 임시 venv에 미리 설치해 같은 실제 ruff 명령을 실
 
 Harness 문서 전달을 위한 로컬 quality 63단계는 모두 exit 0이었다. 임시 venv의 ruff 0.15.15를
 사용해 같은 검사 명령을 실행했다. 이 결과는 샘플 전체 gate 실패를 대체하지 않는다.
+
+설치·실패 기록 전달과 최신 원격 CI·검토·병합 상태는
+[PR #491](https://github.com/grinvi04/team-harness/pull/491)의 현재 후보 원본을 따른다.
