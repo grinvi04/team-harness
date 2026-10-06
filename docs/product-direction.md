@@ -134,6 +134,10 @@ main에 병합했고 [v0.80.0 태그](https://github.com/grinvi04/team-harness/t
 2026-10-06 네 소비 repo의 읽기 전용 표준 자산 점검에서 Python `venv` 탐색 중단을 발견했다.
 [공통 검사기 보완 명세](specs/repo-sync-python-venv.md)에 재현·회귀와 실제 드리프트를 연결한다.
 이 작업은 제품별 QA 실행·표준 반영·배포를 재개하지 않으며, 0.81.0은 아직 소스 후보다.
+`7cafd144` 후보의 사전검증은 로컬 품질 63단계·외부 파일럿 live 원본·릴리즈 묶음 검사가 통과했지만,
+보안 음성 시험의 판정자 결함 [#486](https://github.com/grinvi04/team-harness/issues/486)으로 **NO-GO**다.
+[후보별 결과·한계](specs/repo-sync-python-venv.md#0810-릴리즈-사전검증--no-go)를 보존하고,
+해당 시험 보완 뒤 새 후보로 사전검증한다. 정식 태그·전역 설치는 진행하지 않았다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
