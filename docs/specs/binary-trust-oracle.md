@@ -77,7 +77,8 @@ main merge `9838c2ef288b4566f81fae03acb56530ee165c06`의 tree는 release 후보�
 같은 SHA에 [v0.81.0 태그](https://github.com/grinvi04/team-harness/tree/v0.81.0)를 발행했고 remote tag target을 직접 대조했다.
 태그 뒤 CHANGELOG는 byte 동일, 해당 태그 원본 bundle checksum 73/73 PASS, split installable:false 유지다.
 [발행 실행 기록](../pilots/release-v0.81.0-publication.json)에 후보·CI·승인 예외·보호 원문·태그·checksum을 보존한다.
-현재 sync/backmerge-v0.81.0에서 develop 역병합과 결과 문서 전달을 준비 중이다. 역병합·전역 설치 완료를 뜻하지 않는다.
+develop 역병합과 결과 문서 전달은 [PR #490](https://github.com/grinvi04/team-harness/pull/490)에서 추적한다.
+해당 PR의 현재 HEAD·CI·검토·병합 상태를 정본으로 삼으며, 이 태그 기록만으로 전역 설치 완료를 주장하지 않는다.
 소비 프로젝트 수정·배포와 전역 설치는 이번 정식 발행 범위에 포함하지 않는다.
 기존 [0.81.0 NO-GO](../pilots/release-v0.81.0-check.json)는 당시 후보의 기록으로 보존한다.
 

@@ -549,7 +549,8 @@
   },
   "backMerge": {
     "stateAtRecord": "preparing sync/backmerge-v0.81.0 from tagged main; not merged",
-    "stateSource": "back-merge PR linked from docs/specs/binary-trust-oracle.md"
+    "stateSource": "PR490 current head, CI, review and merge state; stateAtRecord above is a historical pre-creation snapshot",
+    "pullRequest": "https://github.com/grinvi04/team-harness/pull/490"
   },
   "scopeLimits": [
     "No global plugin installation",
