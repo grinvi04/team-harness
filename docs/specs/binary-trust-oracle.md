@@ -54,7 +54,32 @@ checksum 73개 모두 exit 0이고 `installable:false`를 유지한다. 이 bund
 exit 0의 명시적 Flyway skip을 확인했다. 실제 앱 DB·마이그레이션은 비적용 SKIP이며 소비 DB 상태
 검증을 뜻하지 않는다. 신규 DB 위험 finding 0이다.
 수정 후보의 최종 사전검증 판정은 [이슈 #486](https://github.com/grinvi04/team-harness/issues/486)에서 추적한다.
-정식 발행·전역 설치·소비 배포는 수행하지 않았다.
+2026-10-07 PR #488은 develop에 병합됐고 #486은 해결로 종료했다. merge `2a1f1b249b582bd0b3ffb005c7cab5a7aa89818a`에서
+최종 후보와 전체 tree 동일, 현재 원본 문서 검사 PASS, 새 bundle checksum 73/73을 확인했다.
+사전검증은 GO이며 해당 issue의 후보별 A/B/C/D·checksum 기록을 정본으로 삼는다.
+
+## 0.81.0 정식 릴리즈 진행
+
+사용자가 후속 릴리즈 진행을 승인했다. 위 clean develop 후보에서 `release/v0.81.0`을 생성했다.
+두 plugin manifest·README·intro의 소스 버전은 이미 0.81.0이고 CHANGELOG 재생성 결과도 byte 동일하다.
+기존 사전검증의 코드·환경 증거는 재사용했다. release 후보 `641a996dcb787ebfd03d7b4ca3ee2b4190aa366d`의
+CI 5개 SUCCESS·독립 검토 finding 0·미해결 스레드 0·외부 commit statuses 0(비연동)을 확인했다.
+앱 서버·DB·운영 배포가 없는 하네스이므로 staging/production HTTP health는 비적용 SKIP이다.
+하네스의 발행 health는 버전 일치·tag 원본·source/package bundle checksum·main/develop 전달로 확인한다.
+
+완료 조건은 main PR의 CI·독립 검토·사람 승인 gate 통과 → main merge SHA의 v0.81.0 태그 →
+태그 원본 bundle 대조 → develop 역병합 PR 통과·문서 현행화다. 현재 main은 승인 1명과 관리자 강제를
+유지한다. [정식 릴리즈 PR #489](https://github.com/grinvi04/team-harness/pull/489)의 현재 HEAD·독립 검토·CI·
+승인·병합 상태를 정본으로 삼는다. 작성자만 있는 repo에서 자기승인할 수 없어 사용자가 이번 PR에
+한해 승인요건 임시 해제·병합 직후 원상복구를 명시 승인했다. 원자 solo-merge 래퍼 exit 0, main
+보호 전체 JSON의 변경 전/후 equality를 확인했다(필수 승인 요건 1명·관리자 강제·CI·나머지 보호 유지).
+main merge `9838c2ef288b4566f81fae03acb56530ee165c06`의 tree는 release 후보와 동일하다.
+같은 SHA에 [v0.81.0 태그](https://github.com/grinvi04/team-harness/tree/v0.81.0)를 발행했고 remote tag target을 직접 대조했다.
+태그 뒤 CHANGELOG는 byte 동일, 해당 태그 원본 bundle checksum 73/73 PASS, split installable:false 유지다.
+[발행 실행 기록](../pilots/release-v0.81.0-publication.json)에 후보·CI·승인 예외·보호 원문·태그·checksum을 보존한다.
+develop 역병합과 결과 문서 전달은 [PR #490](https://github.com/grinvi04/team-harness/pull/490)에서 추적한다.
+해당 PR의 현재 HEAD·CI·검토·병합 상태를 정본으로 삼으며, 이 태그 기록만으로 전역 설치 완료를 주장하지 않는다.
+소비 프로젝트 수정·배포와 전역 설치는 이번 정식 발행 범위에 포함하지 않는다.
 기존 [0.81.0 NO-GO](../pilots/release-v0.81.0-check.json)는 당시 후보의 기록으로 보존한다.
 
 ## 문서 동기화
@@ -64,6 +89,7 @@ exit 0의 명시적 Flyway skip을 확인했다. 실제 앱 DB·마이그레이�
  {"path":"docs/specs/binary-trust-oracle.md","reason":"#486 범위·판정자·실행 증거·전달 상태"},
  {"path":"docs/specs/repo-sync-python-venv.md","reason":"NO-GO 후속 수정과 재검증 상태 연결"},
  {"path":"docs/pilots/binary-trust-oracle-2026-10-07.json","reason":"최초 실패·수정 시험·변이 원문과 한계"},
+ {"path":"docs/pilots/release-v0.81.0-publication.json","reason":"main 발행·보호 복구·태그 원본·역병합 상태"},
  {"path":"docs/product-direction.md","reason":"현재 릴리즈 차단·다음 행동 연결"}
 ],"items":[]}
 ```
