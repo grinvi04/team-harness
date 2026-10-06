@@ -114,7 +114,7 @@ PATH-shadow 및 unsigned self-trust live 시험이 필수 `--approved-*`를 생�
 독립 보안 검토를 통과했다. 전달·최종 CI·병합은 [PR #488](https://github.com/grinvi04/team-harness/pull/488),
 수정 후보의 최종 사전검증은 [이슈 #486](https://github.com/grinvi04/team-harness/issues/486) 원본에서 추적한다.
 2026-10-07 사전검증 GO 후 [정식 릴리즈 PR #489](https://github.com/grinvi04/team-harness/pull/489)을 준비했다.
-main PR #489는 CI 5개와 독립 검토를 통과해 병합했고 승인 1명·전체 보호 복구를 확인했다.
+main PR #489는 CI 5개와 독립 검토를 통과해 병합했고 필수 승인 요건 1명·전체 보호 복구를 확인했다.
 v0.81.0 태그·해당 원본 bundle checksum 73/73을 확인했다. develop 역병합의 최종 CI·검토·병합은
 [PR #490](https://github.com/grinvi04/team-harness/pull/490) 원본을 따른다.
 현재 릴리즈 진행은 [후속 명세](binary-trust-oracle.md#0810-정식-릴리즈-진행)와 PR 원본을 따른다.

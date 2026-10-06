@@ -557,5 +557,14 @@
     "No consumer project edits or deployment",
     "Split package installable:false remains",
     "No live model, live egress, positive native signature or consumer QA added by release"
-  ]
+  ],
+  "backMergeIndependentReview": {
+    "candidate": "ea2bb64ac2d12063dac5ae44f15ae1d2e7a1d879",
+    "role": "harness-verifier",
+    "scope": "doc4 delta, actual tag/protection/bundle/native publication health source",
+    "initialFinding": "LOW: restored required approval count=1 wording could be read as an actual human approval; actual PR489 reviews=[]",
+    "remediation": "Explicitly distinguish required approval policy count=1 restoration from actual human approval in three documents",
+    "verified": "Protection full equality, local/remote tag/main SHA, bundle checksum73, version and changelog identity",
+    "limits": "Backmerge CI/merge still pending; no new security execution"
+  }
 }

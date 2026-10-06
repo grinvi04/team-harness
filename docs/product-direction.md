@@ -142,7 +142,7 @@ main에 병합했고 [v0.80.0 태그](https://github.com/grinvi04/team-harness/t
 최종 사전검증 판정은 [#486](https://github.com/grinvi04/team-harness/issues/486) 원본을 따른다. 과거 NO-GO 기록은 보존한다.
 2026-10-07 사전검증 GO 후 [정식 릴리즈 준비](specs/binary-trust-oracle.md#0810-정식-릴리즈-진행)를 시작했다.
 main 승인·CI·병합은 [릴리즈 PR #489](https://github.com/grinvi04/team-harness/pull/489)에서 추적한다.
-PR #489 main 병합과 승인 1명·전체 보호 원상복구를 확인했고 동일 main SHA에 v0.81.0 태그를 발행했다.
+PR #489 main 병합과 필수 승인 요건 1명·전체 보호 원상복구를 확인했고 동일 main SHA에 v0.81.0 태그를 발행했다.
 [태그 원본 발행 기록](pilots/release-v0.81.0-publication.json)의 checksum 73/73이 통과했다.
 develop 역병합·최종 검토·CI·병합은 [PR #490](https://github.com/grinvi04/team-harness/pull/490) 원본으로 추적한다.
 전역 설치·소비 프로젝트 수정·배포는 보류한다.

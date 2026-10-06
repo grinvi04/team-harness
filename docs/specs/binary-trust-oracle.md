@@ -72,7 +72,7 @@ CI 5개 SUCCESS·독립 검토 finding 0·미해결 스레드 0·외부 commit s
 유지한다. [정식 릴리즈 PR #489](https://github.com/grinvi04/team-harness/pull/489)의 현재 HEAD·독립 검토·CI·
 승인·병합 상태를 정본으로 삼는다. 작성자만 있는 repo에서 자기승인할 수 없어 사용자가 이번 PR에
 한해 승인요건 임시 해제·병합 직후 원상복구를 명시 승인했다. 원자 solo-merge 래퍼 exit 0, main
-보호 전체 JSON의 변경 전/후 equality를 확인했다(승인 1명·관리자 강제·CI·나머지 보호 유지).
+보호 전체 JSON의 변경 전/후 equality를 확인했다(필수 승인 요건 1명·관리자 강제·CI·나머지 보호 유지).
 main merge `9838c2ef288b4566f81fae03acb56530ee165c06`의 tree는 release 후보와 동일하다.
 같은 SHA에 [v0.81.0 태그](https://github.com/grinvi04/team-harness/tree/v0.81.0)를 발행했고 remote tag target을 직접 대조했다.
 태그 뒤 CHANGELOG는 byte 동일, 해당 태그 원본 bundle checksum 73/73 PASS, split installable:false 유지다.
