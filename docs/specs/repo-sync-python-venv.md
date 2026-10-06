@@ -83,12 +83,44 @@ ruff 0.15.15는 임시 venv PATH로 제공해 CI의 pipx 설치만 대체했으�
 기본 검사는 필수 check 존재·보호 속성을 확인하며 exact context 집합의 최신 표준 일치까지 증명하지 않는다.
 제품 시험·소비 파일 수정·배포는 포함되지 않는다.
 
+## 0.81.0 릴리즈 사전검증 — NO-GO
+
+2026-10-06, develop 후보 `7cafd144a7e1c007930650d499bcfdf45bb1bde1`을 clean detached checkout에서
+검증했다. 다른 worktree의 develop을 이동하지 않았으며 이 판정은 아래 후보와 범위에 한정한다.
+
+| 항목 | 판정 | 현재 근거·한계 |
+|---|---|---|
+| A 품질 | PASS | 현재 CI quality의 63개 run 스텝을 macOS에서 전량 실행, 모두 exit 0; 앱 배포 env·SVG generator 신선도는 비적용 |
+| B 보안 | **FAIL** | Medium 1건: 신뢰·서명 음성 시험이 실제 검증 전에 승인 인자 오류로 종료해도 통과 |
+| C DB·마이그레이션 | SKIP / 표준 PASS | 실제 DB·운영 마이그레이션·엔티티 없음; migration checker exit 0은 명시적 Flyway skip |
+| D 외부 파일럿 원본 | PASS | offline 없이 GitHub exact commit 원본의 7개 artifact 대조, exit 0 |
+| 릴리즈 묶음 | PASS | 위 후보의 0.81.0 source/package bundle 생성·SHA256SUMS 전 항목 확인; split installable:false 유지 |
+
+보안 finding은 [이슈 #486](https://github.com/grinvi04/team-harness/issues/486)의 정본으로 추적한다.
+PATH-shadow 및 unsigned self-trust live 시험이 필수 `--approved-*`를 생략해 `parseArgs()`의 exit 2로 끝난다.
+안내 오류에 두 시험의 digest/signature 검색 문구가 모두 있어 whole pilot exit 0을 해당 경계 검증으로
+사용할 수 없다는 반례를 독립 검토자가 재현했다. v0.80.0부터 존재한 시험 결함이며 실제 서명 우회 취약점을
+증명한 것은 아니다. venv 탐색 변경의 새 보안 결함은 해당 검토에서 발견하지 못했다.
+
+명령·종료 코드·품질 원문·workflow·runner·bundle 지문·비적용 항목은
+[사전검증 기록](../pilots/release-v0.81.0-check.json)에 보존한다. 개인 경로만 정규화했고 원본과 정규화본의
+지문을 구분한다. 품질 원문은 현재 실행 결과이며, snapshot runner의 `<USER_HOME>`은 재실행 시 호스트
+경로를 지정해야 한다. 로컬 임시 event는 기존 명세의 문서 선언을 연결했다. ruff bootstrap의 pipx 설치만
+준비된 동일 버전 임시 venv로 대체했다. 운영 env·live DB·실제 서명 바이너리 양성·live egress 검증이나
+현재 merge 후보의 Ubuntu 전량 실행을 수행한 것으로 확대하지 않는다.
+
+종합 **NO-GO**: 보안 필수 FAIL이 남아 0.81.0 태그·정식 발행·전역 설치를 진행하지 않았다.
+다음 작업은 이슈 #486의 판정자·실제 거부 경계 시험 보완이며, 수정 후보로 사전검증을 다시 판정한다.
+소비 repo 수정·배포와 split 전환 보류는 유지한다. 이 사전검증 기록 변경은 문서·증거만이며
+원래 시험 결함을 구현에서 고쳤다는 뜻이 아니다. 기록 전달·병합 상태는 연결된 PR 원본에서 추적한다.
+
 ## 문서 동기화
 
 ```harness-doc-sync
 {"version":1,"documents":[
  {"path":"docs/specs/repo-sync-python-venv.md","reason":"필수 범위·재현·결과·미해결 소비 drift"},
  {"path":"docs/pilots/consumer-repo-sync-2026-10-06.json","reason":"읽기 전용 원문과 후보 digest"},
+ {"path":"docs/pilots/release-v0.81.0-check.json","reason":"릴리즈 사전검증 후보·원문·NO-GO 근거"},
  {"path":"docs/harness-maintenance.md","reason":"생성 venv 제외 조건과 기존 거부 경계"},
  {"path":"docs/product-direction.md","reason":"QA 후속 점검과 소비 수정 보류 상태"},
  {"path":"README.md","reason":"소스 후보 버전"},
