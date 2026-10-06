@@ -68,7 +68,8 @@ exit 0의 명시적 Flyway skip을 확인했다. 실제 앱 DB·마이그레이�
 
 완료 조건은 main PR의 CI·독립 검토·사람 승인 gate 통과 → main merge SHA의 v0.81.0 태그 →
 태그 원본 bundle 대조 → develop 역병합 PR 통과·문서 현행화다. 현재 main은 승인 1명과 관리자 강제를
-유지한다. 이 준비 문서는 승인·main 병합·태그·역병합·전역 설치 완료를 뜻하지 않는다.
+유지한다. [정식 릴리즈 PR #489](https://github.com/grinvi04/team-harness/pull/489)의 현재 HEAD·독립 검토·CI·
+승인·병합 상태를 정본으로 삼는다. 이 준비 문서는 main 승인·병합·태그·역병합·전역 설치 완료를 뜻하지 않는다.
 소비 프로젝트 수정·배포와 전역 설치는 이번 정식 발행 범위에 포함하지 않는다.
 기존 [0.81.0 NO-GO](../pilots/release-v0.81.0-check.json)는 당시 후보의 기록으로 보존한다.
 

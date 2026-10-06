@@ -141,7 +141,8 @@ main에 병합했고 [v0.80.0 태그](https://github.com/grinvi04/team-harness/t
 검출·독립 보안 검토를 통과했다. 전달·최종 CI·병합은 [PR #488](https://github.com/grinvi04/team-harness/pull/488),
 최종 사전검증 판정은 [#486](https://github.com/grinvi04/team-harness/issues/486) 원본을 따른다. 과거 NO-GO 기록은 보존한다.
 2026-10-07 사전검증 GO 후 [정식 릴리즈 준비](specs/binary-trust-oracle.md#0810-정식-릴리즈-진행)를 시작했다.
-main 승인·CI·태그·develop 역병합의 증거를 확인하기 전에는 발행 완료로 표시하지 않는다.
+main 승인·CI·병합은 [릴리즈 PR #489](https://github.com/grinvi04/team-harness/pull/489)에서 추적한다.
+태그·develop 역병합의 증거를 확인하기 전에는 발행 완료로 표시하지 않는다.
 전역 설치·소비 프로젝트 수정·배포는 보류한다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
