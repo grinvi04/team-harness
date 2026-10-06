@@ -990,5 +990,12 @@
       "webhook existing reservation release test uses Redis/DB/queue doubles; delete call is not actual release/retry proof"
     ],
     "limits": "no consumer command/CI/server/DB execution or product acceptance"
+  },
+  "delivery": {
+    "recordPr": "https://github.com/grinvi04/team-harness/pull/495",
+    "consumerAdoptionBacklog": "https://github.com/grinvi04/team-harness/issues/496",
+    "status": "read-only assessment/plan; consumer changes remain held",
+    "remoteDevelopRecheckedAtDelivery": "all four matched collected pinned SHA",
+    "finalCIAndMerge": "follow PR source; no future success asserted"
   }
 }

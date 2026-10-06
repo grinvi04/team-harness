@@ -180,4 +180,5 @@ Storage 권한·실인증 mutation 경계를 차례로 해결한다. 긴급 장�
 제한 독립 보안 검토는 원문 32개·소스 지문 35개와 위험/QA 관련 추가 12파일의 고정 Git blob을
 대조해 계획 범위의 추가 차단 finding 없음으로 판정했다. 소비 시험을 재실행하거나 제품 인수를
 승인한 결과는 아니다. ERP 첫 요청 전 자격증명 전송 차단과 webhook 대역/실저장 관찰 구분을
-검토 결과에 따라 보강했다. 최종 전달·CI·병합은 연결할 기록 PR 원본을 따른다.
+검토 결과에 따라 보강했다. 최종 전달·CI·병합은 [PR #495](https://github.com/grinvi04/team-harness/pull/495) 원본을 따른다.
+소비 적용의 후속 상태·승인 범위는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)에서 추적한다.
