@@ -527,4 +527,4 @@ node_repl 환경 키 2개와 security-guidance hook 신뢰 상태이며, 현재 
 **현재 판정:** 승인된 설치·새 세션 로딩·샘플 종료 결함 수정·전체 로컬 QA 범위는 VERIFIED다.
 변경하지 않은 제품 의존성의 npm audit는 exit 1, high 6건/critical 0을 보고했다. 이 잔여 보안 작업을
 이번 종료 결함의 gate와 구분해 공개하며 전체 제품 보안/모든 OS/브라우저 검증으로 확대하지 않는다.
-네 소비 프로젝트 수정·배포는 계속 보류한다. 기록 전달·최종 CI·검토·병합은 후속 PR 원본을 따른다.
+네 소비 프로젝트 수정·배포는 계속 보류한다. 기록 전달·최종 CI·검토·병합은 [PR #492](https://github.com/grinvi04/team-harness/pull/492)의 현재 원본을 따른다.
