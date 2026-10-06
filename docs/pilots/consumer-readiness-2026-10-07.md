@@ -173,6 +173,26 @@ Storage 권한·실인증 mutation 경계를 차례로 해결한다. 긴급 장�
 
 ## 문서 선언
 
+### 후속: DriveTree 로컬 계약·QA 준비
+
+위 표는 읽기 전용 조사 당시의 후보/결과로 보존한다. 이후 사용자 진행 승인으로 DriveTree의
+QA·문서 계약 연결과 격리 시험을 진행했다. 제품 로컬 커밋 `b5fd437`(기준 `bd634e6`)에
+AGENTS·기존 quality-remediation 스펙·실행 원문/지문 JSON과 새 trusted workflow,
+실제 HTTP parser 회귀 4개·검색 출처 응답/DB 긍정 단언을 보존했다. runtime/schema/lock은 변경하지 않았다.
+
+양쪽 format/lint/build와 backend 단위 70·실DB 통합 17, frontend 단위 8·Chromium 20이 PASS다.
+DB는 새 pgvector/pg16 container의 loopback 전용 합성 fixture이며 운영 DB/키를 사용하지 않았다.
+검색이 빈 배열인 반례를 새 단언이 검출하고 원본 복구 후 통합 검사를 다시 통과했다.
+독립 검토의 검색 긍정 단언 공백은 보완 후 재검토에서 해소됐고 추가 P1/P2 finding은 없었다.
+로컬 정본 자산 점검은 18/18 PASS이나 이는 신뢰 target 이벤트의 원격 실행 증거가 아니다.
+
+보안 감사는 전체 backend 28·frontend 20이며 운영 의존성에도 각각 critical 1건이 남는다
+(`proxy-addr`, `next`; 실제 악용 가능성은 미확인). 전체 보안/배포 준비는 FAIL이다.
+원격 CI/PR·병합·main/default 배치·required context 변경·배포는 아직 실행하지 않았다.
+develop 병합은 staging 자동 배포에 연결되므로 로컬 준비 완료를 배포 승인으로 확대하지 않는다.
+후속 상태와 제품 기록·현재 후보 인계는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)을 따른다.
+다른 소비 프로젝트는 이번 후속에서 변경하지 않았다.
+
 ```harness-doc-sync
 {"version":1,"documents":[{"path":"docs/pilots/consumer-readiness-2026-10-07.md","reason":"원본 신선도·QA 준비·최소 적용 계획과 종료 경계"},{"path":"docs/pilots/consumer-readiness-2026-10-07.json","reason":"명령·후보·원문·지문·서버 정책·미실행 구분"},{"path":"docs/product-direction.md","reason":"현재 완료 범위·소비 적용 보류와 다음 행동"}],"items":[]}
 ```

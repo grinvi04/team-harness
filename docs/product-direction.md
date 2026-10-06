@@ -155,7 +155,7 @@ upstream PR #78의 깊이 보완을 설치 지문 검사와 연결했고, 제품
 778개가 통과했다. 공식 수정 버전은 없어 전체 감사 high 5건/전체 취약점 제거 FAIL은 유지한다.
 [후속 근거](specs/qa-install-v0.81.0-evidence.json)의 dependencySecurityFollowup·bracesMitigationFollowup과
 제품 docs/specs/dependency-security.md가 현재 상태·정식 수정판 확인 후 보완 제거 조건을 소유한다.
-이는 샘플 전용 보완이며 Harness 공통 패치 기능을 추가하지 않는다. 소비 프로젝트 수정·배포는 계속 보류한다.
+이는 샘플 전용 보완이며 Harness 공통 패치 기능을 추가하지 않는다. 소비 프로젝트의 최신 승인·적용 상태는 아래 후속 기록과 이슈 #496에서 구분한다.
 
 2026-10-07 사용자 승인으로 [네 소비 프로젝트 적용 준비](pilots/consumer-readiness-2026-10-07.md)를
 읽기 전용으로 대조했다. 로컬과 원격 develop 후보를 분리했고, 최신 정본 차이는 ERP 1·siku 3·
@@ -165,6 +165,18 @@ webhook-service 1·DriveTree 1이다. 네 프로젝트의 QA 증거/문서 완�
 DriveTree → webhook-service → siku → erp이며, 첫 소비 변경·격리 실행은 승인 범위를 정한 뒤 진행한다.
 후속 범위는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496), 기록 전달·CI·병합은
 [PR #495](https://github.com/grinvi04/team-harness/pull/495) 원본을 따른다.
+
+이후 사용자 진행 승인으로 DriveTree의 QA/문서 계약과 검사 자산 준비·격리 로컬 QA를 수행했다.
+로컬 제품 후보 `b5fd437`에서 format/lint/build, backend 단위 70·실DB e2e 17,
+frontend 단위 8·Chromium 20(재시도 0)이 PASS다. 실제 HTTP 201/400/413/500 회귀와 검색 출처의
+응답/DB 긍정 단언을 보완했고, 빈 검색 반례 검출·복구 후 통합 검사·독립 재검토를 확인했다.
+로컬 repo-sync는 새 정본 workflow를 탐지해 18/18 PASS이며 기존 commitlint는 유지한다.
+**원격 CI·병합·신뢰 target 검사 활성화·배포는 미실행**이다. npm audit은 backend 운영 의존성
+19(critical 1/high 9), frontend 운영 의존성 9(critical 1/high 5)로 exit 1이므로 전체 보안/배포 준비 FAIL을 유지한다.
+DriveTree의 `docs/specs/quality-remediation.md`와 실행 근거 JSON이 제품 상태를 소유하며,
+자세한 인계와 다음 단계는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)에서 추적한다.
+다른 세 소비 프로젝트 수정은 시작하지 않았다. develop 병합의 staging 자동 배포와 main/default
+전환·보호 변경은 별도 영향 승인 범위다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
