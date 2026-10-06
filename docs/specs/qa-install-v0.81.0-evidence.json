@@ -299,5 +299,109 @@
     "exitCode": 127,
     "stderr": "No such file or directory",
     "effect": "post-edit checks/commit chain stopped; original 63-step quality remains passed; corrected actual public-safety-audit-test.sh and open-source-docs-test.sh paths"
+  },
+  "overallMeaning": "Initial installation/sample inspection snapshot before lifecycle repair; preserved unchanged. Current resolution is in completionFollowup.",
+  "completionFollowup": {
+    "status": "VERIFIED: bounded lifecycle repair and canonical sample QA",
+    "authorizedScope": "User approved sample lifecycle defect repair and full QA on 2026-10-07; four consumers/global models/deployment remain deferred",
+    "sampleBaseCommit": "232d18e69ffb304204bd1cd7f25a007a1ea0c567",
+    "sourceChange": "three-line PermissionError handling in group_active; denied signal=0 probe keeps ownership until group absence confirmed",
+    "rawEvidenceLocal": "<USER_HOME>/project/team-task-board/.runtime/dev-stop-permission-20261007/results.json",
+    "checks": {
+      "newRegressionRed": {
+        "exitCode": 1,
+        "failedTests": 2
+      },
+      "sameLockedRegressionGreen": {
+        "exitCode": 0,
+        "tests": 2
+      },
+      "checkLocalCommandRegression": {
+        "exitCode": 0,
+        "tests": 3
+      },
+      "canonicalProductQa": {
+        "command": "bash scripts/check-local.sh",
+        "exitCode": 0,
+        "lifecycle": 18,
+        "unit": 76,
+        "chromium": 49,
+        "actualIsolatedPersistence": "PASS",
+        "backend": "check bootJar PASS, UP-TO-DATE; unchanged Java input reuse"
+      },
+      "productDataImages": "all four before/after hash entries equal",
+      "testContractSha256": "b6a03109b85ac08db845e9fb3ab619ec81cc8f97fc613a1d6a9835ce00001b23",
+      "sampleDocumentSync": {
+        "exitCode": 0,
+        "committed": true
+      },
+      "sampleGit": "clean after local commit"
+    },
+    "rawHashes": {
+      "permission-origin.log": "783032b8ec6bcc4aa70b6a035c2edd9f7d3f9a4a5fcc2cc42c0e1e9c8c9bd468",
+      "probe-red.log": "e65f68723bf8a1f4650bfa74e2e43be1ba91eef42afc76a546e914ba85576767",
+      "probe-green.log": "7b093c3a9e65cd4a3aa04e1fdc869619940a0324bd8f6981942b307b24ba5ec4",
+      "full-qa.log": "3c5dd71614a81b2f261924a0460071d9ba54801c36ae71cd964d56184f338835",
+      "check-command-regression.log": "4419a809b4f0ca0b6f62ca2a35560972995c13c2ec625f5a1e63b48fabce0f1e",
+      "product-state-before.json": "7b328b5e75c50082db66c62c5131213fd0bc6c9f95469e89fc8376f38189e936",
+      "product-state-after.json": "7b328b5e75c50082db66c62c5131213fd0bc6c9f95469e89fc8376f38189e936",
+      "npm-audit.json": "0542e2eb0addeed0da10eb0bcd29dd4e27a32a564d1f7b510e56c1532c8f111a"
+    },
+    "remainingLimits": [
+      "npm audit exit1: unchanged dependency high6 critical0; separate remediation, not required lifecycle gate",
+      "macOS execution verified; actual Linux execution not performed",
+      "Running preexisting app/manager code reload not performed; local source and isolated test candidate verified",
+      "Original snapshot NOT VERIFIED and first failures remain historical evidence; full product security/no-bugs claim not made"
+    ],
+    "sampleCommit": "0c905a07c6a91a1f2e69c58fc186a07525c7cb83",
+    "sampleSourceFiles": {
+      "scripts/dev.py": "d51e253cf420f91031bce681d827c2a11e234ebd2aa5b27266f7d993c1d6bb75",
+      "scripts/test_dev.py": "b6a03109b85ac08db845e9fb3ab619ec81cc8f97fc613a1d6a9835ce00001b23",
+      "scripts/check-local.sh": "fa9dcf98f77d7df386bdefc0ae7ec02960e32a6fcf48b7dd7739237dce0f3fc3"
+    },
+    "independentReview": {
+      "role": "harness-security-reviewer",
+      "finding": "none in inspected scope",
+      "result": "VERIFIED",
+      "directTests": "two new locked regressions, exit0 2 PASS",
+      "limitations": "reviewer did not rerun full QA/database; macOS internal EPERM cause/other OS/TERM denial not established"
+    },
+    "finalInstallation": {
+      "nativeCheckExitCode": 0,
+      "nativeCheckStdout": "native harness-guard 0.81.0: manifest, hooks, 17 skills\n",
+      "freshSkillsCount": 17,
+      "loadingErrors": 0,
+      "rawSkillsSha256": "b713ac4eeee45078a160984c50e93efcaa60673a83f856cbe11260ac7367ace7",
+      "currentConversationCatalogue": "this turn supplied harness skill root points to cache 0.81.0; original 0.80.0 snapshot limit remains historical"
+    },
+    "globalSettingsObservation": {
+      "comparison": "Earlier installation backup does not equal current configuration outside Team Harness sections; historical comparison is not a current preservation proof.",
+      "observedConfigSha256": "51925c94fa23a6db0bbba36b38eb1968d03655dff0a91ff24ce16d0087d5f5d3",
+      "configMtimeUtc": "2026-10-06T21:10:55.214409+00:00",
+      "firstDiagnosticMtimeUtc": "2026-10-06T21:11:45.697064+00:00",
+      "configChangePredatesFirstDiagnostic": true,
+      "changedOutsideHarnessKeys": [
+        "mcp_servers.node_repl.env.BROWSER_USE_CODEX_APP_VERSION",
+        "mcp_servers.node_repl.env.NODE_REPL_TRUSTED_SERVICES",
+        "security-guidance hook trusted_hash state sections"
+      ],
+      "actor": "unverified",
+      "action": "No restoration or global setting write; final digest comparison will cover only this observation onward."
+    },
+    "independentDocumentationReview": {
+      "role": "harness-verifier",
+      "finding": "none in three-document followup and later global-settings observation",
+      "scope": "sample committed candidate, retained raw/source digests, QA counts and limits, fresh installation response, configuration key names/digest/timestamps",
+      "limitations": "reviewer did not rerun whole product QA or other reviewer tests; configuration actor unverified; Harness quality pending at review time"
+    },
+    "harnessLocalQuality": {
+      "workflow": ".github/workflows/ci-gate.yml quality",
+      "steps": 63,
+      "passed": 63,
+      "candidateBase": "147f6db4d13b75098876ce6364891d0e1a48f940",
+      "scope": "current three-document followup; public safety and open-source docs rerun after observation addition",
+      "rawRecordSha256": "862d62d1e12fdccb4679fdaaca52c16f4d9af1a60439ccf750a01c5cc61e845c",
+      "preparation": "ruff 0.15.15 preinstalled temporary venv; identical ruff invocation; pipx installation omitted"
+    }
   }
 }
