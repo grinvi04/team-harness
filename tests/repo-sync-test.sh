@@ -42,6 +42,44 @@ check() { # desc, expected_exit, repo_path
 # 자산 완비(java+flyway) → sync 통과
 check "good(자산 완비) → 통과"              0 "$GOOD"
 
+# Python 생성 환경은 소스 스택이나 외부 interpreter 경계 판정에 섞지 않는다.
+VENV_REPO="$TMP/python-venv"
+cp -R "$GOOD/." "$VENV_REPO"
+mkdir -p "$VENV_REPO/venv/bin"
+printf 'home = isolated-fixture\n' > "$VENV_REPO/venv/pyvenv.cfg"
+printf '%s\n' '{"dependencies":{"next":"latest"}}' > "$VENV_REPO/venv/package.json"
+printf 'fixture interpreter\n' > "$TMP/python-interpreter"
+ln -s "$TMP/python-interpreter" "$VENV_REPO/venv/bin/python"
+if OUT=$(node "$GATE" --repo "$VENV_REPO" --harness "$ROOT" 2>&1) &&
+   echo "$OUT" | grep -qx "감지된 스택: java, flyway"; then
+  echo "PASS: 생성 venv 외부 interpreter·의존 스택 제외"; PASS=$((PASS+1))
+else
+  echo "FAIL: 생성 venv 탐색으로 검사 중단·의존 스택 혼입"; FAIL=$((FAIL+1))
+fi
+
+# 이름만 venv인 실제 소스 디렉터리는 계속 검사한다.
+SOURCE_VENV="$TMP/source-venv"
+cp -R "$GOOD/." "$SOURCE_VENV"
+mkdir -p "$SOURCE_VENV/venv"
+printf '%s\n' '{"dependencies":{"next":"latest"}}' > "$SOURCE_VENV/venv/package.json"
+if OUT=$(node "$GATE" --repo "$SOURCE_VENV" --harness "$ROOT" 2>&1) &&
+   echo "$OUT" | grep -qx "감지된 스택: java, flyway, typescript, nextjs"; then
+  echo "PASS: 일반 venv 소스 스택 유지"; PASS=$((PASS+1))
+else
+  echo "FAIL: 일반 venv 소스 스택 누락"; FAIL=$((FAIL+1))
+fi
+
+SYMLINK_VENV="$TMP/symlink-venv"
+cp -R "$GOOD/." "$SYMLINK_VENV"
+ln -s "$VENV_REPO/venv" "$SYMLINK_VENV/venv"
+check "venv directory symlink → fail-closed" 1 "$SYMLINK_VENV"
+
+SYMLINK_CFG="$TMP/symlink-venv-cfg"
+cp -R "$GOOD/." "$SYMLINK_CFG"
+mkdir -p "$SYMLINK_CFG/venv"
+ln -s "$VENV_REPO/venv/pyvenv.cfg" "$SYMLINK_CFG/venv/pyvenv.cfg"
+check "venv 외부 cfg symlink → fail-closed" 1 "$SYMLINK_CFG"
+
 # 깊은 monorepo 경로도 스택 탐색 범위다. 공통 자산만 남긴 repo의 depth 13 Flyway를 놓치면
 # 스택 없음으로 false-pass하지만, 전수 순회하면 migration-safety/destructive-DDL 누락으로 실패해야 한다.
 DEEP_FLYWAY="$TMP/deep-flyway"

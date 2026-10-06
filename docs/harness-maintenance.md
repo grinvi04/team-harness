@@ -135,6 +135,9 @@ node scripts/check-external-pilot-provenance.mjs \
   team-harness 자기 자신을 점검할 때는 배포용 `templates/`, 테스트 입력인 `tests/fixtures/`, 로컬 목표 실행
   산출물인 `docs/goals/`를 활성 스택 신호에서 제외한다. 이 예외는 `--repo`와 `--harness`가 같은 self-check에만 적용되며,
   repo 루트의 실제 워크플로·설정 자산 검사는 그대로 수행한다.
+  생성 의존 디렉터리는 스택 탐색에서 제외한다. `venv`는 실제 디렉터리이며 직하 `pyvenv.cfg`가
+  symlink가 아닌 일반 파일일 때만 제외한다. 이름만 `venv`인 소스와 directory symlink는 기존 탐색·거부
+  기준을 유지한다. `.venv` 등 기존 고정 제외 경로는 그대로다. 이 판정은 환경 내용의 신뢰성 검사가 아니다.
   stack이 감지된 소비 repo는 rule 파일 존재뿐 아니라 `AGENTS.md`가 `.claude/rules/*.md`를 관련 도구가
   읽도록 지시하는지도 검사한다. Claude는 해당 경로를 자동 로드하고 Codex/Gemini는 AGENTS pointer로 같은
   원문을 명시적으로 읽는다.

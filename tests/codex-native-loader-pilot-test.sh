@@ -11,10 +11,32 @@ SOURCE_ROOT="$TMP/source"
 mkdir -p "$SOURCE_ROOT"
 tar -C "$ROOT" --exclude=.git -cf - . | tar -x -C "$SOURCE_ROOT"
 git -C "$SOURCE_ROOT" init -q -b main
+# Keep maintenance enabled, but finish it before copying/removing fixture .git.
+# Configure maintenance and its gc fallback; this trace probe targets modern Git.
+git -C "$SOURCE_ROOT" config maintenance.auto true
+git -C "$SOURCE_ROOT" config maintenance.autoDetach false
+git -C "$SOURCE_ROOT" config gc.autoDetach false
 git -C "$SOURCE_ROOT" config user.name pilot-fixture
 git -C "$SOURCE_ROOT" config user.email pilot-fixture@example.invalid
 git -C "$SOURCE_ROOT" add .
-git -C "$SOURCE_ROOT" commit -qm 'test: clean pilot source fixture'
+# Exercise real automatic maintenance at the commit/copy boundary.
+git -C "$SOURCE_ROOT" config gc.auto 1
+GIT_TRACE2_EVENT="$TMP/source-git-trace.jsonl" git -C "$SOURCE_ROOT" commit -qm 'test: clean pilot source fixture'
+node - "$TMP/source-git-trace.jsonl" <<'NODE'
+const fs = require('node:fs')
+const events = fs.readFileSync(process.argv[2], 'utf8').trim().split('\n').map(JSON.parse)
+const commands = events.filter((event) => event.event === 'child_start').map((event) => event.argv || [])
+if (commands.some((argv) => argv.includes('maintenance') && argv.includes('--detach'))) {
+  console.error('FAIL: fixture commit returned with detached maintenance before source copy')
+  process.exit(1)
+}
+if (!commands.some((argv) => argv.includes('maintenance') && argv.includes('--no-detach')) ||
+    !commands.some((argv) => argv.includes('repack'))) {
+  console.error('FAIL: fixture did not exercise synchronous automatic repacking')
+  process.exit(1)
+}
+console.log('PASS: fixture finishes automatic repacking before source copy')
+NODE
 APPROVED_REPOSITORY="https://github.com/example/team-harness.git"
 APPROVED_REF="refs/heads/release-candidate"
 APPROVED_REVISION=$(git -C "$SOURCE_ROOT" rev-parse HEAD)
