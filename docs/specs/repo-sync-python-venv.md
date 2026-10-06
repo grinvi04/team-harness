@@ -52,7 +52,10 @@ MISSING은 checker의 필수 표준 미충족 분류다. 특히 커밋 체인은
 소스 후보는 저장소 동작 변경 정책에 따라 0.81.0이다. 릴리즈·설치 완료를 뜻하지 않는다.
 전체 품질 및 독립 검토 결과와 develop 전달 상태는 이 작업 PR 원본에 연결한다.
 소비 repo 후속은 별도 승인을 받은 뒤 정본 자산 변경 PR과 해당 제품의 QA 계약을 검토한다.
-이번 점검에는 서버 보호 정책 조회·제품 시험·소비 파일 수정·배포가 포함되지 않는다.
+네 repo main/develop의 `set-branch-protection.sh <owner/repo> --check`는 모두 exit 0이었다.
+승인 0명, enforce_admins=on이며 checks 수는 erp 8/8, siku 6/6, webhook 5/5, DriveTree 5/6이다.
+기본 검사는 필수 check 존재·보호 속성을 확인하며 exact context 집합의 최신 표준 일치까지 증명하지 않는다.
+제품 시험·소비 파일 수정·배포는 포함되지 않는다.
 
 ## 문서 동기화
 

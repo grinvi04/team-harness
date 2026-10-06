@@ -44,5 +44,35 @@
     }
   ],
   "checkerSha256": "564e34741953c7cf2b851235f21ec50c39c97f804845337e247abb8dd94dd82c",
-  "limits": "Consumer HEAD/status captured after the audit; no before/after whole-tree immutability claim. Checker performs only filesystem reads; no consumer files were edited by this task. Branch protections and product test execution are not part of these results."
+  "limits": "Consumer HEAD/status captured after the audit; no before/after whole-tree immutability claim. Checker performs only filesystem reads; no consumer files were edited by this task. Branch protections are separately checked using default --check: required-check presence/count and guard properties, not exact required-context identity or product test execution.",
+  "branchProtectionChecks": [
+    {
+      "repo": "erp",
+      "command": "bash plugins/harness-guard/scripts/set-branch-protection.sh grinvi04/erp --check",
+      "cwd": "<HARNESS_ROOT>",
+      "exitCode": 0,
+      "output": "✓ grinvi04/erp:main — 보호 적용(승인0 · enforce_admins=on · checks=8)\n✓ grinvi04/erp:develop — 보호 적용(승인0 · enforce_admins=on · checks=8)\n"
+    },
+    {
+      "repo": "siku",
+      "command": "bash plugins/harness-guard/scripts/set-branch-protection.sh grinvi04/siku --check",
+      "cwd": "<HARNESS_ROOT>",
+      "exitCode": 0,
+      "output": "✓ grinvi04/siku:main — 보호 적용(승인0 · enforce_admins=on · checks=6)\n✓ grinvi04/siku:develop — 보호 적용(승인0 · enforce_admins=on · checks=6)\n"
+    },
+    {
+      "repo": "webhook-service",
+      "command": "bash plugins/harness-guard/scripts/set-branch-protection.sh grinvi04/webhook-service --check",
+      "cwd": "<HARNESS_ROOT>",
+      "exitCode": 0,
+      "output": "✓ grinvi04/webhook-service:main — 보호 적용(승인0 · enforce_admins=on · checks=5)\n✓ grinvi04/webhook-service:develop — 보호 적용(승인0 · enforce_admins=on · checks=5)\n"
+    },
+    {
+      "repo": "DriveTree",
+      "command": "bash plugins/harness-guard/scripts/set-branch-protection.sh grinvi04/drivertree --check",
+      "cwd": "<HARNESS_ROOT>",
+      "exitCode": 0,
+      "output": "✓ grinvi04/drivertree:main — 보호 적용(승인0 · enforce_admins=on · checks=5)\n✓ grinvi04/drivertree:develop — 보호 적용(승인0 · enforce_admins=on · checks=6)\n"
+    }
+  ]
 }
