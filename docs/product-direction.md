@@ -137,7 +137,10 @@ main에 병합했고 [v0.80.0 태그](https://github.com/grinvi04/team-harness/t
 `7cafd144` 후보의 사전검증은 로컬 품질 63단계·외부 파일럿 live 원본·릴리즈 묶음 검사가 통과했지만,
 보안 음성 시험의 판정자 결함 [#486](https://github.com/grinvi04/team-harness/issues/486)으로 **NO-GO**다.
 [후보별 결과·한계](specs/repo-sync-python-venv.md#0810-릴리즈-사전검증--no-go)를 보존하고,
-해당 시험 보완 뒤 새 후보로 사전검증한다. 정식 태그·전역 설치는 진행하지 않았다.
+2026-10-07 [시험 보완](specs/binary-trust-oracle.md)은 로컬 품질 63단계·실제 macOS unsigned 거부·변이
+검출·독립 보안 검토를 통과했다. 전달·최종 CI·병합은 [PR #488](https://github.com/grinvi04/team-harness/pull/488),
+최종 사전검증 판정은 [#486](https://github.com/grinvi04/team-harness/issues/486) 원본을 따른다. 과거 NO-GO 기록은 보존한다.
+정식 태그·전역 설치는 진행하지 않았다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
