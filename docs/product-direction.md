@@ -150,9 +150,12 @@ develop 역병합·최종 검토·CI·병합은 [PR #490](https://github.com/gri
 샘플 최초 종료 시험 실패는 보존하고, 사용자 승인 후 로컬 `0c905a0`에서 해당 결함을 수정했다.
 새 회귀·전체 QA·독립 검토·문서 검사가 통과해 이 승인 범위의 샘플 통합은 VERIFIED다.
 당시 의존성 감사 high 6건 중 후속 샘플 로컬 커밋 `140b6dc`에서 source-map-js 1건을 수정했다.
-전체 QA와 독립 검토는 부분 패치 PASS이며, 수정 버전 없는 braces 개발 도구 경로 high 5건은
-미해결이다. [후속 근거](specs/qa-install-v0.81.0-evidence.json)의 dependencySecurityFollowup과
-제품 docs/specs/dependency-security.md가 현재 상태·후속 조건을 소유한다. 소비 프로젝트 수정·배포는 계속 보류한다.
+전체 QA와 독립 검토는 부분 패치 PASS다. 사용자 선택 후 샘플 로컬 `431523d`에서 고정
+upstream PR #78의 깊이 보완을 설치 지문 검사와 연결했고, 제품 전체 QA와 동일 기반 독립 회귀
+778개가 통과했다. 공식 수정 버전은 없어 전체 감사 high 5건/전체 취약점 제거 FAIL은 유지한다.
+[후속 근거](specs/qa-install-v0.81.0-evidence.json)의 dependencySecurityFollowup·bracesMitigationFollowup과
+제품 docs/specs/dependency-security.md가 현재 상태·정식 수정판 확인 후 보완 제거 조건을 소유한다.
+이는 샘플 전용 보완이며 Harness 공통 패치 기능을 추가하지 않는다. 소비 프로젝트 수정·배포는 계속 보류한다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
