@@ -94,5 +94,55 @@
     "installable": false,
     "monolithRetained": true,
     "reason": "공식 cross-plugin dependency/runtime binding surface가 없어 native fresh-session 결과 계약의 선행조건이 충족되지 않음"
-  }
+  },
+  "followups": [
+    {
+      "date": "2026-10-06",
+      "status": "wait",
+      "harnessCandidate": "d166d53a574bddfb483a1668c7d3ed00f5043a92",
+      "issue": "https://github.com/grinvi04/team-harness/issues/412",
+      "cliChecks": [
+        {
+          "command": "codex --version",
+          "exitCode": 0,
+          "stdout": "codex-cli 0.156.1\n"
+        },
+        {
+          "command": "codex plugin add --help",
+          "exitCode": 0,
+          "stdout": "Install a plugin from a configured or remote marketplace.\n\nPass either `PLUGIN@MARKETPLACE` or pass `PLUGIN` with `--marketplace MARKETPLACE`.\n\nUsage: codex plugin add [OPTIONS] <PLUGIN[@MARKETPLACE]>\n\nArguments:\n  <PLUGIN[@MARKETPLACE]>\n          Plugin selector to install: either PLUGIN@MARKETPLACE or PLUGIN with --marketplace\n\nOptions:\n  -c, --config <key=value>\n          Override a configuration value that would otherwise be loaded from `~/.codex/config.toml`.\n          Use a dotted path (`foo.bar.baz`) to override nested values. The `value` portion is parsed\n          as TOML. If it fails to parse as TOML, the raw string is used as a literal.\n          \n          Examples: - `-c model=\"o3\"` - `-c 'sandbox_permissions=[\"disk-full-read-access\"]'` - `-c\n          shell_environment_policy.inherit=all`\n\n  -m, --marketplace <MARKETPLACE>\n          Marketplace name to use when PLUGIN does not include @MARKETPLACE\n\n      --enable <FEATURE>\n          Enable a feature (repeatable). Equivalent to `-c features.<name>=true`\n\n      --json\n          Output install result as JSON\n\n      --disable <FEATURE>\n          Disable a feature (repeatable). Equivalent to `-c features.<name>=false`\n\n  -h, --help\n          Print help (see a summary with '-h')\n\nExamples:\n  codex plugin add sample@debug\n  codex plugin add sample --marketplace debug\n"
+        }
+      ],
+      "codexBinarySha256": "0196e89fe5a7598f816ee54232c3d7c26d75e502ab5cfe2c9240e81d90f7255a",
+      "documentation": {
+        "sources": [
+          "https://developers.openai.com/plugins/build/plugins",
+          "https://developers.openai.com/plugins/deploy/submission"
+        ],
+        "observations": [
+          "portable root plugin.json and extensions.com.openai are recommended for new packages",
+          "existing .codex-plugin/plugin.json remains supported as compatibility fallback",
+          "inline extensions.com.openai replaces overlay settings rather than merging",
+          "documented hook root is the installed plugin PLUGIN_ROOT; PLUGIN_DATA is writable plugin data",
+          "reviewed manifest field reference documents no cross-plugin dependency/root binding contract"
+        ],
+        "limitations": "absence in the reviewed official field reference/help is bounded negative evidence; undocumented support is not ruled out"
+      },
+      "decision": "required native dependency + root binding contract not established; keep split installable:false, monolith and marketplace hold",
+      "notRun": [
+        "split package install or runtime probe",
+        "fresh-session core/adapter outcome parity",
+        "adapter-removal enforcement verification"
+      ],
+      "reasonNotRun": "native connection prerequisite not established; no custom resolver/cache patch or core duplication introduced",
+      "userStateChanges": "none; version/help reads only; no marketplace/config/plugin/consumer changes",
+      "recordValidation": {
+        "documentSync": "PASS",
+        "publicSafety": "20 PASS, 0 FAIL",
+        "productDirection": "PASS",
+        "splitLoaderPilotContract": "PASS in simulated fixtures; not live core/adapter parity",
+        "versionAndExistingHistoricalFieldsUnchanged": true
+      }
+    }
+  ]
 }

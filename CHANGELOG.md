@@ -3,9 +3,13 @@
 <!-- Generated file. Do not edit release entries manually. -->
 
 Generated from version tags, a pre-tag release candidate, and Conventional Commits (`feat` and `fix` only).
-Regenerate with `node scripts/generate-changelog.mjs --release v0.80.0` and replace this file with its output.
+Regenerate with `node scripts/generate-changelog.mjs --release v0.81.0` and replace this file with its output.
 
-## v0.80.0 - 2026-10-01
+## v0.81.0 - 2026-10-06
+
+- fix(repo-sync): 생성 venv 탐색 중단 수정
+
+## v0.80.0 - 2026-10-03
 
 - fix(docs): 큰 검증 근거의 커밋 일치 오판 수정
 - fix(qa): 명령별 보고 증거와 프로젝트 계약 연결

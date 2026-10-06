@@ -3,6 +3,7 @@ set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 RUNNER="$ROOT/scripts/run-codex-native-loader-pilot.mjs"
+TRUST_RUNNER="$ROOT/scripts/codex-binary-trust.mjs"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 USER_CODEX_HOME="$TMP/user-codex"
@@ -11,10 +12,32 @@ SOURCE_ROOT="$TMP/source"
 mkdir -p "$SOURCE_ROOT"
 tar -C "$ROOT" --exclude=.git -cf - . | tar -x -C "$SOURCE_ROOT"
 git -C "$SOURCE_ROOT" init -q -b main
+# Keep maintenance enabled, but finish it before copying/removing fixture .git.
+# Configure maintenance and its gc fallback; this trace probe targets modern Git.
+git -C "$SOURCE_ROOT" config maintenance.auto true
+git -C "$SOURCE_ROOT" config maintenance.autoDetach false
+git -C "$SOURCE_ROOT" config gc.autoDetach false
 git -C "$SOURCE_ROOT" config user.name pilot-fixture
 git -C "$SOURCE_ROOT" config user.email pilot-fixture@example.invalid
 git -C "$SOURCE_ROOT" add .
-git -C "$SOURCE_ROOT" commit -qm 'test: clean pilot source fixture'
+# Exercise real automatic maintenance at the commit/copy boundary.
+git -C "$SOURCE_ROOT" config gc.auto 1
+GIT_TRACE2_EVENT="$TMP/source-git-trace.jsonl" git -C "$SOURCE_ROOT" commit -qm 'test: clean pilot source fixture'
+node - "$TMP/source-git-trace.jsonl" <<'NODE'
+const fs = require('node:fs')
+const events = fs.readFileSync(process.argv[2], 'utf8').trim().split('\n').map(JSON.parse)
+const commands = events.filter((event) => event.event === 'child_start').map((event) => event.argv || [])
+if (commands.some((argv) => argv.includes('maintenance') && argv.includes('--detach'))) {
+  console.error('FAIL: fixture commit returned with detached maintenance before source copy')
+  process.exit(1)
+}
+if (!commands.some((argv) => argv.includes('maintenance') && argv.includes('--no-detach')) ||
+    !commands.some((argv) => argv.includes('repack'))) {
+  console.error('FAIL: fixture did not exercise synchronous automatic repacking')
+  process.exit(1)
+}
+console.log('PASS: fixture finishes automatic repacking before source copy')
+NODE
 APPROVED_REPOSITORY="https://github.com/example/team-harness.git"
 APPROVED_REF="refs/heads/release-candidate"
 APPROVED_REVISION=$(git -C "$SOURCE_ROOT" rev-parse HEAD)
@@ -186,15 +209,21 @@ grep -Fq 'HARNESS_PILOT_FIXTURE=1' "$TMP/untrusted-binary.err" || {
   exit 1
 }
 
+# Test the real trust boundary separately from the live runner source-approval gate.
+# No --fixture: unsigned binaries must be rejected before any version command.
 cp "$TMP/fake-codex" "$TMP/codex"
 path_shadow_calls_before=$(wc -l <"$FAKE_CALLS")
-if env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$RUNNER" --source "$SOURCE_ROOT" \
-  --json-report "$TMP/path-shadow.json" --markdown-report "$TMP/path-shadow.md" \
-  >"$TMP/path-shadow.out" 2>"$TMP/path-shadow.err"; then
-  echo 'FAIL: PATH-shadowed fake Codex was accepted as live pilot evidence'
+set +e
+env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$TRUST_RUNNER" \
+  --trusted-binaries "$SOURCE_ROOT/docs/pilots/codex-native-loader-trusted-binaries.json" \
+  >"$TMP/path-shadow.out" 2>"$TMP/path-shadow.err"
+path_shadow_rc=$?
+set -e
+if [ "$path_shadow_rc" -ne 1 ]; then
+  echo "FAIL: PATH-shadowed Codex trust rejection returned $path_shadow_rc, expected 1"
   exit 1
 fi
-grep -Fq 'Codex binary digest is not trusted' "$TMP/path-shadow.err" || {
+grep -Eq '^codex-binary-trust: Codex binary digest is not trusted: sha256:[a-f0-9]{64}$' "$TMP/path-shadow.err" || {
   echo 'FAIL: PATH-shadowed Codex rejection lacked trusted-binary evidence'
   exit 1
 }
@@ -217,13 +246,21 @@ NODE
 git -C "$SELF_TRUST_SOURCE" add docs/pilots/codex-native-loader-trusted-binaries.json
 git -C "$SELF_TRUST_SOURCE" commit -qm 'test: self-trust fake codex'
 self_trust_calls_before=$(wc -l <"$FAKE_CALLS")
-if env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$RUNNER" --source "$SELF_TRUST_SOURCE" \
-  --json-report "$TMP/self-trust.json" --markdown-report "$TMP/self-trust.md" \
-  >"$TMP/self-trust.out" 2>"$TMP/self-trust.err"; then
-  echo 'FAIL: repo allowlist self-approved an unsigned fake Codex as live evidence'
+set +e
+env -u CODEX_BIN HARNESS_PILOT_FIXTURE=0 PATH="$TMP:$PATH" node "$TRUST_RUNNER" \
+  --trusted-binaries "$SELF_TRUST_SOURCE/docs/pilots/codex-native-loader-trusted-binaries.json" \
+  >"$TMP/self-trust.out" 2>"$TMP/self-trust.err"
+self_trust_rc=$?
+set -e
+if [ "$self_trust_rc" -ne 1 ]; then
+  echo "FAIL: unsigned self-trusted Codex rejection returned $self_trust_rc, expected 1"
   exit 1
 fi
-grep -Fq 'verified OpenAI code signature' "$TMP/self-trust.err" || {
+signature_error='codex-binary-trust: live Codex binary lacks verified OpenAI code signature'
+if [ "$(uname -s)" != Darwin ]; then
+  signature_error="$signature_error on $(node -p 'process.platform')"
+fi
+grep -Fxq "$signature_error" "$TMP/self-trust.err" || {
   echo 'FAIL: self-trusted fake Codex rejection lacked independent signature evidence'
   exit 1
 }
@@ -232,6 +269,12 @@ self_trust_calls_after=$(wc -l <"$FAKE_CALLS")
   echo 'FAIL: unsigned self-trusted Codex executed before signature verification'
   exit 1
 }
+
+if [ "$(uname -s)" = Darwin ]; then
+  echo 'PASS: real macOS signature verifier rejected unsigned self-trusted Codex'
+else
+  echo 'UNVERIFIED: native macOS signature rejection; PASS: unsupported platform fails closed'
+fi
 
 printf 'dirty\n' >"$SOURCE_ROOT/dirty-marker"
 if node "$RUNNER" --source "$SOURCE_ROOT" --json-report "$TMP/dirty.json" --markdown-report "$TMP/dirty.md"; then

@@ -118,13 +118,40 @@ Team Harness의 해당 스킬은 프로젝트 기준·계획 산출물·테스�
 행동 평가는 0.79.0 스킬 후보의 제한된 수용 범위에 한정한다. 0.80.0에서는 PR 사전 검사의 큰 문서
 오판을 추가 수정했고 [PR #480](https://github.com/grinvi04/team-harness/pull/480)에서 develop 통합 상태를 추적한다.
 해당 PR은 develop에 병합됐고 `3c5b4b3` 후보의 0.80.0 릴리즈 사전 검증도 통과했다.
-실행 근거·비적용 항목은 같은 후속 문서에 보존하며, [정식 릴리즈 PR #481](https://github.com/grinvi04/team-harness/pull/481)이 열려 있다.
-main은 사람 승인 1명을 요구하지만 협업자가 작성자뿐이어서 승인 처리 방식의 선택이 남아 있다.
-최신 CI 상태는 PR에서 확인하며 main 통합·태그·역병합은 대기 상태다. 릴리즈·전역 설치·소비 프로젝트별
-수정/배포 완료가 아니다. 자동 선택 전반과 제품 전체 품질 보장으로 확대하지 않는다.
+실행 근거·비적용 항목은 같은 후속 문서에 보존한다. [정식 릴리즈 PR #481](https://github.com/grinvi04/team-harness/pull/481)을
+main에 병합했고 [v0.80.0 태그](https://github.com/grinvi04/team-harness/tree/v0.80.0)를 발행했다.
+솔로 머지 뒤 main의 사람 승인 1명과 기존 보호 정책의 복구를 확인했다. develop 반영 상태는
+[역병합 PR #482](https://github.com/grinvi04/team-harness/pull/482) 원본에서 추적한다. 전역 v0.80.0 설치와 새 세션의 제한된 샘플 설치본 검증도 완료했다.
+17개 스킬 발견과 명령별 보고·격리 회귀/API unit 검증 근거는 같은 후속 문서에 연결했다.
+현재 대화의 skill catalog도 0.80.0 경로로 갱신됐고, 샘플의 정본 전체 로컬 자동 검사도 최초 exit 0으로 통과했다.
+실제 API 흐름을 포함한 브라우저 49개와 임시 DB 재시작 보존을 확인했다. axe 색상 대비 incomplete는 2026-10-06에 해당 두 기호의 실제 렌더 색상 24개를 확인해 해소했다.
+최소 대비는 5.4466:1이며, 전체 WCAG·모든 브라우저 검증이나 무결함 보장으로 확대하지 않는다.
+실행 결과·한계는 같은 후속 문서에 기록하며 설치 이후 기록의 전달·병합 상태는
+[기록 통합 PR #483](https://github.com/grinvi04/team-harness/pull/483)을 정본으로 추적한다.
+2026-10-06 재조회로 현재 설치·로딩을 확인했으며, 과거 설치 전환/설정 복구의 원문 미보존은 독립 재검증의 한계로 구분한다.
+소비 프로젝트별 수정/배포는 후속 작업이며, 제한된 평가는 자동 선택 전반과 제품 전체 품질 보장을 뜻하지 않는다.
+
+2026-10-06 네 소비 repo의 읽기 전용 표준 자산 점검에서 Python `venv` 탐색 중단을 발견했다.
+[공통 검사기 보완 명세](specs/repo-sync-python-venv.md)에 재현·회귀와 실제 드리프트를 연결한다.
+이 작업은 제품별 QA 실행·표준 반영·배포를 재개하지 않으며, 0.81.0은 아직 소스 후보다.
+`7cafd144` 후보의 사전검증은 로컬 품질 63단계·외부 파일럿 live 원본·릴리즈 묶음 검사가 통과했지만,
+보안 음성 시험의 판정자 결함 [#486](https://github.com/grinvi04/team-harness/issues/486)으로 **NO-GO**다.
+[후보별 결과·한계](specs/repo-sync-python-venv.md#0810-릴리즈-사전검증--no-go)를 보존하고,
+2026-10-07 [시험 보완](specs/binary-trust-oracle.md)은 로컬 품질 63단계·실제 macOS unsigned 거부·변이
+검출·독립 보안 검토를 통과했다. 전달·최종 CI·병합은 [PR #488](https://github.com/grinvi04/team-harness/pull/488),
+최종 사전검증 판정은 [#486](https://github.com/grinvi04/team-harness/issues/486) 원본을 따른다. 과거 NO-GO 기록은 보존한다.
+2026-10-07 사전검증 GO 후 [정식 릴리즈 준비](specs/binary-trust-oracle.md#0810-정식-릴리즈-진행)를 시작했다.
+main 승인·CI·병합은 [릴리즈 PR #489](https://github.com/grinvi04/team-harness/pull/489)에서 추적한다.
+태그·develop 역병합의 증거를 확인하기 전에는 발행 완료로 표시하지 않는다.
+전역 설치·소비 프로젝트 수정·배포는 보류한다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
+
+열린 [split runtime 이슈 #412](https://github.com/grinvi04/team-harness/issues/412)는 2026-10-06에
+CLI 0.156.1과 공식 manifest 문서를 재확인했으나 필요한 cross-plugin dependency/root binding 계약이
+확인되지 않아 WAIT를 유지한다. 새 root manifest 권장과 기존 호환 형식 지원을 구분하며,
+[최신 capability 기록](pilots/codex-split-runtime-v0.61.0.md#2026-10-06-capability-재확인)에 근거·미실행 범위를 연결한다.
 
 ## 기존 거버넌스 작업과 보류 항목
 
