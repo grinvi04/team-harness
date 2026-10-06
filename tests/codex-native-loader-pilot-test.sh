@@ -12,7 +12,7 @@ mkdir -p "$SOURCE_ROOT"
 tar -C "$ROOT" --exclude=.git -cf - . | tar -x -C "$SOURCE_ROOT"
 git -C "$SOURCE_ROOT" init -q -b main
 # Keep maintenance enabled, but finish it before copying/removing fixture .git.
-# Both keys cover modern maintenance and older Git gc fallback behavior.
+# Configure maintenance and its gc fallback; this trace probe targets modern Git.
 git -C "$SOURCE_ROOT" config maintenance.auto true
 git -C "$SOURCE_ROOT" config maintenance.autoDetach false
 git -C "$SOURCE_ROOT" config gc.autoDetach false

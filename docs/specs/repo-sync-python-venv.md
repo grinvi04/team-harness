@@ -61,7 +61,9 @@ EXIT cleanup의 `.git` 제거도 실패했다. 가상환경 회귀는 이 run에
 그 실행의 프로세스 identity까지 직접 확인한 것은 아니며, 증상·코드 경계·격리 재현에 기반한 원인 판정이다.
 
 [Git 공식 maintenance 계약](https://git-scm.com/docs/git-maintenance#_configuration)에 따라 임시 source
-repo에만 `maintenance.autoDetach=false`와 구버전 fallback `gc.autoDetach=false`를 설정한다.
+repo에만 `maintenance.autoDetach=false`와 설정 fallback `gc.autoDetach=false`를 설정한다.
+새 trace 판정은 `maintenance --no-detach`를 제공하는 현재 Git을 대상으로 하며,
+`git gc --auto`만 제공하는 과거 실행 경로의 호환성 검증을 뜻하지 않는다.
 `maintenance.auto=true`·강제 auto repack을 실제 수행하고 trace2로 foreground 실행과 repack 발생을
 단언하므로 정리 기능을 꺼서 통과시키지 않는다. 기존 신뢰/서명/소스 승인/인증 격리 거부 시험도 유지한다.
 전역·소비 repo 설정과 production runner는 수정하지 않는다. 보완 후 해당 전체 pilot은 exit 0이었다.
