@@ -274,3 +274,6 @@ webhook은 [main PR #72](https://github.com/grinvi04/webhook-service/pull/72) �
 
 
 DriveTree staging 복구 후속 조사에서 실제 소스 연결 null과 Railway 배포 자격 INACTIVE/체험 종료를 확인했다. API health404와 원격 계산 FAIL을 유지하고 결제·계정/인프라/DB·production 변경은 하지 않았다. 계정 활성화 여부·workspace 영향·환경 단독 소스 복원·고정 SHA 기능 검증의 재개 조건은 [staging 진단 후속](pilots/consumer-readiness-2026-10-07.md#staging-복구-진단-후속-2026-10-08)과 제품 PR87·이슈 #496을 따른다. 전체 소비 채택이나 실제 복구 완료로 판정하지 않는다.
+
+
+2026-10-08 현재 사용자는 DriveTree 추가 결제·Railway 활성화와 별도 테스트 Supabase가 없는 siku 원격 검증을 보류했다. 인증된 siku 미리보기는 Production 전용 Supabase 변수 때문에 실제 앱 기동 FAIL이며, 현재 Vercel 작업 공간 ERP 검색은 결과가 없고 ERP README는 운영 미배포다. 비용 없는 현재 잠금파일 감사와 공식 수정판 재확인에도 보안 판정 변화는 없다. 현재 결정·보류 해제 조건은 [최신 소비 관찰](pilots/consumer-readiness-2026-10-07.md#비용테스트-환경-결정과-인증된-미리보기-관찰-2026-10-08)을 따른다. 이전 활성화 순서는 조건부 계획이며 현재 실행할 다음 단계가 아니다. 새 운영/유료 환경을 만들거나 실패를 반복하지 않는다.
