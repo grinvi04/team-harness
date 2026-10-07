@@ -649,3 +649,16 @@ ERP에서 shadcn은 globals.css의 빌드 CSS import에 사용한다. 이전 검
 실행 원문·고정 후보·최초 실패·배포와 UI 관찰은 `$HOME/Documents/Codex/2026-10-08/consumer-merge-verification/`에 보존한다. ERP 사용자 primary feature `085d0ce`·미추적 `.codex/`와 Harness chat의 기존 `.gitignore` 변경을 유지한다. 제품 현재 안내는 문서 전용 [DriveTree PR #86](https://github.com/grinvi04/drivertree/pull/86)·[siku PR #88](https://github.com/grinvi04/siku/pull/88)·[ERP PR #256](https://github.com/grinvi04/erp/pull/256)의 필수 CI 6·6·8 PASS와 별도 문서 검토를 거쳐 develop에 병합했다. 표의 SHA는 실화면을 점검한 앱 병합 후보이며 이 문서 후속의 develop tip과 구분한다. 이슈 #496·프로젝트 지도도 이 관찰 범위로 갱신했고 과거 QA 기록은 그대로 둔다.
 
 다음 단계는 DriveTree staging 연결 원인을 진단하고 승인된 비운영 복구 범위를 정한 뒤 실제 기능을 재확인하며, 기존 Vercel 로그인으로 siku 화면과 ERP 배포 연결을 확인하는 것이다. 세 제품 main/default trusted 활성화는 별도 운영 릴리즈 경계에서 진행하고, 공식 호환 보안 수정판·webhook 직접 registry 인수는 별도 잔여로 유지한다. 이번 develop 병합을 소비 도입 전체 완료로 취급하지 않는다.
+
+
+#### staging 복구 진단 후속 (2026-10-08)
+
+사용자가 다음 단계인 DriveTree staging 복구를 승인해 현재 API·실제 서비스 설정·계정 자격을 다시 확인했다. `/api/health`는 HTTP 404 `Application not found`다. live serviceInstance는 rootDirectory `/backend`·source null·활성 배포 0이고 develop→staging/main→production 트리거는 여전히 있다. Railway 계정은 INACTIVE·체험 남은 기간 0·체험 중 아님·활성 subscription 없음이다. [공식 안내](https://docs.railway.com/pricing/plans)의 활성 구독 요구와 함께 보면 현재 소스 재연결뿐 아니라 배포 자격 활성화도 선행 조건이다. 6월 배포 실패의 역사상 원인은 옛 build 로그 0줄로 미확인이며 계정 상태만으로 그 실패 원인을 소급 단정하지 않는다.
+
+| 제품 | 검증한 앱 병합 SHA | 현재 복구 단계 | 선행 조건과 완료 한계 |
+|---|---|---|---|
+| DriveTree | `a355bd25166e285d899430464e5e311f37b55d5d` | 소스 연결 부재·배포 자격 비활성 확인; [제품 진단 기록 PR #87](https://github.com/grinvi04/drivertree/pull/87) | staging health404·실제 계산 FAIL 유지. 활성화 전 workspace/production 영향·무료 플랜 가능성·비용 확인과 사용자 선택 후 staging 단독 소스·DB 참조·고정 SHA 배포·정상/거부 기능을 검증해야 함. Railway/결제/DB/보호 변경 0; 운영 복구 완료 아님 |
+
+재개 계약은 제품 `docs/specs/quality-remediation.md`가 소유하며 원문·schema·진단/수용 계획은 `$HOME/Documents/Codex/2026-10-08/drivetree-staging-recovery/`에 보존한다. 직접 환경 변경의 의미를 확인하기 전 `serviceInstanceUpdate`의 experimental 다중 환경 경로를 실행하지 않는다. 구독 변경·결제는 사용자 작업이고 workspace-wide 재시작 영향이 있을 수 있어 production 제외 경계를 먼저 재확인해야 한다. 코드 없는 진단 기록만 전달하며 공용 Harness 기능·버전·검사 기준은 바꾸지 않는다. 로컬 QA를 선택해도 원격 staging 복구 PASS로 쓰지 않는다.
+
+다음 단계는 활성화 전에 workspace/production 영향·무료 플랜 가능성·비용을 확인하고 사용자가 선택하는 것이다. 활성화·결제는 미승인·미실행이며, 사용자 활성화 이후 배포 자격을 다시 읽는다. Vercel 인증·나머지 소비 잔여·운영 배포 제외는 유지한다. 현재 복구는 차단 상태이며 진단 기록 전달·정리와 서비스 복구 완료를 구분한다.
