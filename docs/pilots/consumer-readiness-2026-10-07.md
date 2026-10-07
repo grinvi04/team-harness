@@ -203,7 +203,7 @@ develop 병합은 staging 자동 배포에 연결되므로 로컬 준비 완료�
 
 | 제품 | 현재 로컬 후보 | 실제 로컬 검증 | 보안·검토 상태 / 한계 |
 |---|---|---|---|
-| DriveTree | `8c5b4f8` | Swagger 한정 YAML 5.4.3 보완, 클린 설치·backend format/lint/build·단위 70·실DB 통합 19 PASS. frontend 단위 8·Chromium 20은 이전 후보의 변경 없는 증거 재사용이며 이번 재실행 아님 | 고정 후보 독립 검토 추가 P1/P2 없음. source 4·원문 18개 지문 일치. 전체 감사 backend moderate 20/high 4·frontend high 5 FAIL; 운영 backend high 4·frontend 0. 원격 CI·병합·배포 미실행 |
+| DriveTree | `76cb019` (코드 `0a654e0`) | Swagger YAML 보완 유지, Prisma 7.10.0 유지·내부 두 의존성만 보완. 클린 설치·resolve·validate/generate·backend format/lint/build·단위 70·새 격리 DB migrate 3/통합 19 PASS. frontend 단위 8·Chromium 20은 이전 동일 입력 증거 재사용 | 코드 후보 `0a654e0` 독립 검토 추가 P1/P2 없음. source 12·원문 21개·격리 연구 원문 24개 지문 일치. 전체 감사 backend moderate 20/high 0·frontend high 5 FAIL; 운영 backend 0·frontend 0. 원격 CI·병합·배포 미실행 |
 | siku | `b6ed228` (코드 `5ad8a96`) | 클린 설치·형식·lint·build, 단위 86·실제 Auth/RLS/Storage 브라우저 25 PASS, 재시도 0, 전체 감사 0 | 코드·문서 독립 검토 기존 P2 해소·추가 P1/P2 없음. 권한 없는 0행 삭제 뒤 파일 보존, DB 삭제 뒤 Storage 실패의 함수·UI 부분 실패 처리 확인. 원격 DB 드리프트 미측정·DB/Storage 원자성 보장 안 함 |
 | ERP | `4d4fbf4` (코드 `dc080bd`) | Java 실제 단위/통합 957·FE 단위 60·Chromium 38 PASS, 품질·Docker 두 이미지·repo-sync 21/21, 실제 격리 Keycloak 초대/재초대·동일 사용자 재조회 PASS | curl 설정 파일 우회 RED→GREEN·독립 코드 검토 추가 P1/P2 없음. Java UP-TO-DATE 기록은 실제 실행으로 세지 않으며 새 DB의 `--rerun-tasks`/XML 증거를 별도 보존. 전체 high 9/critical 0 FAIL |
 | webhook-service | `eba4bfb` | 기존 DB/큐·dotenv 경계 유지, 관리자 SDK/로그인·state·서명·admin 권한 focused 25 PASS. 전체 기존/새 Python 환경 각각 104 PASS, Ruff format/lint·mypy·Alembic 단일 head·전체 훅 PASS | 고정 후보 독립 검토 추가 P1/P2 없음. source 19·원문 73개 지문 일치. 합성 HTTP·자체 RSA·callback 대역 Redis와 실제 Redis 동시 GETDEL 단일 소비를 구분. 전체 그래프 3개 패키지/15 advisory FAIL 유지. 외부 Keycloak·issuer/audience·키 회전·실제 브라우저·원격 gate 미확인 |
@@ -216,7 +216,7 @@ webhook의 이전 60/69/77 시험은 명시 주입한 로컬 DB/큐 실행 결�
 
 현재 증거 정본은 각 제품의 `docs/specs/quality-remediation.md`(siku/DriveTree), ERP의 `docs/specs/tenant-user-onboarding.md`와 외부 QA manifest, webhook의 `docs/qa/2026-10-07/README.md`와 해당 실행 manifest다. 선정한 로컬 QA·독립 검토·감사 FAIL·원격 gate 상태를 각각 기록한다. 새 trusted 파일 존재는 target 이벤트 실행/보호 강제의 증거가 아니다.
 
-ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조에서 추가 P1/P2 없음과 지문 일치를 확인했다. 네 고정 로컬 후보의 선정한 기능·회귀 검증과 독립 검토 인수는 마쳤다. 이후 Swagger YAML·관리자 인증 보완도 아래 고정 후보에서 인수했다. 다음 단계는 남은 의존성 감사의 호환성·변경 범위 결정과 원격 전달·staging 자동 배포 영향의 확인이다. main/default 배치·검사 전환·배포는 별도 단계다. 전체 소비 도입/보안/배포 준비는 아직 **NOT VERIFIED**이며 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)은 열어 둔다.
+ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조에서 추가 P1/P2 없음과 지문 일치를 확인했다. 네 고정 로컬 후보의 선정한 기능·회귀 검증과 독립 검토 인수는 마쳤다. 이후 Swagger YAML·관리자 인증 보완도 아래 기록의 고정 후보에서 인수했다. 최신 Prisma 내부 의존성 후보의 QA·독립 검토도 아래 기록에서 인수했다. 다음 단계는 남은 의존성 감사의 호환성·변경 범위 결정과 원격 전달·staging 자동 배포 영향의 확인이다. main/default 배치·검사 전환·배포는 별도 단계다. 전체 소비 도입/보안/배포 준비는 아직 **NOT VERIFIED**이며 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)은 열어 둔다.
 
 ### 후속: 보안 잔여와 원격 전달 조건 조사
 
@@ -239,7 +239,7 @@ ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조�
 
 | 제품 | 현재 읽기 전용 원격 확인 | 전달·병합 영향과 미확인 |
 |---|---|---|
-| DriveTree | default main, develop `bd634e6`, main `49621e6`; strict/app-bound 필수 context develop 6개·main 5개, enforce_admins true | 현재 후보의 원격 CI는 미실행. develop의 Vercel Preview 배포 기록 확인. 저장소 CI/규약은 develop→Railway staging, main→Railway/Vercel production을 명시하지만 현재 Railway 제어판 연결 상태는 미조회. fix/feature의 CI-only 주석만으로 외부 Preview 배포 없음으로 확정하지 않음 |
+| DriveTree | default main, develop `bd634e6`, main `49621e6`; strict/app-bound 필수 context develop 6개·main 5개, enforce_admins true | 현재 후보의 원격 CI는 미실행. develop의 Vercel Preview 배포 기록 확인. 저장소 CI/규약은 develop→Railway staging, main→Railway/Vercel production을 명시하지만 당시 Railway 연결 상태는 미조회; 후속 metadata 조회 결과와 남은 미확인은 아래 참조. fix/feature의 CI-only 주석만으로 외부 Preview 배포 없음으로 확정하지 않음 |
 | siku | default main, develop `c7b5bbd`, main `351ec7d`; 양쪽 strict/app-bound 필수 context 6개, enforce_admins true | CI는 PR에서 합성 Supabase·브라우저 흐름 실행. develop SHA의 Vercel Preview와 main SHA의 Production 배포 기록 확인. 새 후보의 Preview/원격 CI는 미실행이며 Supabase 원격 DB 드리프트 미측정 |
 | ERP | default main, develop `d10a916`, main `8d83be6`; 양쪽 strict/app-bound 필수 context 8개, enforce_admins true, HARNESS_SYNC_ENABLED=true | Actions에 push/deploy/publish trigger 없음. 문서상 main→Railway/Vercel 재배포는 연결 활성 시 조건부이며 README local-only·deployment API 0과 구분. 외부 제어판 상태 미확인. develop PR은 기존 품질/repo-sync 검사, Preview 가능성은 별도 확인 |
 | webhook-service | default main, develop `83cd398`, main `b905198`; 양쪽 strict/app-bound 필수 context 5개, enforce_admins true | build-and-test·alembic-heads·secret-scan 등 품질 후 main push에서만 GHCR latest 이미지 게시. develop PR/merge를 운영 서버 배포 완료로 간주하지 않으며 이미지 게시 후 소비 서버 갱신 연결은 미확인 |
@@ -253,11 +253,233 @@ webhook의 urllib3 1.26.20은 python-keycloak 2.0.0 제약으로 묶이며, 2.16
 
 [GitHub 공식 정책 안내](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target)는 public repo의 기본 pull_request_target 정책이 현재 evaluate 모드이며 해당 대상에서 2026-11-02 집행 전환을 예고한다. 이미 적용한 별도 정책의 예외가 있어 네 repo가 모두 차단된다고 단정하지 않는다. 전달 전에 실제 Actions event policy·권한·target 실행 가능성을 읽기 전용 확인해야 한다. 정책을 자동 완화하거나 PR 코드를 높은 권한으로 실행하도록 전환하지 않는다.
 
+#### 잔여 의존성의 격리 후보 비교 (2026-10-07)
+
+DriveTree의 Prisma 7.10.0을 유지한 합성 복사본에서 `@prisma/config` 아래 deepmerge-ts 8.0.0과 `prisma` 아래 mysql2 3.23.1만 교체했다. 현재 `prisma.config.ts`는 문자열 설정이며 Map을 쓰지 않는다. v8 Map 병합 의미 변경은 별도 표본으로 보존했다. 클린 설치·Prisma validate/generate는 합성 URL과 dotenv 비활성 조건에서 통과했고 DB 연결은 하지 않았다. scratch lock 감사는 backend 전체 24→20(moderate), 운영 high 4→0이다. 이는 제품 인수 PASS가 아니다. 후속 제품 후보 `0a654e0`에 최소 변경을 적용하고 클린 설치·실제 resolve·validate/generate·backend 품질·단위 70·새 격리 DB migrate 3/실DB e2e 19를 통과했다. source 12·원문 21개 지문을 대조했고 fixture 종료를 확인했다. 제품 운영 감사 0·전체 개발 도구 moderate 20 FAIL이며 고정 후보 독립 검토에서 추가 P1/P2 없음과 원문 지문 일치를 확인했다. MySQL 연결과 Map 설정의 호환성은 이 제품 PostgreSQL 검증의 범위 밖이다. frontend braces와 backend dev sprintf-js의 경고는 이 변경으로 해소되지 않는다.
+
+webhook의 두 SDK 대안도 제품 `eba4bfb`를 바꾸지 않고 scratch 환경에서 비교했다. 2.16.6 + setuptools 80.10.2는 해석/import와 서비스 비의존 인증 시험 24개를 통과하지만 setuptools의 새 보안 경고를 도입해 권고하지 않는다. 3.9.1은 jwcrypto로 바뀌며 현재 호출 옵션을 유지하면 **만료된 유효 서명 토큰을 거부하지 않는 회귀**가 발생했다. 시험 보조 패키지 누락의 최초 collection 오류와 실제 만료 검증 RED를 구분해 보존한다. 현재 SDK 의존성을 무조건 올리는 대신 키 형식·클레임/만료·issuer/audience·회전 계약을 명시한 별도 전환이 필요하다. 10초 만료 표본은 jwcrypto의 60초 허용 오차와 혼동할 수 있어 별도 동일 RSA/옵션 probe로 exp -120/-10/+300을 비교했다. 2.0.0은 두 만료값을 거부하고 미래값을 허용했지만 3.9.1은 모두 허용했다. 설치 SDK의 `check_claims={}`와 jwcrypto의 `check_claims is None` 조건을 원본에서 대조해 허용 오차 밖 만료 거부 실패를 확인했다. 3.9.1 runtime 감사 0건과 인증 시험 FAIL은 별도 판정이다. 비교 후보의 만료 수용은 독립 검토에서 P1로 판정되어 채택하지 않는다. 제품 `eba4bfb`는 변경 없는 clean 상태다. 소스 13·원문 25·설치 SDK 소스 3개 지문은 독립 대조에서 모두 일치했다. 2.16.6 후보의 runtime 감사는 ecdsa/jose/setuptools 3개 패키지·5개 중복 포함 항목 FAIL이다. 이 비교를 제품 전체 QA 또는 실제 Keycloak 연동으로 확대하지 않는다.
+
+
+격리 비교 근거: `/tmp/drivetree-prisma-compat-20261007/research.json`, 소스 6·원문 24, SHA-256 `373247c95be2ea8f9720518cbebca6c814006e6fa6f417b706d958c9ee956cd8`. 명령·cwd·종료와 원문 지문을 해당 기록에 보존한다.
+
+
+격리 비교 근거: `/tmp/webhook-keycloak216-compare-20261007/manifest.json`, 소스 13·원문 25·설치 SDK 소스 3, SHA-256 `0200302fa63cf5047d312e916e8b88fbd7c612deef05529469ad15df297dc72e`. 명령·cwd·종료와 원문 지문을 해당 기록에 보존한다.
+
+#### 전달 조건의 추가 확인 (2026-10-07)
+
+공식 [Actions policy GET API](https://docs.github.com/en/rest/actions/policies#list-repository-actions-policies)에 API 버전 `2026-03-10`, `has_parents=true`를 지정했다. 네 repo 모두 HTTP 성공·`total_count:0`, workflow 기본 권한 `read`·자기 PR 승인 `false`다. 이는 명시 정책 목록의 관찰이며 플랫폼 기본 `pull_request_target` 정책 부재나 새 trusted workflow 실행 PASS를 뜻하지 않는다. 기본 브랜치 초기 배치·이후 동일 후보 target 실행과 서버 context 전환은 여전히 미실행이다.
+
+Railway의 현재 인증으로 `DriverTree` 프로젝트의 정확한 service/repo 연결을 대조했다. staging은 현재 `source:null`, production은 `source.repo:grinvi04/drivertree`다. 양쪽 active deployment는 0, 최신 배포는 2026-06-08의 FAILED이며 당시 metadata만 staging develop/main production을 보여 준다. 따라서 문서상의 develop→staging 자동 배포를 현재 활성 연결로 확정하지 않는다. **현재 trigger branch·autodeploy·Wait for CI·PR environment·watch 설정은 이 CLI 조회에서 미확인**이다. deployment source 연결을 바꾸거나 실패 서비스를 복구하지 않았다. 변수·서비스 로그·DB는 조회하지 않았다.
+
+Vercel CLI의 현재 인증은 invalid token으로 실패했다. 사용자는 이 단계의 Vercel 확인을 나중으로 미루도록 선택했다. 재인증·설정 조회·Vercel 전달은 후속이며 이번 단계에서 다시 시도하지 않는다. 다른 인증정보를 찾거나 자동 로그인·설치를 하지 않았다. 기존 GitHub Preview/Production 기록은 보존하되 현재 production branch·ignored build·PR Preview·환경 자격증명은 미확인이다. [Vercel Git 배포](https://vercel.com/docs/git)와 [Railway autodeploy](https://docs.railway.com/deployments/github-autodeploys)의 공식 설명처럼 별도 provider 연결은 Actions 결과만으로 통제됨을 보장하지 않는다. ERP의 Railway 프로젝트는 현재 목록에서 이름으로 매칭되지 않았으며 프로젝트 부재로 단정하지 않는다.
+
+원문은 비밀정보가 없는 GitHub 정책·권한 응답과 Railway metadata 허용 필드만 기록했다. Railway 전체 응답/변수/로그는 저장하지 않았다. 현재 읽기 전용 결과와 명령·종료·지문은 다음에 보존한다.
+
+```json
+{
+  "github": {
+    "checkedAt": "2026-10-07T01:36:18.886321+00:00",
+    "records": [
+      {
+        "repo": "erp",
+        "kind": "policy",
+        "cmd": [
+          "gh",
+          "api",
+          "-H",
+          "X-GitHub-Api-Version: 2026-03-10",
+          "repos/grinvi04/erp/actions/policies?has_parents=true&per_page=100"
+        ],
+        "exit": 0,
+        "path": "/tmp/harness-remote-conditions-20261007/erp-policy.json",
+        "sha256": "00daed3d9cccc99e8d2509f634ccb581741c67a9bc74d78b519ba39475f708ed"
+      },
+      {
+        "repo": "erp",
+        "kind": "permissions",
+        "cmd": [
+          "gh",
+          "api",
+          "-H",
+          "X-GitHub-Api-Version: 2026-03-10",
+          "repos/grinvi04/erp/actions/permissions/workflow"
+        ],
+        "exit": 0,
+        "path": "/tmp/harness-remote-conditions-20261007/erp-permissions.json",
+        "sha256": "f6e178fc1e56cf43900da383f85398b61de9ae61c6b8433116c1856605745924"
+      },
+      {
+        "repo": "siku",
+        "kind": "policy",
+        "cmd": [
+          "gh",
+          "api",
+          "-H",
+          "X-GitHub-Api-Version: 2026-03-10",
+          "repos/grinvi04/siku/actions/policies?has_parents=true&per_page=100"
+        ],
+        "exit": 0,
+        "path": "/tmp/harness-remote-conditions-20261007/siku-policy.json",
+        "sha256": "00daed3d9cccc99e8d2509f634ccb581741c67a9bc74d78b519ba39475f708ed"
+      },
+      {
+        "repo": "siku",
+        "kind": "permissions",
+        "cmd": [
+          "gh",
+          "api",
+          "-H",
+          "X-GitHub-Api-Version: 2026-03-10",
+          "repos/grinvi04/siku/actions/permissions/workflow"
+        ],
+        "exit": 0,
+        "path": "/tmp/harness-remote-conditions-20261007/siku-permissions.json",
+        "sha256": "f6e178fc1e56cf43900da383f85398b61de9ae61c6b8433116c1856605745924"
+      },
+      {
+        "repo": "webhook-service",
+        "kind": "policy",
+        "cmd": [
+          "gh",
+          "api",
+          "-H",
+          "X-GitHub-Api-Version: 2026-03-10",
+          "repos/grinvi04/webhook-service/actions/policies?has_parents=true&per_page=100"
+        ],
+        "exit": 0,
+        "path": "/tmp/harness-remote-conditions-20261007/webhook-service-policy.json",
+        "sha256": "00daed3d9cccc99e8d2509f634ccb581741c67a9bc74d78b519ba39475f708ed"
+      },
+      {
+        "repo": "webhook-service",
+        "kind": "permissions",
+        "cmd": [
+          "gh",
+          "api",
+          "-H",
+          "X-GitHub-Api-Version: 2026-03-10",
+          "repos/grinvi04/webhook-service/actions/permissions/workflow"
+        ],
+        "exit": 0,
+        "path": "/tmp/harness-remote-conditions-20261007/webhook-service-permissions.json",
+        "sha256": "f6e178fc1e56cf43900da383f85398b61de9ae61c6b8433116c1856605745924"
+      },
+      {
+        "repo": "drivertree",
+        "kind": "policy",
+        "cmd": [
+          "gh",
+          "api",
+          "-H",
+          "X-GitHub-Api-Version: 2026-03-10",
+          "repos/grinvi04/drivertree/actions/policies?has_parents=true&per_page=100"
+        ],
+        "exit": 0,
+        "path": "/tmp/harness-remote-conditions-20261007/drivertree-policy.json",
+        "sha256": "00daed3d9cccc99e8d2509f634ccb581741c67a9bc74d78b519ba39475f708ed"
+      },
+      {
+        "repo": "drivertree",
+        "kind": "permissions",
+        "cmd": [
+          "gh",
+          "api",
+          "-H",
+          "X-GitHub-Api-Version: 2026-03-10",
+          "repos/grinvi04/drivertree/actions/permissions/workflow"
+        ],
+        "exit": 0,
+        "path": "/tmp/harness-remote-conditions-20261007/drivertree-permissions.json",
+        "sha256": "f6e178fc1e56cf43900da383f85398b61de9ae61c6b8433116c1856605745924"
+      }
+    ]
+  },
+  "railway": {
+    "records": [
+      {
+        "path": "/tmp/harness-remote-conditions-20261007/railway-staging-selected.json",
+        "sha256": "c05f4ad34757ba65f5b5a535626c82f2dba1a6df0ef9f36e078b129c3078c30a"
+      },
+      {
+        "path": "/tmp/harness-remote-conditions-20261007/railway-production-selected.json",
+        "sha256": "b7d9d085d09e965367602a6b37086cfbe2af65815298af95a8bdeaeb868526bf"
+      }
+    ],
+    "staging": {
+      "command": [
+        "railway",
+        "status",
+        "--project",
+        "eec41ebc-5bd4-4c65-bcce-f3d6d08081b5",
+        "--environment",
+        "staging",
+        "--json"
+      ],
+      "exit": 0,
+      "environment": "staging",
+      "serviceName": "drivertree",
+      "source": null,
+      "latestDeployment": {
+        "createdAt": "2026-06-08T12:58:50.419Z",
+        "id": "4be810cc-b140-4042-8683-8bf23d641b48",
+        "status": "FAILED"
+      },
+      "selectedDeploymentMeta": {
+        "branch": "develop",
+        "commitHash": "2f1bfb8a82b8ffa2c22cc3fdf79808800150e868",
+        "commitMessage": "Merge pull request #15 from grinvi04/docs/claude-md-wording-align\n\ndocs(claude): .claude/ 규칙 문구 통일",
+        "repo": "grinvi04/drivertree"
+      },
+      "activeDeploymentCount": 0,
+      "scope": "metadata allowlist only; variables/logs not queried"
+    },
+    "production": {
+      "command": [
+        "railway",
+        "status",
+        "--project",
+        "eec41ebc-5bd4-4c65-bcce-f3d6d08081b5",
+        "--environment",
+        "production",
+        "--json"
+      ],
+      "exit": 0,
+      "environment": "production",
+      "serviceName": "drivertree",
+      "source": {
+        "image": null,
+        "repo": "grinvi04/drivertree"
+      },
+      "latestDeployment": {
+        "createdAt": "2026-06-08T07:05:52.504Z",
+        "id": "d3fbaf98-f6f2-4f93-872f-3c84e07f6f1e",
+        "status": "FAILED"
+      },
+      "selectedDeploymentMeta": {
+        "branch": "main",
+        "commitHash": "1198c4ec189653ae0c56afc79a3dd9d70f702932",
+        "commitMessage": "Merge pull request #13 from grinvi04/release/v1.5.5\n\nrelease: v1.5.5",
+        "repo": "grinvi04/drivertree"
+      },
+      "activeDeploymentCount": 0,
+      "scope": "metadata allowlist only; variables/logs not queried"
+    }
+  },
+  "vercel": {
+    "command": "vercel whoami --non-interactive",
+    "exit": 1,
+    "result": "specified token is not valid",
+    "boundary": "no login, token reading, retry or configuration change"
+  },
+  "classification": "read-only settings and metadata, not deployment execution"
+}
+```
+
 이번 단계의 실행 순서와 종료 기준은 다음과 같다.
 
 1. webhook 로그인 연결·state·승인된 admin 권한 보완: 실제 설치 SDK의 합성 HTTP·자체 서명 토큰·callback 대역 Redis에서 정상/오류/다른 브라우저/이전 쿠키 재생/만료/권한 거부를, 실제 격리 Redis에서 동시 원자 소비를 확인했다. `eba4bfb`의 전체 품질·독립 보안 검토·문서 인수를 마쳤다. 외부 운영 realm의 성공으로 확대하지 않는다.
 2. DriveTree YAML 수정 후보 적용: Swagger 하위 pin만 제한하여 정상 문서 생성·조회와 예산 거부, 클린 lock 설치·전체 backend 품질/실DB·감사·독립 검토를 수행한다. `8c5b4f8`에서 이 로컬 보완·회귀·독립 검토를 마쳤다. 이전 `36f9b0d`의 115개 검증 기록과 라이브러리 표본의 한계를 보존하며 전체 감사·원격 인수 완료로 확대하지 않는다.
-3. 공식 수정판 없는 braces/sprintf-js와 큰 의미 변경의 Prisma/Keycloak: 원래 제품 계약을 보존하는 소비자 보완 또는 상위 전환을 별도 후보로 비교한다. 검증 전 강제 override·downgrade·감사 예외로 완료 처리하지 않는다. 잔여 경고의 수용 여부와 해제 조건을 제품 기록으로 결정한다.
+3. 공식 수정판 없는 braces/sprintf-js와 큰 의미 변경의 Prisma/Keycloak: DriveTree의 최소 Prisma 내부 보완은 `0a654e0`의 로컬 QA·감사·독립 검토로 인수했다. webhook 2.x 호환 pin은 새 감사 경고, 3.9.1은 만료 수용 P1 때문에 비교 후보로만 보존하고 채택하지 않는다. 다른 경고는 원래 제품 계약을 보존하는 소비자 보완 또는 상위 전환을 별도 설계한다. 검증 전 강제 override·downgrade·감사 예외로 완료 처리하지 않는다. 잔여 경고의 수용 여부와 해제 조건을 제품 기록으로 결정한다.
 4. 원격 전달: Preview·이미지 게시·외부 자동 배포 영향과 Actions event policy를 확인한 구체적 후보로 PR/CI 인수한다. trusted bootstrap과 필수 context 전환은 기존 보호 유지·정확 후보 실행·서버 readback을 각각 증명하며 이후 운영 배포는 별도 경계다.
 
 ```harness-doc-sync
