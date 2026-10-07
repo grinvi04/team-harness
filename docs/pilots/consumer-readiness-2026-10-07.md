@@ -1,6 +1,6 @@
 # 네 소비 프로젝트 적용 준비 점검 (2026-10-07)
 
-이 문서 앞부분의 읽기 전용 조사·로컬 보류 기록은 당시 후보의 결과다. 현재 원격 전달·릴리즈·잔여 조건은 맨 아래 [최신 원격 인수](#후속-소비-원격-인수와-webhook-릴리즈-2026-10-07)에서 구분한다.
+이 문서 앞부분의 읽기 전용 조사·로컬 보류 기록은 당시 후보의 결과다. 현재 원격 전달·릴리즈·잔여 조건은 맨 아래 [최신 병합·실화면 점검](#후속-develop-병합과-실화면점검-2026-10-08)에서 구분한다.
 
 ## 범위와 완료 경계
 
@@ -627,3 +627,25 @@ webhook-service는 [main PR #72](https://github.com/grinvi04/webhook-service/pul
 현재 세 제품의 PR 병합·실서비스 반영, ERP preview와 siku 앱 화면, webhook registry 직접 readback, 각 제품의 잔여 전체 감사와 운영 인수는 완료가 아니다.
 
 다음 단계는 PR별 리뷰·병합 영향과 미확인 provider/보안 경계를 해당 제품 원본에서 따로 판정하는 것이다. webhook main의 legacy 파일 전파도 다음 정상 릴리즈에서 분리해 확인한다. 이 문서 갱신 자체는 소비 제품 코드나 보호 정책을 변경하지 않는다.
+
+
+### 후속: develop 병합과 실화면점검 (2026-10-08)
+
+사용자가 DriveTree → siku → ERP 순서의 develop 병합, 관련 preview/staging 관찰, 남은 보안 경고 노출 확인을 승인했다. 위 OPEN·병합 미실행 기록은 10월 7일 당시 결과다. 세 PR은 같은 고정 head의 필수 검사 6·6·8 PASS, 미해결 스레드 0, mergeable과 기존 독립 검토의 입력 불변 범위를 대조하고 기존 보호를 유지한 래퍼로 순서대로 병합했다. main 운영 배포·결제·새 인증 권한·보호 완화는 실행하지 않았다.
+
+| 제품 | 검증한 앱 병합 SHA | 병합·검사 | 외부 관찰과 남은 경계 |
+|---|---|---|---|
+| DriveTree | `a355bd25166e285d899430464e5e311f37b55d5d` | [PR #85](https://github.com/grinvi04/drivertree/pull/85) MERGED; 고정 head `907ea045` 필수 6 PASS | 같은 merge SHA의 Preview #6917497665 SUCCESS. 실제 화면 렌더 PASS, 가이드·범칙금 빈 상태 화면 및 유지비 계산 오류로 연결된 기능 smoke FAIL. Railway staging에 현재 새 배포 증거 없음; production 제외 |
+| siku | `92a929810c636aaec2670028a31566b50081811b` | [PR #87](https://github.com/grinvi04/siku/pull/87) MERGED; 고정 head `dea9994` 필수 6 PASS | 같은 merge SHA의 Preview #6917504540 SUCCESS. 실제 브라우저가 Vercel 로그인으로 이동해 앱 화면 UNVERIFIED. 감사 0의 이전 동일 입력 증거와 원격 DB drift 미측정은 구분 |
+| ERP | `9acfb7600c2f2e3abfaf6886211a6fd20e0fe4cc` | [PR #255](https://github.com/grinvi04/erp/pull/255) MERGED; 고정 head `7a13802` 필수 8 PASS | GitHub deployment 0, Vercel 기존 CLI 인증 없음·확인한 Chrome 세션 로그인 필요로 preview UNVERIFIED. 결제 부족으로 단정하지 않음; 전체 감사 high 9·운영 의존성 그래프 high 7 FAIL |
+| webhook-service | `e1eee56e101be3fc61526430599773116cd95797` | 앞선 v1.5.0·역병합·trusted 전환 유지 | 이번 앱/운영 배포 변경 없음. GHCR 직접 readback·운영 IdP·서비스 배포 미확인은 앞선 기록 유지 |
+
+Railway live `service.repoTriggers`에서 DriveTree develop → staging, main → production을 확인했다. staging 최신 배포는 2026-06-08 FAILED/stopped, active deployment 0이고 현재 source는 null이다. develop 트리거 존재와 새 배포 성공은 다르다. Vercel 화면 렌더만으로 API 연결·데이터·계산 기능까지 완료로 판정하지 않는다. 실제 미리보기의 공개 JS는 API base를 `https://drivertree-staging.up.railway.app/api`로 지정한다. 이 주소의 calculator/penalties GET은 HTTP 404 `Application not found`였으므로 연결 대상이 서비스되지 않는 상태임을 확인했다. 배포 누락의 근본 원인은 미확인이며 이번에는 인프라 설정을 바꾸지 않았다.
+
+현재 npm registry lock 감사 재확인은 DriveTree frontend high 5·backend moderate 20/운영 양쪽 0, ERP 전체 high 9/운영 그래프 high 7로 기존과 같다. 최초 inline 보고 스크립트 문법 오류는 raw 감사 결과 오류와 구분해 보존했고 성공한 운영 감사 exit 0을 전체 감사 PASS로 쓰지 않는다. [braces advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)와 [sprintf-js advisory](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)는 여전히 공식 수정판 None이다. 최신 버전 숫자나 npm 강제 다운그레이드를 안전한 호환 수정으로 취급하지 않는다.
+
+ERP에서 shadcn은 globals.css의 빌드 CSS import에 사용한다. 이전 검증 이미지 `erp-braces-full:20261007`의 root require.resolve 및 전체 /app/node_modules package.json 순회에서 braces·micromatch·shadcn·@shadcn/registry·ts-morph는 없었다. 이 제한된 컨테이너 런타임 부재와 install/빌드 그래프 high 7 경고를 구분하며, 현재 원격 배포 이미지나 모든 서버 입력의 안전성을 보증하지 않는다. 기존 제품 전용 깊이 보완 및 ignore-scripts 명시 적용을 유지하고 새 공용 패치·제품 의존성 변경은 하지 않았다.
+
+실행 원문·고정 후보·최초 실패·배포와 UI 관찰은 `$HOME/Documents/Codex/2026-10-08/consumer-merge-verification/`에 보존한다. ERP 사용자 primary feature `085d0ce`·미추적 `.codex/`와 Harness chat의 기존 `.gitignore` 변경을 유지한다. 제품 현재 안내는 문서 전용 [DriveTree PR #86](https://github.com/grinvi04/drivertree/pull/86)·[siku PR #88](https://github.com/grinvi04/siku/pull/88)·[ERP PR #256](https://github.com/grinvi04/erp/pull/256)의 필수 CI 6·6·8 PASS와 별도 문서 검토를 거쳐 develop에 병합했다. 표의 SHA는 실화면을 점검한 앱 병합 후보이며 이 문서 후속의 develop tip과 구분한다. 이슈 #496·프로젝트 지도도 이 관찰 범위로 갱신했고 과거 QA 기록은 그대로 둔다.
+
+다음 단계는 DriveTree staging 연결 원인을 진단하고 승인된 비운영 복구 범위를 정한 뒤 실제 기능을 재확인하며, 기존 Vercel 로그인으로 siku 화면과 ERP 배포 연결을 확인하는 것이다. 세 제품 main/default trusted 활성화는 별도 운영 릴리즈 경계에서 진행하고, 공식 호환 보안 수정판·webhook 직접 registry 인수는 별도 잔여로 유지한다. 이번 develop 병합을 소비 도입 전체 완료로 취급하지 않는다.
