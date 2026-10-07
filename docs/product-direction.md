@@ -251,6 +251,10 @@ CLI 0.156.1과 공식 manifest 문서를 재확인했으나 필요한 cross-plug
 
 여러 개발자가 LLM으로 백엔드·프론트엔드·인프라를 다루는 공통 기반으로 사용한다. 기술 기준·governance core·native adapter에 [개발 조정](development-coordination.md)을 선택적으로 연결한다. Agent Orchestration에서는 인계·현재 증거 확인·재개 원칙만 선택해 workflow-pack의 짧은 skill로 연결한다. 별도 선언 검사 패키지·역할 상태 체계는 가져오지 않는다. 제품 코드·진행은 제품 저장소, 모델 실행·권한은 native 플랫폼, 품질 gate는 기존 core가 책임진다. 새 실행 엔진이나 별도 정책 체계를 만들지 않는다. 회사의 실제 기준 채택 여부는 제품 원본에서 확인한다.
 
-최신 webhook 로컬 코드 `ef6585a`는 SDK 7.1.1 전환 후 전체 110개·집중 31개·실제 별도 Keycloak/Chrome 로그인·역할 경계 및 전체 runtime/dev graph 감사 0을 확인했다. 독립 검토와 전달 기록은 위 소비 진행 기록을 따른다. 운영 IdP·원격 gate·배포는 미확인이다.
+원격 전달 전 webhook 로컬 코드 `ef6585a`는 SDK 7.1.1 전환 후 전체 110개·집중 31개·실제 별도 Keycloak/Chrome 로그인·역할 경계 및 전체 runtime/dev graph 감사 0을 확인했다. 독립 검토와 전달 기록은 위 소비 진행 기록을 따른다. 당시 운영 IdP·원격 gate·배포는 미확인이었다. 현재 원격 CI·develop 병합 결과는 아래 후속을 따른다.
 
 DriveTree `907ea04`는 제품 전용 braces 깊이 보완·설치 확인·stdin import 회귀를 보안 10개로 검증했다. unit/build/Chromium의 기존 동일 앱 입력 증거 재사용과 full 감사 high 5는 구분한다. ERP `03a4bad`는 ignore-scripts·미확인 도달성 때문에 보완 미적용 조건과 증거 보존만 기록했다. Harness 공통 패치 기능이나 운영 배포는 추가하지 않았다.
+
+### 소비 원격 인수 후속 (2026-10-07)
+
+webhook은 기존 검증 입력을 보존하고 [develop PR #71](https://github.com/grinvi04/webhook-service/pull/71)의 실제 원격 필수 검사·독립 검토를 통과하고 develop `c4214248`로 병합했다. 보호 설정을 유지했으며 이미지 게시·운영 배포는 하지 않았다. SHA 지문 두 건의 secret-scan 오탐은 정확한 역사상 fingerprint만 식별하고 같은 경로의 합성 token 거부를 확인한다. ERP의 메시지 scope 오류를 고친 `b3fbfb36`은 기존 제품 입력을 유지한다. 사용자가 Vercel 관련 원격 작업 보류를 재확인해 DriveTree·siku와 제공자 preview 연결 미확인 ERP는 로컬 후보를 보존한다. main/default trusted 초기 배치·필수 context 전환·릴리즈·운영 배포는 완료되지 않았다. 실제 인수·정리 결과와 다음 행동은 [준비 기록](pilots/consumer-readiness-2026-10-07.md#후속-소비-원격-전달과-보류-조건-2026-10-07) 및 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)이 정본이다. 공통 Harness 동작·버전은 바꾸지 않는다.

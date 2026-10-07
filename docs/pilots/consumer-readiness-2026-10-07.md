@@ -205,8 +205,8 @@ develop 병합은 staging 자동 배포에 연결되므로 로컬 준비 완료�
 |---|---|---|---|
 | DriveTree | `907ea04` | Swagger YAML·Prisma 내부 보완 유지. backend 단위 70·새 DB 통합 19/migrate 3와 frontend Chromium 20은 이전 동일 앱 입력 증거 재사용. 새 braces PR #78 고정 보완·클린 npm ci 6파일 적용·보안 10·형식/lint PASS. frontend 단위 8·build는 40ffba2 원문 재사용 | 새 설치기 후보 독립 검토 기존 P2 해소·추가 P1/P2 없음. braces source 6·설치 6·원문 34개 지문 일치, 앞선 Prisma 연구/QA 기록 보존. 전체 감사 backend moderate 20/high 0·frontend high 5 FAIL; 운영 backend 0·frontend 0. 원격 CI·병합·배포 미실행 |
 | siku | `b6ed228` (코드 `5ad8a96`) | 클린 설치·형식·lint·build, 단위 86·실제 Auth/RLS/Storage 브라우저 25 PASS, 재시도 0, 전체 감사 0 | 코드·문서 독립 검토 기존 P2 해소·추가 P1/P2 없음. 권한 없는 0행 삭제 뒤 파일 보존, DB 삭제 뒤 Storage 실패의 함수·UI 부분 실패 처리 확인. 원격 DB 드리프트 미측정·DB/Storage 원자성 보장 안 함 |
-| ERP | `03a4bad` (코드 `dc080bd`) | Java 실제 단위/통합 957·FE 단위 60·Chromium 38 PASS, 품질·Docker 두 이미지·repo-sync 21/21, 실제 격리 Keycloak 초대/재초대·동일 사용자 재조회 PASS | curl 설정 파일 우회 RED→GREEN·독립 코드 검토 추가 P1/P2 없음. Java UP-TO-DATE 기록은 실제 실행으로 세지 않으며 새 DB의 `--rerun-tasks`/XML 증거를 별도 보존. 전체 high 9/critical 0 FAIL |
-| webhook-service | `2d08281` (코드 `ef6585a`) | python-keycloak 7.1.1·공유 JWK decode·RS256/엄격한 만료/exp 필수·승인된 admin 역할 유지. 새 Python 환경 전체 110·집중 31, Ruff format/lint·mypy·Alembic 단일 head·pre-commit PASS. 별도 Keycloak 22.0.5·Chrome의 실제 로그인/코드 교환/callback·admin 허용/viewer 거부 PASS | 코드·문서 고정 후보 독립 검토 추가 P1/P2 없음. product source 20·설치/probe source 6·원문 93개 지문 일치. 전체 해석 runtime 74개 패키지·dev 포함 91개 pin graph 감사 각각 0. 운영 realm issuer/audience·키 회전·원격 CI/병합/배포 미확인 |
+| ERP | `b3fbfb36` (동일 제품 입력 `dc080bd`, 메시지 수정 후 `2a5a103`) | Java 실제 단위/통합 957·FE 단위 60·Chromium 38 PASS, 품질·Docker 두 이미지·repo-sync 21/21, 실제 격리 Keycloak 초대/재초대·동일 사용자 재조회 PASS | curl 설정 파일 우회 RED→GREEN·독립 코드 검토 추가 P1/P2 없음. Java UP-TO-DATE 기록은 실제 실행으로 세지 않으며 새 DB의 `--rerun-tasks`/XML 증거를 별도 보존. 전체 high 9/critical 0 FAIL |
+| webhook-service | `c4214248` (develop merge; PR head `aee5ccf`, 동일 앱 입력 `ef6585a`) | python-keycloak 7.1.1·공유 JWK decode·RS256/엄격한 만료/exp 필수·승인된 admin 역할 유지. 새 Python 환경 전체 110·집중 31, Ruff format/lint·mypy·Alembic 단일 head·pre-commit PASS. 별도 Keycloak 22.0.5·Chrome의 실제 로그인/코드 교환/callback·admin 허용/viewer 거부 PASS | 코드·문서 고정 후보 독립 검토 추가 P1/P2 없음. product source 20·설치/probe source 6·원문 93개 지문 일치. 전체 해석 runtime 74개 패키지·dev 포함 91개 pin graph 감사 각각 0. PR #71 필수 원격 CI/독립 검토·develop 병합 확인. 운영 realm issuer/audience·키 회전·main/default 검사 전환·배포 미확인 |
 
 DriveTree의 최초 증분 lock 설치 실패와 클린 lock 복구, siku의 공식 CLI 서명/바인딩 차단·저장소 xattr 실패·PNG fixture 거부, ERP의 초기 포트 바인딩 문제·curlrc 반례·재사용 시험 DB 잔여 데이터로 인한 Java 2 FAIL(새 전용 DB에서 957 PASS), webhook의 최초 훅 환경 실패는 성공으로 덮어쓰지 않는다. 추가 커밋 훅의 잘못된 DB 사용자명에 의한 76 PASS·2 인증 오류는 보고를 보존했으나 전체 stdout 원문은 미보존이라는 한계도 명시했다. 올바른 전용 설정의 직접 driver 연결·최종 전체 훅은 새 원문으로 확인한다. 실제 실패 원인을 바꾼 재시도만 진행했다. OS 보안·전역 Docker 설정·RLS·기존 CI gate를 완화하지 않았다.
 
@@ -216,7 +216,7 @@ webhook의 이전 60/69/77 시험은 명시 주입한 로컬 DB/큐 실행 결�
 
 현재 증거 정본은 각 제품의 `docs/specs/quality-remediation.md`(siku/DriveTree), ERP의 `docs/specs/tenant-user-onboarding.md`와 외부 QA manifest, webhook의 `docs/qa/2026-10-07/README.md`와 해당 실행 manifest다. 선정한 로컬 QA·독립 검토·감사 FAIL·원격 gate 상태를 각각 기록한다. 새 trusted 파일 존재는 target 이벤트 실행/보호 강제의 증거가 아니다.
 
-ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조에서 추가 P1/P2 없음과 지문 일치를 확인했다. 네 고정 로컬 후보의 선정한 기능·회귀 검증과 독립 검토 인수는 마쳤다. 이후 Swagger YAML·관리자 인증 보완도 아래 기록의 고정 후보에서 인수했다. 최신 Prisma 내부 의존성 후보의 QA·독립 검토도 아래 기록에서 인수했다. 다음 단계는 보류한 Vercel 확인과 정확 후보의 원격 전달·trusted 검사 초기 배치 조건을 해결하는 것이다. 최신 로컬 보완·검증 결과는 아래 후속 기록을 따른다. main/default 배치·검사 전환·배포는 별도 단계다. 전체 소비 도입/보안/배포 준비는 아직 **NOT VERIFIED**이며 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)은 열어 둔다.
+ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조에서 추가 P1/P2 없음과 지문 일치를 확인했다. 네 고정 로컬 후보의 선정한 기능·회귀 검증과 독립 검토 인수는 마쳤다. 이후 Swagger YAML·관리자 인증 보완도 아래 기록의 고정 후보에서 인수했다. 최신 Prisma 내부 의존성 후보의 QA·독립 검토도 아래 기록에서 인수했다. 그 로컬 인수 시점의 다음 단계는 보류한 Vercel 확인과 정확 후보의 원격 전달·trusted 검사 초기 배치 조건 해결이었다. 현재 원격 인수와 다음 행동은 맨 아래 소비 원격 전달 후속을 따른다. 최신 로컬 보완·검증 결과는 아래 후속 기록을 따른다. main/default 배치·검사 전환·배포는 별도 단계다. 전체 소비 도입/보안/배포 준비는 아직 **NOT VERIFIED**이며 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)은 열어 둔다.
 
 ### 후속: 보안 잔여와 원격 전달 조건 조사
 
@@ -237,7 +237,7 @@ ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조�
 - **DriveTree 다른 전이:** 현재 Prisma 7.10.0은 mysql2 3.15.3, @prisma/config는 deepmerge-ts 7.1.5를 고정한다. registry의 최신 config 7.10.0도 동일 pin이다. [deepmerge-ts 수정](https://github.com/advisories/GHSA-ggr8-5vv4-36mx)은 8.0.0부터이며 [상위 이슈](https://github.com/prisma/orm/issues/30052)의 override 제안은 소비자 보고이지 upstream 호환성 보증이 아니다. Map 병합 의미 변경을 포함하므로 config·validate·generate·새 격리 DB migrate deploy·실제 ORM 흐름 회귀가 필요하다. mysql2의 [인증 downgrade](https://github.com/advisories/GHSA-3f6p-5ww8-9rcr)·[압축 해제 위험](https://github.com/advisories/GHSA-rgwj-5xj2-c3m3)은 별도 제약이다. 실제 제품은 PostgreSQL이며 MySQL 실행 경계의 도달성은 미확인이다. Prisma 6으로 내려 audit만 통과시키지 않는다.
 - **공식 수정판 없는 항목:** registry의 braces는 3.0.3, sprintf-js는 1.1.3이다. [braces 이슈](https://github.com/micromatch/braces/issues/73)·[보완 PR #78](https://github.com/micromatch/braces/pull/78), [sprintf-js advisory](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)를 근거로 upstream release 대기와 소비자 별도 보완을 구분한다. 샘플 patch를 자동 복사하거나 구버전 도구로 내려가지 않는다. 개별 patch를 채택하면 설치 후 검증·반례·원래 tool 동작·제거 조건을 제품 스펙에 연결해야 하며 audit 경고가 자동으로 사라지는 것은 아니다.
 
-| 제품 | 현재 읽기 전용 원격 확인 | 전달·병합 영향과 미확인 |
+| 제품 | 이 조사 당시 읽기 전용 원격 확인 | 전달·병합 영향과 미확인 |
 |---|---|---|
 | DriveTree | default main, develop `bd634e6`, main `49621e6`; strict/app-bound 필수 context develop 6개·main 5개, enforce_admins true | 현재 후보의 원격 CI는 미실행. develop의 Vercel Preview 배포 기록 확인. 저장소 CI/규약은 develop→Railway staging, main→Railway/Vercel production을 명시하지만 당시 Railway 연결 상태는 미조회; 후속 metadata 조회 결과와 남은 미확인은 아래 참조. fix/feature의 CI-only 주석만으로 외부 Preview 배포 없음으로 확정하지 않음 |
 | siku | default main, develop `c7b5bbd`, main `351ec7d`; 양쪽 strict/app-bound 필수 context 6개, enforce_admins true | CI는 PR에서 합성 Supabase·브라우저 흐름 실행. develop SHA의 Vercel Preview와 main SHA의 Production 배포 기록 확인. 새 후보의 Preview/원격 CI는 미실행이며 Supabase 원격 DB 드리프트 미측정 |
@@ -492,7 +492,8 @@ SDK 기본값에 의존하지 않고 JWK·RS256·leeway 0·exp 필수 계약을 
 공식 최신 pin의 runtime 해석 graph 74개·개발 graph 감사가 각각 0이다. 최초 직접 audit은
 macOS ensurepip SIGABRT로 실패해 원문을 보존하고, 전체 해석 graph를 고정한 별도 감사로
 대체했다. 직접 pin 감사만을 전체 감사로 쓰지 않는다. PyPI Alpha classifier와 외부 운영
-realm의 issuer/audience·키 회전·원격 미확인은 남으며 배포 준비 완료로 판정하지 않는다.
+realm의 issuer/audience·키 회전과 당시 원격 미확인은 로컬 후보의 한계로 남겼다.
+현재 원격 CI·develop 병합은 맨 아래 소비 원격 전달 후속을 따르며 배포 준비 완료는 아니다.
 코드 후보 manifest는 `97f868f702d554d4773f698d93286499fdbd2d090f150a625b2d26e6de162bdc`,
 독립 문서 정정 후 `2d08281`의 manifest는 `a343fc23086fb962f9dd3cc85619154e855911dd957456b171525e4a8dd78b1f`다.
 개발 pin 개수 110→91과 Alpha 분류 누락을 정정했고 코드·시험은 그대로다. 실제 Chrome
@@ -549,3 +550,17 @@ sprintf-js는 직접 과대 정밀도 오류와 실제 Jest coverage 경로에�
 승인한 결과는 아니다. ERP 첫 요청 전 자격증명 전송 차단과 webhook 대역/실저장 관찰 구분을
 검토 결과에 따라 보강했다. 최종 전달·CI·병합은 [PR #495](https://github.com/grinvi04/team-harness/pull/495) 원본을 따른다.
 소비 적용의 후속 상태·승인 범위는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)에서 추적한다.
+
+### 후속: 소비 원격 전달과 보류 조건 (2026-10-07)
+
+사용자는 네 소비 프로젝트의 인수와 완료 후 추가 worktree 정리를 요청했다. 앞선 로컬 단계의 실행·한계는 보존한다. Vercel 관련 원격 작업 보류를 다시 확인했으므로 DriveTree·siku는 push/PR을 실행하지 않는다. ERP도 문서의 선택형 Vercel PR preview 연결을 실제로 확인하지 못했으므로 원격 전달은 보류한다. webhook의 develop PR/CI/병합은 이미지 게시·운영 배포와 분리해서 진행한다.
+
+- webhook 전달 후보 `aee5ccf`: 기존 `2d08281`의 앱·시험·의존성·workflow 파일을 유지한 채 미게시 메시지 오류를 해결하고 전달 문서를 연결했다. [PR #71](https://github.com/grinvi04/webhook-service/pull/71)의 최초 후보 `a328e3e`는 기능 품질 등 검사 PASS지만 secret-scan이 QA SHA-256 두 개를 API 키로 오탐하여 FAIL였다. scanner 8.24.3의 원래 range RED 2건·정확한 커밋/파일/규칙/행 fingerprint 두 개만 적용한 GREEN 0건·같은 파일 경로의 새 합성 token 거부 exit 1을 확인했다. workflow·규칙·디렉터리 전체를 제외하지 않았고 고정 후보 독립 보안 검토와 새 원격 CI를 대조한다. 전달 후보 `aee5ccf`에서 필수 원격 CI 5개와 추가 test-guard/repo-sync SUCCESS, 미해결 스레드 0, 독립 검토 추가 P1/P2 없음·동일 보호 설정을 확인하고 래퍼로 PR #71을 develop에 병합했다. 원격 merge SHA는 `c4214248`이며 로컬 develop도 같은 SHA로 fast-forward했다. main/default trusted 활성화·이미지 게시·운영 배포는 완료하지 않았다. 병합 뒤 같은 `c4214248`의 [develop push CI](https://github.com/grinvi04/webhook-service/actions/runs/37570548035)도 build-and-test·alembic-heads·secret-scan SUCCESS, publish-image SKIPPED로 확인했다.
+- ERP `b3fbfb36`: `dc080bd`의 scope 누락만 고친 이력 `d72856e`의 전체 tree가 기존 `03a4bad`와 동일하다. 현재 validator range PASS와 스펙 후속 6줄을 독립 검토했다. 기존 Java 957/FE 60/Chromium 38 및 원문 보존은 동일 제품 입력의 증거를 재사용하며 이번 메시지 수정에서 다시 실행했다고 표시하지 않는다. 원래 feature `085d0ce`와 사용자 미추적 작업은 그대로다. high 9 잔여·원격 CI·병합·운영 적용 미확인은 유지한다.
+- DriveTree `907ea04`, siku `b6ed228`: 기존 후보와 로컬 QA를 보존하며 Vercel 원격 전달은 보류한다. 새 main/default trusted 초기 배치·event 정책·필수 context 전환은 네 프로젝트 모두 수행하지 않았다. 기존 검사와 보호 설정을 유지한다.
+
+webhook 최초 중간 reword 시도는 역사상 SDK 소스/현재 SDK 환경 불일치와 시험 환경 누락으로 훅 FAIL 후 abort했다. 그 최초 실패는 저장 원문 없이 잘린 도구 관찰만 남아 한계를 명시한다. 최종 전달 commit에서는 명시 주입한 격리 loopback PG/Redis로 Ruff·format·mypy·pytest 훅 전체 PASS를 확인했다. 최초 FAIL을 성공으로 재분류하지 않으며 검사 생략은 하지 않았다.
+
+이번 원격 단계의 실행·실패·반증 원문과 현재 후보/정리 결과는 `$HOME/Documents/Codex/2026-10-07/team-harness-consumer-remote-delivery/`에 보존한다. 이전 `preservation-manifest.json`을 덮어쓰지 않는다. 제품별 QA/다음 행동은 제품 문서와 이슈 #496에서 계속 추적하며, Vercel 보류와 전체 보안·trusted 활성화 잔여 때문에 네 소비 도입 전체는 완료가 아니다.
+
+정리 확인: 이번 ERP 임시 전달 worktree는 clean 상태·현재 fix ref/원래 후보 ref·원문 보존을 확인하고 제거했다. DriveTree·siku의 이미 없는 임시 경로 등록 3개도 refs를 유지하며 정리했다. 네 제품의 기본 checkout은 모두 보존했으며 추가 소비 worktree는 남지 않았다. ERP 기본 feature `085d0ce`와 미추적 `.codex/`는 바꾸지 않았다. 이 정리는 Vercel 보류 후보·감사 잔여·trusted 활성화를 완료 처리하지 않는다. 다음은 보류 해제 후 세 제품 원격 CI/리뷰 인수와 별도 main/default 검사 전환 조건 확인이다.
