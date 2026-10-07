@@ -258,3 +258,5 @@ DriveTree `907ea04`는 제품 전용 braces 깊이 보완·설치 확인·stdin 
 ### 소비 원격 인수 후속 (2026-10-07)
 
 webhook은 기존 검증 입력을 보존하고 [develop PR #71](https://github.com/grinvi04/webhook-service/pull/71)의 실제 원격 필수 검사·독립 검토를 통과하고 develop `c4214248`로 병합했다. 보호 설정을 유지했으며 이미지 게시·운영 배포는 하지 않았다. SHA 지문 두 건의 secret-scan 오탐은 정확한 역사상 fingerprint만 식별하고 같은 경로의 합성 token 거부를 확인한다. ERP의 메시지 scope 오류를 고친 `b3fbfb36`은 기존 제품 입력을 유지한다. 사용자가 Vercel 관련 원격 작업 보류를 재확인해 DriveTree·siku와 제공자 preview 연결 미확인 ERP는 로컬 후보를 보존한다. main/default trusted 초기 배치·필수 context 전환·릴리즈·운영 배포는 완료되지 않았다. 실제 인수·정리 결과와 다음 행동은 [준비 기록](pilots/consumer-readiness-2026-10-07.md#후속-소비-원격-전달과-보류-조건-2026-10-07) 및 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)이 정본이다. 공통 Harness 동작·버전은 바꾸지 않는다.
+
+의존성 후속 재확인에서 DriveTree 운영 감사 0·깊이 보완 10/10, ERP 보완 후보 high 9/7과 공식 수정판 부재를 확인했다. webhook trusted 자산의 로컬 계약 시험은 통과했지만 main 게시 영향 때문에 활성화는 준비 상태다. 현재 경계·완료 한계·복구 순서는 [후속 기록](pilots/consumer-readiness-2026-10-07.md#후속-의존성-재확인과-trusted-전환-준비-2026-10-07)을 따른다.

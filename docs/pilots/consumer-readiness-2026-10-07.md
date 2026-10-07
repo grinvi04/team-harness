@@ -564,3 +564,31 @@ webhook 최초 중간 reword 시도는 역사상 SDK 소스/현재 SDK 환경 �
 이번 원격 단계의 실행·실패·반증 원문과 현재 후보/정리 결과는 `$HOME/Documents/Codex/2026-10-07/team-harness-consumer-remote-delivery/`에 보존한다. 이전 `preservation-manifest.json`을 덮어쓰지 않는다. 제품별 QA/다음 행동은 제품 문서와 이슈 #496에서 계속 추적하며, Vercel 보류와 전체 보안·trusted 활성화 잔여 때문에 네 소비 도입 전체는 완료가 아니다.
 
 정리 확인: 이번 ERP 임시 전달 worktree는 clean 상태·현재 fix ref/원래 후보 ref·원문 보존을 확인하고 제거했다. DriveTree·siku의 이미 없는 임시 경로 등록 3개도 refs를 유지하며 정리했다. 네 제품의 기본 checkout은 모두 보존했으며 추가 소비 worktree는 남지 않았다. ERP 기본 feature `085d0ce`와 미추적 `.codex/`는 바꾸지 않았다. 이 정리는 Vercel 보류 후보·감사 잔여·trusted 활성화를 완료 처리하지 않는다. 다음은 보류 해제 후 세 제품 원격 CI/리뷰 인수와 별도 main/default 검사 전환 조건 확인이다.
+
+
+### 후속: 의존성 재확인과 trusted 전환 준비 (2026-10-07)
+
+이번 범위는 남은 의존성의 현재 보완 가능성 확인, 기존 로컬 보완 재검증과 webhook trusted 전환 준비다. Vercel 원격 보류와 운영 배포 제외는 유지한다. 소비 앱·lock·workflow·보호 설정을 변경하지 않았다.
+
+| 현재 대상 / 선정 이유 | 명령·관찰 경계 | 이번 결과 / 완료 한계 |
+|---|---|---|
+| DriveTree `907ea045` frontend·backend | 각 cwd에서 `npm audit --json`, `npm audit --json --omit=dev` | frontend 전체 high 5, backend 전체 moderate 20: exit 1/FAIL. 양쪽 운영 그래프 0: exit 0/PASS. 전체 보안 완료는 아님 |
+| ERP 보완 후보 `b3fbfb36` frontend | 그 ref의 package.json·lock을 격리 디렉터리에 추출한 lock 감사; 같은 두 audit 명령 | 전체 high 9, 운영 high 7: exit 1/FAIL. 모든 항목이 braces 전이에 연결됨. 설치된 앱·전체 회귀 검사는 이번에 재실행하지 않음 |
+| DriveTree 깊이 보완의 정상·거부·무결성 경계 | 실제 frontend에서 `npm run test:dependency-security` | 10/10 PASS·exit 0. 정상 문법/Next ESLint 소비, 깊이·직접 AST 거부, 설치 지문·재적용·변조/새 버전 거부, 개발 의존성 제외·stdin import 확인. npm 경고 해소와 구분 |
+| webhook develop `c4214248` trusted 자산 | workflow·validator와 Harness 정본 byte parity; `bash tests/commitlint-trusted-test.sh` | 두 파일 동일, 실제 shell의 정상·잘못된 메시지·head 변경·fetch 실패·metadata·역병합 회귀 PASS/exit 0. 로컬 계약 시험이며 GitHub target 활성화는 UNVERIFIED |
+
+최초 ERP 조회는 원래 작업 브랜치 `085d0ceb`에서 실행돼 전체 31(critical 4/high 19/moderate 8), 운영 26(critical 4/high 17/moderate 5)을 출력했다. 이 결과는 보완 후보의 퇴행이 아니다. 현재 전달 후보의 ref를 직접 읽어 별도 감사한 위 high 9/7과 분리해 보존했다. 첫 보안 시험 호출도 Harness cwd에서 실행해 package.json 부재로 exit 254였으며 파일 변경 없이 실제 DriveTree frontend에서 다시 실행했다. 최초 실패와 후보·cwd·raw 결과는 `$HOME/Documents/Codex/2026-10-07/team-harness-dependency-followup/`에 보존한다.
+
+registry latest는 braces 3.0.3·sprintf-js 1.1.3이며, [braces advisory](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)와 [sprintf-js advisory](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)의 patched versions는 None이다. 신규 공식 수정판으로 안전하게 교체할 대상은 이번 재확인에서 없었다. DriveTree의 기존 로컬 보완은 유지하고, ERP에 그 패치를 자동 복사하거나 Jest/Next lint를 강제 다운그레이드하지 않았다. ERP CSS/CLI·lint 경계의 별도 보완을 채택하려면 제품 스펙의 클린 설치·시각·BFF·품질 회귀 계약을 먼저 연결한다. sprintf-js는 앞선 소비 경로 조사와 같은 입력이므로 직접 라이브러리 위험과 현재 Jest 경로의 도달성 미확인을 유지한다.
+
+#### webhook trusted 활성화의 실행 조건과 복구
+
+현재 서버의 main/develop은 strict·GitHub Actions app binding을 가진 기존 필수 검사 5개를 유지하며 `commitlint-trusted`를 요구하지 않는다. main workflow 조회는 404, develop에는 파일이 있다. 명시 repository Actions policy 목록은 0이며 상위 정책 부재나 target 실행 가능성을 뜻하지 않는다. main push의 `publish-image`가 활성인 현재 구조에서 기본 브랜치 배치를 이번 준비 작업의 승인으로 실행하지 않는다.
+
+1. 이미지 게시 영향을 포함한 main 릴리즈 승인 범위를 확인하고 기존 보호·이벤트 정책을 보관한다. [공통 전환 계약](../specs/trusted-commitlint.md)을 따르며 별도 우회 workflow를 만들지 않는다.
+2. 승인된 기본 브랜치 후보에 workflow·validator를 배치하고 원격 blob/후보를 확인한다. 이 배치 PR의 기존 CI green으로 새 target 실행을 판정하지 않는다.
+3. 이후 실제 정상 PR의 고정 head에서 trusted 검사가 실행·성공하고 PR 파일을 실행하지 않았는지 확인한다. target 정책 거부·미실행은 UNVERIFIED이며 정책을 자동 완화하지 않는다.
+4. 기존 context를 유지한 채 새 app-bound context를 먼저 추가하고 전체 보호 readback을 대조한 다음에만 기존 요구/legacy workflow를 정리한다. strict·다른 필수 검사·승인·관리자 강제를 보존한다.
+5. 실패 시 기존 검사가 실제 실행되는 상태를 먼저 복원한다. 이번 준비에서는 보호·정책·main을 쓰지 않았으므로 서버 복구 변경도 없다. 완료 기준은 기본 브랜치 정본, 후속 실제 target PASS, 보호 readback과 문서 상태의 일치다.
+
+이번 재확인·로컬 계약 검증·전환 준비는 완료했지만 전체 소비 인수·전체 보안·trusted 활성화·배포는 완료되지 않았다. 다음 실행 경계는 공식 수정판 또는 별도 제품 보완 계약, 사용자의 Vercel 보류 해제, webhook 이미지 게시를 포함한 릴리즈 승인이다. 미확인을 완료로 올리지 않는다.
