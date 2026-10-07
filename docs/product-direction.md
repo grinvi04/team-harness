@@ -155,7 +155,7 @@ upstream PR #78의 깊이 보완을 설치 지문 검사와 연결했고, 제품
 778개가 통과했다. 공식 수정 버전은 없어 전체 감사 high 5건/전체 취약점 제거 FAIL은 유지한다.
 [후속 근거](specs/qa-install-v0.81.0-evidence.json)의 dependencySecurityFollowup·bracesMitigationFollowup과
 제품 docs/specs/dependency-security.md가 현재 상태·정식 수정판 확인 후 보완 제거 조건을 소유한다.
-이는 샘플 전용 보완이며 Harness 공통 패치 기능을 추가하지 않는다. 소비 프로젝트 수정·배포는 계속 보류한다.
+후속 샘플 `e3f1f47`은 경로 별칭 설치 no-op·stdin import 회귀를 9개 보안 시험과 독립 검토로 보완했다. 기존 앱 QA 재사용과 전체 감사 high 5 잔여는 구분한다. 이는 샘플 전용 보완이며 Harness 공통 패치 기능을 추가하지 않는다. 소비 프로젝트의 최신 승인·적용 상태는 아래 후속 기록과 이슈 #496에서 구분한다.
 
 2026-10-07 사용자 승인으로 [네 소비 프로젝트 적용 준비](pilots/consumer-readiness-2026-10-07.md)를
 읽기 전용으로 대조했다. 로컬과 원격 develop 후보를 분리했고, 최신 정본 차이는 ERP 1·siku 3·
@@ -165,6 +165,25 @@ webhook-service 1·DriveTree 1이다. 네 프로젝트의 QA 증거/문서 완�
 DriveTree → webhook-service → siku → erp이며, 첫 소비 변경·격리 실행은 승인 범위를 정한 뒤 진행한다.
 후속 범위는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496), 기록 전달·CI·병합은
 [PR #495](https://github.com/grinvi04/team-harness/pull/495) 원본을 따른다.
+
+이후 사용자 진행 승인으로 DriveTree의 QA/문서 계약과 검사 자산 준비·격리 로컬 QA를 수행했다.
+로컬 제품 후보 `b5fd437`에서 format/lint/build, backend 단위 70·실DB e2e 17,
+frontend 단위 8·Chromium 20(재시도 0)이 PASS다. 실제 HTTP 201/400/413/500 회귀와 검색 출처의
+응답/DB 긍정 단언을 보완했고, 빈 검색 반례 검출·복구 후 통합 검사·독립 재검토를 확인했다.
+로컬 repo-sync는 새 정본 workflow를 탐지해 18/18 PASS이며 기존 commitlint는 유지한다.
+**원격 CI·병합·신뢰 target 검사 활성화·배포는 미실행**이다. npm audit은 backend 운영 의존성
+19(critical 1/high 9), frontend 운영 의존성 9(critical 1/high 5)로 exit 1이므로 전체 보안/배포 준비 FAIL을 유지한다.
+DriveTree의 `docs/specs/quality-remediation.md`와 실행 근거 JSON이 제품 상태를 소유하며,
+자세한 인계와 다음 단계는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)에서 추적한다.
+이 최초 후보 이후 사용자가 네 소비 프로젝트 모두 진행을 승인했다. DriveTree `36f9b0d`는 회귀
+115개와 독립 검토를 통과했고 전체 감사 잔여를 제품 증거에 보존했다. siku `5ad8a96`는 실제
+Auth/RLS/Storage 브라우저 25·단위 86·감사 0건과 독립 검토를 확인하고 삭제 거부·부분 실패 처리를 보정했다.
+ERP 코드 `dc080bd`·기록 `4d4fbf4`는 실제 curl 우회 반례를 수정하고 격리 Keycloak 초대·재초대,
+FE 60+38·Docker·새 전용 DB Java 957개 실제 실행을 검증했다. 최초 DB 잔여 데이터 실패도 보존했다. webhook `5fd2213`는 DB/큐·상속 연결 설정·실패 출력·pytest 시작 전 dotenv 로딩을 보완하고
+기존·새 환경 각각 79개와 실제 시작 차단 회귀를 통과했다. 네 로컬 후보의 독립 재검토에서 추가 P1/P2 없음과 증거 지문 일치를 확인했다. 현재 전체 보안/원격 인수는 미완료이며 ERP의 기존 작업은 별도 worktree로 보존했다.
+현재 범위·후보·원문·검토 상태는 [진행 기록](pilots/consumer-readiness-2026-10-07.md#후속-네-소비-프로젝트의-로컬-적용-진행)과
+이슈 #496에 연결한다. develop 병합의 staging 자동 배포와 main/default 전환·보호 변경은 별도 영향 승인 범위다.
+후속 [보안·원격 조건 조사](pilots/consumer-readiness-2026-10-07.md#후속-보안-잔여와-원격-전달-조건-조사)에서 상위 pin·공식 수정판과 Preview 배포 기록을 확인했다. DriveTree `8c5b4f8`은 Swagger 한정 YAML 보완 후 backend 70+19와 독립 검토를 통과했다(frontend 8+20은 이전 증거 재사용). webhook `eba4bfb`은 관리자 로그인 SDK/URL/route·공유 PEM 키·OAuth state와 승인된 admin 역할 제한을 보완하고 기존/새 환경 각각 104개·독립 검토를 통과했다. callback 대역 Redis 시험과 실제 Redis 원자 소비 시험은 구분한다. 이 조사·보완을 현재 보안 또는 원격 인수 완료로 처리하지 않는다. 추가 조회에서 네 repo의 명시 Actions 정책 목록은 0·기본 workflow 권한 read였으나 target 실행은 미실행이다. Railway DriveTree staging의 현재 source는 null, production은 repo 연결만 확인됐으며 최신 과거 배포는 양쪽 FAILED다. 현재 trigger/Wait for CI는 미확인이고 Vercel 설정 조회는 invalid token으로 차단됐다. 사용자는 Vercel 확인을 후속으로 미뤘다. 이 결과로 자동 배포 안전을 확정하거나 provider 설정을 바꾸지 않는다. 이후 DriveTree 코드 `0a654e0`·검토 기록 `76cb019`는 Prisma 버전 유지·내부 의존성 두 개 보완으로 backend 70+19·새 DB migrate 3·운영 감사 0·독립 검토 추가 P1/P2 없음을 확인했다. 전체 개발 도구 감사와 frontend 경고는 남는다. webhook 2.x 호환 pin은 새 경고, 3.9.1은 허용 오차 밖 만료 토큰 수용 P1을 확인해 적용하지 않았다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
@@ -231,3 +250,7 @@ CLI 0.156.1과 공식 manifest 문서를 재확인했으나 필요한 cross-plug
 ## 공통 개발 기반과 선택형 개발 조정
 
 여러 개발자가 LLM으로 백엔드·프론트엔드·인프라를 다루는 공통 기반으로 사용한다. 기술 기준·governance core·native adapter에 [개발 조정](development-coordination.md)을 선택적으로 연결한다. Agent Orchestration에서는 인계·현재 증거 확인·재개 원칙만 선택해 workflow-pack의 짧은 skill로 연결한다. 별도 선언 검사 패키지·역할 상태 체계는 가져오지 않는다. 제품 코드·진행은 제품 저장소, 모델 실행·권한은 native 플랫폼, 품질 gate는 기존 core가 책임진다. 새 실행 엔진이나 별도 정책 체계를 만들지 않는다. 회사의 실제 기준 채택 여부는 제품 원본에서 확인한다.
+
+최신 webhook 로컬 코드 `ef6585a`는 SDK 7.1.1 전환 후 전체 110개·집중 31개·실제 별도 Keycloak/Chrome 로그인·역할 경계 및 전체 runtime/dev graph 감사 0을 확인했다. 독립 검토와 전달 기록은 위 소비 진행 기록을 따른다. 운영 IdP·원격 gate·배포는 미확인이다.
+
+DriveTree `907ea04`는 제품 전용 braces 깊이 보완·설치 확인·stdin import 회귀를 보안 10개로 검증했다. unit/build/Chromium의 기존 동일 앱 입력 증거 재사용과 full 감사 high 5는 구분한다. ERP `03a4bad`는 ignore-scripts·미확인 도달성 때문에 보완 미적용 조건과 증거 보존만 기록했다. Harness 공통 패치 기능이나 운영 배포는 추가하지 않았다.
