@@ -657,8 +657,8 @@ ERP에서 shadcn은 globals.css의 빌드 CSS import에 사용한다. 이전 검
 
 | 제품 | 검증한 앱 병합 SHA | 현재 복구 단계 | 선행 조건과 완료 한계 |
 |---|---|---|---|
-| DriveTree | `a355bd25166e285d899430464e5e311f37b55d5d` | 소스 연결 부재·배포 자격 비활성 확인; [제품 진단 기록 PR #87](https://github.com/grinvi04/drivertree/pull/87) | staging health404·실제 계산 FAIL 유지. 계정 활성화 여부와 workspace 영향 확인 후 staging 단독 소스·DB 참조·고정 SHA 배포·정상/거부 기능을 검증해야 함. Railway/결제/DB/보호 변경 0; 운영 복구 완료 아님 |
+| DriveTree | `a355bd25166e285d899430464e5e311f37b55d5d` | 소스 연결 부재·배포 자격 비활성 확인; [제품 진단 기록 PR #87](https://github.com/grinvi04/drivertree/pull/87) | staging health404·실제 계산 FAIL 유지. 활성화 전 workspace/production 영향·무료 플랜 가능성·비용 확인과 사용자 선택 후 staging 단독 소스·DB 참조·고정 SHA 배포·정상/거부 기능을 검증해야 함. Railway/결제/DB/보호 변경 0; 운영 복구 완료 아님 |
 
 재개 계약은 제품 `docs/specs/quality-remediation.md`가 소유하며 원문·schema·진단/수용 계획은 `$HOME/Documents/Codex/2026-10-08/drivetree-staging-recovery/`에 보존한다. 직접 환경 변경의 의미를 확인하기 전 `serviceInstanceUpdate`의 experimental 다중 환경 경로를 실행하지 않는다. 구독 변경·결제는 사용자 작업이고 workspace-wide 재시작 영향이 있을 수 있어 production 제외 경계를 먼저 재확인해야 한다. 코드 없는 진단 기록만 전달하며 공용 Harness 기능·버전·검사 기준은 바꾸지 않는다. 로컬 QA를 선택해도 원격 staging 복구 PASS로 쓰지 않는다.
 
-다음 단계는 사용자가 Railway 계정을 활성화할지 결정한 뒤 현재 자격·환경별 영향부터 재확인하는 것이다. Vercel 인증·나머지 소비 잔여·운영 배포 제외는 유지한다. 현재 복구는 차단 상태이며 진단 기록 전달·정리와 서비스 복구 완료를 구분한다.
+다음 단계는 활성화 전에 workspace/production 영향·무료 플랜 가능성·비용을 확인하고 사용자가 선택하는 것이다. 활성화·결제는 미승인·미실행이며, 사용자 활성화 이후 배포 자격을 다시 읽는다. Vercel 인증·나머지 소비 잔여·운영 배포 제외는 유지한다. 현재 복구는 차단 상태이며 진단 기록 전달·정리와 서비스 복구 완료를 구분한다.
