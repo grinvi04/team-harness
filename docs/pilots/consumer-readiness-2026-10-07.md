@@ -502,8 +502,8 @@ callback은 제품 lifespan과 별도 실제 Redis를 사용했으며, 앞선 �
 ### DriveTree 깊이 보완과 ERP의 미적용 조건
 
 DriveTree `40ffba2`는 braces 3.0.3의 원본/패치 lib 6파일 SHA와 PR #78 commit을
-고정해 postinstall·실제 설치 확인·직접 Next ESLint 소비 시험에 연결했다. 정상 비교 30개와
-깊이/직접 AST/100·101 경계, 설치 drift·재실행·symlink·omit 경계의 보안 9개가 통과했다.
+고정해 postinstall·실제 설치 확인·직접 Next ESLint 소비 시험에 연결했다. 격리 연구의 정상
+비교 30개·100/101 경계와 제품의 깊이/직접 AST·설치 drift·재실행·symlink·omit 보안 9개를 구분한다.
 독립 검토에서 stdin import ENOENT P2를 발견해 `907ea04`에서 RED→GREEN/보안 10개로
 보완했다. 최신 clean npm ci는 6파일을 실제 적용했으며, 변경 script의 형식/lint도 통과했다.
 앱 입력·lock·설치 패치 SHA가 같아 40ffba2의 단위 8/build와 앞선 Chromium 20을 재사용했다.
