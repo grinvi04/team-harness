@@ -611,12 +611,12 @@ ERP 원래 feature `085d0ce`·미추적 사용자 작업은 보존한다. 후보
 
 사용자가 소비 프로젝트의 Vercel 미리보기를 포함한 원격 push·PR·CI를 허용한 뒤 진행한 결과다. 위 Vercel 보류와 원격 미실행은 당시 상태로 보존한다. 세 제품 PR은 develop 대상으로 열려 있으며 병합·staging·운영 배포는 실행하지 않았다. 같은 후보의 GitHub required check와 외부 배포 결과를 별도로 판정한다.
 
-| 제품·현재 후보 | 원격 PR·필수 CI | 외부 결과와 남은 경계 |
-|---|---|---|
-| DriveTree `907ea04529f4ca4bb8b2c003f2eb3a8a886ae551` | [PR #85](https://github.com/grinvi04/drivertree/pull/85) OPEN, develop 대상 필수 6개 PASS | 같은 SHA의 Vercel Preview 배포 SUCCESS, [미리보기](https://drivertree-git-fix-harness-qa-contract-grinvi04-2237s-projects.vercel.app) GET 200. 로컬 전체 감사 frontend high 5·backend moderate 20 FAIL, 운영 그래프 양쪽 0은 별도 기록. 병합·staging/운영 반영 없음 |
-| siku `dea999426959627ebcac169a615905e67cdfdb97` | [PR #87](https://github.com/grinvi04/siku/pull/87) OPEN, 필수 6개 PASS. 최초 `b6ed228`의 repo-sync 정본 줄바꿈 FAIL을 설정 파일 한정 Prettier 폭 90·정본 바이트 적용으로 수정하고 새 head에서 다시 통과 | 같은 SHA의 Vercel Preview SUCCESS. [미리보기](https://siku-git-fix-harness-qa-contract-grinvi04-2237s-projects.vercel.app)는 비인증 GET 302로 Vercel 로그인에 이동하므로 앱 화면은 UNVERIFIED. 운영 DB drift 미측정·DB/Storage 삭제 비원자성 유지 |
-| ERP `7a13802ce712edb93240933bcd7841b629b42574` | [PR #255](https://github.com/grinvi04/erp/pull/255) OPEN, 필수 8개 PASS. 로컬 소스 10·원문 72개 지문 일치 | 이 SHA의 GitHub deployment·외부 commit status·Vercel PR 댓글 0건. CLI 인증이 없어 로그인 흐름을 중단했고 preview URL·실화면은 UNVERIFIED. 전체 감사 high 9·운영 high 7 FAIL; 실 Keycloak·업무 API 원격 UAT 미실행 |
-| webhook-service develop `e1eee56e101be3fc61526430599773116cd95797` | [정리 PR #75](https://github.com/grinvi04/webhook-service/pull/75) MERGED, head `84648232` 필수 5개 PASS·독립 검토 추가 P1/P2 없음. 앞선 main 릴리즈와 역병합·trusted 정상 PR은 아래 원본으로 구분 | main `661ee4f`/`v1.5.0` GHCR 게시 job SUCCESS, 직접 registry pull UNVERIFIED. main/develop 보호의 필수 context는 trusted로 전환됐지만 main의 역사상 legacy workflow 파일은 남음; 운영 배포 증거 없음 |
+| 제품 | 현재 후보 | 원격 PR·필수 CI | 외부 결과와 남은 경계 |
+|---|---|---|---|
+| DriveTree | `907ea04529f4ca4bb8b2c003f2eb3a8a886ae551` | [PR #85](https://github.com/grinvi04/drivertree/pull/85) OPEN, develop 대상 필수 6개 PASS | 같은 SHA의 Vercel Preview 배포 SUCCESS, [미리보기](https://drivertree-git-fix-harness-qa-contract-grinvi04-2237s-projects.vercel.app) GET 200. 로컬 전체 감사 frontend high 5·backend moderate 20 FAIL, 운영 그래프 양쪽 0은 별도 기록. 병합·staging/운영 반영 없음 |
+| siku | `dea999426959627ebcac169a615905e67cdfdb97` | [PR #87](https://github.com/grinvi04/siku/pull/87) OPEN, 필수 6개 PASS. 최초 `b6ed228`의 repo-sync 정본 줄바꿈 FAIL을 설정 파일 한정 Prettier 폭 90·정본 바이트 적용으로 수정하고 새 head에서 다시 통과 | 같은 SHA의 Vercel Preview SUCCESS. [미리보기](https://siku-git-fix-harness-qa-contract-grinvi04-2237s-projects.vercel.app)는 비인증 GET 302로 Vercel 로그인에 이동하므로 앱 화면은 UNVERIFIED. 운영 DB drift 미측정·DB/Storage 삭제 비원자성 유지 |
+| ERP | `7a13802ce712edb93240933bcd7841b629b42574` | [PR #255](https://github.com/grinvi04/erp/pull/255) OPEN, 필수 8개 PASS. 로컬 소스 10·원문 72개 지문 일치 | 이 SHA의 GitHub deployment·외부 commit status·Vercel PR 댓글 0건. CLI 인증이 없어 로그인 흐름을 중단했고 preview URL·실화면은 UNVERIFIED. 전체 감사 high 9·운영 high 7 FAIL; 실 Keycloak·업무 API 원격 UAT 미실행 |
+| webhook-service | `e1eee56e101be3fc61526430599773116cd95797` | [정리 PR #75](https://github.com/grinvi04/webhook-service/pull/75) MERGED, head `84648232` 필수 5개 PASS·독립 검토 추가 P1/P2 없음. 앞선 main 릴리즈와 역병합·trusted 정상 PR은 아래 원본으로 구분 | main `661ee4f`/`v1.5.0` GHCR 게시 job SUCCESS, 직접 registry pull UNVERIFIED. main/develop 보호의 필수 context는 trusted로 전환됐지만 main의 역사상 legacy workflow 파일은 남음; 운영 배포 증거 없음 |
 
 siku의 과거 QA 입력 101개 중 새 후보에서 `commitlint.config.cjs` 하나만 바뀌었고, 새 설정의 정본·형식·lint·repo-sync와 원격 필수 CI는 통과했다. 기존 앱 QA는 입력 불변 범위에만 재사용한다. ERP의 원래 feature `085d0ce`와 미추적 `.codex/`는 보존했고 이 원격 작업의 추가 소비 worktree는 0개다. 세 제품의 원문·초기 실패·현재 PR/배포 판정은 각 제품 스펙과 `$HOME/Documents/Codex/2026-10-07/siku-erp-remote-adoption/` 및 DriveTree 원격 인수 기록에 연결한다.
 
@@ -624,4 +624,6 @@ webhook-service는 [main PR #72](https://github.com/grinvi04/webhook-service/pul
 
 같은 제품의 [정상 PR #74](https://github.com/grinvi04/webhook-service/pull/74) 고정 head `2ae5c20fa1aedcf2d2e85d6c370f0d003da7aafa`에서 `commitlint-trusted`가 실제 SUCCESS였다. main/develop의 필수 5개는 기존 `commitlint`를 유지한 채 trusted를 먼저 추가·readback하고 이후 기존 요구만 제거·readback했다. 현재 양쪽 보호 목록은 `alembic-heads`, `build-and-test`, `secret-scan`, `destructive-ddl`, `commitlint-trusted`이며 strict·GitHub Actions app binding을 유지한다. [legacy 정리 PR #75](https://github.com/grinvi04/webhook-service/pull/75)의 고정 head `84648232d3d08c22b8c94296a4c03bd9bbd3769a`는 필수 5개 PASS·독립 읽기 전용 검토 추가 P1/P2 없음으로 develop `e1eee56e101be3fc61526430599773116cd95797`에 병합됐다. 같은 SHA의 [develop push CI](https://github.com/grinvi04/webhook-service/actions/runs/37623796575)에서도 build-and-test·alembic-heads·secret-scan SUCCESS, publish-image SKIPPED다. develop의 기존 `commitlint.yml`은 제거됐고 main v1.5.0에는 역사상 파일이 남아 다음 정상 릴리즈 전파를 기다린다. 현재 main의 trusted workflow 파일은 존재한다. 새로운 target 이벤트 정책 예외는 승인·적용하지 않았다.
 
-현재 세 제품의 PR 병합·실서비스 반영, ERP preview와 siku 앱 화면, webhook registry 직접 readback, 각 제품의 잔여 전체 감사와 운영 인수는 완료가 아니다. 다음 행동은 PR별 리뷰·병합 영향과 미확인 provider/보안 경계를 해당 제품 원본에서 따로 판정하는 것이다. webhook main의 legacy 파일 전파도 다음 정상 릴리즈에서 분리해 확인한다. 이 문서 갱신 자체는 소비 제품 코드나 보호 정책을 변경하지 않는다.
+현재 세 제품의 PR 병합·실서비스 반영, ERP preview와 siku 앱 화면, webhook registry 직접 readback, 각 제품의 잔여 전체 감사와 운영 인수는 완료가 아니다.
+
+다음 단계는 PR별 리뷰·병합 영향과 미확인 provider/보안 경계를 해당 제품 원본에서 따로 판정하는 것이다. webhook main의 legacy 파일 전파도 다음 정상 릴리즈에서 분리해 확인한다. 이 문서 갱신 자체는 소비 제품 코드나 보호 정책을 변경하지 않는다.
