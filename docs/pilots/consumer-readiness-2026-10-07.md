@@ -662,3 +662,22 @@ ERP에서 shadcn은 globals.css의 빌드 CSS import에 사용한다. 이전 검
 재개 계약은 제품 `docs/specs/quality-remediation.md`가 소유하며 원문·schema·진단/수용 계획은 `$HOME/Documents/Codex/2026-10-08/drivetree-staging-recovery/`에 보존한다. 직접 환경 변경의 의미를 확인하기 전 `serviceInstanceUpdate`의 experimental 다중 환경 경로를 실행하지 않는다. 구독 변경·결제는 사용자 작업이고 workspace-wide 재시작 영향이 있을 수 있어 production 제외 경계를 먼저 재확인해야 한다. 코드 없는 진단 기록만 전달하며 공용 Harness 기능·버전·검사 기준은 바꾸지 않는다. 로컬 QA를 선택해도 원격 staging 복구 PASS로 쓰지 않는다.
 
 다음 단계는 활성화 전에 workspace/production 영향·무료 플랜 가능성·비용을 확인하고 사용자가 선택하는 것이다. 활성화·결제는 미승인·미실행이며, 사용자 활성화 이후 배포 자격을 다시 읽는다. Vercel 인증·나머지 소비 잔여·운영 배포 제외는 유지한다. 현재 복구는 차단 상태이며 진단 기록 전달·정리와 서비스 복구 완료를 구분한다.
+
+
+#### 비용·테스트 환경 결정과 인증된 미리보기 관찰 (2026-10-08)
+
+현재 사용자 결정이 위 조건부 재개 계획보다 우선한다. DriveTree는 무료 tier 소진에 따른 추가 결제·Railway 활성화를 하지 않기로 해 원격 staging 복구를 보류했다. 기존 source null·활성 배포 0·health404는 복구하지 않았으며 역사상 6월 실패 원인은 미확인이다. 다른 호스팅·계정·플랜 변경도 승인된 것으로 간주하지 않는다.
+
+기존 Chrome의 Vercel 로그인이 현재 유효해 siku 앱 병합 후보의 미리보기로 접근했다. 페이지는 흰색·DOM 비어 있음이고 콘솔은 Supabase URL/공개 키 누락을 명시했다. Vercel에서 `VITE_SUPABASE_URL`·`VITE_SUPABASE_ANON_KEY`는 Production에만 있고 Shared 변수 연결도 없다. 값을 표시·복사하지 않았다. 사용자는 별도 Supabase 테스트 프로젝트가 없으므로 원격 검증 보류를 선택했다. 운영 변수를 Preview에 복사하거나 원격 DB/Auth/Storage·재배포를 실행하지 않는다.
+
+| 제품 | 검증한 앱 병합 SHA | 현재 인수 단계 | 선행 조건과 완료 한계 |
+|---|---|---|---|
+| DriveTree | `a355bd25166e285d899430464e5e311f37b55d5d` | 사용자 추가 결제·활성화 거절로 staging 복구 보류 | health404·연결 기능 FAIL 유지. 명시적 재개 결정 없이는 활성화·대체 호스팅·운영 변경 없음 |
+| siku | `92a929810c636aaec2670028a31566b50081811b` | 배포 #6917504540 [고정 미리보기](https://siku-8cjueeozm-grinvi04-2237s-projects.vercel.app) 인증 접근; Supabase build-time 변수 누락으로 흰 화면 FAIL | 별도 테스트 프로젝트 없음·사용자 원격 검증 보류. 로컬 QA86/25 유지; Production 변수 복사·DB/Auth/Storage·재배포 변경 없음 |
+| ERP | `9acfb7600c2f2e3abfaf6886211a6fd20e0fe4cc` | 현재 Vercel workspace `grinvi04-2237s-projects`의 ERP 검색 No Results Found; 현재 README는 운영 미배포·로컬 풀스택 | 현재 작업 공간 연결 미확인이고 모든 계정/공급자 부재를 증명하지 않음. 배포 가이드는 계획이며 새 프로젝트·Railway 활성화·운영 배포를 실행하지 않음. 원격 앱 QA UNVERIFIED |
+
+비용 없는 보안 재확인은 DriveTree frontend 전체 high5/운영0, backend 전체 moderate20/운영0, ERP develop frontend 전체 high9/운영high7로 판정 변화가 없었다. 현재 병합 후보 잠금파일 복사본으로 audit 6개를 실행해 각 명령·cwd·SHA·exit·원문을 보존했다. braces3.0.3·sprintf-js1.1.3 advisory의 공식 수정판은 없고 braces PR78은 미병합이다. ERP `shadcn/tailwind.css` 실제 import를 확인해 경고 숫자를 위한 단순 삭제/dev 이동·강제 downgrade는 하지 않았다. 전체 보안 FAIL과 기존 보완의 한계를 유지하며 실제 배포 안전을 잠금파일 감사로 대체하지 않는다.
+
+제품 미리보기 판정은 siku `docs/specs/quality-remediation.md` §9가 소유한다. 원문은 `$HOME/Documents/Codex/2026-10-08/preview-environment-verification/`, 보안 원문은 `no-cost-security-followup/`, 현재 결정은 이슈 #496과 지도에 연결한다. ERP 문서는 이미 운영 미배포·계획을 구분하므로 제품 파일을 변경하지 않고 이 소비 관찰만 연결했다. 앱·공용 Harness 기능·버전·검사 기준 변경은 없다.
+
+승인된 이번 범위의 확인·기록 전달·소유 임시 worktree 정리를 끝낸 뒤, 새 환경·수정판·재개 결정이 없는 같은 실패를 반복하지 않는다. 세 제품 main/default trusted 전환·운영 인수와 webhook 직접 registry/실 IdP 잔여는 별도 실행 조건으로 유지한다. 보류는 제품 품질·클라우드 복구 완료가 아니며 소비 도입 전체 완료로 표시하지 않는다.
