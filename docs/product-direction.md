@@ -271,3 +271,6 @@ webhook은 [main PR #72](https://github.com/grinvi04/webhook-service/pull/72) �
 ### develop 병합·외부 기능 관찰 (2026-10-08)
 
 사용자 승인 순서대로 DriveTree PR #85 → siku PR #87 → ERP PR #255를 develop에 병합했다. 필수 CI와 기존 고정 후보 검토를 대조했으며 보호 설정을 유지했다. DriveTree·siku의 merge SHA Preview는 생성됐지만 DriveTree 실제 유지비 계산은 오류로 FAIL, siku 앱 화면은 Vercel 로그인 보호로 UNVERIFIED, ERP 배포 연결도 UNVERIFIED다. 세 제품 main/default trusted 전환·운영 배포는 제외했다. 현재 상태·원문·다음 행동은 [최신 병합·실화면 점검](pilots/consumer-readiness-2026-10-07.md#후속-develop-병합과-실화면점검-2026-10-08)과 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)을 따른다. 공식 보안 수정판 부재와 전체 감사 잔여, 이전 ERP 컨테이너 런타임의 제한된 패키지 부재를 구분한다. 공통 Harness 동작·버전은 변경하지 않았다.
+
+
+DriveTree staging 복구 후속 조사에서 실제 소스 연결 null과 Railway 배포 자격 INACTIVE/체험 종료를 확인했다. API health404와 원격 계산 FAIL을 유지하고 결제·계정/인프라/DB·production 변경은 하지 않았다. 계정 활성화 여부·workspace 영향·환경 단독 소스 복원·고정 SHA 기능 검증의 재개 조건은 [staging 진단 후속](pilots/consumer-readiness-2026-10-07.md#staging-복구-진단-후속-2026-10-08)과 제품 PR87·이슈 #496을 따른다. 전체 소비 채택이나 실제 복구 완료로 판정하지 않는다.
