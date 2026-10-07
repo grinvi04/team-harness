@@ -205,7 +205,7 @@ develop 병합은 staging 자동 배포에 연결되므로 로컬 준비 완료�
 |---|---|---|---|
 | DriveTree | `907ea04` | Swagger YAML·Prisma 내부 보완 유지. backend 단위 70·새 DB 통합 19/migrate 3와 frontend Chromium 20은 이전 동일 앱 입력 증거 재사용. 새 braces PR #78 고정 보완·클린 npm ci 6파일 적용·보안 10·형식/lint PASS. frontend 단위 8·build는 40ffba2 원문 재사용 | 새 설치기 후보 독립 검토 기존 P2 해소·추가 P1/P2 없음. braces source 6·설치 6·원문 34개 지문 일치, 앞선 Prisma 연구/QA 기록 보존. 전체 감사 backend moderate 20/high 0·frontend high 5 FAIL; 운영 backend 0·frontend 0. 원격 CI·병합·배포 미실행 |
 | siku | `b6ed228` (코드 `5ad8a96`) | 클린 설치·형식·lint·build, 단위 86·실제 Auth/RLS/Storage 브라우저 25 PASS, 재시도 0, 전체 감사 0 | 코드·문서 독립 검토 기존 P2 해소·추가 P1/P2 없음. 권한 없는 0행 삭제 뒤 파일 보존, DB 삭제 뒤 Storage 실패의 함수·UI 부분 실패 처리 확인. 원격 DB 드리프트 미측정·DB/Storage 원자성 보장 안 함 |
-| ERP | `b3fbfb36` (동일 제품 입력 `dc080bd`, 메시지 수정 후 `2a5a103`) | Java 실제 단위/통합 957·FE 단위 60·Chromium 38 PASS, 품질·Docker 두 이미지·repo-sync 21/21, 실제 격리 Keycloak 초대/재초대·동일 사용자 재조회 PASS | curl 설정 파일 우회 RED→GREEN·독립 코드 검토 추가 P1/P2 없음. Java UP-TO-DATE 기록은 실제 실행으로 세지 않으며 새 DB의 `--rerun-tasks`/XML 증거를 별도 보존. 전체 high 9/critical 0 FAIL |
+| ERP | `7a13802` (보완 코드 `18b18a06`, 기존 기반 `b3fbfb36`) | braces 보안 회귀 11·FE 단위 60·Chromium 38(재시도 0), 타입/포맷/린트/디자인/빌드·CLI help·Docker deps/full PASS. CSS 2개·로그인 desktop/mobile·합성 인증 shell PNG 동일. Java 957·실 Keycloak은 backend 입력 불변으로 이전 증거 재사용 | 고정 후보 독립 검토 추가 P1/P2 없음. 합성 세션·backend 미기동 브라우저 smoke와 실제 HTTP BFF 세션 경계만 이번 실행. 전체 high 9/운영 high 7 FAIL·원격 보류 |
 | webhook-service | `c4214248` (develop merge; PR head `aee5ccf`, 동일 앱 입력 `ef6585a`) | python-keycloak 7.1.1·공유 JWK decode·RS256/엄격한 만료/exp 필수·승인된 admin 역할 유지. 새 Python 환경 전체 110·집중 31, Ruff format/lint·mypy·Alembic 단일 head·pre-commit PASS. 별도 Keycloak 22.0.5·Chrome의 실제 로그인/코드 교환/callback·admin 허용/viewer 거부 PASS | 코드·문서 고정 후보 독립 검토 추가 P1/P2 없음. product source 20·설치/probe source 6·원문 93개 지문 일치. 전체 해석 runtime 74개 패키지·dev 포함 91개 pin graph 감사 각각 0. PR #71 필수 원격 CI/독립 검토·develop 병합 확인. 운영 realm issuer/audience·키 회전·main/default 검사 전환·배포 미확인 |
 
 DriveTree의 최초 증분 lock 설치 실패와 클린 lock 복구, siku의 공식 CLI 서명/바인딩 차단·저장소 xattr 실패·PNG fixture 거부, ERP의 초기 포트 바인딩 문제·curlrc 반례·재사용 시험 DB 잔여 데이터로 인한 Java 2 FAIL(새 전용 DB에서 957 PASS), webhook의 최초 훅 환경 실패는 성공으로 덮어쓰지 않는다. 추가 커밋 훅의 잘못된 DB 사용자명에 의한 76 PASS·2 인증 오류는 보고를 보존했으나 전체 stdout 원문은 미보존이라는 한계도 명시했다. 올바른 전용 설정의 직접 driver 연결·최종 전체 훅은 새 원문으로 확인한다. 실제 실패 원인을 바꾼 재시도만 진행했다. OS 보안·전역 Docker 설정·RLS·기존 CI gate를 완화하지 않았다.
@@ -592,3 +592,15 @@ registry latest는 braces 3.0.3·sprintf-js 1.1.3이며, [braces advisory](https
 5. 실패 시 기존 검사가 실제 실행되는 상태를 먼저 복원한다. 이번 준비에서는 보호·정책·main을 쓰지 않았으므로 서버 복구 변경도 없다. 완료 기준은 기본 브랜치 정본, 후속 실제 target PASS, 보호 readback과 문서 상태의 일치다.
 
 이번 재확인·로컬 계약 검증·전환 준비는 완료했지만 전체 소비 인수·전체 보안·trusted 활성화·배포는 완료되지 않았다. 다음 실행 경계는 공식 수정판 또는 별도 제품 보완 계약, 사용자의 Vercel 보류 해제, webhook 이미지 게시를 포함한 릴리즈 승인이다. 미확인을 완료로 올리지 않는다.
+
+### 후속: ERP 깊이 보완의 로컬 인수 (2026-10-07)
+
+사용자 진행 승인에 따라 ERP 제품 스펙에 필수 범위·기대값을 먼저 연결하고 별도 worktree에서 검증했다. 로컬 후보 `7a13802`의 보완 코드는 `18b18a06`이며 기존 `b3fbfb36` 이후 package-lock·backend 입력은 바꾸지 않았다. 이 보완은 제품 소유 코드이고 Harness 공통 스크립트·스킬·버전은 변경하지 않는다. 앞선 미적용 조사 기록은 당시 후보 결과로 보존한다.
+
+- 상류 braces PR #78의 고정 SHA `97308a01d091b211cf015314a2d0696da28a5392`를 대조했다. 6개 중 5개 patched source는 그대로 같고, parse는 관련 없는 quote/comma 변경을 제외해 설치된 3.0.3의 정상 의미를 유지했다. 정확한 버전·원본/보완 지문을 쓰기 전에 검사하며 새 버전·변조는 거부한다. 100단계 초과 패턴 거부와 확장 수/임의 AST 전체 안전 보장 없음은 명시한다.
+- 최초 깊이 시험 4개 중 정상 1 PASS·깊이 3 FAIL → 보완 뒤 설치·무결성·parser/AST·실제 Next rootDir/shadcn fast-glob·stdin import 등 11 PASS다. CI 두 ignore-scripts 설치와 Docker deps 설치 뒤 명시 patch/check를 연결했다. production-only 설치와 이미지 안 보완 지문도 실제 확인했다. Vercel 제공자 설치 설정은 변경하거나 검증하지 않았다.
+- 클린 설치 뒤 FE 단위 60·Chromium 38(재시도 0)과 품질·빌드·CLI help PASS, CSS 2개 content와 세 PNG가 baseline과 byte 동일하다. 실제 HTTP BFF는 anonymous null, 합성 암호화 세션의 공개 tenant 응답 및 private token 미노출을 확인한다. 브라우저 시험은 합성 세션·backend 미기동이며 업무/실 IdP UAT 전체로 확대하지 않는다. Java 957/실 Keycloak의 이전 결과는 미변경 backend 입력에만 재사용한다.
+- 전체 audit high 9·운영 high 7/exit 1은 계속 FAIL이다. 로컬 패치가 registry metadata를 지우지 않는다. 공식 호환 수정판이 나오면 같은 계약으로 검증하고 보완 제거를 검토한다. Python encoding·upstream parse 비교·shadcn exports fixture·BFF null oracle·validator range 인자 오류의 최초 실패는 그대로 보존하고 수정 이유를 연결했다.
+- 원문·cwd·exit·지문과 고정 후보 독립 검토는 제품의 `docs/specs/erp-braces-local-evidence.json` 및 `$HOME/Documents/Codex/2026-10-07/erp-braces-local-adoption/`에 있다. 고정 코드 독립 검토는 추가 P1/P2·필수 로컬 검증 누락 없음으로 판정했다. 제품 스펙·설치 안내·배포 안내·결정 기록을 함께 갱신했다.
+
+ERP 원래 feature `085d0ce`·미추적 사용자 작업은 보존한다. 후보와 원문을 보존한 뒤 소유 임시 worktree를 제거하며 최종 정리·하네스 문서 전달 근거는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)에 연결한다. Vercel 관련 원격 전달, 실제 원격 CI·병합, main/default trusted 활성화·이미지 게시·운영 배포는 여전히 미완료다. 이번 로컬 인수를 네 제품 전체 완료로 취급하지 않는다.
