@@ -203,10 +203,10 @@ develop 병합은 staging 자동 배포에 연결되므로 로컬 준비 완료�
 
 | 제품 | 현재 로컬 후보 | 실제 로컬 검증 | 보안·검토 상태 / 한계 |
 |---|---|---|---|
-| DriveTree | `76cb019` (코드 `0a654e0`) | Swagger YAML 보완 유지, Prisma 7.10.0 유지·내부 두 의존성만 보완. 클린 설치·resolve·validate/generate·backend format/lint/build·단위 70·새 격리 DB migrate 3/통합 19 PASS. frontend 단위 8·Chromium 20은 이전 동일 입력 증거 재사용 | 코드 후보 `0a654e0` 독립 검토 추가 P1/P2 없음. source 12·원문 21개·격리 연구 원문 24개 지문 일치. 전체 감사 backend moderate 20/high 0·frontend high 5 FAIL; 운영 backend 0·frontend 0. 원격 CI·병합·배포 미실행 |
+| DriveTree | `907ea04` | Swagger YAML·Prisma 내부 보완 유지. backend 단위 70·새 DB 통합 19/migrate 3와 frontend Chromium 20은 이전 동일 앱 입력 증거 재사용. 새 braces PR #78 고정 보완·클린 npm ci 6파일 적용·보안 10·형식/lint PASS. frontend 단위 8·build는 40ffba2 원문 재사용 | 새 설치기 후보 독립 검토 기존 P2 해소·추가 P1/P2 없음. braces source 6·설치 6·원문 34개 지문 일치, 앞선 Prisma 연구/QA 기록 보존. 전체 감사 backend moderate 20/high 0·frontend high 5 FAIL; 운영 backend 0·frontend 0. 원격 CI·병합·배포 미실행 |
 | siku | `b6ed228` (코드 `5ad8a96`) | 클린 설치·형식·lint·build, 단위 86·실제 Auth/RLS/Storage 브라우저 25 PASS, 재시도 0, 전체 감사 0 | 코드·문서 독립 검토 기존 P2 해소·추가 P1/P2 없음. 권한 없는 0행 삭제 뒤 파일 보존, DB 삭제 뒤 Storage 실패의 함수·UI 부분 실패 처리 확인. 원격 DB 드리프트 미측정·DB/Storage 원자성 보장 안 함 |
-| ERP | `4d4fbf4` (코드 `dc080bd`) | Java 실제 단위/통합 957·FE 단위 60·Chromium 38 PASS, 품질·Docker 두 이미지·repo-sync 21/21, 실제 격리 Keycloak 초대/재초대·동일 사용자 재조회 PASS | curl 설정 파일 우회 RED→GREEN·독립 코드 검토 추가 P1/P2 없음. Java UP-TO-DATE 기록은 실제 실행으로 세지 않으며 새 DB의 `--rerun-tasks`/XML 증거를 별도 보존. 전체 high 9/critical 0 FAIL |
-| webhook-service | `eba4bfb` | 기존 DB/큐·dotenv 경계 유지, 관리자 SDK/로그인·state·서명·admin 권한 focused 25 PASS. 전체 기존/새 Python 환경 각각 104 PASS, Ruff format/lint·mypy·Alembic 단일 head·전체 훅 PASS | 고정 후보 독립 검토 추가 P1/P2 없음. source 19·원문 73개 지문 일치. 합성 HTTP·자체 RSA·callback 대역 Redis와 실제 Redis 동시 GETDEL 단일 소비를 구분. 전체 그래프 3개 패키지/15 advisory FAIL 유지. 외부 Keycloak·issuer/audience·키 회전·실제 브라우저·원격 gate 미확인 |
+| ERP | `03a4bad` (코드 `dc080bd`) | Java 실제 단위/통합 957·FE 단위 60·Chromium 38 PASS, 품질·Docker 두 이미지·repo-sync 21/21, 실제 격리 Keycloak 초대/재초대·동일 사용자 재조회 PASS | curl 설정 파일 우회 RED→GREEN·독립 코드 검토 추가 P1/P2 없음. Java UP-TO-DATE 기록은 실제 실행으로 세지 않으며 새 DB의 `--rerun-tasks`/XML 증거를 별도 보존. 전체 high 9/critical 0 FAIL |
+| webhook-service | `2d08281` (코드 `ef6585a`) | python-keycloak 7.1.1·공유 JWK decode·RS256/엄격한 만료/exp 필수·승인된 admin 역할 유지. 새 Python 환경 전체 110·집중 31, Ruff format/lint·mypy·Alembic 단일 head·pre-commit PASS. 별도 Keycloak 22.0.5·Chrome의 실제 로그인/코드 교환/callback·admin 허용/viewer 거부 PASS | 코드·문서 고정 후보 독립 검토 추가 P1/P2 없음. product source 20·설치/probe source 6·원문 93개 지문 일치. 전체 해석 runtime 74개 패키지·dev 포함 91개 pin graph 감사 각각 0. 운영 realm issuer/audience·키 회전·원격 CI/병합/배포 미확인 |
 
 DriveTree의 최초 증분 lock 설치 실패와 클린 lock 복구, siku의 공식 CLI 서명/바인딩 차단·저장소 xattr 실패·PNG fixture 거부, ERP의 초기 포트 바인딩 문제·curlrc 반례·재사용 시험 DB 잔여 데이터로 인한 Java 2 FAIL(새 전용 DB에서 957 PASS), webhook의 최초 훅 환경 실패는 성공으로 덮어쓰지 않는다. 추가 커밋 훅의 잘못된 DB 사용자명에 의한 76 PASS·2 인증 오류는 보고를 보존했으나 전체 stdout 원문은 미보존이라는 한계도 명시했다. 올바른 전용 설정의 직접 driver 연결·최종 전체 훅은 새 원문으로 확인한다. 실제 실패 원인을 바꾼 재시도만 진행했다. OS 보안·전역 Docker 설정·RLS·기존 CI gate를 완화하지 않았다.
 
@@ -216,7 +216,7 @@ webhook의 이전 60/69/77 시험은 명시 주입한 로컬 DB/큐 실행 결�
 
 현재 증거 정본은 각 제품의 `docs/specs/quality-remediation.md`(siku/DriveTree), ERP의 `docs/specs/tenant-user-onboarding.md`와 외부 QA manifest, webhook의 `docs/qa/2026-10-07/README.md`와 해당 실행 manifest다. 선정한 로컬 QA·독립 검토·감사 FAIL·원격 gate 상태를 각각 기록한다. 새 trusted 파일 존재는 target 이벤트 실행/보호 강제의 증거가 아니다.
 
-ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조에서 추가 P1/P2 없음과 지문 일치를 확인했다. 네 고정 로컬 후보의 선정한 기능·회귀 검증과 독립 검토 인수는 마쳤다. 이후 Swagger YAML·관리자 인증 보완도 아래 기록의 고정 후보에서 인수했다. 최신 Prisma 내부 의존성 후보의 QA·독립 검토도 아래 기록에서 인수했다. 다음 단계는 남은 의존성 감사의 호환성·변경 범위 결정과 원격 전달·staging 자동 배포 영향의 확인이다. main/default 배치·검사 전환·배포는 별도 단계다. 전체 소비 도입/보안/배포 준비는 아직 **NOT VERIFIED**이며 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)은 열어 둔다.
+ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조에서 추가 P1/P2 없음과 지문 일치를 확인했다. 네 고정 로컬 후보의 선정한 기능·회귀 검증과 독립 검토 인수는 마쳤다. 이후 Swagger YAML·관리자 인증 보완도 아래 기록의 고정 후보에서 인수했다. 최신 Prisma 내부 의존성 후보의 QA·독립 검토도 아래 기록에서 인수했다. 다음 단계는 보류한 Vercel 확인과 정확 후보의 원격 전달·trusted 검사 초기 배치 조건을 해결하는 것이다. 최신 로컬 보완·검증 결과는 아래 후속 기록을 따른다. main/default 배치·검사 전환·배포는 별도 단계다. 전체 소비 도입/보안/배포 준비는 아직 **NOT VERIFIED**이며 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)은 열어 둔다.
 
 ### 후속: 보안 잔여와 원격 전달 조건 조사
 
@@ -257,7 +257,7 @@ webhook의 urllib3 1.26.20은 python-keycloak 2.0.0 제약으로 묶이며, 2.16
 
 DriveTree의 Prisma 7.10.0을 유지한 합성 복사본에서 `@prisma/config` 아래 deepmerge-ts 8.0.0과 `prisma` 아래 mysql2 3.23.1만 교체했다. 현재 `prisma.config.ts`는 문자열 설정이며 Map을 쓰지 않는다. v8 Map 병합 의미 변경은 별도 표본으로 보존했다. 클린 설치·Prisma validate/generate는 합성 URL과 dotenv 비활성 조건에서 통과했고 DB 연결은 하지 않았다. scratch lock 감사는 backend 전체 24→20(moderate), 운영 high 4→0이다. 이는 제품 인수 PASS가 아니다. 후속 제품 후보 `0a654e0`에 최소 변경을 적용하고 클린 설치·실제 resolve·validate/generate·backend 품질·단위 70·새 격리 DB migrate 3/실DB e2e 19를 통과했다. source 12·원문 21개 지문을 대조했고 fixture 종료를 확인했다. 제품 운영 감사 0·전체 개발 도구 moderate 20 FAIL이며 고정 후보 독립 검토에서 추가 P1/P2 없음과 원문 지문 일치를 확인했다. MySQL 연결과 Map 설정의 호환성은 이 제품 PostgreSQL 검증의 범위 밖이다. frontend braces와 backend dev sprintf-js의 경고는 이 변경으로 해소되지 않는다.
 
-webhook의 두 SDK 대안도 제품 `eba4bfb`를 바꾸지 않고 scratch 환경에서 비교했다. 2.16.6 + setuptools 80.10.2는 해석/import와 서비스 비의존 인증 시험 24개를 통과하지만 setuptools의 새 보안 경고를 도입해 권고하지 않는다. 3.9.1은 jwcrypto로 바뀌며 현재 호출 옵션을 유지하면 **만료된 유효 서명 토큰을 거부하지 않는 회귀**가 발생했다. 시험 보조 패키지 누락의 최초 collection 오류와 실제 만료 검증 RED를 구분해 보존한다. 현재 SDK 의존성을 무조건 올리는 대신 키 형식·클레임/만료·issuer/audience·회전 계약을 명시한 별도 전환이 필요하다. 10초 만료 표본은 jwcrypto의 60초 허용 오차와 혼동할 수 있어 별도 동일 RSA/옵션 probe로 exp -120/-10/+300을 비교했다. 2.0.0은 두 만료값을 거부하고 미래값을 허용했지만 3.9.1은 모두 허용했다. 설치 SDK의 `check_claims={}`와 jwcrypto의 `check_claims is None` 조건을 원본에서 대조해 허용 오차 밖 만료 거부 실패를 확인했다. 3.9.1 runtime 감사 0건과 인증 시험 FAIL은 별도 판정이다. 비교 후보의 만료 수용은 독립 검토에서 P1로 판정되어 채택하지 않는다. 제품 `eba4bfb`는 변경 없는 clean 상태다. 소스 13·원문 25·설치 SDK 소스 3개 지문은 독립 대조에서 모두 일치했다. 2.16.6 후보의 runtime 감사는 ecdsa/jose/setuptools 3개 패키지·5개 중복 포함 항목 FAIL이다. 이 비교를 제품 전체 QA 또는 실제 Keycloak 연동으로 확대하지 않는다.
+webhook의 두 SDK 대안도 제품 `eba4bfb`를 바꾸지 않고 scratch 환경에서 비교했다. 2.16.6 + setuptools 80.10.2는 해석/import와 서비스 비의존 인증 시험 24개를 통과하지만 setuptools의 새 보안 경고를 도입해 권고하지 않는다. 3.9.1은 jwcrypto로 바뀌며 현재 호출 옵션을 유지하면 **만료된 유효 서명 토큰을 거부하지 않는 회귀**가 발생했다. 시험 보조 패키지 누락의 최초 collection 오류와 실제 만료 검증 RED를 구분해 보존한다. 현재 SDK 의존성을 무조건 올리는 대신 키 형식·클레임/만료·issuer/audience·회전 계약을 명시한 별도 전환이 필요하다. 10초 만료 표본은 jwcrypto의 60초 허용 오차와 혼동할 수 있어 별도 동일 RSA/옵션 probe로 exp -120/-10/+300을 비교했다. 2.0.0은 두 만료값을 거부하고 미래값을 허용했지만 3.9.1은 모두 허용했다. 설치 SDK의 `check_claims={}`와 jwcrypto의 `check_claims is None` 조건을 원본에서 대조해 허용 오차 밖 만료 거부 실패를 확인했다. 3.9.1 runtime 감사 0건과 인증 시험 FAIL은 별도 판정이다. 비교 후보의 만료 수용은 독립 검토에서 P1로 판정되어 채택하지 않는다. 이 비교 당시 제품 `eba4bfb`는 변경 없는 clean 상태였다. 소스 13·원문 25·설치 SDK 소스 3개 지문은 독립 대조에서 모두 일치했다. 2.16.6 후보의 runtime 감사는 ecdsa/jose/setuptools 3개 패키지·5개 중복 포함 항목 FAIL이다. 이 비교를 제품 전체 QA 또는 실제 Keycloak 연동으로 확대하지 않는다.
 
 
 격리 비교 근거: `/tmp/drivetree-prisma-compat-20261007/research.json`, 소스 6·원문 24, SHA-256 `373247c95be2ea8f9720518cbebca6c814006e6fa6f417b706d958c9ee956cd8`. 명령·cwd·종료와 원문 지문을 해당 기록에 보존한다.
@@ -479,8 +479,66 @@ Vercel CLI의 현재 인증은 invalid token으로 실패했다. 사용자는 �
 
 1. webhook 로그인 연결·state·승인된 admin 권한 보완: 실제 설치 SDK의 합성 HTTP·자체 서명 토큰·callback 대역 Redis에서 정상/오류/다른 브라우저/이전 쿠키 재생/만료/권한 거부를, 실제 격리 Redis에서 동시 원자 소비를 확인했다. `eba4bfb`의 전체 품질·독립 보안 검토·문서 인수를 마쳤다. 외부 운영 realm의 성공으로 확대하지 않는다.
 2. DriveTree YAML 수정 후보 적용: Swagger 하위 pin만 제한하여 정상 문서 생성·조회와 예산 거부, 클린 lock 설치·전체 backend 품질/실DB·감사·독립 검토를 수행한다. `8c5b4f8`에서 이 로컬 보완·회귀·독립 검토를 마쳤다. 이전 `36f9b0d`의 115개 검증 기록과 라이브러리 표본의 한계를 보존하며 전체 감사·원격 인수 완료로 확대하지 않는다.
-3. 공식 수정판 없는 braces/sprintf-js와 큰 의미 변경의 Prisma/Keycloak: DriveTree의 최소 Prisma 내부 보완은 `0a654e0`의 로컬 QA·감사·독립 검토로 인수했다. webhook 2.x 호환 pin은 새 감사 경고, 3.9.1은 만료 수용 P1 때문에 비교 후보로만 보존하고 채택하지 않는다. 다른 경고는 원래 제품 계약을 보존하는 소비자 보완 또는 상위 전환을 별도 설계한다. 검증 전 강제 override·downgrade·감사 예외로 완료 처리하지 않는다. 잔여 경고의 수용 여부와 해제 조건을 제품 기록으로 결정한다.
+3. 공식 수정판 없는 braces/sprintf-js와 큰 의미 변경의 Prisma/Keycloak: DriveTree의 최소 Prisma 내부 보완은 `0a654e0`의 로컬 QA·감사·독립 검토로 인수했다. webhook 2.x 호환 pin은 새 감사 경고, 3.9.1은 만료 수용 P1 때문에 비교 후보로만 보존하고 채택하지 않는다. 최신 SDK 전환과 DriveTree braces 소비자 보완은 아래 최신 기록에서 구분한다. 남은 ERP braces/sprintf 경고는 현재 도달성·설치 정책과 공식 수정판 유무로 미해결 상태를 유지한다. 검증 전 강제 override·downgrade·감사 예외로 완료 처리하지 않는다. 잔여 경고의 수용 여부와 해제 조건을 제품 기록으로 결정한다.
 4. 원격 전달: Preview·이미지 게시·외부 자동 배포 영향과 Actions event policy를 확인한 구체적 후보로 PR/CI 인수한다. trusted bootstrap과 필수 context 전환은 기존 보호 유지·정확 후보 실행·서버 readback을 각각 증명하며 이후 운영 배포는 별도 경계다.
+
+### 최신 인증 SDK 전환 후보
+
+`ef6585a`는 2.x/3.9.1 비교 결과를 바탕으로 python-keycloak 7.1.1로 전환했다.
+SDK 기본값에 의존하지 않고 JWK·RS256·leeway 0·exp 필수 계약을 UI/API에서 공유한다.
+집중 RED 5 FAIL/20 PASS, 추가 만료/누락 계약 RED 7 FAIL/24 PASS를 보존했고 최종 31 PASS다.
+기존 DB/queue/dotenv 시작 차단 계약과 새 전체 110개 시험이 통과했다. 실제 별도 Keycloak
+22.0.5와 Chrome에서 admin/viewer의 로그인·코드 교환·callback·접근 허용/거부도 확인했다.
+공식 최신 pin의 runtime 해석 graph 74개·개발 graph 감사가 각각 0이다. 최초 직접 audit은
+macOS ensurepip SIGABRT로 실패해 원문을 보존하고, 전체 해석 graph를 고정한 별도 감사로
+대체했다. 직접 pin 감사만을 전체 감사로 쓰지 않는다. PyPI Alpha classifier와 외부 운영
+realm의 issuer/audience·키 회전·원격 미확인은 남으며 배포 준비 완료로 판정하지 않는다.
+코드 후보 manifest는 `97f868f702d554d4773f698d93286499fdbd2d090f150a625b2d26e6de162bdc`,
+독립 문서 정정 후 `2d08281`의 manifest는 `a343fc23086fb962f9dd3cc85619154e855911dd957456b171525e4a8dd78b1f`다.
+개발 pin 개수 110→91과 Alpha 분류 누락을 정정했고 코드·시험은 그대로다. 실제 Chrome
+callback은 제품 lifespan과 별도 실제 Redis를 사용했으며, 앞선 대역 callback과 구분한다.
+이전 `eba4bfb`의 104개/15 advisory와 위험 비교 후보는 당시 사실로 보존한다.
+
+### DriveTree 깊이 보완과 ERP의 미적용 조건
+
+DriveTree `40ffba2`는 braces 3.0.3의 원본/패치 lib 6파일 SHA와 PR #78 commit을
+고정해 postinstall·실제 설치 확인·직접 Next ESLint 소비 시험에 연결했다. 정상 비교 30개와
+깊이/직접 AST/100·101 경계, 설치 drift·재실행·symlink·omit 경계의 보안 9개가 통과했다.
+독립 검토에서 stdin import ENOENT P2를 발견해 `907ea04`에서 RED→GREEN/보안 10개로
+보완했다. 최신 clean npm ci는 6파일을 실제 적용했으며, 변경 script의 형식/lint도 통과했다.
+앱 입력·lock·설치 패치 SHA가 같아 40ffba2의 단위 8/build와 앞선 Chromium 20을 재사용했다.
+이전 script 후보를 현재 통과로 쓰지 않으며 원격/current-browser 미실행과 감사 high 5를 유지한다.
+공식 수정판이 아니므로 >100 깊이 패턴을 의도적으로 거부하고 임의 AST/출력 폭증 안전은
+보장하지 않는다. 공식 호환 수정판·동등 회귀를 확인할 때 로컬 보완을 제거한다.
+
+ERP `03a4bad`는 문서 전용 후속이다. 같은 라이브러리 반례는 재현했으나 현 rootDir 입력
+노출은 확인하지 못했고 CI·Docker의 npm ci --ignore-scripts 정책 때문에 단순 postinstall은
+작동하지 않는다. 적용한다면 이 경로별 명시 실행·검사를 먼저 설계해야 하며 현재 패치는 없다.
+sprintf-js는 직접 과대 정밀도 오류와 실제 Jest coverage 경로에서 import 0을 구분했다.
+개발 도구 잔여 감사와 미확인 노출을 수용 완료로 바꾸지 않는다.
+
+### 이번 연속 실행의 종료 범위와 증거 보존
+
+사용자는 승인된 확인·수정·검증·문서 현행화와 소유 worktree 정리를 마칠 때까지
+연속 진행을 요청했다. Vercel 조회 보류와 소비 프로젝트 운영 배포 경계는 유지한다.
+하네스 코드·플러그인 버전은 변경하지 않았으며, 현재 기록 전달만 develop PR 대상으로 한다.
+
+- 하네스 `7e55f8e`의 quality job 63개 run step을 그대로 로컬 실행해 63 PASS다.
+  최초 step 7은 pipx 부재(exit 127)로 중단됐고, 전역 설치 없이 작업 전용 pipx 환경을
+  준비해 step 7~63을 재실행했다. 미변경 후보의 step 1~6 증거는 재사용한다.
+  이 결과는 GitHub의 별도 secret-scan/macOS/commitlint gate 통과 주장과 구분한다.
+- 소비 비교 중 샘플 설치기의 경로 별칭 성공/no-op 결함도 발견했다. 샘플 `e3f1f47`은
+  realpath 직접 실행 판정과 stdin import 보호를 보완했다. 별칭 RED 1 FAIL, stdin
+  RED 1 PASS/1 FAIL → 보안 9 PASS·frontend lint PASS, 독립 검토 추가 P1/P2 없음이다.
+  기존 앱 QA는 입력 불변으로 재사용했으며 전체 감사 high 5 잔여는 유지한다.
+- 원문·실패·ERP JUnit XML 묶음은
+  `$HOME/Documents/Codex/2026-10-07/team-harness-consumer-qa-evidence/`에
+  같은 SHA-256으로 보존했다. `preservation-manifest.json`은 원래 cwd/파일 경로를 바꾸지
+  않고 보존 사본 위치로 연결하며 `harness-quality-combined.json`은 63단계와 최초 실패를 연결한다.
+- 기존 지도·사용자 마일스톤은 `$HOME/project/team-harness/.project-map/`에
+  바이트 동일하게 보존했다. 다른 채팅의 지도 작업이 종료된 뒤 서비스의 하네스 원본
+  경로만 이 일반 clone으로 변경했다. 나머지 네 프로젝트 설정은 유지했고 서비스 health와
+  다섯 프로젝트 페이지 HTTP 200을 확인했다. 작업용 worktree 정리 후에도 이 경로를 사용한다.
 
 ```harness-doc-sync
 {"version":1,"documents":[{"path":"docs/pilots/consumer-readiness-2026-10-07.md","reason":"원본 신선도·QA 준비·최소 적용 계획과 종료 경계"},{"path":"docs/pilots/consumer-readiness-2026-10-07.json","reason":"명령·후보·원문·지문·서버 정책·미실행 구분"},{"path":"docs/product-direction.md","reason":"현재 로컬 적용 범위·원격 전달 경계와 다음 행동"}],"items":[]}

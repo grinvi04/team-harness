@@ -155,7 +155,7 @@ upstream PR #78의 깊이 보완을 설치 지문 검사와 연결했고, 제품
 778개가 통과했다. 공식 수정 버전은 없어 전체 감사 high 5건/전체 취약점 제거 FAIL은 유지한다.
 [후속 근거](specs/qa-install-v0.81.0-evidence.json)의 dependencySecurityFollowup·bracesMitigationFollowup과
 제품 docs/specs/dependency-security.md가 현재 상태·정식 수정판 확인 후 보완 제거 조건을 소유한다.
-이는 샘플 전용 보완이며 Harness 공통 패치 기능을 추가하지 않는다. 소비 프로젝트의 최신 승인·적용 상태는 아래 후속 기록과 이슈 #496에서 구분한다.
+후속 샘플 `e3f1f47`은 경로 별칭 설치 no-op·stdin import 회귀를 9개 보안 시험과 독립 검토로 보완했다. 기존 앱 QA 재사용과 전체 감사 high 5 잔여는 구분한다. 이는 샘플 전용 보완이며 Harness 공통 패치 기능을 추가하지 않는다. 소비 프로젝트의 최신 승인·적용 상태는 아래 후속 기록과 이슈 #496에서 구분한다.
 
 2026-10-07 사용자 승인으로 [네 소비 프로젝트 적용 준비](pilots/consumer-readiness-2026-10-07.md)를
 읽기 전용으로 대조했다. 로컬과 원격 develop 후보를 분리했고, 최신 정본 차이는 ERP 1·siku 3·
@@ -250,3 +250,7 @@ CLI 0.156.1과 공식 manifest 문서를 재확인했으나 필요한 cross-plug
 ## 공통 개발 기반과 선택형 개발 조정
 
 여러 개발자가 LLM으로 백엔드·프론트엔드·인프라를 다루는 공통 기반으로 사용한다. 기술 기준·governance core·native adapter에 [개발 조정](development-coordination.md)을 선택적으로 연결한다. Agent Orchestration에서는 인계·현재 증거 확인·재개 원칙만 선택해 workflow-pack의 짧은 skill로 연결한다. 별도 선언 검사 패키지·역할 상태 체계는 가져오지 않는다. 제품 코드·진행은 제품 저장소, 모델 실행·권한은 native 플랫폼, 품질 gate는 기존 core가 책임진다. 새 실행 엔진이나 별도 정책 체계를 만들지 않는다. 회사의 실제 기준 채택 여부는 제품 원본에서 확인한다.
+
+최신 webhook 로컬 코드 `ef6585a`는 SDK 7.1.1 전환 후 전체 110개·집중 31개·실제 별도 Keycloak/Chrome 로그인·역할 경계 및 전체 runtime/dev graph 감사 0을 확인했다. 독립 검토와 전달 기록은 위 소비 진행 기록을 따른다. 운영 IdP·원격 gate·배포는 미확인이다.
+
+DriveTree `907ea04`는 제품 전용 braces 깊이 보완·설치 확인·stdin import 회귀를 보안 10개로 검증했다. unit/build/Chromium의 기존 동일 앱 입력 증거 재사용과 full 감사 high 5는 구분한다. ERP `03a4bad`는 ignore-scripts·미확인 도달성 때문에 보완 미적용 조건과 증거 보존만 기록했다. Harness 공통 패치 기능이나 운영 배포는 추가하지 않았다.
