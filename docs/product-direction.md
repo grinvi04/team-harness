@@ -183,6 +183,7 @@ FE 60+38·Docker·새 전용 DB Java 957개 실제 실행을 검증했다. 최�
 기존·새 환경 각각 79개와 실제 시작 차단 회귀를 통과했다. 네 로컬 후보의 독립 재검토에서 추가 P1/P2 없음과 증거 지문 일치를 확인했다. 현재 전체 보안/원격 인수는 미완료이며 ERP의 기존 작업은 별도 worktree로 보존했다.
 현재 범위·후보·원문·검토 상태는 [진행 기록](pilots/consumer-readiness-2026-10-07.md#후속-네-소비-프로젝트의-로컬-적용-진행)과
 이슈 #496에 연결한다. develop 병합의 staging 자동 배포와 main/default 전환·보호 변경은 별도 영향 승인 범위다.
+후속 [보안·원격 조건 조사](pilots/consumer-readiness-2026-10-07.md#후속-보안-잔여와-원격-전달-조건-조사)에서 상위 pin·공식 수정판과 Preview 배포 기록을 확인했다. DriveTree `8c5b4f8`은 Swagger 한정 YAML 보완 후 backend 70+19와 독립 검토를 통과했다(frontend 8+20은 이전 증거 재사용). webhook `eba4bfb`은 관리자 로그인 SDK/URL/route·공유 PEM 키·OAuth state와 승인된 admin 역할 제한을 보완하고 기존/새 환경 각각 104개·독립 검토를 통과했다. callback 대역 Redis 시험과 실제 Redis 원자 소비 시험은 구분한다. 이 조사·보완을 현재 보안 또는 원격 인수 완료로 처리하지 않는다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.

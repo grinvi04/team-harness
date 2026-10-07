@@ -203,10 +203,10 @@ develop 병합은 staging 자동 배포에 연결되므로 로컬 준비 완료�
 
 | 제품 | 현재 로컬 후보 | 실제 로컬 검증 | 보안·검토 상태 / 한계 |
 |---|---|---|---|
-| DriveTree | `36f9b0d` | 양쪽 클린 설치·format/lint/build, backend 단위 70·통합 17, frontend 단위 8·Chromium 20 = 115 PASS, 재시도 0 | 독립 검토 추가 P1/P2 없음. 전체 감사 backend moderate 21/high 4·frontend high 5 FAIL; 운영 frontend 0·backend moderate 2/high 4/critical 0 |
+| DriveTree | `8c5b4f8` | Swagger 한정 YAML 5.4.3 보완, 클린 설치·backend format/lint/build·단위 70·실DB 통합 19 PASS. frontend 단위 8·Chromium 20은 이전 후보의 변경 없는 증거 재사용이며 이번 재실행 아님 | 고정 후보 독립 검토 추가 P1/P2 없음. source 4·원문 18개 지문 일치. 전체 감사 backend moderate 20/high 4·frontend high 5 FAIL; 운영 backend high 4·frontend 0. 원격 CI·병합·배포 미실행 |
 | siku | `b6ed228` (코드 `5ad8a96`) | 클린 설치·형식·lint·build, 단위 86·실제 Auth/RLS/Storage 브라우저 25 PASS, 재시도 0, 전체 감사 0 | 코드·문서 독립 검토 기존 P2 해소·추가 P1/P2 없음. 권한 없는 0행 삭제 뒤 파일 보존, DB 삭제 뒤 Storage 실패의 함수·UI 부분 실패 처리 확인. 원격 DB 드리프트 미측정·DB/Storage 원자성 보장 안 함 |
 | ERP | `4d4fbf4` (코드 `dc080bd`) | Java 실제 단위/통합 957·FE 단위 60·Chromium 38 PASS, 품질·Docker 두 이미지·repo-sync 21/21, 실제 격리 Keycloak 초대/재초대·동일 사용자 재조회 PASS | curl 설정 파일 우회 RED→GREEN·독립 코드 검토 추가 P1/P2 없음. Java UP-TO-DATE 기록은 실제 실행으로 세지 않으며 새 DB의 `--rerun-tasks`/XML 증거를 별도 보존. 전체 high 9/critical 0 FAIL |
-| webhook-service | `5fd2213` | 실제 격리 DB/Redis 예약 회복·품질·pytest 기존/새 환경 각각 79 PASS. 잘못된 DB/큐/libpq 설정은 연결·DDL·게시 0회. 실제 pytest 시작 회귀에서 dotenv 플러그인 비활성·합성값 미유입·find/load 0회, Pydantic provider 차단·실패 출력 비노출 확인 | 목적지/DDL·libpq·실패 출력·초기 dotenv 로딩 P2를 모두 보완하고 독립 재검토 추가 P1/P2 없음. source 14·실행 증거 61개 지문 일치. 직접 pin 감사 0과 전체 그래프 3개 패키지/15 advisory FAIL을 구분. 실제 외부 Keycloak·원격 gate 미확인 |
+| webhook-service | `eba4bfb` | 기존 DB/큐·dotenv 경계 유지, 관리자 SDK/로그인·state·서명·admin 권한 focused 25 PASS. 전체 기존/새 Python 환경 각각 104 PASS, Ruff format/lint·mypy·Alembic 단일 head·전체 훅 PASS | 고정 후보 독립 검토 추가 P1/P2 없음. source 19·원문 73개 지문 일치. 합성 HTTP·자체 RSA·callback 대역 Redis와 실제 Redis 동시 GETDEL 단일 소비를 구분. 전체 그래프 3개 패키지/15 advisory FAIL 유지. 외부 Keycloak·issuer/audience·키 회전·실제 브라우저·원격 gate 미확인 |
 
 DriveTree의 최초 증분 lock 설치 실패와 클린 lock 복구, siku의 공식 CLI 서명/바인딩 차단·저장소 xattr 실패·PNG fixture 거부, ERP의 초기 포트 바인딩 문제·curlrc 반례·재사용 시험 DB 잔여 데이터로 인한 Java 2 FAIL(새 전용 DB에서 957 PASS), webhook의 최초 훅 환경 실패는 성공으로 덮어쓰지 않는다. 추가 커밋 훅의 잘못된 DB 사용자명에 의한 76 PASS·2 인증 오류는 보고를 보존했으나 전체 stdout 원문은 미보존이라는 한계도 명시했다. 올바른 전용 설정의 직접 driver 연결·최종 전체 훅은 새 원문으로 확인한다. 실제 실패 원인을 바꾼 재시도만 진행했다. OS 보안·전역 Docker 설정·RLS·기존 CI gate를 완화하지 않았다.
 
@@ -216,7 +216,49 @@ webhook의 이전 60/69/77 시험은 명시 주입한 로컬 DB/큐 실행 결�
 
 현재 증거 정본은 각 제품의 `docs/specs/quality-remediation.md`(siku/DriveTree), ERP의 `docs/specs/tenant-user-onboarding.md`와 외부 QA manifest, webhook의 `docs/qa/2026-10-07/README.md`와 해당 실행 manifest다. 선정한 로컬 QA·독립 검토·감사 FAIL·원격 gate 상태를 각각 기록한다. 새 trusted 파일 존재는 target 이벤트 실행/보호 강제의 증거가 아니다.
 
-ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조에서 추가 P1/P2 없음과 지문 일치를 확인했다. 네 고정 로컬 후보의 선정한 기능·회귀 검증과 독립 검토 인수는 마쳤다. 다음 단계는 남은 의존성 감사의 호환성·변경 범위 결정과 원격 전달·staging 자동 배포 영향의 확인이다. main/default 배치·검사 전환·배포는 별도 단계다. 전체 소비 도입/보안/배포 준비는 아직 **NOT VERIFIED**이며 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)은 열어 둔다.
+ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조에서 추가 P1/P2 없음과 지문 일치를 확인했다. 네 고정 로컬 후보의 선정한 기능·회귀 검증과 독립 검토 인수는 마쳤다. 이후 Swagger YAML·관리자 인증 보완도 아래 고정 후보에서 인수했다. 다음 단계는 남은 의존성 감사의 호환성·변경 범위 결정과 원격 전달·staging 자동 배포 영향의 확인이다. main/default 배치·검사 전환·배포는 별도 단계다. 전체 소비 도입/보안/배포 준비는 아직 **NOT VERIFIED**이며 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)은 열어 둔다.
+
+### 후속: 보안 잔여와 원격 전달 조건 조사
+
+2026-10-07 사용자 진행 승인으로 현재 lock·공식 registry/advisory·GitHub 브랜치 보호·workflow와 최근 deployment 기록을 읽기 전용으로 대조했다. 조사 자체를 제품 적용·설치 또는 제품 실경로 악용 검증이나 새 후보의 원격 CI 통과 판정으로 취급하지 않는다. 이후 적용한 고정 후보의 로컬 결과는 위 표와 다음 기록에 구분한다.
+
+- **DriveTree 최소 후보:** Swagger 11.4.7의 정확 pin인 `js-yaml 5.3.0`은 [merge 예산 우회](https://github.com/advisories/GHSA-r3ph-w7gj-g6xm)에 해당한다. 공식 수정은 5.4.1 이상이며 registry의 5.4.3을 별도 임시 디렉터리에 scripts 비활성으로 설치해 합성 OpenAPI 객체 dump/load 왕복과 merge 예산 10/빈 source 11개를 시험했다. 현재 5.3.0은 예산 초과를 허용(RED), 5.4.3은 거부(GREEN), 정상 왕복은 양쪽 PASS다. 원문은 `/tmp/drivetree-yaml-compat-vLNpXM/yaml-compat.log`이며 이 라이브러리 조사 단계에서는 제품 파일/lock을 변경하지 않았다. 이 표본은 Swagger·제품 전체 호환성을 증명하지 않는다. 실행은 해당 임시 cwd의 Node stdin 검사(exit 0)이며 원문 SHA-256 `d9a14eb962fcd4bb542495b2f0e1fd10d5b5533214a96a4a4aabf6cb688ef1ab`다. 원문은 다음에 보존한다. 후속 제품 후보 `8c5b4f8`에서는 Swagger 아래에만 override를 적용했다. 실제 API 문서 JSON/YAML 생성·조회와 예산 초과 거부 RED→GREEN, backend 단위 70·실DB e2e 19, 클린 lock 설치·format/lint/build를 통과했다. 초기 증분 lock 설치 실패도 보존했다. 독립 검토에서 source 4·원문 18개 지문과 loopback fixture 종료를 확인했고 추가 P1/P2는 없었다. 전체 audit 24건·운영 high 4건은 FAIL이며 frontend 8+20은 이전 증거 재사용이다.
+```json
+{
+  "old": "5.3.0",
+  "candidate": "5.4.3",
+  "validRoundTrip": "PASS",
+  "oldExceedsBudget": "accepted RED",
+  "patchedExceedsBudget": "rejected GREEN",
+  "scope": "library-only synthetic, no Swagger/app/full QA"
+}
+```
+
+- **DriveTree 다른 전이:** 현재 Prisma 7.10.0은 mysql2 3.15.3, @prisma/config는 deepmerge-ts 7.1.5를 고정한다. registry의 최신 config 7.10.0도 동일 pin이다. [deepmerge-ts 수정](https://github.com/advisories/GHSA-ggr8-5vv4-36mx)은 8.0.0부터이며 [상위 이슈](https://github.com/prisma/orm/issues/30052)의 override 제안은 소비자 보고이지 upstream 호환성 보증이 아니다. Map 병합 의미 변경을 포함하므로 config·validate·generate·새 격리 DB migrate deploy·실제 ORM 흐름 회귀가 필요하다. mysql2의 [인증 downgrade](https://github.com/advisories/GHSA-3f6p-5ww8-9rcr)·[압축 해제 위험](https://github.com/advisories/GHSA-rgwj-5xj2-c3m3)은 별도 제약이다. 실제 제품은 PostgreSQL이며 MySQL 실행 경계의 도달성은 미확인이다. Prisma 6으로 내려 audit만 통과시키지 않는다.
+- **공식 수정판 없는 항목:** registry의 braces는 3.0.3, sprintf-js는 1.1.3이다. [braces 이슈](https://github.com/micromatch/braces/issues/73)·[보완 PR #78](https://github.com/micromatch/braces/pull/78), [sprintf-js advisory](https://github.com/advisories/GHSA-hp3w-g68c-fv3c)를 근거로 upstream release 대기와 소비자 별도 보완을 구분한다. 샘플 patch를 자동 복사하거나 구버전 도구로 내려가지 않는다. 개별 patch를 채택하면 설치 후 검증·반례·원래 tool 동작·제거 조건을 제품 스펙에 연결해야 하며 audit 경고가 자동으로 사라지는 것은 아니다.
+
+| 제품 | 현재 읽기 전용 원격 확인 | 전달·병합 영향과 미확인 |
+|---|---|---|
+| DriveTree | default main, develop `bd634e6`, main `49621e6`; strict/app-bound 필수 context develop 6개·main 5개, enforce_admins true | 현재 후보의 원격 CI는 미실행. develop의 Vercel Preview 배포 기록 확인. 저장소 CI/규약은 develop→Railway staging, main→Railway/Vercel production을 명시하지만 현재 Railway 제어판 연결 상태는 미조회. fix/feature의 CI-only 주석만으로 외부 Preview 배포 없음으로 확정하지 않음 |
+| siku | default main, develop `c7b5bbd`, main `351ec7d`; 양쪽 strict/app-bound 필수 context 6개, enforce_admins true | CI는 PR에서 합성 Supabase·브라우저 흐름 실행. develop SHA의 Vercel Preview와 main SHA의 Production 배포 기록 확인. 새 후보의 Preview/원격 CI는 미실행이며 Supabase 원격 DB 드리프트 미측정 |
+| ERP | default main, develop `d10a916`, main `8d83be6`; 양쪽 strict/app-bound 필수 context 8개, enforce_admins true, HARNESS_SYNC_ENABLED=true | Actions에 push/deploy/publish trigger 없음. 문서상 main→Railway/Vercel 재배포는 연결 활성 시 조건부이며 README local-only·deployment API 0과 구분. 외부 제어판 상태 미확인. develop PR은 기존 품질/repo-sync 검사, Preview 가능성은 별도 확인 |
+| webhook-service | default main, develop `83cd398`, main `b905198`; 양쪽 strict/app-bound 필수 context 5개, enforce_admins true | build-and-test·alembic-heads·secret-scan 등 품질 후 main push에서만 GHCR latest 이미지 게시. develop PR/merge를 운영 서버 배포 완료로 간주하지 않으며 이미지 게시 후 소비 서버 갱신 연결은 미확인 |
+
+ERP high 9건은 전부 braces에 연결되며 운영 그래프에도 high 7건이 남는다. shadcn 4.21.3의 CSS·registry·ts-morph 경로와 Next ESLint 경로를 확인했다. registry 최신 버전에도 전체 해소 경로가 없다. 강제 shadcn 1/Next ESLint 14 전환은 `shadcn/tailwind.css` export와 ESLint 9 계약을 깨뜨려 적용하지 않는다. 배포 standalone에 해당 디렉터리가 없다는 관찰은 전체 운영 안전의 증명이 아니다. zero-high가 필수면 CSS/CLI·lint 도구 교체 또는 소비자 보완을 별도 설계하고 시각·BFF·품질·클린 설치 회귀를 수행해야 한다.
+
+webhook의 urllib3 1.26.20은 python-keycloak 2.0.0 제약으로 묶이며, 2.16.6 후보의 urllib3 2.8.0 해석 성공과 pkg_resources import 실패는 기존 기록을 보존한다. setuptools 호환 pin을 동반한 2.x 후보는 urllib3 경로만 개선하는 별도 시험 대안이며 전체 보안 해소가 아니다. [python-jose <=3.5.0](https://github.com/advisories/GHSA-3qf3-8w2g-rqmx)·[python-ecdsa](https://github.com/tlsfuzzer/python-ecdsa/security/advisories/GHSA-wj6h-64fc-37mp)는 공식 수정판 없음/라이브러리 보안 한계와 실제 호출 도달성을 구분한다. 현 SDK의 decode 기본 algorithms는 RS256으로 제한되어 있지만 외부 realm·키·issuer/audience·rotation 결과는 미확인이다. jwcrypto를 쓰는 상위 major 전환은 token decode·키 형식·클레임 검증 의미를 별도로 시험해야 하며 이번 로그인 수선에서 임의 전환하지 않는다. webhook에서는 실제 SDK에 없는 토큰 교환 메서드, 중복 realm URL, callback 이름·SQLAdmin mount 순서와 GET 로그인 연결을 고쳤다. API/UI의 공유 공개키를 PEM으로 정규화하고 실제 SDK의 자체 RSA 토큰 검증을 확인했다. 앞선 `5fd2213`의 79 PASS는 관리자 로그인 수용 흐름을 포함하지 않았으며 인증 전체의 증거로 확대하지 않는다. 사용자는 관리자 UI도 `realm_access.roles`의 `admin` 보유자만 허용하도록 명시 승인했다. UI와 기존 Replay 역할 검사는 정확한 목록 형식만 허용하고 잘못된 형식도 거부한다. OAuth state는 브라우저 세션 결박·5분 만료와 Redis 예약/원자적 `GETDEL`로 코드 교환 전에 일회 소비한다. 이전 서명 쿠키 재생·다른 브라우저·누락/불일치/만료·경쟁 소비·Redis 오류를 시험했다. callback 토큰 교환 뒤 보호된 UI 경로에서 역할을 검사한다. 새 로컬 후보 `eba4bfb`의 focused 25·전체 기존/새 환경 각각 104 PASS, Ruff format/lint·mypy·Alembic 단일 head·pre-commit PASS와 fixture 종료와 고정 후보 독립 검토 추가 P1/P2 없음을 확인했다. callback 흐름의 Redis는 대역이며 실제 Redis는 동시 `GETDEL` 단일 소비를 별도로 검증했다. 이는 자체 RSA·합성 HTTP·실제 격리 Redis/DB에 한정하며 외부 realm·redirect·issuer/audience·키 회전·실제 브라우저 상호 운용성은 미확인이다.
+
+
+네 소비 repo의 원격 main/develop에는 새 `commitlint-trusted.yml`이 모두 없어 최초 PR의 신뢰 검사 실행을 완료로 간주할 수 없다. 기존 required `commitlint`는 유지되지만 PR 쪽 validator를 실행하는 한계가 있다. [기존 전환 순서](../specs/trusted-commitlint.md)에 따라 기본 브랜치 정본 배치, 이후 새 PR 이벤트의 동일 후보 신뢰 context 실행, 서버 필수 목록 추가/readback, 기존 context 제거 순서를 구분한다. 기본 브랜치 배치 자체의 자동 배포 영향도 먼저 확인해야 한다. 파일 존재·기존 commitlint green·로컬 repo-sync PASS는 이 활성화의 증거가 아니다.
+
+[GitHub 공식 정책 안내](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target)는 public repo의 기본 pull_request_target 정책이 현재 evaluate 모드이며 해당 대상에서 2026-11-02 집행 전환을 예고한다. 이미 적용한 별도 정책의 예외가 있어 네 repo가 모두 차단된다고 단정하지 않는다. 전달 전에 실제 Actions event policy·권한·target 실행 가능성을 읽기 전용 확인해야 한다. 정책을 자동 완화하거나 PR 코드를 높은 권한으로 실행하도록 전환하지 않는다.
+
+이번 단계의 실행 순서와 종료 기준은 다음과 같다.
+
+1. webhook 로그인 연결·state·승인된 admin 권한 보완: 실제 설치 SDK의 합성 HTTP·자체 서명 토큰·callback 대역 Redis에서 정상/오류/다른 브라우저/이전 쿠키 재생/만료/권한 거부를, 실제 격리 Redis에서 동시 원자 소비를 확인했다. `eba4bfb`의 전체 품질·독립 보안 검토·문서 인수를 마쳤다. 외부 운영 realm의 성공으로 확대하지 않는다.
+2. DriveTree YAML 수정 후보 적용: Swagger 하위 pin만 제한하여 정상 문서 생성·조회와 예산 거부, 클린 lock 설치·전체 backend 품질/실DB·감사·독립 검토를 수행한다. `8c5b4f8`에서 이 로컬 보완·회귀·독립 검토를 마쳤다. 이전 `36f9b0d`의 115개 검증 기록과 라이브러리 표본의 한계를 보존하며 전체 감사·원격 인수 완료로 확대하지 않는다.
+3. 공식 수정판 없는 braces/sprintf-js와 큰 의미 변경의 Prisma/Keycloak: 원래 제품 계약을 보존하는 소비자 보완 또는 상위 전환을 별도 후보로 비교한다. 검증 전 강제 override·downgrade·감사 예외로 완료 처리하지 않는다. 잔여 경고의 수용 여부와 해제 조건을 제품 기록으로 결정한다.
+4. 원격 전달: Preview·이미지 게시·외부 자동 배포 영향과 Actions event policy를 확인한 구체적 후보로 PR/CI 인수한다. trusted bootstrap과 필수 context 전환은 기존 보호 유지·정확 후보 실행·서버 readback을 각각 증명하며 이후 운영 배포는 별도 경계다.
 
 ```harness-doc-sync
 {"version":1,"documents":[{"path":"docs/pilots/consumer-readiness-2026-10-07.md","reason":"원본 신선도·QA 준비·최소 적용 계획과 종료 경계"},{"path":"docs/pilots/consumer-readiness-2026-10-07.json","reason":"명령·후보·원문·지문·서버 정책·미실행 구분"},{"path":"docs/product-direction.md","reason":"현재 로컬 적용 범위·원격 전달 경계와 다음 행동"}],"items":[]}
