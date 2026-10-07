@@ -175,8 +175,14 @@ frontend 단위 8·Chromium 20(재시도 0)이 PASS다. 실제 HTTP 201/400/413/
 19(critical 1/high 9), frontend 운영 의존성 9(critical 1/high 5)로 exit 1이므로 전체 보안/배포 준비 FAIL을 유지한다.
 DriveTree의 `docs/specs/quality-remediation.md`와 실행 근거 JSON이 제품 상태를 소유하며,
 자세한 인계와 다음 단계는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)에서 추적한다.
-다른 세 소비 프로젝트 수정은 시작하지 않았다. develop 병합의 staging 자동 배포와 main/default
-전환·보호 변경은 별도 영향 승인 범위다.
+이 최초 후보 이후 사용자가 네 소비 프로젝트 모두 진행을 승인했다. DriveTree `36f9b0d`는 회귀
+115개와 독립 검토를 통과했고 전체 감사 잔여를 제품 증거에 보존했다. siku `5ad8a96`는 실제
+Auth/RLS/Storage 브라우저 25·단위 86·감사 0건과 독립 검토를 확인하고 삭제 거부·부분 실패 처리를 보정했다.
+ERP 코드 `dc080bd`·기록 `4d4fbf4`는 실제 curl 우회 반례를 수정하고 격리 Keycloak 초대·재초대,
+FE 60+38·Docker·새 전용 DB Java 957개 실제 실행을 검증했다. 최초 DB 잔여 데이터 실패도 보존했다. webhook `5fd2213`는 DB/큐·상속 연결 설정·실패 출력·pytest 시작 전 dotenv 로딩을 보완하고
+기존·새 환경 각각 79개와 실제 시작 차단 회귀를 통과했다. 네 로컬 후보의 독립 재검토에서 추가 P1/P2 없음과 증거 지문 일치를 확인했다. 현재 전체 보안/원격 인수는 미완료이며 ERP의 기존 작업은 별도 worktree로 보존했다.
+현재 범위·후보·원문·검토 상태는 [진행 기록](pilots/consumer-readiness-2026-10-07.md#후속-네-소비-프로젝트의-로컬-적용-진행)과
+이슈 #496에 연결한다. develop 병합의 staging 자동 배포와 main/default 전환·보호 변경은 별도 영향 승인 범위다.
 
 작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
 검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.

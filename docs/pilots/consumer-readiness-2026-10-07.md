@@ -191,10 +191,35 @@ DB는 새 pgvector/pg16 container의 loopback 전용 합성 fixture이며 운영
 원격 CI/PR·병합·main/default 배치·required context 변경·배포는 아직 실행하지 않았다.
 develop 병합은 staging 자동 배포에 연결되므로 로컬 준비 완료를 배포 승인으로 확대하지 않는다.
 후속 상태와 제품 기록·현재 후보 인계는 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)을 따른다.
-다른 소비 프로젝트는 이번 후속에서 변경하지 않았다.
+다른 소비 프로젝트는 이 최초 후보 후속에서는 변경하지 않았다. 최신 승인·진행은 다음 절을 따른다.
+
+### 후속: 네 소비 프로젝트의 로컬 적용 진행
+
+사용자가 네 소비 프로젝트 모두의 진행을 승인했다. 위 조사 당시의 보류 상태를 보존하며,
+현재 범위는 제품별 최소 계약·보안 보완, 격리 fixture QA, 관련 문서 현행화와 로컬 후보 보존이다.
+원격 전달·main/default 검사 활성화·보호 정책 변경·운영/staging 배포의 완료로 확대하지 않는다.
+
+아래는 최초 조사나 첫 DriveTree 후보와 구분한 **현재 로컬 후보**다. 제품별 실사용 사례는 제품 저장소에 두고 공통 Harness의 QA 계약만 연결했다. 이전 실패·미실행 결과는 제품 증거에서 보존한다.
+
+| 제품 | 현재 로컬 후보 | 실제 로컬 검증 | 보안·검토 상태 / 한계 |
+|---|---|---|---|
+| DriveTree | `36f9b0d` | 양쪽 클린 설치·format/lint/build, backend 단위 70·통합 17, frontend 단위 8·Chromium 20 = 115 PASS, 재시도 0 | 독립 검토 추가 P1/P2 없음. 전체 감사 backend moderate 21/high 4·frontend high 5 FAIL; 운영 frontend 0·backend moderate 2/high 4/critical 0 |
+| siku | `b6ed228` (코드 `5ad8a96`) | 클린 설치·형식·lint·build, 단위 86·실제 Auth/RLS/Storage 브라우저 25 PASS, 재시도 0, 전체 감사 0 | 코드·문서 독립 검토 기존 P2 해소·추가 P1/P2 없음. 권한 없는 0행 삭제 뒤 파일 보존, DB 삭제 뒤 Storage 실패의 함수·UI 부분 실패 처리 확인. 원격 DB 드리프트 미측정·DB/Storage 원자성 보장 안 함 |
+| ERP | `4d4fbf4` (코드 `dc080bd`) | Java 실제 단위/통합 957·FE 단위 60·Chromium 38 PASS, 품질·Docker 두 이미지·repo-sync 21/21, 실제 격리 Keycloak 초대/재초대·동일 사용자 재조회 PASS | curl 설정 파일 우회 RED→GREEN·독립 코드 검토 추가 P1/P2 없음. Java UP-TO-DATE 기록은 실제 실행으로 세지 않으며 새 DB의 `--rerun-tasks`/XML 증거를 별도 보존. 전체 high 9/critical 0 FAIL |
+| webhook-service | `5fd2213` | 실제 격리 DB/Redis 예약 회복·품질·pytest 기존/새 환경 각각 79 PASS. 잘못된 DB/큐/libpq 설정은 연결·DDL·게시 0회. 실제 pytest 시작 회귀에서 dotenv 플러그인 비활성·합성값 미유입·find/load 0회, Pydantic provider 차단·실패 출력 비노출 확인 | 목적지/DDL·libpq·실패 출력·초기 dotenv 로딩 P2를 모두 보완하고 독립 재검토 추가 P1/P2 없음. source 14·실행 증거 61개 지문 일치. 직접 pin 감사 0과 전체 그래프 3개 패키지/15 advisory FAIL을 구분. 실제 외부 Keycloak·원격 gate 미확인 |
+
+DriveTree의 최초 증분 lock 설치 실패와 클린 lock 복구, siku의 공식 CLI 서명/바인딩 차단·저장소 xattr 실패·PNG fixture 거부, ERP의 초기 포트 바인딩 문제·curlrc 반례·재사용 시험 DB 잔여 데이터로 인한 Java 2 FAIL(새 전용 DB에서 957 PASS), webhook의 최초 훅 환경 실패는 성공으로 덮어쓰지 않는다. 추가 커밋 훅의 잘못된 DB 사용자명에 의한 76 PASS·2 인증 오류는 보고를 보존했으나 전체 stdout 원문은 미보존이라는 한계도 명시했다. 올바른 전용 설정의 직접 driver 연결·최종 전체 훅은 새 원문으로 확인한다. 실제 실패 원인을 바꾼 재시도만 진행했다. OS 보안·전역 Docker 설정·RLS·기존 CI gate를 완화하지 않았다.
+
+ERP는 원래 feature checkout과 기존 미추적 작업을 그대로 보존한 별도 worktree다. 모든 실서비스 시험은 새 합성 자격증명·데이터를 사용했으며 실제 공개 포트의 loopback 바인딩을 확인하고 사용한 전용 서비스의 중지를 확인했다. 제품 증거의 관찰 경계를 넘어 외부 인증·모든 업무 API·운영 데이터의 품질을 보장하지 않는다.
+
+webhook의 이전 60/69/77 시험은 명시 주입한 로컬 DB/큐 실행 결과이며 기존 `.env`의 자동 로딩 차단 증거로 쓰지 않는다. 78개 후보에서 Pydantic 최초 import 전 차단과 합성 provider 회귀는 확인했으나 pytest-dotenv의 선행 로딩은 차단하지 못했다. 최종 `5fd2213`에서 초기 플러그인 로딩도 차단하고, 설치된 플러그인을 사용하는 실제 시작 회귀의 RED→GREEN과 전체 79 PASS를 확인했다. 앞선 자동 읽기 차단 주장은 제품 기록에서 철회·한계로 보존했다. 운영 설정 파일을 직접 조회하거나 제품 설정의 기본 동작을 바꾸지 않았다.
+
+현재 증거 정본은 각 제품의 `docs/specs/quality-remediation.md`(siku/DriveTree), ERP의 `docs/specs/tenant-user-onboarding.md`와 외부 QA manifest, webhook의 `docs/qa/2026-10-07/README.md`와 해당 실행 manifest다. 선정한 로컬 QA·독립 검토·감사 FAIL·원격 gate 상태를 각각 기록한다. 새 trusted 파일 존재는 target 이벤트 실행/보호 강제의 증거가 아니다.
+
+ERP 새 Java 원문·XML 172개/957 PASS와 siku 최종 기록의 독립 대조에서 추가 P1/P2 없음과 지문 일치를 확인했다. 네 고정 로컬 후보의 선정한 기능·회귀 검증과 독립 검토 인수는 마쳤다. 다음 단계는 남은 의존성 감사의 호환성·변경 범위 결정과 원격 전달·staging 자동 배포 영향의 확인이다. main/default 배치·검사 전환·배포는 별도 단계다. 전체 소비 도입/보안/배포 준비는 아직 **NOT VERIFIED**이며 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)은 열어 둔다.
 
 ```harness-doc-sync
-{"version":1,"documents":[{"path":"docs/pilots/consumer-readiness-2026-10-07.md","reason":"원본 신선도·QA 준비·최소 적용 계획과 종료 경계"},{"path":"docs/pilots/consumer-readiness-2026-10-07.json","reason":"명령·후보·원문·지문·서버 정책·미실행 구분"},{"path":"docs/product-direction.md","reason":"현재 완료 범위·소비 적용 보류와 다음 행동"}],"items":[]}
+{"version":1,"documents":[{"path":"docs/pilots/consumer-readiness-2026-10-07.md","reason":"원본 신선도·QA 준비·최소 적용 계획과 종료 경계"},{"path":"docs/pilots/consumer-readiness-2026-10-07.json","reason":"명령·후보·원문·지문·서버 정책·미실행 구분"},{"path":"docs/product-direction.md","reason":"현재 로컬 적용 범위·원격 전달 경계와 다음 행동"}],"items":[]}
 ```
 
 제한 독립 보안 검토는 원문 32개·소스 지문 35개와 위험/QA 관련 추가 12파일의 고정 Git blob을
