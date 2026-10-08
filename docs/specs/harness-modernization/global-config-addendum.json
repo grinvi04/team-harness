@@ -1,0 +1,525 @@
+{
+  "codex_config": {
+    "top_level_keys": [
+      "notify",
+      "personality",
+      "model_auto_compact_token_limit",
+      "model_auto_compact_token_limit_scope",
+      "approvals_reviewer",
+      "sandbox_mode",
+      "service_tier",
+      "model",
+      "model_reasoning_effort",
+      "plan_mode_reasoning_effort",
+      "review_model",
+      "agents",
+      "marketplaces",
+      "plugins",
+      "features",
+      "mcp_servers",
+      "desktop",
+      "projects",
+      "tui",
+      "hooks",
+      "notice",
+      "shell_environment_policy",
+      "sandbox_workspace_write",
+      "memories"
+    ],
+    "models": {
+      "model": "gpt-6.1-sol",
+      "review_model": "gpt-6-astra",
+      "model_reasoning_effort": "medium",
+      "service_tier": "default",
+      "approvals_reviewer": "user",
+      "sandbox_mode": "workspace-write"
+    },
+    "features": {
+      "js_repl": false,
+      "memories": true
+    },
+    "section_key_inventory": {
+      "marketplaces": [
+        "openai-bundled",
+        "openai-primary-runtime",
+        "claude-plugins-official",
+        "team-harness"
+      ],
+      "features": [
+        "js_repl",
+        "memories"
+      ],
+      "desktop": [
+        "conversationDetailMode",
+        "sansFontSize",
+        "codeFontSize",
+        "ambient-suggestions-enabled",
+        "keepRemoteControlAwakeWhilePluggedIn",
+        "show-context-window-usage",
+        "git-show-sidebar-pr-icons",
+        "git-pull-request-merge-method",
+        "followUpQueueMode",
+        "dock-icon-preference",
+        "enabled-reasoning-efforts",
+        "selected-avatar-id",
+        "preventSleepWhileRunning",
+        "realtimeVoiceScreenContextEnabled"
+      ],
+      "tui": [
+        "status_line",
+        "status_line_use_colors",
+        "model_availability_nux"
+      ],
+      "hooks": [
+        "state"
+      ],
+      "notice": [
+        "hide_rate_limit_model_nudge"
+      ],
+      "shell_environment_policy": [
+        "set"
+      ],
+      "sandbox_workspace_write": [
+        "network_access"
+      ],
+      "memories": [
+        "generate_memories",
+        "use_memories"
+      ]
+    },
+    "projects": {
+      "count": 53,
+      "trust_counts": {
+        "trusted": 53
+      }
+    },
+    "agents": {
+      "default_subagent_model": "gpt-6-sol",
+      "default_subagent_reasoning_effort": "medium"
+    },
+    "mcp_servers": [
+      {
+        "name": "computer-use",
+        "keys": [
+          "command",
+          "args",
+          "cwd",
+          "enabled"
+        ],
+        "enabled": false,
+        "command_basename": "SkyComputerUseClient",
+        "args_count": 1,
+        "env_keys": [],
+        "enabled_tools": null,
+        "disabled_tools": null
+      },
+      {
+        "name": "openaiDeveloperDocs",
+        "keys": [
+          "url"
+        ],
+        "enabled": true,
+        "command_basename": null,
+        "args_count": 0,
+        "env_keys": [],
+        "enabled_tools": null,
+        "disabled_tools": null,
+        "url_origin": {
+          "scheme": "https",
+          "hostname": "developers.openai.com",
+          "port": null,
+          "embedded_auth": false,
+          "query_present": false
+        }
+      },
+      {
+        "name": "node_repl",
+        "keys": [
+          "args",
+          "command",
+          "startup_timeout_sec",
+          "env"
+        ],
+        "enabled": true,
+        "command_basename": "node_repl",
+        "args_count": 0,
+        "env_keys": [
+          "NODE_REPL_NATIVE_PIPE_CONNECT_TIMEOUT_MS",
+          "NODE_REPL_NODE_MODULE_DIRS",
+          "NODE_REPL_NODE_PATH",
+          "NODE_REPL_TRUSTED_CODE_PATHS",
+          "CODEX_HOME",
+          "BROWSER_USE_AVAILABLE_BACKENDS",
+          "BROWSER_USE_TINYSKY_ENABLED",
+          "NODE_REPL_INSTRUCTIONS_USE_CASE_BROWSER",
+          "NODE_REPL_INSTRUCTIONS_USE_CASE_CHROME",
+          "NODE_REPL_INSTRUCTIONS_USE_CASE_COMPUTER_USE",
+          "BROWSER_USE_CODEX_APP_BUILD_FLAVOR",
+          "BROWSER_USE_CODEX_APP_VERSION",
+          "NODE_REPL_TRUSTED_SERVICES",
+          "SKY_CUA_SERVICE_PATH",
+          "CODEX_CLI_PATH"
+        ],
+        "enabled_tools": null,
+        "disabled_tools": null
+      }
+    ],
+    "plugins": [
+      {
+        "id": "documents@openai-primary-runtime",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "spreadsheets@openai-primary-runtime",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "presentations@openai-primary-runtime",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "pdf@openai-primary-runtime",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "frontend-design@claude-plugins-official",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "security-guidance@claude-plugins-official",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "harness-guard@team-harness",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "template-creator@openai-primary-runtime",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "visualize@openai-bundled",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "codex-security@openai-curated",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "codex-app-tools@openai-bundled",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "superpowers@openai-curated-remote",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "google-drive@openai-curated-remote",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "browser@openai-bundled",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "unified-computer-use@openai-bundled",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "chrome@openai-bundled",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "computer-use@openai-bundled",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      },
+      {
+        "id": "code-review@openai-bundled",
+        "keys": [
+          "enabled"
+        ],
+        "enabled": true
+      }
+    ],
+    "provider_sections": []
+  },
+  "/Users/grinvi04/.claude/settings.json": {
+    "top_level_keys": [
+      "$schema",
+      "env",
+      "permissions",
+      "enableWorkflows",
+      "statusLine",
+      "enabledPlugins",
+      "extraKnownMarketplaces",
+      "model",
+      "effortLevel",
+      "tui",
+      "skipWorkflowUsageWarning",
+      "theme",
+      "remoteControlAtStartup",
+      "inputNeededNotifEnabled",
+      "agentPushNotifEnabled",
+      "skipAutoPermissionPrompt"
+    ],
+    "sha256": "98392e708adf926731ee7cd0ed73e4bb39b8caa9955e6a463ea02c0b7d8c01bf",
+    "selected_settings": {
+      "model": "sonnet",
+      "effortLevel": "high",
+      "enabledPlugins": {
+        "frontend-design@claude-plugins-official": true,
+        "playwright@claude-plugins-official": true,
+        "harness-guard@team-harness": true
+      }
+    },
+    "permission_counts": {
+      "allow": 3,
+      "defaultMode": "<non-list>"
+    },
+    "env_keys": [
+      "BASH_MAX_OUTPUT_LENGTH",
+      "MAX_MCP_OUTPUT_TOKENS"
+    ],
+    "hooks_events": [],
+    "statusline_configured": true
+  },
+  "/Users/grinvi04/.claude.json": {
+    "top_level_keys": [
+      "numStartups",
+      "installMethod",
+      "autoUpdates",
+      "hasSeenTasksHint",
+      "tipsHistory",
+      "promptQueueUseCount",
+      "btwUseCount",
+      "cachedGrowthBookFeatures",
+      "unpinOpus47LaunchEffort",
+      "unpinOpus48LaunchEffort",
+      "unpinFable5LaunchEffort",
+      "firstStartTime",
+      "opusProMigrationComplete",
+      "sonnet1m45MigrationComplete",
+      "seenNotifications",
+      "migrationVersion",
+      "userID",
+      "changelogLastFetched",
+      "autoUpdatesProtectedForNative",
+      "claudeCodeFirstTokenDate",
+      "hasCompletedOnboarding",
+      "lastOnboardingVersion",
+      "projects",
+      "cachedExperimentFeatures",
+      "deepLinkTerminal",
+      "lastReleaseNotesSeen",
+      "routineFiredWatermark",
+      "penguinModeOrgEnabled",
+      "passesEligibilityCache",
+      "cachedExtraUsageDisabledReason",
+      "officialMarketplaceAutoInstallAttempted",
+      "officialMarketplaceAutoInstalled",
+      "closedIssuesLastChecked",
+      "remoteControlUpsellSeenCount",
+      "githubRepoPaths",
+      "lastPlanModeUse",
+      "autoPermissionsNotificationCount",
+      "feedbackSurveyState",
+      "claudeCodeHints",
+      "groveConfigCache",
+      "transcriptShareDismissed",
+      "cachedGrowthBookFeaturesAt",
+      "skillUsage",
+      "mcpServers",
+      "agentLastUsed",
+      "tipLifetimeShownCounts",
+      "pluginUsage",
+      "fotwUpsellFulfilled",
+      "showSpinnerTree",
+      "lastShownEmergencyTip",
+      "passesUpsellSeenCount",
+      "hasVisitedPasses",
+      "passesLastSeenRemaining",
+      "machineID",
+      "oauthAccount",
+      "clientDataCache",
+      "additionalModelOptionsCache",
+      "additionalModelCostsCache",
+      "autoCompactWindowsCache",
+      "hasRemoteEnvironment",
+      "hasOpenedAgentsView",
+      "clientDataCacheSlots",
+      "modelAccessCache",
+      "hasSeenUltraplanTerms",
+      "fullscreenUpsellSeenCount",
+      "hasUsedRemoteControl",
+      "remoteDialogSeen",
+      "claudeAiMcpEverConnected",
+      "announcementImpressions",
+      "orgModelDefaultCache",
+      "hasResetAutoModeOptInForDefaultOffer"
+    ],
+    "sha256": "c958729130520e81e7703ccf203d51e92c759003dd3864c7c94c921db2eed42a",
+    "mcp_servers": [
+      {
+        "name": "github",
+        "keys": [
+          "type",
+          "command",
+          "args",
+          "env"
+        ],
+        "command_basename": "github.sh",
+        "args_count": 0,
+        "env_keys": []
+      }
+    ],
+    "project_settings_count": 11,
+    "oauth_account_present": true
+  },
+  "/Users/grinvi04/.codex/plugins": [
+    {
+      "name": ".remote-plugin-install-staging",
+      "kind": "dir",
+      "bytes": null
+    },
+    {
+      "name": "cache",
+      "kind": "dir",
+      "bytes": null
+    },
+    {
+      "name": ".plugin-appserver",
+      "kind": "dir",
+      "bytes": null
+    },
+    {
+      "name": "data",
+      "kind": "dir",
+      "bytes": null
+    }
+  ],
+  "/Users/grinvi04/.claude/plugins": [
+    {
+      "name": "cache",
+      "kind": "dir",
+      "bytes": null
+    },
+    {
+      "name": "known_marketplaces.json",
+      "kind": "file",
+      "bytes": 540
+    },
+    {
+      "name": ".last_inuse_sweep",
+      "kind": "file",
+      "bytes": 24
+    },
+    {
+      "name": "installed_plugins.json",
+      "kind": "file",
+      "bytes": 2216
+    },
+    {
+      "name": "plugin-catalog-cache.json",
+      "kind": "file",
+      "bytes": 406641
+    },
+    {
+      "name": "data",
+      "kind": "dir",
+      "bytes": null
+    },
+    {
+      "name": "marketplaces",
+      "kind": "dir",
+      "bytes": null
+    }
+  ],
+  "/Users/grinvi04/.agents/plugins": [
+    {
+      "name": "marketplace.json",
+      "kind": "file",
+      "bytes": 94
+    }
+  ],
+  "/Users/grinvi04/.zshrc": {
+    "lines": 8,
+    "ai_env_assignment_names": [],
+    "ai_alias_names": [
+      "codex"
+    ],
+    "sha256": "0790eff91422130d3a55c8ccf60e9c5ad928e556b75da2a85e6d8978713ae7df"
+  },
+  "/Users/grinvi04/.zprofile": {
+    "lines": 4,
+    "ai_env_assignment_names": [],
+    "ai_alias_names": [],
+    "sha256": "9e6f89e3b822a2e1e58e70c5a0879bb1202949635fd99c4838e4d976885e4025"
+  },
+  "current_process_ai_env_names": [
+    "CODEX_APP_TOOLS_PIPE_PATH",
+    "CODEX_CI",
+    "CODEX_CLI_PATH",
+    "CODEX_INTERNAL_ORIGINATOR_OVERRIDE",
+    "CODEX_MCP_NODE_PATH",
+    "CODEX_SAGE_BACKFILL_TRACKER_TAB_REUSE",
+    "CODEX_SANDBOX",
+    "CODEX_SESSION_ID",
+    "CODEX_SHELL",
+    "CODEX_TASK_WORKSPACE_VERIFYING_IDENTITY",
+    "CODEX_TECTONIC_PATH",
+    "CODEX_THREAD_ID",
+    "CODEX_VERSION"
+  ],
+  "current_process_setting_overrides": {}
+}

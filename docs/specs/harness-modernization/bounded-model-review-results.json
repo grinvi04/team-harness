@@ -1,0 +1,833 @@
+[
+  {
+    "path": "/Users/grinvi04/.codex/sessions/2026/10/09/rollout-2026-10-09T04-55-09-01a11d15-7c4e-7cc3-ac65-85ae60ab56a4.jsonl",
+    "contexts": [
+      {
+        "model": "gpt-6-luna",
+        "effort": "xhigh",
+        "approval_policy": "on-request",
+        "sandbox_policy": {
+          "type": "workspace-write",
+          "writable_roots": [
+            "/Users/grinvi04/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
+          ],
+          "network_access": true,
+          "exclude_tmpdir_env_var": false,
+          "exclude_slash_tmp": false
+        }
+      }
+    ],
+    "tool_calls": [
+      {
+        "timestamp": "2026-10-08T19:55:14.858Z",
+        "type": "custom_tool_call",
+        "name": "exec",
+        "input": "const r = await tools.exec_command({cmd:\"cat /private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/bounded-model-review/TASK.md && cat /private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/bounded-model-review/candidate.py\",yield_time_ms:10000,max_output_tokens:7000});\ntext(r.output);\n"
+      },
+      {
+        "timestamp": "2026-10-08T19:55:26.434Z",
+        "type": "custom_tool_call",
+        "name": "exec",
+        "input": "const r = await tools.exec_command({cmd:\"python3 -B -c 'import importlib.util; p=\\\"/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/bounded-model-review/candidate.py\\\"; s=importlib.util.spec_from_file_location(\\\"fixture\\\",p); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); probes=[(\\\"build_checks\\\",lambda:m.build_checks(lambda:(_ for _ in ()).throw(RuntimeError(\\\"unavailable\\\")))),(\\\"restore_equivalent\\\",lambda:m.restore_equivalent({\\\"required_status_checks\\\":[\\\"ci\\\"],\\\"approvals\\\":2,\\\"bypass\\\":[\\\"admin\\\"]},{\\\"required_status_checks\\\":[\\\"ci\\\"],\\\"approvals\\\":0,\\\"bypass\\\":[]})),(\\\"merge_ready\\\",lambda:m.merge_ready([{\\\"id\\\":1,\\\"resolved\\\":False}],[])),(\\\"migration_verdict\\\",lambda:m.migration_verdict(True,1)),(\\\"release_target\\\",lambda:m.release_target(\\\"merge-sha\\\",\\\"new-main-sha\\\")),(\\\"qa_gate\\\",lambda:m.qa_gate([{\\\"status\\\":\\\"SKIP\\\",\\\"applicable\\\":True}]))]; [print(n, f()) for n,f in probes]' \",yield_time_ms:10000,max_output_tokens:1500});\ntext(r.output);\n"
+      }
+    ],
+    "token_usage_records": [
+      {
+        "timestamp": "2026-10-08T19:55:14.891Z",
+        "usage": {
+          "input_tokens": 45672,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 274,
+          "reasoning_output_tokens": 104,
+          "total_tokens": 45946
+        },
+        "turn_token_usage": {
+          "input_tokens": 45672,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 274,
+          "reasoning_output_tokens": 104,
+          "total_tokens": 45946
+        }
+      },
+      {
+        "timestamp": "2026-10-08T19:55:26.463Z",
+        "usage": {
+          "input_tokens": 46636,
+          "cached_input_tokens": 44800,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1144,
+          "reasoning_output_tokens": 838,
+          "total_tokens": 47780
+        },
+        "turn_token_usage": {
+          "input_tokens": 92308,
+          "cached_input_tokens": 44800,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1418,
+          "reasoning_output_tokens": 942,
+          "total_tokens": 93726
+        }
+      },
+      {
+        "timestamp": "2026-10-08T19:55:34.369Z",
+        "usage": {
+          "input_tokens": 47837,
+          "cached_input_tokens": 45824,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 673,
+          "reasoning_output_tokens": 247,
+          "total_tokens": 48510
+        },
+        "turn_token_usage": {
+          "input_tokens": 140145,
+          "cached_input_tokens": 90624,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 2091,
+          "reasoning_output_tokens": 1189,
+          "total_tokens": 142236
+        }
+      }
+    ],
+    "session_meta": {
+      "id": "01a11d15-7c4e-7cc3-ac65-85ae60ab56a4",
+      "timestamp": "2026-10-08T19:55:09.807Z",
+      "source": {
+        "subagent": {
+          "thread_spawn": {
+            "parent_thread_id": "01a0cd43-ae85-74f2-b0b6-ed4e08e29d00",
+            "depth": 1,
+            "agent_path": "/root/model_probe_luna_xhigh",
+            "agent_nickname": "Pauli",
+            "agent_role": "default"
+          }
+        }
+      },
+      "originator": "codex_work_desktop",
+      "cli_version": "0.162.0-alpha.2"
+    },
+    "completion": {
+      "started_at": 1791489309,
+      "completed_at": 1791489334,
+      "duration_ms": 24581,
+      "time_to_first_token_ms": 3822
+    },
+    "answer_text": "{\"findings\":[{\"function\":\"build_checks\",\"lines\":\"3-8\",\"violation\":\"A fetch failure is swallowed and returned as a protection update with a null value.\",\"probe\":\"Make fetch raise RuntimeError(\\\"unavailable\\\").\",\"expected\":\"Raise before producing any protection update.\",\"observed\":\"Returns {\\\"required_status_checks\\\": null}.\"},{\"function\":\"restore_equivalent\",\"lines\":\"10-11\",\"violation\":\"Compares only required status checks; differences in review approvals or bypass allowances are missed.\",\"probe\":\"Compare equal checks with before approvals=2, bypass=[\\\"admin\\\"] and after approvals=0, bypass=[].\",\"expected\":\"False because protection fields differ.\",\"observed\":\"True.\"},{\"function\":\"merge_ready\",\"lines\":\"13-15\",\"violation\":\"Checks only processed thread IDs, so an unresolved current thread omitted from this run does not block readiness.\",\"probe\":\"Call with all_threads=[{\\\"id\\\":1,\\\"resolved\\\":false}], processed_ids=[].\",\"expected\":\"False.\",\"observed\":\"True.\"},{\"function\":\"migration_verdict\",\"lines\":\"17-22\",\"violation\":\"An applicable check with nonzero execution status is reported as PASS.\",\"probe\":\"Call migration_verdict(True, 1).\",\"expected\":\"FAIL.\",\"observed\":\"PASS.\"},{\"function\":\"release_target\",\"lines\":\"24-25\",\"violation\":\"Uses the latest main commit instead of the merged PR's exact commit.\",\"probe\":\"Call release_target(\\\"merge-sha\\\", \\\"new-main-sha\\\").\",\"expected\":\"\\\"merge-sha\\\".\",\"observed\":\"\\\"new-main-sha\\\".\"},{\"function\":\"qa_gate\",\"lines\":\"27-28\",\"violation\":\"Accepts SKIP even when applicability is true or unknown.\",\"probe\":\"Call with rows=[{\\\"status\\\":\\\"SKIP\\\",\\\"applicable\\\":true}].\",\"expected\":\"Block completion.\",\"observed\":\"True.\"}],\"safe_controls\":[\"audit_record\",\"count_unresolved\"],\"limitations\":[\"Reviewed only this adapted fixture and ran in-memory probes against it. This does not verify the full source repository or model configuration.\"]}",
+    "answer": {
+      "findings": [
+        {
+          "function": "build_checks",
+          "lines": "3-8",
+          "violation": "A fetch failure is swallowed and returned as a protection update with a null value.",
+          "probe": "Make fetch raise RuntimeError(\"unavailable\").",
+          "expected": "Raise before producing any protection update.",
+          "observed": "Returns {\"required_status_checks\": null}."
+        },
+        {
+          "function": "restore_equivalent",
+          "lines": "10-11",
+          "violation": "Compares only required status checks; differences in review approvals or bypass allowances are missed.",
+          "probe": "Compare equal checks with before approvals=2, bypass=[\"admin\"] and after approvals=0, bypass=[].",
+          "expected": "False because protection fields differ.",
+          "observed": "True."
+        },
+        {
+          "function": "merge_ready",
+          "lines": "13-15",
+          "violation": "Checks only processed thread IDs, so an unresolved current thread omitted from this run does not block readiness.",
+          "probe": "Call with all_threads=[{\"id\":1,\"resolved\":false}], processed_ids=[].",
+          "expected": "False.",
+          "observed": "True."
+        },
+        {
+          "function": "migration_verdict",
+          "lines": "17-22",
+          "violation": "An applicable check with nonzero execution status is reported as PASS.",
+          "probe": "Call migration_verdict(True, 1).",
+          "expected": "FAIL.",
+          "observed": "PASS."
+        },
+        {
+          "function": "release_target",
+          "lines": "24-25",
+          "violation": "Uses the latest main commit instead of the merged PR's exact commit.",
+          "probe": "Call release_target(\"merge-sha\", \"new-main-sha\").",
+          "expected": "\"merge-sha\".",
+          "observed": "\"new-main-sha\"."
+        },
+        {
+          "function": "qa_gate",
+          "lines": "27-28",
+          "violation": "Accepts SKIP even when applicability is true or unknown.",
+          "probe": "Call with rows=[{\"status\":\"SKIP\",\"applicable\":true}].",
+          "expected": "Block completion.",
+          "observed": "True."
+        }
+      ],
+      "safe_controls": [
+        "audit_record",
+        "count_unresolved"
+      ],
+      "limitations": [
+        "Reviewed only this adapted fixture and ran in-memory probes against it. This does not verify the full source repository or model configuration."
+      ]
+    },
+    "quality": {
+      "defects_found": 6,
+      "expected_defects": 6,
+      "false_positives": [],
+      "duplicates": 0,
+      "safe_controls_classified": true,
+      "locations": [
+        {
+          "function": "build_checks",
+          "provided": "3-8",
+          "required_offending_statement_lines": [
+            6,
+            7,
+            8
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "restore_equivalent",
+          "provided": "10-11",
+          "required_offending_statement_lines": [
+            12
+          ],
+          "contains_offending_statement": false
+        },
+        {
+          "function": "merge_ready",
+          "provided": "13-15",
+          "required_offending_statement_lines": [
+            16,
+            17
+          ],
+          "contains_offending_statement": false
+        },
+        {
+          "function": "migration_verdict",
+          "provided": "17-22",
+          "required_offending_statement_lines": [
+            23,
+            24
+          ],
+          "contains_offending_statement": false
+        },
+        {
+          "function": "release_target",
+          "provided": "24-25",
+          "required_offending_statement_lines": [
+            29
+          ],
+          "contains_offending_statement": false
+        },
+        {
+          "function": "qa_gate",
+          "provided": "27-28",
+          "required_offending_statement_lines": [
+            33
+          ],
+          "contains_offending_statement": false
+        }
+      ],
+      "accurate_locations": 1,
+      "core_detection_pass": true,
+      "evidence_location_pass": false,
+      "evidence_ready": false
+    },
+    "final_usage": {
+      "input_tokens": 140145,
+      "cached_input_tokens": 90624,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 2091,
+      "reasoning_output_tokens": 1189,
+      "total_tokens": 142236
+    },
+    "source_sha256": "c28cd3283473446516451a465ab83918b8a2879d666a8e91462cbdd888091c37",
+    "uncached_input_tokens": 49521
+  },
+  {
+    "path": "/Users/grinvi04/.codex/sessions/2026/10/09/rollout-2026-10-09T04-55-16-01a11d15-969e-7971-abbe-5a8e85c60554.jsonl",
+    "contexts": [
+      {
+        "model": "gpt-6.1-sol",
+        "effort": "medium",
+        "approval_policy": "on-request",
+        "sandbox_policy": {
+          "type": "workspace-write",
+          "writable_roots": [
+            "/Users/grinvi04/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
+          ],
+          "network_access": true,
+          "exclude_tmpdir_env_var": false,
+          "exclude_slash_tmp": false
+        }
+      }
+    ],
+    "tool_calls": [
+      {
+        "timestamp": "2026-10-08T19:55:23.268Z",
+        "type": "custom_tool_call",
+        "name": "exec",
+        "input": "text(await tools.exec_command({cmd:\"cat /private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/bounded-model-review/TASK.md\",\"max_output_tokens\":5000}));\ntext(await tools.exec_command({cmd:\"nl -ba /private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/bounded-model-review/candidate.py\",\"max_output_tokens\":5000}));\n"
+      },
+      {
+        "timestamp": "2026-10-08T19:55:40.017Z",
+        "type": "custom_tool_call",
+        "name": "exec",
+        "input": "text(await tools.exec_command({cmd:\"PYTHONDONTWRITEBYTECODE=1 python3 - <<'PY'\\nfrom pathlib import Path\\nns = {}\\nexec(Path('/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/bounded-model-review/candidate.py').read_text(), ns)\\ndef unavailable():\\n    raise RuntimeError('unavailable')\\nprint('build failure:', ns['build_checks'](unavailable))\\nprint('build success:', ns['build_checks'](lambda: {'contexts':['quality']}))\\na = {'required_status_checks':['quality'], 'approvals':2, 'bypass':[]}\\nb = {'required_status_checks':['quality'], 'approvals':0, 'bypass':['user']}\\nprint('restore:', ns['restore_equivalent'](a,b))\\nprint('merge:', ns['merge_ready']([{'id':'old','resolved':False}], set()))\\nprint('migration:', ns['migration_verdict'](True,1))\\nprint('release:', ns['release_target']('merged','advanced'))\\nfor row in [{'status':'SKIP','applicable':True},{'status':'SKIP','applicable':None},{'status':'SKIP'},{'status':'SKIP','applicable':False},{'status':'FAIL','applicable':True},{'status':'UNVERIFIED','applicable':True},{'status':'PASS','applicable':True}]:\\n    print('qa',row,ns['qa_gate']([row]))\\nfor status, applicable in [('UNKNOWN', False),('SKIP',True),('PASS',True),('SKIP',False)]:\\n    try:\\n        print('audit:',ns['audit_record'](status,'sha','check',applicable))\\n    except ValueError as e:\\n        print('audit rejected:',str(e))\\nprint('count:', [ns['count_unresolved'](x) for x in [[], [{'resolved':True}], [{'resolved':False},{'resolved':True},{'resolved':False}]]])\\nPY\",\"max_output_tokens\":2000}));\n"
+      }
+    ],
+    "token_usage_records": [
+      {
+        "timestamp": "2026-10-08T19:55:23.329Z",
+        "usage": {
+          "input_tokens": 46360,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 146,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 46506
+        },
+        "turn_token_usage": {
+          "input_tokens": 46360,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 146,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 46506
+        }
+      },
+      {
+        "timestamp": "2026-10-08T19:55:40.058Z",
+        "usage": {
+          "input_tokens": 47533,
+          "cached_input_tokens": 46208,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 542,
+          "reasoning_output_tokens": 49,
+          "total_tokens": 48075
+        },
+        "turn_token_usage": {
+          "input_tokens": 93893,
+          "cached_input_tokens": 46208,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 688,
+          "reasoning_output_tokens": 49,
+          "total_tokens": 94581
+        }
+      },
+      {
+        "timestamp": "2026-10-08T19:56:00.923Z",
+        "usage": {
+          "input_tokens": 48363,
+          "cached_input_tokens": 47360,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 683,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 49046
+        },
+        "turn_token_usage": {
+          "input_tokens": 142256,
+          "cached_input_tokens": 93568,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1371,
+          "reasoning_output_tokens": 49,
+          "total_tokens": 143627
+        }
+      }
+    ],
+    "session_meta": {
+      "id": "01a11d15-969e-7971-abbe-5a8e85c60554",
+      "timestamp": "2026-10-08T19:55:16.541Z",
+      "source": {
+        "subagent": {
+          "thread_spawn": {
+            "parent_thread_id": "01a0cd43-ae85-74f2-b0b6-ed4e08e29d00",
+            "depth": 1,
+            "agent_path": "/root/model_probe_sol_medium",
+            "agent_nickname": "Helmholtz",
+            "agent_role": "default"
+          }
+        }
+      },
+      "originator": "codex_work_desktop",
+      "cli_version": "0.162.0-alpha.2"
+    },
+    "completion": {
+      "started_at": 1791489316,
+      "completed_at": 1791489361,
+      "duration_ms": 44358,
+      "time_to_first_token_ms": 3960
+    },
+    "answer_text": "{\n  \"findings\": [\n    {\n      \"function\": \"build_checks\",\n      \"lines\": [6, 7, 8],\n      \"violation\": \"A RuntimeError from fetching current protection is swallowed, allowing a protection update containing null checks.\",\n      \"probe\": \"build_checks(fetch), where fetch raises RuntimeError('unavailable')\",\n      \"expected\": \"Raise before returning any protection update.\",\n      \"observed\": {\"required_status_checks\": null}\n    },\n    {\n      \"function\": \"restore_equivalent\",\n      \"lines\": [12],\n      \"violation\": \"Equality checks only required CI checks, ignoring approvals, bypass allowances, and all other protection fields.\",\n      \"probe\": \"before={'required_status_checks':['quality'],'approvals':2,'bypass':[]}; after={'required_status_checks':['quality'],'approvals':0,'bypass':['user']}\",\n      \"expected\": false,\n      \"observed\": true\n    },\n    {\n      \"function\": \"merge_ready\",\n      \"lines\": [16, 17],\n      \"violation\": \"Unresolved threads outside processed_ids are excluded from readiness.\",\n      \"probe\": \"merge_ready([{'id':'old','resolved':False}], set())\",\n      \"expected\": false,\n      \"observed\": true\n    },\n    {\n      \"function\": \"migration_verdict\",\n      \"lines\": [23, 24],\n      \"violation\": \"An applicable check with a nonzero execution result is reported as PASS.\",\n      \"probe\": \"migration_verdict(True, 1)\",\n      \"expected\": \"FAIL\",\n      \"observed\": \"PASS\"\n    },\n    {\n      \"function\": \"release_target\",\n      \"lines\": [29],\n      \"violation\": \"The release uses latest main instead of the merged PR's exact commit when main advances.\",\n      \"probe\": \"release_target('merged', 'advanced')\",\n      \"expected\": \"merged\",\n      \"observed\": \"advanced\"\n    },\n    {\n      \"function\": \"qa_gate\",\n      \"lines\": [33],\n      \"violation\": \"SKIP is accepted without checking that applicability is explicitly false.\",\n      \"probe\": \"qa_gate([row]) for row={'status':'SKIP','applicable':True}, {'status':'SKIP','applicable':None}, or {'status':'SKIP'}\",\n      \"expected\": \"False for each probe.\",\n      \"observed\": \"True for each probe.\"\n    }\n  ],\n  \"safe_controls\": [\n    \"audit_record\",\n    \"count_unresolved\"\n  ],\n  \"limitations\": [\n    \"Review and in-memory execution were confined to the supplied candidate.py fixture. No files were modified.\",\n    \"audit_record rejected unknown status and applicable SKIP, and preserved status, candidate, command, and explicit applicability in tested valid records.\",\n    \"count_unresolved returned 0 for empty and resolved-only lists, and 2 for a mixed list with two unresolved threads.\",\n    \"Successful build_checks fetching preserved the returned checks. qa_gate rejected FAIL and UNVERIFIED and accepted PASS and explicitly non-applicable SKIP in tested rows.\",\n    \"Findings identify contract violations in this fixture; they do not verify the full repository, external services, or actual runtime model configuration.\"\n  ]\n}",
+    "answer": {
+      "findings": [
+        {
+          "function": "build_checks",
+          "lines": [
+            6,
+            7,
+            8
+          ],
+          "violation": "A RuntimeError from fetching current protection is swallowed, allowing a protection update containing null checks.",
+          "probe": "build_checks(fetch), where fetch raises RuntimeError('unavailable')",
+          "expected": "Raise before returning any protection update.",
+          "observed": {
+            "required_status_checks": null
+          }
+        },
+        {
+          "function": "restore_equivalent",
+          "lines": [
+            12
+          ],
+          "violation": "Equality checks only required CI checks, ignoring approvals, bypass allowances, and all other protection fields.",
+          "probe": "before={'required_status_checks':['quality'],'approvals':2,'bypass':[]}; after={'required_status_checks':['quality'],'approvals':0,'bypass':['user']}",
+          "expected": false,
+          "observed": true
+        },
+        {
+          "function": "merge_ready",
+          "lines": [
+            16,
+            17
+          ],
+          "violation": "Unresolved threads outside processed_ids are excluded from readiness.",
+          "probe": "merge_ready([{'id':'old','resolved':False}], set())",
+          "expected": false,
+          "observed": true
+        },
+        {
+          "function": "migration_verdict",
+          "lines": [
+            23,
+            24
+          ],
+          "violation": "An applicable check with a nonzero execution result is reported as PASS.",
+          "probe": "migration_verdict(True, 1)",
+          "expected": "FAIL",
+          "observed": "PASS"
+        },
+        {
+          "function": "release_target",
+          "lines": [
+            29
+          ],
+          "violation": "The release uses latest main instead of the merged PR's exact commit when main advances.",
+          "probe": "release_target('merged', 'advanced')",
+          "expected": "merged",
+          "observed": "advanced"
+        },
+        {
+          "function": "qa_gate",
+          "lines": [
+            33
+          ],
+          "violation": "SKIP is accepted without checking that applicability is explicitly false.",
+          "probe": "qa_gate([row]) for row={'status':'SKIP','applicable':True}, {'status':'SKIP','applicable':None}, or {'status':'SKIP'}",
+          "expected": "False for each probe.",
+          "observed": "True for each probe."
+        }
+      ],
+      "safe_controls": [
+        "audit_record",
+        "count_unresolved"
+      ],
+      "limitations": [
+        "Review and in-memory execution were confined to the supplied candidate.py fixture. No files were modified.",
+        "audit_record rejected unknown status and applicable SKIP, and preserved status, candidate, command, and explicit applicability in tested valid records.",
+        "count_unresolved returned 0 for empty and resolved-only lists, and 2 for a mixed list with two unresolved threads.",
+        "Successful build_checks fetching preserved the returned checks. qa_gate rejected FAIL and UNVERIFIED and accepted PASS and explicitly non-applicable SKIP in tested rows.",
+        "Findings identify contract violations in this fixture; they do not verify the full repository, external services, or actual runtime model configuration."
+      ]
+    },
+    "quality": {
+      "defects_found": 6,
+      "expected_defects": 6,
+      "false_positives": [],
+      "duplicates": 0,
+      "safe_controls_classified": true,
+      "locations": [
+        {
+          "function": "build_checks",
+          "provided": [
+            6,
+            7,
+            8
+          ],
+          "required_offending_statement_lines": [
+            6,
+            7,
+            8
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "restore_equivalent",
+          "provided": [
+            12
+          ],
+          "required_offending_statement_lines": [
+            12
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "merge_ready",
+          "provided": [
+            16,
+            17
+          ],
+          "required_offending_statement_lines": [
+            16,
+            17
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "migration_verdict",
+          "provided": [
+            23,
+            24
+          ],
+          "required_offending_statement_lines": [
+            23,
+            24
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "release_target",
+          "provided": [
+            29
+          ],
+          "required_offending_statement_lines": [
+            29
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "qa_gate",
+          "provided": [
+            33
+          ],
+          "required_offending_statement_lines": [
+            33
+          ],
+          "contains_offending_statement": true
+        }
+      ],
+      "accurate_locations": 6,
+      "core_detection_pass": true,
+      "evidence_location_pass": true,
+      "evidence_ready": true
+    },
+    "final_usage": {
+      "input_tokens": 142256,
+      "cached_input_tokens": 93568,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 1371,
+      "reasoning_output_tokens": 49,
+      "total_tokens": 143627
+    },
+    "source_sha256": "11d1312970e972ecffadd228cd5a880104370e166859c3ab98f4197024f53601",
+    "uncached_input_tokens": 48688
+  },
+  {
+    "path": "/Users/grinvi04/.codex/sessions/2026/10/09/rollout-2026-10-09T04-55-23-01a11d15-b201-7833-913c-603f56c330bd.jsonl",
+    "contexts": [
+      {
+        "model": "gpt-6-astra",
+        "effort": "medium",
+        "approval_policy": "on-request",
+        "sandbox_policy": {
+          "type": "workspace-write",
+          "writable_roots": [
+            "/Users/grinvi04/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
+          ],
+          "network_access": true,
+          "exclude_tmpdir_env_var": false,
+          "exclude_slash_tmp": false
+        }
+      }
+    ],
+    "tool_calls": [
+      {
+        "timestamp": "2026-10-08T19:55:29.311Z",
+        "type": "custom_tool_call",
+        "name": "exec",
+        "input": "text(await tools.exec_command({cmd:\"cat /private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/bounded-model-review/TASK.md; cat /private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/bounded-model-review/candidate.py\",\"max_output_tokens\":14000}));\n"
+      },
+      {
+        "timestamp": "2026-10-08T19:55:44.414Z",
+        "type": "custom_tool_call",
+        "name": "exec",
+        "input": "text(await tools.exec_command({cmd:\"PYTHONDONTWRITEBYTECODE=1 python3 -B - <<'PY'\\nfrom pathlib import Path\\np=Path('/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/bounded-model-review/candidate.py')\\ns=p.read_text()\\nfor i,l in enumerate(s.splitlines(),1): print(f'{i}: {l}')\\nn={}; exec(compile(s,str(p),'exec'),n)\\ndef bad(): raise RuntimeError('unavailable')\\nprint('build failure:', n['build_checks'](bad))\\nprint('build success:', n['build_checks'](lambda: {'contexts':['quality']}))\\na={'required_status_checks':['quality'],'required_pull_request_reviews':{'required_approving_review_count':2},'bypass':[]}\\nb={**a,'required_pull_request_reviews':{'required_approving_review_count':0},'bypass':['admin']}\\nprint('restore changed:',n['restore_equivalent'](a,b))\\nprint('merge unresolved unprocessed:',n['merge_ready']([{'id':1,'resolved':True},{'id':2,'resolved':False}],{1}))\\nprint('merge empty:',n['merge_ready']([],set()))\\nprint('migration:',[(a,r,n['migration_verdict'](a,r)) for a,r in [(True,1),(True,0),(False,1)]])\\nprint('release advanced:',n['release_target']('merged123','later456'))\\nprint('release identical:',n['release_target']('merged123','merged123'))\\nfor row in [{'status':'SKIP','applicable':True},{'status':'SKIP'},{'status':'SKIP','applicable':None},{'status':'SKIP','applicable':False},{'status':'FAIL'},{'status':'UNVERIFIED'},{'status':'PASS'}]: print('qa:',row,n['qa_gate']([row]))\\nfor status,applicable in [('BOGUS',False),('SKIP',True),('SKIP',False),('PASS',True),('FAIL',True),('UNVERIFIED',True)]:\\n try: print('audit:',status,applicable,n['audit_record'](status,'abc','check',applicable))\\n except ValueError as e: print('audit:',status,applicable,type(e).__name__,str(e))\\nprint('count mixed:',n['count_unresolved']([{'resolved':False},{'resolved':True},{'resolved':False}]))\\nprint('count empty:',n['count_unresolved']([]))\\nPY\",\"max_output_tokens\":4000}));\n"
+      }
+    ],
+    "token_usage_records": [
+      {
+        "timestamp": "2026-10-08T19:55:29.468Z",
+        "usage": {
+          "input_tokens": 42124,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 129,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 42253
+        },
+        "turn_token_usage": {
+          "input_tokens": 42124,
+          "cached_input_tokens": 0,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 129,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 42253
+        }
+      },
+      {
+        "timestamp": "2026-10-08T19:55:44.459Z",
+        "usage": {
+          "input_tokens": 43063,
+          "cached_input_tokens": 41984,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 637,
+          "reasoning_output_tokens": 23,
+          "total_tokens": 43700
+        },
+        "turn_token_usage": {
+          "input_tokens": 85187,
+          "cached_input_tokens": 41984,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 766,
+          "reasoning_output_tokens": 23,
+          "total_tokens": 85953
+        }
+      },
+      {
+        "timestamp": "2026-10-08T19:56:05.636Z",
+        "usage": {
+          "input_tokens": 44575,
+          "cached_input_tokens": 42880,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 744,
+          "reasoning_output_tokens": 0,
+          "total_tokens": 45319
+        },
+        "turn_token_usage": {
+          "input_tokens": 129762,
+          "cached_input_tokens": 84864,
+          "cache_write_input_tokens": 0,
+          "output_tokens": 1510,
+          "reasoning_output_tokens": 23,
+          "total_tokens": 131272
+        }
+      }
+    ],
+    "session_meta": {
+      "id": "01a11d15-b201-7833-913c-603f56c330bd",
+      "timestamp": "2026-10-08T19:55:23.547Z",
+      "source": {
+        "subagent": {
+          "thread_spawn": {
+            "parent_thread_id": "01a0cd43-ae85-74f2-b0b6-ed4e08e29d00",
+            "depth": 1,
+            "agent_path": "/root/model_probe_astra_medium",
+            "agent_nickname": "Schrodinger",
+            "agent_role": "default"
+          }
+        }
+      },
+      "originator": "codex_work_desktop",
+      "cli_version": "0.162.0-alpha.2"
+    },
+    "completion": {
+      "started_at": 1791489323,
+      "completed_at": 1791489365,
+      "duration_ms": 41976,
+      "time_to_first_token_ms": 3391
+    },
+    "answer_text": "{\n  \"findings\": [\n    {\n      \"function\": \"build_checks\",\n      \"lines\": [6, 7, 8],\n      \"violation\": \"A RuntimeError from fetching current protection is swallowed, allowing a protection update containing null checks instead of stopping.\",\n      \"probe\": \"Call build_checks(fetch) where fetch raises RuntimeError('unavailable').\",\n      \"expected\": \"Raise before returning any protection update.\",\n      \"observed\": \"Returned {'required_status_checks': None}.\"\n    },\n    {\n      \"function\": \"restore_equivalent\",\n      \"lines\": [12],\n      \"violation\": \"Only required_status_checks is compared; changes to review approvals, bypass allowances, or any other protection field are ignored.\",\n      \"probe\": \"Compare before={'required_status_checks':['quality'],'required_pull_request_reviews':{'required_approving_review_count':2},'bypass':[]} with after containing the same checks, approval count 0, and bypass=['admin'].\",\n      \"expected\": false,\n      \"observed\": true\n    },\n    {\n      \"function\": \"merge_ready\",\n      \"lines\": [16, 17],\n      \"violation\": \"Unresolved threads outside processed_ids are omitted from the readiness decision.\",\n      \"probe\": \"merge_ready([{'id':1,'resolved':True},{'id':2,'resolved':False}], {1})\",\n      \"expected\": false,\n      \"observed\": true\n    },\n    {\n      \"function\": \"migration_verdict\",\n      \"lines\": [23, 24],\n      \"violation\": \"An applicable check with nonzero execution status is incorrectly reported as PASS.\",\n      \"probe\": \"migration_verdict(True, 1)\",\n      \"expected\": \"FAIL\",\n      \"observed\": \"PASS\"\n    },\n    {\n      \"function\": \"release_target\",\n      \"lines\": [29],\n      \"violation\": \"The release target follows latest main instead of retaining the merged PR's exact commit.\",\n      \"probe\": \"release_target('merged123', 'later456')\",\n      \"expected\": \"merged123\",\n      \"observed\": \"later456\"\n    },\n    {\n      \"function\": \"qa_gate\",\n      \"lines\": [33],\n      \"violation\": \"SKIP is accepted without requiring applicability to be explicitly false, allowing applicable and unknown-applicability checks to pass the gate.\",\n      \"probe\": \"Separately call qa_gate with [{'status':'SKIP','applicable':True}], [{'status':'SKIP'}], and [{'status':'SKIP','applicable':None}].\",\n      \"expected\": [false, false, false],\n      \"observed\": [true, true, true]\n    }\n  ],\n  \"safe_controls\": [\n    \"audit_record\",\n    \"count_unresolved\"\n  ],\n  \"limitations\": [\n    \"Reviewed only TASK.md and candidate.py. Probes executed the candidate in memory with bytecode writing disabled; no files were modified.\",\n    \"audit_record rejected unknown status and applicable SKIP, and preserved status, candidate, command, and explicit applicability for valid records. count_unresolved returned 2 for two unresolved and one resolved thread, and 0 for an empty list.\",\n    \"Passing boundary controls also included successful fetch preservation, empty-thread merge readiness, non-applicable migration SKIP, zero-exit migration PASS, identical release commits, and QA rejection of FAIL and UNVERIFIED.\",\n    \"This bounded fixture review does not verify the source repository, external protection or delivery behavior, or actual model configuration and effort.\"\n  ]\n}",
+    "answer": {
+      "findings": [
+        {
+          "function": "build_checks",
+          "lines": [
+            6,
+            7,
+            8
+          ],
+          "violation": "A RuntimeError from fetching current protection is swallowed, allowing a protection update containing null checks instead of stopping.",
+          "probe": "Call build_checks(fetch) where fetch raises RuntimeError('unavailable').",
+          "expected": "Raise before returning any protection update.",
+          "observed": "Returned {'required_status_checks': None}."
+        },
+        {
+          "function": "restore_equivalent",
+          "lines": [
+            12
+          ],
+          "violation": "Only required_status_checks is compared; changes to review approvals, bypass allowances, or any other protection field are ignored.",
+          "probe": "Compare before={'required_status_checks':['quality'],'required_pull_request_reviews':{'required_approving_review_count':2},'bypass':[]} with after containing the same checks, approval count 0, and bypass=['admin'].",
+          "expected": false,
+          "observed": true
+        },
+        {
+          "function": "merge_ready",
+          "lines": [
+            16,
+            17
+          ],
+          "violation": "Unresolved threads outside processed_ids are omitted from the readiness decision.",
+          "probe": "merge_ready([{'id':1,'resolved':True},{'id':2,'resolved':False}], {1})",
+          "expected": false,
+          "observed": true
+        },
+        {
+          "function": "migration_verdict",
+          "lines": [
+            23,
+            24
+          ],
+          "violation": "An applicable check with nonzero execution status is incorrectly reported as PASS.",
+          "probe": "migration_verdict(True, 1)",
+          "expected": "FAIL",
+          "observed": "PASS"
+        },
+        {
+          "function": "release_target",
+          "lines": [
+            29
+          ],
+          "violation": "The release target follows latest main instead of retaining the merged PR's exact commit.",
+          "probe": "release_target('merged123', 'later456')",
+          "expected": "merged123",
+          "observed": "later456"
+        },
+        {
+          "function": "qa_gate",
+          "lines": [
+            33
+          ],
+          "violation": "SKIP is accepted without requiring applicability to be explicitly false, allowing applicable and unknown-applicability checks to pass the gate.",
+          "probe": "Separately call qa_gate with [{'status':'SKIP','applicable':True}], [{'status':'SKIP'}], and [{'status':'SKIP','applicable':None}].",
+          "expected": [
+            false,
+            false,
+            false
+          ],
+          "observed": [
+            true,
+            true,
+            true
+          ]
+        }
+      ],
+      "safe_controls": [
+        "audit_record",
+        "count_unresolved"
+      ],
+      "limitations": [
+        "Reviewed only TASK.md and candidate.py. Probes executed the candidate in memory with bytecode writing disabled; no files were modified.",
+        "audit_record rejected unknown status and applicable SKIP, and preserved status, candidate, command, and explicit applicability for valid records. count_unresolved returned 2 for two unresolved and one resolved thread, and 0 for an empty list.",
+        "Passing boundary controls also included successful fetch preservation, empty-thread merge readiness, non-applicable migration SKIP, zero-exit migration PASS, identical release commits, and QA rejection of FAIL and UNVERIFIED.",
+        "This bounded fixture review does not verify the source repository, external protection or delivery behavior, or actual model configuration and effort."
+      ]
+    },
+    "quality": {
+      "defects_found": 6,
+      "expected_defects": 6,
+      "false_positives": [],
+      "duplicates": 0,
+      "safe_controls_classified": true,
+      "locations": [
+        {
+          "function": "build_checks",
+          "provided": [
+            6,
+            7,
+            8
+          ],
+          "required_offending_statement_lines": [
+            6,
+            7,
+            8
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "restore_equivalent",
+          "provided": [
+            12
+          ],
+          "required_offending_statement_lines": [
+            12
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "merge_ready",
+          "provided": [
+            16,
+            17
+          ],
+          "required_offending_statement_lines": [
+            16,
+            17
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "migration_verdict",
+          "provided": [
+            23,
+            24
+          ],
+          "required_offending_statement_lines": [
+            23,
+            24
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "release_target",
+          "provided": [
+            29
+          ],
+          "required_offending_statement_lines": [
+            29
+          ],
+          "contains_offending_statement": true
+        },
+        {
+          "function": "qa_gate",
+          "provided": [
+            33
+          ],
+          "required_offending_statement_lines": [
+            33
+          ],
+          "contains_offending_statement": true
+        }
+      ],
+      "accurate_locations": 6,
+      "core_detection_pass": true,
+      "evidence_location_pass": true,
+      "evidence_ready": true
+    },
+    "final_usage": {
+      "input_tokens": 129762,
+      "cached_input_tokens": 84864,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 1510,
+      "reasoning_output_tokens": 23,
+      "total_tokens": 131272
+    },
+    "source_sha256": "9108789d9f49b8fb86b222488daf692ac6dff8c02811decfe99bec84165809b8",
+    "uncached_input_tokens": 44898
+  }
+]

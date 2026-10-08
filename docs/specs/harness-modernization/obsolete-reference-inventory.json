@@ -1,0 +1,214 @@
+{
+  "pattern_scope": "named old model strings and former runtime flags; occurrence is not proof of an active selection or retirement",
+  "scanned": {
+    "harness": 481,
+    "erp": 72,
+    "siku": 34,
+    "webhook": 69,
+    "drivetree": 58,
+    "global": 14
+  },
+  "hits": [
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/decisions.md",
+      "relative": "docs/decisions.md",
+      "line": 210,
+      "terms": [
+        "Claude Sonnet 4.6"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/decisions.md",
+      "relative": "docs/decisions.md",
+      "line": 217,
+      "terms": [
+        "--disable unified_exec"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/decisions.md",
+      "relative": "docs/decisions.md",
+      "line": 231,
+      "terms": [
+        "--disable unified_exec",
+        "unified_exec=false"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-guard-compatibility.md",
+      "relative": "docs/specs/codex-guard-compatibility.md",
+      "line": 67,
+      "terms": [
+        "--disable unified_exec"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-guard-compatibility.md",
+      "relative": "docs/specs/codex-guard-compatibility.md",
+      "line": 68,
+      "terms": [
+        "unified_exec=false"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
+      "relative": "docs/specs/codex-managed-hook-enforcement.md",
+      "line": 7,
+      "terms": [
+        "--disable unified_exec"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
+      "relative": "docs/specs/codex-managed-hook-enforcement.md",
+      "line": 14,
+      "terms": [
+        "unified_exec = false"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
+      "relative": "docs/specs/codex-managed-hook-enforcement.md",
+      "line": 19,
+      "terms": [
+        "unified_exec=false"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
+      "relative": "docs/specs/codex-managed-hook-enforcement.md",
+      "line": 59,
+      "terms": [
+        "unified_exec=false"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-semantic-parity.md",
+      "relative": "docs/specs/codex-semantic-parity.md",
+      "line": 36,
+      "terms": [
+        "unified_exec=false"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/tests/codex-managed-requirements-test.sh",
+      "relative": "tests/codex-managed-requirements-test.sh",
+      "line": 25,
+      "terms": [
+        "unified_exec = false"
+      ]
+    },
+    {
+      "scope": "harness",
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/tests/codex-managed-requirements-test.sh",
+      "relative": "tests/codex-managed-requirements-test.sh",
+      "line": 36,
+      "terms": [
+        "unified_exec = false"
+      ]
+    },
+    {
+      "scope": "webhook",
+      "path": "/Users/grinvi04/project/webhook-service/AGENTS.md",
+      "relative": "AGENTS.md",
+      "line": 225,
+      "terms": [
+        "Claude Sonnet 4.6"
+      ]
+    },
+    {
+      "scope": "drivetree",
+      "path": "/Users/grinvi04/project/drivetree/AGENTS.md",
+      "relative": "AGENTS.md",
+      "line": 38,
+      "terms": [
+        "Claude Sonnet 4.6"
+      ]
+    },
+    {
+      "scope": "global",
+      "path": "/Users/grinvi04/.codex/model-policy.md",
+      "relative": "model-policy.md",
+      "line": 26,
+      "terms": [
+        "GPT-5.5는",
+        "GPT-5.3"
+      ]
+    },
+    {
+      "scope": "global",
+      "path": "/Users/grinvi04/.codex/config.toml",
+      "relative": "config.toml",
+      "line": 284,
+      "terms": [
+        "gpt-5.5"
+      ]
+    },
+    {
+      "scope": "global",
+      "path": "/Users/grinvi04/.claude/model-policy.md",
+      "relative": "model-policy.md",
+      "line": 12,
+      "terms": [
+        "MAX_THINKING_TOKENS"
+      ]
+    }
+  ],
+  "selected_safe_config": {
+    "model": "gpt-6.1-sol",
+    "effort": "medium",
+    "agents": {
+      "default_subagent_model": "gpt-6-sol",
+      "default_subagent_reasoning_effort": "medium"
+    },
+    "legacy_top_keys_present": [],
+    "features": {
+      "js_repl": false,
+      "memories": true
+    }
+  },
+  "additional_owned_global_sources": [
+    {
+      "path": "/Users/grinvi04/.agents/skills/project-map/SKILL.md",
+      "exists": true,
+      "matches": []
+    },
+    {
+      "path": "/Users/grinvi04/.zshrc",
+      "exists": true,
+      "matches": []
+    },
+    {
+      "path": "/Users/grinvi04/.zprofile",
+      "exists": true,
+      "matches": []
+    },
+    {
+      "path": "/Users/grinvi04/.claude/statusline-command.sh",
+      "exists": true,
+      "matches": []
+    }
+  ],
+  "config_old_model_occurrences": [
+    {
+      "path": [
+        "tui",
+        "model_availability_nux",
+        "gpt-5.5"
+      ],
+      "match_kind": "key",
+      "value_type": "int"
+    }
+  ]
+}

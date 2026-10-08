@@ -1,0 +1,78 @@
+{
+  "repos": [
+    {
+      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "head": "980fe87b4429e601e7f95155063eb2c28906fbaf",
+      "status": [
+        "M .gitignore"
+      ],
+      "trackedFingerprint": "440c4645e947e1dea767e351e6a7139ce784b89c59460bf17f276a07b8ec95c4"
+    },
+    {
+      "path": "/Users/grinvi04/project/erp",
+      "head": "085d0cebb6aefd3152e475e8337ff988a281f5ff",
+      "status": [
+        "?? .codex/",
+        "?? .project-map/"
+      ]
+    },
+    {
+      "path": "/Users/grinvi04/project/siku",
+      "head": "2476e1754c4e2fcf2e53ce749f3464cd8228ea74",
+      "status": [
+        "?? .project-map/"
+      ]
+    },
+    {
+      "path": "/Users/grinvi04/project/webhook-service",
+      "head": "e1eee56e101be3fc61526430599773116cd95797",
+      "status": [
+        "?? .project-map/"
+      ]
+    },
+    {
+      "path": "/Users/grinvi04/project/drivetree",
+      "head": "ff5f26f120ad4bb5629cc371839ff69edea544cc",
+      "status": [
+        "?? .project-map/"
+      ]
+    }
+  ],
+  "global_instructions_and_models": [
+    {
+      "path": "/Users/grinvi04/.config/ai-instructions/common.md",
+      "matches_start": true,
+      "sha256": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd"
+    },
+    {
+      "path": "/Users/grinvi04/.codex/AGENTS.md",
+      "matches_start": true,
+      "sha256": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd"
+    },
+    {
+      "path": "/Users/grinvi04/.claude/CLAUDE.md",
+      "matches_start": true,
+      "sha256": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd"
+    },
+    {
+      "path": "/Users/grinvi04/.codex/config.toml",
+      "matches_start": true,
+      "sha256": "fc9385b880f4df314824cc5df4a552531763fe60f419568e873b51305b952d30"
+    },
+    {
+      "path": "/Users/grinvi04/.codex/model-policy.md",
+      "matches_start": true,
+      "sha256": "d7ec31b619eb0eec669bb85c0e5b2aa3a6f932251de9f71599ea356236df4f23"
+    },
+    {
+      "path": "/Users/grinvi04/.claude/model-policy.md",
+      "matches_start": true,
+      "sha256": "7171b9f99fa57fe60c96f87d0bb11702d28b62c17beb46be3abdb0b6db825bdd"
+    },
+    {
+      "path": "/Users/grinvi04/.config/ai-instructions/delegation.md",
+      "matches_start": true,
+      "sha256": "1bbef4e4a3bdf61b089a7cfe582d1a1d46c796ffdd99f4b05b8a7cc2df0b0178"
+    }
+  ]
+}

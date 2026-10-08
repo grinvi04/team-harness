@@ -1,0 +1,518 @@
+{
+  "notify": [
+    "/Users/grinvi04/.codex/computer-use/Codex Computer Use.app/Contents/SharedSupport/SkyComputerUseClient.app/Contents/MacOS/SkyComputerUseClient",
+    "turn-ended"
+  ],
+  "personality": "pragmatic",
+  "model_auto_compact_token_limit": 220000,
+  "model_auto_compact_token_limit_scope": "total",
+  "plan_mode_reasoning_effort": "high",
+  "sandbox_workspace_write": {
+    "network_access": true
+  },
+  "memories": {
+    "generate_memories": true,
+    "use_memories": true
+  },
+  "tui": {
+    "status_line": [
+      "model-with-reasoning",
+      "current-dir",
+      "git-branch",
+      "five-hour-limit",
+      "weekly-limit",
+      "codex-version",
+      "task-progress"
+    ],
+    "status_line_use_colors": true,
+    "model_availability_nux": {
+      "gpt-5.5": 4,
+      "gpt-5.6-sol": 4
+    }
+  },
+  "desktop": {
+    "conversationDetailMode": "STEPS_PROSE",
+    "sansFontSize": 14,
+    "codeFontSize": 13,
+    "ambient-suggestions-enabled": true,
+    "keepRemoteControlAwakeWhilePluggedIn": true,
+    "show-context-window-usage": true,
+    "git-show-sidebar-pr-icons": true,
+    "git-pull-request-merge-method": "merge",
+    "followUpQueueMode": "queue",
+    "dock-icon-preference": "codex-system",
+    "enabled-reasoning-efforts": [
+      "low",
+      "medium",
+      "high",
+      "xhigh",
+      "ultra",
+      "max"
+    ],
+    "selected-avatar-id": "codex",
+    "preventSleepWhileRunning": true,
+    "realtimeVoiceScreenContextEnabled": true
+  },
+  "notice": {
+    "hide_rate_limit_model_nudge": true
+  },
+  "shell_environment_policy": {
+    "keys": [
+      "set"
+    ],
+    "set_keys": [
+      "NODE_REPL_TRUSTED_BROWSER_CLIENT_SHA256S"
+    ],
+    "set_nonsecret_numeric": {}
+  },
+  "hook_state_type": "dict",
+  "hook_state": [
+    {
+      "id": "harness-guard@team-harness:codex/hooks/hooks.json:pre_tool_use:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "harness-guard@team-harness:codex/hooks/hooks.json:user_prompt_submit:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "harness-guard@team-harness:hooks/hooks.json:pre_tool_use:0:0",
+      "keys": [
+        "trusted_hash",
+        "enabled"
+      ],
+      "enabled": true,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str",
+        "enabled": "bool"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:post_tool_use:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:post_tool_use:1:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:post_tool_use:1:1",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:post_tool_use:1:2",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:post_tool_use:1:3",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:post_tool_use:1:4",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:session_start:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:user_prompt_submit:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:stop:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "harness-guard@team-harness:hooks/hooks.json:pre_tool_use:1:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "harness-guard@team-harness:hooks/hooks.json:user_prompt_submit:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "/Users/grinvi04/project/erp/.codex/hooks.json:pre_tool_use:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "/Users/grinvi04/project/erp/.codex/hooks.json:post_tool_use:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "/Users/grinvi04/project/erp/.codex/hooks.json:post_tool_use:0:1",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "/Users/grinvi04/project/erp/.codex/hooks.json:session_start:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:post_tool_use:1:5",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:post_tool_use:1:6",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    },
+    {
+      "id": "security-guidance@claude-plugins-official:hooks/hooks.json:subagent_stop:0:0",
+      "keys": [
+        "trusted_hash"
+      ],
+      "enabled": null,
+      "trusted": null,
+      "values_types": {
+        "trusted_hash": "str"
+      }
+    }
+  ],
+  "marketplace_keys": {
+    "openai-bundled": [
+      "source_type",
+      "source"
+    ],
+    "openai-primary-runtime": [
+      "source_type",
+      "source"
+    ],
+    "claude-plugins-official": [
+      "last_updated",
+      "last_revision",
+      "source_type",
+      "source"
+    ],
+    "team-harness": [
+      "source_type",
+      "source",
+      "ref"
+    ]
+  },
+  "claude_settings": {
+    "enableWorkflows": true,
+    "skipWorkflowUsageWarning": true,
+    "remoteControlAtStartup": true,
+    "inputNeededNotifEnabled": true,
+    "agentPushNotifEnabled": true,
+    "skipAutoPermissionPrompt": true,
+    "theme": "dark",
+    "tui": "fullscreen",
+    "permission_mode": "auto",
+    "permission_rules": [
+      {
+        "decision": "allow",
+        "tool": "Bash",
+        "command_prefix": [
+          "gh"
+        ],
+        "wildcard": true,
+        "args_count": 2
+      },
+      {
+        "decision": "allow",
+        "tool": "Bash",
+        "command_prefix": [
+          "gh"
+        ],
+        "wildcard": true,
+        "args_count": 4
+      },
+      {
+        "decision": "allow",
+        "tool": "Bash",
+        "command_prefix": [
+          "gh"
+        ],
+        "wildcard": true,
+        "args_count": 4
+      }
+    ],
+    "statusline": {
+      "type": "command",
+      "command_basename": "statusline-command.sh",
+      "command_exists": false
+    }
+  },
+  "ai_shell_aliases": [
+    {
+      "alias": "codex",
+      "executable": "bash",
+      "flags": [],
+      "model_values": [],
+      "has_shell_expansion": false
+    }
+  ],
+  "managed_and_override_file_presence": [
+    {
+      "path": "/etc/codex/requirements.toml",
+      "exists": true
+    },
+    {
+      "path": "/etc/codex/managed_config.toml",
+      "exists": false
+    },
+    {
+      "path": "/Users/grinvi04/.codex/requirements.toml",
+      "exists": false
+    },
+    {
+      "path": "/Users/grinvi04/.codex/managed_config.toml",
+      "exists": false
+    },
+    {
+      "path": "/Library/Application Support/ClaudeCode/managed-settings.json",
+      "exists": false
+    },
+    {
+      "path": "/Library/Application Support/ClaudeCode/managed-mcp.json",
+      "exists": false
+    },
+    {
+      "path": "/Users/grinvi04/.claude/settings.local.json",
+      "exists": false
+    }
+  ],
+  "profile_files": [],
+  "codex_project_path_presence": {
+    "total": 53,
+    "exists": 20
+  },
+  "github_launcher": {
+    "path": "/Users/grinvi04/.claude/mcp-wrappers/github.sh",
+    "exists": true,
+    "lines": 8,
+    "fetches_auth_via_gh": true,
+    "packages": [
+      "@modelcontextprotocol/server-github"
+    ],
+    "uses_npx_auto_yes": true,
+    "references_secret_variable_names": [
+      "GITHUB_PERSONAL_ACCESS_TOKEN"
+    ]
+  },
+  "claude_installed_plugins": [
+    {
+      "id": "vercel@claude-plugins-official",
+      "records": [
+        {
+          "version": "0.44.0",
+          "scope": "user",
+          "installPathExists": true
+        }
+      ]
+    },
+    {
+      "id": "frontend-design@claude-plugins-official",
+      "records": [
+        {
+          "version": "unknown",
+          "scope": "project",
+          "installPathExists": true
+        },
+        {
+          "version": "unknown",
+          "scope": "user",
+          "installPathExists": true
+        }
+      ]
+    },
+    {
+      "id": "security-guidance@claude-plugins-official",
+      "records": [
+        {
+          "version": "2.0.6",
+          "scope": "project",
+          "installPathExists": true
+        }
+      ]
+    },
+    {
+      "id": "playwright@claude-plugins-official",
+      "records": [
+        {
+          "version": "unknown",
+          "scope": "user",
+          "installPathExists": true
+        }
+      ]
+    },
+    {
+      "id": "harness-guard@team-harness",
+      "records": [
+        {
+          "version": "0.68.0",
+          "scope": "user",
+          "installPathExists": true
+        }
+      ]
+    }
+  ],
+  "claude_marketplace_names": [
+    "claude-plugins-official",
+    "team-harness"
+  ],
+  "codex_cached_plugins": [
+    "openai-templates@openai-curated-remote",
+    "plugin-management@openai-curated-remote",
+    "google-calendar@openai-curated-remote",
+    "sites@openai-curated-remote",
+    "github@openai-curated-remote",
+    "google-drive@openai-curated-remote",
+    "product-design@openai-curated-remote",
+    "work-pets@openai-curated-remote",
+    "slack@openai-curated-remote",
+    "pages@openai-curated-remote",
+    "superpowers@openai-curated-remote",
+    "gmail@openai-curated-remote",
+    "codex-security@openai-curated",
+    "harness-guard@team-harness",
+    "template-creator@openai-primary-runtime",
+    "spreadsheets@openai-primary-runtime",
+    "pdf@openai-primary-runtime",
+    "presentations@openai-primary-runtime",
+    "documents@openai-primary-runtime",
+    "security-guidance@claude-plugins-official",
+    "frontend-design@claude-plugins-official",
+    "unified-computer-use@openai-bundled",
+    "code-review@openai-bundled",
+    "visualize@openai-bundled",
+    "browser@openai-bundled",
+    "codex-app-tools@openai-bundled",
+    "chrome@openai-bundled",
+    "computer-use@openai-bundled"
+  ]
+}

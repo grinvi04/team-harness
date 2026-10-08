@@ -1,0 +1,25 @@
+{
+  "created_at": "2026-10-08T19:54:51.478067+00:00",
+  "source_head": "980fe87b4429e601e7f95155063eb2c28906fbaf",
+  "purpose": "same-input read-only model review comparison",
+  "permission": "review temporary fixture; no source/config mutations",
+  "quality_bar": {
+    "all_six_contract_violations": true,
+    "safe_controls_without_false_positives": [
+      "audit_record",
+      "count_unresolved"
+    ],
+    "concrete_probe_per_finding": true,
+    "out_of_scope_write_count": 0
+  },
+  "files": {
+    "candidate.py": "b9ecfa5e6028e62bf3b0bde31cd0edcfc4b2a6e1048e763683db104f621a54b9",
+    "TASK.md": "e2041ea1d90458ba2cfbcf0d229b2459e597871a05d1a23155d010e4f055bd81"
+  },
+  "measurement_limits": [
+    "adapted small fixture only",
+    "one task and one call per setting",
+    "no subscription-cost conversion",
+    "runtime metadata must be independently observed"
+  ]
+}

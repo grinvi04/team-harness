@@ -1,0 +1,117 @@
+{
+  "version": "0.161.0",
+  "scope": "command token classification only; no classified commands executed",
+  "cases": [
+    {
+      "classifier_command": [
+        "/Users/grinvi04/.local/bin/codex",
+        "execpolicy",
+        "check",
+        "--rules",
+        "/Users/grinvi04/.codex/rules/default.rules",
+        "--",
+        "git",
+        "push",
+        "--force",
+        "origin",
+        "main"
+      ],
+      "classified_command": [
+        "git",
+        "push",
+        "--force",
+        "origin",
+        "main"
+      ],
+      "exit_code": 0,
+      "result": {
+        "matchedRules": [
+          {
+            "prefixRuleMatch": {
+              "matchedPrefix": [
+                "git",
+                "push"
+              ],
+              "decision": "allow"
+            }
+          }
+        ],
+        "decision": "allow"
+      },
+      "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)"
+    },
+    {
+      "classifier_command": [
+        "/Users/grinvi04/.local/bin/codex",
+        "execpolicy",
+        "check",
+        "--rules",
+        "/Users/grinvi04/.codex/rules/default.rules",
+        "--",
+        "gh",
+        "api",
+        "--method",
+        "DELETE",
+        "repos/grinvi04/team-harness/branches/main/protection"
+      ],
+      "classified_command": [
+        "gh",
+        "api",
+        "--method",
+        "DELETE",
+        "repos/grinvi04/team-harness/branches/main/protection"
+      ],
+      "exit_code": 0,
+      "result": {
+        "matchedRules": [
+          {
+            "prefixRuleMatch": {
+              "matchedPrefix": [
+                "gh",
+                "api"
+              ],
+              "decision": "allow"
+            }
+          }
+        ],
+        "decision": "allow"
+      },
+      "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)"
+    },
+    {
+      "classifier_command": [
+        "/Users/grinvi04/.local/bin/codex",
+        "execpolicy",
+        "check",
+        "--rules",
+        "/Users/grinvi04/.codex/rules/default.rules",
+        "--",
+        "git",
+        "status",
+        "--short"
+      ],
+      "classified_command": [
+        "git",
+        "status",
+        "--short"
+      ],
+      "exit_code": 0,
+      "result": {
+        "matchedRules": [
+          {
+            "prefixRuleMatch": {
+              "matchedPrefix": [
+                "git",
+                "status",
+                "--short"
+              ],
+              "decision": "allow"
+            }
+          }
+        ],
+        "decision": "allow"
+      },
+      "stderr": "WARNING: proceeding, even though we could not create PATH aliases: Operation not permitted (os error 1)"
+    }
+  ]
+}

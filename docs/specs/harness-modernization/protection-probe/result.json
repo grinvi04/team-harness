@@ -1,0 +1,11 @@
+{
+  "scope": "stateful fake gh only; no GitHub network or original state mutation",
+  "candidate": "980fe87b4429e601e7f95155063eb2c28906fbaf",
+  "exit": 1,
+  "stdout": "⚠ audit/repo:main — 보호 적용됐으나 required status check 0개(첫 CI 이전?) — CI 실행 후 재실행 필요\n⚠ audit/repo:develop — 보호 적용됐으나 required status check 0개(첫 CI 이전?) — CI 실행 후 재실행 필요\n",
+  "stderr": "",
+  "afterRequiredChecks": {
+    "main": null,
+    "develop": null
+  }
+}

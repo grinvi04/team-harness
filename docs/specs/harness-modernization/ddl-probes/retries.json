@@ -1,0 +1,53 @@
+[
+  {
+    "case": "sql-column-omitted",
+    "cmd": [
+      "node",
+      "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+      "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-omitted"
+    ],
+    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-omitted/db/migration/V1__probe.sql",
+    "inputSha256": "2c1a7b47453d0766b732419822a58fae3b9f310ed908a757b22c22c86a8fdb6c",
+    "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
+    "syntax": null,
+    "exit": 0,
+    "stdout": "✓ 파괴적 DDL 게이트 통과 — 마이그레이션 SQL 1개 · 승인 없는 파괴 DDL 없음\n",
+    "stderr": "",
+    "changedCondition": "initial migrations/ fixture was outside documented SQL scan roots; use db/migration/"
+  },
+  {
+    "case": "sql-column-explicit",
+    "cmd": [
+      "node",
+      "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+      "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-explicit"
+    ],
+    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-explicit/db/migration/V1__probe.sql",
+    "inputSha256": "8fe4971a20c7d8314f4426c54fecbf850fa6faaab21ec4821776607442105aa8",
+    "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
+    "syntax": null,
+    "exit": 1,
+    "stdout": "",
+    "stderr": "\n✖ 파괴적 DDL 게이트 실패 — 승인마커 없는 데이터-손실 DDL 또는 해석 불가 SQL:\n  • ALTER…DROP COLUMN  (/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-explicit/db/migration/V1__probe.sql)\n      ALTER TABLE audit_log DROP COLUMN old_col\n\n  파괴 DDL은 CI(빈 DB)는 통과하고 운영(기존 데이터)에서만 비가역 손실을 냅니다.\n  해결:\n    • 정당한 변경(예: forward-only 2단계 배포의 컬럼 제거)이면 파괴 문장과 같은 문장에\n      승인 주석을 답니다:  -- migration-safety: destructive-ok\n    • 아니면 파괴 DDL을 제거하고 forward-only(새 버전 추가) 경로로 대체하세요.\n  단일 출처: docs/db-standards.md · docs/specs/secret-runbook-ddl-gate.md\n\n",
+    "changedCondition": "initial migrations/ fixture was outside documented SQL scan roots; use db/migration/"
+  },
+  {
+    "case": "sql-executable-comment",
+    "cmd": [
+      "node",
+      "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+      "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-executable-comment"
+    ],
+    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-executable-comment/db/migration/V1__probe.sql",
+    "inputSha256": "abaa000aa525d9473ca12def931aa239e4e6cc95bd0cd6a6fc0933fcf2b0093b",
+    "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
+    "syntax": null,
+    "exit": 1,
+    "stdout": "",
+    "stderr": "\n✖ 파괴적 DDL 게이트 실패 — 승인마커 없는 데이터-손실 DDL 또는 해석 불가 SQL:\n  • DROP TABLE  (/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-executable-comment/db/migration/V1__probe.sql)\n      DROP TABLE audit_log\n\n  파괴 DDL은 CI(빈 DB)는 통과하고 운영(기존 데이터)에서만 비가역 손실을 냅니다.\n  해결:\n    • 정당한 변경(예: forward-only 2단계 배포의 컬럼 제거)이면 파괴 문장과 같은 문장에\n      승인 주석을 답니다:  -- migration-safety: destructive-ok\n    • 아니면 파괴 DDL을 제거하고 forward-only(새 버전 추가) 경로로 대체하세요.\n  단일 출처: docs/db-standards.md · docs/specs/secret-runbook-ddl-gate.md\n\n",
+    "changedCondition": "initial migrations/ fixture was outside documented SQL scan roots; use db/migration/"
+  }
+]

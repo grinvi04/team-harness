@@ -1,0 +1,307 @@
+{
+  "source": "/Applications/Claude.app/Contents/Resources/app.asar",
+  "read_only": true,
+  "observations": [
+    {
+      "file": ".vite/build/file-index-worker/fileIndexWorker.js",
+      "file_sha256": "9144aa315836ccf61301cd62ef1d27f29148cca9ec973024485d390b652de879",
+      "term": "skipAutoPermissionPrompt",
+      "occurrences": 1,
+      "snippets": [
+        "ClaudeAiPlugins\"],restrictive:!1},{path:[\"useAutoModeDuringPlan\"],restrictive:!1},{path:[\"skipDangerousModePermissionPrompt\"],restrictive:!1},{path:[\"skipAutoPermissionPrompt\"],restrictive:!1},{path:[\"enableAllProjectMcpServers\"],restrictive:!1},{path:[\"channelsEnabled\"],restrictive:!1},{path:[\"skipWebFetchPreflight\"],restrictive:!1},{path:[\"skipWorkflowUsageWarning\"],restrictive:!"
+      ]
+    },
+    {
+      "file": ".vite/build/file-index-worker/fileIndexWorker.js",
+      "file_sha256": "9144aa315836ccf61301cd62ef1d27f29148cca9ec973024485d390b652de879",
+      "term": "enableWorkflows",
+      "occurrences": 2,
+      "snippets": [
+        "toMode\",\"classifyAllShell\"],restrictive:!0},{path:[\"worktree\",\"bgIsolation\"],restrictive:\"worktree\"},{path:[\"enableArtifact\"],restrictive:!1},{path:[\"enableWorkflows\"],restrictive:!1},{path:[\"syncClaudeAiSkills\"],restrictive:!1},{path:[\"syncClaudeAiPlugins\"],restrictive:!1},{path:[\"useAutoModeDuringPlan\"],restrictive:!1},{path:[\"skipDangerousModePermissionPrompt\"],restrict",
+        "of managed, --settings, or user settings wins; project and local settings can only turn it off. Unset defaults to on once the feature is available.\"),enableWorkflows:()=>P().optional().describe(\"Enable or disable the Workflows feature for this user. Unset = default by plan once the feature is available.\"),workflowSizeGuideline:()=>B([\"unrestricted\",\"small\",\"medium\",\"large\""
+      ]
+    },
+    {
+      "file": ".vite/build/file-index-worker/fileIndexWorker.js",
+      "file_sha256": "9144aa315836ccf61301cd62ef1d27f29148cca9ec973024485d390b652de879",
+      "term": "skipWorkflowUsageWarning",
+      "occurrences": 2,
+      "snippets": [
+        "path:[\"enableAllProjectMcpServers\"],restrictive:!1},{path:[\"channelsEnabled\"],restrictive:!1},{path:[\"skipWebFetchPreflight\"],restrictive:!1},{path:[\"skipWorkflowUsageWarning\"],restrictive:!1},{path:[\"autoUploadSessions\"],restrictive:!1},{path:[\"remoteControlAtStartup\"],restrictive:!1},{path:[\"remoteTools\",\"allowUnattendedServing\"],restrictive:!1},{path:[\"autoContinueAtUsageLimit\"]",
+        "for your install.\"),skipDangerousModePermissionPrompt:()=>P().optional().describe(\"Whether the user has accepted the bypass permissions mode dialog\"),skipWorkflowUsageWarning:()=>P().optional().describe(\"@internal Whether the user has accepted the multi-agent workflow usage warning. Until set, auto permission mode prompts before running a workflow.\"),disableAutoMode:()=>B([\"disable"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-BWPBQrpH.js",
+      "file_sha256": "02292a56b9dfdaf28f8ba5615d560a6a195af5f0b64c8ce366422a1b351fb286",
+      "term": "skipAutoPermissionPrompt",
+      "occurrences": 1,
+      "snippets": [
+        "ClaudeAiPlugins\"],restrictive:!1},{path:[\"useAutoModeDuringPlan\"],restrictive:!1},{path:[\"skipDangerousModePermissionPrompt\"],restrictive:!1},{path:[\"skipAutoPermissionPrompt\"],restrictive:!1},{path:[\"enableAllProjectMcpServers\"],restrictive:!1},{path:[\"channelsEnabled\"],restrictive:!1},{path:[\"skipWebFetchPreflight\"],restrictive:!1},{path:[\"skipWorkflowUsageWarning\"],restrictive:!"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-BWPBQrpH.js",
+      "file_sha256": "02292a56b9dfdaf28f8ba5615d560a6a195af5f0b64c8ce366422a1b351fb286",
+      "term": "enableWorkflows",
+      "occurrences": 2,
+      "snippets": [
+        "toMode\",\"classifyAllShell\"],restrictive:!0},{path:[\"worktree\",\"bgIsolation\"],restrictive:\"worktree\"},{path:[\"enableArtifact\"],restrictive:!1},{path:[\"enableWorkflows\"],restrictive:!1},{path:[\"syncClaudeAiSkills\"],restrictive:!1},{path:[\"syncClaudeAiPlugins\"],restrictive:!1},{path:[\"useAutoModeDuringPlan\"],restrictive:!1},{path:[\"skipDangerousModePermissionPrompt\"],restrict",
+        "of managed, --settings, or user settings wins; project and local settings can only turn it off. Unset defaults to on once the feature is available.\"),enableWorkflows:()=>P().optional().describe(\"Enable or disable the Workflows feature for this user. Unset = default by plan once the feature is available.\"),workflowSizeGuideline:()=>B([\"unrestricted\",\"small\",\"medium\",\"large\""
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-BWPBQrpH.js",
+      "file_sha256": "02292a56b9dfdaf28f8ba5615d560a6a195af5f0b64c8ce366422a1b351fb286",
+      "term": "skipWorkflowUsageWarning",
+      "occurrences": 2,
+      "snippets": [
+        "path:[\"enableAllProjectMcpServers\"],restrictive:!1},{path:[\"channelsEnabled\"],restrictive:!1},{path:[\"skipWebFetchPreflight\"],restrictive:!1},{path:[\"skipWorkflowUsageWarning\"],restrictive:!1},{path:[\"autoUploadSessions\"],restrictive:!1},{path:[\"remoteControlAtStartup\"],restrictive:!1},{path:[\"remoteTools\",\"allowUnattendedServing\"],restrictive:!1},{path:[\"autoContinueAtUsageLimit\"]",
+        "for your install.\"),skipDangerousModePermissionPrompt:()=>P().optional().describe(\"Whether the user has accepted the bypass permissions mode dialog\"),skipWorkflowUsageWarning:()=>P().optional().describe(\"@internal Whether the user has accepted the multi-agent workflow usage warning. Until set, auto permission mode prompts before running a workflow.\"),disableAutoMode:()=>B([\"disable"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-BWPBQrpH.js",
+      "file_sha256": "02292a56b9dfdaf28f8ba5615d560a6a195af5f0b64c8ce366422a1b351fb286",
+      "term": "0.3.293",
+      "occurrences": 3,
+      "snippets": [
+        "{server_name:e,message:{jsonrpc:\"2.0\",id:c9+\"initialize\",method:\"initialize\",params:{protocolVersion:Bxe,capabilities:Ixe,clientInfo:{...Lxe,version:\"0.3.293\"}}}},r);if(n)return;if(!(\"result\"in i)){O(`[Query.captureSdkMcpServerManifests] '${e}' answered initialize with an error; leaving it to the CLI: ${D(i)}`,{level:\"warn\"});return}let a=i.result;r.onmessage?.({js",
+        "pe===\"custom\"?(m=a.prompt,v=a.snapshot):a.type===\"preset\"&&(g=a.append,_=a.excludeDynamicSections,v=a.snapshot),process.env.CLAUDE_AGENT_SDK_VERSION=\"0.3.293\";let{abortController:y=L7(),additionalDirectories:b=[],projectConfigRoot:x,agent:S,agents:ee,allowedTools:te=[],betas:ne,canUseTool:re,continue:ie,cwd:ae,debug:C,debugFile:oe,disallowedTools:se=[],tools:ce,env",
+        "n}let it=Le?.type===\"json_schema\"?Le.schema:void 0,at=le?{...le}:{...process.env};at.CLAUDE_CODE_ENTRYPOINT||=\"sdk-ts\",at.CLAUDE_AGENT_SDK_VERSION||=\"0.3.293\",pe&&(at.CLAUDE_CODE_ENABLE_SDK_FILE_CHECKPOINTING=\"true\"),Object.keys(at).some((e=>e.toUpperCase()===\"CLAUDE_CODE_SDK_READS_SESSION_STATE\"))||(at.CLAUDE_CODE_SDK_READS_SESSION_STATE=\"1\");let ot=qd(at.CLAUDE_C"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-BX6SiA3N.js",
+      "file_sha256": "2fa8291283e87713fc620330adeaf9f3073d2e54d189bfae1e9b67996db88ed3",
+      "term": "getBinaryPath",
+      "occurrences": 2,
+      "snippets": [
+        "=void 0||(await e.QN(),(await e.rP())?.settings?.sandbox?.[t]!==void 0)}async function f(t){try{var n=e.j0();let{path:o,versionIdentity:s}=await e.jx.getBinaryPathIfReadyWithIdentity();if(o===null)return{parsed:null,code:null,stderr:\"\"};let c=await e.fa({tag:\"local_sandbox\",versionIdentity:s});if(!c.ok)return e.q0.warn(`${r} ${t}: skipped, could not get the Code tab's si",
+        "ersion=${String(n)} supported=${String(i)} source=${e.Ea(String(a))} unavailableReason=${o?\"set\":\"none\"})`)}return n}async function g(){if(await e.jx.getBinaryPathIfReady()===null)return\"not_ready\";let{parsed:t}=await m();return t===null?\"no_answer\":_(t)}function _(t){if(t===null||typeof t.statusVersion!=\"number\"||t.statusVersion<2)return\"unknown\";if(t.enabled===!0)retur"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-Bb92CRe1.js",
+      "file_sha256": "0acc4d7e74790ffd6aff2cd35fe7b7dd8688b82d0c77c5b64b0f8e1572106e1e",
+      "term": "getBinaryPath",
+      "occurrences": 1,
+      "snippets": [
+        "istener(\"abort\",b,{once:!0});let S=()=>{clearTimeout(f),y.delete(u),l?.removeEventListener(\"abort\",b)},C;try{let{path:f,versionIdentity:m}=await t.jx.getBinaryPathIfReadyWithIdentity();if(!f)return{ok:!1,reason:\"binary-not-ready\"};let y=t.$I(),b=await t.QI(y);if(!b.ok)return{ok:!1,reason:\"auth-failed\"};let x;try{x=await r.c({cmd:f})}catch(e){if(e instanceof r.r)return{ok"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-BuWAu4qX.js",
+      "file_sha256": "8f2d3b9f164c9ccb19fe384b30c4a0971fa75c1587c8ba3cade17e240d276921",
+      "term": "skipWorkflowUsageWarning",
+      "occurrences": 2,
+      "snippets": [
+        ".toolName===\"Workflow\"&&s.decisionReason===\"Review the first dynamic workflow before auto-approving.\"&&d&&!t.mC(d)&&s.viaHostCliLauncher!==!0&&(t.Rw({skipWorkflowUsageWarning:!0}).then((e=>{e||(t.q0.warn(\"[ToolPermissionBroker] skipWorkflowUsageWarning write failed; user will be re-prompted on next Workflow call\"),t.pI(\"desktop_ccd_workflow_consent_write_failed\",{session_id:s.sessi",
+        "before auto-approving.\"&&d&&!t.mC(d)&&s.viaHostCliLauncher!==!0&&(t.Rw({skipWorkflowUsageWarning:!0}).then((e=>{e||(t.q0.warn(\"[ToolPermissionBroker] skipWorkflowUsageWarning write failed; user will be re-prompted on next Workflow call\"),t.pI(\"desktop_ccd_workflow_consent_write_failed\",{session_id:s.sessionId}))})),t.pI(\"desktop_ccd_workflow_usage_consented\",{session_id:s.sessionId"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-BuWAu4qX.js",
+      "file_sha256": "8f2d3b9f164c9ccb19fe384b30c4a0971fa75c1587c8ba3cade17e240d276921",
+      "term": "getBinaryPath",
+      "occurrences": 2,
+      "snippets": [
+        "(\"abort\",l,{once:!0});let u,d=()=>{clearTimeout(c),MD.delete(o),a?.removeEventListener(\"abort\",l),u?.()};try{let{path:c,versionIdentity:l}=await t.jx.getBinaryPathIfReadyWithIdentity();if(!c)return{ok:!1,reason:\"binary-not-ready\"};let d=t.$I(),f=await t.QI(d);if(!f.ok)return{ok:!1,reason:\"auth-failed\"};let p;try{p=await R.c({cmd:c})}catch(e){if(e instanceof R.r)return{ok",
+        "edMissing:!1};t.q0.warn(`[CCD] Pinned CLI ${e.version} is no longer installed at spawn time; using the current binary`)}let a=e!==void 0,o=await t.jx.getBinaryPathIfReadyWithIdentity(),s=o.path?qM({identity:o.versionIdentity,needsReadBlock:n&&t.TB(o.versionIdentity),modelFloorEnabled:J.x(),minCliVersion:r.minCliVersion,targetVersion:t.jx.getCurrentTargetVersion(),warmRes"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-BuWAu4qX.js",
+      "file_sha256": "8f2d3b9f164c9ccb19fe384b30c4a0971fa75c1587c8ba3cade17e240d276921",
+      "term": "cliVersion:",
+      "occurrences": 5,
+      "snippets": [
+        "r.model===t?!1:(e.sshReattach={...r,model:t},!0)}function fD(e,t){let n=uD(e);return t===void 0||n===void 0||n.cliVersion===t?!1:(e.sshReattach={...n,cliVersion:t},!0)}function pD(e){return uD(e)?.bootCwd}function mD(e,t){let r=uD(e);return r===void 0||r.bootCwd!==void 0||t!==null&&!n.bn(t)?!1:(e.sshReattach={...r,bootCwd:t},!0)}function hD(e){let t=uD(e)?.model;if(t!=",
+        ".spawnResumed,{snapshot:u,counts:d}=n.zt({tools:o,desktopServers:s,disallowedToolsKey:r.lastDisallowedToolsKey??c?.disallowedToolsKey,appVersion:nC(),cliVersion:r.cliReportedVersion}),f=r.toolSurfaceSnapshot;if(r.toolSurfaceSnapshot=u,!a||l===void 0||r.lastSpawnSource===void 0)return;t.pI(\"desktop_ccd_spawn_tool_parity\",n.Rt({sessionId:r.sessionId,prior:f,next:u,counts",
+        "${n.Hi}\\n${k.a(\"system-reminder\",e.join(`\\n\\n`))}`)}let cn=o?.adoptedFromOtherSurface===!0?\"\":T,ln=n.pn({freeze:re,live:cn,liveTail:Ft?`\\n\\n${Ft}`:\"\",cliVersion:A?`pinned:${t.jx.getPinnedCliVersion()}`:t.jx.versionFromIdentity(It),settingsKey:n.dn({fileLinks:P,seededAppend:w,midTaskReplyTool:Ct,cliInSandboxVm:U}),prior:o?.promptAppendSnapshot,isRespawn:o!==void 0});Q.s",
+        "|t.version===void 0||e.query!==n||e.sshRemoteProcessId!==r||i===void 0||i.processId!==r||i.cliVersion!==void 0||J.A(e)!==void 0||(e.sshReattach={...i,cliVersion:t.version},this.saveSession(e),this.emitSessionUpdated(e),this.pushAutoModeRulesToAdoptedProcess(e,n))}),(n=>{t.q0.info(`[SSH] Session ${e.sessionId}: the adopted Claude Code did not say its version:`,n)}))}pus",
+        "RulesOwedToAdoptedProcess||e.autoModeClassifierRulesAtSpawn===!0)return;let r=J.A(e)??(e.sshReattach?.processId===e.sshRemoteProcessId?e.sshReattach?.cliVersion:void 0);r!==void 0&&(e.autoModeRulesOwedToAdoptedProcess=!1,t.FB(r,\"2.1.118\")&&$(e,n,n.applyFlagSettings(jd())).then((()=>{e.query===n&&(e.autoModeClassifierRulesAtSpawn=!0,e.permissionMode===t.mX.Auto&&this.sy"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-C13n42G4.js",
+      "file_sha256": "ded322f00e240998bbfa4d30e0fdad62b526934a97ef21b7d7aeddc1710a87f0",
+      "term": "getBinaryPath",
+      "occurrences": 1,
+      "snippets": [
+        "re(\"electron\"),o=require(\"node:os\");o=e.a(o);async function s(e){return t.P_()?l(e):c(e)}async function c(e){let{path:i,versionIdentity:a}=await t.jx.getBinaryPathIfReadyWithIdentity();if(!i)return t.q0.warn(`${e.logPrefix} CLI binary not ready`),{ok:!1,text:t.jx.binaryWithheldMessage()??\"Claude is still starting up. Try again in a moment.\"};let s=await t.I_(t.Nb);try{le"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-CHfTL6T3.js",
+      "file_sha256": "a2fe00495050c2ac64cce33302c078e8358fd82b4c6e1144a24e28a9dae2db81",
+      "term": "skipWorkflowUsageWarning",
+      "occurrences": 2,
+      "snippets": [
+        "===\"allow\"&&e.toolName===\"Workflow\"&&e.decisionReason===\"Review the first dynamic workflow before auto-approving.\"&&e.viaHostCliLauncher!==!0&&(t.Rw({skipWorkflowUsageWarning:!0}).then((n=>{n||(t.q0.warn(\"[LocalAgentModeSessionManager] skipWorkflowUsageWarning write failed; user will be re-prompted on next Workflow call\"),t.fI(\"lam_workflow_consent_write_failed\",{session_id:e.sessi",
+        "flow before auto-approving.\"&&e.viaHostCliLauncher!==!0&&(t.Rw({skipWorkflowUsageWarning:!0}).then((n=>{n||(t.q0.warn(\"[LocalAgentModeSessionManager] skipWorkflowUsageWarning write failed; user will be re-prompted on next Workflow call\"),t.fI(\"lam_workflow_consent_write_failed\",{session_id:e.sessionId,session_type:\"cowork\"}))})),t.fI(\"lam_workflow_usage_consented\",{session_id:e.ses"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-CHfTL6T3.js",
+      "file_sha256": "a2fe00495050c2ac64cce33302c078e8358fd82b4c6e1144a24e28a9dae2db81",
+      "term": "getBinaryPath",
+      "occurrences": 1,
+      "snippets": [
+        "t.Gv(wt);if(Tt&&(J.managedSettings=Tt),g&&_){J.managedSettings=wt,J.additionalDirectories=t.oy();let e=await t.jx.prepare(),n=e.ready?null:await t.jx.getBinaryPathIfReadyWithIdentity(),i=(e.ready?e.path:null)??n?.path??null,s=t.kB(e.ready&&e.path?await t.jx.getHostVersionIdentityForPath(e.path):n?.versionIdentity);J.env&&!e.ready&&t.Mb(J.env,s),J.managedSettings=t.Ob(J.m"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-D86SM5R2.js",
+      "file_sha256": "6dc998c3796b86042889b5338b761f1b01f3254226f2f8f5d4b1faa69092c8f9",
+      "term": "enableWorkflows",
+      "occurrences": 8,
+      "snippets": [
+        "tyle!=\"string\"||e.fastMode!==void 0&&typeof e.fastMode!=\"boolean\"||e.fastModePerSessionOptIn!==void 0&&typeof e.fastModePerSessionOptIn!=\"boolean\"||e.enableWorkflows!==void 0&&typeof e.enableWorkflows!=\"boolean\"||e.disableWorkflows!==void 0&&typeof e.disableWorkflows!=\"boolean\"||e.skipWorkflowUsageWarning!==void 0&&typeof e.skipWorkflowUsageWarning!=\"boolean\"||e.remoteCont",
+        "&&typeof e.fastMode!=\"boolean\"||e.fastModePerSessionOptIn!==void 0&&typeof e.fastModePerSessionOptIn!=\"boolean\"||e.enableWorkflows!==void 0&&typeof e.enableWorkflows!=\"boolean\"||e.disableWorkflows!==void 0&&typeof e.disableWorkflows!=\"boolean\"||e.skipWorkflowUsageWarning!==void 0&&typeof e.skipWorkflowUsageWarning!=\"boolean\"||e.remoteControlAtStartup!==void 0&&typeof e.rem",
+        "shHostAllowlist)||e.disableBypassPermissionsMode!==void 0&&!Ov(e.disableBypassPermissionsMode)||e.disableAutoMode!==void 0&&!Ov(e.disableAutoMode)||e.enableWorkflows!==void 0&&!kv(e.enableWorkflows)||e.disableWorkflows!==void 0&&!kv(e.disableWorkflows)||e.disableDesktopLocalSessions!==void 0&&!kv(e.disableDesktopLocalSessions)||e.switchModelsOnFlag!==void 0&&!kv(e.switchMo",
+        "sPermissionsMode!==void 0&&!Ov(e.disableBypassPermissionsMode)||e.disableAutoMode!==void 0&&!Ov(e.disableAutoMode)||e.enableWorkflows!==void 0&&!kv(e.enableWorkflows)||e.disableWorkflows!==void 0&&!kv(e.disableWorkflows)||e.disableDesktopLocalSessions!==void 0&&!kv(e.disableDesktopLocalSessions)||e.switchModelsOnFlag!==void 0&&!kv(e.switchModelsOnFlag)||e.sandboxEnabled!==",
+        "OptIn:gM(e,\"fastModePerSessionOptIn\"),defaultPermissionMode:yDn(e),sshHostAllowlist:kDn(e),disableBypassPermissionsMode:SDn(e),disableAutoMode:CDn(e),enableWorkflows:gM(e,\"enableWorkflows\"),disableWorkflows:DDn(e),disableDesktopLocalSessions:vM(e)??IDn(),switchModelsOnFlag:gM(e,\"switchModelsOnFlag\"),sandboxEnabled:UDn(e),strictSandboxMode:WDn(e),effortLevel:RDn(e),effortTa"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-D86SM5R2.js",
+      "file_sha256": "6dc998c3796b86042889b5338b761f1b01f3254226f2f8f5d4b1faa69092c8f9",
+      "term": "skipWorkflowUsageWarning",
+      "occurrences": 3,
+      "snippets": [
+        "tIn!=\"boolean\"||e.enableWorkflows!==void 0&&typeof e.enableWorkflows!=\"boolean\"||e.disableWorkflows!==void 0&&typeof e.disableWorkflows!=\"boolean\"||e.skipWorkflowUsageWarning!==void 0&&typeof e.skipWorkflowUsageWarning!=\"boolean\"||e.remoteControlAtStartup!==void 0&&typeof e.remoteControlAtStartup!=\"boolean\"||e.switchModelsOnFlag!==void 0&&typeof e.switchModelsOnFlag!=\"boolean\")}fun",
+        "typeof e.enableWorkflows!=\"boolean\"||e.disableWorkflows!==void 0&&typeof e.disableWorkflows!=\"boolean\"||e.skipWorkflowUsageWarning!==void 0&&typeof e.skipWorkflowUsageWarning!=\"boolean\"||e.remoteControlAtStartup!==void 0&&typeof e.remoteControlAtStartup!=\"boolean\"||e.switchModelsOnFlag!==void 0&&typeof e.switchModelsOnFlag!=\"boolean\")}function Iht(e){return!(!e||typeof e!=\"object\"|",
+        "vate %s failed, continuing with default umask: %o\",e,t)}}}var oor=[\"model\",\"fastMode\",\"fastModePerSessionOptIn\",\"enableWorkflows\",\"disableWorkflows\",\"skipWorkflowUsageWarning\",\"remoteControlAtStartup\",\"switchModelsOnFlag\",\"outputStyle\"];async function sor(e){let t={},n=!1;for(let r of oor)if(r in e){if(r===\"outputStyle\"&&e[r]!==void 0&&!cM(e[r])){N.warn(\"[UserSettings] dropping inv"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-D86SM5R2.js",
+      "file_sha256": "6dc998c3796b86042889b5338b761f1b01f3254226f2f8f5d4b1faa69092c8f9",
+      "term": "getBinaryPathIfResolved",
+      "occurrences": 1,
+      "snippets": [
+        "h(t.resolution){case\"local_override\":return!0;case\"none\":return this.isPinnedCliAtLeast(e);default:return t.version!==null&&tE(t.version,e)}}))}async getBinaryPathIfResolved(e){let t=OK(),n=await this.resolveHostBinary();return!(n.resolution===\"local_override\"||n.resolution!==\"none\"&&n.version!==null&&e(n.version))||n.path===null?null:(kK(n.path,t),n.path)}isPinnedCliAtLeast(e){re"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-D86SM5R2.js",
+      "file_sha256": "6dc998c3796b86042889b5338b761f1b01f3254226f2f8f5d4b1faa69092c8f9",
+      "term": "getBinaryPath",
+      "occurrences": 18,
+      "snippets": [
+        "inaryName:\"claude\",logPrefix:\"[ClaudeCodeManager-VM]\"}}installDirFor(e,t,r){return e.kind===\"vm\"?n.default.join(e.storageDir,t):iyr(e.storageDir,t,r)}getBinaryPathForTarget(e,t,r=this.targetManifest){let i=this.expectedChecksumForTarget(e,r);if(!i)throw Error(`Platform ${e.platform} not available`);return n.default.join(this.installDirFor(e,t,i),e.useBundle?Wbr:e.binaryN",
+        "Manifest){let i=this.expectedChecksumForTarget(e,r);if(!i)return!1;await this.moveLegacyInstall(e,t);let a;try{let s=this.installDirFor(e,t,i);a=this.getBinaryPathForTarget(e,t,r),await p.default.access(a,o.constants.X_OK);let c=(await p.default.readFile(n.default.join(s,\".verified\"),\"utf8\")).trim();if(c!==i){let n=`${e.storageDir}:${t}`;return this.loggedMarkerMismatch.",
+        "r(this.baseUrl),s=(n,r,a)=>this.reportPrepareFailure(e,t,n,r,a,i.background);try{if(await this.binaryExistsForTarget(e,t,n))return{ready:!0,path:this.getBinaryPathForTarget(e,t,n)};let i=n.platforms[e.platform];if(a.step=\"seed\",e.useBundle&&i?.bundle?await Ibr({installDir:this.installDirFor(e,t,i.bundle.checksum),platform:e.platform,binaryPath:this.getBinaryPathForTarget",
+        "platform];if(a.step=\"seed\",e.useBundle&&i?.bundle?await Ibr({installDir:this.installDirFor(e,t,i.bundle.checksum),platform:e.platform,binaryPath:this.getBinaryPathForTarget(e,t,n),expectedChecksum:i.bundle.checksum}):i?.checksum&&await Fbr({installDir:this.installDirFor(e,t,i.checksum),platform:e.platform,binaryName:e.binaryName,expectedChecksum:i.checksum}))return this.",
+        ".checksum),platform:e.platform,binaryName:e.binaryName,expectedChecksum:i.checksum}))return this.cleanupOldVersionsForTarget(e,t),{ready:!0,path:this.getBinaryPathForTarget(e,t,n)};if(!i)return N.error(`${e.logPrefix} Platform ${e.platform} not in manifest`),s({step:\"manifest\",code:pyr},0,!0),{ready:!1,error:\"This version is not available for your device.\"};let c={step:\""
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-D86SM5R2.js",
+      "file_sha256": "6dc998c3796b86042889b5338b761f1b01f3254226f2f8f5d4b1faa69092c8f9",
+      "term": "claudeCodeVersion",
+      "occurrences": 2,
+      "snippets": [
+        "\"||typeof e.otherHistoryBytes!=\"number\"||!Pmt(e.worktrees)||typeof e.scratchBytes!=\"number\")}function Imt(e){return!(!e||typeof e!=\"object\"||typeof e.claudeCodeVersionCount!=\"number\"||typeof e.claudeCodeBytes!=\"number\")}function Lmt(e){return!(!e||typeof e!=\"object\"||typeof e.webCacheBytes!=\"number\"||typeof e.browserPanesBytes!=\"number\"||typeof e.logsBytes!=\"number\"||typeof ",
+        "t o=0;for(let e of vua)o+=r(P8.claudeCodePrefix+e);let s=yua.reduce(((e,t)=>e+r(P8.webCachePrefix+t)),0);return{computedAt:Date.now(),code:a,runtime:{claudeCodeVersionCount:e.installedVersionCount,claudeCodeBytes:o},app:{webCacheBytes:s,browserPanesBytes:r(P8.partitions),logsBytes:r(P8.logs)+r(P8.crashDumps),otherCachesBytes:xua.reduce(((e,t)=>e+r(P8.otherCachePrefix+t)),0)}"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-D86SM5R2.js",
+      "file_sha256": "6dc998c3796b86042889b5338b761f1b01f3254226f2f8f5d4b1faa69092c8f9",
+      "term": "0.3.293",
+      "occurrences": 1,
+      "snippets": [
+        "7afad22d6e5f58a6199d2\"},\"baseUrl\":\"https://downloads.claude.ai/claude-code-releases/rc/3abc54a9d60b4d12c627afad22d6e5f58a6199d2\",\"sdkWrapperVersion\":\"0.3.293-rc.20261007.t063642.sha3abc54a\"}')}function Mst(){return JSON.parse('{\"version\":\"5fd08069bd5f33e9b8a2b104c631bbbfbd4e2536\",\"manifest\":{\"version\":\"5fd08069bd5f33e9b8a2b104c631bbbfbd4e2536\",\"platforms\":{\"linux-a"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-D86SM5R2.js",
+      "file_sha256": "6dc998c3796b86042889b5338b761f1b01f3254226f2f8f5d4b1faa69092c8f9",
+      "term": "2.1.293",
+      "occurrences": 2,
+      "snippets": [
+        "cess?t.data:{buildType:\"prod\",commitHash:\"UNKNOWN\",commitTimestamp:\"\",isNestBuild:!1,appVersion:\"0.0.0\"}}function Ug(){return JSON.parse('{\"version\":\"2.1.293\",\"manifest\":{\"version\":\"2.1.293\",\"manifestSignatureEnforcement\":\"flag\",\"commit\":\"3abc54a9d60b4d12c627afad22d6e5f58a6199d2\",\"modsCommit\":\"765f236fe1bfcc678e0ec59af9170fb7d6771a3a\",\"buildDate\":\"2026-10-07T06:57:",
+        "mmitHash:\"UNKNOWN\",commitTimestamp:\"\",isNestBuild:!1,appVersion:\"0.0.0\"}}function Ug(){return JSON.parse('{\"version\":\"2.1.293\",\"manifest\":{\"version\":\"2.1.293\",\"manifestSignatureEnforcement\":\"flag\",\"commit\":\"3abc54a9d60b4d12c627afad22d6e5f58a6199d2\",\"modsCommit\":\"765f236fe1bfcc678e0ec59af9170fb7d6771a3a\",\"buildDate\":\"2026-10-07T06:57:50Z\",\"platforms\":{\"darwin-arm64\""
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-DWp6lQwJ.js",
+      "file_sha256": "0c1f60f5900948b471a7f6bd1ed211ec8436308f050acb807b6eed94f5b960e7",
+      "term": "skipWorkflowUsageWarning",
+      "occurrences": 1,
+      "snippets": [
+        "await t.Lw().catch((()=>void 0));let r=await t.oP().catch((()=>null));if(r===null)return{consented:!1,managedFalse:!1,indeterminate:!0};let i=t.yP(r,\"skipWorkflowUsageWarning\"),a=i?.value===!1&&i.source===t.NY.Managed,o=await t.jI().catch((()=>null));return{consented:i?.value===!0,managedFalse:a,indeterminate:!a&&(n||!s.a(o))}}function hk(e){let n=t.K$().principalIdentity();return{"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-DWp6lQwJ.js",
+      "file_sha256": "0c1f60f5900948b471a7f6bd1ed211ec8436308f050acb807b6eed94f5b960e7",
+      "term": "claudeCodeVersion",
+      "occurrences": 2,
+      "snippets": [
+        "es ${t.Gf(i.scratchBytes)}.`)}else s.push(\"No Code account is loaded yet, so the Code sessions' share is not measured.\");return s.push(`${M(e.runtime.claudeCodeVersionCount,\"installed Claude Code version\",\"installed Claude Code versions\")} take ${t.Gf(e.runtime.claudeCodeBytes)}; the app's web caches ${t.Gf(e.app.webCacheBytes)}, browser panes ${t.Gf(e.app.browserPanesBytes)",
+        ",other_history_bytes:i.otherHistoryBytes,records_bytes:i.recordsBytes,scratch_bytes:i.scratchBytes}:null,runtime:{claude_code_version_count:e.runtime.claudeCodeVersionCount,claude_code_bytes:e.runtime.claudeCodeBytes},app:{web_cache_bytes:e.app.webCacheBytes,browser_panes_bytes:e.app.browserPanesBytes,logs_bytes:e.app.logsBytes,other_caches_bytes:e.app.otherCachesBytes},inco"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-DWp6lQwJ.js",
+      "file_sha256": "0c1f60f5900948b471a7f6bd1ed211ec8436308f050acb807b6eed94f5b960e7",
+      "term": "cliVersion:",
+      "occurrences": 8,
+      "snippets": [
+        "eappliesHooks:n.cliReappliesHooks,policySig:n.policySig,policyInputsSig:n.policyInputsSig,hookSig:n.hookSig,recordedAt:n.recordedAt,...i===void 0?{}:{cliVersion:i},...a===void 0?{}:{model:a},...o===void 0?{}:{projectConfigRoot:o},...s===void 0?{}:{bootCwd:s},...l===void 0?{}:{hostChecks:l},...n.mcpOnHost===!0?{mcpOnHost:!0}:{},...n.offToolsPinned===!0?{offToolsPinned:!",
+        "ive:n,liveTail:r,settingsKey:i,prior:a,isRespawn:o}=e,s=n+r;if(!t)return{append:s,snapshot:void 0,source:\"live\"};let c=e.cliVersion??null,l={append:n,cliVersion:c,settingsKey:i};return a?c!==null&&a.cliVersion!==null&&a.cliVersion!==c?{append:s,snapshot:l,source:\"rebuilt_version_changed\"}:a.settingsKey===i?{append:a.append+r,snapshot:a.cliVersion===null&&c!==null?{...a",
+        "iVersion!==c?{append:s,snapshot:l,source:\"rebuilt_version_changed\"}:a.settingsKey===i?{append:a.append+r,snapshot:a.cliVersion===null&&c!==null?{...a,cliVersion:c}:a,source:\"reused\"}:{append:s,snapshot:l,source:\"rebuilt_setting_changed\"}:{append:s,snapshot:l,source:o?\"rebuilt_missing\":\"first_spawn\"}}function BT(e){return typeof e==\"object\"&&!!e}function VT(e){if(!BT(e)",
+        "end:s,snapshot:l,source:o?\"rebuilt_missing\":\"first_spawn\"}}function BT(e){return typeof e==\"object\"&&!!e}function VT(e){if(!BT(e))return;let{append:n,cliVersion:r,settingsKey:i,cwd:a}=e;if(!(typeof n!=\"string\"||n.length>LT||typeof r!=\"string\"&&r!==null||typeof i!=\"string\"||typeof a==\"string\"&&a.length>0&&n.includes(a)))return{append:n,cliVersion:typeof r==\"string\"&&t.M",
+        "f(!(typeof n!=\"string\"||n.length>LT||typeof r!=\"string\"&&r!==null||typeof i!=\"string\"||typeof a==\"string\"&&a.length>0&&n.includes(a)))return{append:n,cliVersion:typeof r==\"string\"&&t.MB(r)?t.NB(r)?.version??null:r,settingsKey:i}}var HT=(e,t)=>e.some((e=>e.parent===t||e.child===t));function UT(e,n){let r=e??[];if(!t.K2(n.parent)||!t.K2(n.child)||n.parent===n.child||HT(r"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-W6uQHldt.js",
+      "file_sha256": "2ffe432a94d6621d13573f7c4249c6dbd5528dec852d568b1f9811bb59cf6966",
+      "term": "getBinaryPath",
+      "occurrences": 7,
+      "snippets": [
+        "redVersion=e.version,this.manifest=e.manifest,this.baseUrl=e.baseUrl,t.sf.info(`[ClaudeSSHManager] Initialized with version ${this.requiredVersion}`)}getBinaryPath(e){return u.default.join(this.storageDir,this.requiredVersion,`claude-ssh-${e}`)}getVersionDir(){return u.default.join(this.storageDir,this.requiredVersion)}getDevDistDir(){return u.default.join(d.app.getAppPa",
+        "\")}getVerifiedMarkerPath(e){return u.default.join(this.getVersionDir(),`.verified-${e}`)}async binaryExists(e){try{return await g.default.access(this.getBinaryPath(e),f.constants.X_OK),await g.default.access(this.getVerifiedMarkerPath(e)),!0}catch{return!1}}async downloadBinary(e){let n=this.manifest.platforms[e];if(!n)throw Error(`Platform ${e} not available in claude-s",
+        "return!1}}async downloadBinary(e){let n=this.manifest.platforms[e];if(!n)throw Error(`Platform ${e} not available in claude-ssh manifest`);let r=this.getBinaryPath(e),i=this.getVersionDir();await t.s2(i);let a=j(this.baseUrl,this.requiredVersion,e);t.sf.info(`[ClaudeSSHManager] Downloading ${e} from ${a}`);let o={};new URL(a);let s=u.default.join(i,`download.${e}.${n.che",
+        "ch(e){t.sf.error(\"[ClaudeSSHManager] Failed to cleanup old versions: %o\",e)}}async prepare(e){if(await this.binaryExists(e))return{ready:!0,path:this.getBinaryPath(e)};let t=this.preparingPromises.get(e);if(t)return t;let n=this.doPrepare(e);this.preparingPromises.set(e,n);try{return await n}finally{this.preparingPromises.delete(e)}}async doPrepare(e){let n=this.manifest",
+        "`),{ready:!1,reason:\"platform_unavailable\",error:`claude-ssh is not available for platform ${e}.`};let r;try{r=await t.Nx({platform:e,binaryPath:this.getBinaryPath(e),verifiedMarkerPath:this.getVerifiedMarkerPath(e),expectedChecksum:n.checksum})}catch(e){return{ready:!1,...I(e instanceof Error?e:Error(String(e)))}}if(r===\"seeded\")return this.cleanupOldVersions(),{ready:!"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-toOBF7kH.js",
+      "file_sha256": "a796465c95aab478a458e48ead3ab6fd205d4b4b98b2a6225cc530cd46983128",
+      "term": "getBinaryPathIfResolved",
+      "occurrences": 1,
+      "snippets": [
+        "n}=await Promise.resolve().then(()=>require(\"./index.chunk-D86SM5R2.js\")).then(e=>e.Ax),r=e.Bt();if(r===null)throw new L(\"cli_too_old\");let i=await n.getBinaryPathIfResolved(t=>e.FB(t,r));if(i===null)throw new L(await n.getBinaryPathIfReady()===null?\"no_binary\":\"cli_too_old\");return{binary:i,...await H(t)}}async function G(t){if(n.t(\"cse\",t.sessionId)===void 0)throw new L(\"bad_ses"
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-toOBF7kH.js",
+      "file_sha256": "a796465c95aab478a458e48ead3ab6fd205d4b4b98b2a6225cc530cd46983128",
+      "term": "getBinaryPath",
+      "occurrences": 2,
+      "snippets": [
+        "n}=await Promise.resolve().then(()=>require(\"./index.chunk-D86SM5R2.js\")).then(e=>e.Ax),r=e.Bt();if(r===null)throw new L(\"cli_too_old\");let i=await n.getBinaryPathIfResolved(t=>e.FB(t,r));if(i===null)throw new L(await n.getBinaryPathIfReady()===null?\"no_binary\":\"cli_too_old\");return{binary:i,...await H(t)}}async function G(t){if(n.t(\"cse\",t.sessionId)===void 0)throw new ",
+        "\")).then(e=>e.Ax),r=e.Bt();if(r===null)throw new L(\"cli_too_old\");let i=await n.getBinaryPathIfResolved(t=>e.FB(t,r));if(i===null)throw new L(await n.getBinaryPathIfReady()===null?\"no_binary\":\"cli_too_old\");return{binary:i,...await H(t)}}async function G(t){if(n.t(\"cse\",t.sessionId)===void 0)throw new L(\"bad_session_id\");let a=e.Bt();if(a===null)throw new L(\"cli_too_old\""
+      ]
+    },
+    {
+      "file": ".vite/build/index.chunk-y9FHlyvh.js",
+      "file_sha256": "352ae8e347b73b37bbe39b8cff8351dfc47f186cc115bcd660bfcf195b7f88dc",
+      "term": "0.3.293",
+      "occurrences": 1,
+      "snippets": [
+        "x1b\\\\)/.test(i))?n.slice(0,r.index):n}G(),Wp();function K1(e){return typeof e==\"string\"&&/^[a-z0-9_]{1,64}$/.test(e)}function q1(){return\"claude-code/0.3.293\"}function J1(e=process.env.CLAUDE_CODE_ENTRYPOINT){switch(e){case\"claude-vscode\":return\"claude_code_vscode\";case\"remote\":case\"remote_baku\":case\"remote_cowork\":case\"remote_desktop\":case\"remote_mobile\":case\"remo"
+      ]
+    }
+  ],
+  "limits": [
+    "bundled source recognition is not a model invocation",
+    "internal bundled version is not the terminal CLI version"
+  ]
+}

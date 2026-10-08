@@ -1,0 +1,58 @@
+{
+  "scope": "temporary review/plan artifact validation; no implementation QA; original fingerprints compared to latest verified baseline, not a claim of no external drift during the whole audit",
+  "checks": {
+    "tracked_original_unchanged": true,
+    "md_under_200": true,
+    "local_links_exist": true,
+    "independent_actual_model_effort": true,
+    "independent_enforced_read_only": "UNVERIFIED",
+    "runtime_does_not_equal_role_sandbox": true,
+    "fixed_8_inputs_preserved": true,
+    "global_targeted_originals_unchanged": true,
+    "new_readiness_heading_anchors": true
+  },
+  "md_count": 19,
+  "max_md_lines": 132,
+  "local_links": 171,
+  "missing_links": [],
+  "oversized_md": [],
+  "tracked_sha256": "440c4645e947e1dea767e351e6a7139ce784b89c59460bf17f276a07b8ec95c4",
+  "head": "980fe87b4429e601e7f95155063eb2c28906fbaf",
+  "git_status": " M .gitignore\n",
+  "global_targeted_originals": {
+    "/Users/grinvi04/.codex/config.toml": {
+      "sha256": "ca47ecad59de336ed4de54003b0e611f4c8aeea1ba0222353193978b1b91e046",
+      "same_as_latest_verified_baseline": true
+    },
+    "/Users/grinvi04/.config/ai-instructions/common.md": {
+      "sha256": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
+      "same_as_latest_verified_baseline": true
+    },
+    "/Users/grinvi04/.codex/AGENTS.md": {
+      "sha256": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
+      "same_as_latest_verified_baseline": true
+    },
+    "/Users/grinvi04/.claude/CLAUDE.md": {
+      "sha256": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
+      "same_as_latest_verified_baseline": true
+    },
+    "/Users/grinvi04/.claude/settings.json": {
+      "sha256": "98392e708adf926731ee7cd0ed73e4bb39b8caa9955e6a463ea02c0b7d8c01bf",
+      "same_as_latest_verified_baseline": true
+    }
+  },
+  "new_readiness_heading_anchors": [
+    {
+      "target": "plan/03-model-global.md#3f--적용-단위부분-실패복구",
+      "exists": true
+    },
+    {
+      "target": "plan/03-model-global.md#3g--혼합-버전세션과-되돌리기",
+      "exists": true
+    },
+    {
+      "target": "plan/05-acceptance.md#5c--독립-검토와-실제-로딩",
+      "exists": true
+    }
+  ]
+}

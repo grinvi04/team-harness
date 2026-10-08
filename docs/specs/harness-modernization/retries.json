@@ -1,0 +1,29 @@
+[
+  {
+    "index": 7,
+    "name": "가드 시나리오 테스트",
+    "run": "bash tests/guard-test.sh",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 78.66,
+    "changedCondition": "Remove auditor HARNESS_GUARD_LOG override; HOME remains isolated. First result preserved."
+  },
+  {
+    "index": 48,
+    "name": "Codex source-native loader 계약",
+    "run": "bash tests/codex-native-loader-test.sh",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 2.38,
+    "changedCondition": "Remove auditor HARNESS_GUARD_LOG override; HOME remains isolated. First result preserved."
+  },
+  {
+    "index": 56,
+    "name": "Claude-facing source 격리",
+    "run": "bash tests/claude-surface-isolation-test.sh",
+    "status": "PASS",
+    "exit": 0,
+    "seconds": 0.55,
+    "changedCondition": "Remove auditor HARNESS_GUARD_LOG override; HOME remains isolated. First result preserved."
+  }
+]

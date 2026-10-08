@@ -127,7 +127,19 @@ printf '%s %s\n' "$method" "$endpoint" >>"${FAKE_GH_CALLS:-/dev/null}"
 case "$endpoint" in
   repos/o/r/branches/main|repos/o/r/branches/develop)
     [ "${FAKE_GH_SCENARIO:-ok}" = "missing-branch" ] && exit 1
+    [ "${FAKE_GH_SCENARIO:-ok}" = "preflight-missing-develop" ] && [ "$endpoint" = repos/o/r/branches/develop ] && exit 1
     printf '{}\n'
+    ;;
+  repos/o/r/commits/main/check-runs|repos/o/r/commits/develop/check-runs)
+    case "${FAKE_GH_SCENARIO:-ok}" in
+      checks-error) exit 1 ;;
+      checks-develop-error) [ "$endpoint" = repos/o/r/commits/develop/check-runs ] && exit 1 ;;
+      checks-malformed) printf 'not-json\n'; exit 0 ;;
+      checks-wrong-type) printf '{"quality":true}\n'; exit 0 ;;
+      checks-empty) printf '[]\n'; exit 0 ;;
+      checks-nonstring) printf '["quality",null]\n'; exit 0 ;;
+    esac
+    printf '["quality","secret-scan","test-guard","commitlint","atomic-trust-macos"]\n'
     ;;
   repos/o/r/branches/main/protection)
     [ "$method" = PUT ] && exit 0
@@ -224,6 +236,46 @@ apply_postcondition_case "CLI apply post-read admin drift → exit nonzero" post
 apply_postcondition_case "CLI apply post-read review drift → exit nonzero" post-review-drift 1
 apply_postcondition_case "CLI apply post-read force-push drift → exit nonzero" post-force-drift 1
 apply_postcondition_case "CLI apply post-read deletion drift → exit nonzero" post-delete-drift 1
+
+# 사전 조회/입력 오류에서는 어느 브랜치에도 PUT하지 않아야 한다.
+# main 성공 뒤 develop 실패도 보호가 절반만 바뀌지 않도록 쓰기 전에 확인한다.
+preflight_case() {
+  local desc="$1" scenario="$2" want="$3" explicit="${4:-auto}" calls out rc puts
+  calls="$CLI_TMP/preflight-$scenario-$explicit"
+  : >"$calls"
+  local args=(o/r --approvals 1)
+  [ "$explicit" = empty ] && args+=(--contexts " , ")
+  [ "$explicit" = named ] && args+=(--contexts quality,secret-scan)
+  set +e
+  out=$(FAKE_GH_SCENARIO="$scenario" FAKE_GH_CALLS="$calls" PATH="$FAKEBIN:$PATH" bash "$SBP" "${args[@]}" 2>&1)
+  rc=$?
+  set -e
+  puts=$(grep -c '^PUT ' "$calls" || true)
+  if [ "$rc" -ne 0 ] && [ "$puts" = "$want" ] && [ -n "$out" ]; then
+    echo "PASS: $desc"; PASS=$((PASS+1))
+  else
+    echo "FAIL: $desc — want nonzero/PUT$want got rc$rc/PUT$puts ($out)"; FAIL=$((FAIL+1))
+  fi
+}
+preflight_case "check-runs 조회 실패는 쓰기 0" checks-error 0
+preflight_case "develop 조회 실패 전에 main도 쓰기 0" checks-develop-error 0
+preflight_case "malformed check-runs는 쓰기 0" checks-malformed 0
+preflight_case "목록 아닌 check-runs는 쓰기 0" checks-wrong-type 0
+preflight_case "빈 감지 목록은 보호를 약화하지 않음" checks-empty 0
+preflight_case "문자열 아닌 context는 쓰기 0" checks-nonstring 0
+preflight_case "명시적 빈 context도 쓰기 0" post-ok 0 empty
+preflight_case "develop 브랜치 실패 전 main도 쓰기 0" preflight-missing-develop 0 named
+
+set +e
+auto_out=$(FAKE_GH_SCENARIO=post-ok FAKE_GH_CALLS="$CLI_TMP/auto-normal" PATH="$FAKEBIN:$PATH" bash "$SBP" o/r --approvals 1 2>&1)
+auto_rc=$?
+set -e
+auto_puts=$(grep -c '^PUT ' "$CLI_TMP/auto-normal" || true)
+if [ "$auto_rc" = 0 ] && [ "$auto_puts" = 2 ]; then
+  echo "PASS: 유효한 자동 감지 목록은 두 브랜치 적용·재조회 성공"; PASS=$((PASS+1))
+else
+  echo "FAIL: 유효한 자동 감지 — rc$auto_rc PUT$auto_puts ($auto_out)"; FAIL=$((FAIL+1))
+fi
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
