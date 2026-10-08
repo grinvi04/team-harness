@@ -2,7 +2,6 @@
 name: loop
 description: 반복 수정으로 명령 exit 0을 달성해야 할 때 사용. CI·lint·기존 테스트·의존성 정리에 적합하며 신규 기능·불명확한 설계·시간 예약 polling은 제외
 argument-hint: "\"<작업 설명>\" \"<통과 기준 명령>\" [--max <N=5>] [--timeout <초=300>] [--no-commit]"
-effort: high
 ---
 
 # /loop — 조건 기반 자율 수정 루프

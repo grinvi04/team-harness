@@ -663,5 +663,13 @@
       ".superpowers/sdd/harness-modernization/d4bc-eof-green.log",
       ".superpowers/sdd/harness-modernization/d4d/eof-green-record.json"
     ]
+  },
+  "laterSemanticMigration": {
+    "date": "2026-10-09",
+    "skills": 12,
+    "removed": "effort frontmatter overrides, not skill bodies",
+    "bodyBytes": "unchanged for all12",
+    "evidence": "task private skill-effort-migration.json and RED/GREEN",
+    "historyContract": "earlier original-body/layout reconstruction preserved; current loop reconstruction explicitly reinserts archived high metadata only for historical comparison; no claim current metadata unchanged"
   }
 }

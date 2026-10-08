@@ -2,7 +2,6 @@
 name: feature-modify
 description: 기존 기능을 바꾸거나 확인된 버그를 고칠 때 변경·유지 테스트와 프로젝트 검사·커밋을 연결하는 데 사용. 일반 TDD 방법론의 중복 실행·완전 신규 기능·진단만 요청·PR 머지는 제외
 argument-hint: <feature-name> "<변경 설명>"
-effort: high
 ---
 
 # feature-modify — 기존 동작 변경의 프로젝트 계약

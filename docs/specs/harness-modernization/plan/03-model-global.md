@@ -1,7 +1,7 @@
 # 단계 3 — 모델·전역 설정·공식 기능으로 이전
 
 근거: [최신 모델](../review/05-model-global.md), [전역 범위](../review/06-global-scope-addendum.md), [제거/보존](../review/07-deprecation-removal.md).
-진행 상태: 전역 15개 파일 실제 적용 완료; 새 Codex 역할·설치 검증 중. Claude 실제 호출은 사용자 보류다.
+진행 상태: 전역 15개 파일·후속 2개 적용과 Codex 역할 여섯 개 호출 완료; 공식 설치 검증 중. Claude 실제 호출은 사용자 보류다.
 설정·실행·품질 비교를 [전역 적용 기록](../execution-m3f.json) 및 [이전 표본](../review/10-agent-owned-execution.md)과 구분한다.
 안전 검사 제거는 단계 1·2의 필요한 결과와 대체 경로 검증을 선행 조건으로 둔다.
 
@@ -143,3 +143,10 @@ Codex 실제 역할·전역 적용과 다른 승인 작업은 계속한다. 인�
 3F 적용 결과: 24개 실패/복구/경쟁 fixture와 별도 인스턴스 검토 후 15개 파일을 개별 원자 교체했다.
 적용 뒤 전 대상 digest·mode와 공통 세 본문 일치를 확인했다. 다중 파일 전체의 원자성이나 강제 종료 복구는 보장하지 않는다.
 기존 plugin 설치본·열린 세션에는 새 source 역할/hook이 소급 적용되지 않는다. 공식 갱신과 새 실행의 결과를 따로 확인한다.
+
+3B 추가 결과: [실제 workflow 표본](../execution-m3-representative.json)의 동일 입력·잠긴 11개 oracle에서 두 후보가 한 번의 수정으로 통과했다.
+Sol/medium 48.731초, Luna/xhigh 85.846초; 관찰 사용량은 Sol이 적었다. ephemeral의 실제 model/effort/sandbox metadata는 미확인이다.
+기존 작은 검토 과제·여섯 역할 호출과 구분하며 전체 모델·effort의 최적값이나 구독 과금을 주장하지 않는다.
+3C 후속: skill effort override 12개를 제거하고 본문/QA를 유지했다. actual Claude 상속은 USER-DEFERRED다.
+Codex 쓰기 부모 아래 read-only 역할의 실제 workspace-write 반례를 보존하고, 명시한 read-only 부모 아래 새 다섯 자식 policy를 확인했다.
+후속 전역 2개 파일에는 이 독립 검증 경로와 실제 이번 실행이 추가한 임시 trust 한 개만 제거했다. 기존 trust 53개는 보존했다.

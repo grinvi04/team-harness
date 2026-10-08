@@ -2,7 +2,6 @@
 name: milestone
 description: 여러 기능을 묶는 제품 목표와 마일스톤을 정의·추적할 때 사용. GitHub 진행률을 관리하며 단일 기능 계획·코드 구현·세션 종료조건 설정은 제외
 argument-hint: <slug> "<목표 설명>" [--by YYYY-MM-DD] | status | breakdown <slug>
-effort: high
 ---
 
 # /milestone — 제품 마일스톤 추적

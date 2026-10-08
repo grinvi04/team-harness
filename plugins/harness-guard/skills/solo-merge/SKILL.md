@@ -2,7 +2,6 @@
 name: solo-merge
 description: 솔로 repo에서 자기승인 불가능 조건만 원자적으로 해제·복구하며 PR을 머지할 때 사용. CI·리뷰 우회·팀 승인 우회·main 릴리즈는 제외
 argument-hint: "\"[PR번호]\" (생략 시 현재 브랜치의 PR)"
-effort: medium
 ---
 
 # /solo-merge — 솔로 환경 안전 머지 (break-glass)

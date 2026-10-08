@@ -2,7 +2,6 @@
 name: release
 description: 사전 검증된 버전을 정식 릴리즈할 때 사용. release 브랜치·main 태그·develop 역병합·헬스체크를 수행하며 hotfix·일반 develop 머지·사전검증 없는 배포는 제외
 argument-hint: <version>
-effort: high
 ---
 
 # /release — 릴리즈 실행

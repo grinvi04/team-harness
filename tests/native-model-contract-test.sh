@@ -24,6 +24,13 @@ for name in ('verifier', 'security-reviewer'):
         print(('PASS' if ok else 'FAIL') + ': ' + name + ' ' + label)
         if not ok:
             failures.append(name + ': ' + label)
+for path in sorted((root / 'plugins/harness-guard/skills').glob('*/SKILL.md')):
+    frontmatter = path.read_text().split('---', 2)[1]
+    if any(line.startswith('effort:') for line in frontmatter.splitlines()):
+        print('FAIL: task skill overrides native session effort: ' + path.parent.name)
+        failures.append('skill effort override: ' + path.parent.name)
+    else:
+        print('PASS: skill follows native session effort: ' + path.parent.name)
 if failures:
     raise SystemExit(1)
 print('Configuration checks passed; actual model/effort/permission execution is separate evidence.')

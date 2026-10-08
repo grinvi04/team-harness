@@ -1,7 +1,6 @@
 ---
 name: release-check
 description: 정식 릴리즈 직전에 품질·보안·DB 마이그레이션 준비를 검증할 때 사용. 실제 태그·배포·기능 PR 검증·버그 구현은 제외
-effort: max
 ---
 
 # /release-check — 릴리즈 사전 검증

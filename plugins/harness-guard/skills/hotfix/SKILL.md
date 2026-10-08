@@ -2,7 +2,6 @@
 name: hotfix
 description: 운영 장애를 긴급 수정해 main에 패치 배포할 때 사용. hotfix PR·태그·develop 역병합을 수행하며 일반 버그·정기 릴리즈·운영 인프라 직접 조작은 제외
 argument-hint: <fix-name> "<증상 설명>"
-effort: high
 ---
 
 # /hotfix — 운영 긴급 수정

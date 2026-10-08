@@ -70,6 +70,10 @@ Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 
 - 2026-10-09: 전역 15개 파일 실제 적용 완료. 공통 원본·두 진입점은 동일 본문 154줄이다. 적용 도구의 실패·복구·동시 변경 fixture 24건과 별도 읽기 전용 검토를 통과했다. 새 Codex 역할 호출과 공식 plugin 설치는 별도 검증 중이다.
 - 2026-10-09: 권한 규칙 26개는 실제 native 정책 평가에서 prompt였다. 명령을 실행한 결과가 아니다. GitHub MCP wrapper의 버전 고정도 유지 지원·실제 MCP 성공을 증명하지 않는다. [전역 적용 기록](harness-modernization/execution-m3f.json).
 
+- 2026-10-09: Codex 여섯 역할의 모델/medium을 실제 확인했다. 쓰기 부모 아래 read-only 역할의 workspace-write 반례를 보존하고 별도 read-only 부모의 다섯 자식 policy를 확인했다. 새 역할 실행이 추가한 임시 trust 한 개만 제거했다.
+- 2026-10-09: 공용 skill effort override 12개를 제거하고 본문/QA를 유지했다. 실제 workflow 비교에서는 두 후보 모두 잠긴 11개 회귀를 통과했으며 시간/사용량과 ephemeral metadata 한계를 별도 기록했다.
+- 2026-10-09: 네 소비 프로젝트 문서 원본 적용·필수 로컬 검사·각 local commit을 완료했다. 새 원격 push/PR와 배포는 하지 않았다. [소비 적용 증거](harness-modernization/execution-consumer-apply.json).
+
 ## 이 변경의 문서 동기화 범위
 
 ```harness-doc-sync

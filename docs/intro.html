@@ -293,17 +293,17 @@
     </div>
     <div class="sk">
       <div class="name">/plan</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">선택한 설계 방법론의 결과를 프로젝트 기준·수용 조건·승인된 <code>docs/specs/</code>에 연결. 기존 계획·승인 재사용, 계획 요청은 Git 미변경.</div>
     </div>
     <div class="sk">
       <div class="name">/feature-add</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">선택한 구현 방법론에 프로젝트 기준·브랜치·테스트 무결성·검사·커밋 계약을 연결. 별도 TDD 루프를 반복하지 않음.</div>
     </div>
     <div class="sk">
       <div class="name">/feature-modify</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">기존 기능 변경의 프로젝트 계약. 변경 테스트 RED·유지 테스트 보존·전체 품질·인계를 선택한 방법론에 연결.</div>
     </div>
     <div class="sk">
@@ -313,7 +313,7 @@
     </div>
     <div class="sk">
       <div class="name">/feature-merge</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-med">Claude effort: medium</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">feature/* · fix/* 브랜치를 develop에 머지. 품질 검증 → PR 생성 → pr-review-gate 절차 경유.</div>
     </div>
   </div>
@@ -322,17 +322,17 @@
   <div class="skill-list">
     <div class="sk">
       <div class="name">/release-check</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-max">Claude effort: max</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">릴리즈 전 병렬 검증. Agent A (품질·lint·test·build) · Agent B (보안 리뷰) · Agent C (DB 마이그레이션·표준) 동시 spawn. 전부 ✅여야 /release 진행 가능.</div>
     </div>
     <div class="sk">
       <div class="name">/release</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">release-check 통과를 전제로 실행. release 브랜치 생성 → 버전 범프 → main PR → 태그 → develop back-merge PR → 배포 헬스체크.</div>
     </div>
     <div class="sk">
       <div class="name">/hotfix</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">운영 긴급 수정. main 기준 hotfix 브랜치 → PR → 태그 → develop back-merge PR. git flow를 건너뛰지 않는다.</div>
     </div>
   </div>
@@ -356,7 +356,7 @@
     </div>
     <div class="sk">
       <div class="name">/solo-merge</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-med">Claude effort: medium</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">솔로 개발자 전용. 품질 게이트(CI·스레드·CI)를 통과시킨 뒤 자기승인 불가 요건만 우회하고 즉시 복구·검증.</div>
     </div>
     <div class="sk">
@@ -370,17 +370,17 @@
   <div class="skill-list">
     <div class="sk">
       <div class="name">/milestone</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">제품 목표 추적 레이어. 목표 정의 → 기능 분해 → GitHub Milestone(단일 출처) → 진행률 대시보드. <code>/plan</code>·<code>/feature-add</code> 위에 놓인다. (구 <code>/goal</code> — Claude Code 내장 <code>/goal</code>과 충돌 회피로 rename)</div>
     </div>
     <div class="sk">
       <div class="name">/loop</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-high">Claude effort: high</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">조건 기반 자율 수정 루프. 통과 기준(명령 <code>exit 0</code>) 충족까지 반복 — CI·lint·기존 테스트·의존성 정리. <code>timeout</code>·<code>max</code>·내용 기반 <code>stuck</code>·안전한 <code>checkpoint</code> 내장. 맥락 자동 선택은 명시적 요청 없이 commit하지 않는다.</div>
     </div>
     <div class="sk">
       <div class="name">/repo-sync</div>
-      <div class="badges"><span class="badge auto">맥락 자동 선택</span><span class="badge effort-med">Claude effort: low</span></div>
+      <div class="badges"><span class="badge auto">맥락 자동 선택</span></div>
       <div class="desc">프로젝트 ↔ team-harness 표준 <b>드리프트 점검</b>. <code>check-repo-sync</code>로 스택 감지 후 필수 자산(test-guard·commitlint·secret-scan·migration-safety·rules) 누락을 리포트 — 기존 repo가 새 표준에서 뒤처지는 것을 방지.</div>
     </div>
   </div>
@@ -476,11 +476,11 @@
     </div>
   </div>
   <div class="callout">
-    <b>Claude Code</b> — native 역할·명시 호출·상속을 따른다. 기본 Explore가 항상 Haiku라고 가정하지 않는다. verifier/security-reviewer의 현재 소스는 <code>model: opus</code>·<code>effort: medium</code>·읽기 도구를 선언한다.<br><b>Codex</b> — 일반 작업 Sol 6.1/medium, 중요한 판단 Astra/medium이 승인된 후보 방향이다. 현재 실행값은 native surface와 사용자 설정에서 확인한다. 전역 후보 적용과 새 역할 실행 검증은 별도 단계이며, 부모는 통합·최종 판정을 맡고 다른 인스턴스가 독립 검토한다.
+    <b>Claude Code</b> — native 역할·명시 호출·상속을 따른다. 기본 Explore가 항상 Haiku라고 가정하지 않는다. verifier/security-reviewer의 현재 소스는 <code>model: opus</code>·<code>effort: medium</code>·읽기 도구를 선언한다.<br><b>Codex</b> — 일반 작업 Sol 6.1/medium, 중요한 판단 Astra/medium이 승인된 후보 방향이다. 현재 실행값은 native surface와 사용자 설정에서 확인한다. 전역 설정과 여섯 역할의 모델/medium 호출을 확인했다. 독립 검증은 명시적인 read-only 별도 실행을 사용한다. 소스·설치본·열린 앱 세션의 적용 상태는 구분한다.
   </div>
   <p style="margin-top:.8rem"><b>모델 선택의 기준</b> — 마이그레이션 감사·보안·릴리즈 판단은 누락 비용과 실제 과제 결과를 보고 선택한다. 역할 이름이나 명령 실행만으로 모델을 자동 배정하거나 품질을 보장하지 않는다.</p>
   <p style="margin-top:.8rem">release-check의 Agent A·B·C는 <b>동시에 spawn</b>된다 — 병렬 실행으로 전체 검증 시간을 단축.</p>
-  <p style="margin-top:.8rem"><b>공통 원칙</b> — medium을 출발점으로 삼고 높은 effort는 누락 위험·난도·측정된 이득으로 고른다. 위 스킬 카드의 effort는 현재 <code>SKILL.md</code> 선언이며 agent 전체나 Codex 설정을 강제하지 않는다. 현재 적용 상태는 <a href="model-tiering.md">모델·추론 선택 정본</a>을 따른다.</p>
+  <p style="margin-top:.8rem"><b>공통 원칙</b> — medium을 출발점으로 삼고 높은 effort는 누락 위험·난도·측정된 이득으로 고른다. 공용 스킬은 세션 effort를 덮어쓰지 않는다. 명시적 선택과 모델별 native 기본값을 따르며, 높은 effort는 과제 결과로 결정한다. 현재 적용 상태는 <a href="model-tiering.md">모델·추론 선택 정본</a>을 따른다.</p>
 
   <h3 style="margin-top:1.8rem; font-size:1.05rem;">소스 후보와 실행 증거 <span style="font-size:.8rem; color:var(--muted); font-weight:400;">— 설정·실행·품질을 구분한다</span></h3>
   <div class="callout ok"><b>현재 Claude 실제 추론·상속·effort·권한은 UNVERIFIED다.</b> 지원 CLI의 시작 정보는 관찰했지만 OAuth 인증 실패로 modelUsage는 비었다. 사용자가 인증 갱신을 나중으로 미뤘으며, 아래 과거 값이나 소스 검사가 이 미확인을 PASS로 바꾸지 않는다.</div>
@@ -672,7 +672,7 @@
     </div>
   </div>
   <div class="callout">
-    <b>현재 소스 후보</b> — v0.82.0의 native 플러그인·managed requirements·hook trust 연결은 설치본·새 세션의 실제 증거와 구분한다. agent 실행·모델·effort 선택은 Codex에 위임하며 전역 후보 적용과 새 역할 검증은 별도 단계다. branch protection·CI는 설정된 서버 정책을 집행한다.
+    <b>현재 소스 후보</b> — v0.82.0의 native 플러그인·managed requirements·hook trust 연결은 설치본·새 세션의 실제 증거와 구분한다. agent 실행·모델·effort 선택은 Codex에 위임하며 전역 설정과 새 CLI 역할 호출은 확인했고, 설치본·열린 앱 세션은 별도 대조한다. branch protection·CI는 설정된 서버 정책을 집행한다.
   </div>
 
 </main>
