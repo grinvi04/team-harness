@@ -681,3 +681,15 @@ ERP에서 shadcn은 globals.css의 빌드 CSS import에 사용한다. 이전 검
 제품 미리보기 판정은 siku `docs/specs/quality-remediation.md` §9가 소유한다. 원문은 `$HOME/Documents/Codex/2026-10-08/preview-environment-verification/`, 보안 원문은 `no-cost-security-followup/`, 현재 결정은 이슈 #496과 지도에 연결한다. ERP 문서는 이미 운영 미배포·계획을 구분하므로 제품 파일을 변경하지 않고 이 소비 관찰만 연결했다. 앱·공용 Harness 기능·버전·검사 기준 변경은 없다.
 
 승인된 이번 범위의 확인·기록 전달·소유 임시 worktree 정리를 끝낸 뒤, 새 환경·수정판·재개 결정이 없는 같은 실패를 반복하지 않는다. 세 제품 main/default trusted 전환·운영 인수와 webhook 직접 registry/실 IdP 잔여는 별도 실행 조건으로 유지한다. 보류는 제품 품질·클라우드 복구 완료가 아니며 소비 도입 전체 완료로 표시하지 않는다.
+
+#### 배포 제외 범위의 최종 인수 (2026-10-08)
+
+사용자는 배포 환경이 구성될 때 배포하기로 하고 이번 완료 범위에서 배포·원격 환경 기능 인수를 제외했다. 현재 단계는 **Harness QA 보강과 네 제품의 선정 로컬 QA·develop 필수 CI·독립 검토 적용 검증**이다. 위의 원래 ‘제품별 단계 종료’ 조건은 유지한다. DriveTree·siku·ERP의 trusted workflow 실제 원격 실행과 보호 readback은 별도 필수 전환이며, 배포 제외만으로 완료 처리하지 않는다. main 반영·자동 배포와 연결된 전환은 재개 조건을 마련한 다음 수행한다. 이슈 #496은 전체 소비 도입 후속을 위해 열어 둔다.
+
+현재 대조 후보는 DriveTree `ff5f26f120ad4bb5629cc371839ff69edea544cc`, siku `2476e1754c4e2fcf2e53ce749f3464cd8228ea74`, ERP `origin/develop`의 `c8cb9056265c8f21c8e8ddb5f6f3c05cc194b445`, webhook `e1eee56e101be3fc61526430599773116cd95797`이다. DriveTree 기록의 최신 구간별 지문을 합쳐 비교한 18개 앱·설정·시험 입력은 일치하고 차이는 후속 QA 문서뿐이다. siku 101개 입력 중 차이는 이후 필수 CI를 통과한 commitlint 정본 동기화뿐이다. ERP braces 검증의 10개 입력과 보존된 원문 72개는 일치한다. 이를 ERP 백엔드 전체의 새 실행으로 확대하지 않으며 기존 Java·권한·DB 검증과 후보 변경 범위를 함께 대조했다.
+
+DriveTree inline 원문은 경로 치환을 복원한 33개 SHA-256이 모두 일치한다. 최초 직접 비교의 경로 치환 차이도 보존했다. siku 명령 원문 9개 지문은 모두 일치한다. webhook 독립 검토는 실제 SDK 검증 호출, 관리자 UI/replay 역할 소비와 Redis GETDEL 경계를 현재 소스에서 확인했고, 필수 runtime/dev dependency audit 0의 기존 원문도 대조했다. 원문·입력 비교는 `$HOME/Documents/Codex/2026-10-08/non-deployment-final-acceptance/`에 보존한다. 입력이 유지된 시험을 절차 충족 목적으로 다시 실행하지 않았으며 독립 검토도 재실행이 아닌 원본·소비 경계 대조다.
+
+이 좁은 범위에서 새 P1/P2나 필수 로컬 검증 공백은 발견하지 못했다. 선정 로컬 QA, develop 고정 후보의 필수 CI와 독립 검토 적용 인수는 완료다. 이는 모든 사용 사례의 보장이나 전체 소비 도입·보안·출시 준비 완료가 아니다. DriveTree 전체 감사 frontend high5/backend moderate20, ERP 전체 high9/운영 high7의 **FAIL은 유지**한다. 원래 로컬 QA 필수 표에 전체 npm audit 0을 소급 추가하거나 감사 실패를 PASS로 바꾸지 않는다. 확인한 보완은 해당 입력·깊이 경계에서만 유효하고 다른 공격 표면을 보장하지 않는다.
+
+다음 행동은 공식 의존성 수정판·새 재현 증거가 나오면 관련 보완과 감사·회귀 시험을 다시 대조하는 것이다. trusted 전환은 배포를 유발하지 않는 승인된 실행 조건과 정확 후보가 마련되면 실제 target 이벤트·보호 readback으로 인수한다. 원격 앱 인수는 별도 안전한 테스트 환경과 재개 결정이 있을 때 진행한다. 운영 키 복사·새 유료 환경·기준 완화는 하지 않는다. 소비 제품의 과거 QA 문서는 당시 후보·실패·한계를 이미 구분하므로 변경하지 않고, 이번 공통 완료 범위 결정은 이 문서와 제품 방향 문서에 연결한다.
