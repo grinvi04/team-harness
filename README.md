@@ -88,192 +88,17 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 
 ## 🏗️ 아키텍처
 
-아래로 내려갈수록 강제력이 세지고, AI 도구 중립적이 된다.
-
-![아키텍처 다이어그램](docs/architecture.png)
-
-<details>
-<summary>mermaid 소스 (GitHub 웹에선 차트로 렌더)</summary>
-
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#6b7280', 'background': '#f8fafc', 'mainBkg': '#f8fafc', 'fontSize': '14px'}}}%%
-flowchart TD
-    L3["<b>계층 3 · 역할별 에이전트</b><br/>security-reviewer 등 — 검증 자동화"]
-    L2["<b>계층 2 · harness-guard 플러그인</b><br/>가드 훅 · git-flow 커맨드 · 게이트 스킬"]
-    L1["<b>계층 1 · repo 커밋 설정</b><br/>AGENTS.md(규약 단일 출처) + .claude/settings.json"]
-    L05["<b>계층 0.5 · git hooks</b><br/>보호 브랜치 차단 + 커밋 메시지 즉시 검증 (--no-verify로 우회 가능)"]
-    L0["<b>계층 0 · GitHub branch protection + CI 게이트</b><br/>PR 필수 · required checks(CI) · enforce_admins=on · (팀 모드) 승인 1+ — <b>우회 불가</b>"]
-
-    L3 --> L2 --> L1 --> L05 --> L0
-
-    style L0 fill:#1a7f37,color:#fff
-    style L05 fill:#2da44e,color:#fff
-    style L1 fill:#57606a,color:#fff
-    style L2 fill:#0969da,color:#fff
-    style L3 fill:#54aeff,color:#fff
-```
-
-</details>
-
-| 계층 | 강제 대상 | 위치 |
-|---|---|---|
-| 0 — branch protection + CI 게이트 | **모든 사람 · 모든 AI 도구** | GitHub (`templates/ci/`) |
-| 0.5 — git pre-commit·commit-msg 훅 | 모든 사람 · 모든 AI 도구 | 각 repo `.githooks/` (`templates/githooks/`) |
-| 1 — AGENTS.md + `.claude/` 커밋 설정 | repo를 clone한 전원 | 각 프로젝트 repo (`templates/`) |
-| 2 — harness-guard 플러그인 | Claude Code·Codex 사용자 | 이 repo (`plugins/`) |
-| 3 — 역할별 named agents | Claude Code·Codex 사용자 | 플러그인의 runtime별 agent 설정 |
-
-> Claude Code가 아닌 도구를 쓰는 팀(기획·마케팅 등)도 `AGENTS.md` 하나만 보면 된다 —
-> Codex는 네이티브로 읽고, Gemini CLI는 contextFileName 설정으로 읽는다.
-> 계층 2–3은 못 쓰더라도 **계층 0은 도구와 무관하게 전원에게 강제된다.**
-
----
+![역사적 팀 모드 강제 계층 그림](docs/architecture.png)
+위 PNG는 사람 승인 1+를 표시한 과거 팀 모드 자료다. [현재 Mermaid·보호 범위와 보존 그림](docs/harness-architecture.md)을 읽는다.
 
 ## harness-guard 플러그인
 
-공식 플러그인이 제공하지 않는 **자체 정책만** 담는다.
-
-현재 설치 단위는 호환성을 위해 `harness-guard` 하나다. 다음 배포 단계에서 사용할 governance core,
-Claude·Codex adapter, 선택 workflow의 파일 소속과 manifest는 `packaging/packages.json`이 정본이며 아래 명령으로
-clean 디렉터리에 재현 가능한 staged artifact를 만들 수 있다. 이 artifact는 아직 marketplace 설치 대상이 아니다.
-
-```bash
-node scripts/build-packages.mjs --check
-node scripts/build-packages.mjs --output /tmp/team-harness-packages
-```
-
-| 구성 요소 | 내용 |
-|---|---|
-| **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, **검증기·마이그레이션 삭제**, 핵심 디렉터리 `rm -rf`, npm 글로벌 설치, **맨손 `gh pr create`·`gh pr merge`**(PR 생성·머지는 래퍼 스크립트=스킬 경유만 — 반사적 우회 차단) 차단 (`cd` 체인·서브셸·`git -C` 우회 포함, 보조 장치 — 최종 강제는 계층 0). **차단 시 `~/.claude/hooks/guard-block.log`에 session_id·cwd·명령(크레덴셜·토큰 마스킹) 기록**(멀티세션 위반 시도 감사). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
-| **PR 래퍼 스크립트** | `pr-create.sh`(base 자동감지·push·생성) · `pr-merge.sh`(CI·스레드·mergeable 게이트 후 머지) — guard가 맨손 gh를 막으므로 **PR 생성·머지의 유일 경로**. 스킬이 이 스크립트를 호출(내부 gh는 자식 프로세스라 훅에 안 걸림) |
-| **skill 자동 선택 + 의도 라우터** | 일반 자연어 작업은 17개 description의 사용·제외 경계로 runtime이 implicit selection. `route-intent.mjs`는 "진행해"처럼 이미 시작된 Git/PR 작업의 다음 상태만 결정한다. substring 키워드 주입과 권한 확대는 하지 않는다. |
-| **마일스톤 커맨드** | `/milestone` — 제품·마일스톤 정의→기능 분해→GitHub 마일스톤 생성→진행률 대시보드. `/plan` 위에 놓이는 목표 레이어. Claude Code 내장 `/goal`(세션 stopping condition)과 보완 관계 |
-| **계획 계약** | `/plan` — 선택된 방법론의 계획·승인을 프로젝트 spec·수용 기준에 연결. 기존 계획을 재사용하고 Git은 변경하지 않음 |
-| **개발 계약** | `/feature-add` · `/feature-modify` — 선택된 구현 방법론에 테스트 무결성·AGENTS.md 검사·제품 커밋 규약을 연결 |
-| **진단 계약** | `/systematic-debugging` — 선택된 진단 방법에 프로젝트 재현 증거·무수정 경계를 연결. 원인 확인과 수정 승인 후 구현 계약으로 인계 |
-| **완료 검증 스킬** | `/verification-before-completion` — 현재 worktree·HEAD에 유효한 증거로 검증하며 같은 후보·환경·범위의 결과를 재사용. 변경·gate 신선도 조건에는 재검사, 실패·미확인은 fail-closed |
-| **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 timeout·max·내용 기반 stuck·안전 checkpoint 안에서 자동화. 맥락 자동 선택은 명시적 요청 없이 commit하지 않으며 시간 예약 polling과 별개 |
-| **품질 커맨드** | `/qa` — 프론트엔드 QA: 디자인 토큰 준수 + WCAG 2.2 접근성 검증 (`/feature-add`의 TDD 로직과 직교한 비주얼·a11y 축) |
-| **릴리즈 검증** | `/release-check` — 릴리즈 전 품질(Agent A)·보안(Agent B)·DB 마이그레이션(Agent C) 병렬 검증 + manifest가 있을 때 외부 파일럿 live provenance |
-| **드리프트 점검** | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 점검(`check-repo-sync`). commit-msg·validator·CI·rules 등 필수 자산 누락 리포트 |
-| **PR 생성** | `/pr-create` — base 자동감지(develop 있으면 develop, 없으면 기본 브랜치) PR 생성 **단일 프리미티브**. 맨손 `gh pr create` 대체 — develop 없는 main 기반 repo도 한 경로로. `feature-merge`가 PR 생성 단계를 이 스킬에 위임 |
-| **머지·릴리즈 커맨드** | `/feature-merge` · `/hotfix` · `/release` · `/solo-merge` — git-flow 전 구간을 게이트 경유로 자동화 |
-| **스킬** `pr-review-gate` | PR 생성→머지의 표준 게이트 절차 **단일 출처** — AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
-| **에이전트** `security-reviewer` | 릴리즈 전 보안 검토 기준 — Claude agent로 제공하고 Codex 실행·모델 선택은 native agent에 위임 |
-| **에이전트** `verifier` | 검증·연구·설계 반증 기준 — Claude agent로 제공하고 Codex 실행·모델 선택은 native agent에 위임 |
-
-### git-flow와 커맨드의 관계
-
-```mermaid
-%%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#6b7280', 'background': '#f8fafc', 'mainBkg': '#f8fafc', 'fontSize': '14px'}}}%%
-flowchart LR
-    G["📊 /milestone<br/>목표·마일스톤<br/>(GitHub Milestone)"]
-    P["📋 /plan<br/>기존 계획·승인을<br/>프로젝트 spec에 연결"]
-    F["feature/* · fix/*"]
-    D[develop]
-    M[main]
-    L["🔁 /loop<br/>조건 달성까지<br/>자율 반복"]
-
-    G -->|"기능 분해 → 목표 연결"| P
-    P -->|"/feature-add 계약<br/>선택 방법론 · 제품 검사·커밋"| F
-    F -->|"/feature-merge<br/>품질검증 → PR → 게이트"| D
-    D --> L
-    L -->|"통과 후 커밋"| D
-    D -->|"/release-check<br/>품질·보안·DB 병렬 검증"| D
-    D -->|"/release X.Y.Z<br/>release 브랜치 → PR → 태그"| M
-    M -.->|back-merge PR| D
-    M -->|"/hotfix<br/>재현 테스트 → 수정 → PR"| M
-
-    style M fill:#cf222e,color:#fff
-    style D fill:#0969da,color:#fff
-    style F fill:#57606a,color:#fff
-    style P fill:#6e40c9,color:#fff
-    style G fill:#0a6640,color:#fff
-    style L fill:#953800,color:#fff
-```
-
-흐름: `/milestone`(목표·마일스톤 정의) → `/plan`(기존 계획·승인을 프로젝트 spec에 연결) → **`feature/*` 한 브랜치**에서 선택한 방법론과 `/feature-add` 프로젝트 계약 →
-`/feature-merge`(한 PR). *한 기능 = 한 브랜치 = 한 PR.*
-`/loop`: 작업 브랜치에서 CI·lint·테스트 등 반복 수정을 exit 0까지 동기 자율 실행. 자연어 맥락으로 자동
-선택되면 명시적 commit 요청이 없는 한 검증된 변경을 작업트리에 둔다.
-내장 `/goal`(세션 stopping condition)·`/loop`(ScheduleWakeup 비동기)는 별도 유지.
-
-모든 경로는 PR을 경유하고, 머지 전에 `pr-review-gate`의 게이트
-(AI 리뷰 처리 → CI → 외부 배포 상태, **팀 모드는 + 사람 승인**)를 통과해야 한다.
-**솔로 표준**(승인요건 0)에선 CI·스레드 resolve가 우회불가 게이트이고 사람 승인 단계는 생략된다 — enforce_admins=on이 소유자·AI에게도 CI-green을 강제한다(pr-review-gate §4).
-팀은 `set-branch-protection.sh --approvals N`으로 main에 리뷰 승인 요건을 추가한다(develop은 0 유지).
-
----
+[구성 요소·패키지 경계·Git 흐름](docs/harness-plugin.md)에 가드와 각 절차를 연결했다.
 
 ## 🚀 빠른 시작
 
-English-language onboarding is available in the [Quick Start](docs/quick-start.md). Before adopting Team Harness,
-check the [supported environments and validation levels](docs/support.md).
-
-### 팀원 온보딩 (각자 1회, ~3분)
-
-```bash
-git clone <프로젝트-repo>             # .claude/ 포함 — 커맨드·권한 컨벤션 자동 적용
-cd <프로젝트-repo>
-git config core.hooksPath .githooks   # git 네이티브 가드 활성화
-claude                                # 첫 실행 시 marketplace/plugin 신뢰 확인 → 설치
-```
-
-개인 설정은 `.claude/settings.local.json`에만 (gitignore됨).
-
-### 신규 프로젝트 셋업 (리드 1회)
-
-```bash
-cd <새 repo 루트>
-bash /path/to/team-harness/scripts/new-repo.sh
-```
-
-스크립트가 자동으로 처리: 템플릿 파일 복사 · `core.hooksPath` 설정 · main·develop branch protection.
-이후 수동 3가지: **ci-gate.yml 스택 커스터마이징** · **AGENTS.md 작성** · **스택별 검사 연결**.
-AI 리뷰는 PR마다 `/code-review` 스킬(구독 포함, API 과금 없음)이 수행 — 외부 봇·시크릿 불필요.
-전체 절차: [`docs/onboarding.md`](docs/onboarding.md)
-
-### Claude Code 로컬 테스트 (플랜 불필요)
-
-```
-/plugin marketplace add /path/to/team-harness
-/plugin install harness-guard@team-harness
-```
-
-main 브랜치에서 `git commit` 시도 → ⛔ 차단되면 정상.
-
-### Codex 플러그인 갱신
-
-Codex 설치·갱신은 [Native Refresh Runbook](docs/specs/codex-guard-compatibility.md#codex-native-refresh-runbook)의 공식 CLI 경로를 따른다. v0.70.0 태그 발행 후 아래 명령으로 해당 버전에 고정해 설치한다. **다른 태그·경로로 이미 등록돼 있으면 runbook의 기존 source 전환을 먼저 수행한다.** 아래 `/path/to/release-source`는 `marketplace add`가 반환한 `installedRoot`다. 검사기와 비교 원본도 해당 태그에서 가져오며, 보존한 이전 개발 checkout의 검사기를 사용하지 않는다.
-
-```bash
-codex plugin marketplace add grinvi04/team-harness --ref v0.70.0 --json
-codex plugin add harness-guard@team-harness --json
-node /path/to/release-source/scripts/check-codex-native-plugin.mjs --expected-version 0.70.0 --trusted-root /path/to/release-source/plugins/harness-guard
-```
-
-기존 로컬 개발 checkout을 전환하거나 외부 플러그인을 수정하지 않는다. 다음 갱신 때는 승인된 새 태그를 명시한다.
-설치 목록·파일 계약 검사와 실제 hook 발화는 다른 검증이며, 새 작업에서 갱신한 skill을 로딩한다.
-
-외부 `security-guidance` 수정까지 별도로 승인한 환경에서는 기존 launcher를 사용할 수 있다.
-다음 경로는 일반 plugin 갱신의 필수 단계가 아니며, `--probe`는 별도 격리 fixture·모델 실행 검증이다.
-
-```bash
-bash /path/to/team-harness/scripts/codex-hardened.sh --version
-bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe
-```
-
-### 현재 상태 종합 점검
-
-```bash
-bash /path/to/team-harness/scripts/harness-doctor.sh --repo .
-```
-
-기본 실행은 모델을 호출하지 않고 managed requirements, Codex·harness-guard 버전, native plugin 상태, `/repo-sync`,
-main/develop branch protection을 읽기 전용으로 확인한다. 실제 새 Codex 세션에서 파괴 명령과 가짜 시크릿
-전송이 `PreToolUse`에 차단되는지까지 확인하려면 명시적으로 `--probe`를 추가한다. probe는 throwaway
-디렉터리와 loopback 폐쇄 포트만 사용하고, 검토된 hook을 해당 invocation에서만 실행하도록 hook trust를
-일회성 우회한다(approval·sandbox는 유지). 인증된 Codex 세션의 모델 토큰을 소비하므로 CI에서는 실행하지 않는다.
+[한국어 설치·갱신·점검](docs/harness-setup.md), [English Quick Start](docs/quick-start.md),
+[지원 환경](docs/support.md)을 현재 실행기에 맞춰 읽는다.
 
 ## 🧪 테스트
 
@@ -345,43 +170,10 @@ team-harness/
 | [harness-maintenance.md](docs/harness-maintenance.md) | 하네스 자체 변경 절차 · 플러그인 버전 정책 · 전파 방식 |
 | [readme-standards.md](docs/readme-standards.md) | 프로젝트 repo README 표준 양식 |
 
-## 운영 원칙
+## 운영 원칙과 이력
 
-- **배포는 파일 복사가 아니라 플러그인 버전 배포로.** 공통 거버넌스가 바뀌면 플러그인 버전을
-  올린다 — 프로젝트별 동기화 스크립트·버전 마커가 필요 없다.
-- **스택/프로젝트별 변형은 플러그인에 넣지 않는다.** 전용 가드·검증 훅은 각 프로젝트
-  `.claude/settings.json`에 커밋한다 (플러그인 훅과 공존).
-- **추측성 선행 작성 금지.** 현재 제공 범위와 남은 작업은 제품 로드맵에서 관리한다.
-  아래 시점이 오면 그때 해당 문서를 추가한다:
-
-| 트리거 | 추가할 문서 |
-|---|---|
-| **스택 확정** | 스택 스캐폴드(AGENTS.md 빌드·테스트 명령 구체화, ci-gate 실제 단계, 스택 전용 가드 훅), 테스트 표준(픽스처·커버리지·e2e 범위), 프론트엔드 컨벤션, 환경변수·설정 프로파일 규약 |
-| **도메인 설계 시작** | 용어집(유비쿼터스 랭귀지), 공통코드·기준정보 거버넌스 |
-| **팀원 합류** | 로컬 개발환경 가이드(docker compose·시드 데이터 — 프로젝트 repo에) |
-| **서비스 오픈** | SLO·성능 기준, 온콜 로테이션 실명화 (`operations.md` 활성화) |
-
-## 현재 제약 (2026-07 기준)
-
-- 조직 managed settings는 아직 미도입 → **계층 0(branch protection·CI)이 최종 하드 강제**
-  (Codex local hook 경로는 `/etc/codex/requirements.toml`로 머신별 고정)
-- 실험 기능(agent teams 등) 미사용
-- 개발 도구로 Claude Code와 Codex를 모두 지원하며, Gemini는 `AGENTS.md` + 계층 0 범위로 제한
-
-## 로드맵
-
-제품 방향과 현재 우선순위의 정본은 [`docs/product-direction.md`](docs/product-direction.md#우선순위-로드맵)다.
-개인 개발 흐름 보완 → 첫 재사용 시작 구성 → 실제 업무의 부족한 영역 → 점진적 공유 순서로 진행한다.
-아래는 과거 구축 이력이며 새로운 작업 순서가 아니다.
-
-- [x] v0.1 스캐폴딩 — 마켓플레이스 + harness-guard(가드·게이트·커맨드·에이전트) + 템플릿 + 온보딩
-- [x] 로컬 마켓플레이스 설치·가드 실동작 검증 (cd 우회 차단, settings 키 포맷 스키마 대조)
-- [x] 파일럿 리허설 — 온보딩 절차 풀 드릴, 발견 사항 반영
-- [x] GitHub push (개인 private repo, 임시) + 문서 체계 구축
-- [x] 팀 환경 정합화 — back-merge PR 절차, 사람 승인 게이트, AI 리뷰(`/code-review` 스킬) 연결
-
-회사 파일럿·사내 Git 이전·조직 managed settings는 실제 도입 요구가 생길 때만 검토한다.
-현재 개인 개발을 시작하거나 공통 구성을 재사용하기 위한 선행 작업이 아니다.
+[공유 범위·운영 원칙·과거 구축 이력](docs/harness-operating-history.md)을 따르며,
+현재 우선순위는 [제품 방향](docs/product-direction.md#우선순위-로드맵)을 확인한다.
 
 ## 📄 라이선스
 

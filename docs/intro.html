@@ -247,15 +247,15 @@
   <p>AI 코딩 에이전트는 속도를 높이지만, 팀의 <b>편차도 함께 증폭</b>한다. 10명이 각자의 방식으로 AI 도구를 쓰면 코드 일관성은 도입 전보다 나빠진다.</p>
   <p>또 하나의 문제: AI는 <b>부탁을 받았을 때만 규칙을 따른다.</b> 프롬프트에 "main에 직접 커밋하지 마"라고 써도, AI가 빠른 경로를 선택하면 순식간에 무너진다.</p>
   <div class="callout">
-    <b>핵심 통찰</b> — 프롬프트 지침은 강제가 아니다. 우회할 수 없는 <b>구조</b>만이 강제다.<br>
-    branch protection과 CI는 AI도, 인간도, 어떤 도구도 건너뛸 수 없다.
+    <b>핵심 통찰</b> — 프롬프트 지침만으로 정책 집행을 보장하지 않는다.<br>
+    branch protection과 required CI는 설정된 보호 범위·예외·권한에 따라 GitHub 서버에서 집행된다.
   </div>
 
   <!-- 설계 원칙 -->
   <h2 id="principle">설계 원칙</h2>
 
   <h3>1. 계층적 방어 (Defense in Depth)</h3>
-  <p>강제력의 원천을 GitHub 서버까지 내려보낸다. 위 계층이 우회되어도 아래 계층이 막는다.</p>
+  <p>정책 집행을 GitHub 서버까지 연결한다. 각 계층의 적용 범위와 서버 보호·예외 설정을 따로 확인한다.</p>
 
   <h3>2. AI 중립성</h3>
   <p>계층 0–1은 Claude Code, Codex, Cursor 등 <b>모든 도구에 동일하게 작용</b>한다. harness-guard 플러그인(계층 2–3)도 Claude Code와 Codex에서 각 런타임에 맞는 경로로 작동한다.</p>
@@ -273,11 +273,11 @@
     <div class="layer l2"><span class="lv">계층 2</span><span class="lw">harness-guard — 스킬 17종 · 가드 훅 · 에이전트</span><span class="scope">Claude Code · Codex</span></div>
     <div class="layer l1"><span class="lv">계층 1</span><span class="lw">AGENTS.md + .claude/ 설정 (플러그인·rules)</span><span class="scope">clone한 전원</span></div>
     <div class="layer l05"><span class="lv">계층 0.5</span><span class="lw">git hooks (보호 브랜치·커밋 메시지 검증)</span><span class="scope">전원</span></div>
-    <div class="layer l0"><span class="lv">계층 0</span><span class="lw">branch protection + CI gate — 우회 불가</span><span class="scope">전원 · 모든 도구</span></div>
+    <div class="layer l0"><span class="lv">계층 0</span><span class="lw">branch protection + CI gate — 설정된 서버 정책 집행</span><span class="scope">전원 · 모든 도구</span></div>
   </div>
   <div class="callout ok">
-    계층 0은 AI도, 인간도, <code>--no-verify</code>도 건너뛸 수 없다.<br>
-    main/develop로 직접 push를 시도하면 GitHub 서버가 거부한다.
+    <code>--no-verify</code>는 로컬 Git hook을 건너뛰어도 서버 보호 설정을 해제하지 않는다.<br>
+    main/develop의 PR·required checks·관리자 적용·bypass 예외는 실제 repo 설정에서 확인한다.
   </div>
 
   <!-- 스킬 -->
@@ -441,76 +441,76 @@
 
   <!-- 모델 티어링 -->
   <h2 id="model">모델 티어링</h2>
-  <p>작업 난이도는 낮음·중간·높음으로 공통 분류하되 제어 방법은 런타임별로 다르다. 아래 모델명은 Claude Code 매핑이며, Codex는 사용자에게 승인된 native 역할의 모델과 추론 강도를 따른다.</p>
+  <p>모델 크기와 추론 강도는 별도 선택이다. 아래는 승인된 운영 출발점이며 과제별 최적값이나 실제 실행 성공을 뜻하지 않는다. 단순·연속 작업을 모델 배분 때문에 위임하지 않는다.</p>
   <div class="tiers">
     <div class="tier">
-      <div class="model haiku">Claude · Haiku</div>
+      <div class="model haiku">Claude · Haiku 5.5 / medium</div>
       <ul>
         <li>파일 스캔·읽기</li>
         <li>git diff 조회</li>
         <li>진행률 조회</li>
-        <li>헬스체크 명령</li>
-        <li><i>(release Phase 5 헬스체크)</i></li>
+        <li>헬스체크 결과 근거 읽기</li>
+        <li><i>좁은 근거 수집의 출발점</i></li>
       </ul>
     </div>
     <div class="tier">
-      <div class="model sonnet">Claude · Sonnet</div>
+      <div class="model sonnet">Claude · Sonnet 5.5 / medium</div>
       <ul>
         <li>기능 구현·테스트</li>
         <li>품질 검증 (Agent A)</li>
         <li>마이그레이션 안전 감사 (Agent C)</li>
         <li>lint·test·build</li>
-        <li><i>(general-purpose 기본 위임)</i></li>
+        <li><i>명시 호출·native 역할·상속 사용</i></li>
       </ul>
     </div>
     <div class="tier">
-      <div class="model opus">Claude · Opus</div>
+      <div class="model opus">Claude · Opus 5.5 / medium</div>
       <ul>
         <li>보안 리뷰 (Agent B)</li>
         <li>XSS·SQLi 탐지</li>
         <li>시크릿 유출 패턴</li>
         <li>설계·다각도 검증</li>
-        <li>오케스트레이션</li>
+        <li>중요한 독립 검토</li>
         <li><i>(verifier·security-reviewer)</i></li>
       </ul>
     </div>
   </div>
   <div class="callout">
-    <b>Claude Code</b> — Explore→Haiku, general-purpose→Sonnet, verifier/security→Opus로 역할을 나눈다.<br><b>Codex</b> — 하네스가 역할 TOML을 배포하지 않는다. 사용자가 승인한 역할 설정을 유지하며 명확한 저위험 구현은 적합한 worker에 맡길 수 있다. Luna/max 구현 역할과 Luna/high 탐색 역할은 다르며 실제 호출의 모델·effort를 확인한다. Git 통합·최종 판정은 부모가, 독립 반증은 다른 인스턴스가 맡는다.
+    <b>Claude Code</b> — native 역할·명시 호출·상속을 따른다. 기본 Explore가 항상 Haiku라고 가정하지 않는다. verifier/security-reviewer의 현재 소스는 <code>model: opus</code>·<code>effort: medium</code>·읽기 도구를 선언한다.<br><b>Codex</b> — 일반 작업 Sol 6.1/medium, 중요한 판단 Astra/medium이 승인된 후보 방향이다. 현재 실행값은 native surface와 사용자 설정에서 확인한다. 전역 후보 적용과 새 역할 실행 검증은 별도 단계이며, 부모는 통합·최종 판정을 맡고 다른 인스턴스가 독립 검토한다.
   </div>
-  <p style="margin-top:.8rem"><b>왜 Agent C는 Sonnet인가</b> — DB 마이그레이션 안전 감사(out-of-order·forward-only·증분 적용 관점)는 릴리즈 게이트의 <b>판단형</b> 작업이라 Haiku로 내리면 회귀. 반면 Phase 5 배포 후 헬스체크는 명령 실행·상태 확인뿐이라 Explore(Haiku)가 맞다.</p>
+  <p style="margin-top:.8rem"><b>모델 선택의 기준</b> — 마이그레이션 감사·보안·릴리즈 판단은 누락 비용과 실제 과제 결과를 보고 선택한다. 역할 이름이나 명령 실행만으로 모델을 자동 배정하거나 품질을 보장하지 않는다.</p>
   <p style="margin-top:.8rem">release-check의 Agent A·B·C는 <b>동시에 spawn</b>된다 — 병렬 실행으로 전체 검증 시간을 단축.</p>
-  <p style="margin-top:.8rem"><b>공통 원칙</b> — 가장 낮은 추론량으로 시작하되 설계·보안·릴리즈처럼 누락 비용이 큰 작업은 높인다. Claude의 <code>effort:</code>와 Codex의 <code>model_reasoning_effort</code>는 서로 다른 런타임 설정이다. 단일 출처는 <code>docs/model-tiering.md</code>.</p>
+  <p style="margin-top:.8rem"><b>공통 원칙</b> — medium을 출발점으로 삼고 높은 effort는 누락 위험·난도·측정된 이득으로 고른다. 위 스킬 카드의 effort는 현재 <code>SKILL.md</code> 선언이며 agent 전체나 Codex 설정을 강제하지 않는다. 현재 적용 상태는 <a href="model-tiering.md">모델·추론 선택 정본</a>을 따른다.</p>
 
-  <h3 style="margin-top:1.8rem; font-size:1.05rem;">실측 검증 <span style="font-size:.8rem; color:var(--muted); font-weight:400;">— 강제가 실제로 먹히는지 측정했다</span></h3>
-  <div class="callout ok"><b>아래는 기존 Claude Code 경로의 측정 기록이다.</b> Codex의 현재 역할·모델·effort 적용이나 권한 격리를 증명하지 않는다. Codex는 승인된 설정과 실제 실행 기록을 따로 확인한다.</div>
+  <h3 style="margin-top:1.8rem; font-size:1.05rem;">소스 후보와 실행 증거 <span style="font-size:.8rem; color:var(--muted); font-weight:400;">— 설정·실행·품질을 구분한다</span></h3>
+  <div class="callout ok"><b>현재 Claude 실제 추론·상속·effort·권한은 UNVERIFIED다.</b> 지원 CLI의 시작 정보는 관찰했지만 OAuth 인증 실패로 modelUsage는 비었다. 사용자가 인증 갱신을 나중으로 미뤘으며, 아래 과거 값이나 소스 검사가 이 미확인을 PASS로 바꾸지 않는다.</div>
   <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; margin:1rem 0;">
     <div class="tier">
-      <div style="font-weight:700; margin-bottom:.5rem;">① Claude effort <span class="badge effort-max">frontmatter 강제</span></div>
-      <p style="font-size:.83rem; color:var(--muted); margin:0 0 .6rem;">동일 과제·동일 입력, 스킬 <code>effort:</code>만 다르게 → A/B 측정</p>
+      <div style="font-weight:700; margin-bottom:.5rem;">① 과거 Claude effort 표본 <span class="badge effort-max">역사적 기록</span></div>
+      <p style="font-size:.83rem; color:var(--muted); margin:0 0 .6rem;">기존 소개 자료의 low/max A/B 수치. 현재 후보에서 재실행하지 않았다.</p>
       <table style="width:100%; border-collapse:collapse; font-size:.82rem;">
         <tr style="color:var(--muted); text-align:left;"><th style="padding:.25rem .4rem;"></th><th style="padding:.25rem .4rem;">output tokens</th><th style="padding:.25rem .4rem;">cost</th></tr>
         <tr><td style="padding:.25rem .4rem;"><span class="badge effort-med">low</span></td><td style="padding:.25rem .4rem;">2,112</td><td style="padding:.25rem .4rem;">$0.116</td></tr>
         <tr><td style="padding:.25rem .4rem;"><span class="badge effort-max">max</span></td><td style="padding:.25rem .4rem;"><b style="color:var(--red);">7,274</b></td><td style="padding:.25rem .4rem;">$0.245</td></tr>
       </table>
-      <p style="font-size:.85rem; margin:.6rem 0 0;"><b style="color:var(--red);">3.4×</b> 출력 토큰 — 유일한 변수가 frontmatter <code>effort</code>. 스킬별 effort는 실제 적용된다.</p>
+      <p style="font-size:.85rem; margin:.6rem 0 0;">기존 기록의 출력 토큰 비율은 <b style="color:var(--red);">3.4×</b>다. 현재 모델·effort 적용, 품질 개선이나 구독 차감량의 증거로 사용하지 않는다.</p>
     </div>
     <div class="tier">
-      <div style="font-weight:700; margin-bottom:.5rem;">② 모델 <span class="badge auto">훅 강제</span></div>
-      <p style="font-size:.83rem; color:var(--muted); margin:0 0 .6rem;"><code>enforce-subagent-model.py</code>가 타입별 <code>updatedInput.model</code>을 주입 · <code>subagent-model.log</code>에 감사 기록</p>
+      <div style="font-weight:700; margin-bottom:.5rem;">② 현재 모델 선택 <span class="badge auto">native 위임</span></div>
+      <p style="font-size:.83rem; color:var(--muted); margin:0 0 .6rem;">타입별 강제 hook 등록을 제거했다. <code>enforce-subagent-model.py</code>의 이전 호출 경로는 입력을 소비하는 무수정 호환 no-op이다.</p>
       <ul style="list-style:none; font-size:.85rem; padding:0; margin:0; line-height:1.8;">
-        <li><code>Explore</code> → <span style="color:var(--teal); font-weight:700;">haiku</span></li>
-        <li><code>general-purpose</code>·<code>claude</code> → <span style="color:var(--accent); font-weight:700;">sonnet</span></li>
-        <li>verifier·security-reviewer·Plan → <span style="color:var(--purple); font-weight:700;">opus 유지</span></li>
+        <li>명시 모델·역할 설정·부모 상속을 native에서 선택</li>
+        <li>소스 검사는 모델 덮어쓰기·로그 변경이 없음을 확인</li>
+        <li>실제 추론·도구·권한 검증은 인증 복구 뒤 재개</li>
       </ul>
-      <p style="font-size:.85rem; margin:.6rem 0 0;">실제 세션 로그에서 opus 메인 → <b>서브에이전트 haiku/sonnet 다운그레이드</b> 확인.</p>
+      <p style="font-size:.85rem; margin:.6rem 0 0;">과거 hook 로그는 실제 선택 모델의 증명이 아니다. 현재 증거와 재개 조건은 <a href="specs/harness-modernization/execution-m3ac.json">Phase 3 실행 기록</a>을 따른다.</p>
     </div>
   </div>
   <div class="callout"><b>관측성 차이</b> — Claude의 과거 측정과 hook 로그, Codex의 설정·실제 실행 기록은 서로 다른 증거다. Codex mapping test는 wrapper 연결을 확인하며 실제 model·effort·권한 격리를 보장하지 않는다. 로컬 토큰 집계도 계정 전체 사용량이나 구독 차감량은 아니다.</div>
 
   <!-- Git Flow -->
   <h2 id="gitflow">Git Flow</h2>
-  <p>모든 변경은 PR로만 흐른다. 직접 커밋·push 경로는 없다 — 시도하면 3겹(guard→pre-commit→branch protection)에서 차단된다.</p>
+  <p>변경은 작업 브랜치에 커밋하고 보호 브랜치 반영은 PR을 거친다. 로컬 guard·Git hook과 서버 보호는 각각 설정된 범위에서 작동한다.</p>
   <div class="callout"><b>커밋도 검증 대상</b> — <code>feat(order): 주문 한도 검증 추가</code>처럼 영어 type·한국어 요약을 쓰고 코드 의미 변경에는 빈 줄 뒤 <code>이유:</code>를 남긴다. 로컬 <code>commit-msg</code>와 PR commitlint가 같은 validator를 사용하며, merge 예외는 실제 Git metadata로 확인한다.</div>
   <div class="flow">
     <div class="flow-row">
@@ -520,14 +520,14 @@
       <span class="fline"></span>
       <span class="fnode dev">develop</span>
       <span class="fline"></span>
-      <span class="farrow">/release →</span>
+      <span class="farrow">release/* → PR →</span>
       <span class="fline"></span>
       <span class="fnode main">main + 태그</span>
     </div>
     <div class="flow-row">
-      <span class="fnode main">main</span>
+      <span class="fnode main">main → hotfix/*</span>
       <span class="fline"></span>
-      <span class="farrow">/hotfix →</span>
+      <span class="farrow">수정·검증 → main PR →</span>
       <span class="fline"></span>
       <span class="fnode main">main + 태그</span>
       <span class="fline"></span>
@@ -537,7 +537,8 @@
     </div>
   </div>
   <div class="callout">
-    릴리즈·핫픽스의 develop back-merge도 <b>PR로</b> 진행된다. 긴급 상황이어도 direct push는 없다.
+    <code>/loop</code>의 반복 수정·체크포인트 커밋은 작업 브랜치에서 진행한다. 자연어 자동 선택은 명시적 commit 요청 없이 커밋하지 않는다. 보호 브랜치의 <code>--no-commit</code> 실행은 커밋을 남기지 않는다.<br>
+    릴리즈·핫픽스의 develop back-merge도 <b>PR로</b> 진행한다. <a href="harness-plugin.md">현재 Mermaid 흐름과 절차</a>를 따른다.
   </div>
 
   <!-- PR 머지 게이트 -->
@@ -569,7 +570,7 @@
       <div class="gs">pr-merge.sh<br>게이트 래퍼</div>
     </div>
   </div>
-  <p>AI 리뷰(<code>/code-review</code> 스킬 — 구독 포함·외부 봇/시크릿 불필요)가 변경분을 검토해 제안을 남긴다. 제안을 처리하고 스레드를 resolve한 뒤, <b>팀 모드</b>(리뷰어 有)에선 사람 승인이 별도로 필요하다 — AI 리뷰가 사람을 대체하지 않는다. <b>솔로 표준</b>(승인요건 0)에선 CI·스레드 resolve가 우회불가 게이트이고 이 단계는 생략된다(enforce_admins=on이 소유자·AI에게도 CI-green을 강제).</p>
+  <p>AI 리뷰(<code>/code-review</code> 스킬 — 구독 포함·외부 봇/시크릿 불필요)가 변경분을 검토해 제안을 남긴다. 제안을 처리하고 스레드를 resolve한 뒤, <b>팀 모드</b>(리뷰어 有)에선 사람 승인이 별도로 필요하다 — AI 리뷰가 사람을 대체하지 않는다. <b>솔로 표준</b>(승인요건 0)에선 CI·스레드 resolve 게이트를 유지하고 사람 승인 단계는 생략된다. 서버 집행 범위는 required checks·관리자 적용·bypass 예외를 포함한 실제 보호 설정에서 확인한다.</p>
   <p>솔로→팀 전환은 <code>set-branch-protection.sh --approvals N</code> 한 줄 — <b>main에만</b> 리뷰 승인 N을 걸고(승인 후 push 시 stale 승인은 <code>dismiss_stale_reviews</code>로 무효), <b>develop은 승인0 유지</b>해 <code>pr-merge.sh --auto</code> 무프롬프트 자동머지를 보존한다. 신규 repo 생성 땐 걸지 않는다 — 소유자 1명이면 자기 PR 자기승인 불가로 첫 PR이 데드락되기 때문. 멤버 합류 후 올린다.</p>
   <div class="callout warn">
     <b>솔로 개발자</b> — GitHub에서 자기 PR을 승인할 수 없다. <code>/solo-merge</code>가 CI·스레드 확인 등 품질 게이트를 모두 통과시킨 뒤 승인 요건만 <code>required_pull_request_reviews</code> 일시 삭제로 우회하고 즉시 복구·검증한다(<code>--admin</code>/enforce_admins 토글은 GitHub 변경으로 더 이상 작동 안 함).
@@ -655,7 +656,7 @@
 
   <div class="skill-list" style="gap:.4rem">
     <div class="sk" style="border-color: rgba(63,185,80,.3)">
-      <div class="name" style="color:var(--green)">✓ Codex 동작</div>
+      <div class="name" style="color:var(--green)">Codex 소스 지원 범위</div>
       <div class="badges"></div>
       <div class="desc">AGENTS.md · CI · git hooks · stack rules · skill 17종 · native plugin · command hooks</div>
     </div>
@@ -671,7 +672,7 @@
     </div>
   </div>
   <div class="callout">
-    <b>결론</b> — Codex는 v0.61.0 source-native 플러그인, managed requirements, hook trust가 준비되면 Team Harness skill·보안 가드를 사용한다. agent 실행·모델 선택은 Codex에 위임하며, 최종 강제는 도구와 무관한 branch protection·CI가 소유한다.
+    <b>현재 소스 후보</b> — v0.82.0의 native 플러그인·managed requirements·hook trust 연결은 설치본·새 세션의 실제 증거와 구분한다. agent 실행·모델·effort 선택은 Codex에 위임하며 전역 후보 적용과 새 역할 검증은 별도 단계다. branch protection·CI는 설정된 서버 정책을 집행한다.
   </div>
 
 </main>

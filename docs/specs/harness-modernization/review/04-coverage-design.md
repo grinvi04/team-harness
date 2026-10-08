@@ -37,16 +37,16 @@ common.md·Codex AGENTS·Claude CLAUDE의 152줄/16,162바이트와 동일 diges
 | [Harness/docs/specs/qa-command-binding-validation.md](https://github.com/grinvi04/team-harness/blob/980fe87b4429e601e7f95155063eb2c28906fbaf/docs/specs/qa-command-binding-validation.md) | 576 |
 | [Harness/plugins/harness-guard/skills/loop/SKILL.md](https://github.com/grinvi04/team-harness/blob/980fe87b4429e601e7f95155063eb2c28906fbaf/plugins/harness-guard/skills/loop/SKILL.md) | 423 |
 | [Harness/plugins/harness-guard/skills/milestone/SKILL.md](https://github.com/grinvi04/team-harness/blob/980fe87b4429e601e7f95155063eb2c28906fbaf/plugins/harness-guard/skills/milestone/SKILL.md) | 316 |
-| erp/README.md (`/Users/grinvi04/project/erp/README.md`, 당시 로컬 원본) | 210 |
-| webhook-service/AGENTS.md (`/Users/grinvi04/project/webhook-service/AGENTS.md`, 당시 로컬 원본) | 241 |
-| webhook-service/README.md (`/Users/grinvi04/project/webhook-service/README.md`, 당시 로컬 원본) | 378 |
-| webhook-service/docs/qa/2026-10-07/README.md (`/Users/grinvi04/project/webhook-service/docs/qa/2026-10-07/README.md`, 당시 로컬 원본) | 326 |
-| webhook-service/docs/specs/quality-remediation.md (`/Users/grinvi04/project/webhook-service/docs/specs/quality-remediation.md`, 당시 로컬 원본) | 246 |
-| drivetree/DESIGN.md (`/Users/grinvi04/project/drivetree/DESIGN.md`, 당시 로컬 원본) | 292 |
-| drivetree/PRD.md (`/Users/grinvi04/project/drivetree/PRD.md`, 당시 로컬 원본) | 282 |
-| drivetree/README.md (`/Users/grinvi04/project/drivetree/README.md`, 당시 로컬 원본) | 274 |
-| drivetree/docs/CODING_STANDARDS.md (`/Users/grinvi04/project/drivetree/docs/CODING_STANDARDS.md`, 당시 로컬 원본) | 346 |
-| drivetree/docs/specs/quality-remediation.md (`/Users/grinvi04/project/drivetree/docs/specs/quality-remediation.md`, 당시 로컬 원본) | 260 |
+| erp/README.md (`$HOME/project/erp/README.md`, 당시 로컬 원본) | 210 |
+| webhook-service/AGENTS.md (`$HOME/project/webhook-service/AGENTS.md`, 당시 로컬 원본) | 241 |
+| webhook-service/README.md (`$HOME/project/webhook-service/README.md`, 당시 로컬 원본) | 378 |
+| webhook-service/docs/qa/2026-10-07/README.md (`$HOME/project/webhook-service/docs/qa/2026-10-07/README.md`, 당시 로컬 원본) | 326 |
+| webhook-service/docs/specs/quality-remediation.md (`$HOME/project/webhook-service/docs/specs/quality-remediation.md`, 당시 로컬 원본) | 246 |
+| drivetree/DESIGN.md (`$HOME/project/drivetree/DESIGN.md`, 당시 로컬 원본) | 292 |
+| drivetree/PRD.md (`$HOME/project/drivetree/PRD.md`, 당시 로컬 원본) | 282 |
+| drivetree/README.md (`$HOME/project/drivetree/README.md`, 당시 로컬 원본) | 274 |
+| drivetree/docs/CODING_STANDARDS.md (`$HOME/project/drivetree/docs/CODING_STANDARDS.md`, 당시 로컬 원본) | 346 |
+| drivetree/docs/specs/quality-remediation.md (`$HOME/project/drivetree/docs/specs/quality-remediation.md`, 당시 로컬 원본) | 260 |
 
 ## MD 외 Harness 구성요소
 

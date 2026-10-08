@@ -1,0 +1,500 @@
+[
+  {
+    "path": "docs/specs/harness-modernization/execution-q2a.json",
+    "original_sha256": "2a408b76108a1bb0541aa3545be1b20cbcfd058f474d649de8bdc7b2c561a6cf",
+    "published_sha256": "b981a2fce53fd769ce5a9c6acd236fe55dba6a40b53a89e7ff6171d4abe318b4",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/planning-execpolicy-probes.json",
+    "original_sha256": "f1498a264c971dbe479ac607a4b5fe0d0049614191e73cdeb9ba34ed42ded374",
+    "published_sha256": "58b09cf9ee6f7c417537a5a4b06c3572e2321d3ff4dcc2ab0a6f1cad6cc04e4d",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/readiness-fixed-inputs.json",
+    "original_sha256": "fcf57e1745c1fa30678369937ceeee5ae987e3bf50d4105b12e96f42cef4bd3e",
+    "published_sha256": "6601f1e9f2979f87e37f4b4d58716fb13a59def981be56197f384623fbaeb068",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-d4e-siku-drive.json",
+    "original_sha256": "6e999f55f04b22a6b9b6c8ce432713a789c1c9eeb50a4fe35a8ac7ddd6e49fe9",
+    "published_sha256": "cb31a38609fa1bd85b7f6cef9a4406336d7574497386aba67934c375fbc4bdc5",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-m3ac.json",
+    "original_sha256": "bb25cbdd5ace44a4f59391bed069d72d8718942f01054b33d05edf51adb72daa",
+    "published_sha256": "10072489bd42046d2cea17ba59c994223a4fc8bcb36877082f4cae7a03d229ad",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/legacy-quoting-probes.json",
+    "original_sha256": "aaefdf658c00eafcddef9e3150235fb730445f180e24caea4e5b3c80b5134b58",
+    "published_sha256": "2afd4fd9f544805efcf2a2fed222c4e1c8a481ddcf1b58becb83ed0a4c5476d8",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/readiness-independent-runtime.json",
+    "original_sha256": "67e54ff19722d516950b25059002f8a005c19a8e570085d519b8469ed8a3ab7a",
+    "published_sha256": "331f90501a0252c624231e13f77867ef6aa875be7135243e60a57c6470df057b",
+    "normalization": "user home prefix -> $HOME; logical agent root -> agent:root; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/instruction-audit-md-boundary.json",
+    "original_sha256": "deae283c7c2f371d575516d8623764dcd23fc8d65d4e1fc5825b688e0c505d84",
+    "published_sha256": "ee0bd6b333bc2bbdbe4dd582a2e8218779b971c90a33d30bc3019d6beb3937ae",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/obsolete-reference-inventory.json",
+    "original_sha256": "309a7a7d33bfd414e986fcdd1f154583fa355cff37b14a3eb5234c187292771b",
+    "published_sha256": "fdb8addeb5b62da7a1b71dfc7620fb3d82f443507bb434644c3749573f72ca46",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-s1a.json",
+    "original_sha256": "739742329fd32abaf13480c1bee3e91ab568ded4daf8b7331bae869b6816081f",
+    "published_sha256": "2548feb1fcb0d1ebceedc9186a0c549d1877941ea0266454c033c292d734ad15",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-s1b.json",
+    "original_sha256": "a91bfa07921efb0b3a84a1f01f1a18c58f0e857caf40e053e3cc1d20a8d27a86",
+    "published_sha256": "58108c94f8a9502e6628e84e67ae3f606fd7784f52873834d361942a96503512",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-d4e-erp-webhook.json",
+    "original_sha256": "dd4fb9561e989869de231fc10a296108a2145651f6bed7ed6ed3fe7f7f0de553",
+    "published_sha256": "d71557bc05c3d5eb1883a3c3de3119aa16f3172ac2464398dd771edd35b381cc",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-q2e.json",
+    "original_sha256": "b0fdfb2f2c218919fcc8f43f9b15df4cbb0f3494b8b8ae8531f32c4cce999c06",
+    "published_sha256": "c34f6ca8c0e7dab5339feaec84c332ce4462f6fb57b16b6f6767e6fecb15167c",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-q2d.json",
+    "original_sha256": "03b965d9229d177b2552e5c291bddcda597a33265f14d9f049eb474b1b2f9cec",
+    "published_sha256": "601aeef69d4218cb7c5d6eff99d7d01f34515ddd8ed08aef1ee7ea3222065fc4",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-m3e.json",
+    "original_sha256": "986b0525f440266500f6c7058f5752dc006bf9fa17efb5f74cc4c6644a46089b",
+    "published_sha256": "db4ce43c030dcbcc22b552be8ef12a91757f7f4f29b050daaac86f21848a3b59",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/global-config-detail-addendum.json",
+    "original_sha256": "4a321368b6547b938489a55f9dc5410fc1fa99c34ca81f927687d9c177a46733",
+    "published_sha256": "e3eb6b4918f62c6ef5876302c2f55c46f225b6f7787b74478ea5981d230f5e4b",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/final-source-state.json",
+    "original_sha256": "7356c500018c5a1f3e4f94a0fc79fb4b409a86fb82dc5f2ed7122b3547cf9522",
+    "published_sha256": "2711a2203ca9bd9c4004786440f11f4d69a0de93f5c1220410c5c4e85ea42a29",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-s1c.json",
+    "original_sha256": "5e6d321ef23c2149e39cdb24bbbfcf3be51085a766d534399169b4e982fc9b9b",
+    "published_sha256": "e3d578994baebec5641566277233ce6d9a937c6c8b39db5d1e19b9cd18eb7567",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-d4bc.json",
+    "original_sha256": "b70d0fac6d3f4bd151fe2582fb8a0a75361756d0d73db219e390e351b6403293",
+    "published_sha256": "ad894c0be733d6e1af3b5b18ca67ad1fee231231bcd171fe242d79bd75268814",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/bounded-model-review-results.json",
+    "original_sha256": "8ad9506b949b87ecb4d9354bcf2c23dc42ff0a471f112483abf80eecfd7c15bb",
+    "published_sha256": "ce2ebcdcadf64b0edeabc7c45d83a52a43f807bc521af223d96dc8f9615b6632",
+    "normalization": "user home prefix -> $HOME; logical agent root -> agent:root; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-q2c.json",
+    "original_sha256": "971c07e82bbe69b40451249415ad9dc04e1a9cc2170abfc77ddd99158c907247",
+    "published_sha256": "68887c52103ca53be844b8c117d96fb875c02875eb97ec50ce9fe2b3a1cc4d14",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/ownership-review-source-state.json",
+    "original_sha256": "7277fe5959968e6afa4cfd1e490652da1f4680add52ea570659abd9a60f2d689",
+    "published_sha256": "05aca8ffd88e4ed2ddf9a1cdde3ee0d57f00a58243a1c8a7728fd6dcacacc3b4",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/global-layer-addendum.json",
+    "original_sha256": "2094b4c172fbfd5e5af25c0e7c46a1fd33b1450e34e3786c328d79b22de0bf05",
+    "published_sha256": "5cd299671102b225e41a114834aa6a1ceb96d80df10d1f88cf8a3eee33982d9f",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-d4b-changelog.json",
+    "original_sha256": "3bd292232246f4581f430564c10256cc73bad01fb614cc8e7e180e4e81323a55",
+    "published_sha256": "48942d10a800cfe8fd3128bfa22f1c2b445351ad9d9234c3a5419a2579fb52cf",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/planning-source-state.json",
+    "original_sha256": "1069e26e92e79a6f84c2856dd1206f4769718ac9a2051908032d9eefa98a31e6",
+    "published_sha256": "ce313161fa678aa5262b34ab0539299048c6f998b4b3836e3b0e9119ef4b1ed5",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-s1d.json",
+    "original_sha256": "8c9112772c98256be8231931108790a4106cbda068814db0437ab84120ef866a",
+    "published_sha256": "f0d0c485936254871f6172fefdeb3912d4bf0cc14f3de93774c6ada1e60c48b6",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-s1e.json",
+    "original_sha256": "f356314628885efbbe6c55fa04dc4e16d1a390b31b15434cf021ec5ce3bee9ae",
+    "published_sha256": "8a9bcae9e53252fc046e455fee2d75e197a1bdab717ebacf3c22d8912c6c2140",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/claude-app-install-evidence.json",
+    "original_sha256": "2a9b94791943fae6d9eda73cebab582fe3da9635cc8d2a067485b22c03b39d41",
+    "published_sha256": "7428c25876019603fb139431e705c8f46ee2598863d3497eb838a32f2a48fd1a",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/readiness-validation.json",
+    "original_sha256": "c89ea61c4aab4f49e5b4a93394b7ea6ab699b82d1bbb9fe08d9ed8405ff04cb4",
+    "published_sha256": "120faf998cb9c38016b3d33ac1292702c50e4b58644eec499d2f064aafef0a4e",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/execution-q2b.json",
+    "original_sha256": "825c8ecb18a525eb2d41176c17842f66483cb44e8bc27ceabf347df4528d34f8",
+    "published_sha256": "1402f3c573bff57eef2babb7af37ed4d56400f3e92efe4182421b18ce5600947",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/global-config-addendum.json",
+    "original_sha256": "a13cfd1714658cd9b2659a18fe11db1465efac26f150a1d91e09dc0297ca51c9",
+    "published_sha256": "ff3e3ffb2a1949fa11c8ec2841e399b3aa1145b2a329cda2b5da887d17c1278c",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/md-inventory.json",
+    "original_sha256": "a94d1086d9a860bc115d66747ef388adf8a862216202031e4d3cd16a384524a7",
+    "published_sha256": "882e43e04a7e8e04bf4b87aaadab2b0621b2d84ffc89ab3555e455d79c765e2b",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/bounded-model-review-runtime.json",
+    "original_sha256": "14215dcafbc452026b5708ef67aae524d7afcf89022ffd901edf6e00114403f4",
+    "published_sha256": "05c436fd1b2228e30c7ed895ad318e06e21b0a49b209520a3366ab113d4e8370",
+    "normalization": "user home prefix -> $HOME; logical agent root -> agent:root; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1a/readonly-probe-runtime.json",
+    "original_sha256": "82ca288498c63ab8e029c21bc966a434bd0f4ef5f08f649f75da52d8877a48e0",
+    "published_sha256": "9a714e4b9acc79924c594da9931304f34341e909994972959af02e97c46f4f43",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-4-codex-native-loader-pilot-command.json",
+    "original_sha256": "416f9e4a727bae32eda9881d43e53508a47697fafe971db5f8eaedc176caca3c",
+    "published_sha256": "db6208718ae89c5e156530fd63c1deeb0b2ebd9bb32b4131ce3ea3719df91a28",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-1-codex-native-loader-pilot-command.json",
+    "original_sha256": "09ae8de2c16cb50620cee3f8cfc4e3d8c5944d107e6ce5046587387086accd4f",
+    "published_sha256": "d27375b3de121f7a49e2ac1293f105a76d90b0a2e655fb523775f50f70cfd508",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-2-codex-native-loader-pilot-command.json",
+    "original_sha256": "962f9976c51899c885cf95920556f4bcaca3a785577b7390a5d0c8be9c3818c5",
+    "published_sha256": "9f945f7a45cf583ad1e8092827ff22583db62187b1dc299dd9abef82a1a99cf6",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-alias-red-command.json",
+    "original_sha256": "26af4eea191a34d94f29f7ff1e43efc28f339347db93272fecb1576890095049",
+    "published_sha256": "f8bc1c96cbbb10f22e42741a56c9c0a469571b83289bf7e0f241a51335c5c0c6",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-red-codex-fresh-session-smoke-command.json",
+    "original_sha256": "ea7c65989d72f9a681b7ec21301dbc0adbb1903fa9133cf6cafb4a126d4b30eb",
+    "published_sha256": "d523ef1eaf35a6b44e2dc61303eb79ea80f409058df07940ab99593d44bf32ae",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-3-codex-fresh-session-smoke-command.json",
+    "original_sha256": "7924409def1d7a3a861c21f4a684bf10c1516fe8aaf2fea9ab37104b752770e0",
+    "published_sha256": "94d0739d0eb9ead4a859e1baf3cd3ba5252f1593e63553e054fff7770dd2ce35",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-1-codex-native-loader-report-command.json",
+    "original_sha256": "639a4d3274b7013e77bfc329906a10cfba089b569f9fc53b31f17fd021f2b162",
+    "published_sha256": "125d48895286a8a6779c77594a7c2a6ab8d15822387596992e8c52d4d1eb22c5",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-2-codex-hardened-launcher-command.json",
+    "original_sha256": "f84430ccd6153d88b59994cf26b8f920decb4c60a38800bcc15a23b10e2ff084",
+    "published_sha256": "cea200553603a2a96b6f8cbb7155e5d0a18afb10bb7f816591c9638784dedbcf",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-syntax-command.json",
+    "original_sha256": "621f79e3413c67c650771289b0ebd2708217870ed45c1b11248f02c1db70529c",
+    "published_sha256": "f6f3d40a0433641af9a34677988d6bc662ed1eb2e74fabeecebfe4e17ce5447a",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-expanded-smoke-red-command.json",
+    "original_sha256": "25fc5078dcfe90c3f62f37b88c766e119ea1f35814d322339ba5013c1d685cad",
+    "published_sha256": "5349161edcd149ffdbc245bb2b098024112452d5206f986a6f21f767a2b5bcd0",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-baseline-codex-fresh-session-smoke-command.json",
+    "original_sha256": "568ba156e8cb8967986648e66bfb67bafdd1ddd63ad8eabd65458c50e05ca33e",
+    "published_sha256": "76f5cc17ca2ba681892df9ec28cdcf547271385092e8df791d5fbfd5e079d1d4",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-final-syntax-command.json",
+    "original_sha256": "4124c5acbb0704f472b69f49c1a9eec934c022d078c2306cbecd90d84f8714e8",
+    "published_sha256": "1ca210188cff84b5c2d8f158ee31833374f8b6b4f9cca53656654d6adb0f2ee8",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-1-codex-hardened-launcher-command.json",
+    "original_sha256": "f0b337845dcec6c6d003ad2ecc575b9410cdef5ad6eef4f2c80ca4cfbb726518",
+    "published_sha256": "ee09c2d1a100dbd24c0091ec7c547cf1bb785ccc2e136f81f5c3acf68324d9a5",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-1-codex-fresh-session-smoke-command.json",
+    "original_sha256": "18723113bdc9f374d54dc6f511876c838f8ed709595e66abd41379c9eb1ea459",
+    "published_sha256": "cb57bffe76160ba37023e66d77e710069167148d862a0d91b4b93d373e834b8e",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-2-codex-fresh-session-smoke-command.json",
+    "original_sha256": "68244d53ff620680a6a8549e571a449e530f1db2e3a5a5d753571b31044ed6bd",
+    "published_sha256": "641f244d32ce9362843c7092a185a025b0af1a3143ec34a99a3e9600d13b6b57",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-red-codex-native-loader-pilot-command.json",
+    "original_sha256": "e86003eb8f625002226a86bc36184196127f929c0d09343f0b2190f177c823df",
+    "published_sha256": "31deca011d612c8dd48c2e1add2495ad40e1d13b30d5901b11148c1d1b69cd13",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-green-3-codex-native-loader-pilot-command.json",
+    "original_sha256": "9cfa15d0701f36ba253cdb2be1c90f4bbdbecadd31275252f8b7ab77a2cb7fab",
+    "published_sha256": "a3885ca4172fce96136c4b6459cdc96d5aef494473397651268ea313cf01e8ac",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-baseline-codex-native-loader-report-command.json",
+    "original_sha256": "d74d0d57b7fb6cd958ca1f24cb5a91c7aa78985f36554711663bdee3cc7da82c",
+    "published_sha256": "7f22020e5b6589080b5a815b8497fce825323399fba350eb75af0521f69941e7",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-baseline-codex-native-loader-pilot-command.json",
+    "original_sha256": "17c45b78470499e83e12f38176f7d3d060243b377968b812733b25caa9cac667",
+    "published_sha256": "6695d03203c3b22d8b08935caa34c3706f716962c0a09e7ca1db1e169fd9bb62",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1d/s1d-digest-red-command.json",
+    "original_sha256": "124cc9ceb7a614967f4c4dc234fda547f5b88465bca31ad5a1d14677fecfdd3f",
+    "published_sha256": "3297698fc631bce736cfd2897f2b4760688d49eb0c8bf28e385c8a810419f903",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/q2a/q2a-final-candidate.json",
+    "original_sha256": "d128cc13517efdb3d5f1951afd7bba43acb8f225375aa5d51fc2871ee4728844",
+    "published_sha256": "39dc3f7aace43948e1f60f89cf9c8e2954edc25a7273ece6f06d6b538667be64",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/q2a/q2a-final-records.json",
+    "original_sha256": "d58204f4ad2773deea3be4a3d7a3881f67fabc040627ea50c1c063c013cb1541",
+    "published_sha256": "4c51d3355a140f49f9905223964bcff9d77977c8d49e30b4d7d7ff54c2994eaa",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/q2a/q2a-red-merge-candidate.json",
+    "original_sha256": "bd0be37925fc9485fdc828547698166294cf35ccdcebc7d47bf224360c9abfdb",
+    "published_sha256": "a711c55682d52b6e39fe027b0da9f825a7f26e84f81cc6f37ff9ccf50854ef0c",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-green-final-records.jsonl",
+    "original_sha256": "9872809275c1b3f3bbac71bd07eb20962b6ac7a88f7039f4284a251b77694e44",
+    "published_sha256": "6760c68cd1459a089a41bfc5578e26bc3e70efc897a1720d9c3adb23e14c9eb8",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-red-candidate.json",
+    "original_sha256": "32dfe3f3c1c5ffd577b2a4a6e2be63fef07bb3f03fb63d8a21778cd60b870a18",
+    "published_sha256": "44b18630813b1ae9ecd894246b36b5da42f880433adc27d88919a30373d96897",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-red-header-candidate.json",
+    "original_sha256": "df149f46b22f9d3ad800307cf311063c7985cee060ea648391ac43efff93dda4",
+    "published_sha256": "93764e676fc9fa4d3d39b3c4315772c53effc4af11e5123e5d996afea6f673e0",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-green-final-header-candidate.json",
+    "original_sha256": "0c62c74bddfe2f83ff7fe84fa7b28cb70cbeae3bd85bc8e96606b255773ab1bc",
+    "published_sha256": "bbbdd31d71f9126af0be9edd6665eae4f9338fd47a309eb21a17f9587c6cf5ab",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-green-candidate.json",
+    "original_sha256": "1efed43d55ed40666b7611ff52155f1895df6fb77b1bb61e3fc6611bcba5b872",
+    "published_sha256": "a619f478c1b2150864257cf45818f07682b1d2f5016ce3c8e1f59e6df089a27c",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-red-records.jsonl",
+    "original_sha256": "1210429dace490d0f618953de9e00b2bb6301fe576c612feb3f25232534090d6",
+    "published_sha256": "39191efea5fa47571944c5ef406f34abb072181f385fbd2c7cb0c74f9d14608d",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-green-final-header-records.jsonl",
+    "original_sha256": "7319cedea0640c68e9729266de690137e6c05a47044514b1ccd0ae56cbc380a0",
+    "published_sha256": "9d8bb32ac319ea6154567f50b30f053383e93712da3918817884fdba46cfbbac",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-green-records.jsonl",
+    "original_sha256": "21d18cf84c7f96d29671e4686b31d5f7af607fc146c594a904b3d5a96542d0e0",
+    "published_sha256": "33de5bf9c1e458c5896e3d0e9736c39ff735fe42c2038ed909b982079c1cb2ce",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-red-quoted-records.jsonl",
+    "original_sha256": "21c4ad6e7fd7514a091d37b0e53573272f6ef83ee85e8f0f215792ad358e6445",
+    "published_sha256": "2b259fb775df4ebdaadf91f82e22bb7c666ac445dba1a5e49ef408fd5cd97f70",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-red-quoted-candidate.json",
+    "original_sha256": "380892254e3422d40032397f493665f91a1fb6a9ab0dab49313527ed4d20f9e5",
+    "published_sha256": "2a95ca8fc30930cf382085bb0fc8973c02c318b25afd36e1433738f3c4209d21",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-red-header-records.jsonl",
+    "original_sha256": "ce9418af4be7f58162bd3a0c1752e7a15e04345c2a738d1ed82217cb8757f8aa",
+    "published_sha256": "bd2b168fc920d501106f398244a4e266d4cd18bdf7fa3f34d557d053a689d598",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1c/s1c-green-final-candidate.json",
+    "original_sha256": "33af5fdacd743de721bc781cf42393fcfda1fc0261f859b254150ecf428fd293",
+    "published_sha256": "b7d5b7228cc9a73299db6448f2e4b887c9cc50c270e3c7f97d4eedd4d9799cbb",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1e/s1e-doctor-red-command.json",
+    "original_sha256": "901fcbe914556ba3be8fd5eed28d1e925f85cdf5612d3df3c3658d450e29dcf4",
+    "published_sha256": "8752f55175c1f9117ffc9e9e7a20cdf35eeef4da50d047307910cccf521a23e4",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1e/s1e-syntax-command.json",
+    "original_sha256": "1460b3dc0bd23f03251a1dcc83827073d6785f07d72291d3b283fc2cd2beb8c3",
+    "published_sha256": "f78dd56e88ec5026d0ed3ac0589bd24cb926122cb26cc6424d0903742ce57ac5",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1e/s1e-green-1-command.json",
+    "original_sha256": "b59c96a107c29011fb96db8e77357c8bf6d3030e53c305beb3894b53b0518cab",
+    "published_sha256": "fda025df95e28afa33d46aa31cd55a82272f071640c46eb85ff69926a7547c1d",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1e/s1e-green-2-command.json",
+    "original_sha256": "0f325bfad8b61c77fb06701bbf6c8691a39e62d695fc030ed34912d04e34d39c",
+    "published_sha256": "098ffa07d6daf3c461462eb72bee1581c2c63d4271221292cf4910b1644166ff",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/evidence/s1e/s1e-red-command.json",
+    "original_sha256": "c2d0c8a8f36a9b3e34dc846d0f1dc19d125211caea7466b6d702d706f4eb8744",
+    "published_sha256": "c7b515a28cd56de6fda23b4238b41ea9d3359dfdacbc045954d5d3e13cab9bc6",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/plan/04-docs-consumers.md",
+    "original_sha256": "598cf88951edc3285524206a9c7ca24ee42d97727967cf09383b04558783010b",
+    "published_sha256": "2d4a2d614040101f427ec2809cf569a3dbccab840f678d6a3abb494133a03aa3",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/plan/03-model-global.md",
+    "original_sha256": "154f52a42cc41fceb4cb66b7cab2c49150651b5341671ea2dd085f6eb368490e",
+    "published_sha256": "3a7a9617812fda7277755426574e93e1552949fa3e5dd0bf96917df89e28a93b",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/ddl-probes/results.json",
+    "original_sha256": "2e02758b92307beac2dac3d317625f23c74a2c57ee62789d775dda6faa668c80",
+    "published_sha256": "57f240ddbad1faf330aa2ba65578fb73f78b8f3295062757bda625f2efa3c3a0",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/ddl-probes/retries.json",
+    "original_sha256": "cfb478176fc074932fd4c20b43d25b873d7c7bd2750a0000bf19c6d20db12bfa",
+    "published_sha256": "6beb30f94e74af48933b0a803a45b4b5b4765ed6cdcaa8d600efff0df86f6aae",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/guard-probes/results.json",
+    "original_sha256": "9c839257e11dc0dcfa92bbd6568e40cf41fe5cd0785a76e80eba37ad50684e0f",
+    "published_sha256": "e3bee811289a8315ea264c370f3e57ce203e84f4ff3d829cc3c38371c2ed606e",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/review/04-coverage-design.md",
+    "original_sha256": "97463ac95f4e8dce60f02b32053161284a796384167a8c74fab3f7627ea0992f",
+    "published_sha256": "0407237bf62878fea099c776468ddbe4e58107231528474fe99e7c4de5865c5c",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/review/03-docs-consumers.md",
+    "original_sha256": "669b41854d517ca686b41959366653840d368a966d4aee9a0b7e2f168d3aa9b9",
+    "published_sha256": "d432157ddf9f1d7f0f61b170ae319836af3c3c0ab8baa81774d0d5e3aa911469",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/review/01-safety-runtime.md",
+    "original_sha256": "ec4332bd131da51491c5d4f8c2a505b88c144ff77caa9fbf3fd6b8618a249fed",
+    "published_sha256": "433870803858b3d5af924850080b76412264c446641c414cd7a782f504187bcb",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  },
+  {
+    "path": "docs/specs/harness-modernization/review/06-global-scope-addendum.md",
+    "original_sha256": "eee88f5d90f6a618ffa0d38396945afab7c7efc0226ecf47a7d7a0c04ca3cdbb",
+    "published_sha256": "ec09b991ba6613b1debc4ff23975b9eff22e5a09b1590301effaf2b7d4bbcc0a",
+    "normalization": "user home prefix -> $HOME; original retained privately"
+  }
+]

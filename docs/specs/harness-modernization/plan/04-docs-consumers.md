@@ -59,7 +59,7 @@ AC-D3: 소스 폴더와 설치용 묶음의 읽기 결과가 동일 계약을 �
 
 ## 4D — 지도 parser·현재 안내·그림
 
-직접 reader: `/Users/grinvi04/Documents/Codex/2026-10-07/claude-chatgpt-codex-codex-native-claude/outputs/project-map-service/`.
+직접 reader: `$HOME/Documents/Codex/2026-10-07/claude-chatgpt-codex-codex-native-claude/outputs/project-map-service/`.
 `projects.py`와 projects.json 및 실제 consumer-progress/drivetree-progress/product-roadmap reader가 대상이다.
 우선 제목·AC·현재 상태의 기존 읽기 surface를 보존한다. 불가능하면 reader의 최소 이관을 구현 승인 범위에 명시한다.
 
@@ -77,10 +77,10 @@ AC-D4: 기존 reader가 정상 동작하거나 함께 이전되어 실제 결과
 
 | repo root | 변경 제안 | 확인할 실제 계약 |
 |---|---|---|
-| `/Users/grinvi04/project/erp` | AGENTS·README·decisions·release-readiness·biz-vat 및 해당 stack rule | @TenantId와 native/manual tenant 경계, 현재 provider 구현, 실제 명령/cwd |
-| `/Users/grinvi04/project/siku` | AGENTS·CLAUDE·README·해당 TS/Vite stack rule | Vite/tsc 실제 scripts, 필수 하위 지침, 없는 screenshot 링크 |
-| `/Users/grinvi04/project/webhook-service` | AGENTS·README·decisions·quality-remediation·qa/2026-10-07/README | SDK 7.1.1의 현재 구현, 모델 출처, 당시 QA 후보/실패·현재 보류 |
-| `/Users/grinvi04/project/drivetree` | AGENTS·CLAUDE·backend/frontend 지침·README·DESIGN·PRD·CODING_STANDARDS·CI_CD·NEXT_STEPS·PUBLIC_API_PLAN·decisions·quality-remediation | QA/format 차이, 안전한 테스트 DB, 실제 stack·wrapper·현재 취소/보류 |
+| `$HOME/project/erp` | AGENTS·README·decisions·release-readiness·biz-vat 및 해당 stack rule | @TenantId와 native/manual tenant 경계, 현재 provider 구현, 실제 명령/cwd |
+| `$HOME/project/siku` | AGENTS·CLAUDE·README·해당 TS/Vite stack rule | Vite/tsc 실제 scripts, 필수 하위 지침, 없는 screenshot 링크 |
+| `$HOME/project/webhook-service` | AGENTS·README·decisions·quality-remediation·qa/2026-10-07/README | SDK 7.1.1의 현재 구현, 모델 출처, 당시 QA 후보/실패·현재 보류 |
+| `$HOME/project/drivetree` | AGENTS·CLAUDE·backend/frontend 지침·README·DESIGN·PRD·CODING_STANDARDS·CI_CD·NEXT_STEPS·PUBLIC_API_PLAN·decisions·quality-remediation | QA/format 차이, 안전한 테스트 DB, 실제 stack·wrapper·현재 취소/보류 |
 
 - [ ] 각 repo의 원본 후보·기존 사용자 변경·root/하위 지침을 확인한 뒤 서로 독립된 변경으로 처리한다.
 - [ ] 앞 단계의 공통 기준을 복사할 때 repo의 기술 선택·실제 명령과 대조한다.

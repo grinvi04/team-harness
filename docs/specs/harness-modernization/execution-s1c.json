@@ -2,7 +2,7 @@
   "task": "Harness modernization 1C / AC-S3",
   "scope": "Static checkers and literal regressions only; no database, network, deployment, global changes.",
   "status": "Bounded implementation and local checks verified; parent owns independent integrated review, shared guides, version and delivery.",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "head": "50ffec700b39176609e0951ca758a7b817f930d3",
   "candidate": "Uncommitted owned files; HEAD alone does not identify this candidate.",
   "candidateManifest": ".superpowers/sdd/harness-modernization/s1c-green-final-header-candidate.json",

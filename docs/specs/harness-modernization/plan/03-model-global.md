@@ -1,19 +1,20 @@
 # 단계 3 — 모델·전역 설정·공식 기능으로 이전
 
 근거: [최신 모델](../review/05-model-global.md), [전역 범위](../review/06-global-scope-addendum.md), [제거/보존](../review/07-deprecation-removal.md).
-진행 상태: 수정 제안. Codex 세 설정의 임시 fixture 비교는 수행했다. 전역 설정·역할·사용자 설치 변경은 하지 않았다. [추가 실행](../review/10-agent-owned-execution.md)과 이후 적용 검증을 구분한다.
+진행 상태: 전역 15개 파일 실제 적용 완료; 새 Codex 역할·설치 검증 중. Claude 실제 호출은 사용자 보류다.
+설정·실행·품질 비교를 [전역 적용 기록](../execution-m3f.json) 및 [이전 표본](../review/10-agent-owned-execution.md)과 구분한다.
 안전 검사 제거는 단계 1·2의 필요한 결과와 대체 경로 검증을 선행 조건으로 둔다.
 
 ## 변경 소유 경로
 
-전역 지침: `/Users/grinvi04/.config/ai-instructions/common.md`, `delegation.md`;
-`/Users/grinvi04/.codex/AGENTS.md`, `model-policy.md`; `/Users/grinvi04/.claude/CLAUDE.md`, `model-policy.md`.
-설정: `/Users/grinvi04/.codex/config.toml`, `rules/default.rules`; `/Users/grinvi04/.claude/settings.json`.
-역할: `/Users/grinvi04/.codex/agents/`의 harness-explorer, harness-verifier, harness-security-reviewer,
+전역 지침: `$HOME/.config/ai-instructions/common.md`; `delegation.md`는 확인·보존했다.
+`$HOME/.codex/AGENTS.md`, `model-policy.md`; `$HOME/.claude/CLAUDE.md`, `model-policy.md`.
+설정: `$HOME/.codex/config.toml`, `rules/default.rules`; `$HOME/.claude/settings.json`.
+역할: `$HOME/.codex/agents/`의 harness-explorer, harness-verifier, harness-security-reviewer,
 personal-bounded-worker, personal-critical-verifier, project-mapper TOML 여섯 개.
 Harness: `docs/model-tiering.md`, `CLAUDE.md`, `plugins/harness-guard/agents/*.md`의 실제 역할 정의,
 `plugins/harness-guard/scripts/enforce-subagent-model.py`, 두 hook 등록과 관련 installer/checker/template.
-개인 skill은 필요한 경우 `/Users/grinvi04/.agents/skills/project-map/SKILL.md`의 실제 호출 계약만 정렬한다.
+개인 skill은 필요한 경우 `$HOME/.agents/skills/project-map/SKILL.md`의 실제 호출 계약만 정렬한다.
 backup·revisions·대화 history·vendor cache·인증 값·사용자 UI 취향은 변경 소유 경로가 아니다.
 
 ## 3A — 실제 surface와 지원값
@@ -21,6 +22,7 @@ backup·revisions·대화 history·vendor cache·인증 값·사용자 UI 취향
 - [ ] 최신 공식 지원·모델별 effort·설정 우선순위를 구현 시점의 실제 앱/CLI와 대조한다.
 - [ ] Codex 터미널 0.161.0과 앱 내장 0.162.0-alpha.2의 관찰을 섞지 않는다.
 - [ ] Claude 터미널 2.1.267의 최신 모델 최소 조건 미달을 확인하고 지원 실행기를 준비한다.
+- 준비 결과: 공식 갱신으로 2.1.295; 인증 이후 실제 호출은 USER-DEFERRED다.
 - [ ] Claude 앱의 package target 2.1.293·설치 binary 2.1.205는 확인했다. 실제 새 세션의 선택 binary/model/effort를 별도로 확인하고 앱 업데이트를 실행 성공으로 간주하지 않는다.
 - [ ] 가용 provider/alias와 최종 모델 ID·effort를 비밀 없이 확인한다. 지원되지 않는 값을 저장하지 않는다.
 - [ ] 공식 경로가 제공하는 session 선택·role 기본값·상속·model 허용 범위를 구분한다.
@@ -130,3 +132,14 @@ AC-M6: 지원 조합과 전환/복구 결과가 확인되고 미지원 조합이
 
 설정 검사·실제 호출·품질/사용량 비교의 결과를 별도로 남긴다. 관련 MD는 단계 4까지 기다리지 않고 199줄 이하로 작성한다.
 새 세션의 role·hook·skill·명시 선택·권한 관찰이 필요한 범위에서 확인돼야 실제 적용 완료로 판정한다.
+
+## 사용자 보류와 현재 결과
+
+2026-10-09: Claude CLI 2.1.295 공식 갱신 완료. 첫 최신 모델 요청은 OAuth 만료로 실패했고 사용자가 인증 갱신을 나중으로 미뤘다.
+3A/B/C의 Claude 실제 모델·effort·상속·권한·품질/사용량 결과는 USER-DEFERRED이며, 정적 native 역할 정의/강제 hook 제거 시험과 구분한다.
+3C source에서 타입별 강제 등록을 제거하고 호환 파일을 무효과로 남겼다. 입력 48건에서 출력·로그·선택 덮어쓰기 0을 확인했다.
+Codex 실제 역할·전역 적용과 다른 승인 작업은 계속한다. 인증 실패를 다른 모델·공급자 재시도나 결제로 해결하지 않는다.
+
+3F 적용 결과: 24개 실패/복구/경쟁 fixture와 별도 인스턴스 검토 후 15개 파일을 개별 원자 교체했다.
+적용 뒤 전 대상 digest·mode와 공통 세 본문 일치를 확인했다. 다중 파일 전체의 원자성이나 강제 종료 복구는 보장하지 않는다.
+기존 plugin 설치본·열린 세션에는 새 source 역할/hook이 소급 적용되지 않는다. 공식 갱신과 새 실행의 결과를 따로 확인한다.

@@ -1,7 +1,7 @@
 {
   "date": "2026-10-09",
   "slice": "2B",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "base_head": "50ffec700b39176609e0951ca758a7b817f930d3",
   "source_hashes": {
     "plugins/harness-guard/scripts/solo-merge.sh": "e5889b79b0460a040c8d73abe1f689b814c3437f396f9aecaaec3176a1c15f5e",

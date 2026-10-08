@@ -29,12 +29,12 @@ MCP·플러그인 설치 등록·셸 진입부·관리 설정까지 전부 확�
 
 Codex cache와 manifest는 0.81.0이다. Claude installed registry와 실제 manifest는 모두 0.68.0이며 skill 16개가 있다.
 검토한 저장소의 QA 계약이 최신이라는 것과 Claude에 최신 계약이 설치됐다는 것은 다르다.
-설치 manifest (`/Users/grinvi04/.claude/plugins/cache/team-harness/harness-guard/0.68.0/.claude-plugin/plugin.json`, 당시 로컬 원본).
+설치 manifest (`$HOME/.claude/plugins/cache/team-harness/harness-guard/0.68.0/.claude-plugin/plugin.json`, 당시 로컬 원본).
 향후 수정 시 client 지원과 Harness 설치·실제 로딩을 별도 확인해야 한다. 이번에 업데이트·설치하지 않았다.
 
 ## G02 — 자동 메모리 생성과 기록 보관 지침
 
-Codex config (`/Users/grinvi04/.codex/config.toml`, 당시 로컬 원본)의 features.memories, memories.generate_memories, use_memories는 true다.
+Codex config (`$HOME/.codex/config.toml`, 당시 로컬 원본)의 features.memories, memories.generate_memories, use_memories는 true다.
 공통 지침은 프로젝트 상태·결정·백로그를 프로젝트에 두라고 요구한다. 자동 생성기가 이 구분을 지킨다는 실행 증거는 없다.
 합의된 설계: 새 대화를 자동 메모리 생성 입력으로 넣지 않고 기존 기억 조회는 유지한다. 개인 습관의 새 기록은 명시적 요청 범위를 따른다.
 [공식 옵션](https://learn.chatgpt.com/docs/config-file/config-reference)은 generate_memories=false를 새 대화의 생성 입력 중단으로 설명한다.
@@ -42,14 +42,14 @@ Codex config (`/Users/grinvi04/.codex/config.toml`, 당시 로컬 원본)의 fea
 
 ## G03 — Claude에도 보호 승인 조건의 상시 허용이 남아 있다
 
-사용자 설정 (`/Users/grinvi04/.claude/settings.json`, 당시 로컬 원본)의 permissions에는 gh pr merge와 repos/grinvi04/*의 리뷰 승인 조건 DELETE/PATCH 패턴이 있다.
+사용자 설정 (`$HOME/.claude/settings.json`, 당시 로컬 원본)의 permissions에는 gh pr merge와 repos/grinvi04/*의 리뷰 승인 조건 DELETE/PATCH 패턴이 있다.
 defaultMode는 auto이고 skipAutoPermissionPrompt는 true다. 파일 값만으로 모든 명령이 실제 자동 실행된다고 주장하지 않는다.
 과거 특정 PR의 일회성 해제·복원 승인을 모든 저장소·브랜치의 상시 실행 권한으로 확대해서는 안 된다.
 일상 작업의 자동 진행은 유지하되 위험한 원격 변경의 정확한 대상·승인·복구 경계를 다시 연결하는 것이 적절하다. 이번에 규칙을 철회하지 않았다.
 
 ## G04 — 셸의 Codex 시작 경로에는 추가 동작이 있다
 
-alias codex는 주 저장소의 wrapper (`/Users/grinvi04/team-harness/scripts/codex-hardened.sh`, 당시 로컬 원본)를 호출한다.
+alias codex는 주 저장소의 wrapper (`$HOME/team-harness/scripts/codex-hardened.sh`, 당시 로컬 원본)를 호출한다.
 이 wrapper는 검토 worktree의 같은 파일과 바이트가 같다. 주 저장소 HEAD는 f7aa616774b2de315674981b2ab22934414ad1c9이며 깨끗하다.
 바이너리 신뢰 검사 후 plugin cache 동기화·검사·security-guidance patch를 수행하고 실제 Codex로 인수를 전달한다.
 명시 모델 인수를 고정값으로 덮어쓰거나 sandbox/hook trust bypass flag를 쓰는 코드는 확인되지 않았다.

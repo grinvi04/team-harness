@@ -12,9 +12,9 @@ WEBHOOK_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.json"
 WEBHOOK_SIM_V61="$ROOT/docs/pilots/webhook-service-v0.61.0-simulation.json"
 WEBHOOK_REMEDIATED_V61="$ROOT/docs/pilots/webhook-service-v0.61.0-remediated.json"
 WEBHOOK_REPORT_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.md"
-PRODUCT_DIRECTION="$ROOT/docs/product-direction.md"
+PRODUCT_DIRECTION="$ROOT/docs/product-direction-governance-history.md"
 PRODUCT_BOUNDARIES="$ROOT/docs/product-boundaries.md"
-DECISIONS="$ROOT/docs/decisions.md"
+DECISIONS="$ROOT/docs/decisions-native-and-delivery.md"
 PASS=0
 FAIL=0
 pass() { echo "PASS: $1"; PASS=$((PASS + 1)); }
@@ -591,14 +591,14 @@ else
   fail 'webhook-service 파일럿 보고서·simulation·실제 backfill·제품 결정·완료 로드맵 계약'
 fi
 
-if grep -Eq '^7\. \[x\].*외부 파일럿' "$ROOT/docs/product-direction.md"; then
+if grep -Eq '^7\. \[x\].*외부 파일럿' "$PRODUCT_DIRECTION"; then
   pass '제품 로드맵 외부 파일럿 완료 표시'
 else
   fail '제품 로드맵 외부 파일럿 완료 표시'
 fi
 
-if grep -Eq 'pilots/drivertree-v0\.60\.0\.md' "$ROOT/docs/product-direction.md" &&
-   grep -Eq 'pilots/drivertree-v0\.61\.0\.md' "$ROOT/docs/product-direction.md"; then
+if grep -Eq 'pilots/drivertree-v0\.60\.0\.md' "$PRODUCT_DIRECTION" &&
+   grep -Eq 'pilots/drivertree-v0\.61\.0\.md' "$PRODUCT_DIRECTION"; then
   pass '제품 로드맵 v0.60.0 이력과 v0.61.0 후속 증거 링크'
 else
   fail '제품 로드맵 v0.60.0 이력과 v0.61.0 후속 증거 링크'

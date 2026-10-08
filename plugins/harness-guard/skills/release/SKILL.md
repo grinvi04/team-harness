@@ -36,7 +36,7 @@ git checkout develop && git pull origin develop
 git checkout -b release/v$VERSION
 # AGENTS.md의 버전 범프 명령 실행 (예: npm version / gradle properties 갱신)
 # 태그 생성 전 HEAD를 release candidate로 포함해 CHANGELOG를 생성한다(태그 전 생성 가능).
-node scripts/generate-changelog.mjs --release v$VERSION > CHANGELOG.md
+node scripts/generate-changelog.mjs --release v$VERSION --write
 git add .
 git commit -m "chore(release): v$VERSION 릴리즈 준비"
 ```

@@ -1,6 +1,6 @@
 {
   "command": "bash tests/profile-lifecycle-test.sh",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "phase": "GREEN attempt 2; metadata command excluded; required paths plus apostrophe",
   "timestamp": "2026-10-08T21:35:54.752915+00:00",
   "sha256": {

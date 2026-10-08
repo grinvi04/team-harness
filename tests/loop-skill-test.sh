@@ -3,13 +3,25 @@
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SKILL="$ROOT/plugins/harness-guard/skills/loop/SKILL.md"
+SKILL_SOURCE="$ROOT/plugins/harness-guard/skills/loop/SKILL.md"
 TIMEOUT="$ROOT/plugins/harness-guard/scripts/run-with-timeout.mjs"
 FINGERPRINT="$ROOT/plugins/harness-guard/scripts/worktree-fingerprint.mjs"
 PASS=0
 FAIL=0
 TMP="$(mktemp -d)"
 SURVIVOR_PID=""
+SKILL="$TMP/loop-contract.md"
+python3 - "$SKILL_SOURCE" "$SKILL" <<'PYLOAD'
+from pathlib import Path
+import sys
+source = Path(sys.argv[1])
+text = source.read_text()
+# Root keeps discovery/read stubs; behavioral extraction uses the required body.
+prefix = text.split("### Phase 2b", 1)[0]
+refs = ["iteration.md", "completion.md", "analysis-and-patterns.md"]
+assert all(f"({ref})" in text for ref in refs), "required local reference missing"
+Path(sys.argv[2]).write_text(prefix + "\n" + "\n".join((source.parent / ref).read_text() for ref in refs))
+PYLOAD
 cleanup() {
   if [ -n "$SURVIVOR_PID" ] && kill -0 "$SURVIVOR_PID" 2>/dev/null; then
     kill -KILL "$SURVIVOR_PID" 2>/dev/null || true

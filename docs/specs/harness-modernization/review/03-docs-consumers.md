@@ -58,21 +58,21 @@ CHANGELOG는 전체 태그로 생성하고 CI가 루트 파일과 바이트 비�
 
 ## D10 — 프로젝트 지도 파서의 제목·본문 의존
 
-지도 서비스 (`/Users/grinvi04/Documents/Codex/2026-10-07/claude-chatgpt-codex-codex-native-claude/outputs/project-map-service/projects.py`, 당시 로컬 원본)는 설정된 문서 경로·한국어 제목·굵은 AC를 읽는다.
+지도 서비스 (`$HOME/Documents/Codex/2026-10-07/claude-chatgpt-codex-codex-native-claude/outputs/project-map-service/projects.py`, 당시 로컬 원본)는 설정된 문서 경로·한국어 제목·굵은 AC를 읽는다.
 순수 파서 시험에서 4개 roadmap의 전체 단계 제목을 바꾸거나 quality/commercial 본문을 링크만 남긴 index로 바꾸면 ValueError였다.
 고정 제목·AC·날짜·후보 SHA를 보존하거나 파서를 함께 이전해야 한다. 원본 지도 서비스 파일은 변경하지 않았다.
 Harness의 과거 지도에는 현재 입력이 아니라는 경계 문구가 있다. 오래된 기록을 현행 상태 오보로 분류하지 않았다.
 
 ## C01 — ERP 테넌트 안내가 현재 구현과 다르다
 
-ERP AGENTS (`/Users/grinvi04/project/erp/AGENTS.md:70`, 당시 로컬 원본)는 @Filter 자동 적용·수동 tenant 조건 금지를 안내한다.
+ERP AGENTS (`$HOME/project/erp/AGENTS.md:70`, 당시 로컬 원본)는 @Filter 자동 적용·수동 tenant 조건 금지를 안내한다.
 현재 BaseEntity는 @TenantId이고 AuditLogRepository에는 수동 tenant 조건이 필요하다.
 DB 기반 DataScopeProvider/ApprovalAuthorityProvider 구현이 있는데 decisions의 JWT scope/authority·미완료 설명도 오래됐다.
 문서·표준을 구현과 맞춰야 한다. 이번에 ERP 전체 테넌트 보안 시험을 다시 했다는 뜻은 아니다.
 
 ## C02 — DriveTree QA 명령과 Git 전달 안내
 
-AGENTS (`/Users/grinvi04/project/drivetree/AGENTS.md:54`, 당시 로컬 원본)의 변경 없는 전체 QA와 CLAUDE/decisions/Makefile의 축소·format --write 흐름이 충돌한다.
+AGENTS (`$HOME/project/drivetree/AGENTS.md:54`, 당시 로컬 원본)의 변경 없는 전체 QA와 CLAUDE/decisions/Makefile의 축소·format --write 흐름이 충돌한다.
 backend의 format 명령과 Makefile은 파일을 쓰고 필요한 검사가 일부 빠져 있다.
 CI_CD의 main/develop 직접 merge/push 안내는 현재 wrapper·보호 계약과 충돌한다. 현행 명령 하나로 연결해야 한다.
 

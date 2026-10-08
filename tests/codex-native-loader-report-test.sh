@@ -371,7 +371,7 @@ if rg -n 'auth\.json' "$JSON" "$REPORT" "$GUARD" "$ROUTING" |
   echo 'FAIL: pilot report contains an unredacted auth path'
   exit 1
 fi
-grep -Fq 'pilots/codex-native-loader-v0.61.0.md' "$ROOT/docs/product-direction.md"
+grep -Fq 'pilots/codex-native-loader-v0.61.0.md' "$ROOT/docs/product-direction-governance-history.md"
 
 [ "$REPORT_FAILURES" -eq 0 ]
 echo 'PASS: committed Codex native loader pilot report preserves evidence, limits, and non-promotion verdict'

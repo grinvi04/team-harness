@@ -1,7 +1,7 @@
 {
   "scope": "AC-S2",
   "observed_utc": "2026-10-08T21:43:58.633099+00:00",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "baseline_revision": "50ffec700b39176609e0951ca758a7b817f930d3",
   "red": [
     {

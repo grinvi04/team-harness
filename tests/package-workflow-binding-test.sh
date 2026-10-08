@@ -19,6 +19,8 @@ fi
 
 WORKFLOW="$TMP/output/harness-workflows"
 if grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$WORKFLOW/skills/loop/SKILL.md" \
+  && grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$WORKFLOW/skills/loop/iteration.md" \
+  && ! grep -Fq '${CLAUDE_PLUGIN_ROOT' "$WORKFLOW/skills/loop/iteration.md" \
   && grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$WORKFLOW/skills/milestone/SKILL.md" \
   && ! grep -Fq '${CLAUDE_PLUGIN_ROOT' "$WORKFLOW/skills/loop/SKILL.md" \
   && ! grep -Fq '${CLAUDE_PLUGIN_ROOT' "$WORKFLOW/skills/milestone/SKILL.md"; then
@@ -38,6 +40,8 @@ actual = {
     for item in data.get("runtimeBindings", [])
 }
 expected = {
+    ("skills/loop/iteration.md", "HARNESS_GOVERNANCE_CORE_ROOT", "governance-core", "scripts/run-with-timeout.mjs"),
+    ("skills/loop/iteration.md", "HARNESS_GOVERNANCE_CORE_ROOT", "governance-core", "scripts/worktree-fingerprint.mjs"),
     ("skills/loop/SKILL.md", "HARNESS_GOVERNANCE_CORE_ROOT", "governance-core", "scripts/run-with-timeout.mjs"),
     ("skills/loop/SKILL.md", "HARNESS_GOVERNANCE_CORE_ROOT", "governance-core", "scripts/worktree-fingerprint.mjs"),
     ("skills/milestone/SKILL.md", "HARNESS_GOVERNANCE_CORE_ROOT", "governance-core", "scripts/pr-create.sh"),
@@ -45,7 +49,7 @@ expected = {
 raise SystemExit(0 if actual == expected and data.get("installable") is False else 1)
 PY
 then
-  pass "workflow metadata가 core script binding 3개 명시"
+  pass "workflow metadata가 core script binding 5개 명시"
 else
   fail "workflow runtime binding metadata 불완전"
 fi

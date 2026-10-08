@@ -1,7 +1,7 @@
 {
   "scope": "Task 1D / S04-S06 / AC-S4; controlled temporary source, binary and output fixtures only",
   "product_gate": "connection: native loader/hook runtime delegated; approved candidate, executable and evidence bindings owned by Harness",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "head": "50ffec700b39176609e0951ca758a7b817f930d3",
   "candidate": "uncommitted worktree; per-file SHA-256 plus archived source snapshots bind local evidence",
   "qa": [

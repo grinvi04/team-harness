@@ -11,13 +11,13 @@
   },
   "statusline_command_paths": [
     {
-      "path": "/Users/grinvi04/.claude/statusline-command.sh",
+      "path": "$HOME/.claude/statusline-command.sh",
       "exists": true,
       "file": true
     }
   ],
   "codex_alias_wrapper": {
-    "path": "/Users/grinvi04/team-harness/scripts/codex-hardened.sh",
+    "path": "$HOME/team-harness/scripts/codex-hardened.sh",
     "lines": 55,
     "sha256": "3d04a532364e4f6049267291a9aeaaac4f55f46ed37929323425914147ac785e",
     "dangerously_bypass_sandbox_flag": false,
@@ -120,7 +120,7 @@
   "claude_harness_install": [
     {
       "recorded_version": "0.68.0",
-      "install_path": "/Users/grinvi04/.claude/plugins/cache/team-harness/harness-guard/0.68.0",
+      "install_path": "$HOME/.claude/plugins/cache/team-harness/harness-guard/0.68.0",
       "manifest_exists": true,
       "manifest_version": "0.68.0",
       "skill_count": 16

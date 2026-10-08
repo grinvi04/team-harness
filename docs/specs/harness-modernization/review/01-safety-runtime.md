@@ -89,7 +89,7 @@ Ruby 구문 검사는 통과했다. 탭 입력은 exit 0, 공백 대조군은 ex
 
 ## S15 — 전역 실행 허용 prefix가 넓다
 
-정책 판정 재현. default.rules (`/Users/grinvi04/.codex/rules/default.rules`, 당시 로컬 원본)는 377개 allow 규칙을 저장하며 git push·gh api의 넓은 prefix를 포함한다.
+정책 판정 재현. default.rules (`$HOME/.codex/rules/default.rules`, 당시 로컬 원본)는 377개 allow 규칙을 저장하며 git push·gh api의 넓은 prefix를 포함한다.
 초기 CLI의 execpolicy check는 강제 main push와 gh api DELETE 보호 설정 명령에도 allow를 반환했다.
 업데이트된 0.161.0에서도 같은 두 입력과 정상 git status를 다시 분류해 모두 allow를 확인했다. [최신 정책 판정](../planning-execpolicy-probes.json). 분류 대상 명령 자체는 실행하지 않았다.
 [판정 결과](../global-rule-probes.json). 명령은 실행하지 않았다. 이 결과는 task 승인·샌드박스·서버 보호의 우회를 뜻하지 않는다.

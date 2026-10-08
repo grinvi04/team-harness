@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /*
- * Patch Codex's local cache and marketplace snapshot of security-guidance so
- * cache refreshes do not restore Claude-only hook commands. This modifies
- * ~/.codex only; Claude Code config and cache are untouched.
+ * Deprecated, optional compatibility for the historic Claude-shaped
+ * security-guidance output. Never called by the hardened launcher. Prefer
+ * officially installed Codex-compatible guidance; output parity is not proven.
+ * --apply requires authorization to modify the external Codex plugin cache,
+ * marketplace snapshot and enablement. --dry-run only previews those changes.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs'
 import { homedir, tmpdir } from 'node:os'
@@ -12,10 +14,19 @@ import { fileURLToPath } from 'node:url'
 const SECURITY_PLUGIN = 'security-guidance@claude-plugins-official'
 const scriptDir = path.dirname(fileURLToPath(import.meta.url))
 const adapterPath = path.join(scriptDir, 'codex-security-guidance-adapter.mjs')
-const dryRun = process.argv.includes('--dry-run')
+const args = process.argv.slice(2)
+if (args.length !== 1 || !['--apply', '--dry-run'].includes(args[0])) {
+  console.error('usage: patch-codex-security-guidance.mjs --dry-run | --apply')
+  console.error('Deprecated optional compatibility: explicit --apply and authorization for external cache/config writes are required.')
+  process.exit(2)
+}
+const dryRun = args[0] === '--dry-run'
+if (!dryRun) {
+  console.error('Applying deprecated optional security-guidance compatibility to external Codex cache, marketplace and enablement.')
+}
 
 function shellQuote(value) {
-  return `"${String(value).replaceAll('\\', '\\\\').replaceAll('"', '\\"')}"`
+  return `'${String(value).replaceAll("'", "'\\''")}'`
 }
 
 function timestamp() {

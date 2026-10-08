@@ -3,10 +3,10 @@
     "case": "sql-column-omitted",
     "cmd": [
       "node",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+      "$HOME/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
       "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-omitted"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-omitted/db/migration/V1__probe.sql",
     "inputSha256": "2c1a7b47453d0766b732419822a58fae3b9f310ed908a757b22c22c86a8fdb6c",
     "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
@@ -20,10 +20,10 @@
     "case": "sql-column-explicit",
     "cmd": [
       "node",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+      "$HOME/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
       "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-explicit"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-explicit/db/migration/V1__probe.sql",
     "inputSha256": "8fe4971a20c7d8314f4426c54fecbf850fa6faaab21ec4821776607442105aa8",
     "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
@@ -37,10 +37,10 @@
     "case": "sql-executable-comment",
     "cmd": [
       "node",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+      "$HOME/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
       "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-executable-comment"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-executable-comment/db/migration/V1__probe.sql",
     "inputSha256": "abaa000aa525d9473ca12def931aa239e4e6cc95bd0cd6a6fc0933fcf2b0093b",
     "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",

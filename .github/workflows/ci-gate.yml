@@ -24,6 +24,12 @@ jobs:
           node plugins/harness-guard/scripts/check-document-sync.mjs --repo . --event "$GITHUB_EVENT_PATH"
           node --test tests/document-sync-test.mjs
 
+      - name: 문서 구조·생성·판정·모델 설정 계약
+        run: |
+          node --test tests/markdown-structure-test.mjs tests/changelog-generation-test.mjs tests/harness-review-test.mjs
+          node scripts/check-markdown-structure.mjs --root . --virtual-root templates/AGENTS.md=. --virtual-root templates/README.template.md=.
+          bash tests/native-model-contract-test.sh
+
       - name: 선택형 개발 조정 배포 경계 검사
         run: bash tests/orchestration-integration-test.sh
 
@@ -112,6 +118,7 @@ jobs:
           node --check scripts/build-packages.mjs
           node --check scripts/build-release-bundle.mjs
           node --check scripts/generate-changelog.mjs
+          node --check scripts/check-markdown-structure.mjs
           node --check scripts/check-plugin-coexistence.mjs
           node --check scripts/run-external-pilot.mjs
           node --check scripts/check-external-pilot-provenance.mjs
@@ -147,7 +154,7 @@ jobs:
               print("OK", p)
           EOF
 
-      - name: 파이썬 구문 검사 (등록된 훅 — enforce-subagent-model.py)
+      - name: 파이썬 구문 검사 (호환 경로·실행기)
         run: |
           python3 -m py_compile plugins/harness-guard/scripts/enforce-subagent-model.py
           python3 -m py_compile scripts/spawn-verified-executable.py
@@ -282,7 +289,7 @@ jobs:
           bash tests/external-pilot-report-test.sh
           bash tests/external-pilot-provenance-test.sh
 
-      - name: subagent 모델 강제 훅 테스트
+      - name: native 모델 선택·강제 없는 호환 경로 테스트
         run: bash tests/enforce-subagent-model-test.sh
 
       - name: 플러그인 배선 반증-스모크 (guard 실발동·hooksPath)

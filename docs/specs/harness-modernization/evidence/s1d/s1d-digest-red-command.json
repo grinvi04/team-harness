@@ -3,7 +3,7 @@
     "bash",
     "tests/codex-native-loader-pilot-test.sh"
   ],
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "timestamp": "2026-10-08T21:56:50.935734+00:00",
   "sha256": {
     "scripts/run-codex-native-loader-pilot.mjs": "d44024a39a9f7a36452b252c151526fa30ff50c68303b9ceaa2a997c6ed587fe",

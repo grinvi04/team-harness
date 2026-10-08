@@ -1,9 +1,9 @@
 {
   "argv": [
     "bash",
-    "/Users/grinvi04/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/s1d-expanded-smoke-red-test.sh"
+    "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/s1d-expanded-smoke-red-test.sh"
   ],
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "exit_code": 1,
   "test_source_sha256": "f8abb7ad9d7997fb2a766199fce307fd1cb606c125d6af7e2dc1ff76ec4fec85",
   "smoke_source_sha256": "382877c3a938352c058c8860c9e74945481df2c5228d892f342143539a172929",

@@ -11,7 +11,7 @@
   "hits": [
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/decisions.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/decisions.md",
       "relative": "docs/decisions.md",
       "line": 210,
       "terms": [
@@ -20,7 +20,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/decisions.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/decisions.md",
       "relative": "docs/decisions.md",
       "line": 217,
       "terms": [
@@ -29,7 +29,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/decisions.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/decisions.md",
       "relative": "docs/decisions.md",
       "line": 231,
       "terms": [
@@ -39,7 +39,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-guard-compatibility.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/specs/codex-guard-compatibility.md",
       "relative": "docs/specs/codex-guard-compatibility.md",
       "line": 67,
       "terms": [
@@ -48,7 +48,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-guard-compatibility.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/specs/codex-guard-compatibility.md",
       "relative": "docs/specs/codex-guard-compatibility.md",
       "line": 68,
       "terms": [
@@ -57,7 +57,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
       "relative": "docs/specs/codex-managed-hook-enforcement.md",
       "line": 7,
       "terms": [
@@ -66,7 +66,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
       "relative": "docs/specs/codex-managed-hook-enforcement.md",
       "line": 14,
       "terms": [
@@ -75,7 +75,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
       "relative": "docs/specs/codex-managed-hook-enforcement.md",
       "line": 19,
       "terms": [
@@ -84,7 +84,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/specs/codex-managed-hook-enforcement.md",
       "relative": "docs/specs/codex-managed-hook-enforcement.md",
       "line": 59,
       "terms": [
@@ -93,7 +93,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/docs/specs/codex-semantic-parity.md",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/docs/specs/codex-semantic-parity.md",
       "relative": "docs/specs/codex-semantic-parity.md",
       "line": 36,
       "terms": [
@@ -102,7 +102,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/tests/codex-managed-requirements-test.sh",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/tests/codex-managed-requirements-test.sh",
       "relative": "tests/codex-managed-requirements-test.sh",
       "line": 25,
       "terms": [
@@ -111,7 +111,7 @@
     },
     {
       "scope": "harness",
-      "path": "/Users/grinvi04/.codex/worktrees/c833/team-harness/tests/codex-managed-requirements-test.sh",
+      "path": "$HOME/.codex/worktrees/c833/team-harness/tests/codex-managed-requirements-test.sh",
       "relative": "tests/codex-managed-requirements-test.sh",
       "line": 36,
       "terms": [
@@ -120,7 +120,7 @@
     },
     {
       "scope": "webhook",
-      "path": "/Users/grinvi04/project/webhook-service/AGENTS.md",
+      "path": "$HOME/project/webhook-service/AGENTS.md",
       "relative": "AGENTS.md",
       "line": 225,
       "terms": [
@@ -129,7 +129,7 @@
     },
     {
       "scope": "drivetree",
-      "path": "/Users/grinvi04/project/drivetree/AGENTS.md",
+      "path": "$HOME/project/drivetree/AGENTS.md",
       "relative": "AGENTS.md",
       "line": 38,
       "terms": [
@@ -138,7 +138,7 @@
     },
     {
       "scope": "global",
-      "path": "/Users/grinvi04/.codex/model-policy.md",
+      "path": "$HOME/.codex/model-policy.md",
       "relative": "model-policy.md",
       "line": 26,
       "terms": [
@@ -148,7 +148,7 @@
     },
     {
       "scope": "global",
-      "path": "/Users/grinvi04/.codex/config.toml",
+      "path": "$HOME/.codex/config.toml",
       "relative": "config.toml",
       "line": 284,
       "terms": [
@@ -157,7 +157,7 @@
     },
     {
       "scope": "global",
-      "path": "/Users/grinvi04/.claude/model-policy.md",
+      "path": "$HOME/.claude/model-policy.md",
       "relative": "model-policy.md",
       "line": 12,
       "terms": [
@@ -180,22 +180,22 @@
   },
   "additional_owned_global_sources": [
     {
-      "path": "/Users/grinvi04/.agents/skills/project-map/SKILL.md",
+      "path": "$HOME/.agents/skills/project-map/SKILL.md",
       "exists": true,
       "matches": []
     },
     {
-      "path": "/Users/grinvi04/.zshrc",
+      "path": "$HOME/.zshrc",
       "exists": true,
       "matches": []
     },
     {
-      "path": "/Users/grinvi04/.zprofile",
+      "path": "$HOME/.zprofile",
       "exists": true,
       "matches": []
     },
     {
-      "path": "/Users/grinvi04/.claude/statusline-command.sh",
+      "path": "$HOME/.claude/statusline-command.sh",
       "exists": true,
       "matches": []
     }

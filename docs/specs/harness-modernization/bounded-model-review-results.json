@@ -1,6 +1,6 @@
 [
   {
-    "path": "/Users/grinvi04/.codex/sessions/2026/10/09/rollout-2026-10-09T04-55-09-01a11d15-7c4e-7cc3-ac65-85ae60ab56a4.jsonl",
+    "path": "$HOME/.codex/sessions/2026/10/09/rollout-2026-10-09T04-55-09-01a11d15-7c4e-7cc3-ac65-85ae60ab56a4.jsonl",
     "contexts": [
       {
         "model": "gpt-6-luna",
@@ -9,7 +9,7 @@
         "sandbox_policy": {
           "type": "workspace-write",
           "writable_roots": [
-            "/Users/grinvi04/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
+            "$HOME/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
           ],
           "network_access": true,
           "exclude_tmpdir_env_var": false,
@@ -98,7 +98,7 @@
           "thread_spawn": {
             "parent_thread_id": "01a0cd43-ae85-74f2-b0b6-ed4e08e29d00",
             "depth": 1,
-            "agent_path": "/root/model_probe_luna_xhigh",
+            "agent_path": "agent:root/model_probe_luna_xhigh",
             "agent_nickname": "Pauli",
             "agent_role": "default"
           }
@@ -250,7 +250,7 @@
     "uncached_input_tokens": 49521
   },
   {
-    "path": "/Users/grinvi04/.codex/sessions/2026/10/09/rollout-2026-10-09T04-55-16-01a11d15-969e-7971-abbe-5a8e85c60554.jsonl",
+    "path": "$HOME/.codex/sessions/2026/10/09/rollout-2026-10-09T04-55-16-01a11d15-969e-7971-abbe-5a8e85c60554.jsonl",
     "contexts": [
       {
         "model": "gpt-6.1-sol",
@@ -259,7 +259,7 @@
         "sandbox_policy": {
           "type": "workspace-write",
           "writable_roots": [
-            "/Users/grinvi04/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
+            "$HOME/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
           ],
           "network_access": true,
           "exclude_tmpdir_env_var": false,
@@ -348,7 +348,7 @@
           "thread_spawn": {
             "parent_thread_id": "01a0cd43-ae85-74f2-b0b6-ed4e08e29d00",
             "depth": 1,
-            "agent_path": "/root/model_probe_sol_medium",
+            "agent_path": "agent:root/model_probe_sol_medium",
             "agent_nickname": "Helmholtz",
             "agent_role": "default"
           }
@@ -538,7 +538,7 @@
     "uncached_input_tokens": 48688
   },
   {
-    "path": "/Users/grinvi04/.codex/sessions/2026/10/09/rollout-2026-10-09T04-55-23-01a11d15-b201-7833-913c-603f56c330bd.jsonl",
+    "path": "$HOME/.codex/sessions/2026/10/09/rollout-2026-10-09T04-55-23-01a11d15-b201-7833-913c-603f56c330bd.jsonl",
     "contexts": [
       {
         "model": "gpt-6-astra",
@@ -547,7 +547,7 @@
         "sandbox_policy": {
           "type": "workspace-write",
           "writable_roots": [
-            "/Users/grinvi04/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
+            "$HOME/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
           ],
           "network_access": true,
           "exclude_tmpdir_env_var": false,
@@ -636,7 +636,7 @@
           "thread_spawn": {
             "parent_thread_id": "01a0cd43-ae85-74f2-b0b6-ed4e08e29d00",
             "depth": 1,
-            "agent_path": "/root/model_probe_astra_medium",
+            "agent_path": "agent:root/model_probe_astra_medium",
             "agent_nickname": "Schrodinger",
             "agent_role": "default"
           }

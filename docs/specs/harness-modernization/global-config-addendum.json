@@ -294,7 +294,7 @@
     ],
     "provider_sections": []
   },
-  "/Users/grinvi04/.claude/settings.json": {
+  "$HOME/.claude/settings.json": {
     "top_level_keys": [
       "$schema",
       "env",
@@ -334,7 +334,7 @@
     "hooks_events": [],
     "statusline_configured": true
   },
-  "/Users/grinvi04/.claude.json": {
+  "$HOME/.claude.json": {
     "top_level_keys": [
       "numStartups",
       "installMethod",
@@ -426,7 +426,7 @@
     "project_settings_count": 11,
     "oauth_account_present": true
   },
-  "/Users/grinvi04/.codex/plugins": [
+  "$HOME/.codex/plugins": [
     {
       "name": ".remote-plugin-install-staging",
       "kind": "dir",
@@ -448,7 +448,7 @@
       "bytes": null
     }
   ],
-  "/Users/grinvi04/.claude/plugins": [
+  "$HOME/.claude/plugins": [
     {
       "name": "cache",
       "kind": "dir",
@@ -485,14 +485,14 @@
       "bytes": null
     }
   ],
-  "/Users/grinvi04/.agents/plugins": [
+  "$HOME/.agents/plugins": [
     {
       "name": "marketplace.json",
       "kind": "file",
       "bytes": 94
     }
   ],
-  "/Users/grinvi04/.zshrc": {
+  "$HOME/.zshrc": {
     "lines": 8,
     "ai_env_assignment_names": [],
     "ai_alias_names": [
@@ -500,7 +500,7 @@
     ],
     "sha256": "0790eff91422130d3a55c8ccf60e9c5ad928e556b75da2a85e6d8978713ae7df"
   },
-  "/Users/grinvi04/.zprofile": {
+  "$HOME/.zprofile": {
     "lines": 4,
     "ai_env_assignment_names": [],
     "ai_alias_names": [],

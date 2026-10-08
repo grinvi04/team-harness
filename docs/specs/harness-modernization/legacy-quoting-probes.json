@@ -1,5 +1,5 @@
 {
-  "source": "/Users/grinvi04/.codex/worktrees/c833/team-harness/plugins/harness-guard/scripts/patch-codex-security-guidance.mjs",
+  "source": "$HOME/.codex/worktrees/c833/team-harness/plugins/harness-guard/scripts/patch-codex-security-guidance.mjs",
   "sha256": "eb75dd198f1970eab4a68531f4c1f3a2fb09ce4a92fe2214414ed6a0ce0cb656",
   "note": "Only the extracted quote function and harmless printf operations were executed; installer main was never called.",
   "results": [

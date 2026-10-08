@@ -1,5 +1,5 @@
 {
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "head": "50ffec700b39176609e0951ca758a7b817f930d3",
   "sha256": {
     "plugins/harness-guard/scripts/pr-merge.sh": "c5d368d82fcdc8eef01c5d86a45f40c7cf3d12e9e165802970a0c29bad3df803",

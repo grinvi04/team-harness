@@ -1,0 +1,136 @@
+{
+  "date": "2026-10-09",
+  "scope": "approved global files; individual atomic replacement, not whole-transaction atomicity",
+  "actualApplication": "PASS",
+  "files": [
+    {
+      "path": "$HOME/.codex/config.toml",
+      "sha256": "7aa93cda1dcd105741c7c416f70b3fc4fd65a1e5fd27672c109923e8aff164f4",
+      "mode": "0o600",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.config/ai-instructions/common.md",
+      "sha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.codex/AGENTS.md",
+      "sha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.claude/CLAUDE.md",
+      "sha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.codex/model-policy.md",
+      "sha256": "6a4e410be611540c06fc79e14a2eb6d0634b5216c1f4ee9b8c7d4758e32db9d4",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.claude/model-policy.md",
+      "sha256": "de203342edac3e1bf16e6d466586369e8719583bc8685a43d90267074860e6e5",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.codex/agents/harness-security-reviewer.toml",
+      "sha256": "821de0ba6e69004f5244b609c1caef4a6f040f791a10b20b658fb9b61b85e475",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.codex/agents/harness-explorer.toml",
+      "sha256": "849f9a611829c05e11043e9a8ce5372180ba2939677a4f22419b9ea33ee1cb71",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.codex/agents/personal-bounded-worker.toml",
+      "sha256": "04ac13424d71583c1998523662aa97ef392d1acff825563e09a59fa5a028349a",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.codex/agents/harness-verifier.toml",
+      "sha256": "041ac006383f0c4ab23227eedbaf559c98127a468ffeac507b1431374d722620",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.codex/agents/project-mapper.toml",
+      "sha256": "defa9b63228d273f71855be18a65b3ea080c0e1b6bf3b43c6c85812d6be76266",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.codex/agents/personal-critical-verifier.toml",
+      "sha256": "4d2f924800ceb104fa3432208c90e89fbecfda4779d080b2eabe322d16775139",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.claude/settings.json",
+      "sha256": "8554dc7b3484e9861119d33544e94a090d37479298f38ef5f07b1811e8ad29e7",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.codex/rules/default.rules",
+      "sha256": "5039c7ab55693734ce9cb7af1201bb1de84076c9257b0bb643abdd0c6d0cd091",
+      "mode": "0o644",
+      "state": "applied"
+    },
+    {
+      "path": "$HOME/.claude/mcp-wrappers/github.sh",
+      "sha256": "e7e2dd92805cc6510738f69a81b2465aac96b4277980ca6fbb427e7ddb3f3b1a",
+      "mode": "0o755",
+      "state": "applied"
+    }
+  ],
+  "commonEntries": {
+    "count": 3,
+    "identical": true,
+    "physicalLines": 154
+  },
+  "applicationFixtureCases": 24,
+  "fixtureResult": "PASS",
+  "independentReview": "PASS for fixed task-only applicator, separate from integrated Harness review",
+  "policyEvaluation": {
+    "cli": "0.161.0",
+    "changedPrefixes": 26,
+    "result": "prompt",
+    "commandsExecuted": false,
+    "unmatchedDecision": "null; not permission approval"
+  },
+  "preserved": [
+    "existing memory lookup and history",
+    "user UI settings",
+    "53 trust entries; missing path alone insufficient deletion evidence",
+    "compaction220000 and other existing settings"
+  ],
+  "githubMcp": {
+    "package": "@modelcontextprotocol/server-github",
+    "pinnedVersion": "2025.4.8",
+    "supportedReplacement": "UNVERIFIED; npm package deprecated",
+    "actualMcpRun": "NOT RUN"
+  },
+  "remaining": [
+    "fresh Codex native role runtime",
+    "official plugin install and fresh hook/skill loading",
+    "Claude actual inference/effort/inherit/permissions/user-deferred after OAuth expiry",
+    "representative quality/use comparison"
+  ],
+  "recovery": "private backup of displaced originals retained; concurrent later changes never force-restored",
+  "limits": [
+    "abrupt SIGKILL/power loss not proven",
+    "owner/ACL/xattrs not claimed",
+    "global settings do not retroactively reload existing sessions or installed plugin source"
+  ]
+}

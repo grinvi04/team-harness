@@ -5,14 +5,14 @@
   "independent_enforced_read_only": "UNVERIFIED",
   "session": {
     "id": "01a11d44-7c87-72d2-b403-81d4f433e294",
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "cli_version": "0.162.0-alpha.2",
     "source": {
       "subagent": {
         "thread_spawn": {
           "parent_thread_id": "01a0cd43-ae85-74f2-b0b6-ed4e08e29d00",
           "depth": 1,
-          "agent_path": "/root/readiness_independent_review",
+          "agent_path": "agent:root/readiness_independent_review",
           "agent_nickname": "Planck",
           "agent_role": "personal-critical-verifier"
         }
@@ -26,7 +26,7 @@
     "sandbox_policy": {
       "type": "workspace-write",
       "writable_roots": [
-        "/Users/grinvi04/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
+        "$HOME/.codex/visualizations/2026/09/23/01a0cd43-ae85-74f2-b0b6-ed4e08e29d00"
       ],
       "network_access": true,
       "exclude_tmpdir_env_var": false,

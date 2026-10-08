@@ -4,11 +4,11 @@
   "cases": [
     {
       "classifier_command": [
-        "/Users/grinvi04/.local/bin/codex",
+        "$HOME/.local/bin/codex",
         "execpolicy",
         "check",
         "--rules",
-        "/Users/grinvi04/.codex/rules/default.rules",
+        "$HOME/.codex/rules/default.rules",
         "--",
         "git",
         "push",
@@ -42,11 +42,11 @@
     },
     {
       "classifier_command": [
-        "/Users/grinvi04/.local/bin/codex",
+        "$HOME/.local/bin/codex",
         "execpolicy",
         "check",
         "--rules",
-        "/Users/grinvi04/.codex/rules/default.rules",
+        "$HOME/.codex/rules/default.rules",
         "--",
         "gh",
         "api",
@@ -80,11 +80,11 @@
     },
     {
       "classifier_command": [
-        "/Users/grinvi04/.local/bin/codex",
+        "$HOME/.local/bin/codex",
         "execpolicy",
         "check",
         "--rules",
-        "/Users/grinvi04/.codex/rules/default.rules",
+        "$HOME/.codex/rules/default.rules",
         "--",
         "git",
         "status",

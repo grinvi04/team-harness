@@ -5,9 +5,12 @@
 
 ## 감사 기준과 범위
 
-- 기준일: 2026-07-24; 개발 조정 연결 추가: 2026-09-20
+- 최초 기준일: 2026-07-24; 개발 조정 연결 추가: 2026-09-20; source 목록 갱신: 2026-10-09
 - 기준 브랜치: `develop`의 플랫폼 중복 감사 작업 시작 시점
-- 대상: skill 17개, agent 정의 2개, hook handler 4개, Codex 호환 실행 파일 13개. 합계 36개다.
+- 현재 대상: skill 17개, agent 정의 2개, hook handler 3개, Codex 호환 실행 파일 13개. 합계 35개다.
+- 최초 36개 목록에는 `Agent` 모델 강제 hook이 있었다. 현대화 후보에서 native 선택으로 이전하며 등록을 제거했다.
+  호환 script는 입력을 소비하지만 선택·출력·로그를 변경하지 않는다. fixture 48건 통과와 Claude 실제 실행 보류는
+  [현재 실행 스펙](specs/harness-modernization.md)에 구분해 기록한다. 발행·설치 완료를 뜻하지 않는다.
 - 근거: 각 구현, 직접 호출자, 회귀 테스트, 결정 기록과 로컬 `codex-cli 0.144.6`의 read-only 출력.
 - 로컬 확인: `codex features list`에서 `hooks`, `plugins`, `multi_agent`가 stable이고 `codex plugin --help`가
   설치·목록·marketplace 관리 명령을 제공했다. 이는 이 버전의 시점 증거이며 향후 버전까지 보장하지 않는다.
@@ -63,7 +66,6 @@
 |---|---|---|---|
 | `hook:PreToolUse:1:Bash:1:command` | **연결** | 얇게 유지 | 명령을 서버 정책과 같은 규칙에 연결하는 조기 피드백이며 CI·GitHub가 최종 강제한다. |
 | `hook:PreToolUse:1:Bash:2:prompt` | **위임** | 제거 | LLM prompt 기반 시크릿 판정은 플랫폼 permission과 결정적 검사에 위임하고 서버 secret scan을 유지한다. |
-| `hook:PreToolUse:2:Agent:1:command` | **위임** | Claude 전용 유지 | Codex는 custom agent 복사본 없이 native agent 실행에 위임하고, Claude 경로의 기존 모델 정책만 보존한다. |
 | `hook:UserPromptSubmit:1:*:1:command` | **연결** | 좁게 유지 | `route-intent`는 Git/PR **상태 기반** 다음 단계만 연결하고 일반 자연어 **의미 분류기**로 확장하지 않는다. |
 
 ### Codex 호환 실행 파일

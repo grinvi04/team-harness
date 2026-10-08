@@ -272,7 +272,7 @@ for (const name of ['ordinary', 'with spaces', 'with "quote', 'dollar-$HOME', 'w
       assert.equal(executed.status, 0, `${file} execution failed: ${executed.stderr}`)
       assert.equal(fs.readFileSync(output, 'utf8'), `${kind}\n${path.join(core, 'scripts', file)}\n`, 'hook must execute intended script and preserve literal path')
     }
-    const loop = fs.readFileSync(path.join(workflow, 'skills/loop/SKILL.md'), 'utf8')
+    const loop = ['SKILL.md', 'iteration.md'].map(file => fs.readFileSync(path.join(workflow, 'skills/loop', file), 'utf8')).join('\n')
     const assignments = loop.match(/^PLUGIN_ROOT=.*$/gm)
     assert.ok(assignments?.length, 'loop assignment missing')
     for (const assignment of assignments) {

@@ -3,7 +3,7 @@
   "branch": "fix/harness-modernization",
   "source_revision_before_edits": "50ffec700b39176609e0951ca758a7b817f930d3",
   "captured_at": "2026-10-09T06:43:08+09:00",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "baseline_sha256": {
     "templates/ci/alembic-heads.yml": "8f74e038d6edb0280f2e05dd1ab21fd1841622605e7f04365a867dacaba8d339",
     ".github/workflows/test-guard.yml": "d4852de45cdee3ef0e7dc3849a7b02365f90d6c1c294c391d6f429103a0fbbe6",

@@ -1,6 +1,6 @@
 {
   "head": "50ffec700b39176609e0951ca758a7b817f930d3",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "sha256": {
     "scripts/check-activerecord-destructive-ddl.mjs": "b3dd1199885f5c688824f8e9b7c04f580a4cc2277297558978a0459c757ea80e",
     "scripts/check-alembic-destructive-ddl.mjs": "6a01d11719a2ea931837b7e6f6b0f94d89d624f5699aaa1278df6ba6952b94dd",

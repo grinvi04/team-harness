@@ -1,9 +1,9 @@
 {
   "checked_on_kst": "2026-10-09",
-  "installed_binary_path": "/Users/grinvi04/Library/Application Support/Claude/claude-code/2.1.205/claude.app/Contents/MacOS/claude",
+  "installed_binary_path": "$HOME/Library/Application Support/Claude/claude-code/2.1.205/claude.app/Contents/MacOS/claude",
   "installed_version_command": {
     "command": [
-      "/Users/grinvi04/Library/Application Support/Claude/claude-code/2.1.205/claude.app/Contents/MacOS/claude",
+      "$HOME/Library/Application Support/Claude/claude-code/2.1.205/claude.app/Contents/MacOS/claude",
       "--version"
     ],
     "observed_stdout": "2.1.205 (Claude Code)",

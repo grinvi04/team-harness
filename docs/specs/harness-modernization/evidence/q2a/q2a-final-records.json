@@ -4,7 +4,7 @@
       "bash",
       "tests/pr-merge-auto-test.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "summary": "\uacb0\uacfc: PASS=55 FAIL=0",
     "log": ".superpowers/sdd/harness-modernization/q2a-final-pr-merge-auto-test.log",
@@ -16,7 +16,7 @@
       "bash",
       "tests/pr-create-test.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "summary": "\uacb0\uacfc: PASS=9 FAIL=0",
     "log": ".superpowers/sdd/harness-modernization/q2a-final-pr-create-test.log",
@@ -29,7 +29,7 @@
       "-n",
       "plugins/harness-guard/scripts/pr-merge.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-0.log"
   },
@@ -39,7 +39,7 @@
       "-n",
       "tests/pr-merge-auto-test.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-1.log"
   },
@@ -49,7 +49,7 @@
       "-n",
       "tests/pr-create-test.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-2.log"
   },
@@ -59,7 +59,7 @@
       "--check",
       "plugins/harness-guard/skills/pr-review-gate/review-thread-scope.mjs"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-3.log"
   },
@@ -75,7 +75,7 @@
       "tests/pr-merge-auto-test.sh",
       "tests/pr-create-test.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-4.log"
   },
@@ -83,9 +83,9 @@
     "command": [
       "bash",
       "-n",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-0.sh"
+      "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-0.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-5.log"
   },
@@ -93,9 +93,9 @@
     "command": [
       "bash",
       "-n",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-1.sh"
+      "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-1.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-6.log"
   },
@@ -103,9 +103,9 @@
     "command": [
       "bash",
       "-n",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-2.sh"
+      "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-2.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-7.log"
   },
@@ -113,9 +113,9 @@
     "command": [
       "bash",
       "-n",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-3.sh"
+      "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-3.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-8.log"
   },
@@ -123,9 +123,9 @@
     "command": [
       "bash",
       "-n",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-4.sh"
+      "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-4.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-9.log"
   },
@@ -133,9 +133,9 @@
     "command": [
       "bash",
       "-n",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-5.sh"
+      "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-5.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-10.log"
   },
@@ -143,9 +143,9 @@
     "command": [
       "bash",
       "-n",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-6.sh"
+      "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-6.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-11.log"
   },
@@ -153,9 +153,9 @@
     "command": [
       "bash",
       "-n",
-      "/Users/grinvi04/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-7.sh"
+      "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/q2a-skill-block-7.sh"
     ],
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit": 0,
     "log": ".superpowers/sdd/harness-modernization/q2a-validation-12.log"
   }

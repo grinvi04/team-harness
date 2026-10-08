@@ -3,7 +3,7 @@
     "bash",
     "tests/codex-fresh-session-smoke-test.sh"
   ],
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "sha256": {
     "scripts/run-codex-native-loader-pilot.mjs": "5926f4c2dd1863edd716bce1463feac335004a3f697e306e7a3c7b53bddeef5b",
     "scripts/codex-fresh-session-smoke.sh": "382877c3a938352c058c8860c9e74945481df2c5228d892f342143539a172929",

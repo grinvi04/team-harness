@@ -3,7 +3,7 @@
   "branch": "fix/harness-modernization",
   "source_revision_before_edits": "50ffec700b39176609e0951ca758a7b817f930d3",
   "captured_at": "2026-10-09T06:33:36+09:00",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "baseline": {
     "templates/hooks/regen-arch-svg.sh": "2836773bda2c954c38f00b9c1dde7cf8ec8192393e124372fab5be92845387ad",
     "templates/gen_arch_svg.py": "be83b326235358ba450399cbe04652cbf55defc250c208647aeec0a20f2ce40a",

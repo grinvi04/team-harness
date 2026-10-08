@@ -42,13 +42,13 @@ Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 
 
 ### Task 4: MD 구조와 직접 소비자
 
-상태: not started. [세부 계획·AC-D1–D6](harness-modernization/plan/04-docs-consumers.md).
+상태: in progress. [세부 계획·AC-D1–D6](harness-modernization/plan/04-docs-consumers.md).
 소유 목록 전체의 199줄·내용/역사·생성 결정성·package/reference·지도 parser·4개 소비 지침과 실제 명령을 확인한다.
 특정 제품 문제를 공용 Harness 기능으로 올리지 않고 최소 문서/직접 reader 변경으로 정렬한다.
 
 ### Task 5: 통합 인수·기록·전달·정리
 
-상태: not started. [세부 계획](harness-modernization/plan/05-acceptance.md).
+상태: in progress. [세부 계획](harness-modernization/plan/05-acceptance.md).
 현재 후보 전체 quality/필수 검사·독립 보안/권한 검토·문서 현행화·실제 설치/새 세션을 구분해 확인한다.
 원격 전달은 기존 wrapper/CI/리뷰 계약을 따른다. 새 보호 예외는 과거 PR의 승인을 재사용하지 않는다.
 사용자 자료·보류 후보를 보존하고 작업 소유 worktree만 정리한다. 제외한 배포를 종료 조건으로 추가하지 않는다.
@@ -64,3 +64,107 @@ Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 
 - 2026-10-09: 2C의 설정 적용/실패와 단언 감소 시험 통과. count-only gate와 실행 QA의 역할을 구분해 완료 기준을 명확히 했다.
 
 - 2026-10-09: Claude 터미널을 공식 update로 2.1.295로 갱신했다. 최신 모델 호출·effort·실제 앱 실행 확인은 별도 진행 중.
+
+- 2026-10-09: 2D uncertain/coverage 판정, 3E 자동 cache patch 축소, 4B/C 의미 단위 분리와 generator/reader 후보 검증을 진행했다. 전체 gate는 별도 확인한다.
+- 2026-10-09: Claude 첫 최신 모델 호출은 OAuth 만료로 실패했다. 사용자의 ‘나중에 갱신’에 따라 실제 Claude 모델·상속·권한·품질/사용량 비교는 보류한다. 강제 hook 제거와 native 정의의 정적/fixture 결과를 실제 호출 PASS로 바꾸지 않는다.
+- 2026-10-09: 전역 15개 파일 실제 적용 완료. 공통 원본·두 진입점은 동일 본문 154줄이다. 적용 도구의 실패·복구·동시 변경 fixture 24건과 별도 읽기 전용 검토를 통과했다. 새 Codex 역할 호출과 공식 plugin 설치는 별도 검증 중이다.
+- 2026-10-09: 권한 규칙 26개는 실제 native 정책 평가에서 prompt였다. 명령을 실행한 결과가 아니다. GitHub MCP wrapper의 버전 고정도 유지 지원·실제 MCP 성공을 증명하지 않는다. [전역 적용 기록](harness-modernization/execution-m3f.json).
+
+## 이 변경의 문서 동기화 범위
+
+```harness-doc-sync
+{
+  "version": 1,
+  "documents": [
+    {
+      "path": "docs/specs/harness-modernization.md",
+      "reason": "승인 범위·현재 실행·보류·완료 기준 정본"
+    },
+    {
+      "path": "docs/specs/harness-modernization/plan/03-model-global.md",
+      "reason": "설정 적용과 사용자 보류된 실제 Claude 검증 구분"
+    },
+    {
+      "path": "docs/specs/harness-modernization/plan/04-docs-consumers.md",
+      "reason": "199줄·reader·generator·소비 원본 단계 대조"
+    },
+    {
+      "path": "docs/specs/harness-modernization/plan/05-acceptance.md",
+      "reason": "전체 gate·독립 검토·전달·정리의 미완료 경계"
+    },
+    {
+      "path": "docs/model-tiering.md",
+      "reason": "native 모델/effort·현재 전역 적용·실제 호출 한계"
+    },
+    {
+      "path": "docs/platform-overlap-audit.md",
+      "reason": "현재 hook 목록 및 이전 강제 hook 제거 이력"
+    },
+    {
+      "path": "docs/harness-maintenance.md",
+      "reason": "changelog 전체 계층 생성 명령과 source 버전"
+    },
+    {
+      "path": "README.md",
+      "reason": "0.82.0 후보 및 의미 단위 문서 진입점"
+    },
+    {
+      "path": "docs/harness-setup.md",
+      "reason": "공식 설치·업데이트와 명시 cache patch 경계"
+    },
+    {
+      "path": "docs/harness-architecture.md",
+      "reason": "현재 native 경로와 역사 그림의 한계"
+    },
+    {
+      "path": "docs/pilots/consumer-readiness-2026-10-07.md",
+      "reason": "날짜 고정 원본과 분리된 evidence reader 경로"
+    },
+    {
+      "path": "docs/api-standards.md",
+      "reason": "CSV 및 OpenAPI·실제 시험 한계"
+    },
+    {
+      "path": "docs/db-standards.md",
+      "reason": "금액 정밀도 계약과 기술적 보장 경계"
+    },
+    {
+      "path": "docs/ai-collaboration.md",
+      "reason": "현재 안내와 실제 읽기 경로"
+    },
+    {
+      "path": "docs/decisions.md",
+      "reason": "현재/역사 결정 진입점"
+    },
+    {
+      "path": "docs/developer-workflow.md",
+      "reason": "필수 feature 상세 읽기 경로"
+    },
+    {
+      "path": "docs/product-direction.md",
+      "reason": "현재 제품 방향과 역사 로드맵 읽기 경로"
+    },
+    {
+      "path": "docs/operations.md",
+      "reason": "보안 사고 상세 읽기 경로"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "reason": "Git 기반 생성된 전체 release index"
+    },
+    {
+      "path": "plugins/harness-guard/skills/loop/SKILL.md",
+      "reason": "필수 iteration/completion/reference 읽기 경로"
+    },
+    {
+      "path": "plugins/harness-guard/skills/milestone/SKILL.md",
+      "reason": "원래 AC와 duplicate/cancel 판정"
+    },
+    {
+      "path": "plugins/harness-guard/skills/repo-sync/SKILL.md",
+      "reason": "MISSING0을 전체 drift 없음으로 오판하지 않음"
+    }
+  ],
+  "items": []
+}
+```

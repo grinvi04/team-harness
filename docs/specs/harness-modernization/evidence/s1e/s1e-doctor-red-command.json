@@ -1,6 +1,6 @@
 {
   "command": "node --input-type=module - <root> <temporary> (profile-lifecycle-test.sh path/doctor heredoc)",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "phase": "doctor registration RED",
   "timestamp": "2026-10-08T21:34:36.878034+00:00",
   "sha256": {

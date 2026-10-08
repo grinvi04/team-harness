@@ -21,7 +21,7 @@
     "thread_id": "01a11d61-1eab-78d2-9712-518af22cfaa5",
     "surface": "standalone Codex CLI; not collaboration role enforcement",
     "protected_file_unchanged": true,
-    "session_path": "/Users/grinvi04/.codex/sessions/2026/10/09/rollout-2026-10-09T06-17-47-01a11d61-1eab-78d2-9712-518af22cfaa5.jsonl",
+    "session_path": "$HOME/.codex/sessions/2026/10/09/rollout-2026-10-09T06-17-47-01a11d61-1eab-78d2-9712-518af22cfaa5.jsonl",
     "runtime": {
       "model": "gpt-6.1-sol",
       "effort": "medium",
@@ -37,7 +37,7 @@
   ],
   "final": {
     "command": "bash tests/set-branch-protection-test.sh",
-    "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
     "exit_code": 0,
     "pass": 62,
     "fail": 0,

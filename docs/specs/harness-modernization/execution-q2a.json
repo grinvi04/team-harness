@@ -6,7 +6,7 @@
   },
   "scope": "Owned merge wrapper, review skill/helper and tests only; all remote effects simulated by PATH-scoped gh/git fakes.",
   "status": "Bounded local implementation verified; parent owns shared guides, packaging/caller adoption, independent review, whole quality/CI and delivery.",
-  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "head": "50ffec700b39176609e0951ca758a7b817f930d3",
   "candidate": "Uncommitted owned bytes; HEAD alone is not this candidate.",
   "candidateManifest": ".superpowers/sdd/harness-modernization/q2a-final-candidate.json",
@@ -67,7 +67,7 @@
           "bash",
           "tests/pr-merge-auto-test.sh"
         ],
-        "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+        "cwd": "$HOME/.codex/worktrees/c833/team-harness",
         "exit": 0,
         "summary": "결과: PASS=55 FAIL=0",
         "log": "evidence/q2a/q2a-final-pr-merge-auto-test.log.gz",
@@ -79,7 +79,7 @@
           "bash",
           "tests/pr-create-test.sh"
         ],
-        "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+        "cwd": "$HOME/.codex/worktrees/c833/team-harness",
         "exit": 0,
         "summary": "결과: PASS=9 FAIL=0",
         "log": "evidence/q2a/q2a-final-pr-create-test.log.gz",

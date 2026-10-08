@@ -7,10 +7,10 @@
       "case": "sql-column-omitted",
       "cmd": [
         "node",
-        "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
         "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-omitted"
       ],
-      "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
       "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-omitted/migrations/V1__probe.sql",
       "inputSha256": "2c1a7b47453d0766b732419822a58fae3b9f310ed908a757b22c22c86a8fdb6c",
       "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
@@ -23,10 +23,10 @@
       "case": "sql-column-explicit",
       "cmd": [
         "node",
-        "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
         "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-explicit"
       ],
-      "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
       "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-explicit/migrations/V1__probe.sql",
       "inputSha256": "8fe4971a20c7d8314f4426c54fecbf850fa6faaab21ec4821776607442105aa8",
       "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
@@ -39,10 +39,10 @@
       "case": "sql-executable-comment",
       "cmd": [
         "node",
-        "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
         "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-executable-comment"
       ],
-      "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
       "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-executable-comment/migrations/V1__probe.sql",
       "inputSha256": "abaa000aa525d9473ca12def931aa239e4e6cc95bd0cd6a6fc0933fcf2b0093b",
       "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
@@ -55,10 +55,10 @@
       "case": "alembic-inline",
       "cmd": [
         "node",
-        "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-alembic-destructive-ddl.mjs",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-alembic-destructive-ddl.mjs",
         "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-inline"
       ],
-      "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
       "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-inline/alembic/versions/001_probe.py",
       "inputSha256": "6642b4abdaf93c3893f3c0688b0995af48ac50ab3408def36828369513e33fcd",
       "checkerSha256": "8575d4aa058069be061fe298576d201e46ac238669bc18581b9fa6b1e04918ad",
@@ -71,10 +71,10 @@
       "case": "alembic-multiline",
       "cmd": [
         "node",
-        "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-alembic-destructive-ddl.mjs",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-alembic-destructive-ddl.mjs",
         "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-multiline"
       ],
-      "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
       "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-multiline/alembic/versions/001_probe.py",
       "inputSha256": "71a29504a8287327c22df336bc7ceedc3716c12859376b86efcd4036bcc65bdd",
       "checkerSha256": "8575d4aa058069be061fe298576d201e46ac238669bc18581b9fa6b1e04918ad",
@@ -87,10 +87,10 @@
       "case": "alembic-executable-comment",
       "cmd": [
         "node",
-        "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-alembic-destructive-ddl.mjs",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-alembic-destructive-ddl.mjs",
         "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-executable-comment"
       ],
-      "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
       "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-executable-comment/alembic/versions/001_probe.py",
       "inputSha256": "d402d0335ad034a5a755238d19b7cadb31a53f2bb861fee010cc5d2e24085c26",
       "checkerSha256": "8575d4aa058069be061fe298576d201e46ac238669bc18581b9fa6b1e04918ad",
@@ -103,10 +103,10 @@
       "case": "ruby-tab",
       "cmd": [
         "node",
-        "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-activerecord-destructive-ddl.mjs",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-activerecord-destructive-ddl.mjs",
         "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-tab"
       ],
-      "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
       "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-tab/db/migrate/20261009000000_probe.rb",
       "inputSha256": "0f27671f5f62c098336340116a7a9765d54a20a9bc6e23173f022f01f5221af5",
       "checkerSha256": "43137026735fe498619af4e416d518a0041cf761d5a09a3e777691a747cf53d2",
@@ -123,10 +123,10 @@
       "case": "ruby-space",
       "cmd": [
         "node",
-        "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-activerecord-destructive-ddl.mjs",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-activerecord-destructive-ddl.mjs",
         "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-space"
       ],
-      "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
       "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-space/db/migrate/20261009000000_probe.rb",
       "inputSha256": "50bb58cb41a5f76246f300389240416aa28417575eca126c643b2ce6821649db",
       "checkerSha256": "43137026735fe498619af4e416d518a0041cf761d5a09a3e777691a747cf53d2",
@@ -143,10 +143,10 @@
       "case": "ruby-executable-comment",
       "cmd": [
         "node",
-        "/Users/grinvi04/.codex/worktrees/c833/team-harness/scripts/check-activerecord-destructive-ddl.mjs",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-activerecord-destructive-ddl.mjs",
         "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-executable-comment"
       ],
-      "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
       "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-executable-comment/db/migrate/20261009000000_probe.rb",
       "inputSha256": "7db9f1b88474e0b98d1ac7cbaf8615b0533316b02ddd34ffb48cd9bb6b889871",
       "checkerSha256": "43137026735fe498619af4e416d518a0041cf761d5a09a3e777691a747cf53d2",

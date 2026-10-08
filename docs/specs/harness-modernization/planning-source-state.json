@@ -3,7 +3,7 @@
   "versions": [
     {
       "command": [
-        "/Users/grinvi04/.local/bin/codex",
+        "$HOME/.local/bin/codex",
         "--version"
       ],
       "exit_code": 0,
@@ -12,7 +12,7 @@
     },
     {
       "command": [
-        "/Users/grinvi04/.local/bin/claude",
+        "$HOME/.local/bin/claude",
         "--version"
       ],
       "exit_code": 0,
@@ -24,10 +24,10 @@
   "status": "M .gitignore",
   "tracked_sha256": "440c4645e947e1dea767e351e6a7139ce784b89c59460bf17f276a07b8ec95c4",
   "global_file_sha256": {
-    "/Users/grinvi04/.codex/config.toml": "ca47ecad59de336ed4de54003b0e611f4c8aeea1ba0222353193978b1b91e046",
-    "/Users/grinvi04/.config/ai-instructions/common.md": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
-    "/Users/grinvi04/.codex/AGENTS.md": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
-    "/Users/grinvi04/.claude/CLAUDE.md": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd"
+    "$HOME/.codex/config.toml": "ca47ecad59de336ed4de54003b0e611f4c8aeea1ba0222353193978b1b91e046",
+    "$HOME/.config/ai-instructions/common.md": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
+    "$HOME/.codex/AGENTS.md": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
+    "$HOME/.claude/CLAUDE.md": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd"
   },
   "scope": "version and byte-state confirmation only; no model inference or source edits"
 }

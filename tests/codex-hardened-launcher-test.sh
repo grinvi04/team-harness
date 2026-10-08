@@ -39,6 +39,14 @@ TOML
 cat >"$TMP/fake-codex" <<'SH'
 #!/usr/bin/env bash
 set -euo pipefail
+if [[ -n "${HARNESS_M3E_EFFECTS_DIR:-}" ]]; then
+  mkdir -p "$HARNESS_M3E_EFFECTS_DIR"
+  node - "$@" <<'NODE'
+const fs = require('node:fs');
+const args = process.argv.slice(2);
+fs.appendFileSync(`${process.env.HARNESS_M3E_EFFECTS_DIR}/launcher-official-calls.jsonl`, JSON.stringify({args,syncFailure:process.env.SYNC_FAIL==='1',pluginRoot:process.env.NATIVE_PLUGIN_ROOT})+'\n');
+NODE
+fi
 if [[ "$*" == "plugin list --json" ]]; then
   if [[ "${SYNC_FAIL:-}" == "1" ]]; then
     echo "sync failed" >&2
@@ -53,18 +61,38 @@ const fs = require('node:fs');
 const path = require('node:path');
 const home = process.argv[2];
 const fail = (message) => { console.error(`FAIL: ${message}`); process.exit(1); };
-for (const relative of [
-  '.codex/plugins/cache/claude-plugins-official/security-guidance/2.0.6/hooks/hooks.json',
-  '.codex/.tmp/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/hooks.json',
-]) {
-  const hooks = JSON.parse(fs.readFileSync(path.join(home, relative), 'utf8'));
-  if (!hooks.hooks.SessionStart[0].hooks[0].command.includes('codex-security-guidance-adapter.mjs')) fail(`security patch missing: ${relative}`);
+const beforePath = path.join(home, 'security-before.json');
+const before = JSON.parse(fs.readFileSync(beforePath, 'utf8'));
+for (const [relative, contents] of before) {
+  const file = path.join(home, relative);
+  if (contents === null) {
+    if (fs.existsSync(file)) fail(`optional security state unexpectedly created: ${relative}`);
+  } else if (fs.readFileSync(file, 'utf8') !== contents) {
+    fail(`optional security state mutated: ${relative}`);
+  }
 }
-if (!fs.readFileSync(path.join(home, '.codex/config.toml'), 'utf8').includes('enabled = true')) fail('security-guidance was not enabled');
 NODE
 printf '%s\n' "$@" >"$HOME/invocation"
 SH
 chmod +x "$TMP/fake-codex"
+
+snapshot_security() {
+  node - "$TMP" <<'NODE'
+const fs = require('node:fs');
+const path = require('node:path');
+const home = process.argv[2];
+const paths = [
+  '.codex/plugins/cache/claude-plugins-official/security-guidance/2.0.6/hooks/hooks.json',
+  '.codex/.tmp/marketplaces/claude-plugins-official/plugins/security-guidance/hooks/hooks.json',
+  '.codex/config.toml',
+];
+fs.writeFileSync(path.join(home, 'security-before.json'), JSON.stringify(paths.map(relative => {
+  const file = path.join(home, relative);
+  return [relative, fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null];
+})));
+NODE
+}
+snapshot_security
 
 HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version
 if [[ "$(cat "$TMP/invocation")" != '--version' ]]; then
@@ -75,6 +103,19 @@ if [[ "$(wc -l <"$TMP/plugin-list-invocations" | tr -d ' ')" -lt 2 ]]; then
   echo "FAIL: launcher did not sync and validate the installed plugin"
   exit 1
 fi
+
+echo 'PASS: startup leaves installed optional security hooks and enablement byte-identical'
+# Existing optional adapters remain untouched; enabling is a separate user choice.
+HOME="$TMP" node "$ROOT/plugins/harness-guard/scripts/patch-codex-security-guidance.mjs" --apply >"$TMP/optional-apply.json"
+snapshot_security
+HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version
+[[ "$(cat "$TMP/invocation")" = '--version' ]] || { echo 'FAIL: existing optional adapter stopped startup'; exit 1; }
+echo 'PASS: startup preserves explicitly enabled legacy optional advisory registration'
+rm "$SECURITY_CACHE" "$SECURITY_SNAPSHOT" "$TMP/.codex/config.toml"
+snapshot_security
+HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version
+[[ "$(cat "$TMP/invocation")" = '--version' ]] || { echo 'FAIL: absent optional security plugin stopped startup'; exit 1; }
+echo 'PASS: startup works without optional security-guidance/config and creates none'
 
 rm "$TMP/invocation"
 if HOME="$TMP" HARNESS_HARDENED_FIXTURE=1 SYNC_FAIL=1 SOURCE_VERSION="$SOURCE_VERSION" NATIVE_PLUGIN_ROOT="$NATIVE_PLUGIN_ROOT" CODEX_BIN="$TMP/fake-codex" bash "$LAUNCHER" --version >"$TMP/sync-fail.out" 2>"$TMP/sync-fail.err"; then
@@ -232,7 +273,8 @@ else
   echo "PASS: atomic suspended-spawn test is macOS-only"
 fi
 
-for document in "$ROOT/README.md" "$ROOT/docs/onboarding.md" "$ROOT/docs/harness-maintenance.md"; do
+grep -Fq 'docs/harness-setup.md' "$ROOT/README.md" || { echo 'FAIL: README setup entry is missing'; exit 1; }
+for document in "$ROOT/docs/harness-setup.md" "$ROOT/docs/onboarding.md" "$ROOT/docs/harness-maintenance.md"; do
   grep -Fq 'scripts/codex-hardened.sh --version' "$document" || { echo "FAIL: update command missing from ${document#"$ROOT"/}"; exit 1; }
   grep -Fq 'scripts/harness-doctor.sh --repo . --probe' "$document" || { echo "FAIL: post-update probe missing from ${document#"$ROOT"/}"; exit 1; }
 done
