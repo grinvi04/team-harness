@@ -31,12 +31,12 @@
 
 ### Task 2: QA·리뷰·복구·태그 판정
 
-상태: not started. [세부 계획·AC-Q1–Q5](harness-modernization/plan/02-qa-delivery.md).
+상태: in progress. [세부 계획·AC-Q1–Q5](harness-modernization/plan/02-qa-delivery.md).
 실패/빈 실행/uncertain이 PASS로 숨겨지지 않고 PR head·새 thread·복원 정책·merge SHA·생성 결과가 정확해야 한다.
 
 ### Task 3: 모델·전역 설정·native 대체
 
-상태: not started. [세부 계획·AC-M1–M6](harness-modernization/plan/03-model-global.md).
+상태: in progress. [세부 계획·AC-M1–M6](harness-modernization/plan/03-model-global.md).
 Sol 6.1 일반 작업·Astra 중요 판단의 합의에서 지원/권한/같은 과제 품질·총사용량을 확인하고 실제 역할을 선정한다.
 Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 대화 메모리 입력·안전한 적용/복구를 함께 확인한다.
 
@@ -59,3 +59,8 @@ Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 
 - 권한 제약: native 협업 역할의 read-only 선언과 실행 workspace-write 차이를 보존했다. 지원 실행 경로에서 실제 차단을 확인한다.
 - 현재 안내·진행 갱신 대상: 이 스펙/단계 문서, 관련 표준·caller·consumer 문서, `.project-map/`.
 - raw 실행 기록은 이 스펙 소유 실행 공간에 저장하고 완료 때 필요한 증거만 후보와 함께 보존한다.
+
+- 2026-10-09: 1A/1B/1C/1E의 영향 시험 및 2E 생성기 시험 통과. 1D·2A·2B·2C 영향 시험 통과; 2D 진행 중. 전체 인수·실제 적용·발행은 남아 있다.
+- 2026-10-09: 2C의 설정 적용/실패와 단언 감소 시험 통과. count-only gate와 실행 QA의 역할을 구분해 완료 기준을 명확히 했다.
+
+- 2026-10-09: Claude 터미널을 공식 update로 2.1.295로 갱신했다. 최신 모델 호출·effort·실제 앱 실행 확인은 별도 진행 중.

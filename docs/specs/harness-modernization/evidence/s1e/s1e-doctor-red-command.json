@@ -1,0 +1,14 @@
+{
+  "command": "node --input-type=module - <root> <temporary> (profile-lifecycle-test.sh path/doctor heredoc)",
+  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "phase": "doctor registration RED",
+  "timestamp": "2026-10-08T21:34:36.878034+00:00",
+  "sha256": {
+    "scripts/manage-profile.mjs": "930c693011a1c922c9779aab51e90a7e6818f817491097f5a0689fefd59fde6c",
+    "scripts/profile-doctor.mjs": "825e0af4212d56014554073f2e1451619c90967c6dbb2bc8bf97dce861980b83",
+    "tests/profile-lifecycle-test.sh": "d21e57f8b2753038efc0a79bbdc596bd71c265becf80e7c9230e75be60ca7571"
+  },
+  "exit_code": 1,
+  "stdin_file": ".superpowers/sdd/harness-modernization/s1e-doctor-red-input.mjs",
+  "stdin_sha256": "4ebead25bc30192015e81bfd91acf1e2f5da4786a05c84c20606544e00f56a99"
+}

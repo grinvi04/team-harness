@@ -1,0 +1,132 @@
+{
+  "task": "Harness modernization 1C / AC-S3",
+  "scope": "Static checkers and literal regressions only; no database, network, deployment, global changes.",
+  "status": "Bounded implementation and local checks verified; parent owns independent integrated review, shared guides, version and delivery.",
+  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "head": "50ffec700b39176609e0951ca758a7b817f930d3",
+  "candidate": "Uncommitted owned files; HEAD alone does not identify this candidate.",
+  "candidateManifest": ".superpowers/sdd/harness-modernization/s1c-green-final-header-candidate.json",
+  "candidateManifestSha256": "0c62c74bddfe2f83ff7fe84fa7b28cb70cbeae3bd85bc8e96606b255773ab1bc",
+  "diff": "evidence/s1c/s1c-final.diff.gz",
+  "ownedSha256": {
+    "scripts/check-alembic-destructive-ddl.mjs": "8521ff57cecdb6a635c11764ee27763aeade893ec121d180e7a3e3ae0f2e4539",
+    "scripts/check-activerecord-destructive-ddl.mjs": "219175bd11571f35db3cbae0a6bbbca38f0657d1ee8b2e46d90e2ab7d61238e6",
+    "scripts/check-destructive-ddl.mjs": "3133953ae8663304723272478d9210bc2d324d074a06b9c89cd6078b01cd3284",
+    "tests/alembic-destructive-ddl-test.sh": "1d98ed69b179832eba04912fe5bbbf8646a84a41901ef7f19fc6c646d5527b4a",
+    "tests/activerecord-destructive-ddl-test.sh": "8c4bfd3c3ccc6b872ea58bc1a58dbc2aa4e3b6b890e37126e80bfc2c6d694d9b",
+    "tests/destructive-ddl-test.sh": "0e76e1245d97fe2be42e7639056549af765bf922faf56ab5b7b29e57b0fcbd1b"
+  },
+  "requirements": [
+    "One-line Python upgrade suites detect destructive ops/raw SQL; typed definitions and semicolons preserve scope/marker boundaries.",
+    "Ruby tab separators detect drop_table, drop_join_table, remove_column and remove_columns.",
+    "ALTER TABLE DROP detects omitted COLUMN, IF EXISTS, comments and quoted identifiers; constraint/index/attribute drops pass.",
+    "ORM raw MySQL executable comments retain executable contents and version handling; ordinary comments/SQL strings stay opaque.",
+    "Only real host-language approval comments grant ORM approval; markers inside SQL strings do not.",
+    "Outside SQL migration roots remains skip; fingerprint, rollback, helper and normal inputs preserve scan contracts."
+  ],
+  "originalProbes": {
+    "records": "docs/specs/harness-modernization/ddl-probes/results.json",
+    "retries": "docs/specs/harness-modernization/ddl-probes/retries.json",
+    "note": "Initial SQL migrations/ path was outside documented scan roots and skipped. Corrected db/migration/ probe and originals remain preserved."
+  },
+  "red": {
+    "command": "python3 .superpowers/sdd/harness-modernization/s1c-runner.py red",
+    "records": ".superpowers/sdd/harness-modernization/s1c-red-records.jsonl",
+    "candidateManifest": ".superpowers/sdd/harness-modernization/s1c-red-candidate.json",
+    "directCheckerMismatches": 24,
+    "suiteResults": [
+      "alembic exit 1 PASS=48 FAIL=11",
+      "activerecord exit 1 PASS=53 FAIL=10",
+      "sql exit 1 PASS=100 FAIL=3"
+    ],
+    "reason": "Real checkers returned 0 for supported destructive inputs; existing assertions were preserved."
+  },
+  "redQuoted": {
+    "command": "python3 .superpowers/sdd/harness-modernization/s1c-runner.py red-quoted",
+    "records": ".superpowers/sdd/harness-modernization/s1c-red-quoted-records.jsonl",
+    "candidateManifest": ".superpowers/sdd/harness-modernization/s1c-red-quoted-candidate.json",
+    "directCheckerMismatches": 10,
+    "suiteResults": [
+      "alembic exit 1 PASS=59 FAIL=4",
+      "activerecord exit 1 PASS=63 FAIL=4",
+      "sql exit 1 PASS=104 FAIL=2"
+    ],
+    "reason": "Quoted omitted-COLUMN inputs missed; quoted keywords and unrelated post-semicolon DROP VIEW falsely rejected."
+  },
+  "green": {
+    "command": "python3 .superpowers/sdd/harness-modernization/s1c-runner.py green-final-header",
+    "records": ".superpowers/sdd/harness-modernization/s1c-green-final-header-records.jsonl",
+    "directCheckerCases": 58,
+    "directCheckerMismatches": 0,
+    "syntax": "Python ast.parse: 26 fixtures PASS; ruby -c: 23 fixtures PASS; no migration execution.",
+    "tests": [
+      {
+        "command": [
+          "bash",
+          "tests/alembic-destructive-ddl-test.sh"
+        ],
+        "exit": 0,
+        "log": "evidence/s1c/s1c-green-final-header-alembic-destructive-ddl.log.gz"
+      },
+      {
+        "command": [
+          "bash",
+          "tests/activerecord-destructive-ddl-test.sh"
+        ],
+        "exit": 0,
+        "log": "evidence/s1c/s1c-green-final-header-activerecord-destructive-ddl.log.gz"
+      },
+      {
+        "command": [
+          "bash",
+          "tests/destructive-ddl-test.sh"
+        ],
+        "exit": 0,
+        "log": "evidence/s1c/s1c-green-final-header-destructive-ddl.log.gz"
+      },
+      {
+        "command": [
+          "bash",
+          "tests/migration-safety-test.sh"
+        ],
+        "exit": 0,
+        "log": "evidence/s1c/s1c-green-final-header-migration-safety.log.gz"
+      }
+    ],
+    "totals": [
+      "alembic PASS=64 FAIL=0",
+      "activerecord PASS=67 FAIL=0",
+      "sql PASS=106 FAIL=0",
+      "migration-safety PASS=41 FAIL=0"
+    ]
+  },
+  "validation": {
+    "nodeCheck": "All three checkers exit 0; changed Alembic rechecked after final patch: s1c-validation-node-check-alembic-final.log; others remain byte-identical.",
+    "bashSyntax": "All three tests exit 0; changed Alembic rechecked: s1c-validation-bash-check-alembic-final.log; others remain byte-identical.",
+    "diffCheck": "Final owned diff exit 0: s1c-validation-diff-check-final.log.",
+    "freshness": "64 checker/test/fixture hashes matched current owned source after final run.",
+    "environment": "Node v22.18.0, Python 3.9.6, Ruby 2.6.10; version commands preserved in s1c-validation-*-version.log.",
+    "stackRules": "Repository .claude/rules/ absent; no stack-specific rule available.",
+    "reportRetry": "First report generation KeyError preserved in s1c-report-first-error.log; corrected selection handles syntax records without command."
+  },
+  "sourceBoundary": {
+    "sqlGrammar": "Supplied review S13/S14 cite PostgreSQL ALTER TABLE and MySQL executable comment grammar; no live lookup or database syntax execution.",
+    "limits": "Existing dynamic SQL/helper/full-parser limits remain. Representative static classification, not complete database semantics."
+  },
+  "parentGuideUpdates": [
+    "docs/db-standards.md",
+    "docs/specs/alembic-destructive-ddl.md",
+    "docs/specs/rails-stack-completion.md",
+    "docs/specs/secret-runbook-ddl-gate.md",
+    "docs/specs/harness-modernization/plan/01-safety.md"
+  ],
+  "remaining": "No bounded local failure; whole quality/CI, independent review, commit/PR/merge/release/install not claimed by worker.",
+  "redHeader": {
+    "command": "python3 .superpowers/sdd/harness-modernization/s1c-runner.py red-header",
+    "records": ".superpowers/sdd/harness-modernization/s1c-red-header-records.jsonl",
+    "candidateManifest": ".superpowers/sdd/harness-modernization/s1c-red-header-candidate.json",
+    "suite": "Alembic exit 1 PASS=63 FAIL=1; other three suites passed.",
+    "reason": "Colon split incorrectly credited a multiline def-header trailing marker as a preceding comment for the next body op; restrict split to actual inline suites."
+  },
+  "raw_log_encoding": "gzip; lossless original bytes, see evidence/encoded-files.json for decoded SHA256. Plain controlled evidence was secret-scanned before encoding."
+}

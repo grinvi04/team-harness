@@ -1,0 +1,47 @@
+{
+  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "timestamp": "2026-10-08T21:36:28.799090+00:00",
+  "commands": [
+    {
+      "argv": [
+        "node",
+        "--check",
+        "scripts/manage-profile.mjs"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "node",
+        "--check",
+        "scripts/profile-doctor.mjs"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "bash",
+        "-n",
+        "tests/profile-lifecycle-test.sh"
+      ],
+      "exit_code": 0
+    },
+    {
+      "argv": [
+        "git",
+        "diff",
+        "--check",
+        "--",
+        "scripts/manage-profile.mjs",
+        "scripts/profile-doctor.mjs",
+        "tests/profile-lifecycle-test.sh"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "sha256": {
+    "scripts/manage-profile.mjs": "930c693011a1c922c9779aab51e90a7e6818f817491097f5a0689fefd59fde6c",
+    "scripts/profile-doctor.mjs": "7091d0cbc256b855e6a36ccb54ffcbc41ff06260eb26078a8f0da3afc883e84b",
+    "tests/profile-lifecycle-test.sh": "d21e57f8b2753038efc0a79bbdc596bd71c265becf80e7c9230e75be60ca7571"
+  }
+}

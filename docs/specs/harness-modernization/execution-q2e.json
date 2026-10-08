@@ -1,0 +1,83 @@
+{
+  "task": "2E",
+  "branch": "fix/harness-modernization",
+  "source_revision_before_edits": "50ffec700b39176609e0951ca758a7b817f930d3",
+  "captured_at": "2026-10-09T06:33:36+09:00",
+  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "baseline": {
+    "templates/hooks/regen-arch-svg.sh": "2836773bda2c954c38f00b9c1dde7cf8ec8192393e124372fab5be92845387ad",
+    "templates/gen_arch_svg.py": "be83b326235358ba450399cbe04652cbf55defc250c208647aeec0a20f2ce40a",
+    "tests/architecture-generator-test.sh": "3a58ad9a4bb7351f06248c96456dbd289cc79e2e9321a2116d3e53126cc67c59"
+  },
+  "candidate": {
+    "templates/hooks/regen-arch-svg.sh": "2d1fda6c0ab449eba4028260565a9bfa0d8560603ffb558e46ae0fbf4d3b9a01",
+    "templates/gen_arch_svg.py": "c402d60fa4b0edf294873aa4df201d1c10a7fd3013975a4104d7555c36ce7441",
+    "tests/architecture-generator-test.sh": "5d8ee10d6ad48cc88a427caba924cd355b25be85e9172d10c93684168991300f"
+  },
+  "checks": [
+    {
+      "name": "baseline RED",
+      "command": "bash tests/architecture-generator-test.sh",
+      "exit_code": 1,
+      "result": "EXPECTED_FAILURE",
+      "evidence": "evidence/q2e/q2e-red.log.gz",
+      "detail": "2 passed, 3 failed: malformed JSON false success, collision output, and invalid XML were detected"
+    },
+    {
+      "name": "generator and hook regression",
+      "command": "bash tests/architecture-generator-test.sh",
+      "exit_code": 0,
+      "result": "PASS",
+      "evidence": "evidence/q2e/q2e-green.log.gz",
+      "detail": "5 passed, 0 failed; malformed/nonapplicable/applicable hook input, real collision with original-file preservation, and XML parse round-trip"
+    },
+    {
+      "name": "Bash syntax",
+      "command": "bash -n templates/hooks/regen-arch-svg.sh tests/architecture-generator-test.sh",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "Python syntax",
+      "command": "PYTHONPYCACHEPREFIX=<temporary directory> python3 -m py_compile templates/gen_arch_svg.py",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "Ruff lint",
+      "command": "ruff check --line-length 100 --select E,F,W templates/gen_arch_svg.py",
+      "exit_code": 127,
+      "result": "UNVERIFIED",
+      "detail": "ruff executable is not installed; no installation attempted"
+    },
+    {
+      "name": "Ruff format",
+      "command": "ruff format --line-length 100 --check templates/gen_arch_svg.py",
+      "exit_code": 127,
+      "result": "UNVERIFIED",
+      "detail": "ruff executable is not installed; no installation attempted"
+    }
+  ],
+  "scope_notes": [
+    "Temporary projects, files, and SVG output were used; no consumer or production asset was accessed.",
+    "The new test is not yet connected to quality CI; parent owns that integration.",
+    "Independent final review is owned by the parent."
+  ],
+  "run_log": "evidence/q2e/q2e-run.log.gz",
+  "integration_verification": {
+    "ruff_version": "0.15.15",
+    "runner": "uvx with private temporary UV_TOOL_DIR and UV_CACHE_DIR",
+    "first_attempt": "exit 2: default tools directory is outside writable sandbox",
+    "lint": {
+      "command": "uvx ruff==0.15.15 check --line-length 100 --select E,F,W templates/gen_arch_svg.py",
+      "exit": 0,
+      "stdout": "All checks passed!"
+    },
+    "format": {
+      "command": "uvx ruff==0.15.15 format --line-length 100 --check templates/gen_arch_svg.py",
+      "exit": 0,
+      "stdout": "1 file already formatted"
+    }
+  },
+  "raw_log_encoding": "gzip; lossless original bytes, see evidence/encoded-files.json for decoded SHA256. Plain controlled evidence was secret-scanned before encoding."
+}

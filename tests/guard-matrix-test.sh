@@ -68,6 +68,10 @@ case_ "echo subshell mention (allow)"   0 "echo 'see (git push --force origin ma
 
 # ── reset --hard: DENY (변형/wrapper/LITE에서도) ──
 case_ "reset --hard"                    2 "git reset --hard HEAD~1"                      "$DEV"
+case_ "absolute reset even LITE" 2 '/usr/bin/git reset --hard HEAD~1' "$LITE"
+case_ "absolute rm validator even LITE" 2 '/bin/rm -rf tests' "$LITE"
+case_ "absolute normal git LITE" 0 '/usr/bin/git log --oneline' "$LITE"
+case_ "absolute normal rm LITE" 0 '/bin/rm output.log' "$LITE"
 case_ "reset 2-space --hard"            2 "git reset  --hard HEAD~1"                     "$DEV"
 case_ "reset arg-after --hard"          2 "git reset HEAD~1 --hard"                      "$DEV"
 case_ "reset git -C --hard"             2 "git -C . reset --hard"                        "$DEV"

@@ -20,6 +20,11 @@ effort: high
 
 ```bash
 git checkout main && git pull origin main
+BASE_SHA=$(git rev-parse HEAD)
+CURRENT=$(git describe --tags --abbrev=0 "$BASE_SHA" 2>/dev/null || echo "v0.0.0")
+[[ "$CURRENT" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "패치 기준 태그 확인 필요" >&2; exit 1; }
+PATCH=$(echo "$CURRENT" | awk -F. '{print $1"."$2"."$3+1}' | tr -d 'v')
+TAG="v$PATCH"
 git checkout -b hotfix/$FIX_NAME
 ```
 
@@ -72,19 +77,29 @@ Phase 2 ✅인 경우에만 진행.
 bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base main \
   --title "fix($FIX_NAME): $DESCRIPTION" \
   --body "긴급 수정: $DESCRIPTION"
+PR=$(gh pr view --json number --jq .number)
 ```
 
 **`pr-review-gate` 스킬의 전체 절차(1~7단계)**를 따른다 — AI 리뷰 처리·사람 승인·CI·
 commit-status·머지. 절차 본문은 그 스킬이 단일 출처, 여기에 복붙하지 않는다.
 
 ```bash
-# 2. 패치 버전 태그 (main 최신화 후 — 최신 태그 patch+1)
-git checkout main && git pull origin main
-CURRENT=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-PATCH=$(echo "$CURRENT" | awk -F. '{print $1"."$2"."$3+1}' | tr -d 'v')
-git tag "v$PATCH"
-git push origin --tags
-echo "✅ 태그: v$PATCH"
+# 2. 승인된 패치 태그를 이 PR의 실제 merge commit에만 연결한다.
+set -euo pipefail
+: "${PR:?머지한 PR 번호 필요}" "${TAG:?Phase 0에서 정한 패치 태그 필요}"
+[[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "잘못된 패치 태그" >&2; exit 1; }
+PR_STATE=$(gh pr view "$PR" --json state --jq .state)
+[ "$PR_STATE" = MERGED ] || { echo "PR이 머지되지 않음" >&2; exit 1; }
+MERGE_SHA=$(gh pr view "$PR" --json mergeCommit --jq .mergeCommit.oid)
+[[ "$MERGE_SHA" =~ ^[0-9a-fA-F]{40}$ ]] || { echo "merge SHA 확인 실패" >&2; exit 1; }
+git fetch --no-tags origin "$MERGE_SHA"
+git cat-file -e "$MERGE_SHA^{commit}"
+if git show-ref --verify --quiet "refs/tags/$TAG"; then
+  echo "이미 존재하는 태그: $TAG" >&2; exit 1
+fi
+git tag "$TAG" "$MERGE_SHA"
+git push origin "refs/tags/$TAG"
+echo "✅ 태그: $TAG ($MERGE_SHA)"
 # 버전 매니페스트(package.json·build.gradle 등)를 쓰는 프로젝트: main 직접 커밋이 차단되므로
 # 여기서가 아니라 PR 머지 전 hotfix 브랜치에서 미리 갱신한다 (release 브랜치 범프와 동일 패턴)
 ```

@@ -6,6 +6,9 @@
 > 기존 SVG 산출물(webhook-service·siku·DriveTree)은 그대로 유효 — **강제 마이그레이션 없음**(신규만 mermaid→PNG 기본).
 > 생성기 스크립트: [`templates/gen_arch_svg.py`](../templates/gen_arch_svg.py)
 
+생성기는 라벨 충돌에서 출력 파일을 쓰지 않고 실패한다. 텍스트·색상 속성은 XML로 escape한다.
+재생성 hook의 잘못된 JSON도 nonzero이며, 해당 파일이 아닌 정상 event만 비적용으로 끝난다.
+
 ---
 
 ## 1. 언제 커스텀 SVG를 쓰나 (정본 아님)

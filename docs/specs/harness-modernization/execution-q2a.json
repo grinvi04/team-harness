@@ -1,0 +1,118 @@
+{
+  "task": "Harness modernization 2A / AC-Q1",
+  "sourceRequirements": {
+    "candidate": "review/01-safety-runtime.md S09: reviewed head/base must identify actual merge candidate.",
+    "threads": "review/02-qa-delivery.md Q03: newly queried unresolved IDs must not expand processed thread selection."
+  },
+  "scope": "Owned merge wrapper, review skill/helper and tests only; all remote effects simulated by PATH-scoped gh/git fakes.",
+  "status": "Bounded local implementation verified; parent owns shared guides, packaging/caller adoption, independent review, whole quality/CI and delivery.",
+  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "head": "50ffec700b39176609e0951ca758a7b817f930d3",
+  "candidate": "Uncommitted owned bytes; HEAD alone is not this candidate.",
+  "candidateManifest": ".superpowers/sdd/harness-modernization/q2a-final-candidate.json",
+  "candidateManifestSha256": "d128cc13517efdb3d5f1951afd7bba43acb8f225375aa5d51fc2871ee4728844",
+  "ownedSha256": {
+    "plugins/harness-guard/scripts/pr-merge.sh": "4854a111ceef38f11bf85d9e944739040685cafd026399f3b574f897019a8651",
+    "plugins/harness-guard/skills/pr-review-gate/SKILL.md": "95c04a191c7bdbaeff0d17a9d1b580f4152e93f2e583e2a5669c5cbf93c2bc31",
+    "plugins/harness-guard/skills/pr-review-gate/review-thread-scope.mjs": "f4f4d1746e2f5b3d951af826d948578e1064d0387b5e1ae1b6074ec84c625979",
+    "tests/pr-merge-auto-test.sh": "e46c803285a72f6662a4c93ad1a00f2a9d4d78304f888ea79125fe622754efa1",
+    "tests/pr-create-test.sh": "933ef404998055a75b46c87a1cfaaf5772e8ce3a9e06348cf957e36046aa1a02"
+  },
+  "requiredBehavior": [
+    "Snapshot JSON base/head branch names and 40-hex OIDs before gates; requery after CI/threads/mergeable; failure/change must stop before merge.",
+    "Server merge request passes official --match-head-commit with the verified head.",
+    "Review skill passes --expected-head/--expected-base-oid and --base so changes before wrapper start cannot silently refresh an earlier review.",
+    "Preserve develop-only --auto, required CI, unresolved-thread and mergeable gates; fallback Actions check uses captured head/branch.",
+    "Only explicit processed snapshot IDs reply/resolve; root-comment identity, candidate and complete selection validate before mutation.",
+    "Missing/malformed/duplicate/out-of-snapshot selections or missing reply/evidence fail; newly fetched threads remain unprocessed.",
+    "Fresh unresolved requery is mandatory; failed/malformed requery is not zero and partial effects are not completion."
+  ],
+  "redMerge": {
+    "command": "bash tests/pr-merge-auto-test.sh",
+    "exit": 1,
+    "summary": "PASS=38 FAIL=11",
+    "log": "evidence/q2a/q2a-red-merge.log.gz",
+    "candidateManifest": ".superpowers/sdd/harness-modernization/q2a-red-merge-candidate.json",
+    "reason": "Original wrapper merged drift/failed-metadata scenarios and omitted exact expected head flag."
+  },
+  "originalThreadProbe": {
+    "command": "bash .superpowers/sdd/harness-modernization/q2a-original-thread-probe/original-block.sh",
+    "actualExit": 0,
+    "expected": "Only previously reviewed PRRT_reviewed may resolve; PRRT_new remains unresolved.",
+    "actual": "Original shipped resolve block requested both freshly queried IDs, including unprocessed PRRT_new.",
+    "sourceSkillSha256": "2529d408dacce71469853b9b1376a64be008e6b0bb47c54ef2b733224356f12b",
+    "executedBlockSha256": "b0d47c48734fe197ddf42e8fb94dbbca843470c8e8c453d8d38abd2b1b061890",
+    "result": ".superpowers/sdd/harness-modernization/q2a-original-thread-probe/result.json",
+    "rawCalls": ".superpowers/sdd/harness-modernization/q2a-original-thread-probe/calls.jsonl"
+  },
+  "firstHelperRed": {
+    "command": "bash tests/pr-create-test.sh",
+    "exit": 1,
+    "summary": "PASS=8 FAIL=1",
+    "log": "evidence/q2a/q2a-red-thread-helper.log.gz",
+    "reason": "New executable helper did not exist; original skill defect separately executed above. No runtime result fabricated."
+  },
+  "intermediateResults": [
+    "q2a-green-merge-first.log: exit 1 PASS=48 FAIL=1. A new assertion incorrectly included legitimate post-merge cleanup reads; restricted assertion to pre-merge reads.",
+    "q2a-red-expected.log: exit 1 PASS=49 FAIL=3. Expected-candidate flags absent; first effect-copy errors before fake gh invocation preserved; test initializes empty call log now.",
+    "q2a-green-thread-first.log and q2a-green-thread-expanded.log: exit 0 PASS=9 FAIL=0; cases expanded without hiding previous results.",
+    "q2a-skill-receiver-first.log: exit 0; shipped skill snapshot/template/resolve/merge blocks executed with fake gh/git."
+  ],
+  "green": {
+    "command": "python3 .superpowers/sdd/harness-modernization/q2a-runner.py",
+    "records": ".superpowers/sdd/harness-modernization/q2a-final-records.json",
+    "tests": [
+      {
+        "command": [
+          "bash",
+          "tests/pr-merge-auto-test.sh"
+        ],
+        "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+        "exit": 0,
+        "summary": "결과: PASS=55 FAIL=0",
+        "log": "evidence/q2a/q2a-final-pr-merge-auto-test.log.gz",
+        "rawEffects": ".superpowers/sdd/harness-modernization/q2a-final-effects-pr-merge-auto-test",
+        "effectFileCount": 38
+      },
+      {
+        "command": [
+          "bash",
+          "tests/pr-create-test.sh"
+        ],
+        "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+        "exit": 0,
+        "summary": "결과: PASS=9 FAIL=0",
+        "log": "evidence/q2a/q2a-final-pr-create-test.log.gz",
+        "rawEffects": ".superpowers/sdd/harness-modernization/q2a-final-effects-pr-create-test",
+        "effectFileCount": 37
+      }
+    ],
+    "wrapperScenarios": 19,
+    "threadBehavioralCases": 37,
+    "skillPhysicalLines": 152,
+    "syntax": "Owned wrapper/test Bash syntax, helper Node syntax and all eight shipped Bash blocks: exit 0.",
+    "diffCheck": "Owned diff check exit 0; new helper is separately syntax/runtime tested.",
+    "freshness": "Final five owned file SHA-256 values match current source after execution."
+  },
+  "limits": [
+    "Base metadata requery is not an atomic server base compare; subsequent base races still require strict required CI and current protected base policies.",
+    "Head CAS is wired and fake-request arguments verified; no real server merge or protection mutation was performed.",
+    "Reply/resolve are separate API actions; partial effects and retry duplicate replies are reported, not treated as atomic completion.",
+    "Evidence string presence is mechanical input validation, not proof of correct review; original finding/current code/test evidence must be evaluated.",
+    "Remote GraphQL/REST helper execution was not run; response/error/pagination contracts exercised with explicit fake API fixtures.",
+    "Parent owns flagship/shared callers/packaging/whole quality/CI; not claimed complete by this worker."
+  ],
+  "officialReferences": [
+    "https://cli.github.com/manual/gh_pr_merge (current public manual confirms --match-head-commit).",
+    "https://docs.github.com/en/rest/pulls/comments#create-a-reply-for-a-review-comment (reply must target top-level review comment).",
+    "Local gh pr view --help lists baseRefOid/headRefOid JSON fields. Local batch containing gh pr merge --help was blocked by guard; no bypass. Parent authorized public official docs instead."
+  ],
+  "parentIntegration": [
+    "docs/code-review.md",
+    "docs/specs/harness-modernization/plan/02-qa-delivery.md",
+    "tests/flagship-skills-test.sh",
+    "packaging/direct callers as needed"
+  ],
+  "diff": "evidence/q2a/q2a-final.diff.gz",
+  "raw_log_encoding": "gzip; lossless original bytes, see evidence/encoded-files.json for decoded SHA256. Plain controlled evidence was secret-scanned before encoding."
+}

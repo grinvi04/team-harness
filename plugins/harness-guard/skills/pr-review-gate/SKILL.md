@@ -11,7 +11,15 @@ description: 열린 PR의 AI 리뷰·사람 승인·CI·외부 배포 상태를 
 전제: `PR` = PR 번호. `OWNER_REPO`는 동적으로 구한다.
 ```bash
 OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+REVIEW_SCOPE="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/skills/pr-review-gate/review-thread-scope.mjs"
+REVIEW_DIR=$(mktemp -d)
+REVIEW_SNAPSHOT="$REVIEW_DIR/review.json"
+PROCESSED_REVIEW="$REVIEW_DIR/processed.json"
+node "$REVIEW_SCOPE" snapshot --repo "$OWNER_REPO" --pr "$PR" --output "$REVIEW_SNAPSHOT"
 ```
+
+snapshot 생성 실패·후보 변경은 미확인이므로 중단한다. snapshot은 정확한 head/base OID와 당시 미해결 thread·원래 root comment ID를 저장한다.
+리뷰 중 수정·push로 후보가 바뀌면 새 snapshot에서 현재 후보를 다시 검토한다. 이전에 처리한 ID를 자동 승인하지 않고, 새 thread도 처리 목록에 자동 추가하지 않는다.
 
 AI 리뷰는 PR 단계에서 Claude Code `/code-review`로 수행한다 (구독 포함, PR별 API 과금 없음 — 외부 AI 리뷰봇에 의존하지 않는다).
 사람 리뷰어의 인라인 코멘트도 같은 기준으로 처리한다.
@@ -50,39 +58,36 @@ gh api "repos/$OWNER_REPO/pulls/$PR/comments" \
 - ⚠️ 스레드는 **인라인 코멘트에 reply**(`pulls/<PR>/comments/<ID>/replies`) 후 GraphQL
   `resolveReviewThread`로 resolve. 일반 PR 코멘트(`issues/comments`)에 달면 안 됨.
 
-## 3. 스레드 reply + resolve
+## 3. 처리한 snapshot ID만 reply + resolve
+
+리뷰한 내용·수정 검증 또는 기각 근거를 확인한 뒤 **명시적으로 처리한 ID만** 입력한다.
+새로 조회한 unresolved 전체를 해결 목록으로 만들지 않는다. 동일 snapshot의 repo·PR·candidate를 보존하고
+`threads`에 처리한 항목의 `threadId`, 실제 `reply`, 검증/기각 근거 `evidence`를 넣는다.
+근거 문자열 존재는 검토의 정확성 보장이 아니므로 원래 지적·현재 코드·시험 결과를 직접 대조한다.
 
 ```bash
-# reply (인라인 코멘트 ID 기준)
-gh api "repos/$OWNER_REPO/pulls/$PR/comments/$COMMENT_ID/replies" -f body="<답변>"
+# 입력 뼈대만 생성한다. threads=[]는 아무 thread도 해결하지 않는다.
+node - "$REVIEW_SNAPSHOT" "$PROCESSED_REVIEW" <<'NODE'
+const fs = require('node:fs');
+const snapshot = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
+fs.writeFileSync(process.argv[3], JSON.stringify({repo: snapshot.repo, pr: snapshot.pr,
+  candidate: snapshot.candidate, threads: []}, null, 2), {flag: 'wx'});
+NODE
 ```
 
-resolve — **미해결 스레드를 한 번에**. (주의: zsh는 변수 단어분리 안 함 → `while read` 사용. GraphQL ID는 `-F` 변수로 전달)
+처리한 항목 형식: `{ "threadId": "PRRT_...", "reply": "수정·기각 답변", "evidence": "현재 후보의 시험 결과·근거" }`.
+snapshot 밖/중복 ID·잘못된 입력·근거 누락은 mutation 전에 거부한다. 후보 변경·조회 실패는 각 재조회 시 중단한다.
+helper는 snapshot의 원래 root comment에 REST reply를 달고, 그 **명시한 ID만** GraphQL resolve한다.
+reply·resolve 실패나 후보 변경은 완료로 보고하지 않는다. 일부 reply/resolve가 이미 실행됐다면 그 부분을
+그대로 보고하고 남은 항목만 다시 판단한다. 재실행의 reply 중복·원자적 일괄 처리를 보장하지 않는다.
+
 ```bash
-gh api graphql -f query='
-query($owner:String!,$name:String!,$pr:Int!,$endCursor:String){
-  repository(owner:$owner,name:$name){
-    pullRequest(number:$pr){ reviewThreads(first:100,after:$endCursor){ nodes{ id isResolved } pageInfo{hasNextPage endCursor} } }
-  }
-}' -F owner="${OWNER_REPO%/*}" -F name="${OWNER_REPO#*/}" -F pr="$PR" \
-  --paginate --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false) | .id' \
-| while IFS= read -r TID; do
-    [ -z "$TID" ] && continue
-    gh api graphql \
-      -f query='mutation($id:ID!){ resolveReviewThread(input:{threadId:$id}){ thread{isResolved} } }' \
-      -F id="$TID" --jq '.data.resolveReviewThread.thread.isResolved' | xargs echo "$TID ->"
-  done
+node "$REVIEW_SCOPE" resolve --snapshot "$REVIEW_SNAPSHOT" --processed "$PROCESSED_REVIEW"
 ```
 
-resolve 후 **미해결 0건 직접 확인** (위임 금지):
-```bash
-gh api graphql -f query='
-query($owner:String!,$name:String!,$pr:Int!,$endCursor:String){
-  repository(owner:$owner,name:$name){ pullRequest(number:$pr){ reviewThreads(first:100,after:$endCursor){ nodes{ isResolved } pageInfo{hasNextPage endCursor} } } }
-}' -F owner="${OWNER_REPO%/*}" -F name="${OWNER_REPO#*/}" -F pr="$PR" \
-  --paginate --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved==false) | .isResolved' | wc -l
-# → 0 이어야 다음 단계 진행
-```
+resolve 뒤 **미해결 0건을 직접 재조회**한다(위임 금지). helper의 최종 재조회가 `ready:true`와 exit 0이어야
+다음 단계로 진행한다. 신규/미처리 thread는 해결하지 않고 `unresolvedIds`에 남기며 exit 1로 중단한다.
+조회 실패를 0건으로 처리하지 않는다. snapshot·처리 ID·답변·근거·실행 결과는 기존 PR/검증 기록에 연결한다.
 
 ## 4. 사람 승인 확인 ← **팀 모드(승인요건 有)에서만**
 
@@ -111,7 +116,8 @@ gh pr checks "$PR" --watch --required
 
 `gh pr checks`는 GitHub check-run만 본다. 외부 배포 서비스는 **commit status**로 보고하므로 별도 확인.
 ```bash
-HEAD_SHA=$(gh pr view "$PR" --json headRefOid --jq .headRefOid)
+HEAD_SHA=$(node -e 'console.log(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).candidate.headRefOid)' "$REVIEW_SNAPSHOT")
+# snapshot의 head에 대응하는 commit status만 판정한다. 후보 변경 시 새 후보로 다시 검토한다.
 gh api "repos/$OWNER_REPO/commits/$HEAD_SHA/status" \
   --jq '"overall: \(.state)", (.statuses[] | "\(.context): \(.state)")'
 ```
@@ -124,8 +130,17 @@ gh api "repos/$OWNER_REPO/commits/$HEAD_SHA/status" \
 
 이슈 처리·스레드 resolve(0건)·사람 승인·CI·commit-status 모두 통과 후, **머지 래퍼**로 머지한다(맨손 `gh pr merge`는 guard가 차단 — 래퍼가 CI·스레드·mergeable 게이트를 재검증한 뒤 머지):
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-merge.sh "$PR"
+REVIEW_CANDIDATE=$(node -e 'const c=JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).candidate; console.log([c.baseRefName,c.baseRefOid,c.headRefOid].join("|"))' "$REVIEW_SNAPSHOT") || exit 1
+IFS='|' read -r REVIEW_BASE REVIEW_BASE_OID REVIEW_HEAD_OID <<< "$REVIEW_CANDIDATE"
+bash "${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-merge.sh" "$PR" \
+  --base "$REVIEW_BASE" --expected-base-oid "$REVIEW_BASE_OID" --expected-head "$REVIEW_HEAD_OID"
 ```
+
+래퍼는 게이트 시작·종료의 head/base 이름과 JSON OID를 대조하고, 조회 실패/후보 변경을 거부한다.
+서버 merge에는 공식 `--match-head-commit`으로 검증 head를 결박한다([gh 문서](https://cli.github.com/manual/gh_pr_merge)).
+base 재조회는 원자적 서버 비교가 아니므로 이후 base race 제거를 보장하지 않는다. strict required CI와
+현재 protected base 정책이 계속 필요하며 정책을 완화해 통과시키지 않는다. `--auto`는 develop 전용이고
+required CI 없음·미해결 thread·mergeable 미통과를 계속 거부한다.
 
 ## 부록 — back-merge PR 간소 게이트
 
@@ -133,5 +148,5 @@ bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-
 **4(대상 브랜치의 현재 보호 정책이 요구할 때만 사람 승인)·5(CI)·7(머지)**를 적용한다.
 승인요건이 0이거나 없으면 4단계는 해당 없음이며, 1 이상이면 승인 확인을 유지한다.
 현재 보호 정책 조회에 실패하거나 결과가 불명확하면 승인요건 없음으로 추정하지 않고 미확인으로 보고 중단한다.
-본문에 "main PR #N과 동일 내용의 back-merge"임을 명시한다. 문서 상태 갱신·충돌 해소 등
+본문에 "main PR #N과 동일 내용의 back-merge"임을 명시한다. 간소 게이트도 시작 시 head/base snapshot을 만들고 7단계의 후보 결박을 유지한다. 문서 상태 갱신·충돌 해소 등
 추가 변경이 있으면 동일 내용으로 간주하지 않고 전체 절차로 그 변경을 검토한다.

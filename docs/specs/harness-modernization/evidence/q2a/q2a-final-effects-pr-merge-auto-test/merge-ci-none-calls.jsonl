@@ -1,0 +1,3 @@
+["repo", "view", "--json", "nameWithOwner", "--jq", ".nameWithOwner"]
+["pr", "view", "42", "--repo", "test/repo", "--json", "baseRefName,baseRefOid,headRefName,headRefOid"]
+["pr", "checks", "42", "--repo", "test/repo", "--required"]

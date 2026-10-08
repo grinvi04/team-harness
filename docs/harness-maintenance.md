@@ -154,3 +154,7 @@ node scripts/check-external-pilot-provenance.mjs \
   feature→develop→release→main. `ci-gate.yml`은 실제로 있으며 `[main, develop]` PR마다 실행된다.
 - **branch protection 적용됨**(2026-07 public 전환 #73 이후) — main·develop에 required status checks·force-push/삭제 차단·대화 resolve·`enforce_admins=on`. 현재 team-harness는 **팀 모드(main 승인1 + stale 승인 무효화, develop 승인0)** 다. `guard.sh` 훅·`.githooks/pre-commit`(dogfooding)은 직접커밋·맨손 gh 머지를 로컬에서 선차단하는 **방어심화 계층**으로 병존(서버 강제와 이중). 전환 완료 후 드리프트 점검 = `set-branch-protection.sh --check --approvals 1 --contexts quality,secret-scan,test-guard,commitlint-trusted,atomic-trust-macos`; `--contexts`를 주면 개수만이 아니라 exact set을 검증한다. main은 승인 수를 명시하고 develop 승인0과 나머지 불변식도 엄격하게 확인한다. 전환 진행 증거는 [#432](https://github.com/grinvi04/team-harness/issues/432)와 연결 PR이 정본이다.
 - `presentation.html` 등 발표 자료는 커밋 대상이 아니다 — repo는 운영 자산만
+
+Profile 경로는 JSON과 shell 양쪽에서 전체 파일 경로로 인용한다. doctor는 알려진 hook 등록과 정확한 실행 대상의 관계를 검사한다.
+이전 raw 경로 profile이 unhealthy이면 `manage-profile`의 기존 update 경로로 다시 바인딩한다. POSIX 역슬래시 경로의 Node ESM 실행은 지원 확인 밖이다.
+test-guard는 `check`/`case_` 등 단언 호출 줄의 감소와 조회 실패를 검사한다. 본문 의미·실행 수·실제 실패는 필수 시험의 실행 증거로 별도 확인한다.

@@ -1,0 +1,12 @@
+{
+  "command": "bash tests/profile-lifecycle-test.sh",
+  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "phase": "GREEN attempt 2; metadata command excluded; required paths plus apostrophe",
+  "timestamp": "2026-10-08T21:35:54.752915+00:00",
+  "sha256": {
+    "scripts/manage-profile.mjs": "930c693011a1c922c9779aab51e90a7e6818f817491097f5a0689fefd59fde6c",
+    "scripts/profile-doctor.mjs": "7091d0cbc256b855e6a36ccb54ffcbc41ff06260eb26078a8f0da3afc883e84b",
+    "tests/profile-lifecycle-test.sh": "d21e57f8b2753038efc0a79bbdc596bd71c265becf80e7c9230e75be60ca7571"
+  },
+  "exit_code": 0
+}

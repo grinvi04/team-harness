@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "bash",
+    "tests/codex-fresh-session-smoke-test.sh"
+  ],
+  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "sha256": {
+    "scripts/run-codex-native-loader-pilot.mjs": "38be6c1f3bd19af5d09e4b41fad749ee2f001fefc4a6aa74bd1d4691ed73ad88",
+    "scripts/codex-fresh-session-smoke.sh": "9d935894031f8a5f0b01e233015510a15b7df5d89743ec086ecc886b8085d13a",
+    "scripts/codex-binary-trust.mjs": "854ccb02ded8281e22d49d7c91a42c04b5cb8e98f0a5605810bb3c3dfe81d677",
+    "tests/codex-native-loader-pilot-test.sh": "4adb697c70400d260c59349f35d2ebc3958c59327dba05d84a1ab5575587d343",
+    "tests/codex-native-loader-report-test.sh": "9c8c0205f2254c3d3cd9b19f0e753f911172d38dcc1939768a8caf1bd05741dd",
+    "tests/codex-fresh-session-smoke-test.sh": "ef7db6fda83fd204b3801ad8f09aef670e8aa867c06d1d9efceb57a1ccc600f8"
+  },
+  "timestamp": "2026-10-08T21:48:50.267037+00:00",
+  "exit_code": 0
+}

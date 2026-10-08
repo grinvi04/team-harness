@@ -19,7 +19,7 @@ import {
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { inspectProfile, inspectProfileOwnership, treeDigest } from './profile-doctor.mjs'
+import { inspectProfile, inspectProfileOwnership, quoteShellPath, treeDigest } from './profile-doctor.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const catalogFile = path.join(root, 'packaging', 'packages.json')
@@ -68,14 +68,44 @@ function writeJson(file, value) {
 
 function resolveRuntimeBindings(packageRoot, unit, target) {
   const coreRoot = path.join(target, 'packages', 'harness-governance-core')
+  const consumers = new Map()
   for (const binding of unit.runtimeBindings || []) {
-    const consumer = path.join(packageRoot, binding.consumer)
+    if (!consumers.has(binding.consumer)) consumers.set(binding.consumer, [])
+    consumers.get(binding.consumer).push(binding)
+  }
+  for (const [consumerPath, bindings] of consumers) {
+    const consumer = path.join(packageRoot, consumerPath)
     const original = readFileSync(consumer, 'utf8')
-    const placeholder = `\${${binding.environment}}`
-    if (!original.includes(placeholder) && !original.includes(coreRoot)) {
-      throw new Error(`runtime binding placeholder missing: ${unit.id}:${binding.consumer}`)
+    let rewritten = original
+    const replacePaths = (command) => {
+      let result = command
+      for (const binding of bindings) {
+        result = result.replaceAll(
+          `\${${binding.environment}}/${binding.target}`,
+          quoteShellPath(path.join(coreRoot, binding.target)),
+        )
+      }
+      return result
     }
-    writeFileSync(consumer, original.replaceAll(placeholder, coreRoot))
+    if (consumerPath.endsWith('.json')) {
+      const config = JSON.parse(original)
+      function visit(value) {
+        if (!value || typeof value !== 'object') return
+        if (value.type === 'command' && typeof value.command === 'string') value.command = replacePaths(value.command)
+        for (const child of Object.values(value)) visit(child)
+      }
+      visit(config)
+      rewritten = `${JSON.stringify(config, null, 2)}\n`
+    } else {
+      for (const binding of bindings) {
+        rewritten = rewritten.replaceAll(`"\${${binding.environment}}"`, quoteShellPath(coreRoot))
+      }
+      rewritten = replacePaths(rewritten)
+    }
+    if (rewritten === original || bindings.some(binding => rewritten.includes(`\${${binding.environment}}`))) {
+      throw new Error(`runtime binding placeholder missing or unresolved: ${unit.id}:${consumerPath}`)
+    }
+    writeFileSync(consumer, rewritten)
   }
 }
 

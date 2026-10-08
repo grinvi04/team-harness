@@ -1,0 +1,71 @@
+{
+  "date": "2026-10-09",
+  "slice": "2B",
+  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "base_head": "50ffec700b39176609e0951ca758a7b817f930d3",
+  "source_hashes": {
+    "plugins/harness-guard/scripts/solo-merge.sh": "e5889b79b0460a040c8d73abe1f689b814c3437f396f9aecaaec3176a1c15f5e",
+    "plugins/harness-guard/skills/solo-merge/SKILL.md": "5dda0d6de5745e4f2ad0bb95bef977b424a9416ebc90bd70bede22b9b75ec4da",
+    "plugins/harness-guard/skills/hotfix/SKILL.md": "15695cba537106eb7a017f57c1db04dc0e7d50024c118b9b2e291ec18805c385",
+    "tests/solo-merge-test.sh": "96b10781e3047eb0b8cbd10f7f4fad8dbe50b2a44c646b49b78262b037a3512a",
+    "tests/hotfix-tag-test.sh": "78bc7ac460a902adc74d0857893be0d19397c3f887031890f8eb92f905face04",
+    "docs/code-review.md": "b71a8888564415d7132196ddcd0e1577e0447fe93d6e3459a9509f51e23810cf",
+    "docs/operations.md": "a69efb1170bacaaf4b249ed38266ff3579d57cc70bc5e2410344002aab3f66b9"
+  },
+  "scope": "Controlled Git/GitHub fake effect boundaries; no real protection, reply, merge, tag or remote writes.",
+  "results": [
+    {
+      "command": "bash tests/solo-merge-test.sh",
+      "stage": "original RED",
+      "counts": "42 PASS / 4 FAIL",
+      "exit": 1,
+      "raw": "evidence/q2b/q2b-red.log.gz"
+    },
+    {
+      "command": "bash tests/hotfix-tag-test.sh",
+      "stage": "original RED",
+      "counts": "0 PASS / 6 FAIL",
+      "exit": 1,
+      "raw": "evidence/q2b/q2b-hotfix-red.log.gz"
+    },
+    {
+      "command": "bash tests/solo-merge-test.sh",
+      "stage": "review snapshot RED",
+      "counts": "63 PASS / 2 FAIL",
+      "exit": 1,
+      "raw": "evidence/q2b/q2b-snapshot-red.log.gz"
+    },
+    {
+      "command": "bash tests/solo-merge-test.sh",
+      "stage": "final GREEN",
+      "counts": "65 PASS / 0 FAIL",
+      "exit": 0,
+      "raw": "evidence/q2b/q2b-green-final.log.gz"
+    },
+    {
+      "command": "bash tests/hotfix-tag-test.sh",
+      "stage": "GREEN",
+      "counts": "6 PASS / 0 FAIL",
+      "exit": 0,
+      "raw": "evidence/q2b/q2b-hotfix-green.log.gz"
+    }
+  ],
+  "intermediate_failures": [
+    "The first original GREEN required fixing fake PATCH response from writable strings to real API users/teams/apps objects; test expectation preserved.",
+    "After snapshot forwarding, Bash 3.2 nounset on an empty array caused 56 PASS/9 FAIL. Raw file was overwritten by final rerun; preceding tool output retained result/failing lines, so this is reported as a limited intermediate record. Changed invocation to nonempty array containing PR; final 65/0."
+  ],
+  "contracts": [
+    "Successful full protection GET and explicit nullable review policy before any DELETE/merge.",
+    "Malformed/missing/negative/fractional/bool count denied in Python and jq paths.",
+    "Original review payload and all other protection fields compared after restore; API URLs/set order normalized.",
+    "Existing merge failures/signals attempt trap restoration; SIGKILL/power/API failure not guaranteed.",
+    "Earlier review head/base flags checked before protection write and forwarded to actual merge wrapper.",
+    "Hotfix actual skill block pins requested tag to PR mergeCommit and pushes exactly that ref."
+  ],
+  "limits": [
+    "Full candidate independent read-only review and CI not yet performed.",
+    "No actual remote exception applied; prior PR489 approval not reused.",
+    "Normal-path readback proves restored policy only in checked fixture scope; signal path remains best effort."
+  ],
+  "raw_log_encoding": "gzip; lossless original bytes, see evidence/encoded-files.json for decoded SHA256. Plain controlled evidence was secret-scanned before encoding."
+}

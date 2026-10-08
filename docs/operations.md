@@ -80,7 +80,8 @@
    - `git filter-repo`(권장) 또는 BFG로 해당 파일·문자열 제거 후 force-push
    - ⚠️ **이미 clone/fork/캐시된 사본은 못 지운다** — purge는 노출 축소일 뿐 **폐기를 대체하지 않는다**.
      public이었으면 GitHub 지원에 캐시 무효화를 요청한다
-   - main/develop force-push는 branch protection이 막으므로 사람이 직접(break-glass·`solo-merge` 경유)
+   - main/develop force-push는 별도 소유자 승인과 보호 변경·복원 절차가 필요하다.
+     `solo-merge`는 리뷰 승인 요건만 다루며 force-push를 허용하지 않는다.
 4. **통지** — SEV1 선언 후:
    - `#incident` 스레드 + 리드 호출(§1의 IC/조치자 분리 적용 — 조치자가 폐기, IC가 전파)
    - 크레덴셜 소유 서드파티·영향받는 팀에 통지. 개인정보가 연루되면 고지 의무(법적 요건)를 확인

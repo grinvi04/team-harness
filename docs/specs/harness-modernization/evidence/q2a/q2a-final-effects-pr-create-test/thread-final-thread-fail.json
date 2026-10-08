@@ -1,0 +1,140 @@
+{
+  "scenario": "final-thread-fail",
+  "status": 1,
+  "stdout": "",
+  "stderr": "GitHub request failed: api\n",
+  "snapshot": {
+    "repo": "test/repo",
+    "pr": 42,
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "id": "PRRT_reviewed",
+        "commentId": 101
+      }
+    ]
+  },
+  "processed": {
+    "repo": "test/repo",
+    "pr": 42,
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "threadId": "PRRT_reviewed",
+        "reply": "Fixed and tested the reported branch.",
+        "evidence": "local regression result for aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "state": {
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "id": "PRRT_reviewed",
+        "commentId": 101,
+        "isResolved": true
+      }
+    ],
+    "replies": [
+      {
+        "comment": 101,
+        "body": "Fixed and tested the reported branch."
+      }
+    ],
+    "resolves": [
+      "PRRT_reviewed"
+    ],
+    "calls": [
+      [
+        "pr",
+        "view",
+        "42",
+        "--repo",
+        "test/repo",
+        "--json",
+        "baseRefName,baseRefOid,headRefName,headRefOid"
+      ],
+      [
+        "api",
+        "graphql",
+        "-f",
+        "query=query($owner:String!,$name:String!,$pr:Int!,$after:String){repository(owner:$owner,name:$name){pullRequest(number:$pr){reviewThreads(first:100,after:$after){nodes{id isResolved comments(first:1){nodes{databaseId}}} pageInfo{hasNextPage endCursor}}}}}",
+        "-F",
+        "owner=test",
+        "-F",
+        "name=repo",
+        "-F",
+        "pr=42"
+      ],
+      [
+        "pr",
+        "view",
+        "42",
+        "--repo",
+        "test/repo",
+        "--json",
+        "baseRefName,baseRefOid,headRefName,headRefOid"
+      ],
+      [
+        "pr",
+        "view",
+        "42",
+        "--repo",
+        "test/repo",
+        "--json",
+        "baseRefName,baseRefOid,headRefName,headRefOid"
+      ],
+      [
+        "api",
+        "repos/test/repo/pulls/42/comments/101/replies",
+        "-f",
+        "body=Fixed and tested the reported branch."
+      ],
+      [
+        "pr",
+        "view",
+        "42",
+        "--repo",
+        "test/repo",
+        "--json",
+        "baseRefName,baseRefOid,headRefName,headRefOid"
+      ],
+      [
+        "api",
+        "graphql",
+        "-f",
+        "query=mutation($id:ID!){resolveReviewThread(input:{threadId:$id}){thread{id isResolved}}}",
+        "-F",
+        "id=PRRT_reviewed"
+      ],
+      [
+        "api",
+        "graphql",
+        "-f",
+        "query=query($owner:String!,$name:String!,$pr:Int!,$after:String){repository(owner:$owner,name:$name){pullRequest(number:$pr){reviewThreads(first:100,after:$after){nodes{id isResolved comments(first:1){nodes{databaseId}}} pageInfo{hasNextPage endCursor}}}}}",
+        "-F",
+        "owner=test",
+        "-F",
+        "name=repo",
+        "-F",
+        "pr=42"
+      ]
+    ],
+    "finalThreadFail": true
+  }
+}

@@ -1,0 +1,197 @@
+{
+  "scope": "Task 1D / S04-S06 / AC-S4; controlled temporary source, binary and output fixtures only",
+  "product_gate": "connection: native loader/hook runtime delegated; approved candidate, executable and evidence bindings owned by Harness",
+  "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+  "head": "50ffec700b39176609e0951ca758a7b817f930d3",
+  "candidate": "uncommitted worktree; per-file SHA-256 plus archived source snapshots bind local evidence",
+  "qa": [
+    {
+      "risk": "Git clean/status can differ from actual bytes or inherit a different repository/index",
+      "cases": [
+        "assume-unchanged checker bytes",
+        "assume-unchanged manifest version",
+        "inherited GIT_DIR",
+        "inherited GIT_INDEX_FILE"
+      ],
+      "expected": "committed candidate executes, original working bytes preserved, source revision/tree match approved HEAD"
+    },
+    {
+      "risk": "raw smoke exec can launch a swapped executable",
+      "cases": [
+        "byte/inode replacement at first smoke invocation",
+        "same-byte inode replacement",
+        "source ancestor alias",
+        "live fixture seam rejection"
+      ],
+      "expected": "nonzero before replacement executes; normal three independent router-hook evidence sessions retained"
+    },
+    {
+      "risk": "publication can overwrite existing files or write into original/home through aliases",
+      "cases": [
+        "existing JSON/Markdown/guard/routing",
+        "symlink file",
+        "source/user CODEX_HOME target",
+        "source ancestor alias",
+        "same destination",
+        "concurrent creation of all four roles",
+        "parent replacement into source"
+      ],
+      "expected": "nonzero, owners preserved, source writes zero, partial owned publications rolled back"
+    },
+    {
+      "risk": "weak source snapshot or rejected input can produce false unchanged/missing evidence",
+      "cases": [
+        "ignored file-to-directory digest-stream collision",
+        "malformed committed manifest",
+        "existing dirty-source/user-drift/network failure cases"
+      ],
+      "expected": "typed fingerprint detects source change; rejected source and prior FAIL evidence remain preserved"
+    }
+  ],
+  "runs": [
+    {
+      "phase": "baseline",
+      "commands": "bash tests/{codex-native-loader-pilot,codex-native-loader-report,codex-fresh-session-smoke}-test.sh",
+      "exit_codes": [
+        0,
+        0,
+        0
+      ],
+      "logs_prefix": ".superpowers/sdd/harness-modernization/s1d-baseline-",
+      "sources_archived": true
+    },
+    {
+      "phase": "RED original candidate",
+      "commands": "bash tests/{codex-native-loader-pilot,codex-fresh-session-smoke}-test.sh",
+      "exit_codes": [
+        1,
+        1
+      ],
+      "reason": "15 native candidate/publication failures and 2 smoke invocation/fixture failures",
+      "logs_prefix": ".superpowers/sdd/harness-modernization/s1d-red-",
+      "sources_archived": true
+    },
+    {
+      "phase": "GREEN attempt 1, retained failure",
+      "native_exit": 1,
+      "report_exit": 0,
+      "smoke_exit": 0,
+      "launcher_exit": 0,
+      "reason": "materialized macOS path alias skipped trust CLI entry point",
+      "logs_prefix": ".superpowers/sdd/harness-modernization/s1d-green-1-"
+    },
+    {
+      "phase": "alias RED",
+      "exit_code": 1,
+      "reason": "source alias returned empty trust JSON; canonical CLI main detection required",
+      "log": "evidence/s1d/s1d-alias-red.log.gz"
+    },
+    {
+      "phase": "GREEN attempt 2, retained failure",
+      "native_exit": 1,
+      "smoke_exit": 0,
+      "launcher_exit": 0,
+      "reason": "post-publication comparison to original user state deleted previously required state-drift FAIL report; corrected to detect new publication drift",
+      "logs_prefix": ".superpowers/sdd/harness-modernization/s1d-green-2-"
+    },
+    {
+      "phase": "GREEN attempt 3",
+      "native_exit": 0,
+      "smoke_exit": 0,
+      "logs_prefix": ".superpowers/sdd/harness-modernization/s1d-green-3-"
+    },
+    {
+      "phase": "expanded smoke RED against archived raw-exec baseline",
+      "exit_code": 1,
+      "reason": "byte replacement, same-byte inode replacement and fixture seam all accepted by baseline",
+      "log": "evidence/s1d/s1d-expanded-smoke-red.log.gz",
+      "metadata": ".superpowers/sdd/harness-modernization/s1d-expanded-smoke-red-command.json"
+    },
+    {
+      "phase": "digest framing RED",
+      "exit_code": 1,
+      "reason": "ignored file content encoded identical directory-child digest stream; source change falsely reported unchanged",
+      "log": "evidence/s1d/s1d-digest-red.log.gz",
+      "sources_archived": true
+    },
+    {
+      "phase": "final native GREEN",
+      "argv": [
+        "bash",
+        "tests/codex-native-loader-pilot-test.sh"
+      ],
+      "exit_code": 0,
+      "new_case_results": "20 controlled candidate/publication/fingerprint cases PASS; existing normal/negative controls preserved",
+      "log": "evidence/s1d/s1d-green-4-codex-native-loader-pilot.log.gz",
+      "metadata": ".superpowers/sdd/harness-modernization/s1d-green-4-codex-native-loader-pilot-command.json"
+    },
+    {
+      "phase": "final smoke evidence reused",
+      "argv": [
+        "bash",
+        "tests/codex-fresh-session-smoke-test.sh"
+      ],
+      "exit_code": 0,
+      "reuse": "smoke/helper/test bytes unchanged since GREEN 3",
+      "log": "evidence/s1d/s1d-green-3-codex-fresh-session-smoke.log.gz"
+    },
+    {
+      "phase": "historical report gate reused",
+      "argv": [
+        "bash",
+        "tests/codex-native-loader-report-test.sh"
+      ],
+      "exit_code": 0,
+      "reuse": "historical release inputs/test unchanged; not current live runtime proof",
+      "log": "evidence/s1d/s1d-green-1-codex-native-loader-report.log.gz"
+    },
+    {
+      "phase": "related trust/atomic execution gate reused",
+      "argv": [
+        "bash",
+        "tests/codex-hardened-launcher-test.sh"
+      ],
+      "exit_code": 0,
+      "reuse": "trust helper unchanged since GREEN 2; macOS suspended-spawn control passed",
+      "log": "evidence/s1d/s1d-green-2-codex-hardened-launcher.log.gz"
+    },
+    {
+      "phase": "final syntax/diff",
+      "exit_codes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "log": "evidence/s1d/s1d-final-syntax.log.gz",
+      "metadata": ".superpowers/sdd/harness-modernization/s1d-final-syntax-command.json"
+    }
+  ],
+  "sha256": {
+    "scripts/run-codex-native-loader-pilot.mjs": "73eba77af06897bde714175d1efa86e864053fc48dc76137e92b05d1fc18aa1d",
+    "scripts/codex-fresh-session-smoke.sh": "9d935894031f8a5f0b01e233015510a15b7df5d89743ec086ecc886b8085d13a",
+    "scripts/codex-binary-trust.mjs": "854ccb02ded8281e22d49d7c91a42c04b5cb8e98f0a5605810bb3c3dfe81d677",
+    "tests/codex-native-loader-pilot-test.sh": "f6caaa5effa6550c48d89b1b9f421f7d058c4454398648988b216217c6907891",
+    "tests/codex-native-loader-report-test.sh": "9c8c0205f2254c3d3cd9b19f0e753f911172d38dcc1939768a8caf1bd05741dd",
+    "tests/codex-fresh-session-smoke-test.sh": "0013014b1be235b2ebdef357ee9a6a9b6bdd028eacb20b6eca473351f5d19495"
+  },
+  "limits": [
+    "No real Codex model sessions, network pilot, remote writes, global/user configuration edits, commits or staging",
+    "Normal runtime/guard transcript proof is fake-Codex fixture evidence; historical report gate preserves prior live evidence without rerunning it",
+    "Existing macOS digest/CDHash/signature/atomic spawn path retained; other live platforms continue fail-closed",
+    "Source snapshot covers path/type/mode/content and Git HEAD/tree/status; .git metadata contents are outside filesystem digest",
+    "Publication checks canonical parent identity before/after staging/linking and uses exclusive links; does not claim every hostile filesystem race is eliminated",
+    "Whole quality gate, independent integrated review, delivery and live pilot remain parent-owned and unclaimed"
+  ],
+  "required_parent_document_updates": [
+    "plan/01-safety.md 1D: mark controlled AC-S4 implementation/tests locally verified; independent/full-stage acceptance pending",
+    "review/01-safety-runtime.md S04/S05/S06: retain historical findings and link current execution-s1d.json",
+    "docs/harness-maintenance.md native pilot: committed checkout inputs, stripped GIT_* environment, existing report parent required, all four outputs outside source/user CODEX_HOME and no overwrite",
+    "Relevant smoke usage: every exec uses verified identity; fake binary/pre-exec seams require explicit fixture opt-in; existing sandbox/hook trust invocation options preserved"
+  ],
+  "verdict": "Required bounded local checks VERIFIED; whole candidate completion and independent review remain parent-owned",
+  "raw_log_encoding": "gzip; lossless original bytes, see evidence/encoded-files.json for decoded SHA256. Plain controlled evidence was secret-scanned before encoding."
+}

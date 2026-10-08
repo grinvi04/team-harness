@@ -707,7 +707,8 @@ function curlCommandInfo(tokens, index) {
 function wgetTargets(tokens, index) {
   const targets = []
   const valueOptions = new Set([
-    '--post-data', '--post-file', '-O', '--output-document', '-o', '--output-file',
+    '--post-data', '--post-file', '--body-data', '--body-file', '--method',
+    '-O', '--output-document', '-o', '--output-file',
     '-a', '--append-output', '-P', '--directory-prefix', '-U', '--user-agent',
     '--header', '--user', '--password', '--proxy-user', '--proxy-password',
     '--timeout', '--tries', '--wait', '--limit-rate', '--bind-address', '--referer',
@@ -1033,21 +1034,27 @@ function isSensitiveFilePath(token, activeExpansionOffsets = []) {
     isHighSignalCredentialPath(token, activeExpansionOffsets)
 }
 
-function isSensitiveFileReference(token, activeExpansionOffsets = []) {
+function isSensitiveFileReference(token, activeExpansionOffsets = [], option = '') {
   if (typeof token !== 'string') return false
-  const candidates = [{ value: token, startIndex: 0 }]
+  let candidates = [{ value: token, startIndex: 0 }]
   const equalIndex = token.indexOf('=')
-  if (equalIndex >= 0) {
+  if (['--url-query', '--data-urlencode'].includes(option)) {
+    // curl treats name=content and +query as literal data, name@file as a file.
+    if (equalIndex >= 0 || (option === '--url-query' && token.startsWith('+'))) return false
+    const atIndex = token.indexOf('@')
+    if (atIndex < 0) return false
+    candidates = [{ value: token.slice(atIndex), startIndex: atIndex }]
+  } else if (equalIndex >= 0) {
     candidates.push({
       value: token.slice(equalIndex + 1),
       startIndex: equalIndex + 1,
     })
   }
   return candidates.some(({ value, startIndex }) =>
-    value.startsWith('@') &&
+    (value.startsWith('@') || (option === '--form' && value.startsWith('<'))) &&
       isSensitiveFilePath(
-        value,
-        shiftedExpansionOffsets(activeExpansionOffsets, startIndex),
+        value.slice(1),
+        shiftedExpansionOffsets(activeExpansionOffsets, startIndex + 1),
       )
   )
 }
@@ -1103,7 +1110,7 @@ function hasCurlUpload(tokens, index) {
       if (['A', 'b', 'e'].includes(shortOption.name) && hasSecretSource(value)) return true
     }
     if (
-      /^--(?:expand-)?(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json)(?:=|$)/.test(option)
+      /^--(?:expand-)?(?:data(?:-ascii|-binary|-raw|-urlencode)?|form(?:-string)?|upload-file|json|url-query)(?:=|$)/.test(option)
     ) return true
     if (
       /^--expand-(?:header|proxy-header|cookie|referer|user-agent|url-query|request-target|url)(?:=|$)/.test(option)
@@ -1143,7 +1150,7 @@ function hasWgetEgress(tokens, index) {
   if (targets.some((target) => hasSecretSource(target) || hasUrlUserinfo(target))) return true
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
-    if (/^--post-(?:data|file)(?:=|$)/.test(option)) return true
+    if (/^--(?:post|body)-(?:data|file)(?:=|$)/.test(option)) return true
     if (
       option === '--header' &&
       (isAuthorizationHeader(tokens[offset + 1] || '') || hasSecretSource(tokens[offset + 1] || ''))
@@ -1253,7 +1260,7 @@ const secretSourcePattern = new RegExp(
 function curlSensitiveFileSource(tokens, activeShellExpansionOffsets, index) {
   const directOptions = new Set(['--config', '--cookie', '--netrc-file', '--upload-file'])
   const referenceOptions =
-    /^--(?:data(?:-ascii|-binary|-urlencode)?|form|header|json|proxy-header)$/
+    /^--(?:data(?:-ascii|-binary|-urlencode)?|form|header|json|proxy-header|url-query)$/
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
     const shortOption = curlShortValueOption(option)
@@ -1273,7 +1280,7 @@ function curlSensitiveFileSource(tokens, activeShellExpansionOffsets, index) {
       ) return true
       if (
         ['d', 'F', 'H'].includes(shortOption.name) &&
-        isSensitiveFileReference(optionValue, valueOffsets)
+        isSensitiveFileReference(optionValue, valueOffsets, shortOption.name === 'F' ? '--form' : '')
       ) return true
       if (shortOption.consumesNext) offset += 1
       continue
@@ -1290,6 +1297,7 @@ function curlSensitiveFileSource(tokens, activeShellExpansionOffsets, index) {
       isSensitiveFileReference(
         tokens[offset + 1] || '',
         activeShellExpansionOffsets[offset + 1],
+        option,
       )
     ) return true
     const equal = option.indexOf('=')
@@ -1306,7 +1314,7 @@ function curlSensitiveFileSource(tokens, activeShellExpansionOffsets, index) {
       ) return true
       if (
         referenceOptions.test(name) &&
-        isSensitiveFileReference(optionValue, valueOffsets)
+        isSensitiveFileReference(optionValue, valueOffsets, name)
       ) return true
     }
   }
@@ -1317,19 +1325,19 @@ function wgetSensitiveFileSource(tokens, activeShellExpansionOffsets, index) {
   for (let offset = index + 1; offset < tokens.length; offset += 1) {
     const option = tokens[offset]
     if (
-      option === '--post-file' &&
+      ['--post-file', '--body-file'].includes(option) &&
       isSensitiveFilePath(
         tokens[offset + 1] || '',
         activeShellExpansionOffsets[offset + 1],
       )
     ) return true
     if (
-      option.startsWith('--post-file=') &&
+      /^--(?:post|body)-file=/.test(option) &&
       isSensitiveFilePath(
-        option.slice('--post-file='.length),
+        option.slice(option.indexOf('=') + 1),
         shiftedExpansionOffsets(
           activeShellExpansionOffsets[offset],
-          '--post-file='.length,
+          option.indexOf('=') + 1,
         ),
       )
     ) {

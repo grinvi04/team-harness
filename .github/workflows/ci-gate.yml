@@ -41,6 +41,8 @@ jobs:
           bash -n templates/githooks/commit-msg
           bash -n .githooks/pre-commit
           bash -n .githooks/commit-msg
+          bash -n tests/architecture-generator-test.sh
+          bash -n tests/test-guard-test.sh
           bash -n tests/guard-test.sh
           bash -n tests/guard-matrix-test.sh
           bash -n tests/guard-tokenizer-test.sh
@@ -50,6 +52,7 @@ jobs:
           bash -n tests/pr-create-test.sh
           bash -n tests/set-branch-protection-test.sh
           bash -n tests/solo-merge-test.sh
+          bash -n tests/hotfix-tag-test.sh
           bash -n tests/new-repo-test.sh
           bash -n tests/alembic-heads-test.sh
           bash -n tests/alembic-destructive-ddl-test.sh
@@ -155,6 +158,9 @@ jobs:
           ruff check --line-length 100 --select E,F,W templates/gen_arch_svg.py
           ruff format --line-length 100 --check templates/gen_arch_svg.py
 
+      - name: 아키텍처 생성기 실패·XML 계약
+        run: bash tests/architecture-generator-test.sh
+
       - name: 가드 시나리오 테스트
         run: bash tests/guard-test.sh
 
@@ -208,8 +214,14 @@ jobs:
       - name: solo-merge break-glass 원자성 테스트
         run: bash tests/solo-merge-test.sh
 
+      - name: 핫픽스 PR 커밋·단일 태그 계약
+        run: bash tests/hotfix-tag-test.sh
+
       - name: new-repo B4 게이트 테스트
         run: bash tests/new-repo-test.sh
+
+      - name: 테스트 단언 감소 판정 회귀
+        run: bash tests/test-guard-test.sh
 
       - name: alembic-heads 계수 테스트
         run: bash tests/alembic-heads-test.sh

@@ -19,9 +19,11 @@ effort: medium
 
 ## 원자성 — 왜 래퍼인가 ([F] #220)
 
-삭제(DELETE)→머지→복구(PATCH)를 AI가 **별도 호출로 수동 실행**하면, DELETE와 PATCH **사이에 중단**(머지 실패·세션 종료·Ctrl-C·컨텍스트 소진 이탈)될 때 **복구 PATCH가 실행되지 않아 base 브랜치 보호가 승인요건 삭제된 채 방치**된다(조용한 약화 → 다음 PR 무승인 머지 위험). 그래서 전 과정을 **원자 래퍼 스크립트**(`scripts/solo-merge.sh`)가 `trap … EXIT INT TERM HUP`으로 감싸, 어떤 종료 경로에서도 복구를 보장한다.
+삭제(DELETE)→머지→복구(PATCH)를 AI가 **별도 호출로 수동 실행**하면, DELETE와 PATCH **사이에 중단**(머지 실패·세션 종료·Ctrl-C·컨텍스트 소진 이탈)될 때 **복구 PATCH가 실행되지 않아 base 브랜치 보호가 승인요건 삭제된 채 방치**된다(조용한 약화 → 다음 PR 무승인 머지 위험). 그래서 전 과정을 **원자 래퍼 스크립트**(`scripts/solo-merge.sh`)가 `trap … EXIT INT TERM HUP`으로 감싸, 처리 가능한 종료에서 복구를 시도하고 정상 종료에서는 복원 결과를 검증한다.
 
-> ⚠️ **한계**: `SIGKILL`·전원손실·`kill -9`는 trap으로 잡을 수 없다(uncatchable). 이 잔여 위험의 **2차 안전망은 `set-branch-protection.sh <owner/repo> --check`**(승인요건 등 보호 드리프트 검증 — `repo-sync` 스킬이 실행) — 승인요건이 빠진 걸 잡는다. break-glass 직후 중단이 의심되면 그 `--check`로 base 보호를 확인하고 필요 시 재설정하라.
+> ⚠️ **한계**: `SIGKILL`·전원손실은 trap으로 잡을 수 없고 API 오류는 복구를 실패시킬 수 있다.
+> 중단/복구 실패 시 실행 전에 저장한 원래 전체 보호 정책과 실제 API 읽기 결과를 대조해 복구한다.
+> `set-branch-protection.sh --check`는 표준 정책과의 드리프트만 검사하며, 이번 실행 전 예외 정책으로 복원됐다는 증명이 아니다.
 
 ---
 
@@ -33,19 +35,23 @@ effort: medium
 ## Phase 1 — 원자 실행 (오케스트레이터 직접 실행)
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/solo-merge.sh <PR>
-# PR 생략 시 현재 브랜치의 PR. base는 래퍼가 자동 감지.
+# pr-review-gate에서 검토한 snapshot을 그대로 전달한다.
+REVIEW_CANDIDATE=$(node -e 'const c=JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).candidate; console.log([c.baseRefName,c.baseRefOid,c.headRefOid].join("|"))' "$REVIEW_SNAPSHOT") || exit 1
+IFS='|' read -r REVIEW_BASE REVIEW_BASE_OID REVIEW_HEAD_OID <<< "$REVIEW_CANDIDATE"
+bash "${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/solo-merge.sh" "$PR" \
+  --base "$REVIEW_BASE" --expected-head "$REVIEW_HEAD_OID" --expected-base-oid "$REVIEW_BASE_OID"
+# snapshot 변경은 보호 DELETE 전에 거부하고 동일 후보를 머지 래퍼에 전달한다.
 ```
 
 래퍼가 **원자적으로** 수행한다:
 1. **pre-gate**(보호 건드리기 전): CI required green · 미해결 리뷰 스레드 0 · mergeable — 미달이면 **DELETE 이전에 중단**(보호 무손상).
-2. **save + arm trap**: 현재 `required_pull_request_reviews` **전체 설정** 저장 후 `trap … EXIT INT TERM HUP` 무장. 보호가 없던 repo면(요건 없음) DELETE·PATCH·trap 전부 생략(요건 신규 생성 방지).
-3. **DELETE → merge → restore**: 승인요건 일시 삭제 → `pr-merge.sh`로 머지(CI·스레드·mergeable 재검증) → 저장한 **전체 설정**을 PATCH로 복원. 중단 시 trap이 동일 복원을 실행(멱등).
-4. **verify**: `state=MERGED` + 승인요건 `count`가 원값으로 복원됐는지 확인. 불일치면 경고 후 비정상 종료.
+2. **save + arm trap**: 성공적으로 조회한 전체 브랜치 보호와 `required_pull_request_reviews` 복구 payload를 저장한 후 `trap … EXIT INT TERM HUP` 무장. 성공한 보호 응답에서 리뷰 정책이 명시적으로 null이면 DELETE·PATCH·trap 전부 생략(요건 신규 생성 방지).
+3. **DELETE → merge → restore**: 승인요건 일시 삭제 → `pr-merge.sh`로 머지(CI·스레드·mergeable 재검증) → 저장한 **전체 설정**을 PATCH로 복원. 처리 가능한 중단에서 trap이 동일 복원을 시도한다(멱등). 조회 오류/잘못된 정책은 DELETE 전에 중단한다.
+4. **verify**: `state=MERGED` + 저장한 리뷰 정책 전체와 나머지 브랜치 보호 필드가 원값으로 복원됐는지 확인(API URL·집합 순서는 정규화). 조회 실패/불일치면 경고 후 비정상 종료.
 
 > 삭제 대상은 **승인요건(required_pull_request_reviews)뿐**이다. `allow_force_pushes`·`enforce_admins`·status-check 등 다른 보호는 건드리지 않는다. 저장은 count만이 아니라 `dismiss_stale_reviews`·`require_code_owner_reviews`·`require_last_push_approval`까지 전체를 보존해, 복구가 base 보호를 매 실행 약화(K1)시키지 않는다.
 
-성공 시 `✅ solo-merge 완료 — PR #<N> MERGED` + `🔒 복구 확인` 출력. 실패(`❌ 복구 검증 실패`)면 즉시 `repo-sync`로 base 보호를 확인하고 수동 재설정한다.
+성공 시 `✅ solo-merge 완료 — PR #<N> MERGED` + `🔒 복구 확인` 출력. 실패(`❌ 복구 검증 실패`)면 원래 전체 정책과 base 보호를 직접 비교하고 필요한 복구를 한다. 기존 표준과의 비교만으로 복원 성공을 판단하지 않는다.
 
 ---
 

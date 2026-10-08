@@ -111,3 +111,14 @@ develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, �
 
 - 기본: 해당 도메인 모듈 주담당 1명 (모듈별 주담당은 팀 구성 시 지정)
 - 권한·금액 계산·마이그레이션 변경: 주담당 + 리드 (2인)
+
+## 검토 후보·보호 복원·태그 연결
+
+리뷰 snapshot의 head/base OID를 `pr-merge.sh` 또는 `solo-merge.sh`의 `--expected-head`·
+`--expected-base-oid`로 전달한다. wrapper 시작 전후 변경과 조회 실패는 재검토 대상이다.
+merge의 공식 `--match-head-commit`은 검증 head를 결박한다. base 재조회는 서버의 원자적 비교가 아니므로
+strict required CI와 protected base 정책이 계속 필요하다. 처리한 snapshot thread만 원래 코멘트에 답변·해결한다.
+
+solo 예외는 별도 승인 범위에서 리뷰 요건만 바꾸며, 정상 성공에는 저장한 전체 정책과 실제 복원 응답의 일치가 필요하다.
+trap은 복구 시도이며 SIGKILL·전원 손실·API 실패에서 복원 보장을 하지 않는다. 표준 `--check`는 예외의 원값 복원 증명이 아니다.
+긴급 수정 태그는 PR의 실제 merge SHA에 생성하고 해당 ref만 push한다. 최신 main이나 모든 로컬 태그를 발행하지 않는다.

@@ -1,7 +1,7 @@
 # 단계 1 — 안전 검사와 검증 후보
 
 선행: [계획의 범위·현재 원본](README.md). 근거: [S01–S08·S11–S14](../review/01-safety-runtime.md).
-진행 상태: 1A 영향 시험 통과(62 PASS), 1B–1E 구현·시험 진행 중. 실제 원격 보호 변경은 없다.
+진행 상태: 1A 영향 시험 통과(62 PASS), 1B·1C·1E 영향 시험 통과, 1D 구현·시험 중. 실제 원격 보호 변경은 없다.
 
 ## 1A — 조회 실패 전에 보호 변경 차단
 
@@ -25,11 +25,11 @@
 시험: `tests/codex-secret-egress-guard-test.sh`, `tests/guard-test.sh`, `tests/guard-tokenizer-test.sh`, `tests/guard-matrix-test.sh`.
 인터페이스: tool command 입력 → 허용/거부 분류·종료값·비밀 없는 차단 로그.
 
-- [ ] curl URL-query/file form, wget body-file, 절대 경로 git/rm의 원래 누락을 fixture로 고정한다.
-- [ ] 옵션 분리/결합·quoted 공백·알려진 command 경로를 지원 범위에 맞게 확인한다.
-- [ ] README 파일 전송·일반 조회·파괴적이지 않은 git/rm을 정상 대조군으로 둔다.
-- [ ] 기존 tokenizer와 파일 판정 경계를 최소 수정하고 해당 네 시험을 실행한다.
-- [ ] 로그에는 합성 비밀 값이 남지 않고 거부 이유만 보이는지 확인한다.
+- [x] curl URL-query/file form, wget body-file, 절대 경로 git/rm의 원래 누락을 fixture로 고정한다.
+- [x] 옵션 분리/결합·quoted 공백·알려진 command 경로를 지원 범위에 맞게 확인한다.
+- [x] README 파일 전송·일반 조회·파괴적이지 않은 git/rm을 정상 대조군으로 둔다.
+- [x] 기존 tokenizer와 파일 판정 경계를 최소 수정하고 해당 네 시험을 실행한다.
+- [x] 로그에는 합성 비밀 값이 남지 않고 거부 이유만 보이는지 확인한다.
 
 AC-S2: 확인된 위험 입력은 exit 2, 허용 대조군은 exit 0. 네트워크 전송·reset·삭제 자체는 실행하지 않는다.
 이 검사는 명령 분류 범위다. 모든 셸 표현·우회를 차단했다고 확대하지 않는다.
@@ -40,11 +40,11 @@ AC-S2: 확인된 위험 입력은 exit 2, 허용 대조군은 exit 0. 네트워�
 시험: `tests/alembic-destructive-ddl-test.sh`, `tests/activerecord-destructive-ddl-test.sh`, `tests/destructive-ddl-test.sh`와 관련 fixtures.
 인터페이스: 지원 scan root의 migration source → 파괴 동작·승인 marker 판정.
 
-- [ ] Python 한 줄 upgrade, Ruby 탭 호출, SQL COLUMN 생략, ORM MySQL 실행 주석을 추가한다.
-- [ ] Python/Ruby 입력은 실제 언어 구문으로, SQL은 공식 지원 문법으로 유효성을 확인한다.
-- [ ] scan root 밖 SKIP과 root 안 위험 입력을 구별하고 기존 첫 probe 실패를 보존한다.
-- [ ] 실행 주석·일반 주석·문자열·허용 DDL·정상 승인 marker를 서로 대조한다.
-- [ ] 세 시험과 `bash tests/migration-safety-test.sh`를 실행한다.
+- [x] Python 한 줄 upgrade, Ruby 탭 호출, SQL COLUMN 생략, ORM MySQL 실행 주석을 추가한다.
+- [x] Python/Ruby 입력은 실제 언어 구문으로, SQL은 공식 지원 문법으로 유효성을 확인한다.
+- [x] scan root 밖 SKIP과 root 안 위험 입력을 구별하고 기존 첫 probe 실패를 보존한다.
+- [x] 실행 주석·일반 주석·문자열·허용 DDL·정상 승인 marker를 서로 대조한다.
+- [x] 세 시험과 `bash tests/migration-safety-test.sh`를 실행한다.
 
 AC-S3: 누락 반례는 같은 경로에서 nonzero, 정상/허용 입력은 기존 계약 유지.
 동적 SQL/helper를 완전히 해석하는 새 runtime은 만들지 않는다. 운영 DB 실행은 없다.
@@ -71,8 +71,8 @@ AC-S4: 변경 바이너리/원본 불일치/위험 출력 대상은 실패, 원�
 대상 경로: 일반·공백·큰따옴표·달러/backtick 문자가 있는 임시 디렉터리.
 AC-S5: JSON 유효성뿐 아니라 허용된 hook 명령이 의도한 파일을 실행하고 경로 문자를 그대로 보존한다.
 
-- [ ] 현재 경로 반례·정상 경로를 먼저 고정하고 shell quoting 및 doctor 관찰 경계를 보완한다.
-- [ ] doctor가 command 문자열 존재만으로 실행 가능하다고 판단하지 않는지 확인한다.
+- [x] 현재 경로 반례·정상 경로를 먼저 고정하고 shell quoting 및 doctor 관찰 경계를 보완한다.
+- [x] doctor가 command 문자열 존재만으로 실행 가능하다고 판단하지 않는지 확인한다.
 - [ ] 외부 cache patch S08은 단계 3의 공식 경로 대체와 함께 처리한다.
 - [ ] 대체 전에도 quoting 결함이 실행될 수 있다면 patch·launcher 직접 호출부를 임시로 안전하게 고친다.
 - [ ] 해당 경우 `tests/patch-codex-security-guidance-test.sh`, `tests/codex-hardened-launcher-test.sh`도 실행한다.
@@ -87,3 +87,5 @@ AC-S5: JSON 유효성뿐 아니라 허용된 hook 명령이 의도한 파일을 
 plugin 동작이 바뀌는 묶음은 두 manifest·README 버전과 현재 maintenance 계약을 함께 맞춘다.
 
 1A의 원래 RED·수정 결과·권한 실행 증거: [실행 기록](../execution-s1a.json). 정상 자동 감지 대조군을 포함한 영향 검사 62 PASS / 0 FAIL. 전체 단계·독립 검토·CI·발행은 아직 완료 전이다.
+
+1B [543개 단언](../execution-s1b.json), 1C [58개 구문 반례와 영향 시험](../execution-s1c.json), 1E [74개 수명주기 시험](../execution-s1e.json)은 현재 파일 후보에서 통과했다. 1E의 cache 대체는 3E에 남는다.

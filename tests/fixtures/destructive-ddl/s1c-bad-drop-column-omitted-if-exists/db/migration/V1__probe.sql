@@ -1,0 +1,1 @@
+ALTER TABLE audit_log DROP IF EXISTS old_col CASCADE;

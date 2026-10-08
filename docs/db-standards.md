@@ -102,3 +102,7 @@ updated_by  BIGINT      NOT NULL
 - N+1 방지: 목록 조회는 fetch 전략 명시 (QueryDSL projection 권장)
 - 트랜잭션 경계는 application 유스케이스 단위 (`clean-architecture.md`) — 컨트롤러/리포지토리에서 열지 않는다
 - 운영 DB 직접 DML 금지 — 데이터 보정도 마이그레이션 또는 관리 화면 경유
+
+현재 정적 DDL 검사는 Python 한 줄 upgrade·Ruby 탭 호출·ALTER TABLE의 COLUMN 생략/인용 식별자도 검사한다.
+ORM raw SQL의 MySQL 실행 주석은 실행 구문으로 취급한다. 동적 SQL·helper의 전체 동작을 해석하지는 않는다.
+Alembic 설정이 없을 때만 heads 검사는 비적용이다. 설정이 있는 repo의 설치/heads 실행 실패는 CI 실패다.

@@ -323,7 +323,7 @@ function parseStatements(sql, mode) {
         statementValid = false
         hadLexicalError = true
       }
-      code += ' '
+      code += ' __identifier__ '
       i = j
       continue
     }
@@ -368,7 +368,7 @@ function parseStatements(sql, mode) {
         statementValid = false
         hadLexicalError = true
       }
-      code += ' '
+      code += ' __identifier__ '
       i = j
       continue
     }
@@ -410,6 +410,8 @@ const DESTRUCTIVE = [
   { label: 'DROP SCHEMA', re: /\bDROP\s+SCHEMA\b/i },
   { label: 'TRUNCATE', re: /\bTRUNCATE\b(?!\s*\()/i }, // 제어문·label 뒤 TRUNCATE도 차단. 수치함수는 제외.
   { label: 'ALTER…DROP COLUMN', re: /\bDROP\s+COLUMN\b/i },
+  // COLUMN 생략은 ALTER TABLE의 컬럼 제거에서만 허용. 제약·인덱스·컬럼 속성 DROP은 비대상.
+  { label: 'ALTER…DROP COLUMN', re: /\bALTER\s+TABLE\b[^;]*?\bDROP\s+(?:IF\s+EXISTS\s+)?(?!(?:IF|COLUMN|CONSTRAINT|INDEX|KEY|PRIMARY|FOREIGN|CHECK|PARTITION|DEFAULT|NOT|IDENTITY|EXPRESSION)\b)[a-z_]\w*/i },
 ]
 
 function isTruncatePrivilegeStatement(code) {

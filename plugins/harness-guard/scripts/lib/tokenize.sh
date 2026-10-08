@@ -115,12 +115,16 @@ _tok_into() {
 
 # git_subcommand <segment>: 선행 env-prefix(VAR=val)·git·전역옵션을 스킵하고 git 서브커맨드를 echo.
 #   비-git 세그먼트면 아무것도 출력하지 않고 rc=1. (예: 'X= git -c a.b=c commit' → commit)
+command_token_matches() {
+  [[ "$1" == "$2" || "$1" == /*/"$2" ]]
+}
+
 git_subcommand() {
   local -a t; _tok_into t "$1"
   local i=0 n=${#t[@]}
   # 선행 env-prefix 스킵 — VAR=val 형태(플래그 아님, 식별자=값)
   while (( i < n )) && [[ "${t[$i]}" != -* && "${t[$i]}" == *=* && "${t[$i]%%=*}" =~ ^[A-Za-z_][A-Za-z0-9_]*$ ]]; do ((i++)); done
-  [[ "${t[$i]:-}" == git ]] || return 1
+  command_token_matches "${t[$i]:-}" git || return 1
   ((i++))
   # git 전역옵션 스킵 — 값 취하는 옵션은 다음 토큰까지, 그 외 단일 플래그
   while (( i < n )); do
@@ -142,7 +146,7 @@ git_subcommand_scan() {
   local -a t; _tok_into t "$1"
   local i=0 n=${#t[@]}
   while (( i < n )); do
-    if [[ "${t[$i]}" == git ]]; then
+    if command_token_matches "${t[$i]}" git; then
       ((i++))
       while (( i < n )); do
         case "${t[$i]}" in
@@ -175,5 +179,13 @@ seg_has_token() {
   local -a t; _tok_into t "$seg"
   local x
   for x in "${t[@]}"; do [[ "$x" == "$want" ]] && return 0; done
+  return 1
+}
+
+# Like the existing wrapper-tolerant scan, match a bare or absolute executable token.
+seg_has_command_token() {
+  local -a t; _tok_into t "$1"
+  local x
+  for x in "${t[@]}"; do command_token_matches "$x" "$2" && return 0; done
   return 1
 }
