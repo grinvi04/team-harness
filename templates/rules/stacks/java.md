@@ -4,62 +4,30 @@ paths: ["**/*.java"]
 
 # Java / Spring Boot 작업 규칙
 
-## 포맷은 Spotless + google-java-format이 강제 (prose 아님)
-- 코드 포맷은 의견이 아니라 **빌드 게이트**다. `spotlessCheck`가 `check`에 연결돼 CI가 어긋난 포맷을 차단한다.
-- 자동수정: `./gradlew spotlessApply` (커밋 전에 돌리면 끝 — 포맷을 손으로 맞추지 말 것).
-- checkstyle은 **의미 규칙만**(UnusedImports·NeedBraces·EmptyBlock·MagicNumber). **공백·들여쓰기·줄바꿈은 google-java-format이 소유** — checkstyle에 공백 규칙을 넣지 말 것(충돌).
-- `build.gradle`에 넣을 블록 (검증 설정 예시):
+프로젝트가 선택한 JDK·Spring·ORM 버전과 구조를 따른다. 공통 적용 기준은 `docs/standards-scope.md`다.
+경로는 소비 repo에서 조회하는 Team Harness 문서 이름이다. 로컬 복사 여부를 먼저 확인한다.
 
-```gradle
-plugins {
-    // ...
-    id 'checkstyle'
-    id 'com.diffplug.spotless' version '6.25.0'
-}
+## 검사 연결
 
-checkstyle {
-    toolVersion = '10.21.1'
-    configFile = file('config/checkstyle/checkstyle.xml')
-    maxWarnings = 0
-}
+포맷 도구는 Spotless/google-java-format 등 프로젝트에서 선택한 것을 사용한다.
+설치한 버전에 맞춰 실제 빌드와 CI에 연결한다. 의미 규칙과 포맷 규칙을 중복해 충돌시키지 않는다.
+공식 설정은 [Spotless](https://github.com/diffplug/spotless/tree/main/plugin-gradle)를 따른다.
+`./gradlew spotlessApply`·`./gradlew check`는 해당 태스크가 있는 repo의 예시다.
 
-// Google Java Style — spotlessApply 자동수정, spotlessCheck는 check에 연결돼 CI가 강제.
-spotless {
-    java {
-        target 'src/**/*.java'
-        googleJavaFormat('1.22.0')
-        removeUnusedImports()
-        trimTrailingWhitespace()
-        endWithNewline()
-    }
-}
-```
+## 코드와 데이터 경계
 
-> `checkstyle.xml`은 `templates/checkstyle.xml`을 `backend/config/checkstyle/`에 복사해 쓴다.
+- 선택한 계층의 의존 방향을 유지한다. JPA 어노테이션 허용은 프로젝트의 결정이다.
+- 엔티티를 외부 응답으로 직접 노출하지 않는다. 계약에 맞는 DTO로 변환한다.
+- Optional은 부재를 처리한다. 진단 로그는 프로젝트 로깅을 사용한다.
+- 직접 SQL은 바인딩하고, ORM 필터 밖의 권한·삭제 경로를 별도로 확인한다.
 
-## Clean Architecture 의존성 (절대 역전 금지)
-- `domain` 패키지: 순수 Java만. `@Entity`, `@Service`, `@Component` 등 Spring/JPA 어노테이션 금지.
-- `adapter` → `application` → `domain` 방향으로만 (모듈 내부 계층 = adapter → application → domain,
-  interface/infrastructure를 별도 계층으로 분리하지 않음 — 단일 출처: `clean-architecture.md`·`decisions.md`).
-- Controller에서 Repository 직접 호출 금지. Entity를 Controller 응답으로 직접 반환 금지.
+## 자주 확인할 문제
 
-## 절대 금지 패턴
-```java
-System.out.println("...");        // ❌ → log.debug/info 사용 (@Slf4j)
-return ResponseEntity.ok(entity); // ❌ → DTO.from(entity) 변환 후 반환
-user.get().getName();             // ❌ → .orElseThrow(() -> new XxxNotFoundException(id))
-```
+- Spring 기본 400 응답을 포괄 핸들러가 500으로 바꾸지 않는지 실제 요청으로 확인한다.
+- 낙관적 잠금을 쓰면 성공 커밋의 version과 다음 수정 요청을 검사한다.
+- 소프트 삭제를 쓰면 필터 종류·버전·모델·직접 SQL의 적용 범위를 검사한다.
+- mock만으로 DB 방언·제약·트랜잭션 결과를 보장하지 않는다.
 
-## 운영 정합성 함정 (단일 출처: 표준 문서)
-- **소프트삭제**: `@SQLRestriction`은 `@MappedSuperclass`에서 **상속되지 않음** — 베이스에만 달면 하위
-  엔티티에 적용 안 돼 삭제 데이터가 노출. 엔티티별 적용 + 삭제 후 제외 테스트 (`docs/db-standards.md`).
-- **낙관적 잠금**: update 응답 DTO는 **flush 후**(또는 재조회) 매핑 — flush 전이면 `@Version` 증가
-  미반영, stale version으로 거짓 409 (`docs/api-standards.md`).
-- **입력 오류 400**: `HttpMessageNotReadableException`·`MethodArgumentTypeMismatchException`·
-  `ConstraintViolationException` 등을 전역 핸들러에서 400으로 매핑 — 미매핑 시 500 흡수 (`docs/api-standards.md`).
-
-## 테스트 레이어 선택
-- Service 로직 → `@ExtendWith(MockitoExtension.class)` (Spring 컨텍스트 없음)
-- Controller (HTTP 레이어) → `@WebMvcTest`
-- Repository (JPA 쿼리) → `@DataJpaTest`
-- `@SpringBootTest` 는 꼭 필요한 경우만 (전체 컨텍스트 = 수십 초)
+자세한 진단과 공식 자료는 `docs/stack-troubleshooting-backend.md`를 따른다.
+단위·HTTP·JPA slice·전체 통합 테스트 중 변경 경계에 맞는 것을 선택한다.
+아키텍처 검사나 Testcontainers는 프로젝트에 실제 연결한 경우에만 검사 결과로 보고한다.

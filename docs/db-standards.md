@@ -1,49 +1,38 @@
 # DB 설계·감사 표준
 
-PostgreSQL 기준 (`stack-guide.md` DB 결정 참조). 모듈별 스키마 분리·크로스 스키마 조인 금지는
-`architecture-infra.md` §2, `clean-architecture.md` §3이 상위 규칙.
+[표준 적용 기준](standards-scope.md)을 따른다. PostgreSQL 예시는 해당 DB를 선택한 경우에만 적용한다.
+식별자·감사·삭제·모듈 소유권은 제품 요구로 정한다.
 
 ## 네이밍
 
+아래는 신규 SQL schema의 권장 예시다. 기존 규약과 프레임워크 기본을 보존한다.
+
 - 모든 식별자 **snake_case**, 예약어 회피
-- 테이블명: **단수** (`purchase_order`) — JPA 기준. Django/Rails 스택은 프레임워크 기본(복수) 유지
+- 테이블 이름은 프레임워크와 기존 schema 규약을 따른다. ORM 종류만으로 단수·복수를 강제하지 않는다.
 - FK 컬럼: `{참조테이블}_id` (`order_id`), boolean: `is_` 접두 (`is_active`)
 - 인덱스/제약: `ix_{table}_{cols}`, `uq_{table}_{cols}`, `fk_{table}_{ref}`, `ck_{table}_{rule}`
 
-## 기본키 (확정)
+## 기본키와 외부 식별자
 
-```sql
-id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY
-```
+BIGINT identity, UUID 등은 데이터 생성 위치·병합·인덱스·외부 계약으로 선택한다.
+자동 증가 키만으로 서로 다른 DB의 식별자 충돌이 방지되지는 않는다.
+외부 식별자는 안정성·민감도·조회 방식을 정한다. 업무 채번 규칙은 해당 프로젝트에 둔다.
+식별자가 숨겨졌거나 추측하기 어려워도 서버 권한 검사가 필요하다.
 
-- **내부 PK = BIGINT 자동증가.** 조인·인덱스 성능 최적, 모듈별 스키마가 분리되어 있어
-  미니서비스 분리 시에도 충돌 없음
-- **외부 노출 식별자는 별도 채번**: `order_no VARCHAR UNIQUE` (예: `ORD-2026-000123`) —
-  URL·화면·연동에는 채번 코드만, 내부 `id`는 노출하지 않는다
-- 채번 규칙(프리픽스-연도-시퀀스)은 기준정보 모듈에서 중앙 관리
+## 공통 컬럼
 
-## 공통 컬럼 (모든 업무 테이블 필수)
-
-```sql
-created_at  timestamptz NOT NULL DEFAULT now(),
-created_by  BIGINT      NOT NULL,            -- 사용자 id
-updated_at  timestamptz NOT NULL DEFAULT now(),
-updated_by  BIGINT      NOT NULL
-```
-
-- 애플리케이션 공통 레이어(JPA Auditing 등)에서 자동 주입 — 수동 세팅 금지
-- 시각 타입은 **timestamptz 통일** (naive timestamp 금지), 저장은 UTC
-- **비대화형 쓰기(배치·스케줄러·외부 연동 수신)**: `created_by`/`updated_by`에는 기준정보에
-  시드된 **시스템 사용자 id**를 사용한다 (`system-batch`, `system-integration` 등 작업 유형별 분리).
-  NULL 허용으로 풀지 않는다 — "주체 없는 변경"을 만들지 않는 것이 감사 원칙
+생성·수정 시각과 변경 주체는 추적이 필요한 데이터에 정의한다.
+자동 주입을 쓴다면 사용자 요청·배치·외부 연동에서 실제 값이 기록되는지 확인한다.
+시스템 계정, 서비스 주체와 사용자 주체의 표현은 제품에서 정한다.
+실제 시점을 저장할 때 시간대와 정밀도를 명시한다. 일정의 지역 시각과 날짜만 있는 값은 별도로 계약한다.
 
 ## 데이터 타입 규칙
 
 | 용도 | 타입 | 금지 |
 |---|---|---|
-| 금액·수량 | `numeric(p,s)` — 정밀도는 도메인 정의 | `float`/`double` 절대 금지 |
-| 코드성 값 | `varchar` + CHECK 또는 앱 enum | DB enum 타입(변경 비용 큼) |
-| 유연 속성 | `jsonb` (스키마 없는 부가정보 한정) | 핵심 업무 컬럼의 jsonb화 |
+| 정확한 금액·십진 수량 | `numeric(p,s)` — 정밀도는 도메인 정의 | 부동소수 변환으로 정확한 값 손실 |
+| 코드성 값 | CHECK·참조 테이블·enum 중 변경 방식에 맞게 선택 | 앱 타입만으로 DB 값 검증을 보장하는 가정 |
+| 유연 속성 | PostgreSQL의 `jsonb`는 검색·제약·변경 단위를 검토해 선택 | 자료 구조를 검토하지 않은 저장 형식 선택 |
 
 ### 금액 저장·전송 계약
 
@@ -61,46 +50,43 @@ updated_by  BIGINT      NOT NULL
 
 ## 삭제 정책
 
-- **업무 전표 데이터**(주문·전표·이력): 물리 삭제 금지 → `deleted_at timestamptz NULL` soft delete
-  - soft delete + UNIQUE 충돌은 **partial unique index**로 해결:
-    `CREATE UNIQUE INDEX uq_x ON t(col) WHERE deleted_at IS NULL`
-  - soft delete 필터는 **모든 대상 엔티티/모델에 실제로 적용되는지 테스트로 검증**한다 — ORM에 따라
-    베이스·상위 타입에만 필터를 선언하면 하위 타입에는 적용되지 않을 수 있다. 실제 삭제 후
-    목록·조회·집계에서 제외되는지 단언하는 테스트를 둔다 (ORM별 상속 함정은 스택 룰 파일 참조)
-- **기준정보(마스터)**: 삭제 대신 `is_active` 비활성화 (참조 무결성 보존)
-- 물리 삭제는 개인정보 파기 등 법적 요건에만, 절차 문서화 후
+보존·복구·참조 무결성·파기 요구에 따라 물리 삭제, 비활성화, 소프트 삭제를 선택한다.
+소프트 삭제를 쓰면 목록·단건·집계·수정·직접 SQL에서 제외 정책을 확인한다.
+복원과 UNIQUE 제약의 관계도 정한다. PostgreSQL의 partial unique index는 선택지다.
+필터를 상위 모델에 선언한 사실만으로 모든 경로에 적용됐다고 판단하지 않는다.
+기간·파기 기준·업무 전표의 보존은 해당 프로젝트에서 정한다.
 
-## 감사(Audit Trail) — ERP 컴플라이언스 필수
+## 감사(Audit Trail)
 
-- 대상: 전표·금액·권한·기준정보 등 **변경 추적이 필요한 모든 테이블** (모듈 설계 시 지정)
-- 방식: 애플리케이션 레벨 이력 — JPA는 **Hibernate Envers**(`{table}_aud` 자동 생성),
-  타 스택은 `{table}_history` 테이블 + 변경 시 insert
-- 기록 내용: 변경 전후 값, 변경자(인증 사용자 → 자동 전파), 변경 시각, 변경 유형(C/U/D)
-- 감사 테이블은 UPDATE/DELETE 금지 (append-only)
+권한 변경처럼 변경 추적이 필요한 대상을 지정한다. 모든 테이블에 같은 감사 모델을 강제하지 않는다.
+변경 주체·시각·내용·실패 처리를 정하고 이력의 변조·삭제 권한을 제한한다.
+Hibernate Envers나 별도 이력 저장은 선택지다. 프레임워크 밖의 쓰기도 추적되는지 확인한다.
+감사 기능 도입을 법적 요건 충족이나 전체 보안 검증으로 보고하지 않는다.
 
-## 마이그레이션 (Flyway 기준)
+## 마이그레이션
 
-- **forward-only**: 되돌릴 때도 새 버전 추가 — down/rollback 스크립트 작성·실행 금지
-- 파일: `V{번호}__{설명}.sql`, **모듈별 디렉토리** (`db/migration/order/...`)
+- 공유·운영 이력은 적용한 파일을 고치지 않고 새 변경으로 보정한다.
+  운영 downgrade는 자동 해결책이 아니다. 복구 가능성·데이터 영향·기존 권한을 확인한다.
+- 이름·경로·적용 순서는 선택한 도구와 프로젝트 규약을 따른다.
 - 적용된 마이그레이션 파일은 **수정 금지** (체크섬 깨짐) — 고치려면 새 버전
-- 무중단 호환 규칙: 컬럼 삭제·rename은 2단계 배포
-  (1차: 신규 컬럼 추가 + 양쪽 기록 → 2차: 구 컬럼 제거)
-- 대용량 테이블 인덱스 생성은 `CREATE INDEX CONCURRENTLY`
+- 무중단 호환 규칙: 컬럼 삭제·rename은 단계적으로 배포
+  (확장 → 데이터 이관·검증과 구버전 사용 종료 → 제거). 양쪽 기록의 실패·동시 쓰기도 검증한다.
+  [Expand–Migrate–Contract](https://martinfowler.com/bliki/ParallelChange.html)를 조건부 패턴으로 참고한다.
+- PostgreSQL의 큰 테이블은 동시 인덱스 생성을 검토한다. 트랜잭션 제한·실패 상태도 확인한다.
 - **CI(빈 DB) ≠ 운영(기존 DB)**: CI는 마이그레이션을 빈 DB에 순서대로 적용해 통과하지만, 기존·운영
   DB는 이미 일부 적용된 상태라 다른 실패가 난다. 마이그레이션 변경은 "기존 DB에 증분 적용" 관점으로
-  검증한다(실 DB 재기동 또는 prod 스냅샷 대상)
-- **도메인·모듈별 번호(또는 브랜치) 규약은 구조적 out-of-order를 만든다**: 모듈별로 번호 대역을
-  나누거나 브랜치별로 마이그레이션을 만들면, 새 항목이 이미 적용된 것보다 낮은 버전이 되어 **구조적
-  out-of-order**가 발생한다. 마이그레이션 도구가 이를 거부하면(기본값인 경우가 많다) 기존·운영 DB의
-  기동·배포가 validate 실패로 막힌다 — CI는 빈 DB라 순서대로 통과하므로 드러나지 않는다. 모듈별
-  마이그레이션이 서로 독립이면(적용 순서가 무관하면) **도구의 out-of-order 허용을 켠다**(구체 설정명은
-  스택 룰 파일 참조). forward-only는 그대로 유지
+  검증한다. 승인된 격리 DB와 합성 데이터를 사용하며 운영 접근·스냅샷 복사를 자동 요구하지 않는다.
+- 모듈별 번호 대역이나 병렬 브랜치는 이미 적용된 것보다 낮은 버전을 만들 수 있다.
+  도구마다 처리 방식이 다르므로 실패 상태와 설정 기본값을 먼저 확인한다.
+  Flyway의 out-of-order 허용은 기본 규칙이 아니다. 실제 적용 순서와 정렬 순서 양쪽에서
+  스키마·데이터 결과가 같은지 격리 DB로 확인한 경우에만 검토한다.
+  [DB 문제 해결](stack-troubleshooting-database.md)에 진단·대안·검증 조건을 정리했다.
 - **파괴 DDL 정적 게이트(CI)**: 비가역 데이터-손실 DDL은 CI(빈 DB)는 통과하고 운영에서만 손실을 낸다 —
-  세 축이 배포 전 차단한다. **SQL**(Flyway·Prisma·Supabase의 `*.sql`)은 `check-destructive-ddl.mjs`가,
+  연결된 정적 검사는 알려진 구문을 배포 전에 차단한다. 모든 손실·잠금 위험을 해석하지는 않는다. **SQL**(Flyway·Prisma·Supabase의 `*.sql`)은 `check-destructive-ddl.mjs`가,
   **Alembic `.py`**(`op.drop_table`·`op.drop_column`·`op.execute` 내 DROP)는 `check-alembic-destructive-ddl.mjs`가
   `upgrade()` 본문을, **ActiveRecord `db/migrate/*.rb`**(`drop_table`·`drop_join_table`·`remove_column(s)`·
   `execute` 계열 raw DROP/TRUNCATE)는 `check-activerecord-destructive-ddl.mjs`가 `def change`/`def up` 본문을
-  검사한다(정상 마이그레이션의 `downgrade()`/`def down` 역방향 파괴는 오탐이라 비대상). forward-only 2단계
+  검사한다(정상 마이그레이션의 `downgrade()`/`def down` 역방향 파괴는 오탐이라 비대상). forward-only 단계적
   배포의 정당한 컬럼 제거는 파괴 문장과 같은 문장(또는 바로 앞 줄)의 승인마커로 통과 — SQL은
   `-- migration-safety: destructive-ok`, Alembic·ActiveRecord는 `# migration-safety: destructive-ok`.
 
@@ -113,10 +99,12 @@ updated_by  BIGINT      NOT NULL
 
 ## 기타
 
-- N+1 방지: 목록 조회는 fetch 전략 명시 (QueryDSL projection 권장)
-- 트랜잭션 경계는 application 유스케이스 단위 (`clean-architecture.md`) — 컨트롤러/리포지토리에서 열지 않는다
+- 목록 조회는 쿼리 수와 실제 계획을 확인한다. 필요한 fetch·projection 전략을 선택한다.
+- 트랜잭션은 하나의 일관된 변경 단위로 정한다. 선택한 프레임워크·구조의 경계를 명시한다.
 - 운영 DB 직접 DML 금지 — 데이터 보정도 마이그레이션 또는 관리 화면 경유
 
 현재 정적 DDL 검사는 Python 한 줄 upgrade·Ruby 탭 호출·ALTER TABLE의 COLUMN 생략/인용 식별자도 검사한다.
 ORM raw SQL의 MySQL 실행 주석은 실행 구문으로 취급한다. 동적 SQL·helper의 전체 동작을 해석하지는 않는다.
 Alembic 설정이 없을 때만 heads 검사는 비적용이다. 설정이 있는 repo의 설치/heads 실행 실패는 CI 실패다.
+
+도구별 진단·설정·검사 한계는 [DB 문제 해결](stack-troubleshooting-database.md)을 따른다.

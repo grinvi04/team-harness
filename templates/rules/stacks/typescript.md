@@ -4,35 +4,29 @@ paths: ["**/*.ts", "**/*.tsx"]
 
 # TypeScript 작업 규칙
 
-## 포맷·디자인 토큰은 게이트가 강제 (prose 아님)
-- **포맷은 Prettier가 강제** — `prettier --check`를 CI에 둔다. 손으로 맞추지 말 것: `prettier --write .`로 자동수정.
-  설정은 `templates/.prettierrc`(no-semi·single-quote·2-space·trailingComma=all·printWidth 100)를 repo 루트(또는 `frontend/`)에 복사.
-- **색상 토큰 검사는 파일 형식에 맞게 `lint:design`에 연결** — JS/TS/JSX/TSX의 Tailwind 클래스 검사에는
-  `templates/frontend/check-design-tokens.mjs`를 `scripts/check-design-tokens.mjs`로 복사하고
-  `package.json`에 `"lint:design": "node scripts/check-design-tokens.mjs"`, CI에 `npm run lint:design`을 연결한다.
-  이 스크립트는 `src`의 숫자 스케일 색(`gray-500`·`blue-600`)·`bg-white`를 검사하며, 의도적 예외는 줄 끝 `// design-token-ok`다.
-  `.vue`·CSS·동적 스타일은 검사하지 않는다. Vue/순수 CSS에는 Stylelint 등 해당 형식의 검사를 연결한다(`vue.md`, 공통 `docs/frontend-design-standards.md` §8).
-  정상 토큰은 허용하고 직접 색상·미정의 변수는 거부하는지 확인하며, 다크모드의 실제 화면은 별도 검증한다.
-- **lint 설정은 프레임워크에 맞춘다** — React/Next.js는 `eslint-config-next`(`react-hooks`·`jsx-a11y`·`@typescript-eslint` 포함), **Vue는 `eslint-plugin-vue`**(+`eslint-plugin-vuejs-accessibility`). 어느 쪽이든 `npm run lint` 한 줄로 CI가 강제. (Next.js·Vue 특화는 `nextjs.md`·`vue.md` 참조.)
-- **`as any`/`any` 금지는 prose가 아니라 lint 규칙으로 강제** — eslint 설정에 `@typescript-eslint/no-explicit-any: "error"`를 배선한다(많은 preset이 기본 warn이라 CI를 못 막음 — `error`로 올린다). 이미 켜져 있으면 레벨만 확인. 의도적 예외는 그 줄에 사유 주석과 함께 `// eslint-disable-next-line @typescript-eslint/no-explicit-any`.
+프로젝트의 런타임·프레임워크·검사 명령을 따른다. 공통 적용 기준은 `docs/standards-scope.md`다.
 
-## 타입 안전
-- `as any` 캐스팅 금지 — 명시적 타입 선언 또는 unknown + 타입가드.
-- API 응답 타입은 별도 파일(`types/`)에 정의. 인라인 추론에 의존하지 않을 것.
-- 비배열 응답을 배열로 가정하지 말 것 — `Array.isArray()` 체크 후 접근.
+## 타입과 외부 경계
 
-## 절대 금지
-```typescript
-response as any         // ❌
-data.forEach(...)       // ❌ (배열 검증 없이)
-// @ts-ignore           // ❌ (회피 대신 타입 수정)
-```
+- 외부 입력은 타입 선언만 믿지 않는다. unknown·타입 가드·스키마로 검증한다.
+- 배열과 페이지 객체를 구분한다. `as any`·`@ts-ignore`로 계약 오류를 숨기지 않는다.
+- 타입 생성은 선택지다. 생성 타입도 실제 런타임 입력을 검사하지 않는다.
+- 입력 오류와 서버 실패를 구분한다. NestJS 기본 처리와 커스텀 filter를 함께 확인한다.
 
-## 입력 오류는 4xx (백엔드, 단일 출처: `docs/api-standards.md`)
-- NestJS는 `ValidationPipe`로 DTO 검증 실패를 400에 매핑하고, exception filter 미매핑 예외는 500으로
-  흡수된다 — 잘못된 입력은 4xx + 공통 Envelope에 매핑(`docs/api-standards.md`).
+공식 자료: [TypeScript narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html),
+[NestJS validation](https://docs.nestjs.com/techniques/validation).
 
-## 테스트
-- 타입체크: `npm run type-check` (커밋 전 필수)
-- 단위 테스트: vitest / jest + Testing Library
-- 순수 프레젠테이셔널 컴포넌트는 단위 테스트 생략 — e2e + `/qa`로 커버
+## lint·타입·디자인 검사
+
+포맷 도구와 ESLint 규칙은 프레임워크·프로젝트에 맞춰 선택하고 CI에 연결한다.
+`no-explicit-any`를 채택하면 error로 연결하고 정당한 예외의 이유를 남긴다.
+Next.js는 eslint-config-next, Vue는 해당 Vue lint 설정을 사용한다. 단일 preset을 모든 repo에 적용하지 않는다.
+타입 검사는 실제 프로젝트 명령으로 실행한다. .vue는 vue-tsc 검사도 필요하다.
+
+토큰 검사를 채택하면 지원 파일 형식과 예외를 명시한다.
+`templates/frontend/check-design-tokens.mjs`는 src의 JS/TS/JSX/TSX Tailwind 색상 일부를 검사한다.
+배포 시 실제 scripts 경로와 `lint:design`·CI를 연결한다. `.vue`·CSS·동적 스타일은 검사하지 않는다.
+해당 형식의 검사와 정상·거부 예제를 별도로 확인한다. 화면·접근성 검사는 lint와 구분한다.
+
+문제 해결: `docs/stack-troubleshooting-frontend.md`, `docs/stack-troubleshooting-backend.md`.
+테스트 도구는 프로젝트에서 선택한다. UI 단위 테스트를 일괄 생략하거나 특정 도구를 필수로 두지 않는다.

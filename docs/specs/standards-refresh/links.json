@@ -1,0 +1,529 @@
+[
+  {
+    "url": "https://alembic.sqlalchemy.org/en/latest/autogenerate.html",
+    "status": 200,
+    "final": "https://alembic.sqlalchemy.org/en/latest/autogenerate.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://alembic.sqlalchemy.org/en/latest/branches.html",
+    "status": 200,
+    "final": "https://alembic.sqlalchemy.org/en/latest/branches.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://argo-cd.readthedocs.io/en/stable/",
+    "status": 200,
+    "final": "https://argo-cd.readthedocs.io/en/stable/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/",
+    "status": 200,
+    "final": "https://aws.amazon.com/builders-library/making-retries-safe-with-idempotent-APIs/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/",
+    "status": 200,
+    "final": "https://builder.aws.com/content/3EumjoZascWd1oZiEgL8ORlv3qE/timeouts-retries-and-backoff-with-jitter",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+    "status": 200,
+    "final": "https://cheatsheetseries.owasp.org/cheatsheets/Authorization_Cheat_Sheet.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+    "status": 200,
+    "final": "https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://community.owasp.org/attacks/CSV_Injection",
+    "status": 200,
+    "final": "https://community.owasp.org/attacks/CSV_Injection",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER",
+    "status": 200,
+    "final": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://diataxis.fr/start-here/",
+    "status": 200,
+    "final": "https://diataxis.fr/start-here/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.astral.sh/ruff/",
+    "status": 200,
+    "final": "https://docs.astral.sh/ruff/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html",
+    "status": 200,
+    "final": "https://docs.aws.amazon.com/wellarchitected/latest/framework/welcome.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.djangoproject.com/",
+    "status": 200,
+    "final": "https://docs.djangoproject.com/en/6.1/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.djangoproject.com/en/5.2/topics/db/optimization/",
+    "status": 200,
+    "final": "https://docs.djangoproject.com/en/5.2/topics/db/optimization/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.docker.com/build/building/best-practices/",
+    "status": 200,
+    "final": "https://docs.docker.com/build/building/best-practices/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.docker.com/guides/testcontainers-java-spring-boot-rest-api/",
+    "status": 200,
+    "final": "https://docs.docker.com/guides/testcontainers-java-spring-boot-rest-api/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_modular",
+    "status": 200,
+    "final": "https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_modular",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.jboss.org/hibernate/orm/current/userguide/html_single/Hibernate_User_Guide.html",
+    "status": 200,
+    "final": "https://docs.hibernate.org/orm/current/userguide/html_single/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.nestjs.com/",
+    "status": 200,
+    "final": "https://docs.nestjs.com/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.nestjs.com/techniques/queues",
+    "status": 200,
+    "final": "https://docs.nestjs.com/techniques/queues",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.nestjs.com/techniques/validation",
+    "status": 200,
+    "final": "https://docs.nestjs.com/techniques/validation",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-management",
+    "status": 200,
+    "final": "https://docs.prisma.io/docs/orm/v7/prisma-client/setup-and-configuration/databases-connections/connection-management",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.rubocop.org/rubocop/usage/autocorrect.html",
+    "status": 200,
+    "final": "https://docs.rubocop.org/rubocop/usage/autocorrect.html",
+    "bytes_sample": 384
+  },
+  {
+    "url": "https://docs.spring.io/spring-boot/index.html",
+    "status": 200,
+    "final": "https://docs.spring.io/spring-boot/index.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/mvc/support/DefaultHandlerExceptionResolver.html",
+    "status": 200,
+    "final": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/mvc/support/DefaultHandlerExceptionResolver.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.sqlalchemy.org/en/20/orm/session_basics.html",
+    "status": 200,
+    "final": "https://docs.sqlalchemy.org/en/20/orm/session_basics.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.stagehand.dev/v4/configuration/models",
+    "status": 200,
+    "final": "https://docs.stagehand.dev/v4/configuration/models",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://docs.stagehand.dev/v4/integrations/codex",
+    "initial_error": "HTTP Error 308: Permanent Redirect",
+    "status": 200,
+    "final": "https://docs.stagehand.dev/v4/integrations/cli-agents/codex",
+    "verification": "curl canonical HEAD 200 and GET title Codex - Stagehand; historical citation unchanged"
+  },
+  {
+    "url": "https://docs.stagehand.dev/v4/migrations/playwright",
+    "status": 200,
+    "final": "https://docs.stagehand.dev/v4/migrations/playwright",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://documentation.red-gate.com/fd/flyway-out-of-order-setting-277579015.html",
+    "status": 200,
+    "final": "https://documentation.red-gate.com/fd/flyway-out-of-order-setting-277579015.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://fastapi.tiangolo.com/",
+    "status": 200,
+    "final": "https://fastapi.tiangolo.com/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://fastapi.tiangolo.com/advanced/testing-dependencies/",
+    "status": 200,
+    "final": "https://fastapi.tiangolo.com/advanced/testing-dependencies/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://fastapi.tiangolo.com/async/",
+    "status": 200,
+    "final": "https://fastapi.tiangolo.com/async/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://github.com/<owner>/<repo>/actions",
+    "error": "HTTP Error 404: Not Found",
+    "classification": "template placeholder; not a live URL"
+  },
+  {
+    "url": "https://github.com/<owner>/<repo>/actions/workflows/<ci>.yml/badge.svg",
+    "error": "HTTP Error 404: Not Found",
+    "classification": "template placeholder; not a live URL"
+  },
+  {
+    "url": "https://github.com/ankane/strong_migrations",
+    "status": 200,
+    "final": "https://github.com/ankane/strong_migrations",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://github.com/diffplug/spotless/tree/main/plugin-gradle",
+    "status": 200,
+    "final": "https://github.com/diffplug/spotless/tree/main/plugin-gradle",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://github.com/grinvi04/team-harness/issues/458",
+    "status": 200,
+    "final": "https://github.com/grinvi04/team-harness/issues/458",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://guides.rubyonrails.org/",
+    "status": 200,
+    "final": "https://guides.rubyonrails.org/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://guides.rubyonrails.org/active_record_migrations.html",
+    "status": 200,
+    "final": "https://guides.rubyonrails.org/active_record_migrations.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://guides.rubyonrails.org/active_record_querying.html",
+    "status": 200,
+    "final": "https://guides.rubyonrails.org/active_record_querying.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange",
+    "status": 200,
+    "final": "https://img.shields.io/badge/Claude_Code_%C2%B7_Codex-supported-orange"
+  },
+  {
+    "url": "https://img.shields.io/badge/deploy-<live%20URL_또는_local%20only>-lightgrey",
+    "error": "'ascii' codec can't encode characters in position 30-31: ordinal not in range(128)",
+    "classification": "template placeholder; not a live URL"
+  },
+  {
+    "url": "https://img.shields.io/badge/license-MIT-yellow",
+    "status": 200,
+    "final": "https://img.shields.io/badge/license-MIT-yellow",
+    "bytes_sample": 1275
+  },
+  {
+    "url": "https://img.shields.io/badge/plugin-harness--guard_v0.83.0-blue",
+    "status": 200,
+    "final": "https://img.shields.io/badge/plugin-harness--guard_v0.83.0-blue",
+    "bytes_sample": 1370
+  },
+  {
+    "url": "https://img.shields.io/badge/scope-개인부터_작은_팀까지-green",
+    "status": 200,
+    "final": "https://img.shields.io/badge/scope-%EA%B0%9C%EC%9D%B8%EB%B6%80%ED%84%B0_%EC%9E%91%EC%9D%80_%ED%8C%80%EA%B9%8C%EC%A7%80-green"
+  },
+  {
+    "url": "https://img.shields.io/badge/tests-<N>%20passed-brightgreen",
+    "error": "HTTP Error 400: Bad Request",
+    "classification": "template placeholder; not a live URL"
+  },
+  {
+    "url": "https://img.shields.io/badge/version-<vX.Y.Z>-blue",
+    "error": "HTTP Error 400: Bad Request",
+    "classification": "template placeholder; not a live URL"
+  },
+  {
+    "url": "https://martinfowler.com/bliki/ParallelChange.html",
+    "status": 200,
+    "final": "https://martinfowler.com/bliki/ParallelChange.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://mermaid.js.org/ecosystem/integrations-community.html",
+    "status": 200,
+    "final": "https://mermaid.js.org/ecosystem/integrations-community.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://microservices.io/patterns/data/transactional-outbox.html",
+    "status": 200,
+    "final": "https://microservices.io/patterns/data/transactional-outbox.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://mypy.readthedocs.io/en/stable/config_file.html",
+    "status": 200,
+    "final": "https://mypy.readthedocs.io/en/stable/config_file.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://nextjs.org/docs",
+    "status": 200,
+    "final": "https://nextjs.org/docs",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://nextjs.org/docs/app/api-reference/file-conventions/proxy",
+    "status": 200,
+    "final": "https://nextjs.org/docs/app/api-reference/file-conventions/proxy",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://nextjs.org/docs/app/getting-started/mutating-data",
+    "status": 200,
+    "final": "https://nextjs.org/docs/app/getting-started/mutating-data",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://nextjs.org/docs/app/getting-started/mutating-data#passing-actions-as-props",
+    "status": 200,
+    "final": "https://nextjs.org/docs/app/getting-started/mutating-data#passing-actions-as-props",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://nextjs.org/docs/app/getting-started/caching",
+    "status": 200,
+    "final": "https://nextjs.org/docs/app/getting-started/caching"
+  },
+  {
+    "url": "https://nextjs.org/docs/messages/react-hydration-error",
+    "status": 200,
+    "final": "https://nextjs.org/docs/messages/react-hydration-error",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://nodejs.org/en/learn/asynchronous-work/dont-block-the-event-loop",
+    "status": 200,
+    "final": "https://nodejs.org/learn/asynchronous-work/dont-block-the-event-loop",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://nuxt.com/docs",
+    "status": 200,
+    "final": "https://nuxt.com/docs/4.x/getting-started/introduction",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://nuxt.com/docs/4.x/getting-started/state-management",
+    "status": 200,
+    "final": "https://nuxt.com/docs/4.x/getting-started/state-management",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://opengitops.dev/",
+    "status": 200,
+    "final": "https://opengitops.dev/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://openid.net/specs/openid-connect-core-1_0.html",
+    "status": 200,
+    "final": "https://openid.net/specs/openid-connect-core-1_0.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://react.dev/learn/you-might-not-need-an-effect",
+    "status": 200,
+    "final": "https://react.dev/learn/you-might-not-need-an-effect",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://spec.openapis.org/oas/v3.2.1.html#responses-object",
+    "status": 200,
+    "final": "https://spec.openapis.org/oas/v3.2.1.html#responses-object",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://spec.openapis.org/oas/v3.2.1.html#security-requirement-object",
+    "status": 200,
+    "final": "https://spec.openapis.org/oas/v3.2.1.html#security-requirement-object",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://sre.google/workbook/postmortem-culture/",
+    "status": 200,
+    "final": "https://sre.google/workbook/postmortem-culture/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://support.google.com/docs/answer/40608?hl=en",
+    "status": 200,
+    "final": "https://support.google.com/docs/answer/40608?hl=en",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://support.google.com/docs/answer/9331167?hl=en",
+    "status": 200,
+    "final": "https://support.google.com/docs/answer/9331167?hl=en",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://support.microsoft.com/en-us/excel/get-started/import-or-export-text-txt-or-csv-files",
+    "status": 200,
+    "final": "https://support.microsoft.com/en-us/excel/get-started/import-or-export-text-txt-or-csv-files",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://support.microsoft.com/en-us/excel/text-import-wizard",
+    "status": 200,
+    "final": "https://support.microsoft.com/en-us/excel/text-import-wizard",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://vuejs.org/guide/components/props.html#reactive-props-destructure",
+    "status": 200,
+    "final": "https://vuejs.org/guide/components/props.html#reactive-props-destructure",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://vuejs.org/guide/introduction.html",
+    "status": 200,
+    "final": "https://vuejs.org/guide/introduction.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://vuejs.org/guide/scaling-up/ssr.html",
+    "status": 200,
+    "final": "https://vuejs.org/guide/scaling-up/ssr.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://vuejs.org/guide/typescript/overview.html",
+    "status": 200,
+    "final": "https://vuejs.org/guide/typescript/overview.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.archunit.org/userguide/html/000_Index.html",
+    "status": 200,
+    "final": "https://www.archunit.org/userguide/html/000_Index.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.keycloak.org/documentation",
+    "status": 200,
+    "final": "https://www.keycloak.org/documentation",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.postgresql.org/docs/",
+    "status": 200,
+    "final": "https://www.postgresql.org/docs/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL",
+    "status": 200,
+    "final": "https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+    "status": 200,
+    "final": "https://www.postgresql.org/docs/current/explicit-locking.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.postgresql.org/docs/current/indexes-partial.html",
+    "status": 200,
+    "final": "https://www.postgresql.org/docs/current/indexes-partial.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY",
+    "status": 200,
+    "final": "https://www.postgresql.org/docs/current/sql-createindex.html#SQL-CREATEINDEX-CONCURRENTLY",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.prisma.io/docs/orm/prisma-migrate/workflows/customizing-migrations",
+    "status": 200,
+    "final": "https://www.prisma.io/docs/orm/migrations/editing-a-migration",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.prisma.io/docs/orm/prisma-migrate/workflows/patching-and-hotfixing",
+    "status": 200,
+    "final": "https://www.prisma.io/docs/orm/v7/prisma-migrate/workflows/patching-and-hotfixing",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.red-gate.com/hub/product-learning/flyway/how-to-fix-or-avoid-ignored-migrations-in-flyway/",
+    "status": 200,
+    "final": "https://www.red-gate.com/hub/product-learning/flyway/how-to-fix-or-avoid-ignored-migrations-in-flyway/",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.rfc-editor.org/rfc/rfc8259.html#section-6",
+    "status": 200,
+    "final": "https://www.rfc-editor.org/rfc/rfc8259.html#section-6",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.rfc-editor.org/rfc/rfc9700.html",
+    "status": 200,
+    "final": "https://www.rfc-editor.org/rfc/rfc9700.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.typescriptlang.org/docs/handbook/2/narrowing.html",
+    "status": 200,
+    "final": "https://www.typescriptlang.org/docs/handbook/2/narrowing.html",
+    "bytes_sample": 2048
+  },
+  {
+    "url": "https://www.w3.org/TR/trace-context/",
+    "status": 200,
+    "final": "https://www.w3.org/TR/trace-context/",
+    "bytes_sample": 2048
+  }
+]

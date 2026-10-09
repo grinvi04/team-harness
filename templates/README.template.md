@@ -34,8 +34,8 @@
 
 ## 🏗️ 아키텍처
 
-<!-- mermaid는 github.com 웹에서만 렌더됨 → 정적 이미지를 1차로, mermaid 소스는 <details>에.
-     이미지 생성: npx -y @mermaid-js/mermaid-cli -i arch.mmd -o docs/architecture.png -b white -w 1600 -->
+<!-- 구조 설명이 필요할 때만 사용한다. Mermaid는 지원 뷰어·확장에서 렌더된다.
+     비지원 뷰어도 대상이면 이미지·텍스트를 함께 제공하고 원본·재생성 경로를 유지한다. -->
 
 ![아키텍처 다이어그램](docs/architecture.png)
 
@@ -62,7 +62,7 @@ flowchart LR
 # 3) <프론트엔드>
 ```
 
-**테스트 계정** — `<id>` / `<pw>` (`<접속 URL>`)
+<!-- 앱의 시험 계정이 필요한 경우 승인된 비운영 계정의 발급·접속 경로를 안내한다. 실제 비밀은 넣지 않는다. -->
 
 ## 🧪 테스트
 
