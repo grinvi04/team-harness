@@ -23,3 +23,15 @@
 - 공식 CLI 격리 설치 3종을 `143ca921`에서 새로 확인했다. 16명령 exit0·설치된 66파일 일치·원본 152파일 불변이며 실제 dispatch·사용자 설치·발행은 별도 단계다.
 
 - 2026-10-09: 깨끗한 Git archive의 공개 문서 검사에서 로컬 scratch 링크 6건이 실패했다. 공개 검증 기록으로 연결한 323ecd5 후보는 289 MD/0 FAIL, 관련 Node 34건 PASS다. checker와 기존 사용자 .gitignore는 그대로다.
+
+- 2026-10-09 PR #506 required CI5개 PASS → develop1241295 병합. 독립 검토 대상143ca921과 runtime 바이트 동일, tested head5a449ea와 merged tree 동일 확인. release-check live provenance7건 및79파일 bundle/checksum PASS; main 새 승인·태그·설치·지도·정리는 전달 기록에서 계속한다.
+- 실제 지도 서비스가 `project/project-map`으로 이동한 것을 재확인했다. 복구 사본은 보존하고 현재 호출부 후보의 기존211+새7시험 PASS를 확인했다. 별도 read-only 독립 검토·실제 적용은 아직 진행 중이다.
+- 현재 지도 호출부 독립 검토도 PASS. 실제 Astra/medium/read-only/never 정책과 append 거부·불변을 관찰했다. parser/UI/registry를 유지한 메모리 내 연결 반증과 원본105해시를 확인했으며 실제8797활성화는 아직 미실행이다.
+- main PR #507의 최초222103c CI는 공개 안전성19PASS1FAIL: 새 전달 JSON에 개인 홈 cwd가 남았다. 원시 증거는 보존하고 공개 투영만 `$HOME`으로 정규화했다. 검사·승인·품질 기준은 유지하며 같은 gate와 새 후보 CI를 다시 확인한다.
+
+- 2026-10-09: 373ddcb의 main PR #507 required CI5개 PASS. 이번 PR만 승인 요건 해제·원자 병합 후 전체 보호 정책 동일/승인1 복원 확인. main edc10f3에 v0.82.0 태그 발행·원격 SHA 대조 및 최종 bundle/checksum PASS.
+- 실제 지도 ROOT의 첫 fast-forward는 동시 index.lock으로 실패했다. 잠금이 자연 해제된 것을 확인하고 깨끗한 main을 v0.82.0으로 fast-forward했다. 잠금 삭제·다른 프로세스 종료는 하지 않았다.
+- Codex/Claude 공식 사용자 plugin0.82.0의66파일 일치와 각각 다른26/4plugin·설정 보존 확인. 새 CLI17Harness/51전체skills 오류0, 실제 Sol/medium/read-only/never 스킬 적용·세 합성 PreToolUse 거부·fixture 불변 확인. Claude 추론은 USER-DEFERRED다.
+- Codex 첫 조회 초기화의 OAuth 옵션은 자동 승인 검토가 실행 전 거부했다. 옵션을 제거한 인증 변경 없는 공식 조회만 승인·성공했다. 검사 출력의 plain text를 JSON으로 오인한 보고 실패도 수정해 원래 실행 결과와 구분했다.
+- 현재 지도 reader 실제 적용의 최초218검사는 새 fixture 폴더 생성 누락7ERROR였다. 임시 map 폴더 생성만 보완해 조건을 유지한218PASS; 소유 확인 controller재시작 후 정본sourceReady/error없음과7개 HTTP응답 확인. 사용자 README/JSON·TypeScript재설계를 보존한 로컬80f9845커밋, 원격 없음.
+- 추가 문서 독립 검토의5f4db31 첫 결과는 NEEDS_FIX: 필수 plan/README 진입점에 당시 Claude 지원 미달·dispatch/reader 대기 목록이 현재처럼 남았다. 당시 표를 역사로 보존하고 현재 결과·USER-DEFERRED·PR508의 후속 원본을 연결해 수정·재검토한다.

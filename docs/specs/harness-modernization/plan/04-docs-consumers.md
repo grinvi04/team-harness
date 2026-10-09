@@ -1,12 +1,12 @@
 # 단계 4 — 문서 구조와 직접 소비자
 
 근거: [D01–D10·C01–C07](../review/03-docs-consumers.md), [전체 목록·23개 초과 문서](../review/04-coverage-design.md).
-진행 상태: 계층·생성기·소비 문서의 로컬 적용/검사/커밋 완료. 개인 reader 원본 적용·최종 설치·통합 인수는 진행 중.
+진행 상태: 계층·생성기·소비 문서의 로컬 적용/검사/커밋과 현재 지도 reader218개 검사·실제 정본 연결을 확인했다. 내용·이력·직접 소비 경로 보존과 개별 검증 한계는 아래 기록을 따른다.
 숫자 기준은 모든 소유 MD의 물리적 줄 수 199 이하이며 빈 줄/frontmatter도 포함한다.
 새 모델로 역사상 모델 이름·날짜·후보·실패/성공을 덮어쓰지 않는다.
 
 현재 근거: [내용 보존](../execution-d4bc.json)·[개인 reader 후보](../execution-d4d.json)·[소비 로컬 적용](../execution-consumer-apply.json)·[표준 관찰](../execution-d4f.json).
-4D의 695줄 재구성은 후보에서 확인했다. 실제 서비스 ROOT에는 해당 원본 문서가 없어 공식 전달 후 정렬한다.
+4D의 695줄 재구성은 후보에서 확인했다. 서비스가 별도 `project/project-map`으로 이동한 현재 호출부에 최소 후보를 다시 연결해 기존211+새7시험 PASS를 확인했다. 별도 Astra/medium 실제 read-only/never 독립 검토와 원문/현재 parser·UI·registry 연결 반증 PASS를 확인했다. 승인된 v0.82.0으로 실제 ROOT를 fast-forward하고 현재 controller의 소유 확인 재시작·7개 HTTP 응답에서 정본 sourceReady/no error를 확인했다. 이전 Documents 서비스는 복구 사본이며 적용 대상이 아니다.
 아래는 범위 확인용 재사용 체크리스트다. 미체크 표시 자체를 새 백로그로 세지 않으며 각 AC의 실제 상태와 한계는 위 실행 기록을 따른다.
 
 ## 4A — 진입점과 내용 단위
@@ -64,7 +64,7 @@ AC-D3: 소스 폴더와 설치용 묶음의 읽기 결과가 동일 계약을 �
 
 ## 4D — 지도 parser·현재 안내·그림
 
-직접 reader: `$HOME/Documents/Codex/2026-10-07/claude-chatgpt-codex-codex-native-claude/outputs/project-map-service/`.
+현재 직접 reader: `$HOME/project/project-map/`. 이전 Documents 경로는 복구 사본이다.
 `projects.py`와 projects.json 및 실제 consumer-progress/drivetree-progress/product-roadmap reader가 대상이다.
 우선 제목·AC·현재 상태의 기존 읽기 surface를 보존한다. 불가능하면 reader의 최소 이관을 구현 승인 범위에 명시한다.
 
