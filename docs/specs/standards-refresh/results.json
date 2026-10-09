@@ -1,7 +1,7 @@
 {
   "base": "d384c570b843faa47f17ac7850143d3481fe13dc",
   "implementationCommit": "0949f9f0935b406b37c1a9bf35e4e90f28fa00cc",
-  "workdir": "/Users/grinvi04/.codex/worktrees/standards-refresh/team-harness",
+  "workdir": "managed worktree: standards-refresh/team-harness (personal home path redacted)",
   "qualityInitial": [
     {
       "name": "진행 문서 동기화 선언 검사",
@@ -532,5 +532,14 @@
     "initialExit": 1,
     "cause": "first body item must be 이유:",
     "correction": "이유: first, 검증: second; validator unchanged"
+  },
+  "remoteFollowup": {
+    "failedHead": "ff0b355dbcde81e3437e4819d84e429a31445805",
+    "qualityRun": 37957536397,
+    "testGuardRun": 37957536191,
+    "qualityCause": "published evidence workdir exposed personal home path; local quality ran before this evidence was tracked",
+    "testGuardCause": "one Ruby documentation syntax marker was removed; actual test files were not removed",
+    "correction": "redacted personal path; restored useful Minitest syntax; guard and scanner unchanged",
+    "originalRubySHA256": "c6fdd54b41a09a605abb6a7325891bbf3992d55d034bb2aab6c49c7fd2eba759"
   }
 }

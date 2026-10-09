@@ -21,6 +21,7 @@ RuboCop은 채택한 cop·확장·버전으로 CI에 연결한다.
 ## 테스트와 마이그레이션
 
 RSpec·Minitest 등 프로젝트의 검사로 변경 동작과 실패·거부 경계를 확인한다.
+Minitest는 `test '…' do` 블록 또는 `def test_…` 메서드를 사용한다. Rails에서는 `ActiveSupport::TestCase` 안내를 확인한다.
 적용한 migration은 수정하지 않는다. 생성된 초안은 적용 전 검토한다.
 DB 호환·잠금·데이터 이관은 `docs/stack-troubleshooting-database.md`를 따른다.
 Strong Migrations는 선택 도구다. 설치하지 않은 검사가 CI에서 실행된다고 보고하지 않는다.
