@@ -1,7 +1,7 @@
 # 단계 5 — 통합 인수·기록·delivery·정리
 
 선행: 단계 1–4의 현재 후보와 원시 결과. 근거: [원래 완료 기준](../review/04-coverage-design.md).
-진행 상태: 소스143ca921 독립 최종 검토, 세 CLI 격리 설치, 유효한 로컬 영향 시험과 PR #506 required CI5개를 통과해 develop에 병합했다. 현재 release-check·79파일 bundle/checksum PASS이며 main 전달·사용자 설치/dispatch·지도 실제 적용·정리는 [전달 기록](../execution-delivery.json)에서 진행 중이다. 당시 실패·보류는 보존한다.
+진행 상태: 소스 독립 검토·필수 CI·공식 사용자 설치와 새 Codex 실행·현재 지도 실제 연결까지 확인했다. PR #507 승인 요건 원자 해제/복원·v0.82.0 태그는 완료; develop 역병합·최종 증거/지도 보존·worktree 정리는 [전달 기록](../execution-delivery.json)에서 진행 중이다.
 
 ## 추가 독립 리뷰 수정의 인수 범위
 

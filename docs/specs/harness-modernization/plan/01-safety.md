@@ -1,7 +1,7 @@
 # 단계 1 — 안전 검사와 검증 후보
 
 선행: [계획의 범위·현재 원본](README.md). 근거: [S01–S08·S11–S14](../review/01-safety-runtime.md).
-진행 상태: 1A–1E와 추가 1B 결함의 로컬 영향 시험을 확인했다. 143ca921의 독립 소스 검토 PASS, 동일 runtime 바이트의 PR #506 required CI5개 PASS·develop 병합 완료다. 실제 사용자 설치/발행은 [전달 기록](../execution-delivery.json)에서 진행 중이며 보호 변경은 아직 없다.
+진행 상태: 승인 범위의 반례·직접 소비자·독립 최종 검토와 main PR #507의 현재 required CI를 통과해 v0.82.0으로 발행했다. 소스·실제 설치의 후보 연결은 [전달 기록](../execution-delivery.json)을 따른다.
 
 ## 1A — 조회 실패 전에 보호 변경 차단
 
@@ -90,7 +90,7 @@ AC-S5: JSON 유효성뿐 아니라 허용된 hook 명령이 의도한 파일을 
 필수 실패/미확인, 보안 gate 약화, 승인 밖 원본/사용자 자료 변경이 남으면 이 단계 완료를 선언하지 않는다.
 plugin 동작이 바뀌는 묶음은 두 manifest·README 버전과 현재 maintenance 계약을 함께 맞춘다.
 
-1A의 원래 RED·수정 결과·권한 실행 증거: [실행 기록](../execution-s1a.json). 정상 자동 감지 대조군을 포함한 영향 검사 62 PASS / 0 FAIL. 전체 단계·독립 검토·CI·발행은 아직 완료 전이다.
+1A의 원래 RED·수정 결과·권한 실행 증거: [실행 기록](../execution-s1a.json). 정상 자동 감지 대조군을 포함한 당시 영향 검사 62 PASS / 0 FAIL. 후속 독립 검토·현재 CI·v0.82.0 발행은 위 진행 상태와 전달 기록에서 확인한다.
 
 1B [543개 단언](../execution-s1b.json), 1C [58개 구문 반례와 영향 시험](../execution-s1c.json), 1E [74개 수명주기 시험](../execution-s1e.json)은 각 기록에 묶인 이전 후보의 결과다. 새 1B 결과는 위 추가 수정 기록을 따른다.
 1D의 격리 후보·출력 경계 결과는 [당시 실행 기록](../execution-s1d.json), 1E의 cache 축소·남은 선택형 patcher quoting 결과는 [3E 실행 기록](../execution-m3e.json)에 연결한다. 실제 native 세션·설치나 전체 단계 완료로 옮기지 않는다.

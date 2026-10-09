@@ -1,7 +1,7 @@
 # 단계 2 — QA·리뷰·복구·delivery 판정
 
 선행: [단계 1](01-safety.md)의 관련 경계. 근거: [S09–S10](../review/01-safety-runtime.md), [Q01–Q12](../review/02-qa-delivery.md).
-진행 상태: 2A–2E와 추가 2A·2D 반례 수정의 로컬 시험, 독립 소스 검토를 통과했다. PR #506은 현재 wrapper·required CI5개·fresh thread/head/base gate로 develop에 병합했다. 시험 fixture와 이 실제 전달은 구분한다. main 보호 승인·태그는 [전달 기록](../execution-delivery.json)에서 진행 중이다.
+진행 상태: QA 상태·필수 CI 조회 실패·복구/태그 반례와 직접 소비자 시험을 통과했다. 실제 PR #507 원자 병합/보호 전체 복원·정확한 SHA 태그 발행은 [전달 기록](../execution-delivery.json)에 연결했다.
 
 ## 2A — PR head/base와 리뷰 thread 범위
 
