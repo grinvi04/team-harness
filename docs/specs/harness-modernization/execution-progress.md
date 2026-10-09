@@ -27,3 +27,4 @@
 - 2026-10-09 PR #506 required CI5개 PASS → develop1241295 병합. 독립 검토 대상143ca921과 runtime 바이트 동일, tested head5a449ea와 merged tree 동일 확인. release-check live provenance7건 및79파일 bundle/checksum PASS; main 새 승인·태그·설치·지도·정리는 전달 기록에서 계속한다.
 - 실제 지도 서비스가 `project/project-map`으로 이동한 것을 재확인했다. 복구 사본은 보존하고 현재 호출부 후보의 기존211+새7시험 PASS를 확인했다. 별도 read-only 독립 검토·실제 적용은 아직 진행 중이다.
 - 현재 지도 호출부 독립 검토도 PASS. 실제 Astra/medium/read-only/never 정책과 append 거부·불변을 관찰했다. parser/UI/registry를 유지한 메모리 내 연결 반증과 원본105해시를 확인했으며 실제8797활성화는 아직 미실행이다.
+- main PR #507의 최초222103c CI는 공개 안전성19PASS1FAIL: 새 전달 JSON에 개인 홈 cwd가 남았다. 원시 증거는 보존하고 공개 투영만 `$HOME`으로 정규화했다. 검사·승인·품질 기준은 유지하며 같은 gate와 새 후보 CI를 다시 확인한다.

@@ -73,7 +73,7 @@
             "--output",
             "/private/tmp/task-harness-release-49h4cdj3/bundle"
           ],
-          "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+          "cwd": "$HOME/.codex/worktrees/c833/team-harness",
           "exit": 0,
           "seconds": 1.293
         },
@@ -107,5 +107,20 @@
     "consumerRemoteDelivery": "EXCLUDED by user; local commits/QA preserved",
     "deployment": "EXCLUDED by user; no prod data/environment/payment",
     "fileUrlVisual": "UNVERIFIED: browser policy denies file protocol; HTTP visual proof cannot replace it"
+  },
+  "mainFirstCI": {
+    "candidate": "222103c8c5bd1993c0d9b803c55144001e05d93e",
+    "pr": 507,
+    "qualityStatus": "FAIL",
+    "step": "public-safety-audit-test.sh",
+    "result": "19PASS1FAIL",
+    "cause": "New public delivery projection included one concrete user home cwd path; private raw evidence was copied without public normalization.",
+    "correction": "Portable $HOME in public projection only; original command/cwd retained in private raw record. Checker and required policy unchanged.",
+    "afterLocal": {
+      "status": "PASS",
+      "cases": "20PASS0FAIL",
+      "logSha256": "d497e037da6c1d8d476748873ac9af5023600f743bd2cd54e854201562c85bb9"
+    },
+    "afterCI": "PENDING"
   }
 }
