@@ -35,7 +35,7 @@ AC-S2: 확인된 위험 입력은 exit 2, 허용 대조군은 exit 0. 네트워�
 이 검사는 명령 분류 범위다. 모든 셸 표현·우회를 차단했다고 확대하지 않는다.
 
 2026-10-09 추가 독립 리뷰: curl form의 `type`·`filename`·`encoder`·`headers` 속성과 여러 `@` 파일에서 민감 파일 참조를 놓쳤다.
-[추가 수정 기록](../../../../.superpowers/sdd/harness-modernization/review-fix-egress/result.json)의 첫 RED는 exit1(245 PASS/14 FAIL)이며, 수정 후 egress 273·guard 168·matrix 112·tokenizer 32 PASS와 pretool 연결·구문 검사는 exit0이다.
+[추가 수정 기록](../execution-integrated-review.json)의 첫 RED는 exit1(245 PASS/14 FAIL)이며, 수정 후 egress 273·guard 168·matrix 112·tokenizer 32 PASS와 pretool 연결·구문 검사는 exit0이다.
 공개 데이터·literal `--form-string` 대조군과 셸 확장 위치를 보존했다. 실제 전송·비밀 파일 읽기·인증·Claude 추론·설치·원격 CI·최종 독립 재검토는 이 결과에 포함하지 않는다.
 
 ## 1C — 유효한 마이그레이션 구문의 누락

@@ -1,6 +1,6 @@
 {
-  "dateUtc": "2026-10-09T00:21:14.750353+00:00",
-  "status": "REPEATED_TYPE_FIXED_279_CASES_PASS_FINAL_REREVIEW_PENDING",
+  "dateUtc": "2026-10-09T00:47:53.587458+00:00",
+  "status": "SOURCE_REVIEW_PASS_FINAL_ISOLATED_INSTALL_PASS_DELIVERY_PENDING",
   "firstIndependentReview": {
     "head": "fc05d31f110218b0d8a99dc2202050f56134fba3",
     "verdict": "NEEDS_FIX",
@@ -129,8 +129,8 @@
     "incompatibleFirstRecheck": "current12case normal status protocol differed from old frozen candidates; preserved and corrected, not treated as12 genuine defects"
   },
   "limits": [
-    "Mandatory fixed-candidate independent rereview pending.",
-    "Earlier full suite and plugin isolated install cover fc05d31; changed source needs affected reruns/new frozen install.",
+    "Required remote CI and actual user plugin install/native dispatch, release/delivery and owned cleanup pending.",
+    "Fresh final isolated installation and bounded source review completed; no whole-system security guarantee.",
     "Actual Claude inference/authentication USER-DEFERRED.",
     "No consumer remote push/PR, deployment, production, new account or payment."
   ],
@@ -150,7 +150,7 @@
     "rawFinalSha256": "07e06b93b7fc1ccb02f88b132484a47eed104b38a2466c30b6e4a5ac7d12889a"
   },
   "repeatedTypeFix": {
-    "status": "LOCAL_FIXED_CANDIDATE_FROZEN_INDEPENDENT_REVIEW_PENDING",
+    "status": "LOCAL_FIXED_AFFECTED_TESTS_AND_FINAL_INDEPENDENT_SOURCE_REVIEW_PASS",
     "recorded_at": "2026-10-09T00:35:39.535286+00:00",
     "reviewed_commit": "3549d2f239e38c83d386154ea8bd505f8a41ef5e",
     "review_source": ".superpowers/sdd/harness-modernization/fixed-review/final.txt",
@@ -302,5 +302,45 @@
     "reason": "public SHA256 adjacent to file identity containing secret; same metadata layout issue",
     "ruleChanged": false,
     "values": "source fingerprints only"
+  },
+  "finalIndependentReview": {
+    "head": "143ca921de0a79f0396fe9b18d46191030fe25fd",
+    "verdict": "PASS_BOUNDED_SOURCE_REVIEW",
+    "model": "gpt-6-astra",
+    "effort": "medium",
+    "actualSandbox": "read-only",
+    "actualApproval": "never",
+    "sessionId": "01a11e1a-8e26-7083-9d09-0362da41b16a",
+    "seconds": 150.03,
+    "exit": 0,
+    "denialProbe": "one actual append PermissionError; exact probe unchanged",
+    "newClassifierCases": "54/54; two prior counterexamples exit2; public/header/multi-file/literal controls",
+    "reused": "unchanged areas from two earlier independent reviews; no entire279 or quality suite rerun",
+    "rawFinalSha256": "2e3c584d1f6ec5fc90fabcc68d3bb161bd2e40211b594546a65de08817a7fe74",
+    "usage": {
+      "input_tokens": 498445,
+      "cached_input_tokens": 423808,
+      "output_tokens": 3314,
+      "reasoning_output_tokens": 167
+    },
+    "limits": [
+      "source review only",
+      "no remote CI, actual user plugin install, dispatch, release, live personal-map activation or cleanup proof"
+    ]
+  },
+  "pluginFinalInstall": {
+    "head": "143ca921de0a79f0396fe9b18d46191030fe25fd",
+    "cliCommands": 16,
+    "result": "3 official runtimes install/enabled66files equal;17skills,2agents,2hookevents;original152hashes unchanged",
+    "rawSummarySha256": "a25600d09ba60c3036a0b5081fe3664d0a3974fb2c0cd4ef1f4d37f3df8e020f",
+    "noInferenceOrAuthCopies": true,
+    "limit": "registration/content/inventory only; actual dispatch and active-app reload unverified"
+  },
+  "publicDocumentationBoundary": {
+    "redHead": "143ca921de0a79f0396fe9b18d46191030fe25fd",
+    "red": "clean Git archive checker289files;exit1;six scratch-only links missing",
+    "fix": "six hyperlinks now use this committed public record; raw private proofs retained separately",
+    "checkerUnchanged": true,
+    "firstDriverFailure": "default TMPDIR symlink spelling bypassed Node import main guard; empty stdout JSON parse failed; preserved; resolved explicit /private/tmp snapshot path"
   }
 }

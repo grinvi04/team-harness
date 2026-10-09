@@ -19,7 +19,7 @@ AC-Q1: 후보 변경·조회 실패에서 완료 판정 없음. 새 thread의 �
 base 재조회만으로 원자적 race 제거를 주장하지 않는다. 서버 보호가 필요하면 정확한 계약/한계를 남긴다.
 
 2026-10-09 추가 독립 리뷰: required checks 조회 실패 뒤 unrelated head Actions 성공만으로 `--auto`를 허용하던 경로를 차단했다.
-[추가 수정 기록](../../../../.superpowers/sdd/harness-modernization/review-fix-merge/summary.json): 첫 RED exit1(56 PASS/2 FAIL) → 수정 후 merge 58·solo 65·pr-create 9·guard 168 PASS 및 구문 exit0.
+[추가 수정 기록](../execution-integrated-review.json): 첫 RED exit1(56 PASS/2 FAIL) → 수정 후 merge 58·solo 65·pr-create 9·guard 168 PASS 및 구문 exit0.
 자동머지는 required 없음·조회 실패에서 fallback 조회와 merge 쓰기를 하지 않는다. 명시 수동 fallback은 기존 계약을 유지하며 전체 서버 필수 context의 증거로 취급하지 않는다.
 정상 자동머지의 reviewed head 결박·base 재조회·unresolved/mergeable gate는 유지했다. 실제 서버 보호·CI·머지와 원자적 base race 제거는 미확인이다.
 
@@ -71,7 +71,7 @@ AC-Q4: UNVERIFIED가 rejected/PASS/완료로 변환되지 않는다. 파일/선�
 단계 4의 문서 분할은 이 계약을 유지하며 관련 reader를 같이 변경한다.
 
 2026-10-09 추가 독립 리뷰: findings 형식이 유효해도 review `status`가 없거나 null이면 범위 완료로 처리하던 결함을 고쳤다.
-[추가 수정 기록](../../../../.superpowers/sdd/harness-modernization/review-fix-qa/record.json): 실제 workflow 행동 회귀의 첫 RED exit1(11 PASS/1 FAIL) → 명시 `reviewed`를 요구한 수정 후 exit0(12 PASS/0 FAIL).
+[추가 수정 기록](../execution-integrated-review.json): 실제 workflow 행동 회귀의 첫 RED exit1(11 PASS/1 FAIL) → 명시 `reviewed`를 요구한 수정 후 exit0(12 PASS/0 FAIL).
 유효한 finding과 별도의 미완료 coverage를 함께 보존한다. [기존 2D 기록](../execution-q2d.json)의 11개 통과는 이전 후보에 한정하며 실제 플랫폼 workflow 활성·설치된 reference 전달은 여전히 미확인이다.
 
 ## 2E — SVG·hook 실패와 생성 품질
