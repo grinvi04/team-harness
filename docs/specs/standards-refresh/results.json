@@ -1,0 +1,536 @@
+{
+  "base": "d384c570b843faa47f17ac7850143d3481fe13dc",
+  "implementationCommit": "0949f9f0935b406b37c1a9bf35e4e90f28fa00cc",
+  "workdir": "/Users/grinvi04/.codex/worktrees/standards-refresh/team-harness",
+  "qualityInitial": [
+    {
+      "name": "진행 문서 동기화 선언 검사",
+      "command": "node plugins/harness-guard/scripts/check-document-sync.mjs --repo . --event \"$GITHUB_EVENT_PATH\"\nnode --test tests/document-sync-test.mjs\n",
+      "exit": 1,
+      "seconds": 0.05,
+      "log": "/private/tmp/standards-quality/01.log"
+    },
+    {
+      "name": "문서 구조·생성·판정·모델 설정 계약",
+      "command": "node --test tests/markdown-structure-test.mjs tests/changelog-generation-test.mjs tests/harness-review-test.mjs\nnode scripts/check-markdown-structure.mjs --root . --virtual-root templates/AGENTS.md=. --virtual-root templates/README.template.md=.\nbash tests/native-model-contract-test.sh\n",
+      "exit": 0,
+      "seconds": 66.66,
+      "log": "/private/tmp/standards-quality/02.log"
+    },
+    {
+      "name": "선택형 개발 조정 배포 경계 검사",
+      "command": "bash tests/orchestration-integration-test.sh",
+      "exit": 0,
+      "seconds": 1.47,
+      "log": "/private/tmp/standards-quality/03.log"
+    },
+    {
+      "name": "로컬 Spring Boot+Vue 시작 구성",
+      "command": "node --test tests/local-setup-test.mjs",
+      "exit": 0,
+      "seconds": 3.2,
+      "log": "/private/tmp/standards-quality/04.log"
+    },
+    {
+      "name": "쉘 구문 검사",
+      "command": "bash -n plugins/harness-guard/scripts/guard.sh\nbash -n plugins/harness-guard/scripts/pr-create.sh\nbash -n plugins/harness-guard/scripts/pr-merge.sh\nbash -n plugins/harness-guard/scripts/set-branch-protection.sh\nbash -n plugins/harness-guard/scripts/solo-merge.sh\nbash -n templates/githooks/pre-commit\nbash -n templates/githooks/commit-msg\nbash -n .githooks/pre-commit\nbash -n .githooks/commit-msg\nbash -n tests/architecture-generator-test.sh\nbash -n tests/test-guard-test.sh\nbash -n tests/guard-test.sh\nbash -n tests/guard-matrix-test.sh\nbash -n tests/guard-tokenizer-test.sh\nbash -n tests/route-intent-test.sh\nbash -n tests/merge-permissions-test.sh\nbash -n tests/pr-merge-auto-test.sh\nbash -n tests/pr-create-test.sh\nbash -n tests/set-branch-protection-test.sh\nbash -n tests/solo-merge-test.sh\nbash -n tests/hotfix-tag-test.sh\nbash -n tests/new-repo-test.sh\nbash -n tests/alembic-heads-test.sh\nbash -n tests/alembic-destructive-ddl-test.sh\nbash -n tests/activerecord-destructive-ddl-test.sh\nbash -n tests/skill-discovery-test.sh\nbash -n tests/skill-trigger-contract-test.sh\nbash -n tests/commit-message-test.sh\nbash -n tests/loop-skill-test.sh\nbash -n tests/flagship-skills-test.sh\nbash -n tests/product-direction-test.sh\nbash -n tests/public-safety-audit-test.sh\nbash -n tests/platform-overlap-audit-test.sh\nbash -n tests/product-boundary-test.sh\nbash -n tests/package-build-test.sh\nbash -n tests/package-artifact-integrity-test.sh\nbash -n tests/open-source-docs-test.sh\nbash -n tests/release-bundle-test.sh\nbash -n tests/plugin-coexistence-test.sh\nbash -n tests/external-pilot-test.sh\nbash -n tests/external-pilot-report-test.sh\nbash -n tests/external-pilot-provenance-test.sh\nbash -n tests/package-catalog-integrity-test.sh\nbash -n tests/package-workflow-binding-test.sh\nbash -n tests/profile-lifecycle-test.sh\nbash -n tests/enforce-subagent-model-test.sh\nbash -n tests/plugin-wiring-test.sh\nbash -n tests/settings-deny-test.sh\nbash -n tests/codex-security-guidance-adapter-test.sh\nbash -n tests/patch-codex-security-guidance-test.sh\nbash -n tests/codex-native-loader-test.sh\nbash -n tests/codex-native-loader-pilot-test.sh\nbash -n tests/codex-native-loader-report-test.sh\nbash -n tests/codex-split-loader-pilot-test.sh\nbash -n tests/codex-secret-egress-guard-test.sh\nbash -n tests/codex-pretool-guard-test.sh\nbash -n tests/codex-semantic-parity-test.sh\nbash -n tests/codex-skill-mapping-test.sh\nbash -n tests/claude-surface-isolation-test.sh\nbash -n tests/codex-plugin-cache-sync-test.sh\nbash -n scripts/new-repo.sh\nbash -n scripts/codex-hardened.sh\nbash -n scripts/install-codex-managed-requirements.sh\nbash -n scripts/codex-fresh-session-smoke.sh\nbash -n scripts/harness-doctor.sh\nbash -n tests/codex-managed-requirements-test.sh\nbash -n tests/codex-fresh-session-smoke-test.sh\nbash -n tests/harness-doctor-test.sh\nbash -n tests/action-pin-test.sh\nnode --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs\nnode --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs\nnode --check plugins/harness-guard/scripts/codex-secret-egress-guard.mjs\nnode --check plugins/harness-guard/scripts/codex-pretool-guard.mjs\nnode --check plugins/harness-guard/scripts/route-intent.mjs\nnode --check plugins/harness-guard/scripts/run-with-timeout.mjs\nnode --check plugins/harness-guard/scripts/worktree-fingerprint.mjs\nnode --check scripts/check-commit-message.cjs\nnode --check scripts/build-packages.mjs\nnode --check scripts/build-release-bundle.mjs\nnode --check scripts/generate-changelog.mjs\nnode --check scripts/check-markdown-structure.mjs\nnode --check scripts/check-plugin-coexistence.mjs\nnode --check scripts/run-external-pilot.mjs\nnode --check scripts/check-external-pilot-provenance.mjs\nnode --check scripts/codex-binary-trust.mjs\nnode --check scripts/sync-codex-plugin-cache.mjs\nnode --check scripts/check-codex-native-plugin.mjs\nnode --check scripts/run-codex-native-loader-pilot.mjs\nnode --check scripts/run-codex-split-loader-pilot.mjs\nnode --check scripts/merge-permissions.mjs\nnode --check scripts/check-destructive-ddl.mjs\nnode --check scripts/check-alembic-destructive-ddl.mjs\nnode --check scripts/check-activerecord-destructive-ddl.mjs\nnode --check templates/frontend/check-design-tokens.mjs\n",
+      "exit": 0,
+      "seconds": 1.28,
+      "log": "/private/tmp/standards-quality/05.log"
+    },
+    {
+      "name": "JSON 유효성 검사",
+      "command": "python3 - <<'EOF'\nimport json, glob\npaths = [\n    \"plugins/harness-guard/.claude-plugin/plugin.json\",\n    \"plugins/harness-guard/.codex-plugin/plugin.json\",\n    \"plugins/harness-guard/hooks/hooks.json\",\n    \"plugins/harness-guard/codex/hooks/hooks.json\",\n    \".claude-plugin/marketplace.json\",\n    \"templates/settings.json\",\n    \"packaging/packages.json\",\n    \"docs/pilots/external-pilot-provenance.json\",\n    \"docs/pilots/codex-split-loader-v0.61.0.json\",\n    \"docs/pilots/codex-split-runtime-v0.61.0.json\",\n] + sorted(glob.glob(\"templates/permissions/*.json\"))\nfor p in paths:\n    json.load(open(p))\n    print(\"OK\", p)\nEOF\n",
+      "exit": 0,
+      "seconds": 0.06,
+      "log": "/private/tmp/standards-quality/06.log"
+    },
+    {
+      "name": "파이썬 구문 검사 (호환 경로·실행기)",
+      "command": "python3 -m py_compile plugins/harness-guard/scripts/enforce-subagent-model.py\npython3 -m py_compile scripts/spawn-verified-executable.py\n",
+      "exit": 0,
+      "seconds": 0.14,
+      "log": "/private/tmp/standards-quality/07.log"
+    },
+    {
+      "name": "템플릿 생성기 ruff 검사 (python repo가 복사 시 CI 통과 보장 — v0.24.1)",
+      "command": "ruff check --line-length 100 --select E,F,W templates/gen_arch_svg.py\nruff format --line-length 100 --check templates/gen_arch_svg.py\n",
+      "exit": 0,
+      "seconds": 0.64,
+      "log": "/private/tmp/standards-quality/08.log"
+    },
+    {
+      "name": "아키텍처 생성기 실패·XML 계약",
+      "command": "bash tests/architecture-generator-test.sh",
+      "exit": 0,
+      "seconds": 1.42,
+      "log": "/private/tmp/standards-quality/09.log"
+    },
+    {
+      "name": "가드 시나리오 테스트",
+      "command": "bash tests/guard-test.sh",
+      "exit": 0,
+      "seconds": 65.83,
+      "log": "/private/tmp/standards-quality/10.log"
+    },
+    {
+      "name": "가드 계약 전수 매트릭스",
+      "command": "bash tests/guard-matrix-test.sh",
+      "exit": 0,
+      "seconds": 36.11,
+      "log": "/private/tmp/standards-quality/11.log"
+    },
+    {
+      "name": "가드 tokenizer 경계 계약",
+      "command": "bash tests/guard-tokenizer-test.sh",
+      "exit": 0,
+      "seconds": 0.12,
+      "log": "/private/tmp/standards-quality/12.log"
+    },
+    {
+      "name": "의도 라우터 테스트",
+      "command": "bash tests/route-intent-test.sh",
+      "exit": 0,
+      "seconds": 3.08,
+      "log": "/private/tmp/standards-quality/13.log"
+    },
+    {
+      "name": "skill 자동 선택 description 계약",
+      "command": "bash tests/skill-trigger-contract-test.sh",
+      "exit": 0,
+      "seconds": 1.8,
+      "log": "/private/tmp/standards-quality/14.log"
+    },
+    {
+      "name": "커밋 메시지 로컬·CI 공통 계약",
+      "command": "bash tests/commit-message-test.sh\nbash tests/commitlint-trusted-test.sh\n",
+      "exit": 0,
+      "seconds": 7.05,
+      "log": "/private/tmp/standards-quality/15.log"
+    },
+    {
+      "name": "loop 실행 안전장치 계약",
+      "command": "bash tests/loop-skill-test.sh",
+      "exit": 0,
+      "seconds": 30.42,
+      "log": "/private/tmp/standards-quality/16.log"
+    },
+    {
+      "name": "권한 병합 테스트",
+      "command": "bash tests/merge-permissions-test.sh",
+      "exit": 0,
+      "seconds": 0.99,
+      "log": "/private/tmp/standards-quality/17.log"
+    },
+    {
+      "name": "마이그레이션 안전성 테스트",
+      "command": "bash tests/migration-safety-test.sh",
+      "exit": 0,
+      "seconds": 1.97,
+      "log": "/private/tmp/standards-quality/18.log"
+    },
+    {
+      "name": "파괴적 DDL 게이트 테스트",
+      "command": "bash tests/destructive-ddl-test.sh",
+      "exit": 0,
+      "seconds": 4.75,
+      "log": "/private/tmp/standards-quality/19.log"
+    },
+    {
+      "name": "Alembic 파괴 DDL 게이트 테스트",
+      "command": "bash tests/alembic-destructive-ddl-test.sh",
+      "exit": 0,
+      "seconds": 3.02,
+      "log": "/private/tmp/standards-quality/20.log"
+    },
+    {
+      "name": "ActiveRecord 파괴 DDL 게이트 테스트",
+      "command": "bash tests/activerecord-destructive-ddl-test.sh",
+      "exit": 0,
+      "seconds": 3.09,
+      "log": "/private/tmp/standards-quality/21.log"
+    },
+    {
+      "name": "드리프트 점검 테스트",
+      "command": "bash tests/repo-sync-test.sh",
+      "exit": 0,
+      "seconds": 3.81,
+      "log": "/private/tmp/standards-quality/22.log"
+    },
+    {
+      "name": "pr-merge --auto·게이트 판정 테스트",
+      "command": "bash tests/pr-merge-auto-test.sh",
+      "exit": 0,
+      "seconds": 10.73,
+      "log": "/private/tmp/standards-quality/23.log"
+    },
+    {
+      "name": "pr-create 검증 함수 테스트",
+      "command": "bash tests/pr-create-test.sh",
+      "exit": 0,
+      "seconds": 14.11,
+      "log": "/private/tmp/standards-quality/24.log"
+    },
+    {
+      "name": "set-branch-protection --check 판정 테스트",
+      "command": "bash tests/set-branch-protection-test.sh",
+      "exit": 0,
+      "seconds": 12.45,
+      "log": "/private/tmp/standards-quality/25.log"
+    },
+    {
+      "name": "solo-merge break-glass 원자성 테스트",
+      "command": "bash tests/solo-merge-test.sh",
+      "exit": 0,
+      "seconds": 10.29,
+      "log": "/private/tmp/standards-quality/26.log"
+    },
+    {
+      "name": "핫픽스 PR 커밋·단일 태그 계약",
+      "command": "bash tests/hotfix-tag-test.sh",
+      "exit": 0,
+      "seconds": 0.72,
+      "log": "/private/tmp/standards-quality/27.log"
+    },
+    {
+      "name": "new-repo B4 게이트 테스트",
+      "command": "bash tests/new-repo-test.sh",
+      "exit": 0,
+      "seconds": 3.18,
+      "log": "/private/tmp/standards-quality/28.log"
+    },
+    {
+      "name": "테스트 단언 감소 판정 회귀",
+      "command": "bash tests/test-guard-test.sh",
+      "exit": 0,
+      "seconds": 4.92,
+      "log": "/private/tmp/standards-quality/29.log"
+    },
+    {
+      "name": "alembic-heads 계수 테스트",
+      "command": "bash tests/alembic-heads-test.sh",
+      "exit": 0,
+      "seconds": 0.72,
+      "log": "/private/tmp/standards-quality/30.log"
+    },
+    {
+      "name": "스킬 발견성(SKILL.md) 테스트",
+      "command": "bash tests/skill-discovery-test.sh",
+      "exit": 0,
+      "seconds": 0.66,
+      "log": "/private/tmp/standards-quality/31.log"
+    },
+    {
+      "name": "대표 디버깅·완료 검증 스킬 계약",
+      "command": "bash tests/flagship-skills-test.sh",
+      "exit": 0,
+      "seconds": 0.31,
+      "log": "/private/tmp/standards-quality/32.log"
+    },
+    {
+      "name": "QA 실제 과제 판정자 자체 검증 (모델 호출 없음)",
+      "command": "node --test tests/qa-practical-test.mjs",
+      "exit": 0,
+      "seconds": 61.53,
+      "log": "/private/tmp/standards-quality/33.log"
+    },
+    {
+      "name": "QA 명령별 증거 판정자 자체 검증 (모델 호출 없음)",
+      "command": "node --check tests/fixtures/qa-command-binding.mjs\nnode --test tests/qa-command-binding-test.mjs\n",
+      "exit": 0,
+      "seconds": 3.02,
+      "log": "/private/tmp/standards-quality/34.log"
+    },
+    {
+      "name": "제품 방향·신규 기능 판단 게이트 계약",
+      "command": "bash tests/product-direction-test.sh",
+      "exit": 0,
+      "seconds": 0.08,
+      "log": "/private/tmp/standards-quality/35.log"
+    },
+    {
+      "name": "오픈소스 공개 안전성 baseline 계약",
+      "command": "bash tests/public-safety-audit-test.sh",
+      "exit": 0,
+      "seconds": 0.89,
+      "log": "/private/tmp/standards-quality/36.log"
+    },
+    {
+      "name": "플랫폼 중복 감사 인벤토리 계약",
+      "command": "bash tests/platform-overlap-audit-test.sh",
+      "exit": 0,
+      "seconds": 0.21,
+      "log": "/private/tmp/standards-quality/37.log"
+    },
+    {
+      "name": "제품 core·adapter·workflow 경계 계약",
+      "command": "bash tests/product-boundary-test.sh",
+      "exit": 0,
+      "seconds": 0.24,
+      "log": "/private/tmp/standards-quality/38.log"
+    },
+    {
+      "name": "제품 package manifest·재현 build 계약",
+      "command": "bash tests/package-build-test.sh",
+      "exit": 0,
+      "seconds": 4.35,
+      "log": "/private/tmp/standards-quality/39.log"
+    },
+    {
+      "name": "package runtime binding·provenance 계약",
+      "command": "bash tests/package-artifact-integrity-test.sh",
+      "exit": 0,
+      "seconds": 1.57,
+      "log": "/private/tmp/standards-quality/40.log"
+    },
+    {
+      "name": "package catalog 검증·digest provenance 계약",
+      "command": "bash tests/package-catalog-integrity-test.sh",
+      "exit": 0,
+      "seconds": 1.55,
+      "log": "/private/tmp/standards-quality/41.log"
+    },
+    {
+      "name": "workflow pack→core runtime binding 계약",
+      "command": "bash tests/package-workflow-binding-test.sh",
+      "exit": 0,
+      "seconds": 1.52,
+      "log": "/private/tmp/standards-quality/42.log"
+    },
+    {
+      "name": "profile 설치·doctor 수명주기 계약",
+      "command": "bash tests/profile-lifecycle-test.sh",
+      "exit": 0,
+      "seconds": 46.95,
+      "log": "/private/tmp/standards-quality/43.log"
+    },
+    {
+      "name": "오픈소스 공개 문서 계약",
+      "command": "bash tests/open-source-docs-test.sh",
+      "exit": 1,
+      "seconds": 17.05,
+      "log": "/private/tmp/standards-quality/44.log"
+    },
+    {
+      "name": "릴리즈 bundle provenance·재현성 계약",
+      "command": "bash tests/release-bundle-test.sh",
+      "exit": 0,
+      "seconds": 8.43,
+      "log": "/private/tmp/standards-quality/45.log"
+    },
+    {
+      "name": "plugin·skill clean-session 공존 계약",
+      "command": "bash tests/plugin-coexistence-test.sh",
+      "exit": 0,
+      "seconds": 8.78,
+      "log": "/private/tmp/standards-quality/46.log"
+    },
+    {
+      "name": "외부 파일럿 runner·보고서 계약",
+      "command": "bash tests/external-pilot-test.sh\nbash tests/external-pilot-report-test.sh\nbash tests/external-pilot-provenance-test.sh\n",
+      "exit": 0,
+      "seconds": 47.55,
+      "log": "/private/tmp/standards-quality/47.log"
+    },
+    {
+      "name": "native 모델 선택·강제 없는 호환 경로 테스트",
+      "command": "bash tests/enforce-subagent-model-test.sh",
+      "exit": 0,
+      "seconds": 2.3,
+      "log": "/private/tmp/standards-quality/48.log"
+    },
+    {
+      "name": "플러그인 배선 반증-스모크 (guard 실발동·hooksPath)",
+      "command": "bash tests/plugin-wiring-test.sh",
+      "exit": 0,
+      "seconds": 0.54,
+      "log": "/private/tmp/standards-quality/49.log"
+    },
+    {
+      "name": "settings.json .env-리더 deny 커버리지 (#237)",
+      "command": "bash tests/settings-deny-test.sh",
+      "exit": 0,
+      "seconds": 0.12,
+      "log": "/private/tmp/standards-quality/50.log"
+    },
+    {
+      "name": "Codex security-guidance adapter 테스트",
+      "command": "bash tests/codex-security-guidance-adapter-test.sh",
+      "exit": 0,
+      "seconds": 0.57,
+      "log": "/private/tmp/standards-quality/51.log"
+    },
+    {
+      "name": "Codex security-guidance cache refresh 패치 테스트",
+      "command": "bash tests/patch-codex-security-guidance-test.sh",
+      "exit": 0,
+      "seconds": 1.68,
+      "log": "/private/tmp/standards-quality/52.log"
+    },
+    {
+      "name": "Codex source-native loader 계약",
+      "command": "bash tests/codex-native-loader-test.sh",
+      "exit": 0,
+      "seconds": 4.14,
+      "log": "/private/tmp/standards-quality/53.log"
+    },
+    {
+      "name": "Codex native loader pilot 격리·보고 계약",
+      "command": "bash tests/codex-native-loader-pilot-test.sh",
+      "exit": 0,
+      "seconds": 74.54,
+      "log": "/private/tmp/standards-quality/54.log"
+    },
+    {
+      "name": "Codex native loader 실측 보고서 계약",
+      "command": "bash tests/codex-native-loader-report-test.sh",
+      "exit": 0,
+      "seconds": 1.03,
+      "log": "/private/tmp/standards-quality/55.log"
+    },
+    {
+      "name": "Codex split package 공식 loader·rollback 계약",
+      "command": "bash tests/codex-split-loader-pilot-test.sh",
+      "exit": 0,
+      "seconds": 52.46,
+      "log": "/private/tmp/standards-quality/56.log"
+    },
+    {
+      "name": "Codex 시크릿 외부 전송 가드 테스트",
+      "command": "bash tests/codex-secret-egress-guard-test.sh",
+      "exit": 0,
+      "seconds": 13.41,
+      "log": "/private/tmp/standards-quality/57.log"
+    },
+    {
+      "name": "Codex PreToolUse 정규화 가드 테스트",
+      "command": "bash tests/codex-pretool-guard-test.sh",
+      "exit": 0,
+      "seconds": 3.66,
+      "log": "/private/tmp/standards-quality/58.log"
+    },
+    {
+      "name": "Codex semantic parity matrix 완전성",
+      "command": "bash tests/codex-semantic-parity-test.sh",
+      "exit": 0,
+      "seconds": 0.14,
+      "log": "/private/tmp/standards-quality/59.log"
+    },
+    {
+      "name": "Codex skill 실행 mapping",
+      "command": "bash tests/codex-skill-mapping-test.sh",
+      "exit": 0,
+      "seconds": 0.53,
+      "log": "/private/tmp/standards-quality/60.log"
+    },
+    {
+      "name": "Claude-facing source 격리",
+      "command": "bash tests/claude-surface-isolation-test.sh",
+      "exit": 0,
+      "seconds": 0.45,
+      "log": "/private/tmp/standards-quality/61.log"
+    },
+    {
+      "name": "Codex hardened launcher native validation",
+      "command": "bash tests/codex-hardened-launcher-test.sh",
+      "exit": 0,
+      "seconds": 4.41,
+      "log": "/private/tmp/standards-quality/62.log"
+    },
+    {
+      "name": "Codex plugin cache 조건부 동기화",
+      "command": "bash tests/codex-plugin-cache-sync-test.sh",
+      "exit": 0,
+      "seconds": 0.69,
+      "log": "/private/tmp/standards-quality/63.log"
+    },
+    {
+      "name": "Codex managed requirements 설치 계약",
+      "command": "bash tests/codex-managed-requirements-test.sh",
+      "exit": 0,
+      "seconds": 0.51,
+      "log": "/private/tmp/standards-quality/64.log"
+    },
+    {
+      "name": "Codex fresh-session smoke 계약",
+      "command": "bash tests/codex-fresh-session-smoke-test.sh",
+      "exit": 0,
+      "seconds": 3.25,
+      "log": "/private/tmp/standards-quality/65.log"
+    },
+    {
+      "name": "team-harness doctor 종합 판정",
+      "command": "bash tests/harness-doctor-test.sh",
+      "exit": 0,
+      "seconds": 3.67,
+      "log": "/private/tmp/standards-quality/66.log"
+    },
+    {
+      "name": "GitHub Actions 공급망 SHA 고정",
+      "command": "bash tests/action-pin-test.sh",
+      "exit": 0,
+      "seconds": 0.54,
+      "log": "/private/tmp/standards-quality/67.log"
+    }
+  ],
+  "retries": [
+    {
+      "target": "node plugins/harness-guard/scripts/check-document-sync.mjs --repo . --event \"$GITHUB_EVENT_PATH\"\nnode --test tests/document-sync-test.mjs\n",
+      "exit": 0,
+      "reason": "임시 PR 본문의 선언 형식 수정; 실제 스펙 항목 연결",
+      "log": "quality.log.gz: document-sync-retry.log"
+    },
+    {
+      "target": "bash tests/open-source-docs-test.sh",
+      "exit": 1,
+      "reason": "commit-msg가 비표준 본문 항목을 거부하여 HEAD 기록이 없어 candidate 생성 불충분",
+      "log": "quality.log.gz: open-source-docs-retry.log"
+    },
+    {
+      "target": "bash tests/open-source-docs-test.sh",
+      "exit": 0,
+      "reason": "검증: 본문 형식으로 로컬 커밋 성공 후 generate-changelog 실행",
+      "log": "quality.log.gz: open-source-docs-final.log"
+    }
+  ],
+  "review": {
+    "runtime": {
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "sandbox_policy": {
+        "type": "read-only"
+      },
+      "approval_policy": "never"
+    },
+    "initialBlockingFindings": 4,
+    "followupRemainingBlockingFindings": 0,
+    "initial": "review-initial.md",
+    "followup": "review-followup.md"
+  },
+  "limits": [
+    "local macOS reproduction of quality commands, not GitHub CI",
+    "no consumer stack execution",
+    "HTTP success is not a guarantee of future source stability",
+    "community pattern sources do not measure industry prevalence",
+    "no merge/release/install/deployment/Claude authentication or model validation"
+  ],
+  "finalRecordChecks": {
+    "initialExit": 1,
+    "missingLinks": 10,
+    "cause": "review output used app-only absolute file:line links",
+    "correction": "repository-relative link destinations; original line labels and judgments retained"
+  },
+  "sourceHashFile": "source.sha256",
+  "secretScanRecord": {
+    "initialCommitExit": 1,
+    "findings": 3,
+    "classification": "recomputed source file SHA-256 values next to api/auth/secret filenames triggered generic-api-key",
+    "correction": "standard shasum manifest preserves all 42 checksums; no scanner or allowlist changes",
+    "finalSecretScanExit": 0
+  },
+  "recordCommitMessage": {
+    "initialExit": 1,
+    "cause": "first body item must be 이유:",
+    "correction": "이유: first, 검증: second; validator unchanged"
+  }
+}
