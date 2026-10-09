@@ -1,30 +1,33 @@
 # API 설계 표준
 
-서비스 간·프론트-백 계약의 단일 기준. 미니서비스 분리(`architecture-infra.md` §2)의 전제 조건.
+[표준 적용 기준](standards-scope.md)을 따른다. HTTP API의 공통 계약이며, 아래 REST 형식은 선택 프로필이다.
+기존 API·외부 연동의 형식은 해당 프로젝트에서 정한다. 형식 변경에는 호환성 검토가 필요하다.
 
 ## URL·메서드
+
+아래 URL·이름·버전 위치는 REST 프로필을 선택한 경우의 기본 예시다.
 
 - 리소스는 **복수 명사 + kebab-case**: `/api/v1/purchase-orders`, `/api/v1/purchase-orders/{id}/items`
 - 행위는 HTTP 메서드로: `GET`(조회) `POST`(생성) `PUT`(전체수정) `PATCH`(부분수정) `DELETE`(삭제)
 - 메서드로 표현 불가한 도메인 행위만 동사 서브리소스 허용: `POST /purchase-orders/{id}/approve`
 - 버저닝: URL 경로 `/api/v1/...` — 호환 깨지는 변경에만 버전 증가
 
-## 공통 응답 Envelope (확정)
+## 공통 응답 Envelope (선택 프로필)
 
-성공/실패 모두 동일 구조. HTTP 상태코드는 의미에 맞게 병행 사용한다 (envelope이 있다고 전부 200 금지).
+이 프로필을 채택하면 성공/실패에 같은 구조를 쓴다. 기존 계약이나 Problem Details를 억지로 바꾸지 않는다. HTTP 상태코드는 의미에 맞게 병행 사용한다 (envelope이 있다고 전부 200 금지).
 
 ```json
 // 성공 (200/201)
-{ "code": "OK", "message": null, "data": { "orderId": 123 } }
+{ "code": "OK", "message": null, "data": { "resourceId": "res_001" } }
 
 // 실패 (4xx/5xx)
 { "code": "ORDER_LIMIT_EXCEEDED", "message": "월 주문 한도를 초과했습니다", "data": null }
 ```
 
-**에러 코드 체계**: `SCREAMING_SNAKE` + 도메인 모듈 프리픽스 (`ORDER_`, `INVENTORY_`, `AUTH_`, 공통 `COMMON_`).
+**에러 코드 체계**: `SCREAMING_SNAKE` + 프로젝트에서 정한 의미별 프리픽스. 아래 코드는 형식 예시다.
 코드는 모듈별 enum으로 중앙 관리하고, 프론트는 `code`로 분기한다 (message는 표시용 — 분기 금지).
 
-| HTTP | 용도 | code 예 |
+| HTTP | 용도 | code 예(선택 프로필) |
 |---|---|---|
 | 400 | 입력 검증 실패 | `COMMON_VALIDATION_FAILED` (+ `data.fieldErrors[]`) |
 | 401 | 미인증 | `AUTH_UNAUTHENTICATED` |
@@ -33,17 +36,18 @@
 | 409 | 상태 충돌·중복 | `ORDER_ALREADY_APPROVED` |
 | 500 | 서버 오류 | `COMMON_INTERNAL_ERROR` (내부 정보 노출 금지) |
 
-에러 변환은 **전역 핸들러 한 곳**에서만 (`@RestControllerAdvice` 등) — 컨트롤러에서 envelope 수동 조립 금지.
+선택한 응답 프로필의 오류 변환은 공통 경계에서 일관되게 처리한다. framework 기본 오류 처리도 확인한다.
 
-**클라이언트 입력 오류는 4xx로 — 5xx 흡수 금지**: 잘못된 입력(역직렬화 실패·타입 불일치·검증 위반)이
-전역 핸들러에 매핑이 없으면 **프레임워크 기본이 5xx로 흡수**해 on-call 알람·에러지표를 오염시킨다.
-이들을 **4xx + 공통 Envelope**로 매핑한다. 5xx는 서버 실패에만 쓴다. (프레임워크별 예외명·핸들러는
-스택 룰 파일 참조)
+**클라이언트 입력 오류는 4xx로 구분한다.** Spring MVC는 대표적인 역직렬화·타입·요청 검증 오류를 기본 400으로 처리한다.
+커스텀 포괄 핸들러가 이를 500으로 바꾸지 않는지 확인한다. 모든 검증 예외가 클라이언트 오류인 것은 아니다.
+[Spring 기본 처리](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/mvc/support/DefaultHandlerExceptionResolver.html)와
+[스택별 확인 경로](stack-troubleshooting-backend.md)를 따르고, 실제 오류 응답으로 상태와 본문을 검증한다.
 
 ## 필드·데이터 포맷
 
-- JSON 필드: **camelCase**
-- 날짜/시각: **ISO 8601 + UTC** (`2026-06-11T03:00:00Z`) — 저장·전송은 UTC, 표시 변환은 클라이언트
+- JSON 이름은 기존 공개 계약과 소비자에 맞춘다. 이 프로필의 기본 예시는 camelCase다.
+- 특정 순간의 시각은 ISO 8601과 UTC로 전송한다 (`2026-06-11T03:00:00Z`). 표시는 사용자의 시간대로 변환한다.
+  생일처럼 시각이 없는 날짜와 지역 예약 시각은 별도 타입·시간대 계약을 정한다.
 - 금액: 통화·단위·최대 절댓값·소수 자릿수·반올림 모드/시점을 API와 DB에서 함께 정의한다.
   JSON number는 지원 클라이언트의 파싱·연산·합계·재직렬화까지 정밀도와 범위를 확인한 제한된 도메인만 허용한다.
   정확한 십진 금액은 정규화한 decimal 문자열, 또는 통화/scale을 명시한 최소 화폐 단위 정수로 계약한다.
@@ -52,11 +56,11 @@
   DB `numeric`만으로 JSON/클라이언트 정밀도가 보존되지는 않는다 ([금액 저장·전송 계약](db-standards.md#금액-저장전송-계약)).
   [JSON 숫자 상호운용 범위](https://www.rfc-editor.org/rfc/rfc8259.html#section-6)와
   [JS 안전 정수](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER)를 따른다.
-- enum 값: `SCREAMING_SNAKE` 문자열
+- enum·필드 이름은 프로젝트의 공개 계약을 따른다. 이 프로필의 enum 예시는 `SCREAMING_SNAKE` 문자열이다.
 
 ## 페이지네이션·정렬·검색
 
-백오피스 표준인 **offset 방식 기본**:
+offset과 cursor는 조회·정렬·변경 빈도에 맞춰 선택한다. 다음은 offset 예시다:
 
 ```
 GET /api/v1/orders?page=0&size=20&sort=createdAt,desc&status=CONFIRMED
@@ -66,13 +70,13 @@ GET /api/v1/orders?page=0&size=20&sort=createdAt,desc&status=CONFIRMED
 { "code": "OK", "message": null, "data": { "content": [...], "page": 0, "size": 20, "totalElements": 1234, "totalPages": 62 } }
 ```
 
-- `size` 상한 100 강제 (무한 조회 방지)
-- 대용량 무한스크롤/동기화 API만 cursor 방식 예외 허용 (문서화 필수)
+- 페이지 크기 상한과 안정적인 정렬을 정의한다. 무한 조회를 허용하지 않는다.
+- 변경이 잦거나 대용량이면 cursor를 검토한다. 선택과 누락·중복 조건을 프로젝트에서 정한다.
 
 ## OpenAPI 스펙
 
-- **코드 우선**: 컨트롤러 어노테이션에서 생성 (Spring: springdoc-openapi / NestJS: @nestjs/swagger)
-- CI가 스펙(JSON)을 아티팩트로 생성 → 프론트는 스펙에서 **타입 자동 생성** (openapi-typescript) — 수동 타입 작성 금지
+- 코드 우선 또는 스펙 우선 중 변경 흐름에 맞는 방식을 정한다.
+- 생성 타입은 중복을 줄이는 선택지다. 생성 대상·검사·수정 방법을 프로젝트에서 정한다.
 - 생성은 수동 타입 중복을 줄이지만 요구·설명·권한·오류·경계와 구현의 일치를 자동 보장하지 않는다.
   변경 operation의 생성 스펙 diff를 요구/수용 기준과 리뷰하고, 실제 응답·입력 검증·인증/인가 거부 사례와 대조한다.
   공통 핸들러의 오류 envelope/status, 보안 설정과 operation별 `security`, 금액 범위·표현도 확인한다.
@@ -87,11 +91,11 @@ GET /api/v1/orders?page=0&size=20&sort=createdAt,desc&status=CONFIRMED
     재시도·동시 요청·새로고침 후 중복 저장/표시가 없고 후속 수정이 보존되는지 확인한다. 다른 payload의
     키 재사용, 키 유효기간·재시작 동작은 제품 계약에 맞춰 판정한다. 목 응답만으로 저장 정합성을 증명하지 않는다.
     [QA 범위·완료 기준](ai-collaboration.md#qa-범위와-완료-기준)에 조건·기대값·실제 관찰 경계를 연결한다.
-- **낙관적 잠금 응답의 `version` 정확성**: update 응답은 **영속화 flush 후**(증가된 버전이 반영된
-  상태) 매핑한다 — flush 전에 매핑하면 stale version을 반환해, UI가 그 값으로 재수정하면 거짓 409
-  충돌을 유발한다 (ORM별 구체는 스택 룰 파일 참조)
-- 서비스 간 호출도 이 표준 동일 적용 (envelope 포함) + 호출 측 타임아웃 명시 필수
-- 응답에 내부 구조 노출 금지: 스택트레이스, SQL, 내부 ID 체계(외부 노출은 채번 코드 — `db-standards.md`)
+- 낙관적 잠금을 사용하면 수정 성공 응답에 실제 저장된 새 버전을 반환한다.
+  이전 버전을 반환하면 바로 다음 수정도 충돌할 수 있다. ORM의 flush·커밋 순서와
+  연속 수정·실제 동시 충돌은 [백엔드 안내](stack-troubleshooting-backend.md)에서 확인한다.
+- 서비스 간 호출도 프로젝트에서 선택한 계약을 적용 + 호출 측 타임아웃 명시 필수
+- 응답에 내부 구조 노출 금지: 스택트레이스, SQL, 민감한 내부 정보. 외부 식별자는 `db-standards.md`의 공개 범위·권한 계약을 따른다
 
 ## CSV·스프레드시트 export
 

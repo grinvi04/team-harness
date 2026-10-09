@@ -76,13 +76,15 @@
 ## 배포·헬스체크 명령
 
 <!-- 프로젝트별로 채움. /release Phase 0(스테이징 헬스체크)·Phase 5(프로덕션 헬스체크)가 이 섹션을 읽는다 -->
-- 로컬 인프라 실행 (DB · Keycloak): `docker compose up -d`
-- 백엔드 헬스체크: `curl -sf http://localhost:<BACKEND_PORT>/actuator/health`
-- Keycloak 헬스체크: `curl -sf http://localhost:<KEYCLOAK_PORT>/health/ready`
-- 전체 스택 중지: `docker compose down`
-- 데이터 초기화: `docker compose down -v`
+- 로컬 인프라 실행: `<채택한 도구의 실제 명령; 없으면 비적용>`
+- 백엔드 헬스체크: `<실제 헬스체크 명령·경로; 없으면 비적용>`
+- 인증 서비스 헬스체크: `<채택한 서비스의 실제 명령; 없으면 비적용>`
+- 전체 스택 중지: `<실제 중지 명령; 없으면 비적용>`
+- 데이터 초기화: `<대상·손실 범위를 확인하고 승인받은 격리 데이터용 명령>`
 
 ## 팀 표준 문서 (작업 전 해당 영역 표준 확인)
+
+먼저 `standards-scope.md`를 읽고 적용할 공통 계약·선택 프로필을 구분한다. 제품별 선택은 이 repo에서 정한다.
 
 상세 표준의 단일 출처: `github.com/grinvi04/team-harness/docs` (사내 git 이전 시 주소 교체)
 필요 시 `gh api repos/grinvi04/team-harness/contents/docs/<파일>` 또는 클론으로 조회한다.
@@ -95,17 +97,18 @@
 
 | 영역 | 문서 | 핵심 |
 |---|---|---|
+| 적용 범위 | standards-scope.md | 공통 계약·선택 프로필·제품 결정 구분, 스택별 문제 해결 진입 |
 | 개발 워크플로 | developer-workflow.md | 기능 개발·수정·머지·hotfix·release 흐름과 가드에 막혔을 때의 다음 행동 |
-| API | api-standards.md | 공통 Envelope, 에러코드 체계, offset 페이지네이션 |
-| DB | db-standards.md | BIGINT PK+채번, 공통 감사 컬럼, forward-only 마이그레이션 |
-| 인증·인가 | auth-standards.md | Keycloak OIDC, RBAC 권한코드+데이터 스코프 |
-| 코드 구조 | clean-architecture.md | 도메인 모듈 1차 경계, 모듈 간 api/·도메인 이벤트로만 통신 |
+| API | api-standards.md | HTTP 계약·오류 구분, 응답·페이지 방식은 선택 프로필 |
+| DB | db-standards.md | 식별자·감사·삭제 정책의 선택 조건, 공유 이력·데이터 보호 |
+| 인증·인가 | auth-standards.md | 공급자 선택, 토큰·기능·객체 권한과 거부 검사 |
+| 코드 구조 | clean-architecture.md | 선택한 계층·모듈 경계와 실제 검사 연결; 프레임워크·단순 구조의 대안 |
 | 리뷰·커밋 | code-review.md | Conventional Commits 호환 한국어 형식, PR 규칙 |
 | AI 협업 | ai-collaboration.md | 책임 원칙, 금지사항, 기록 위치(스펙→docs/specs, 백로그→Issues/Milestone, 작업로그→git/CHANGELOG, 결정→docs/decisions.md, 로컬 메모리=개인 습관만) |
-| 운영·로깅 | operations.md | 로그 레벨 기준(ERROR=알람), traceId 전파 |
+| 운영·로깅 | operations.md | 장애 대응의 권한·호환성, 로그·추적·현재 배포 후보 확인 |
 | README | readme-standards.md | 루트 README 양식(섹션 순서·뱃지·mermaid·시작하기), `templates/README.template.md` |
-| 프론트 디자인 | frontend-design-standards.md | 디자인 토큰(하드코딩색 금지·차트팔레트·status)·앱셸·공통 컴포넌트(DataTable·FormField·StatCard·ChartCard·차트)·base-ui/recharts/React 함정·다크/반응형/a11y/정직한 UI |
-| 한국 UI/UX | korean-ux.md | 정착 용어(마이페이지·장바구니)·마이크로카피 해요체·폼 포맷(010·도로명·사업자번호·원화·날짜 YYYY.MM.DD) — 영어 직역체 금지(한국어 화면) |
+| 프론트 디자인 | frontend-design-standards.md | 필요한 디자인 토큰·컴포넌트, 접근성·실제 상태 표시·스택별 확인 경로 |
+| 한국 UI/UX | korean-ux.md | 제품 용어·톤·지원 사용자·표시 형식, 실제 동작과 일치하는 안내 |
 
 ## 코딩 컨벤션
 

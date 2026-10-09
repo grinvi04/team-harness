@@ -1,33 +1,27 @@
 ---
-paths: ["**/app/**/*.tsx", "**/app/**/*.ts", "**/pages/**/*.tsx", "**/pages/**/*.ts", "**/middleware.ts", "**/next.config.*"]
+paths: ["**/app/**/*.tsx", "**/app/**/*.ts", "**/pages/**/*.tsx", "**/pages/**/*.ts", "**/middleware.ts", "**/proxy.ts", "**/next.config.*"]
 ---
 
-# Next.js 작업 규칙 (App Router 기준)
+# Next.js 작업 규칙
 
-> TypeScript 공통 규칙은 `typescript.md`. 여기엔 Next.js 특화만.
+설치한 Next.js·React 버전과 App/Pages Router를 먼저 확인한다.
+공통 TypeScript 기준은 typescript.md다. 서버 컴포넌트 규칙을 Pages Router 전체에 강제하지 않는다.
 
-## 서버/클라이언트 컴포넌트 경계
-- **기본은 서버 컴포넌트(RSC)** — `'use client'`는 상호작용(useState·이벤트·브라우저 API)이 실제로 필요한 잎(leaf)에만 최소로.
-  레이아웃·페이지를 통째로 `'use client'` 하지 말 것(번들·SEO·서버 데이터 페칭 손해).
-- 서버 컴포넌트에서 `useState`/`useEffect`/`onClick` 사용 금지 — 빌드가 막는다.
-- 클라이언트 컴포넌트에 **서버 전용 모듈(DB 클라이언트·`fs`·시크릿 읽기)을 import 금지** — 번들에 새어나간다.
+## 서버·브라우저 경계
 
-## 시크릿 노출 — `NEXT_PUBLIC_`
-- 브라우저에 나가도 되는 값만 `NEXT_PUBLIC_` 접두사. **시크릿(API 키·DB URL·세션 시크릿)에 `NEXT_PUBLIC_`를 붙이면 클라이언트 번들에 박혀 유출**된다.
-- 서버 전용 env는 접두사 없이(`process.env.X`) 서버 컴포넌트·route handler·server action에서만 읽는다.
+상호작용·브라우저 API가 필요한 곳에 client 경계를 둔다. 서버 전용 DB·비밀 모듈을 client에 import하지 않는다.
+NEXT_PUBLIC_는 브라우저에 공개되는 값이다. 비밀 키·DB URL·세션 비밀에 사용하지 않는다.
+일반 함수 prop과 지원되는 Server Action을 구분한다.
+Server Action은 공개 엔드포인트처럼 입력·권한을 서버에서 검사한다.
 
-## Server Actions
-- `'use server'` 함수는 **공개 엔드포인트와 동일** — 입력 검증(zod 등)·인가 체크를 함수 안에서 직접 한다(클라이언트 검증만 믿지 말 것).
-- 민감 작업 후 `revalidatePath`/`revalidateTag`로 캐시 무효화.
+## 캐시와 검사
 
-## 데이터·캐시
-- `fetch`의 캐시 동작(기본 force-cache vs `no-store`)을 의도적으로 지정 — 실시간 데이터에 stale 캐시 노출 주의.
-- Route handler(`app/api/.../route.ts`)는 공통 Envelope·4xx 매핑(`docs/api-standards.md`) 동일 적용.
+fetch·route·태그 캐시의 기본값은 버전별로 확인하고 데이터 신선도 요구를 명시한다.
+수정 후 재진입·새로고침·다른 사용자에서 캐시와 권한 경계를 검사한다.
+build와 별도 type-check·lint 명령을 CI에 연결한다. 버전마다 빌드에 포함되는 검사가 다르다.
+ignoreBuildErrors 등으로 실패를 숨기지 않는다. 빌드만으로 lint까지 통과했다고 보고하지 않는다.
+middleware/proxy 이름·runtime은 버전별 공식 자료에서 확인한다. 모든 버전을 Edge라고 가정하지 않는다.
 
-## 빌드·검증
-- `npm run build`(= `next build`)가 RSC 경계 위반·타입 오류를 잡는다 — CI 필수.
-- `next.config`에서 `typescript.ignoreBuildErrors`/`eslint.ignoreDuringBuilds`를 **켜지 말 것**(게이트 무력화). 켜야 하면 별도 `type-check`/`lint` 스텝으로 보완.
-- lint은 `eslint-config-next`(react-hooks·jsx-a11y 포함).
-
-## 미들웨어
-- `middleware.ts`는 Edge 런타임 — Node 전용 API(`fs`·`crypto.createHash` 일부) 사용 불가. 인증 가드는 가볍게, 무거운 로직은 route handler로.
+공식 자료와 진단: `docs/stack-troubleshooting-frontend.md`.
+[Server Actions](https://nextjs.org/docs/app/getting-started/mutating-data),
+[Proxy](https://nextjs.org/docs/app/api-reference/file-conventions/proxy)를 설치 버전과 대조한다.
