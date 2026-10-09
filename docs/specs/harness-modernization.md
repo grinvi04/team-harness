@@ -177,6 +177,10 @@ Codex/Claude 공식 설치66파일 일치, 새 Codex 스킬/세 합성 가드 �
     {
       "path": "plugins/harness-guard/skills/repo-sync/SKILL.md",
       "reason": "MISSING0을 전체 drift 없음으로 오판하지 않음"
+    },
+    {
+      "path": "docs/specs/harness-modernization/plan/README.md",
+      "reason": "필수 계획 진입점의 당시 미확인과 현재 검증/Claude 보류 분리"
     }
   ],
   "items": []

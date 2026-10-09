@@ -34,3 +34,4 @@
 - Codex/Claude 공식 사용자 plugin0.82.0의66파일 일치와 각각 다른26/4plugin·설정 보존 확인. 새 CLI17Harness/51전체skills 오류0, 실제 Sol/medium/read-only/never 스킬 적용·세 합성 PreToolUse 거부·fixture 불변 확인. Claude 추론은 USER-DEFERRED다.
 - Codex 첫 조회 초기화의 OAuth 옵션은 자동 승인 검토가 실행 전 거부했다. 옵션을 제거한 인증 변경 없는 공식 조회만 승인·성공했다. 검사 출력의 plain text를 JSON으로 오인한 보고 실패도 수정해 원래 실행 결과와 구분했다.
 - 현재 지도 reader 실제 적용의 최초218검사는 새 fixture 폴더 생성 누락7ERROR였다. 임시 map 폴더 생성만 보완해 조건을 유지한218PASS; 소유 확인 controller재시작 후 정본sourceReady/error없음과7개 HTTP응답 확인. 사용자 README/JSON·TypeScript재설계를 보존한 로컬80f9845커밋, 원격 없음.
+- 추가 문서 독립 검토의5f4db31 첫 결과는 NEEDS_FIX: 필수 plan/README 진입점에 당시 Claude 지원 미달·dispatch/reader 대기 목록이 현재처럼 남았다. 당시 표를 역사로 보존하고 현재 결과·USER-DEFERRED·PR508의 후속 원본을 연결해 수정·재검토한다.

@@ -353,5 +353,12 @@
   "finalCompletionSource": {
     "url": "https://github.com/grinvi04/team-harness/pull/508",
     "contract": "Same owner updates PR body after fresh gates/merge and preservation/archive; does not preclaim future steps completed."
+  },
+  "additionalDocsReview": {
+    "firstCandidate": "5f4db310eb3cc69bbf2bd1e344a5c143d02b5d2f",
+    "firstResult": "NEEDS_FIX",
+    "finding": "Required plan/README entrypoint retained outdated pending support/dispatch/reader assertions and omitted user-deferred Claude inference",
+    "correction": "Historical original planning table retained; current required entrypoint connects actual execution and explicit user deferred scope; doc-sync declaration includes it",
+    "currentResult": "PENDING_FIXED_CANDIDATE_REVIEW"
   }
 }
