@@ -173,5 +173,49 @@
       "Claude inference until user refreshes OAuth"
     ],
     "stop": "Approved two runs and one independent oracle per candidate finished; no third run or fallback."
+  },
+  "laterIndependentBoundary": {
+    "candidate": "fc05d31f110218b0d8a99dc2202050f56134fba3",
+    "finding": "Missing explicit review status was not covered by the original11-case oracle. Root added a new failure boundary.",
+    "recheckWithoutNewInference": [
+      {
+        "requestedCandidate": "sol",
+        "candidateSha": "57ff0294937f0c3b8b740099c87859ec6dc32ec8137a809cf105efc7255b02c8",
+        "oracleSha": "a52387875a5f350da5186b625d32fa716a0ad374c6883f5b941da0b7dcf7d254",
+        "exit": 1,
+        "log": ".superpowers/sdd/harness-modernization/review-fix-qa/model-sol-expanded.log",
+        "newModelCall": false
+      },
+      {
+        "requestedCandidate": "luna",
+        "candidateSha": "d22897da45bbbe60b3d95b2a9bcd745cca19e171e54946db7d61252227992ddd",
+        "oracleSha": "a52387875a5f350da5186b625d32fa716a0ad374c6883f5b941da0b7dcf7d254",
+        "exit": 1,
+        "log": ".superpowers/sdd/harness-modernization/review-fix-qa/model-luna-expanded.log",
+        "newModelCall": false
+      }
+    ],
+    "interpretation": "Original11cases and normal input protocol unchanged; only one missing-status negative case appended. Both earlier candidates fail that new boundary; no new inference or response edits. Original11successes/time/usage remain historical narrower evidence.",
+    "firstNewProtocolRecheckLimit": "Current oracle normal inputs use reviewed, whereas both earlier model candidates define complete. Its12failures include fixture/protocol differences and are NOT attributed solely to the missing-status defect; first raw result preserved.",
+    "sameOriginalOraclePlusOneBoundary": [
+      {
+        "requestedCandidate": "sol",
+        "candidateSha": "57ff0294937f0c3b8b740099c87859ec6dc32ec8137a809cf105efc7255b02c8",
+        "oracleSha": "cc7ce2e6cec32374fb2475b84c67a53508b7d424a16aca24af65fba2cb921dda",
+        "exit": 1,
+        "log": ".superpowers/sdd/harness-modernization/review-fix-qa/model-sol-original-extended.log",
+        "original11Unchanged": true,
+        "newModelCall": false
+      },
+      {
+        "requestedCandidate": "luna",
+        "candidateSha": "d22897da45bbbe60b3d95b2a9bcd745cca19e171e54946db7d61252227992ddd",
+        "oracleSha": "cc7ce2e6cec32374fb2475b84c67a53508b7d424a16aca24af65fba2cb921dda",
+        "exit": 1,
+        "log": ".superpowers/sdd/harness-modernization/review-fix-qa/model-luna-original-extended.log",
+        "original11Unchanged": true,
+        "newModelCall": false
+      }
+    ]
   }
 }

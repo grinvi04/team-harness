@@ -1034,8 +1034,90 @@ function isSensitiveFilePath(token, activeExpansionOffsets = []) {
     isHighSignalCredentialPath(token, activeExpansionOffsets)
 }
 
+function curlFormWord(token, start, endchar, activeExpansionOffsets) {
+  while (/[ \t]/.test(token[start] || '\0')) start += 1
+  const active = new Set(activeExpansionOffsets)
+  let value = ''
+  let offsets = []
+  const append = (index) => {
+    if (active.has(index)) offsets.push(value.length)
+    value += token[index]
+  }
+  let index = start
+  if (token[index] === '"') {
+    index += 1
+    while (index < token.length) {
+      if (token[index] === '\\' && ['\\', '"'].includes(token[index + 1])) index += 1
+      else if (token[index] === '"') {
+        index += 1
+        // curl ignores trailing data after a closed quoted word.
+        while (index < token.length && token[index] !== ';' && token[index] !== endchar) index += 1
+        return { value, offsets, nextIndex: index }
+      }
+      append(index)
+      index += 1
+    }
+    // curl treats a missing closing quote as an unquoted filename.
+    value = ''
+    offsets = []
+    index = start
+  }
+  while (index < token.length && token[index] !== ';' && token[index] !== endchar) {
+    append(index)
+    index += 1
+  }
+  value = value.replace(/[ \t]+$/, '')
+  return { value, offsets: offsets.filter((offset) => offset < value.length), nextIndex: index }
+}
+
+function curlFormSensitiveFile(token, activeExpansionOffsets) {
+  // Shell quoting is already decoded. These quotes belong to curl's -F grammar:
+  // src/tool_formparse.c get_param_word/get_param_part, not shell syntax.
+  const equalIndex = token.indexOf('=')
+  if (equalIndex < 0) return false
+  const contentStart = equalIndex + 1
+  const marker = token[contentStart]
+  const endchar = marker === '@' ? ',' : '\0'
+  let index = contentStart + (['@', '<'].includes(marker) ? 1 : 0)
+  do {
+    const word = curlFormWord(token, index, endchar, activeExpansionOffsets)
+    if (['@', '<'].includes(marker) && isSensitiveFilePath(word.value, word.offsets)) return true
+    index = word.nextIndex
+    let hasContentType = false
+    while (token[index] === ';') {
+      index += 1
+      while (/[ \t]/.test(token[index] || '\0')) index += 1
+      const attribute = token.slice(index).match(/^(type|filename|headers|encoder)=/i)?.[0]
+      if (attribute) {
+        index += attribute.length
+        const name = attribute.toLowerCase()
+        if (name === 'type=' && !hasContentType) {
+          while (/[ \t]/.test(token[index] || '\0')) index += 1
+          while (index < token.length && !/[()<>@,;:\\"\[\]?=\r\n ]/.test(token[index])) index += 1
+          hasContentType = true
+          continue
+        }
+        hasContentType = false
+        const readsHeaderFile = name === 'headers=' && ['@', '<'].includes(token[index])
+        if (readsHeaderFile) index += 1
+        const metadata = curlFormWord(token, index, endchar, activeExpansionOffsets)
+        if (readsHeaderFile && isSensitiveFilePath(metadata.value, metadata.offsets)) return true
+        index = metadata.nextIndex
+      } else if (hasContentType) {
+        while (index < token.length && token[index] !== ';' && token[index] !== endchar) index += 1
+      } else {
+        index = curlFormWord(token, index, endchar, activeExpansionOffsets).nextIndex
+      }
+    }
+    if (token[index] !== ',' || marker !== '@') break
+    index += 1
+  } while (index <= token.length)
+  return false
+}
+
 function isSensitiveFileReference(token, activeExpansionOffsets = [], option = '') {
   if (typeof token !== 'string') return false
+  if (option === '--form') return curlFormSensitiveFile(token, activeExpansionOffsets)
   let candidates = [{ value: token, startIndex: 0 }]
   const equalIndex = token.indexOf('=')
   if (['--url-query', '--data-urlencode'].includes(option)) {

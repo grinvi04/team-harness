@@ -27,6 +27,8 @@
 ## 4. 제약 / 비기능
 
 - 보안: 안전 1차 보증은 스크립트의 base 강제(매처는 마찰감소). enforce_admins=true(개선1) 선행 전제.
+- `--auto`는 필수 검사 없음과 조회 실패를 모두 거부한다. 같은 head의 다른 Actions 성공은 서버 필수 CI의 증거가 아니다.
+- 비-auto의 명시 수동 Actions fallback은 AC-4대로 유지한다. 그 fallback은 서버 필수 검사 전체를 확인한 결과가 아니다.
 
 ## 5. 경계 / Do-Not
 

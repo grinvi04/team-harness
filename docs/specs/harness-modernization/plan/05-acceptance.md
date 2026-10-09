@@ -1,7 +1,20 @@
 # 단계 5 — 통합 인수·기록·delivery·정리
 
 선행: 단계 1–4의 현재 후보와 원시 결과. 근거: [원래 완료 기준](../review/04-coverage-design.md).
-진행 상태: 구현 전. 이 문서 자체는 실제 시험 통과·원격 작업 승인·완료 증거가 아니다.
+진행 상태: 로컬 구현·검증 기록을 인수 중이다. fc05d31 후보의 독립 리뷰에서 확인한 세 결함은 로컬 수정·영향 시험을 마쳤다. 수정된 통합 후보의 독립 재검토·전량 품질·required CI·실제 설치·발행·정리는 미완료다. 이 문서 자체는 통과나 원격 작업 승인 증거가 아니다.
+
+## 추가 독립 리뷰 수정의 인수 범위
+
+| 경계 | 최초 실패 → 로컬 수정 결과 | 후보·원시 기록 |
+|---|---|---|
+| 민감 curl form 파일 | exit1, 14 FAIL → egress 273 PASS 및 관련 guard/연결 검사 exit0 | [egress](../../../../.superpowers/sdd/harness-modernization/review-fix-egress/result.json) |
+| 자동머지 required CI 조회 실패 | exit1, 2 FAIL → merge 58 PASS 및 관련 caller 검사 exit0 | [merge](../../../../.superpowers/sdd/harness-modernization/review-fix-merge/summary.json) |
+| review status 누락/null | exit1, 1 FAIL → 실제 workflow 행동 사례 12 PASS | [QA](../../../../.superpowers/sdd/harness-modernization/review-fix-qa/record.json) |
+
+위 기록의 source digest는 수정된 로컬 바이트에 묶인다. fc05d31 검토와 이전 단계 PASS를 새 통합 후보의 PASS로 옮기지 않는다.
+로컬 evidence 링크는 해당 작업 공간의 보존 기록이다. PR 인수 시 공개 후보·검증 기록과 함께 연결한다.
+통합 담당은 현재 diff와 영향 문서·필수 gate를 다시 대조한다. 수정의 독립 재검토·원격 CI·공식 설치/새 세션·발행·worktree 정리는 각 실제 증거 전까지 미완료다.
+소비 앱 검증·전역 적용·서비스 재시작은 이 기록 정리로 실행하거나 완료 판정하지 않는다.
 
 ## 요구와 검증의 연결
 

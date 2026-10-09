@@ -17,7 +17,7 @@ const finding = { title: 'Fixture contradiction', file: 'docs/example.md:1', det
 let passed = 0
 let failed = 0
 
-async function run({ review = { findings: [finding] }, verdict = { isReal: true, reason: 'docs/example.md:1 contradicts implementation:2' }, reviews = {}, skipDimension, throwReview, throwVerify } = {}) {
+async function run({ review = { status: 'reviewed', findings: [finding] }, verdict = { isReal: true, reason: 'docs/example.md:1 contradicts implementation:2' }, reviews = {}, skipDimension, throwReview, throwVerify } = {}) {
   const logs = []
   const phases = []
   const calls = []
@@ -32,7 +32,7 @@ async function run({ review = { findings: [finding] }, verdict = { isReal: true,
       const [step, dimension] = options.label.split(':')
       if (step === 'review') {
         if (throwReview && dimension === keys[0]) throw new Error('fixture review unavailable')
-        return Object.hasOwn(reviews, dimension) ? reviews[dimension] : dimension === keys[0] ? review : { findings: [] }
+        return Object.hasOwn(reviews, dimension) ? reviews[dimension] : dimension === keys[0] ? review : { status: 'reviewed', findings: [] }
       }
       assert.equal(step, 'verify')
       if (throwVerify) throw new Error('fixture verifier unavailable')
@@ -59,7 +59,7 @@ function classified(result, confirmed, rejected, unverified) {
 }
 
 await test('genuine no-findings completes all seven dimensions without inventing findings', async () => {
-  const { result, calls } = await run({ review: { findings: [] } })
+  const { result, calls } = await run({ review: { status: 'reviewed', findings: [] } })
   classified(result, 0, 0, 0)
   assert.equal(calls.length, 7)
   assert.deepEqual(result.coverage.dimensions.map((item) => item.dim), keys)
@@ -119,16 +119,28 @@ await test('partial or uncertain review coverage remains unverified even with an
   classified(result, 1, 0, 1)
 })
 
+await test('missing or null review status cannot complete coverage even with well-shaped findings', async () => {
+  for (const review of [
+    { findings: [], reason: 'source inaccessible' },
+    { findings: [], status: null },
+    { findings: [], status: undefined },
+    { findings: [], status: false },
+    { findings: [], status: '' },
+  ]) classified((await run({ review })).result, 0, 0, 1)
+  const { result } = await run({ review: { findings: [finding], reason: 'another source inaccessible' } })
+  classified(result, 1, 0, 1)
+})
+
 await test('malformed finding does not disappear or reach verifier; valid siblings still verify', async () => {
   const invalid = [null, {}, { ...finding, severity: 'urgent' }, { ...finding, file: '' }]
-  const { result, calls } = await run({ review: { findings: [...invalid, finding] } })
+  const { result, calls } = await run({ review: { status: 'reviewed', findings: [...invalid, finding] } })
   classified(result, 1, 0, 4)
   assert.equal(calls.filter((call) => call.options.label.startsWith('verify:')).length, 1)
   assert.equal(result.confirmed[0].title, finding.title)
 })
 
 await test('missing dimension output is explicitly uncovered and prevents complete status', async () => {
-  const { result } = await run({ review: { findings: [] }, skipDimension: 'docs-cross' })
+  const { result } = await run({ review: { status: 'reviewed', findings: [] }, skipDimension: 'docs-cross' })
   classified(result, 0, 0, 1)
   assert.equal(result.unverified[0].dim, 'docs-cross')
   assert.equal(result.coverage.dimensions.find((item) => item.dim === 'docs-cross').status, 'unverified')
@@ -143,7 +155,7 @@ await test('review and verifier failures remain visible rather than aborting or 
 })
 
 await test('mixed dimension results preserve each finding and unverified summary count', async () => {
-  const { result, logs } = await run({ verdict: null, reviews: { 'readme': { findings: [finding] } } })
+  const { result, logs } = await run({ verdict: null, reviews: { 'readme': { status: 'reviewed', findings: [finding] } } })
   classified(result, 0, 0, 2)
   assert.deepEqual(result.unverified.map((item) => item.dim), ['guard-docs', 'readme'])
   assert.match(logs.at(-1), /미확인 2건/)

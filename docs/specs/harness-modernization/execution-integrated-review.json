@@ -1,0 +1,144 @@
+{
+  "dateUtc": "2026-10-09T00:21:14.750353+00:00",
+  "status": "FIXED_LOCAL_ORACLES_PASS_INDEPENDENT_REREVIEW_PENDING",
+  "firstIndependentReview": {
+    "head": "fc05d31f110218b0d8a99dc2202050f56134fba3",
+    "verdict": "NEEDS_FIX",
+    "model": "gpt-6-astra",
+    "effort": "medium",
+    "sandbox": "read-only",
+    "approval": "never",
+    "denialProbe": "PermissionError; exact task-owned file unchanged",
+    "seconds": 358.14,
+    "exit": 0,
+    "rawFinalSha256": "2b5ac7a0ca0bb17922ca928d951310c6dbcdffa03fdaa39a8ec3b3d88cca8817"
+  },
+  "findings": [
+    {
+      "severity": "P1",
+      "path": "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+      "counterexample": "curl --form file=@.env;type=text/plain (literal classifier input only)",
+      "red": {
+        "exit": 1,
+        "pass": 245,
+        "fail": 14,
+        "first_failure": "form env type metadata rc=0 want=2"
+      },
+      "green": [
+        {
+          "command": "bash tests/codex-secret-egress-guard-test.sh",
+          "exit": 0,
+          "summary": [
+            "결과: PASS=273 FAIL=0"
+          ]
+        },
+        {
+          "command": "bash tests/codex-pretool-guard-test.sh",
+          "exit": 0,
+          "summary": []
+        },
+        {
+          "command": "bash tests/guard-test.sh",
+          "exit": 0,
+          "summary": [
+            "결과: PASS=168 FAIL=0"
+          ]
+        },
+        {
+          "command": "bash tests/guard-matrix-test.sh",
+          "exit": 0,
+          "summary": [
+            "결과: PASS=112 FAIL=0"
+          ]
+        },
+        {
+          "command": "bash tests/guard-tokenizer-test.sh",
+          "exit": 0,
+          "summary": [
+            "결과: PASS=32 FAIL=0"
+          ]
+        }
+      ],
+      "currentSourceSha256": [
+        {
+          "path": "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+          "sha256": "d3c2f3b240de5fdaee437ff26fdc02002b07803fb15844b1dabe85b5affdfc1e"
+        },
+        {
+          "path": "tests/codex-secret-egress-guard-test.sh",
+          "sha256": "2db5c75ec338c5acf86ab74b88ce9cda805025def52aee9d85e43312d4e92d20"
+        }
+      ],
+      "limit": "Classification only; no actual transfer or credential read."
+    },
+    {
+      "severity": "P1",
+      "path": "plugins/harness-guard/scripts/pr-merge.sh",
+      "counterexample": "inaccessible required checks plus successful unrelated Actions run accepted --auto",
+      "red": {
+        "productionSha256": "4854a111ceef38f11bf85d9e944739040685cafd026399f3b574f897019a8651",
+        "testSha256": "252072dd30624f05c1e29816849a70e70779f8ba7438692c32992ea46d80cb63",
+        "exit": 1,
+        "pass": 56,
+        "fail": 2,
+        "cause": "Pure predicate and real fake-gh wrapper incorrectly permit --auto after inaccessible required checks plus successful unrelated head Actions run."
+      },
+      "green": {
+        "exit": 0,
+        "pass": 58,
+        "fail": 0
+      },
+      "currentSource": [
+        {
+          "path": "plugins/harness-guard/scripts/pr-merge.sh",
+          "baselineSha256": "4854a111ceef38f11bf85d9e944739040685cafd026399f3b574f897019a8651",
+          "candidateSha256": "95dd6250d07cafa35635a2d46f50b323c828a90f011d3daa634318e9325b635a",
+          "diffExit": 1
+        },
+        {
+          "path": "tests/pr-merge-auto-test.sh",
+          "baselineSha256": "e46c803285a72f6662a4c93ad1a00f2a9d4d78304f888ea79125fe622754efa1",
+          "candidateSha256": "252072dd30624f05c1e29816849a70e70779f8ba7438692c32992ea46d80cb63",
+          "diffExit": 1
+        }
+      ],
+      "limit": "Manual Actions fallback is historical explicit non-auto behavior and does not establish the complete current server-required contexts."
+    },
+    {
+      "severity": "P2",
+      "path": ".claude/workflows/harness-review.js",
+      "counterexample": "missing review status + empty findings completed coverage",
+      "red": "red.log exit1; prior missing status falsely complete",
+      "green": "green.log exit0; 12customcases",
+      "currentSource": [
+        {
+          "path": ".claude/workflows/harness-review.js",
+          "sha256": "d183c56bf733a9c39312fe09de6f84f37e97a2475c760469659cf74e3082ff17"
+        },
+        {
+          "path": "tests/harness-review-test.mjs",
+          "sha256": "a52387875a5f350da5186b625d32fa716a0ad374c6883f5b941da0b7dcf7d254"
+        }
+      ]
+    }
+  ],
+  "laterModelBoundary": {
+    "record": "execution-m3-representative.json",
+    "result": "both saved candidates11PASS1FAIL; original11cases unchanged plus one missing-status case",
+    "newInference": false,
+    "incompatibleFirstRecheck": "current12case normal status protocol differed from old frozen candidates; preserved and corrected, not treated as12 genuine defects"
+  },
+  "limits": [
+    "Mandatory fixed-candidate independent rereview pending.",
+    "Earlier full suite and plugin isolated install cover fc05d31; changed source needs affected reruns/new frozen install.",
+    "Actual Claude inference/authentication USER-DEFERRED.",
+    "No consumer remote push/PR, deployment, production, new account or payment."
+  ],
+  "privateEvidence": "task-owned review-fix-{egress,merge,qa}; originals/commands/cwd/digests/initial failures retained for private export",
+  "publicationFirstFailure": {
+    "step": "pre-commit staged secret scan",
+    "result": "generic-api-key matched a public source SHA256 adjacent to a filename containing secret; changed metadata layout only",
+    "ruleChanged": false,
+    "secretOrAuthValue": false
+  }
+}

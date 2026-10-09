@@ -84,7 +84,7 @@ grc "mergeable=MERGEABLE → 통과"   gate_mergeable MERGEABLE   0
 grc "mergeable=CONFLICTING → 중단" gate_mergeable CONFLICTING 1
 grc "mergeable=UNKNOWN → 중단"     gate_mergeable UNKNOWN     1
 
-# --auto 안전 계약: required check 없음(none)은 --auto에서만 거부(수동은 허용). green/fail 등은 정상 처리.
+# --auto 안전 계약: required 없음/조회 불가는 거부. 명시 수동 머지의 기존 fallback은 유지.
 ac() { # desc, verdict, auto, want_rc
   local desc="$1" v="$2" a="$3" want="$4" rc
   rc=$(PRMERGE_SOURCE_ONLY=1 bash -c 'source "$1"; if auto_ci_ok "$2" "$3"; then echo 0; else echo 1; fi' _ "$GATE" "$v" "$a")
@@ -94,7 +94,8 @@ ac "none + --auto → 거부(fail-closed)"   none  1  1
 ac "none + 수동(auto=0) → 허용"          none  0  0
 ac "green + --auto → 허용"               green 1  0
 ac "fail + --auto → 허용(정상 fail 경로)" fail  1  0
-ac "fallback + --auto → 허용"            fallback 1 0
+ac "fallback + --auto → 거부(fail-closed)" fallback 1 1
+ac "fallback + 수동(auto=0) → 허용"      fallback 0 0
 
 # 머지 후 로컬 정리 checkout 결정: 현재가 삭제될 head면 base로 이동(빈 base=develop), 아니면 이동 불필요("")
 mcc() { # desc, head, base, current, want
@@ -133,11 +134,11 @@ with (root/'calls.jsonl').open('a') as f: f.write(json.dumps(args)+'\n')
 def emit(value): print(json.dumps(value))
 if args[:2]==['repo','view']: print('test/repo')
 elif args[:2]==['pr','checks']:
- if scenario=='ci-none': print('no required checks'); sys.exit(1)
+ if scenario in ['ci-none','ci-none-manual']: print('no required checks'); sys.exit(1)
  if scenario=='ci-pending': print('quality\tpending\t\thttp://fake'); sys.exit(1)
- if scenario=='fallback': print('Resource not accessible by integration'); sys.exit(1)
+ if scenario in ['fallback','fallback-manual']: print('Resource not accessible by integration'); sys.exit(1)
  print('quality\tpass\t1s\thttp://fake')
-elif args[:2]==['run','list']: emit([{'headSha':'a'*40,'status':'completed','conclusion':'success'}])
+elif args[:2]==['run','list']: emit([{'headSha':'a'*40,'status':'completed','conclusion':'success','name':'unrelated informational workflow'}])
 elif args[:2]==['api','graphql']:
  emit({'data':{'repository':{'pullRequest':{'reviewThreads':{'nodes':[{'isResolved':False}] if scenario=='unresolved' else [],'pageInfo':{'hasNextPage':False,'endCursor':None}}}}}})
 elif args[:2]==['pr','view']:
@@ -170,6 +171,7 @@ wrapper_case() { # scenario expected exit expected merge count
   local scenario="$1" want="$2" merges="$3" case_dir="$WRAPPER_TMP/$1" rc=0
   local args=(42 --auto)
   case "$scenario" in
+    fallback-manual|ci-none-manual) args=(42);;
     reviewed-normal) args+=(--expected-head "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" --expected-base-oid "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");;
     reviewed-head-mismatch) args+=(--expected-head "cccccccccccccccccccccccccccccccccccccccc");;
     reviewed-base-mismatch) args+=(--expected-base-oid "dddddddddddddddddddddddddddddddddddddddd");;
@@ -190,13 +192,17 @@ assert actual==want, f'{scenario}: expected exit {want}, got {actual}'
 calls=[json.loads(s) for s in (Path(root)/'calls.jsonl').read_text().splitlines()]
 merge=[c for c in calls if c[:2]==['pr','merge']]
 assert len(merge)==int(merges), f'{scenario}: merge writes {len(merge)}, expected {merges}'
+if scenario in ['fallback','ci-none']:
+ assert not any(c[:2]==['run','list'] for c in calls), f'{scenario}: auto used unverified Actions fallback'
+if scenario=='fallback-manual':
+ assert sum(c[:2]==['run','list'] for c in calls)==1, 'manual fallback did not inspect head Actions runs'
 if merge:
  args=merge[0]
  assert '--match-head-commit' in args, f'{scenario}: merge did not bind reviewed head'
  assert args[args.index('--match-head-commit')+1]=='a'*40, f'{scenario}: wrong merge candidate'
  meta=[c for c in calls if c[:2]==['pr','view'] and 'baseRefOid' in c[c.index('--json')+1]]
  assert len(meta)==2, f'{scenario}: expected pre/post gate metadata snapshots'
- if scenario=='fallback':
+ if scenario=='fallback-manual':
   assert not any(c[:2]==['pr','view'] and c[c.index('--json')+1] in ['headRefOid','headRefName'] for c in calls[:calls.index(args)]), 'fallback re-read a different head'
 PYASSERT
   then echo "PASS: Q2A real wrapper $scenario"; PASS=$((PASS+1))
@@ -206,7 +212,8 @@ wrapper_case reviewed-normal 0 1
 wrapper_case reviewed-head-mismatch 1 0
 wrapper_case reviewed-base-mismatch 1 0
 wrapper_case normal 0 1
-wrapper_case fallback 0 1
+wrapper_case fallback 1 0
+wrapper_case fallback-manual 0 1
 wrapper_case head-drift 1 0
 wrapper_case base-oid-drift 1 0
 wrapper_case base-name-drift 1 0
@@ -218,6 +225,7 @@ wrapper_case oid-type 1 0
 wrapper_case oid-malformed 1 0
 wrapper_case auto-main 3 0
 wrapper_case ci-none 1 0
+wrapper_case ci-none-manual 0 1
 wrapper_case ci-pending 1 0
 wrapper_case unresolved 1 0
 wrapper_case conflicting 1 0

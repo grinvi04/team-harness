@@ -150,3 +150,5 @@ Sol/medium 48.731초, Luna/xhigh 85.846초; 관찰 사용량은 Sol이 적었다
 3C 후속: skill effort override 12개를 제거하고 본문/QA를 유지했다. actual Claude 상속은 USER-DEFERRED다.
 Codex 쓰기 부모 아래 read-only 역할의 실제 workspace-write 반례를 보존하고, 명시한 read-only 부모 아래 새 다섯 자식 policy를 확인했다.
 후속 전역 2개 파일에는 이 독립 검증 경로와 실제 이번 실행이 추가한 임시 trust 한 개만 제거했다. 기존 trust 53개는 보존했다.
+
+후속 독립 검토: 기존 표본에 없던 status 누락 경계를 추가하자 두 저장 후보 모두 확장 oracle에서 실패했다. 현재 소스 수정과 별도로 기록하며, 이전 11개 성공을 최종 품질 통과로 옮기지 않는다.

@@ -1,7 +1,7 @@
 # 단계 1 — 안전 검사와 검증 후보
 
 선행: [계획의 범위·현재 원본](README.md). 근거: [S01–S08·S11–S14](../review/01-safety-runtime.md).
-진행 상태: 1A 영향 시험 통과(62 PASS), 1B·1C·1E 영향 시험 통과, 1D 구현·시험 중. 실제 원격 보호 변경은 없다.
+진행 상태: 1A–1E의 기존 로컬 검증은 각 실행 기록의 당시 후보에 한정한다. 1B 추가 독립 리뷰 결함은 로컬 수정·영향 검증을 마쳤다. 통합 재검토·CI·설치·발행은 미완료이며 실제 원격 보호 변경은 없다.
 
 ## 1A — 조회 실패 전에 보호 변경 차단
 
@@ -33,6 +33,10 @@
 
 AC-S2: 확인된 위험 입력은 exit 2, 허용 대조군은 exit 0. 네트워크 전송·reset·삭제 자체는 실행하지 않는다.
 이 검사는 명령 분류 범위다. 모든 셸 표현·우회를 차단했다고 확대하지 않는다.
+
+2026-10-09 추가 독립 리뷰: curl form의 `type`·`filename`·`encoder`·`headers` 속성과 여러 `@` 파일에서 민감 파일 참조를 놓쳤다.
+[추가 수정 기록](../../../../.superpowers/sdd/harness-modernization/review-fix-egress/result.json)의 첫 RED는 exit1(245 PASS/14 FAIL)이며, 수정 후 egress 273·guard 168·matrix 112·tokenizer 32 PASS와 pretool 연결·구문 검사는 exit0이다.
+공개 데이터·literal `--form-string` 대조군과 셸 확장 위치를 보존했다. 실제 전송·비밀 파일 읽기·인증·Claude 추론·설치·원격 CI·최종 독립 재검토는 이 결과에 포함하지 않는다.
 
 ## 1C — 유효한 마이그레이션 구문의 누락
 
@@ -88,4 +92,5 @@ plugin 동작이 바뀌는 묶음은 두 manifest·README 버전과 현재 maint
 
 1A의 원래 RED·수정 결과·권한 실행 증거: [실행 기록](../execution-s1a.json). 정상 자동 감지 대조군을 포함한 영향 검사 62 PASS / 0 FAIL. 전체 단계·독립 검토·CI·발행은 아직 완료 전이다.
 
-1B [543개 단언](../execution-s1b.json), 1C [58개 구문 반례와 영향 시험](../execution-s1c.json), 1E [74개 수명주기 시험](../execution-s1e.json)은 현재 파일 후보에서 통과했다. 1E의 cache 대체는 3E에 남는다.
+1B [543개 단언](../execution-s1b.json), 1C [58개 구문 반례와 영향 시험](../execution-s1c.json), 1E [74개 수명주기 시험](../execution-s1e.json)은 각 기록에 묶인 이전 후보의 결과다. 새 1B 결과는 위 추가 수정 기록을 따른다.
+1D의 격리 후보·출력 경계 결과는 [당시 실행 기록](../execution-s1d.json), 1E의 cache 축소·남은 선택형 patcher quoting 결과는 [3E 실행 기록](../execution-m3e.json)에 연결한다. 실제 native 세션·설치나 전체 단계 완료로 옮기지 않는다.

@@ -1,7 +1,7 @@
 # 단계 2 — QA·리뷰·복구·delivery 판정
 
 선행: [단계 1](01-safety.md)의 관련 경계. 근거: [S09–S10](../review/01-safety-runtime.md), [Q01–Q12](../review/02-qa-delivery.md).
-진행 상태: 2A·2B·2C·2E 영향 시험 통과; 2D 구현·시험 중. 실제 PR 병합·보호 변경·리뷰 해결·태그 발행을 시험으로 실행하지 않는다.
+진행 상태: 2A–2E의 기존 로컬 결과는 각 실행 기록의 당시 후보에 한정한다. 추가 2A·2D 독립 리뷰 결함의 로컬 수정·영향 검증을 마쳤으며 통합 재검토·CI·실제 로딩은 미완료다. 실제 PR 병합·보호 변경·리뷰 해결·태그 발행을 시험으로 실행하지 않는다.
 
 ## 2A — PR head/base와 리뷰 thread 범위
 
@@ -17,6 +17,11 @@
 
 AC-Q1: 후보 변경·조회 실패에서 완료 판정 없음. 새 thread의 일괄 해결 없음.
 base 재조회만으로 원자적 race 제거를 주장하지 않는다. 서버 보호가 필요하면 정확한 계약/한계를 남긴다.
+
+2026-10-09 추가 독립 리뷰: required checks 조회 실패 뒤 unrelated head Actions 성공만으로 `--auto`를 허용하던 경로를 차단했다.
+[추가 수정 기록](../../../../.superpowers/sdd/harness-modernization/review-fix-merge/summary.json): 첫 RED exit1(56 PASS/2 FAIL) → 수정 후 merge 58·solo 65·pr-create 9·guard 168 PASS 및 구문 exit0.
+자동머지는 required 없음·조회 실패에서 fallback 조회와 merge 쓰기를 하지 않는다. 명시 수동 fallback은 기존 계약을 유지하며 전체 서버 필수 context의 증거로 취급하지 않는다.
+정상 자동머지의 reviewed head 결박·base 재조회·unresolved/mergeable gate는 유지했다. 실제 서버 보호·CI·머지와 원자적 base race 제거는 미확인이다.
 
 ## 2B — solo 복구·hotfix 태그
 
@@ -65,6 +70,10 @@ CI 이름·exit 0만 확인하는 시험은 부족하다. 원래 결함을 잡�
 AC-Q4: UNVERIFIED가 rejected/PASS/완료로 변환되지 않는다. 파일/선언 존재를 실행 증거로 부르지 않는다.
 단계 4의 문서 분할은 이 계약을 유지하며 관련 reader를 같이 변경한다.
 
+2026-10-09 추가 독립 리뷰: findings 형식이 유효해도 review `status`가 없거나 null이면 범위 완료로 처리하던 결함을 고쳤다.
+[추가 수정 기록](../../../../.superpowers/sdd/harness-modernization/review-fix-qa/record.json): 실제 workflow 행동 회귀의 첫 RED exit1(11 PASS/1 FAIL) → 명시 `reviewed`를 요구한 수정 후 exit0(12 PASS/0 FAIL).
+유효한 finding과 별도의 미완료 coverage를 함께 보존한다. [기존 2D 기록](../execution-q2d.json)의 11개 통과는 이전 후보에 한정하며 실제 플랫폼 workflow 활성·설치된 reference 전달은 여전히 미확인이다.
+
 ## 2E — SVG·hook 실패와 생성 품질
 
 수정: `templates/hooks/regen-arch-svg.sh`, `templates/gen_arch_svg.py`.
@@ -89,5 +98,5 @@ AC-Q5: invalid 입력/충돌에서 nonzero, 정상 출력은 parse 가능하고 
 
 2C [실행 증거](../execution-q2c.json): Alembic 16·count 변이 10·new-repo 13 통과. 강제 실패/0개 실행은 count gate의 한계로 보존했으며 production quality 전체 검사는 남는다.
 
-2A [실행 증거](../execution-q2a.json): merge 55 PASS와 리뷰 helper/실제 skill 연결 37개 행동 사례 통과.
+2A [이전 후보 실행 증거](../execution-q2a.json): merge 55 PASS와 리뷰 helper/실제 skill 연결 37개 행동 사례 통과. 당시 fallback 결과를 새 자동머지 허용 근거로 옮기지 않으며 현재 수정 결과는 위 추가 기록을 따른다.
 2B [실행 증거](../execution-q2b.json): solo 65 PASS·실제 hotfix skill 태그 블록 6 PASS. 원격 쓰기 없이 정책·후보·ref 효과를 확인했다.

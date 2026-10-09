@@ -112,10 +112,12 @@ read_pr_candidate() {
 }
 
 # --auto 안전 계약: 무인 자동머지는 CI가 **서버-강제**(required status check 존재)여야 성립한다.
-# required check가 없으면(verdict=none) CI-green을 보장할 수 없어 자동머지는 거부(fail-CLOSED).
-# 수동 머지(auto=0)는 none도 허용 — 사람이 책임지고 머지(무인 자동화만 서버강제를 요구).
-auto_ci_ok() { # verdict, auto → rc0 허용 / rc1 거부(none + --auto)
-  { [ "$1" = "none" ] && [ "$2" = "1" ]; } && return 1
+# required가 없거나 조회 불가(none/fallback)이면 서버 필수 CI를 확인할 수 없어 자동머지는 거부.
+# 수동 머지(auto=0)는 기존 none/Actions fallback 계약을 유지한다.
+auto_ci_ok() { # verdict, auto → rc0 기존 게이트 계속 / rc1 자동머지 거부
+  if [ "$2" = "1" ]; then
+    case "$1" in none|fallback) return 1;; esac
+  fi
   return 0
 }
 
@@ -166,15 +168,15 @@ if [ "$AUTO" = "1" ]; then
 fi
 
 # 1) CI 검증 — 1차: gh pr checks(외부 CI 포함). 토큰이 checks API를 못 읽으면(GraphQL 403)
-#    2차: Actions run(gh run list)으로 이 커밋의 워크플로 결과를 폴백 검증.
+#    수동 머지만 2차 Actions run(gh run list)으로 이 커밋의 워크플로 결과를 폴백 검증.
 # 주의: set -e라 `VAR=$(실패명령)`는 RC 캡처 전에 스크립트를 죽인다 → `|| CHECKS_RC=$?`로 흡수.
 CHECKS_RC=0
 CHECKS_OUT=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1) || CHECKS_RC=$?
 CI_VERDICT=$(classify_ci_gate "$CHECKS_RC" "$CHECKS_OUT") || true
-# --auto는 required check가 없으면(none) 거부 — 자동머지의 CI-green 보장은 서버-강제 required check 전제.
+# --auto는 required 없음/조회 불가를 거부 — unrelated Actions 성공은 서버 필수 CI의 증거가 아니다.
 if ! auto_ci_ok "$CI_VERDICT" "$AUTO"; then
-  echo "  ⛔ --auto 거부: 이 브랜치에 required status check 없음(none) — 자동머지는 서버-강제 CI가 전제." >&2
-  echo "     set-branch-protection.sh <repo> --contexts <a,b>로 등록 후 재시도, 또는 --auto 없이 수동 머지." >&2
+  echo "  ⛔ --auto 거부: required status check 확인 불가($CI_VERDICT) — 자동머지는 서버 필수 CI 확인이 전제." >&2
+  echo "     required check 등록·조회 권한을 확인 후 재시도, 또는 --auto 없이 명시 수동 머지." >&2
   exit 1
 fi
 if [ "$CI_VERDICT" = "green" ]; then

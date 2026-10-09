@@ -73,6 +73,9 @@ Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 
 - 2026-10-09: Codex 여섯 역할의 모델/medium을 실제 확인했다. 쓰기 부모 아래 read-only 역할의 workspace-write 반례를 보존하고 별도 read-only 부모의 다섯 자식 policy를 확인했다. 새 역할 실행이 추가한 임시 trust 한 개만 제거했다.
 - 2026-10-09: 공용 skill effort override 12개를 제거하고 본문/QA를 유지했다. 실제 workflow 비교에서는 두 후보 모두 잠긴 11개 회귀를 통과했으며 시간/사용량과 ephemeral metadata 한계를 별도 기록했다.
 - 2026-10-09: 네 소비 프로젝트 문서 원본 적용·필수 로컬 검사·각 local commit을 완료했다. 새 원격 push/PR와 배포는 하지 않았다. [소비 적용 증거](harness-modernization/execution-consumer-apply.json).
+- 2026-10-09: `fc05d31` 독립 읽기 전용 검토에서 폼 파일 옵션·자동 CI fallback·누락 QA 상태 결함 3건을 확인했다. 각각 RED를 보존하고 수정·직접 회귀를 통과했다. 수정 후보의 통합 재검토와 최종 gate는 진행 중이다. [검토와 수정](harness-modernization/execution-integrated-review.json).
+- 앞의 모델 표본 두 후보도 새 누락 상태 경계에서 11 PASS/1 FAIL이었다. 당시 11개 기준의 시간·사용량을 현재 전체 품질 통과로 확대하지 않는다.
+- 공식 CLI의 격리 plugin 설치 3종은 `fc05d31`의 내용·목록만 확인했다. 이후 guard·merge 수정은 새 설치 후보로 다시 확인하며 실제 dispatch·원본 설치·발행은 별도 단계다.
 
 ## 이 변경의 문서 동기화 범위
 
@@ -83,6 +86,14 @@ Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 
     {
       "path": "docs/specs/harness-modernization.md",
       "reason": "승인 범위·현재 실행·보류·완료 기준 정본"
+    },
+    {
+      "path": "docs/specs/develop-auto-merge.md",
+      "reason": "자동 필수 CI 조회 실패 거부와 수동 fallback 보장 한계"
+    },
+    {
+      "path": "docs/code-review.md",
+      "reason": "현재 자동/수동 CI 판정 계약"
     },
     {
       "path": "docs/specs/harness-modernization/plan/03-model-global.md",

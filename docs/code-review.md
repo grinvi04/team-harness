@@ -114,6 +114,9 @@ develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, �
 
 ## 검토 후보·보호 복원·태그 연결
 
+`pr-merge.sh --auto`는 required 검사 없음·조회 실패 시 병합하지 않는다. 수동 Actions fallback은 기존 계약이며,
+같은 head의 성공 run만으로 현재 서버 필수 검사 전체를 확인했다고 보고하지 않는다.
+
 리뷰 snapshot의 head/base OID를 `pr-merge.sh` 또는 `solo-merge.sh`의 `--expected-head`·
 `--expected-base-oid`로 전달한다. wrapper 시작 전후 변경과 조회 실패는 재검토 대상이다.
 merge의 공식 `--match-head-commit`은 검증 head를 결박한다. base 재조회는 서버의 원자적 비교가 아니므로

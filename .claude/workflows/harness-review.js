@@ -126,7 +126,7 @@ const results = await pipeline(
     if (!record(review) || !Array.isArray(review.findings)) {
       return { dim: d.key, findings: [unverified(d.key, review?.error || 'findings 응답 누락 또는 형식 오류')] }
     }
-    const coverageGap = review.uncertain === true || (Object.hasOwn(review, 'status') && review.status !== 'reviewed')
+    const coverageGap = review.uncertain === true || review.status !== 'reviewed'
       ? [unverified(d.key, text(review.reason) ? review.reason : '관점 검토 범위 미완료 또는 상태 형식 오류')]
       : []
     if (!review.findings.length) return { dim: d.key, findings: coverageGap }
