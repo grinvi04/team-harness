@@ -1088,7 +1088,9 @@ function curlFormSensitiveFile(token, activeExpansionOffsets) {
       index += 1
       while (/[ \t]/.test(token[index] || '\0')) index += 1
       const attribute = token.slice(index).match(/^(type|filename|headers|encoder)=/i)?.[0]
-      if (attribute) {
+      // A repeated type= is content-type continuation in curl, not a quoted
+      // attribute value: its semicolon/comma delimiters stay active.
+      if (attribute && (attribute.toLowerCase() !== 'type=' || !hasContentType)) {
         index += attribute.length
         const name = attribute.toLowerCase()
         if (name === 'type=' && !hasContentType) {

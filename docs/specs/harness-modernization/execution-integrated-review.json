@@ -1,6 +1,6 @@
 {
   "dateUtc": "2026-10-09T00:21:14.750353+00:00",
-  "status": "FIXED_LOCAL_ORACLES_PASS_INDEPENDENT_REREVIEW_PENDING",
+  "status": "REPEATED_TYPE_FIXED_279_CASES_PASS_FINAL_REREVIEW_PENDING",
   "firstIndependentReview": {
     "head": "fc05d31f110218b0d8a99dc2202050f56134fba3",
     "verdict": "NEEDS_FIX",
@@ -140,5 +140,167 @@
     "result": "generic-api-key matched a public source SHA256 adjacent to a filename containing secret; changed metadata layout only",
     "ruleChanged": false,
     "secretOrAuthValue": false
+  },
+  "secondIndependentReview": {
+    "head": "3549d2f239e38c83d386154ea8bd505f8a41ef5e",
+    "verdict": "Harness NEEDS_FIX; MCP preapply PASS",
+    "seconds": 408.424,
+    "sandbox": "actual read-only/never; append PermissionError; unchanged probe",
+    "finding": "P1 repeated curl type= continuation hides header/multiple-file paths",
+    "rawFinalSha256": "07e06b93b7fc1ccb02f88b132484a47eed104b38a2466c30b6e4a5ac7d12889a"
+  },
+  "repeatedTypeFix": {
+    "status": "LOCAL_FIXED_CANDIDATE_FROZEN_INDEPENDENT_REVIEW_PENDING",
+    "recorded_at": "2026-10-09T00:35:39.535286+00:00",
+    "reviewed_commit": "3549d2f239e38c83d386154ea8bd505f8a41ef5e",
+    "review_source": ".superpowers/sdd/harness-modernization/fixed-review/final.txt",
+    "review_source_sha256": "07e06b93b7fc1ccb02f88b132484a47eed104b38a2466c30b6e4a5ac7d12889a",
+    "owned_files": [
+      "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+      "tests/codex-secret-egress-guard-test.sh"
+    ],
+    "before_sha256": [
+      {
+        "path": "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+        "sha256": "d3c2f3b240de5fdaee437ff26fdc02002b07803fb15844b1dabe85b5affdfc1e"
+      },
+      {
+        "path": "tests/codex-secret-egress-guard-test.sh",
+        "sha256": "2db5c75ec338c5acf86ab74b88ce9cda805025def52aee9d85e43312d4e92d20"
+      }
+    ],
+    "candidate_sha256": [
+      {
+        "path": "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+        "sha256": "49fcaee5d6332a293843a1d9368de4793ced17528a5de3030cb2ff5e84094fbf"
+      },
+      {
+        "path": "tests/codex-secret-egress-guard-test.sh",
+        "sha256": "bd95dbcc1543344184b31f1d811746b069b68adb4cab8848e36adc295b67ae27"
+      }
+    ],
+    "root_cause": "Repeated type= incorrectly entered the quoted-attribute parser, cleared active content type and hid semicolon/comma-delimited sensitive file reads.",
+    "fix": "One condition excludes type= from recognized attributes while a content type is active. Existing continuation scan then reaches semicolon/commas; header/file reads are classified normally. Two explanatory comment lines added.",
+    "official_basis": {
+      "url": "https://raw.githubusercontent.com/curl/curl/master/src/tool_formparse.c",
+      "retained_source": ".superpowers/sdd/harness-modernization/review-fix-egress/tool_formparse.c",
+      "sha256": "6a45bd1a75ef73eb1dd958e25c1cd33ac78f1d3d9feb40d9a659c1ac7342ab33",
+      "function": "get_param_part",
+      "rule": "type= recognized only when !endct; otherwise endct continuation stops at semicolon/endchar before headers or subsequent files are processed.",
+      "local_excerpt": "official-retained-parser-excerpt.txt",
+      "new_network_requests": 0
+    },
+    "first_command": [
+      "bash",
+      "tests/codex-secret-egress-guard-test.sh"
+    ],
+    "red": {
+      "exit": 1,
+      "pass": 277,
+      "fail": 2,
+      "first_failure": "repeated form type exposes sensitive header file rc=0 want=2",
+      "second_failure": "repeated form type exposes sensitive second file rc=0 want=2",
+      "log": "red.log"
+    },
+    "green": [
+      {
+        "command": [
+          "bash",
+          "tests/codex-secret-egress-guard-test.sh"
+        ],
+        "exit": 0,
+        "summary": [
+          "결과: PASS=279 FAIL=0"
+        ]
+      },
+      {
+        "command": [
+          "bash",
+          "tests/codex-pretool-guard-test.sh"
+        ],
+        "exit": 0,
+        "summary": []
+      },
+      {
+        "command": [
+          "bash",
+          "tests/guard-matrix-test.sh"
+        ],
+        "exit": 0,
+        "summary": [
+          "결과: PASS=112 FAIL=0"
+        ]
+      },
+      {
+        "command": [
+          "node",
+          "--check",
+          "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs"
+        ],
+        "exit": 0,
+        "summary": []
+      },
+      {
+        "command": [
+          "bash",
+          "-n",
+          "tests/codex-secret-egress-guard-test.sh"
+        ],
+        "exit": 0,
+        "summary": []
+      }
+    ],
+    "final_command": [
+      "bash",
+      "-n",
+      "tests/codex-secret-egress-guard-test.sh"
+    ],
+    "egress_final": {
+      "pass": 279,
+      "fail": 0,
+      "previous_cases_retained": 273,
+      "new_cases": 6,
+      "negative_new": 2,
+      "public_literal_controls_new": 4
+    },
+    "preservation": {
+      "shellParts": true,
+      "shiftedExpansionOffsets": true,
+      "codexHomeSuffix": true,
+      "curlFormWord": true
+    },
+    "previous_result": {
+      "path": ".superpowers/sdd/harness-modernization/review-fix-egress/result.json",
+      "sha256": "035878997680da96d8369a2975b4aa899ae962d530f41341fdfa1361423eb007",
+      "unchanged": true
+    },
+    "environment": "Literal hook classification only; regression runners have isolated temporary HOME. Existing guard matrix creates local temporary Git fixtures; no original/source Git state changed.",
+    "not_executed": [
+      "actual curl",
+      "network requests",
+      "sensitive file reads",
+      "real authentication",
+      "Git operations on original/source checkout",
+      "global installation",
+      "MCP changes",
+      "public docs",
+      "whole repository quality gate",
+      "independent review"
+    ],
+    "caller_migration": "No caller/API change; parent owns refreshed source/install hash pins, public status, independent review and whole-candidate checks.",
+    "limits": "Bounded curl form continuation correction. Not an exhaustive shell/curl parser or proof of all secret-egress detection."
+  },
+  "pluginFixedInstall": {
+    "head": "3549d2f239e38c83d386154ea8bd505f8a41ef5e",
+    "cliCommands": 16,
+    "result": "3runtimes installed/enabled66files match; no dispatch; later repeated-type script change requires final source check",
+    "rawSummarySha256": "f2d67573446b95e92a4385e28a8db20314a4bd2cb527680fe43197e9e40ffe58"
+  },
+  "repeatedTypePublicationFirstFailure": {
+    "step": "pre-commit",
+    "findings": 2,
+    "reason": "public SHA256 adjacent to file identity containing secret; same metadata layout issue",
+    "ruleChanged": false,
+    "values": "source fingerprints only"
   }
 }

@@ -135,8 +135,9 @@
       "mode": "0o755",
       "state": "applied",
       "initialAppliedSha256": "e7e2dd92805cc6510738f69a81b2465aac96b4277980ca6fbb427e7ddb3f3b1a",
-      "currentSha256": "e7e2dd92805cc6510738f69a81b2465aac96b4277980ca6fbb427e7ddb3f3b1a",
-      "currentMode": "0o755"
+      "currentSha256": "17bb25ecb46321b7fce9f530538b70618af628d561169ef7be22be56063421ad",
+      "currentMode": "0o755",
+      "followupState": "official-versioned-binary-and-wrapper-applied"
     }
   ],
   "commonEntries": {
@@ -161,15 +162,37 @@
     "compaction220000 and other existing settings"
   ],
   "githubMcp": {
-    "package": "@modelcontextprotocol/server-github",
-    "pinnedVersion": "2025.4.8",
-    "supportedReplacement": "UNVERIFIED; npm package deprecated",
-    "actualMcpRun": "NOT RUN"
+    "initialPackage": {
+      "package": "@modelcontextprotocol/server-github",
+      "pinnedVersion": "2025.4.8",
+      "supportedReplacement": "UNVERIFIED; npm package deprecated",
+      "actualMcpRun": "NOT RUN"
+    },
+    "current": "github/github-mcp-server",
+    "pinnedVersion": "2.0.2",
+    "binarySha256": "2d431e46617f06b1516818fa09917096ff6dfc3664b37b0bdb31e1c1a35be368",
+    "wrapperSha256": "17bb25ecb46321b7fce9f530538b70618af628d561169ef7be22be56063421ad",
+    "officialRelease": "https://github.com/github/github-mcp-server/releases/tag/v2.0.2",
+    "independentPreapplyReview": "fixed-review PASS for exact MCP wrapper/installer/binary; Harness had separate additional P1",
+    "actualApplication": "new exclusive versioned binary path; reviewed CAS wrapper; private backup; registration command/zero args unchanged",
+    "actualMcpRun": {
+      "status": "PASS_AUTHENTICATED_PUBLIC_READ_ONLY_PROTOCOL",
+      "protocol": "2024-11-05",
+      "toolCount": 22,
+      "publicReadmeBytes": 27782,
+      "publicReadmeSha256": "df08845158b3cf7b98b14283065e93d567b695679fc81ef2ed51d149f98766da",
+      "seconds": 1.872,
+      "limits": "22 readOnlyHint metadata plus one real public read; no universal semantics/auth isolation or Claude app integration proof."
+    },
+    "writes": "No tools/write or GitHub mutation; actual initialize/tools-list/get-file-contents public README only",
+    "ClaudeInference": "USER-DEFERRED",
+    "openedAppReload": "UNVERIFIED; current config does not reload existing sessions automatically",
+    "transactionLimit": "New binary install and wrapper CAS are not a single transaction; unused binary is retained on wrapper failure."
   },
   "remaining": [
-    "official plugin install and fresh hook/skill loading",
-    "Claude actual inference/effort/inherit/permissions/user-deferred after OAuth expiry",
-    "GitHub MCP supported replacement and actual integration"
+    "Current-user plugin update and fresh hook/skill dispatch after final source acceptance.",
+    "Claude actual inference/inheritance/effort/permissions/quality and active app runtime USER-DEFERRED.",
+    "Final delivery and task-owned cleanup are separate pending phases."
   ],
   "recovery": "private backup of displaced originals retained; concurrent later changes never force-restored",
   "limits": [
