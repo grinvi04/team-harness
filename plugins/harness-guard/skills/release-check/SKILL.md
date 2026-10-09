@@ -6,7 +6,7 @@ description: 정식 릴리즈 직전에 품질·보안·DB 마이그레이션 �
 # /release-check — 릴리즈 사전 검증
 
 **사용법**: `/release-check`
-develop 브랜치에서 실행한다. **전 항목 ✅여야 `/release` 진행 가능.**
+develop 브랜치에서 실행한다. **필수 항목 통과와 아래 종합 판정의 정당한 SKIP 조건을 모두 확인해야 `/release` 진행 가능.**
 
 > 빌드·테스트 명령은 **repo의 AGENTS.md "빌드·테스트 명령" 섹션**에서 읽는다.
 
