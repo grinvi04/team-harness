@@ -1,7 +1,7 @@
 # 단계 3 — 모델·전역 설정·공식 기능으로 이전
 
 근거: [최신 모델](../review/05-model-global.md), [전역 범위](../review/06-global-scope-addendum.md), [제거/보존](../review/07-deprecation-removal.md).
-진행 상태: 전역 15개 파일·후속 2개 적용과 Codex 역할 여섯 개 호출 완료; 공식 설치 검증 중. Claude 실제 호출은 사용자 보류다.
+진행 상태: 전역 15개 파일·후속 2개 적용과 Codex 역할 여섯 개 호출 완료; 세 CLI의 공식 격리 설치·66파일 일치 확인. 실제 사용자 plugin refresh/새 dispatch는 [전달 기록](../execution-delivery.json)에서 진행 중이고 Claude 실제 호출은 사용자 보류다.
 설정·실행·품질 비교를 [전역 적용 기록](../execution-m3f.json) 및 [이전 표본](../review/10-agent-owned-execution.md)과 구분한다.
 안전 검사 제거는 단계 1·2의 필요한 결과와 대체 경로 검증을 선행 조건으로 둔다.
 

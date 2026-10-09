@@ -1,6 +1,6 @@
 # Harness 현대화 — 승인된 실행과 완료 기준
 
-2026-10-09: 사용자가 전체 승인 작업 종료까지 실행하도록 승인했다. 작업 브랜치 `fix/harness-modernization`.
+2026-10-09: 전체 승인 작업 종료까지 실행한다. 기능 PR #506 develop 병합 후 `release/v0.82.0`에서 전달 중이다.
 시작 후보 `980fe87b4429e601e7f95155063eb2c28906fbaf`. 기존 사용자 `.gitignore` 변경은 보존한다.
 당시 감사·실패·모델 표본은 [역사 보고서](harness-modernization/review/REVIEW.md)에 보존했다.
 현재 실행의 정본은 이 스펙과 아래 단계다. 역사 보고서의 ‘수정 전’은 당시 상태다.
@@ -55,7 +55,9 @@ Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 
 
 ## 현재 진행
 
-소스 독립 검토·로컬 영향 시험·세 CLI 격리 설치는 통과했다. required CI·사용자 설치/dispatch·발행·정리는 남아 있다.
+소스 독립 검토·로컬 영향 시험·세 CLI 격리 설치와 PR #506 필수 CI 5개를 통과해 develop에 병합했다.
+[전달 기록](harness-modernization/execution-delivery.json)의 현재 후보로 release-check와 79파일 bundle/checksum을 통과했다.
+main PR·새 보호 승인·태그/역병합·사용자 설치/dispatch·실제 지도 연결·정리는 진행 중이다.
 당시 실패와 적용 순서는 [실행 기록](harness-modernization/execution-progress.md)에서 보존한다.
 
 ## 이 변경의 문서 동기화 범위

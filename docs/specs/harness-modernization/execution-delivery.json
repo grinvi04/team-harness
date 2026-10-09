@@ -1,0 +1,111 @@
+{
+  "updatedUtc": "2026-10-09T01:09:41.148876+00:00",
+  "status": "RELEASE_PREPARED_MAIN_PR_CI_APPROVAL_PENDING",
+  "feature": {
+    "baseRefOid": "980fe87b4429e601e7f95155063eb2c28906fbaf",
+    "headRefOid": "5a449ea8b03007e2ca08c2a2f79d16210b738570",
+    "mergeCommit": {
+      "oid": "124129538b8b276b50e53f6059678f3d909a7587"
+    },
+    "mergedAt": "2026-10-09T00:58:59Z",
+    "number": 506,
+    "state": "MERGED",
+    "url": "https://github.com/grinvi04/team-harness/pull/506"
+  },
+  "requiredContexts": [
+    {
+      "link": "https://github.com/grinvi04/team-harness/actions/runs/37866881079/job/113615598704",
+      "name": "atomic-trust-macos",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/grinvi04/team-harness/actions/runs/37866881079/job/113615598318",
+      "name": "quality",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/grinvi04/team-harness/actions/runs/37866880977/job/113615597757",
+      "name": "commitlint-trusted",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/grinvi04/team-harness/actions/runs/37866881069/job/113615598046",
+      "name": "test-guard",
+      "state": "SUCCESS"
+    },
+    {
+      "link": "https://github.com/grinvi04/team-harness/actions/runs/37866881079/job/113615598563",
+      "name": "secret-scan",
+      "state": "SUCCESS"
+    }
+  ],
+  "sourceReuse": {
+    "reviewHead": "143ca921de0a79f0396fe9b18d46191030fe25fd",
+    "runtimeSourcesUnchanged": true,
+    "featureHeadEqualsMergedTree": true,
+    "scope": "Runtime/scripts/templates/packaging/CI bytes; subsequent docs changes have separate structural and boundary proof."
+  },
+  "releaseCheck": {
+    "candidate": "124129538b8b276b50e53f6059678f3d909a7587",
+    "AQuality": "PASS: valid current local impact proofs and five actual required contexts at feature head; merged tree equals tested head",
+    "BSecurity": "PASS: separate actual Astra/medium read-only/never source review; historical three findings fixed; current secret-scan success",
+    "CMigration": "NOT_APPLICABLE: Harness has no product database or schema; changed migration safety policies tested, no applied migration changed",
+    "DLiveProvenance": {
+      "status": "PASS",
+      "artifacts": 7,
+      "argv": [
+        "node",
+        "scripts/check-external-pilot-provenance.mjs",
+        "--manifest",
+        "docs/pilots/external-pilot-provenance.json"
+      ],
+      "logSha256": "d7096360bf3246c55377803a8a9359affaf76dada3b4bf5622fc310d32916bbc"
+    },
+    "releaseBundle": {
+      "status": "PASS",
+      "files": 79,
+      "sourceHead": "124129538b8b276b50e53f6059678f3d909a7587",
+      "commands": [
+        {
+          "argv": [
+            "node",
+            "scripts/build-release-bundle.mjs",
+            "--output",
+            "/private/tmp/task-harness-release-49h4cdj3/bundle"
+          ],
+          "cwd": "/Users/grinvi04/.codex/worktrees/c833/team-harness",
+          "exit": 0,
+          "seconds": 1.293
+        },
+        {
+          "argv": [
+            "shasum",
+            "-a",
+            "256",
+            "-c",
+            "SHA256SUMS"
+          ],
+          "cwd": "/private/tmp/task-harness-release-49h4cdj3/bundle",
+          "exit": 0,
+          "seconds": 0.074
+        }
+      ],
+      "manifestSha256": "456971834a3ed0dbff23ab26af3d4d4092d289fe37d3058be66b8cc7f58f94ff"
+    },
+    "stagingHealth": "NOT_APPLICABLE: no Harness app/server/staging deployment in repository",
+    "decision": "GO for main release PR preparation; merge/tag require fresh PR gates and exact new protection approval"
+  },
+  "remaining": [
+    "main PR current required CI/review and approval",
+    "main merge/tag and develop backmerge",
+    "official user plugin refresh and safe new Codex dispatch",
+    "current Project Map caller independent review/apply/live proof",
+    "durable evidence/map export and task worktree archive"
+  ],
+  "deferred": {
+    "claudeInference": "USER_DEFERRED: OAuth renewal later; do not retry/fallback",
+    "consumerRemoteDelivery": "EXCLUDED by user; local commits/QA preserved",
+    "deployment": "EXCLUDED by user; no prod data/environment/payment",
+    "fileUrlVisual": "UNVERIFIED: browser policy denies file protocol; HTTP visual proof cannot replace it"
+  }
+}

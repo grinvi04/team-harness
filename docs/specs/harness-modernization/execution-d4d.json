@@ -1,6 +1,6 @@
 {
   "task": "4D bounded project-map reader proof",
-  "status": "Pure reader proof and exact legacy/split compatibility tested; proposed source migration only. Current live configured source absent; parent reconciliation/apply remains.",
+  "status": "CURRENT_CALLER_CANDIDATE_TEST_REVIEW_PASS_LIVE_APPLY_PENDING",
   "cwd": "$HOME/.codex/worktrees/c833/team-harness",
   "date": "2026-10-09",
   "authority": "Only d4d evidence/candidates + execution-d4d.json written. No original/service/registry/Git/app/network/DB/start/restart changes.",
@@ -161,5 +161,27 @@
     "commandEvidence": "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/d4d/eof-green-record.json",
     "finalDigests": "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/d4d/eof-final-digests.json",
     "originalsAndRuntime": "Source service unchanged, no original writes/Git/restart/server execution"
+  },
+  "historicalStatus": "Pure reader proof and exact legacy/split compatibility tested; proposed source migration only. Current live configured source absent; parent reconciliation/apply remains.",
+  "currentService": {
+    "root": "$HOME/project/project-map",
+    "discovery": "Old Documents service is a recovery backup; current service moved independently, so previous server candidate review does not authorize applying there.",
+    "originalServerSha256": "96500d6bc4cb3463d51757032ae39c9d4b7f4e62a3116f03c1dc7632a168cb5b",
+    "candidateServerSha256": "84de4c9efaa261c2a29d8fc7996e1c389eeb78b6e98a53283b5ac0f3a3e924c8",
+    "helperSha256": "2b6ae3f547f3537583501101f846de2f35d88d62dcd03e29733e046122c7eda0",
+    "minimalChange": "Current helper loader and exact canonical readiness path only; lawful custom progress files and registry/config/watch contracts unchanged.",
+    "workerProof": "RED4failures in7newtests; GREEN211original+7new=218PASS;105original files unchanged.",
+    "independentReview": {
+      "status": "PASS_FIXED_CANDIDATE_ONLY",
+      "sessionId": "01a11e32-879e-7763-95db-90a6177482e5",
+      "actualRuntime": "Astra/medium/read-only/never",
+      "seconds": 172.437,
+      "probeDeniedUnchanged": true,
+      "scope": "Three read-only assertion batches: current original/candidate fingerprints, closed695bytes/all4records, actual parser/UI/registry/configure integration using in-memory file/Git seams",
+      "summarySha256": "fdf97e7e19712b01828f2c6a9f9702ed8e8fd5e242c33e0bce282dbaab723e36",
+      "reviewSha256": "3d8d5926e448c29e1f9be1256a2368956e794f6755b5c213af50a5371a17da58"
+    },
+    "activation": "NOT_RUN: source root reconciliation after formal Harness delivery, CAS/exclusive helper apply, current controller ownership/restart/live proof remain.",
+    "limits": "Candidate/review PASS does not prove real8797 watcher/browser behavior or release completion. Recovery backup/original registry/runtime untouched."
   }
 }

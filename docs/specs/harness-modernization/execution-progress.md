@@ -23,3 +23,7 @@
 - 공식 CLI 격리 설치 3종을 `143ca921`에서 새로 확인했다. 16명령 exit0·설치된 66파일 일치·원본 152파일 불변이며 실제 dispatch·사용자 설치·발행은 별도 단계다.
 
 - 2026-10-09: 깨끗한 Git archive의 공개 문서 검사에서 로컬 scratch 링크 6건이 실패했다. 공개 검증 기록으로 연결한 323ecd5 후보는 289 MD/0 FAIL, 관련 Node 34건 PASS다. checker와 기존 사용자 .gitignore는 그대로다.
+
+- 2026-10-09 PR #506 required CI5개 PASS → develop1241295 병합. 독립 검토 대상143ca921과 runtime 바이트 동일, tested head5a449ea와 merged tree 동일 확인. release-check live provenance7건 및79파일 bundle/checksum PASS; main 새 승인·태그·설치·지도·정리는 전달 기록에서 계속한다.
+- 실제 지도 서비스가 `project/project-map`으로 이동한 것을 재확인했다. 복구 사본은 보존하고 현재 호출부 후보의 기존211+새7시험 PASS를 확인했다. 별도 read-only 독립 검토·실제 적용은 아직 진행 중이다.
+- 현재 지도 호출부 독립 검토도 PASS. 실제 Astra/medium/read-only/never 정책과 append 거부·불변을 관찰했다. parser/UI/registry를 유지한 메모리 내 연결 반증과 원본105해시를 확인했으며 실제8797활성화는 아직 미실행이다.

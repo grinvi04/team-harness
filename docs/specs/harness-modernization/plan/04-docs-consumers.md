@@ -6,7 +6,7 @@
 새 모델로 역사상 모델 이름·날짜·후보·실패/성공을 덮어쓰지 않는다.
 
 현재 근거: [내용 보존](../execution-d4bc.json)·[개인 reader 후보](../execution-d4d.json)·[소비 로컬 적용](../execution-consumer-apply.json)·[표준 관찰](../execution-d4f.json).
-4D의 695줄 재구성은 후보에서 확인했다. 실제 서비스 ROOT에는 해당 원본 문서가 없어 공식 전달 후 정렬한다.
+4D의 695줄 재구성은 후보에서 확인했다. 서비스가 별도 `project/project-map`으로 이동한 현재 호출부에 최소 후보를 다시 연결해 기존211+새7시험 PASS를 확인했다. 별도 Astra/medium 실제 read-only/never 독립 검토와 원문/현재 parser·UI·registry 연결 반증 PASS를 확인했다. 실제 ROOT 정렬·적용/활성화는 진행 중이다. 이전 Documents 서비스는 복구 사본이며 적용 대상이 아니다.
 아래는 범위 확인용 재사용 체크리스트다. 미체크 표시 자체를 새 백로그로 세지 않으며 각 AC의 실제 상태와 한계는 위 실행 기록을 따른다.
 
 ## 4A — 진입점과 내용 단위
