@@ -341,6 +341,14 @@
     "red": "clean Git archive checker289files;exit1;six scratch-only links missing",
     "fix": "six hyperlinks now use this committed public record; raw private proofs retained separately",
     "checkerUnchanged": true,
-    "firstDriverFailure": "default TMPDIR symlink spelling bypassed Node import main guard; empty stdout JSON parse failed; preserved; resolved explicit /private/tmp snapshot path"
+    "firstDriverFailure": "default TMPDIR symlink spelling bypassed Node import main guard; empty stdout JSON parse failed; preserved; resolved explicit /private/tmp snapshot path",
+    "green": {
+      "head": "323ecd5fee7107515fcb6d29dd0f609243ce0c77",
+      "files": 289,
+      "exitCode": 0,
+      "failures": [],
+      "affectedNodeTests": "34PASS0FAIL",
+      "limits": "structural references/line count, not semantic guarantee"
+    }
   }
 }
