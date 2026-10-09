@@ -24,6 +24,18 @@ check() { # desc, expected_exit, target_path
   fi
 }
 
+# S1C: literal regressions for supported syntax and independent safe contrasts.
+check "S1C bad-drop-column-omitted" 1 "$FIX/s1c-bad-drop-column-omitted"
+check "S1C bad-drop-column-omitted-if-exists" 1 "$FIX/s1c-bad-drop-column-omitted-if-exists"
+check "S1C bad-drop-column-omitted-comment" 1 "$FIX/s1c-bad-drop-column-omitted-comment"
+check "S1C good-drop-column-omitted-ack" 0 "$FIX/s1c-good-drop-column-omitted-ack"
+check "S1C good-alter-drop-noncolumn" 0 "$FIX/s1c-good-alter-drop-noncolumn"
+check "S1C skip-drop-column-omitted" 0 "$FIX/s1c-skip-drop-column-omitted"
+
+check "S1C bad-quoted-drop-column-omitted" 1 "$FIX/s1c-bad-quoted-drop-column-omitted"
+check "S1C bad-backtick-drop-column-omitted" 1 "$FIX/s1c-bad-backtick-drop-column-omitted"
+check "S1C good-quoted-drop-constraint" 0 "$FIX/s1c-good-quoted-drop-constraint"
+
 # ── AC-1: 승인마커 없는 파괴 문장 → 차단(exit 1) ──
 check "DROP TABLE 미승인 → FAIL(AC-1)"          1 "$FIX/bad-drop-table"
 check "TRUNCATE 미승인 → FAIL(AC-1)"            1 "$FIX/bad-truncate"

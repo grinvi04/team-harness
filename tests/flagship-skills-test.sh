@@ -108,7 +108,7 @@ fi
 README="$ROOT/README.md"
 DEVELOPER_GUIDE="$ROOT/docs/developer-workflow.md"
 INTRO="$ROOT/docs/intro.html"
-DECISIONS="$ROOT/docs/decisions.md"
+DECISIONS="$ROOT/docs/decisions-native-and-delivery.md"
 MANIFEST="$ROOT/plugins/harness-guard/.claude-plugin/plugin.json"
 CI="$ROOT/.github/workflows/ci-gate.yml"
 
@@ -193,6 +193,40 @@ then
   pass "QA 위험 참조가 공통 스킬과 package source에 연결됨 (구조 검사)"
 else
   fail "QA 위험 참조 연결 누락"
+fi
+
+# Instruction routing/contract structure only; an actual consuming agent must still
+# compare the original AC with current candidate evidence before reporting done.
+if node - "$ROOT" <<'NODE'
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = process.argv[2];
+const directory = path.join(root, 'plugins/harness-guard/skills/milestone');
+const core = fs.readFileSync(path.join(directory, 'SKILL.md'), 'utf8');
+assert.ok(core.includes('(create-update.md)'), 'creation mode must explicitly follow its local reference');
+const reference = fs.readFileSync(path.join(directory, 'create-update.md'), 'utf8');
+for (const [name, content] of [['SKILL.md', core], ['create-update.md', reference]]) {
+  assert.ok(content.split('\n').length - (content.endsWith('\n') ? 1 : 0) <= 199, `${name}: physical line limit`);
+}
+assert.match(core, /원래 수용 기준.*현재 후보.*증거/);
+assert.match(core, /취소·중복.*완료.*계산하지/);
+assert.match(core, /closed_issues.*행정.*완료.*아니/);
+assert.match(core, /UNVERIFIED.*완료.*판정하지/);
+assert.match(core, /후보.*시험.*명령.*결과/);
+assert.ok(core.includes('${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh'), 'existing packaging binding remains in the core');
+assert.match(reference, /Phase C0/);
+assert.match(reference, /Phase C1/);
+assert.match(reference, /Phase C2/);
+assert.match(reference, /Phase C3/);
+assert.match(reference, /Phase C4/);
+assert.doesNotMatch(core + reference, /closed_issues`?를 완료 PR 수로 사용/);
+assert.doesNotMatch(core + reference, /정본은 \*\*GitHub Milestone\*\*\(open\/closed issue 카운트\)/);
+NODE
+then
+  pass "Q2D milestone 참조·줄 수·AC 완료 계약 (구조 검사)"
+else
+  fail "Q2D milestone 참조 또는 AC 완료 계약 누락 (구조 검사)"
 fi
 
 echo ""

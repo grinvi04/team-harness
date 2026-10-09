@@ -1,0 +1,221 @@
+{
+  "task": "3B representative bounded implementation comparison",
+  "date": "2026-10-09",
+  "status": "CONTROLLED_REGRESSION_PASS_WITH_RUNTIME_METADATA_LIMIT",
+  "scope": {
+    "ownedPrivateRoot": ".superpowers/sdd/harness-modernization/m3-representative",
+    "publicRecord": "docs/specs/harness-modernization/execution-m3-representative.json",
+    "consumerOrProductionWrites": false,
+    "sourcePluginEdits": false,
+    "globalConfigEdits": false,
+    "realGitMutations": false,
+    "subagentCalls": 0,
+    "claudeCalls": 0,
+    "modelRuns": 2,
+    "fallbacksOrExtraModels": 0,
+    "agentAuthenticationValueReadsOrEdits": false
+  },
+  "contract": {
+    "plan": "docs/specs/harness-modernization/plan/03-model-global.md:3B/AC-M2",
+    "sourceRevision": "980fe87b4429e601e7f95155063eb2c28906fbaf",
+    "sourcePath": ".claude/workflows/harness-review.js",
+    "sourceSha256": "129d58dff8dc408d7bcaab560aa27205cb32d278cdb844789d8c0118b2254ecd",
+    "lockedOracle": "tests/harness-review-test.mjs (unchanged current source)",
+    "lockedOracleSha256": "d7a71b5f9d0b3f76624c36985411d77cc0050427f358b8657f0cf46ffe9ab501",
+    "nodeVersion": "v22.18.0",
+    "fixtures": "Two separate synthetic /private/tmp copies, same relative hierarchy; no synthetic Git needed",
+    "samePromptSha256": "7c273701944fb1ceba4472daead6728bddd3e69c7373b0b753bc1694b671314e",
+    "inputExposure": "Each fresh session saw only original failing workflow and locked tests; neither received current fixed source or other model output",
+    "criteria": [
+      "Preserve seven dimension identities/order",
+      "Keep confirmed, rejected and unverified distinct",
+      "Absent/null/malformed verdicts/findings remain unverified",
+      "Uncertain/partial review evidence remains unverified",
+      "Malformed findings stay visible while valid siblings verify",
+      "Missing dimension and individual review/verifier failures remain visible",
+      "Coverage/status/logs agree with unverified results"
+    ]
+  },
+  "initialRed": {
+    "beforeEitherModel": true,
+    "bothFixtureExits": {
+      "sol": 1,
+      "luna": 1
+    },
+    "bothFixturesPassCases": 0,
+    "bothFixturesFailCases": 11,
+    "actualFailureLogs": {
+      "sol": ".superpowers/sdd/harness-modernization/m3-representative/sol/red-stdout.log",
+      "luna": ".superpowers/sdd/harness-modernization/m3-representative/luna/red-stdout.log"
+    },
+    "failedCaseNames": ".superpowers/sdd/harness-modernization/m3-representative/sol/initial-failures.json",
+    "modelObservedRed": "Both models also ran the same original oracle and observed exit 1 before editing."
+  },
+  "runtime": {
+    "binary": "$HOME/.local/bin/codex",
+    "cliVersion": "0.161.0",
+    "resolvedBinary": "$HOME/.codex/packages/standalone/releases/0.161.0-aarch64-apple-darwin/bin/codex",
+    "binarySha256": "12ac11d2c7eee27cfae34393986d7b7c9ed0dea537cb749831cdd7033893e6de",
+    "sameSupportedLaunchPolicy": [
+      "ignore-user-config",
+      "ignore-rules",
+      "strict-config",
+      "workspace-write",
+      "approval never",
+      "memories.generate_memories=false",
+      "ephemeral",
+      "skip-git-repo-check",
+      "standalone no-daemon"
+    ],
+    "timeoutSecondsPerRun": 360,
+    "modelIdentityProofBoundary": "Explicit accepted argv is retained privately. Actual JSON emitted session IDs, commands, outputs and usage, but no model/effort/sandbox context; no self-report substituted for missing metadata.",
+    "ephemeralBoundary": "Required ephemeral mode does not persist rollout sessions. No trace/DB workaround, extra model run or setting change was used."
+  },
+  "sol": {
+    "requestedModel": "gpt-6.1-sol",
+    "requestedEffort": "medium",
+    "threadId": "01a11de4-1e55-7563-881f-3228e3930dcd",
+    "cliExitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 48.731,
+    "finishedAtUtc": "2026-10-08T23:41:40.039523+00:00",
+    "modelTestExits": [
+      1,
+      0
+    ],
+    "sourceEditBatches": 1,
+    "correctiveFollowups": 0,
+    "oracleExitCode": 0,
+    "oracleCasesPass": 11,
+    "oracleCasesFail": 0,
+    "oracleExecutions": 1,
+    "candidateSha256": "57ff0294937f0c3b8b740099c87859ec6dc32ec8137a809cf105efc7255b02c8",
+    "testBytesAndModePreserved": true,
+    "sevenDimensionBytesPreserved": true,
+    "actualRuntimeMetadata": "UNVERIFIED: ephemeral JSON did not emit model/effort/sandbox fields",
+    "privateRuntimeSummary": ".superpowers/sdd/harness-modernization/m3-representative/sol/runtime-summary.json"
+  },
+  "luna": {
+    "requestedModel": "gpt-6-luna",
+    "requestedEffort": "xhigh",
+    "threadId": "01a11de5-3aec-7e23-bac1-6b398dcfd199",
+    "cliExitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 85.846,
+    "finishedAtUtc": "2026-10-08T23:43:29.863629+00:00",
+    "modelTestExits": [
+      1,
+      0
+    ],
+    "sourceEditBatches": 1,
+    "correctiveFollowups": 0,
+    "oracleExitCode": 0,
+    "oracleCasesPass": 11,
+    "oracleCasesFail": 0,
+    "oracleExecutions": 1,
+    "candidateSha256": "d22897da45bbbe60b3d95b2a9bcd745cca19e171e54946db7d61252227992ddd",
+    "testBytesAndModePreserved": true,
+    "sevenDimensionBytesPreserved": true,
+    "actualRuntimeMetadata": "UNVERIFIED: ephemeral JSON did not emit model/effort/sandbox fields",
+    "privateRuntimeSummary": ".superpowers/sdd/harness-modernization/m3-representative/luna/runtime-summary.json"
+  },
+  "independentVerification": {
+    "bothOracles": "PASS: 11 controlled DSL cases each, exit 0",
+    "changedPaths": ".claude/workflows/harness-review.js only in each synthetic fixture",
+    "rootLockedTest": "Bytes and mode unchanged in both fixtures; current original test digest still equals frozen oracle",
+    "dimensionDefinitions": "Original seven-dimension definition bytes preserved by both candidates",
+    "testWeakeningOrSkip": false,
+    "sourceDiffs": {
+      "sol": ".superpowers/sdd/harness-modernization/m3-representative/sol/source.diff",
+      "luna": ".superpowers/sdd/harness-modernization/m3-representative/luna/source.diff"
+    },
+    "appDslRuntime": "UNVERIFIED: actual DSL source executed with controlled functions and export syntax adaptation; app registration/availability/runtime was not exercised",
+    "temporaryTrustEffect": "No current global config entry references either synthetic fixture; this is a targeted end observation, not full config preservation proof."
+  },
+  "comparison": {
+    "quality": "Both candidates pass the same frozen 11-case oracle after one edit batch; no observed quality advantage for Luna/xhigh on this sample.",
+    "rework": "Both saw initial RED then PASS on first candidate; no correction or second model session.",
+    "time": "Sol 48.731 seconds; Luna 85.846 seconds for bounded model sessions, independent oracle recorded separately.",
+    "usage": "Actual completion input/cache/output/reasoning usage retained privately in comparison.json and each runtime summary. Sol recorded fewer aggregate tokens on this sample; different response trajectories/cache prevent a universal efficiency claim.",
+    "selection": "This sample supports retaining Sol6.1/medium as ordinary bounded implementation starting point; exact actual effort/model metadata is unverified for these ephemeral runs. It does not justify mandatory Luna/xhigh or a universal optimum.",
+    "pricing": "No subscription cost, shared quota or API-price conversion.",
+    "earlierBaseline": "Existing tiny six-bug review baseline remains separate and unchanged."
+  },
+  "evidence": {
+    "inputManifest": ".superpowers/sdd/harness-modernization/m3-representative/candidate.json",
+    "exactInvocations": {
+      "sol": ".superpowers/sdd/harness-modernization/m3-representative/sol/invocation.json",
+      "luna": ".superpowers/sdd/harness-modernization/m3-representative/luna/invocation.json"
+    },
+    "rawEventsAndUsage": {
+      "sol": ".superpowers/sdd/harness-modernization/m3-representative/sol/model-events.jsonl",
+      "luna": ".superpowers/sdd/harness-modernization/m3-representative/luna/model-events.jsonl"
+    },
+    "independentOracles": {
+      "sol": ".superpowers/sdd/harness-modernization/m3-representative/sol/oracle.json",
+      "luna": ".superpowers/sdd/harness-modernization/m3-representative/luna/oracle.json"
+    },
+    "privateComparison": ".superpowers/sdd/harness-modernization/m3-representative/comparison.json",
+    "artifactManifest": ".superpowers/sdd/harness-modernization/m3-representative/artifact-manifest.json",
+    "artifactManifestSha256": "7b7b12c22cf47ddc37bad4f258984ab67b7101d893180ca0085f5379c6745909",
+    "runtimeEffects": ".superpowers/sdd/harness-modernization/m3-representative/native-runtime-effects.json"
+  },
+  "remaining": {
+    "parentOwnedDocumentUpdates": [
+      "plan/03-model-global.md: link actual same-input implementation results and ephemeral metadata limitation",
+      "review/10-agent-owned-execution.md: append representative implementation sample; preserve earlier review baseline",
+      "Current model guidance: retain task-specific selection and measurement limits; no default xhigh/optimality claim"
+    ],
+    "unverified": [
+      "Exact actual model/effort/sandbox metadata in required ephemeral runs",
+      "App DSL registration/availability/runtime",
+      "Broader project/security/CI/install/deploy behavior",
+      "Claude inference until user refreshes OAuth"
+    ],
+    "stop": "Approved two runs and one independent oracle per candidate finished; no third run or fallback."
+  },
+  "laterIndependentBoundary": {
+    "candidate": "fc05d31f110218b0d8a99dc2202050f56134fba3",
+    "finding": "Missing explicit review status was not covered by the original11-case oracle. Root added a new failure boundary.",
+    "recheckWithoutNewInference": [
+      {
+        "requestedCandidate": "sol",
+        "candidateSha": "57ff0294937f0c3b8b740099c87859ec6dc32ec8137a809cf105efc7255b02c8",
+        "oracleSha": "a52387875a5f350da5186b625d32fa716a0ad374c6883f5b941da0b7dcf7d254",
+        "exit": 1,
+        "log": ".superpowers/sdd/harness-modernization/review-fix-qa/model-sol-expanded.log",
+        "newModelCall": false
+      },
+      {
+        "requestedCandidate": "luna",
+        "candidateSha": "d22897da45bbbe60b3d95b2a9bcd745cca19e171e54946db7d61252227992ddd",
+        "oracleSha": "a52387875a5f350da5186b625d32fa716a0ad374c6883f5b941da0b7dcf7d254",
+        "exit": 1,
+        "log": ".superpowers/sdd/harness-modernization/review-fix-qa/model-luna-expanded.log",
+        "newModelCall": false
+      }
+    ],
+    "interpretation": "Original11cases and normal input protocol unchanged; only one missing-status negative case appended. Both earlier candidates fail that new boundary; no new inference or response edits. Original11successes/time/usage remain historical narrower evidence.",
+    "firstNewProtocolRecheckLimit": "Current oracle normal inputs use reviewed, whereas both earlier model candidates define complete. Its12failures include fixture/protocol differences and are NOT attributed solely to the missing-status defect; first raw result preserved.",
+    "sameOriginalOraclePlusOneBoundary": [
+      {
+        "requestedCandidate": "sol",
+        "candidateSha": "57ff0294937f0c3b8b740099c87859ec6dc32ec8137a809cf105efc7255b02c8",
+        "oracleSha": "cc7ce2e6cec32374fb2475b84c67a53508b7d424a16aca24af65fba2cb921dda",
+        "exit": 1,
+        "log": ".superpowers/sdd/harness-modernization/review-fix-qa/model-sol-original-extended.log",
+        "original11Unchanged": true,
+        "newModelCall": false
+      },
+      {
+        "requestedCandidate": "luna",
+        "candidateSha": "d22897da45bbbe60b3d95b2a9bcd745cca19e171e54946db7d61252227992ddd",
+        "oracleSha": "cc7ce2e6cec32374fb2475b84c67a53508b7d424a16aca24af65fba2cb921dda",
+        "exit": 1,
+        "log": ".superpowers/sdd/harness-modernization/review-fix-qa/model-luna-original-extended.log",
+        "original11Unchanged": true,
+        "newModelCall": false
+      }
+    ]
+  }
+}

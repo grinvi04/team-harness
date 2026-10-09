@@ -286,7 +286,7 @@ done < <(split_segments "$COMMAND")
 #   안 한 토큰이라 standalone rm 토큰 없음 → 통과. 부수 효과로 `docker run --rm tests/`(--rm은 rm 토큰
 #   아님)·`rm latest/`(경로 앵커 (^|/)) 같은 현행 과차단도 해소. category(b) 무백스톱 — LITE에서도 유지.
 while IFS= read -r DSEG; do
-  seg_has_token "$DSEG" "rm" || continue
+  seg_has_command_token "$DSEG" "rm" || continue
   _tok_into _dt "$DSEG"
   for _tok in "${_dt[@]}"; do
     # 파일 패턴은 **비앵커 부분매치**(OLD 정규식과 동일) — `rm *Test.java*`·`foo_test.py.bak`처럼 검증기

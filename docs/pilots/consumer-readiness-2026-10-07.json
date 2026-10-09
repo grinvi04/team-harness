@@ -1,0 +1,1001 @@
+{
+  "date": "2026-10-07",
+  "scope": "read-only consumer readiness, app quality NOT_RUN; no consumer edit/deployment/global change",
+  "harnessBase": "65424625f5d25bda2a037861a6d8e6c414f442dc",
+  "harnessVersion": "0.81.0",
+  "releaseSourceSha": "9838c2ef288b4566f81fae03acb56530ee165c06",
+  "checkerSha256": "564e34741953c7cf2b851235f21ec50c39c97f804845337e247abb8dd94dd82c",
+  "assessmentCompletion": "source collection and plan only; NOT application QA PASS",
+  "repos": [
+    {
+      "repo": "erp",
+      "githubRepo": "grinvi04/erp",
+      "localSnapshot": {
+        "repo": "erp",
+        "headBefore": "085d0cebb6aefd3152e475e8337ff988a281f5ff",
+        "branchBefore": "feature/tenant-user-onboarding",
+        "statusBefore": [
+          "?? .codex/"
+        ],
+        "after": {
+          "head": "085d0cebb6aefd3152e475e8337ff988a281f5ff",
+          "branch": "feature/tenant-user-onboarding",
+          "status": [
+            "?? .codex/"
+          ]
+        },
+        "metadataUnchanged": true
+      },
+      "remoteDevelopSha": "d10a9164f1f440a26e4ea42c4cd6f7736c6eed15",
+      "defaultBranch": "main",
+      "archiveSha256": "58451158b8d0d3d681ea9e5dbb26cbb1c1131d7e836c7f29f97bb7ee1877d5bd",
+      "localSync": {
+        "exitCode": 1,
+        "counts": {
+          "total": 21,
+          "ok": 16,
+          "weak": 0,
+          "warn": 1,
+          "missing": 4
+        },
+        "command": "node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <CONSUMER_ROOT> --harness <HARNESS_ROOT>",
+        "cwd": "<HARNESS_ROOT>",
+        "output": "\n기존 repo 드리프트 점검 — <CONSUMER_ROOT>\n감지된 스택: java, flyway, typescript, nextjs\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✓ OK     Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✗ MISSING commitlint config                       루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)\n  ✗ MISSING commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✗ MISSING 커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✓ OK     migration-safety 워크플로                   Flyway 접두사 대역 게이트 (sentinel: check-migration-safety)\n  ✓ OK     check-migration-safety.mjs              scripts/check-migration-safety.mjs (무의존 정적 검사)\n  ✓ OK     destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✓ OK     check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✓ OK     alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✓ OK     check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✓ OK     activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✓ OK     check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     룰: java.md                              .claude/rules/java.md (표준: templates/rules/stacks/java.md)\n  ✓ OK     룰: flyway.md                            .claude/rules/flyway.md (표준: templates/rules/stacks/flyway.md)\n  ✓ OK     룰: typescript.md                        .claude/rules/typescript.md (표준: templates/rules/stacks/typescript.md)\n  ! WARN   룰: nextjs.md                            .claude/rules/nextjs.md (표준: templates/rules/stacks/nextjs.md)\n\n요약: 대상 21개 · OK 16 · WEAK 0 · WARN 1 · MISSING 4\n\n✗ 드리프트 — 필수 자산 4개 누락: commitlint 게이트, commitlint config, commit-msg 훅, 커밋 메시지 validator\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      },
+      "remoteSync": {
+        "exitCode": 1,
+        "counts": {
+          "total": 21,
+          "ok": 20,
+          "weak": 0,
+          "warn": 0,
+          "missing": 1
+        },
+        "missingMeaning": "canonical contract mismatch; files may exist, not absence proof",
+        "missingLines": [
+          "✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일"
+        ],
+        "command": "node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <PINNED_SNAPSHOT> --harness <HARNESS_ROOT>",
+        "cwd": "<HARNESS_ROOT>",
+        "output": "\n기존 repo 드리프트 점검 — <PINNED_SNAPSHOT>\n감지된 스택: java, flyway, typescript, nextjs\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✓ OK     Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✓ OK     commitlint config                       루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)\n  ✓ OK     commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✓ OK     커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✓ OK     migration-safety 워크플로                   Flyway 접두사 대역 게이트 (sentinel: check-migration-safety)\n  ✓ OK     check-migration-safety.mjs              scripts/check-migration-safety.mjs (무의존 정적 검사)\n  ✓ OK     destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✓ OK     check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✓ OK     alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✓ OK     check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✓ OK     activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✓ OK     check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     룰: java.md                              .claude/rules/java.md (표준: templates/rules/stacks/java.md)\n  ✓ OK     룰: flyway.md                            .claude/rules/flyway.md (표준: templates/rules/stacks/flyway.md)\n  ✓ OK     룰: typescript.md                        .claude/rules/typescript.md (표준: templates/rules/stacks/typescript.md)\n  ✓ OK     룰: nextjs.md                            .claude/rules/nextjs.md (표준: templates/rules/stacks/nextjs.md)\n\n요약: 대상 21개 · OK 20 · WEAK 0 · WARN 0 · MISSING 1\n\n✗ 드리프트 — 필수 자산 1개 누락: commitlint 게이트\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      },
+      "branchProtection": {
+        "checkExitCode": 0,
+        "scope": "default --check guard properties/presence; exact context identities recorded separately, no new target baseline declared",
+        "branches": {
+          "main": {
+            "allow_deletions": {
+              "enabled": false
+            },
+            "allow_force_pushes": {
+              "enabled": false
+            },
+            "enforce_admins": {
+              "enabled": true,
+              "url": "https://api.github.com/repos/grinvi04/erp/branches/main/protection/enforce_admins"
+            },
+            "required_pull_request_reviews": null,
+            "required_status_checks": {
+              "checks": [
+                {
+                  "app_id": 15368,
+                  "context": "backend"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "frontend"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "secret-scan"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "test-guard"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "commitlint"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "migration-safety"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "e2e"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "repo-sync"
+                }
+              ],
+              "contexts": [
+                "backend",
+                "frontend",
+                "secret-scan",
+                "test-guard",
+                "commitlint",
+                "migration-safety",
+                "e2e",
+                "repo-sync"
+              ],
+              "contexts_url": "https://api.github.com/repos/grinvi04/erp/branches/main/protection/required_status_checks/contexts",
+              "strict": true,
+              "url": "https://api.github.com/repos/grinvi04/erp/branches/main/protection/required_status_checks"
+            }
+          },
+          "develop": {
+            "allow_deletions": {
+              "enabled": false
+            },
+            "allow_force_pushes": {
+              "enabled": false
+            },
+            "enforce_admins": {
+              "enabled": true,
+              "url": "https://api.github.com/repos/grinvi04/erp/branches/develop/protection/enforce_admins"
+            },
+            "required_pull_request_reviews": null,
+            "required_status_checks": {
+              "checks": [
+                {
+                  "app_id": 15368,
+                  "context": "backend"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "frontend"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "secret-scan"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "test-guard"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "commitlint"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "migration-safety"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "e2e"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "repo-sync"
+                }
+              ],
+              "contexts": [
+                "backend",
+                "frontend",
+                "secret-scan",
+                "test-guard",
+                "commitlint",
+                "migration-safety",
+                "e2e",
+                "repo-sync"
+              ],
+              "contexts_url": "https://api.github.com/repos/grinvi04/erp/branches/develop/protection/required_status_checks/contexts",
+              "strict": true,
+              "url": "https://api.github.com/repos/grinvi04/erp/branches/develop/protection/required_status_checks"
+            }
+          }
+        },
+        "command": "bash plugins/harness-guard/scripts/set-branch-protection.sh grinvi04/erp --check",
+        "output": "✓ grinvi04/erp:main — 보호 적용(승인0 · enforce_admins=on · checks=8)\n✓ grinvi04/erp:develop — 보호 적용(승인0 · enforce_admins=on · checks=8)\n"
+      },
+      "eventPolicyRead": {
+        "total_count": 0,
+        "policies": []
+      },
+      "sourceFingerprints": {
+        "AGENTS.md": "b1295ec6a04459b0d129b711be0cfda6dd07c312646b9ffa2a4e6cdf5906e319",
+        ".github/workflows/commitlint.yml": "ee23855bab5afaad5e2fbb535ed56c2ba595e29ca085bf976d5f185108dba76f",
+        ".github/workflows/ci-gate.yml": "967e352cb85b9fead2e254e0a9e84ae98329a2cf021f66d539c23ec78c94f7b9",
+        ".github/workflows/repo-sync.yml": "77b9005b242a359194617b614a3344d06561b95a2ec247cb26aa2f701906c336",
+        "commitlint.config.cjs": "d8c529909573f55dab2bc0501c72dafda757c86d9e3717c10cf12022cf429c38",
+        ".githooks/commit-msg": "da6e5afc5cad7358bef48fcfd83b525091ff498185fd3d583e98ce0bbf3bc1e2",
+        "scripts/check-commit-message.cjs": "0e16c0b6d7ebfd88bf48bcc952726149f0c00e3a136ac8dffcdff9653475cb61",
+        "docs/specs/quality-remediation.md": "eb0d07775baf7258e1b07797786e4eac6f3bff25cd266e3378cddb985a35c18e"
+      },
+      "applicationTests": {
+        "status": "NOT_RUN",
+        "qualityVerdict": "UNVERIFIED",
+        "reason": "read-only planning scope; no install/start/test/image publish/production access"
+      },
+      "sourceGitBlobVerification": {
+        "method": "official exact-commit recursive tree blobs vs downloaded archive bytes",
+        "treeSha": "d10a9164f1f440a26e4ea42c4cd6f7736c6eed15",
+        "files": {
+          "AGENTS.md": "05cca5a904d58781c70d2e1aaa7eda2dd91ad688",
+          ".github/workflows/commitlint.yml": "bada90159ecc5b1188078e5a1b840fcbdfd2cfe3",
+          ".github/workflows/ci-gate.yml": "43965d3e861aa3e9d512332edd99511d59a0ab9a",
+          ".github/workflows/repo-sync.yml": "481551bee935c7321a8510e5e4e382d7a3c7c743",
+          "commitlint.config.cjs": "c748a1befd4867d733574be1da37af5c4755b608",
+          ".githooks/commit-msg": "ae28228eaf595f1941dd50fb25a522a3ef0426b5",
+          "scripts/check-commit-message.cjs": "bc3c851711524a46767bac0f31a49e7554d27ed4",
+          "docs/specs/quality-remediation.md": "d02e19c32c248224e3b7516518a715d25fe1fd2b"
+        },
+        "status": "PASS"
+      },
+      "qaContract": {
+        "source": "AGENTS.md",
+        "status": "missing latest Harness minimum QA evidence and Markdown completion contract; existing domain specs retained",
+        "applicationVerdict": "UNVERIFIED/NOT_RUN"
+      },
+      "findings": [
+        {
+          "id": "ERP-UAT-BOUNDARY",
+          "status": "static contract/implementation mismatch; no execution",
+          "evidence": [
+            "docs/specs/commercial-uat.md:14",
+            "docs/specs/commercial-uat.md:26",
+            "scripts/verify-user-onboarding.sh:6",
+            "scripts/verify-user-onboarding.sh:16",
+            "scripts/verify-user-onboarding.sh:206"
+          ],
+          "observation": "localhost-only contract; endpoint environment overrides without loopback allowlist, synthetic identity deletion; opt-in flags are not destination validation",
+          "next": "future authorized change: validate every endpoint before any credential/network request, deny outside traffic and mutation; then loopback mutation UAT"
+        }
+      ]
+    },
+    {
+      "repo": "siku",
+      "githubRepo": "grinvi04/siku",
+      "localSnapshot": {
+        "repo": "siku",
+        "headBefore": "08cad8f8e24b19710d462dd3f34c3d28588e5611",
+        "branchBefore": "develop",
+        "statusBefore": [],
+        "after": {
+          "head": "08cad8f8e24b19710d462dd3f34c3d28588e5611",
+          "branch": "develop",
+          "status": []
+        },
+        "metadataUnchanged": true
+      },
+      "remoteDevelopSha": "c7b5bbdbbc8523cbe34189aae65f605801b4a2ce",
+      "defaultBranch": "main",
+      "archiveSha256": "4a0ebdab283c4b58a30ccd97a40b7d7f1657074c2fa2402e99dc0de76e687d1b",
+      "localSync": {
+        "exitCode": 1,
+        "counts": {
+          "total": 16,
+          "ok": 5,
+          "weak": 0,
+          "warn": 0,
+          "missing": 11
+        },
+        "command": "node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <CONSUMER_ROOT> --harness <HARNESS_ROOT>",
+        "cwd": "<HARNESS_ROOT>",
+        "output": "\n기존 repo 드리프트 점검 — <CONSUMER_ROOT>\n감지된 스택: typescript, vite, supabase\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✗ MISSING Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✗ MISSING commitlint config                       루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)\n  ✗ MISSING commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✗ MISSING 커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✗ MISSING destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✗ MISSING check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✗ MISSING alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✗ MISSING check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✗ MISSING activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✗ MISSING check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     룰: typescript.md                        .claude/rules/typescript.md (표준: templates/rules/stacks/typescript.md)\n\n요약: 대상 16개 · OK 5 · WEAK 0 · WARN 0 · MISSING 11\n\n✗ 드리프트 — 필수 자산 11개 누락: Codex stack-rule pointer, commitlint 게이트, commitlint config, commit-msg 훅, 커밋 메시지 validator, destructive-ddl 워크플로, check-destructive-ddl.mjs, alembic destructive-ddl 스텝, check-alembic-destructive-ddl.mjs, activerecord destructive-ddl 스텝, check-activerecord-destructive-ddl.mjs\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      },
+      "remoteSync": {
+        "exitCode": 1,
+        "counts": {
+          "total": 16,
+          "ok": 13,
+          "weak": 0,
+          "warn": 0,
+          "missing": 3
+        },
+        "missingMeaning": "canonical contract mismatch; files may exist, not absence proof",
+        "missingLines": [
+          "✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일",
+          "✗ MISSING commitlint config                       루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)",
+          "✗ MISSING 커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)"
+        ],
+        "command": "node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <PINNED_SNAPSHOT> --harness <HARNESS_ROOT>",
+        "cwd": "<HARNESS_ROOT>",
+        "output": "\n기존 repo 드리프트 점검 — <PINNED_SNAPSHOT>\n감지된 스택: typescript, vite, supabase\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✓ OK     Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✗ MISSING commitlint config                       루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)\n  ✓ OK     commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✗ MISSING 커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✓ OK     destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✓ OK     check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✓ OK     alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✓ OK     check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✓ OK     activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✓ OK     check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     룰: typescript.md                        .claude/rules/typescript.md (표준: templates/rules/stacks/typescript.md)\n\n요약: 대상 16개 · OK 13 · WEAK 0 · WARN 0 · MISSING 3\n\n✗ 드리프트 — 필수 자산 3개 누락: commitlint 게이트, commitlint config, 커밋 메시지 validator\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      },
+      "branchProtection": {
+        "checkExitCode": 0,
+        "scope": "default --check guard properties/presence; exact context identities recorded separately, no new target baseline declared",
+        "branches": {
+          "main": {
+            "allow_deletions": {
+              "enabled": false
+            },
+            "allow_force_pushes": {
+              "enabled": false
+            },
+            "enforce_admins": {
+              "enabled": true,
+              "url": "https://api.github.com/repos/grinvi04/siku/branches/main/protection/enforce_admins"
+            },
+            "required_pull_request_reviews": null,
+            "required_status_checks": {
+              "checks": [
+                {
+                  "app_id": 15368,
+                  "context": "quality"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "secret-scan"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "test-guard"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "commitlint"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "repo-sync"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "destructive-ddl"
+                }
+              ],
+              "contexts": [
+                "quality",
+                "secret-scan",
+                "test-guard",
+                "commitlint",
+                "repo-sync",
+                "destructive-ddl"
+              ],
+              "contexts_url": "https://api.github.com/repos/grinvi04/siku/branches/main/protection/required_status_checks/contexts",
+              "strict": true,
+              "url": "https://api.github.com/repos/grinvi04/siku/branches/main/protection/required_status_checks"
+            }
+          },
+          "develop": {
+            "allow_deletions": {
+              "enabled": false
+            },
+            "allow_force_pushes": {
+              "enabled": false
+            },
+            "enforce_admins": {
+              "enabled": true,
+              "url": "https://api.github.com/repos/grinvi04/siku/branches/develop/protection/enforce_admins"
+            },
+            "required_pull_request_reviews": null,
+            "required_status_checks": {
+              "checks": [
+                {
+                  "app_id": 15368,
+                  "context": "quality"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "secret-scan"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "test-guard"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "commitlint"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "repo-sync"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "destructive-ddl"
+                }
+              ],
+              "contexts": [
+                "quality",
+                "secret-scan",
+                "test-guard",
+                "commitlint",
+                "repo-sync",
+                "destructive-ddl"
+              ],
+              "contexts_url": "https://api.github.com/repos/grinvi04/siku/branches/develop/protection/required_status_checks/contexts",
+              "strict": true,
+              "url": "https://api.github.com/repos/grinvi04/siku/branches/develop/protection/required_status_checks"
+            }
+          }
+        },
+        "command": "bash plugins/harness-guard/scripts/set-branch-protection.sh grinvi04/siku --check",
+        "output": "✓ grinvi04/siku:main — 보호 적용(승인0 · enforce_admins=on · checks=6)\n✓ grinvi04/siku:develop — 보호 적용(승인0 · enforce_admins=on · checks=6)\n"
+      },
+      "eventPolicyRead": {
+        "total_count": 0,
+        "policies": []
+      },
+      "sourceFingerprints": {
+        "AGENTS.md": "18ffa627b18ee7daec454680d34cc2404fe1e7e38aa903b12fd0e2201be60a6a",
+        "package.json": "c7e884e68f8d4f487d358e8be724058b66e0cb44d05463f56fcf627b344d78c2",
+        ".github/workflows/commitlint.yml": "75c06a6824ab32c5be2c583309eacb521c97d95ee7e7365dd478d30a7f5982c9",
+        ".github/workflows/ci-gate.yml": "1c23a2cf8b422114bc3f4e94e44bdf4cb90fed8e0fbf3dc55f3c8517b4e0cd6c",
+        ".github/workflows/repo-sync.yml": "02311469c76b2e9f7fc269e59d12507db146bcc755f836384a76267a3e0c1eda",
+        "commitlint.config.cjs": "c9db27e27848ea26a26f7eb0a6fa736978c6bbf9a75998d44ed5e449e1a9f4c2",
+        ".githooks/commit-msg": "da6e5afc5cad7358bef48fcfd83b525091ff498185fd3d583e98ce0bbf3bc1e2",
+        "scripts/check-commit-message.cjs": "fc5a4e82601efe2f7b47bdf2f475de89a0ffba8fd9dc39ec54c61518b8a5fbe3",
+        "docs/specs/quality-remediation.md": "074d085fe58a71d88375529110bb74d0d9afe413d8838ff4377596fdec4bd4ee"
+      },
+      "applicationTests": {
+        "status": "NOT_RUN",
+        "qualityVerdict": "UNVERIFIED",
+        "reason": "read-only planning scope; no install/start/test/image publish/production access"
+      },
+      "sourceGitBlobVerification": {
+        "method": "official exact-commit recursive tree blobs vs downloaded archive bytes",
+        "treeSha": "c7b5bbdbbc8523cbe34189aae65f605801b4a2ce",
+        "files": {
+          "AGENTS.md": "7e4c5d43cf74363fb17ff2e425fdc5d16e7320c2",
+          "package.json": "cb7ebd64a0a07e6cd892fe2eeecba72b7b56acd3",
+          ".github/workflows/commitlint.yml": "6b42afd81384bcd0c938ed7444c1b41b48682845",
+          ".github/workflows/ci-gate.yml": "41ef39f633c8c4411439684efa4df4c09abf75b6",
+          ".github/workflows/repo-sync.yml": "7facf6043fc84dbef00c5193b5c31b4f2f349c67",
+          "commitlint.config.cjs": "fc0cbbc72d45f93de95d0c96c11b7c34b05b25a7",
+          ".githooks/commit-msg": "ae28228eaf595f1941dd50fb25a522a3ef0426b5",
+          "scripts/check-commit-message.cjs": "a96ac629738bfc3f54a7c8773bd7e4c7a1767cb4",
+          "docs/specs/quality-remediation.md": "1c968c28b42ae28afe9c35d78b79f84a4c496dad"
+        },
+        "status": "PASS"
+      },
+      "qaContract": {
+        "source": "AGENTS.md",
+        "status": "missing latest Harness minimum QA evidence and Markdown completion contract; existing domain specs retained",
+        "applicationVerdict": "UNVERIFIED/NOT_RUN"
+      },
+      "findings": [
+        {
+          "id": "SIKU-STORAGE-BOUNDARY",
+          "status": "test coverage candidate, runtime defect UNVERIFIED",
+          "evidence": [
+            "docs/specs/quality-remediation.md:26",
+            "docs/specs/quality-remediation.md:36",
+            "tests/e2e/flows.spec.ts:99"
+          ],
+          "observation": "reviewed normal photo flow does not establish cross-member deletion authorization or row/object consistency; actual RLS/Storage behavior needs isolated observation",
+          "next": "reconcile proposed spec and current migration policy; define owner/other-member allowed/denied outcomes before execution"
+        }
+      ]
+    },
+    {
+      "repo": "webhook-service",
+      "githubRepo": "grinvi04/webhook-service",
+      "localSnapshot": {
+        "repo": "webhook-service",
+        "headBefore": "20669abdf576f1020b64fdaeba8d4f9786959a14",
+        "branchBefore": "develop",
+        "statusBefore": [],
+        "after": {
+          "head": "20669abdf576f1020b64fdaeba8d4f9786959a14",
+          "branch": "develop",
+          "status": []
+        },
+        "metadataUnchanged": true
+      },
+      "remoteDevelopSha": "83cd3989298636436ad1f26e734d0678f88d7440",
+      "defaultBranch": "main",
+      "archiveSha256": "5f51a0c4b822839aeccd57bf0a270028b8209a2f9a26ffb25a1bd0e531fc273c",
+      "localSync": {
+        "exitCode": 1,
+        "counts": {
+          "total": 18,
+          "ok": 7,
+          "weak": 0,
+          "warn": 0,
+          "missing": 11
+        },
+        "command": "node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <CONSUMER_ROOT> --harness <HARNESS_ROOT>",
+        "cwd": "<HARNESS_ROOT>",
+        "output": "\n기존 repo 드리프트 점검 — <CONSUMER_ROOT>\n감지된 스택: python, alembic\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✗ MISSING Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✗ MISSING commitlint config                       루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)\n  ✗ MISSING commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✗ MISSING 커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✗ MISSING destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✗ MISSING check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✗ MISSING alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✗ MISSING check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✗ MISSING activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✗ MISSING check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     alembic heads 스텝                        CI에 다중 head 차단 (sentinel: alembic heads)\n  ✓ OK     룰: python.md                            .claude/rules/python.md (표준: templates/rules/stacks/python.md)\n  ✓ OK     룰: alembic.md                           .claude/rules/alembic.md (표준: templates/rules/stacks/alembic.md)\n\n요약: 대상 18개 · OK 7 · WEAK 0 · WARN 0 · MISSING 11\n\n✗ 드리프트 — 필수 자산 11개 누락: Codex stack-rule pointer, commitlint 게이트, commitlint config, commit-msg 훅, 커밋 메시지 validator, destructive-ddl 워크플로, check-destructive-ddl.mjs, alembic destructive-ddl 스텝, check-alembic-destructive-ddl.mjs, activerecord destructive-ddl 스텝, check-activerecord-destructive-ddl.mjs\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      },
+      "remoteSync": {
+        "exitCode": 1,
+        "counts": {
+          "total": 18,
+          "ok": 17,
+          "weak": 0,
+          "warn": 0,
+          "missing": 1
+        },
+        "missingMeaning": "canonical contract mismatch; files may exist, not absence proof",
+        "missingLines": [
+          "✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일"
+        ],
+        "command": "node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <PINNED_SNAPSHOT> --harness <HARNESS_ROOT>",
+        "cwd": "<HARNESS_ROOT>",
+        "output": "\n기존 repo 드리프트 점검 — <PINNED_SNAPSHOT>\n감지된 스택: python, alembic\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✓ OK     Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✓ OK     commitlint config                       루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)\n  ✓ OK     commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✓ OK     커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✓ OK     destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✓ OK     check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✓ OK     alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✓ OK     check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✓ OK     activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✓ OK     check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     alembic heads 스텝                        CI에 다중 head 차단 (sentinel: alembic heads)\n  ✓ OK     룰: python.md                            .claude/rules/python.md (표준: templates/rules/stacks/python.md)\n  ✓ OK     룰: alembic.md                           .claude/rules/alembic.md (표준: templates/rules/stacks/alembic.md)\n\n요약: 대상 18개 · OK 17 · WEAK 0 · WARN 0 · MISSING 1\n\n✗ 드리프트 — 필수 자산 1개 누락: commitlint 게이트\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      },
+      "branchProtection": {
+        "checkExitCode": 0,
+        "scope": "default --check guard properties/presence; exact context identities recorded separately, no new target baseline declared",
+        "branches": {
+          "main": {
+            "allow_deletions": {
+              "enabled": false
+            },
+            "allow_force_pushes": {
+              "enabled": false
+            },
+            "enforce_admins": {
+              "enabled": true,
+              "url": "https://api.github.com/repos/grinvi04/webhook-service/branches/main/protection/enforce_admins"
+            },
+            "required_pull_request_reviews": null,
+            "required_status_checks": {
+              "checks": [
+                {
+                  "app_id": 15368,
+                  "context": "alembic-heads"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "build-and-test"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "secret-scan"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "commitlint"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "destructive-ddl"
+                }
+              ],
+              "contexts": [
+                "alembic-heads",
+                "build-and-test",
+                "secret-scan",
+                "commitlint",
+                "destructive-ddl"
+              ],
+              "contexts_url": "https://api.github.com/repos/grinvi04/webhook-service/branches/main/protection/required_status_checks/contexts",
+              "strict": true,
+              "url": "https://api.github.com/repos/grinvi04/webhook-service/branches/main/protection/required_status_checks"
+            }
+          },
+          "develop": {
+            "allow_deletions": {
+              "enabled": false
+            },
+            "allow_force_pushes": {
+              "enabled": false
+            },
+            "enforce_admins": {
+              "enabled": true,
+              "url": "https://api.github.com/repos/grinvi04/webhook-service/branches/develop/protection/enforce_admins"
+            },
+            "required_pull_request_reviews": null,
+            "required_status_checks": {
+              "checks": [
+                {
+                  "app_id": 15368,
+                  "context": "alembic-heads"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "build-and-test"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "secret-scan"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "commitlint"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "destructive-ddl"
+                }
+              ],
+              "contexts": [
+                "alembic-heads",
+                "build-and-test",
+                "secret-scan",
+                "commitlint",
+                "destructive-ddl"
+              ],
+              "contexts_url": "https://api.github.com/repos/grinvi04/webhook-service/branches/develop/protection/required_status_checks/contexts",
+              "strict": true,
+              "url": "https://api.github.com/repos/grinvi04/webhook-service/branches/develop/protection/required_status_checks"
+            }
+          }
+        },
+        "command": "bash plugins/harness-guard/scripts/set-branch-protection.sh grinvi04/webhook-service --check",
+        "output": "✓ grinvi04/webhook-service:main — 보호 적용(승인0 · enforce_admins=on · checks=5)\n✓ grinvi04/webhook-service:develop — 보호 적용(승인0 · enforce_admins=on · checks=5)\n"
+      },
+      "eventPolicyRead": {
+        "total_count": 0,
+        "policies": []
+      },
+      "sourceFingerprints": {
+        "AGENTS.md": "dc3dca01d2c955ec71980b3a7373035b17ff04e832216ae53d5fd5c2e1b5cd15",
+        "pyproject.toml": "75a34a0344b118ea8c5ff816482dcc09661ddbdc8ce0578b4cb2d20da56f521f",
+        "pytest.ini": "7630b8cc80a135d8d12e528c07ec2c52890d2f43f5e24ad87990d03c271e5b7e",
+        ".github/workflows/commitlint.yml": "ee23855bab5afaad5e2fbb535ed56c2ba595e29ca085bf976d5f185108dba76f",
+        ".github/workflows/ci.yml": "ef138991c18abe0f549617ac2dabf0c041b537f45f6739d0ff5fde29ad03e640",
+        ".github/workflows/repo-sync.yml": "a6e0e794d7afca23c1f9b16236093b62e4b67f625faebc22f3911003fb27d5a1",
+        "commitlint.config.cjs": "d8c529909573f55dab2bc0501c72dafda757c86d9e3717c10cf12022cf429c38",
+        ".githooks/commit-msg": "da6e5afc5cad7358bef48fcfd83b525091ff498185fd3d583e98ce0bbf3bc1e2",
+        "scripts/check-commit-message.cjs": "0e16c0b6d7ebfd88bf48bcc952726149f0c00e3a136ac8dffcdff9653475cb61",
+        "docs/specs/quality-remediation.md": "1c0a7ccdd94400705fc3d8bcfc65b5b7b27d4c3671e9ae693899a26da19d92b1"
+      },
+      "applicationTests": {
+        "status": "NOT_RUN",
+        "qualityVerdict": "UNVERIFIED",
+        "reason": "read-only planning scope; no install/start/test/image publish/production access"
+      },
+      "sourceGitBlobVerification": {
+        "method": "official exact-commit recursive tree blobs vs downloaded archive bytes",
+        "treeSha": "83cd3989298636436ad1f26e734d0678f88d7440",
+        "files": {
+          "AGENTS.md": "a2527b5ef1b73a28f80a8e2a7585845d35984021",
+          "pyproject.toml": "2d285a14ac863aaaba70511c151f0f5188c4217e",
+          "pytest.ini": "1ac09152ec72103cfe9394e38db016d8f9eb6347",
+          ".github/workflows/commitlint.yml": "bada90159ecc5b1188078e5a1b840fcbdfd2cfe3",
+          ".github/workflows/ci.yml": "bc4dbfe4edbe59773a88a622fdc72478ccd49b5a",
+          ".github/workflows/repo-sync.yml": "b845e4843413979ce0259ecaff1b85959c3d2952",
+          "commitlint.config.cjs": "c748a1befd4867d733574be1da37af5c4755b608",
+          ".githooks/commit-msg": "ae28228eaf595f1941dd50fb25a522a3ef0426b5",
+          "scripts/check-commit-message.cjs": "bc3c851711524a46767bac0f31a49e7554d27ed4",
+          "docs/specs/quality-remediation.md": "0af29d6f904d5308f81d5669bbc040f851241859"
+        },
+        "status": "PASS"
+      },
+      "qaContract": {
+        "source": "AGENTS.md",
+        "status": "missing latest Harness minimum QA evidence and Markdown completion contract; existing domain specs retained",
+        "applicationVerdict": "UNVERIFIED/NOT_RUN"
+      },
+      "findings": [
+        {
+          "id": "WEBHOOK-CI-PUBLISH",
+          "status": "static side-effect boundary confirmed; publication NOT_RUN",
+          "evidence": [
+            ".github/workflows/ci.yml:3",
+            ".github/workflows/ci.yml:12",
+            ".github/workflows/ci.yml:93"
+          ],
+          "observation": "PR/push main/develop build-and-test has packages write and unconditional image push:true",
+          "next": "future authorized change: separate or explicitly gate publishing; use test-only isolated commands"
+        },
+        {
+          "id": "WEBHOOK-STATUS-FRESHNESS",
+          "status": "historical Proposed status inconsistent with current source; full completion UNVERIFIED",
+          "evidence": [
+            "docs/specs/quality-remediation.md:3",
+            "tests/test_unit_signatures.py:49",
+            "tests/test_idempotency.py:48",
+            "tests/test_health.py:15"
+          ],
+          "observation": "current assertion sources cover parts of historical roadmap; do not reimplement or mark all AC complete without matching evidence",
+          "next": "reconcile history/current candidate, preserve original records and decide remaining replay boundary"
+        },
+        {
+          "id": "WEBHOOK-RESERVATION-OBSERVATION",
+          "status": "existing double assertion only; actual storage/retry UNVERIFIED",
+          "evidence": [
+            "tests/test_idempotency.py:48"
+          ],
+          "observation": "existing delete-call expectation uses Redis/DB/queue doubles; does not prove actual reservation release/retry success",
+          "next": "future isolated real Redis/DB observation of key release and successful retry, with safe injected queue failure"
+        }
+      ]
+    },
+    {
+      "repo": "DriveTree",
+      "githubRepo": "grinvi04/drivertree",
+      "localSnapshot": {
+        "repo": "DriveTree",
+        "headBefore": "ab86d1394b3b52b8acb56a794854ce49995f5c21",
+        "branchBefore": "develop",
+        "statusBefore": [],
+        "after": {
+          "head": "ab86d1394b3b52b8acb56a794854ce49995f5c21",
+          "branch": "develop",
+          "status": []
+        },
+        "metadataUnchanged": true
+      },
+      "remoteDevelopSha": "bd634e62b2902cbd843a2d9bac9766464d06f9b6",
+      "defaultBranch": "main",
+      "archiveSha256": "a88172d169ec23d736326940f95379dca0e623e09eaddf2bd134fe179072535d",
+      "localSync": {
+        "exitCode": 1,
+        "counts": {
+          "total": 18,
+          "ok": 15,
+          "weak": 0,
+          "warn": 0,
+          "missing": 3
+        },
+        "command": "node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <CONSUMER_ROOT> --harness <HARNESS_ROOT>",
+        "cwd": "<HARNESS_ROOT>",
+        "output": "\n기존 repo 드리프트 점검 — <CONSUMER_ROOT>\n감지된 스택: typescript, nestjs, nextjs, prisma\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✓ OK     Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✗ MISSING commitlint config                       루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)\n  ✓ OK     commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✗ MISSING 커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✓ OK     destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✓ OK     check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✓ OK     alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✓ OK     check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✓ OK     activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✓ OK     check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     룰: typescript.md                        .claude/rules/typescript.md (표준: templates/rules/stacks/typescript.md)\n  ✓ OK     룰: nextjs.md                            .claude/rules/nextjs.md (표준: templates/rules/stacks/nextjs.md)\n  ✓ OK     룰: prisma.md                            .claude/rules/prisma.md (표준: templates/rules/stacks/prisma.md)\n\n요약: 대상 18개 · OK 15 · WEAK 0 · WARN 0 · MISSING 3\n\n✗ 드리프트 — 필수 자산 3개 누락: commitlint 게이트, commitlint config, 커밋 메시지 validator\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      },
+      "remoteSync": {
+        "exitCode": 1,
+        "counts": {
+          "total": 18,
+          "ok": 17,
+          "weak": 0,
+          "warn": 0,
+          "missing": 1
+        },
+        "missingMeaning": "canonical contract mismatch; files may exist, not absence proof",
+        "missingLines": [
+          "✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일"
+        ],
+        "command": "node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <PINNED_SNAPSHOT> --harness <HARNESS_ROOT>",
+        "cwd": "<HARNESS_ROOT>",
+        "output": "\n기존 repo 드리프트 점검 — <PINNED_SNAPSHOT>\n감지된 스택: typescript, nestjs, nextjs, prisma\n\n  STATUS   ASSET                                   DETAIL\n  -------- --------------------------------------  ------\n  ✓ OK     Codex stack-rule pointer                AGENTS.md가 관련 .claude/rules/*.md 명시적 read를 요구 (Claude 자동로드·Codex 명시로드 공통 원문)\n  ✓ OK     ci-gate 워크플로                            .github/workflows의 주 품질 게이트(ci-gate.yml·ci.yml 등 — lint+test 스텝 보유)\n  ✓ OK     test-guard 게이트                          테스트 삭제 차단 잡 (sentinel: allow-test-removal)\n  ✗ MISSING commitlint 게이트                          metadata provenance를 포함한 commitlint workflow 정본과 동일\n  ✓ OK     commitlint config                       루트 commitlint.config.cjs (team-harness-message CLI 호환 adapter)\n  ✓ OK     commit-msg 훅                            .githooks/commit-msg (실행 가능 + 정본 hook과 동일)\n  ✓ OK     커밋 메시지 validator                        scripts/check-commit-message.cjs (team-harness 정본 validator와 동일)\n  ✓ OK     secret-scan(gitleaks)                   gitleaks 시크릿 스캔 잡 (sentinel: gitleaks)\n  ✓ OK     아키텍처 다이어그램 소스                           docs/architecture.svg가 있으면 소스 docs/gen_arch_svg.py도 커밋 (없으면 재생성 불가한 소스-less 산출물 — templates/gen_arch_svg.py에서 복사)\n  ✓ OK     destructive-ddl 워크플로                    파괴 DDL 차단 게이트 (sentinel: check-destructive-ddl)\n  ✓ OK     check-destructive-ddl.mjs               scripts/check-destructive-ddl.mjs (무의존 정적 검사)\n  ✓ OK     alembic destructive-ddl 스텝              destructive-ddl.yml 2번째 스텝 (sentinel: check-alembic-destructive-ddl)\n  ✓ OK     check-alembic-destructive-ddl.mjs       scripts/check-alembic-destructive-ddl.mjs (Alembic upgrade() 파괴 op 정적 검사)\n  ✓ OK     activerecord destructive-ddl 스텝         destructive-ddl.yml 3번째 스텝 (sentinel: check-activerecord-destructive-ddl)\n  ✓ OK     check-activerecord-destructive-ddl.mjs  scripts/check-activerecord-destructive-ddl.mjs (ActiveRecord def change/up 파괴 op 정적 검사)\n  ✓ OK     룰: typescript.md                        .claude/rules/typescript.md (표준: templates/rules/stacks/typescript.md)\n  ✓ OK     룰: nextjs.md                            .claude/rules/nextjs.md (표준: templates/rules/stacks/nextjs.md)\n  ✓ OK     룰: prisma.md                            .claude/rules/prisma.md (표준: templates/rules/stacks/prisma.md)\n\n요약: 대상 18개 · OK 17 · WEAK 0 · WARN 0 · MISSING 1\n\n✗ 드리프트 — 필수 자산 1개 누락: commitlint 게이트\n  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.\n  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n\n"
+      },
+      "branchProtection": {
+        "checkExitCode": 0,
+        "scope": "default --check guard properties/presence; exact context identities recorded separately, no new target baseline declared",
+        "branches": {
+          "main": {
+            "allow_deletions": {
+              "enabled": false
+            },
+            "allow_force_pushes": {
+              "enabled": false
+            },
+            "enforce_admins": {
+              "enabled": true,
+              "url": "https://api.github.com/repos/grinvi04/drivertree/branches/main/protection/enforce_admins"
+            },
+            "required_pull_request_reviews": null,
+            "required_status_checks": {
+              "checks": [
+                {
+                  "app_id": 15368,
+                  "context": "Backend — lint · build · test"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "Frontend — lint · build · e2e"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "secret-scan"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "commitlint"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "destructive-ddl"
+                }
+              ],
+              "contexts": [
+                "Backend — lint · build · test",
+                "Frontend — lint · build · e2e",
+                "secret-scan",
+                "commitlint",
+                "destructive-ddl"
+              ],
+              "contexts_url": "https://api.github.com/repos/grinvi04/drivertree/branches/main/protection/required_status_checks/contexts",
+              "strict": true,
+              "url": "https://api.github.com/repos/grinvi04/drivertree/branches/main/protection/required_status_checks"
+            }
+          },
+          "develop": {
+            "allow_deletions": {
+              "enabled": false
+            },
+            "allow_force_pushes": {
+              "enabled": false
+            },
+            "enforce_admins": {
+              "enabled": true,
+              "url": "https://api.github.com/repos/grinvi04/drivertree/branches/develop/protection/enforce_admins"
+            },
+            "required_pull_request_reviews": null,
+            "required_status_checks": {
+              "checks": [
+                {
+                  "app_id": 15368,
+                  "context": "Backend — lint · build · test"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "Frontend — lint · build · e2e"
+                },
+                {
+                  "app_id": 8329,
+                  "context": "Vercel Preview Comments"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "secret-scan"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "commitlint"
+                },
+                {
+                  "app_id": 15368,
+                  "context": "destructive-ddl"
+                }
+              ],
+              "contexts": [
+                "Backend — lint · build · test",
+                "Frontend — lint · build · e2e",
+                "Vercel Preview Comments",
+                "secret-scan",
+                "commitlint",
+                "destructive-ddl"
+              ],
+              "contexts_url": "https://api.github.com/repos/grinvi04/drivertree/branches/develop/protection/required_status_checks/contexts",
+              "strict": true,
+              "url": "https://api.github.com/repos/grinvi04/drivertree/branches/develop/protection/required_status_checks"
+            }
+          }
+        },
+        "command": "bash plugins/harness-guard/scripts/set-branch-protection.sh grinvi04/drivertree --check",
+        "output": "✓ grinvi04/drivertree:main — 보호 적용(승인0 · enforce_admins=on · checks=5)\n✓ grinvi04/drivertree:develop — 보호 적용(승인0 · enforce_admins=on · checks=6)\n"
+      },
+      "eventPolicyRead": {
+        "total_count": 0,
+        "policies": []
+      },
+      "sourceFingerprints": {
+        "AGENTS.md": "922d4494838ce668d825cec8fc859e2d93c5d775907440d817629a8aefbdc864",
+        ".github/workflows/commitlint.yml": "ee23855bab5afaad5e2fbb535ed56c2ba595e29ca085bf976d5f185108dba76f",
+        ".github/workflows/ci.yml": "2dd69d8da66c4d827f9cc661f9f26cd3c51aea579f5b4b524279baa6b0c0bc7a",
+        ".github/workflows/repo-sync.yml": "ebca77da63c8e43317429648b0c14f3c9719b30dba55e3899c505634a9d613bc",
+        "commitlint.config.cjs": "d8c529909573f55dab2bc0501c72dafda757c86d9e3717c10cf12022cf429c38",
+        ".githooks/commit-msg": "da6e5afc5cad7358bef48fcfd83b525091ff498185fd3d583e98ce0bbf3bc1e2",
+        "scripts/check-commit-message.cjs": "0e16c0b6d7ebfd88bf48bcc952726149f0c00e3a136ac8dffcdff9653475cb61",
+        "docs/specs/quality-remediation.md": "5c0ca718ab8bc5bef3b6eb352cb0833e221c8c2caa919cc11d7cb1b51eb7c83f"
+      },
+      "applicationTests": {
+        "status": "NOT_RUN",
+        "qualityVerdict": "UNVERIFIED",
+        "reason": "read-only planning scope; no install/start/test/image publish/production access"
+      },
+      "sourceGitBlobVerification": {
+        "method": "official exact-commit recursive tree blobs vs downloaded archive bytes",
+        "treeSha": "bd634e62b2902cbd843a2d9bac9766464d06f9b6",
+        "files": {
+          "AGENTS.md": "21dc62b38dfcce1bbe41fa27c3e95f0753ad80b7",
+          ".github/workflows/commitlint.yml": "bada90159ecc5b1188078e5a1b840fcbdfd2cfe3",
+          ".github/workflows/ci.yml": "cce5f81752677b09e9b9b113a29acc0c172f58e9",
+          ".github/workflows/repo-sync.yml": "bc2013239eb547907f8f5569f08f2c5d7943f78a",
+          "commitlint.config.cjs": "c748a1befd4867d733574be1da37af5c4755b608",
+          ".githooks/commit-msg": "ae28228eaf595f1941dd50fb25a522a3ef0426b5",
+          "scripts/check-commit-message.cjs": "bc3c851711524a46767bac0f31a49e7554d27ed4",
+          "docs/specs/quality-remediation.md": "a669a2477d2348065d9fcf9186ed867fd20ccd33"
+        },
+        "status": "PASS"
+      },
+      "qaContract": {
+        "source": "AGENTS.md",
+        "status": "missing latest Harness minimum QA evidence and Markdown completion contract; existing domain specs retained",
+        "applicationVerdict": "UNVERIFIED/NOT_RUN"
+      },
+      "findings": [
+        {
+          "id": "DRIVETREE-STATUS-FRESHNESS",
+          "status": "historical unstarted claims inconsistent with current sources; app quality UNVERIFIED",
+          "evidence": [
+            "docs/specs/quality-remediation.md:3",
+            "backend/src/common/all-exceptions.filter.ts:15",
+            "backend/test/content-chat.integration.e2e-spec.ts:50",
+            ".github/workflows/ci.yml:91"
+          ],
+          "observation": "4xx handling and real-DB soft-delete assertions exist despite older unstarted remediation narrative",
+          "next": "reconcile each historical AC with current source/CI evidence before selecting remaining tests"
+        }
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "title": "GitHub target event security",
+      "url": "https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target",
+      "checkedDate": "2026-10-07",
+      "scope": "default-branch source; public event-policy evaluate/enforcement distinction"
+    }
+  ],
+  "limits": [
+    "static assets are not application quality or full security proof",
+    "remote snapshots are pinned develop; main source/policy activation still needs separate future verification",
+    "no active workload data or secrets read",
+    "before/after HEAD/status and selected source checks do not prove all filesystem immutability"
+  ],
+  "commandsNotRun": [
+    "consumer dependency install",
+    "consumer lint/unit/build/e2e/UAT",
+    "CI dispatch or consumer PR creation",
+    "server/DB/identity mutation",
+    "image publication/deployment",
+    "branch protection or event-policy mutation"
+  ],
+  "localPreservation": "all four local HEAD/branch/status equal before/after; no whole filesystem immutability claim",
+  "rawEvidenceLocal": "<PRIVATE_SCRATCH>/harness-consumer-readiness-20261007/",
+  "rawHashes": {
+    "erp-event-policies.json": "00daed3d9cccc99e8d2509f634ccb581741c67a9bc74d78b519ba39475f708ed",
+    "erp-main-protection.json": "bd46c2dd8d6174ca1c47c1daaddd3e12ef3b50983a974b3eb134c9d91f5926e1",
+    "webhook-service-remote-sync.log": "52b1ab65e895226b459be5911ee694171c5a1bbd8fda804a9145b59f9d3bfa12",
+    "siku-sync.log": "7f4784c00b0a3f515ff9152c9f070f77e5723fee6c98342bf7c2c70e98f3cef2",
+    "drivertree-remote-sync.log": "d37dae7e0aac46bf08a9ffcfd3902cbb7c265aa643192d05dc7c3def0d1a8163",
+    "drivertree-tree.json": "bf2dba8d876b5a8893ae6b60ca43a2f6c736073307ee3de785d2ea20c40650c0",
+    "webhook-service-main-protection.json": "2932fce6c02c4bcf9b1cbab96821bc8024d285ef046146ac19a8d89c792ea850",
+    "webhook-service-tree.json": "e71b945ca6c1038cfce4024cec40807d836c225d9697daaabd4ac7b80f035b53",
+    "erp-remote-sync.log": "87672960b24383a4cfcaa193a2a80a84ecce193b9956473ded2f840aa0e931fd",
+    "siku-main-protection.json": "5943c640bad42e93feb69afb2b9941ca16f7ec384cd7f03126e6e5393e08f37b",
+    "drivertree-develop-protection.json": "7754ebea3cdcc927ff92a94121132dd3b81d79a2cb376507a9c4d6d4ea273c65",
+    "siku.tgz": "4a0ebdab283c4b58a30ccd97a40b7d7f1657074c2fa2402e99dc0de76e687d1b",
+    "DriveTree-protection.log": "5e997a18472bd739ca0d77791ec1031e70a95e9531647bfd068ccc082e2a4f84",
+    "webhook-service-event-policies.json": "00daed3d9cccc99e8d2509f634ccb581741c67a9bc74d78b519ba39475f708ed",
+    "webhook-service.tgz": "5f51a0c4b822839aeccd57bf0a270028b8209a2f9a26ffb25a1bd0e531fc273c",
+    "DriveTree-sync.log": "5f20ba4b1925b748eea4d7e0d9c7bfbcb0e705c106f1571dbd83b2ce18a8916f",
+    "erp-tree.json": "20e6cea4ac85c8ae98e2dfee7c257427bd97206d10d522adf2a135313d544d9f",
+    "webhook-service-protection.log": "6ec23c63730aa60b55a12b634466d2aaa0f03462d7984d88d0728e9257637ea4",
+    "erp.tgz": "58451158b8d0d3d681ea9e5dbb26cbb1c1131d7e836c7f29f97bb7ee1877d5bd",
+    "erp-protection.log": "282bb73854adb581140f2c7ac2b3545a2047f782d8d54205a2f32d9cc1431410",
+    "siku-event-policies.json": "00daed3d9cccc99e8d2509f634ccb581741c67a9bc74d78b519ba39475f708ed",
+    "drivertree-main-protection.json": "48fedfa116029fd0b7f96968f5a9e24a150ebefc7d0d86b1ed210052c81d87da",
+    "erp-sync.log": "85a97f80fbeedc9fedeca54ee3ac0d390b7dc97e3b876f5b61784ec3d32f0d2a",
+    "webhook-service-develop-protection.json": "55ff924ed18b0c6ab09291024cdc3ba0b8c630a42de81520afc44cb973f8c662",
+    "siku-develop-protection.json": "f2f2fd7ee819ff1706ccdea434cad5cf6faa13b886fd37fcc3d564ebf2703c2d",
+    "drivertree.tgz": "a88172d169ec23d736326940f95379dca0e623e09eaddf2bd134fe179072535d",
+    "siku-tree.json": "35fd2ba6e215b1fd623f5493596d2b87cba11ce3b06d96506ee48a205bdcc47c",
+    "webhook-service-sync.log": "cb69d52fdad3cde796c15ae825e63e0c9d31a5d48435269a2f2d57052be5f58b",
+    "erp-develop-protection.json": "223d018af0474f3309768237250f39c5b7c62d4581313bf8439b29b499006d53",
+    "siku-protection.log": "385f69eefe7f7d078466debdf2571128ffdac09573368e59b5ecf795fc6b24e5",
+    "siku-remote-sync.log": "8ce7dbe166b68f7562dac9eb6577449bce31858a052d540a41bb778612ac528c",
+    "drivertree-event-policies.json": "00daed3d9cccc99e8d2509f634ccb581741c67a9bc74d78b519ba39475f708ed"
+  },
+  "harnessDocumentChecks": {
+    "documentSync": "declared scope PASS; semantic review separate",
+    "publicSafety": {
+      "pass": 20,
+      "exitCode": 0,
+      "logSha256": "d497e037da6c1d8d476748873ac9af5023600f743bd2cd54e854201562c85bb9"
+    },
+    "openSourceDocs": {
+      "pass": 32,
+      "exitCode": 0,
+      "logSha256": "8d3a364524d4f7d0481e0e9ef002cf637e0bc224ae379819d454eabec94593ee"
+    },
+    "productDirection": {
+      "pass": 13,
+      "exitCode": 0,
+      "logSha256": "a0cec8fe12445c8119ae033bca78d593633a327904deb9707c4eb90a2e016a1c"
+    },
+    "codeQualityReuse": "Harness code/config/workflows unchanged; prior local63 proof only reused for unchanged inputs, not new docs or consumer QA",
+    "finalCI": "use actual PR source, not yet executed at record time"
+  },
+  "independentReview": {
+    "role": "harness-security-reviewer",
+    "finding": "no additional blocking finding in bounded three-document plan review",
+    "rawRecordsMatched": 32,
+    "sourceSha256Matched": 35,
+    "additionalRiskQaGitBlobsMatched": 12,
+    "clarificationsApplied": [
+      "ERP endpoint validation before first credential/network request; no credential egress or outside request as well as no mutation",
+      "webhook existing reservation release test uses Redis/DB/queue doubles; delete call is not actual release/retry proof"
+    ],
+    "limits": "no consumer command/CI/server/DB execution or product acceptance"
+  },
+  "delivery": {
+    "recordPr": "https://github.com/grinvi04/team-harness/pull/495",
+    "consumerAdoptionBacklog": "https://github.com/grinvi04/team-harness/issues/496",
+    "status": "read-only assessment/plan; consumer changes remain held",
+    "remoteDevelopRecheckedAtDelivery": "all four matched collected pinned SHA",
+    "finalCIAndMerge": "follow PR source; no future success asserted"
+  }
+}

@@ -1,15 +1,21 @@
 #!/usr/bin/env node
 
 import { spawnSync } from 'node:child_process'
-import { createHash } from 'node:crypto'
+import { createHash, randomBytes } from 'node:crypto'
 import {
   chmodSync,
   existsSync,
+  linkSync,
+  lstatSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
+  readlinkSync,
   realpathSync,
   rmSync,
+  statSync,
+  unlinkSync,
   writeFileSync,
 } from 'node:fs'
 import os from 'node:os'
@@ -189,11 +195,47 @@ function snapshotUserState(env) {
   }
 }
 
+function gitEnvironment() {
+  const environment = { ...process.env }
+  for (const key of Object.keys(environment)) {
+    if (key.startsWith('GIT_')) delete environment[key]
+  }
+  if (path.isAbsolute(gitBin)) {
+    environment.PATH = [...new Set([path.dirname(gitBin), '/usr/bin', '/bin'])].join(':')
+  }
+  return environment
+}
+
+function runGit(source, args, label) {
+  return run(gitBin, args, { cwd: source, env: gitEnvironment(), label })
+}
+
+function sourceDigest(source) {
+  const hash = createHash('sha256')
+  function visit(directory, prefix = '') {
+    for (const name of readdirSync(directory).sort()) {
+      if (prefix === '' && name === '.git') continue
+      const file = path.join(directory, name)
+      const relative = path.posix.join(prefix, name)
+      const stat = lstatSync(file)
+      hash.update(relative).update('\0').update(String(stat.mode)).update('\0')
+      if (stat.isSymbolicLink()) hash.update('link\0').update(readlinkSync(file))
+      else if (stat.isDirectory()) { hash.update('directory\0'); visit(file, relative) }
+      else if (stat.isFile()) hash.update('file\0').update(digest(readFileSync(file)))
+      else throw new Error('unsupported source file type')
+      hash.update('\0')
+    }
+  }
+  visit(source)
+  return `sha256:${hash.digest('hex')}`
+}
+
 function snapshotSource(source) {
   return {
-    head: run(gitBin, ['rev-parse', 'HEAD'], { cwd: source, label: 'source HEAD snapshot' }).trim(),
-    tree: run(gitBin, ['rev-parse', 'HEAD^{tree}'], { cwd: source, label: 'source tree snapshot' }).trim(),
-    status: run(gitBin, ['status', '--porcelain=v1', '-uall'], { cwd: source, label: 'source status snapshot' }),
+    head: runGit(source, ['--no-replace-objects', 'rev-parse', '--verify', 'HEAD^{commit}'], 'source HEAD snapshot').trim(),
+    tree: runGit(source, ['--no-replace-objects', 'rev-parse', '--verify', 'HEAD^{tree}'], 'source tree snapshot').trim(),
+    status: runGit(source, ['status', '--porcelain=v1', '-uall'], 'source status snapshot'),
+    digest: sourceDigest(source),
   }
 }
 
@@ -212,10 +254,12 @@ function verifyApprovedSource(args, sourceSnapshot) {
 
   try {
     run(gitBin, ['check-ref-format', args.approvedRef], {
+      env: gitEnvironment(),
       cwd: args.source,
       label: 'approved ref validation',
     })
     const origin = run(gitBin, ['remote', 'get-url', 'origin'], {
+      env: gitEnvironment(),
       cwd: args.source,
       label: 'source origin validation',
     }).trim()
@@ -224,7 +268,8 @@ function verifyApprovedSource(args, sourceSnapshot) {
     let remoteRevision
     if (fixtureMode) {
       const trackingRef = `refs/remotes/origin/${args.approvedRef.slice('refs/heads/'.length)}`
-      remoteRevision = run(gitBin, ['rev-parse', '--verify', `${trackingRef}^{commit}`], {
+      remoteRevision = run(gitBin, ['--no-replace-objects', 'rev-parse', '--verify', `${trackingRef}^{commit}`], {
+        env: gitEnvironment(),
         cwd: args.source,
         label: 'fixture remote ref validation',
       }).trim()
@@ -320,6 +365,7 @@ const pilotTrustedEnvironmentKeys = new Set([
   'CODEX_BIN',
   'HARNESS_CODEX_EXPECTED_CDHASH',
   'HARNESS_CODEX_EXPECTED_DIGEST',
+  'HARNESS_CODEX_VERIFIED_IDENTITY',
 ])
 
 function isFixtureEnvironmentKey(key) {
@@ -353,6 +399,7 @@ function isolatedPilotEnvironment(pilotHome) {
   environment.CODEX_HOME = pilotHome
   environment.CODEX_BIN = verifiedCodexIdentity.path
   environment.HARNESS_CODEX_EXPECTED_DIGEST = verifiedCodexIdentity.digest
+  environment.HARNESS_CODEX_VERIFIED_IDENTITY = JSON.stringify(verifiedCodexIdentity)
   if (verifiedCodexIdentity.cdHash) {
     environment.HARNESS_CODEX_EXPECTED_CDHASH = verifiedCodexIdentity.cdHash
   }
@@ -416,11 +463,178 @@ function markdown(report) {
 ${report.error ? `- 실패: ${report.error}\n` : ''}`
 }
 
-function writeReports(args, report) {
-  mkdirSync(path.dirname(args.jsonReport), { recursive: true })
-  mkdirSync(path.dirname(args.markdownReport), { recursive: true })
-  writeFileSync(args.jsonReport, `${JSON.stringify(report, null, 2)}\n`)
-  writeFileSync(args.markdownReport, markdown(report))
+function materializeRevision(source, revision, tempRoot) {
+  const exactSource = path.join(tempRoot, 'exact-source')
+  runGit(
+    source,
+    ['clone', '--quiet', '--no-checkout', '--no-hardlinks', source, exactSource],
+    'exact revision clone',
+  )
+  runGit(
+    exactSource,
+    ['--no-replace-objects', 'checkout', '--detach', '--quiet', revision],
+    'exact revision checkout',
+  )
+  const exact = snapshotSource(exactSource)
+  if (exact.head !== revision || exact.status !== '') {
+    throw new Error('exact revision checkout identity mismatch')
+  }
+  return exactSource
+}
+
+function isWithin(root, candidate) {
+  const relative = path.relative(root, candidate)
+  return relative !== '' &&
+    relative !== '..' &&
+    !relative.startsWith('..' + path.sep) &&
+    !path.isAbsolute(relative)
+}
+
+function prepareReportTargets(args, source, userCodexHome) {
+  const protectedRoots = [source, userCodexHome].map((root) => (
+    existsSync(root) ? realpathSync(root) : path.resolve(root)
+  ))
+  const resolveTarget = (file) => {
+    const parent = path.dirname(file)
+    if (!existsSync(parent) || !lstatSync(parent).isDirectory()) {
+      throw new Error('report destination parent must be an existing directory')
+    }
+    const canonicalParent = realpathSync(parent)
+    const parentStat = statSync(canonicalParent)
+    const target = path.join(canonicalParent, path.basename(file))
+    if (protectedRoots.some((root) => target === root || isWithin(root, target))) {
+      throw new Error(
+        'report destinations must be outside source repository and user CODEX_HOME',
+      )
+    }
+    let targetStat = null
+    try {
+      targetStat = lstatSync(target)
+    } catch (error) {
+      if (error.code !== 'ENOENT') throw error
+    }
+    if (targetStat) {
+      if (targetStat.isSymbolicLink()) {
+        throw new Error('report destination must not be a symbolic link')
+      }
+      throw new Error('report destination must not already exist')
+    }
+    return {
+      path: target,
+      parent: {
+        path: canonicalParent,
+        device: parentStat.dev,
+        inode: parentStat.ino,
+      },
+    }
+  }
+  const jsonReport = resolveTarget(args.jsonReport)
+  const markdownReport = resolveTarget(args.markdownReport)
+  const guard = resolveTarget(transcriptPaths.guard)
+  const routing = resolveTarget(transcriptPaths.routing)
+  if (new Set([jsonReport, markdownReport, guard, routing].map(target => target.path)).size !== 4) {
+    throw new Error('report and transcript destinations must be distinct')
+  }
+  return { jsonReport, markdownReport, guard, routing, protectedRoots }
+}
+
+function assertReportParent(target, protectedRoots) {
+  let current
+  try {
+    if (!lstatSync(target.parent.path).isDirectory()) throw new Error('not a directory')
+    const canonical = realpathSync(target.parent.path)
+    const stat = statSync(canonical)
+    current = { path: canonical, device: stat.dev, inode: stat.ino }
+  } catch {
+    throw new Error('report destination parent changed during verification')
+  }
+  if (
+    current.path !== target.parent.path ||
+    current.device !== target.parent.device ||
+    current.inode !== target.parent.inode ||
+    protectedRoots.some((root) => target.path === root || isWithin(root, target.path))
+  ) {
+    throw new Error('report destination parent changed during verification')
+  }
+}
+
+function writeReports(targets, report) {
+  const contents = [
+    [targets.jsonReport, JSON.stringify(report, null, 2) + '\n'],
+    [targets.markdownReport, markdown(report)],
+    ...Object.entries(transcriptContent).filter(([, content]) => content !== null).map(([kind, content]) => [targets[kind], content]),
+  ]
+  const staged = []
+  const published = []
+  let publicationFailed = false
+  let cleanupFailed = false
+  try {
+    for (const [target, content] of contents) {
+      assertReportParent(target, targets.protectedRoots)
+      const file = path.join(
+        target.parent.path,
+        '.team-harness-report.' + randomBytes(16).toString('hex'),
+      )
+      writeFileSync(file, content, { encoding: 'utf8', flag: 'wx', mode: 0o600 })
+      const stat = lstatSync(file)
+      staged.push({ file, target, device: stat.dev, inode: stat.ino })
+    }
+    for (const item of staged) {
+      assertReportParent(item.target, targets.protectedRoots)
+      const stagedStat = lstatSync(item.file)
+      if (stagedStat.dev !== item.device || stagedStat.ino !== item.inode) {
+        throw new Error('staged report identity changed')
+      }
+      linkSync(item.file, item.target.path)
+      const targetStat = lstatSync(item.target.path)
+      if (targetStat.dev !== item.device || targetStat.ino !== item.inode) {
+        throw new Error('published report identity mismatch')
+      }
+      published.push({ ...item.target, device: item.device, inode: item.inode })
+      assertReportParent(item.target, targets.protectedRoots)
+    }
+  } catch {
+    publicationFailed = true
+  } finally {
+    for (const item of staged) {
+      try {
+        assertReportParent(item.target, targets.protectedRoots)
+        const stat = lstatSync(item.file)
+        if (stat.dev !== item.device || stat.ino !== item.inode) {
+          throw new Error('staged report identity changed')
+        }
+        unlinkSync(item.file)
+      } catch {
+        cleanupFailed = true
+      }
+    }
+  }
+  if (publicationFailed || cleanupFailed) {
+    try {
+      removePublishedReports(targets, published)
+    } catch {
+      throw new Error('report publication rollback failed')
+    }
+    throw new Error(cleanupFailed ? 'report staging cleanup failed' : 'report publication failed')
+  }
+  return published
+}
+
+function removePublishedReports(targets, published) {
+  let failed = false
+  for (const target of [...published].reverse()) {
+    try {
+      assertReportParent(target, targets.protectedRoots)
+      const stat = lstatSync(target.path)
+      if (stat.dev !== target.device || stat.ino !== target.inode) {
+        throw new Error('published report identity changed')
+      }
+      unlinkSync(target.path)
+    } catch {
+      failed = true
+    }
+  }
+  if (failed) throw new Error('published report rollback failed')
 }
 
 let args
@@ -431,8 +645,6 @@ try {
   process.exit(2)
 }
 
-const sourceManifest = path.join(args.source, 'plugins', 'harness-guard', '.codex-plugin', 'plugin.json')
-const trustedBinariesPath = path.join(args.source, 'docs', 'pilots', 'codex-native-loader-trusted-binaries.json')
 const userCodexHome = path.resolve(process.env.CODEX_HOME || path.join(os.homedir(), '.codex'))
 const userEnvironment = { ...process.env, CODEX_HOME: userCodexHome }
 const reportStem = args.jsonReport.endsWith('.json') ? args.jsonReport.slice(0, -5) : args.jsonReport
@@ -441,9 +653,15 @@ const transcriptPaths = {
   routing: `${reportStem}.routing.jsonl`,
 }
 const transcriptContent = { guard: null, routing: null }
+let tempRoot = null
 let pilotHome = null
+let exactSource = null
+let exactSourceSnapshot = null
+let reportTargets = null
 let beforeUser = null
 let beforeSource = null
+let beforePublicationUser = null
+let beforePublicationSource = null
 let failure = null
 const report = {
   schemaVersion: 2,
@@ -490,8 +708,8 @@ const report = {
 }
 
 try {
-  const source = JSON.parse(readFileSync(sourceManifest, 'utf8'))
-  report.harness.version = source.version
+  if (!existsSync(args.source) || !lstatSync(args.source).isDirectory()) throw new Error('source repository is unavailable')
+  reportTargets = prepareReportTargets(args, realpathSync(args.source), userCodexHome)
   beforeSource = snapshotSource(args.source)
   report.harness.revision = beforeSource.head
   report.harness.tree = beforeSource.tree
@@ -499,6 +717,13 @@ try {
     throw new Error('source repository must be clean before pilot execution')
   }
   report.harness.remote = verifyApprovedSource(args, beforeSource)
+  tempRoot = mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'team-harness-codex-native-pilot.'))
+  reportTargets.protectedRoots.push(realpathSync(tempRoot))
+  exactSource = materializeRevision(args.source, beforeSource.head, tempRoot)
+  exactSourceSnapshot = snapshotSource(exactSource)
+  const source = JSON.parse(readFileSync(path.join(exactSource, 'plugins', 'harness-guard', '.codex-plugin', 'plugin.json'), 'utf8'))
+  report.harness.version = source.version
+  const trustedBinariesPath = path.join(exactSource, 'docs', 'pilots', 'codex-native-loader-trusted-binaries.json')
   const codexTrust = establishCodexTrust({
     command: codexBin,
     env: userEnvironment,
@@ -517,7 +742,8 @@ try {
   report.userState.before.marketplaces = digest(beforeUser.marketplaces)
   report.userState.before.plugins = digest(beforeUser.plugins)
 
-  pilotHome = mkdtempSync(path.join(process.env.TMPDIR || os.tmpdir(), 'team-harness-codex-native-pilot.'))
+  pilotHome = path.join(tempRoot, 'home')
+  mkdirSync(pilotHome, { mode: 0o700 })
   const authSource = path.join(userCodexHome, 'auth.json')
   if (process.env.HARNESS_PILOT_SKIP_AUTH !== '1') {
     const sessionAuth = isolatedSessionAuth(authSource)
@@ -533,7 +759,7 @@ try {
   report.auth.userHomeIsolated = environmentVerdict.homeIsolated
   report.auth.inheritedEnvironmentAllowlisted = environmentVerdict.allowlisted
 
-  codex(['plugin', 'marketplace', 'add', args.source, '--json'], pilotEnvironment, 'local marketplace install')
+  codex(['plugin', 'marketplace', 'add', exactSource, '--json'], pilotEnvironment, 'local marketplace install')
   const installed = JSON.parse(
     codex(['plugin', 'add', 'harness-guard@team-harness', '--json'], pilotEnvironment, 'native plugin install'),
   )
@@ -543,14 +769,15 @@ try {
   run(
     process.execPath,
     [
-      path.join(args.source, 'scripts', 'check-codex-native-plugin.mjs'),
+      path.join(exactSource, 'scripts', 'check-codex-native-plugin.mjs'),
       '--expected-version',
       source.version,
       '--trusted-root',
-      path.join(args.source, 'plugins', 'harness-guard'),
+      path.join(exactSource, 'plugins', 'harness-guard'),
     ],
     {
       env: pilotEnvironment,
+      cwd: exactSource,
       label: 'native plugin contract',
     },
   )
@@ -560,12 +787,13 @@ try {
   const smokeEvidenceDir = path.join(pilotHome, 'smoke-evidence')
   const smokeResult = spawnSync(
     'bash',
-    [path.join(args.source, 'scripts', 'codex-fresh-session-smoke.sh')],
+    [path.join(exactSource, 'scripts', 'codex-fresh-session-smoke.sh')],
     {
       env: {
         ...pilotEnvironment,
         TMPDIR: pilotHome,
         HARNESS_SMOKE_EVIDENCE_DIR: smokeEvidenceDir,
+        ...(fixtureMode ? { HARNESS_PILOT_FIXTURE: '1', HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC: fixtureBeforeCodexExec || '' } : {}),
       },
       encoding: 'utf8',
     },
@@ -599,12 +827,12 @@ try {
 
   const routeRepo = path.join(pilotHome, 'route-repo')
   mkdirSync(path.join(routeRepo, 'docs', 'specs'), { recursive: true })
-  run(gitBin, ['init', '-q', '-b', 'develop', routeRepo], { label: 'route fixture init' })
-  run(gitBin, ['config', 'user.name', 'pilot'], { cwd: routeRepo, label: 'route fixture config' })
-  run(gitBin, ['config', 'user.email', 'pilot@example.invalid'], { cwd: routeRepo, label: 'route fixture config' })
+  run(gitBin, ['init', '-q', '-b', 'develop', routeRepo], { env: gitEnvironment(), label: 'route fixture init' })
+  run(gitBin, ['config', 'user.name', 'pilot'], { env: gitEnvironment(), cwd: routeRepo, label: 'route fixture config' })
+  run(gitBin, ['config', 'user.email', 'pilot@example.invalid'], { env: gitEnvironment(), cwd: routeRepo, label: 'route fixture config' })
   writeFileSync(path.join(routeRepo, 'docs', 'specs', 'pilot.md'), '# approved pilot spec\n')
-  run(gitBin, ['add', '.'], { cwd: routeRepo, label: 'route fixture add' })
-  run(gitBin, ['commit', '-qm', 'docs: add pilot spec'], { cwd: routeRepo, label: 'route fixture commit' })
+  run(gitBin, ['add', '.'], { env: gitEnvironment(), cwd: routeRepo, label: 'route fixture add' })
+  run(gitBin, ['commit', '-qm', 'docs: add pilot spec'], { env: gitEnvironment(), cwd: routeRepo, label: 'route fixture commit' })
   const routeOutput = codex(
     [
       'exec',
@@ -629,10 +857,19 @@ try {
   report.error = error.message
   if (error.code) report.errorCode = error.code
 } finally {
-  if (pilotHome) {
+  if (tempRoot) {
+    if (exactSource && exactSourceSnapshot) {
+      try {
+        if (JSON.stringify(snapshotSource(exactSource)) !== JSON.stringify(exactSourceSnapshot) && !failure) {
+          failure = new Error('materialized candidate changed during pilot')
+        }
+      } catch {
+        if (!failure) failure = new Error('materialized candidate state could not be verified')
+      }
+    }
     try {
-      rmSync(pilotHome, { recursive: true, force: true })
-      report.cleanup.isolatedHomeRemoved = !existsSync(pilotHome)
+      rmSync(tempRoot, { recursive: true, force: true })
+      report.cleanup.isolatedHomeRemoved = !existsSync(tempRoot)
     } catch {
       report.cleanup.isolatedHomeRemoved = false
     }
@@ -640,6 +877,7 @@ try {
   try {
     if (beforeUser) {
       const afterUser = snapshotUserState(userEnvironment)
+      beforePublicationUser = afterUser
       report.userState.after.marketplaces = digest(afterUser.marketplaces)
       report.userState.after.plugins = digest(afterUser.plugins)
       report.userState.unchanged = Boolean(
@@ -653,11 +891,13 @@ try {
   }
   try {
     const afterSource = snapshotSource(args.source)
+    beforePublicationSource = afterSource
     report.sourceState.unchanged = Boolean(
       beforeSource &&
         afterSource.head === beforeSource.head &&
         afterSource.tree === beforeSource.tree &&
-        afterSource.status === beforeSource.status,
+        afterSource.status === beforeSource.status &&
+        afterSource.digest === beforeSource.digest,
     )
     if (!report.sourceState.unchanged && !failure) failure = new Error('source repository changed during pilot')
   } catch {
@@ -667,13 +907,31 @@ try {
   if (!report.cleanup.isolatedHomeRemoved && !failure) failure = new Error('isolated Codex home cleanup failed')
   report.status = failure ? 'fail' : 'pass'
   if (failure && !report.error) report.error = failure.message
-  for (const [kind, content] of Object.entries(transcriptContent)) {
-    if (content !== null) {
-      mkdirSync(path.dirname(transcriptPaths[kind]), { recursive: true })
-      writeFileSync(transcriptPaths[kind], content)
+  if (reportTargets) {
+    let published = null
+    try {
+      published = writeReports(reportTargets, report)
+      // Output publication is part of the preservation boundary, including FAIL reports.
+      if (beforePublicationSource) {
+        const finalSource = snapshotSource(args.source)
+        if (JSON.stringify(finalSource) !== JSON.stringify(beforePublicationSource)) {
+          throw new Error('protected source changed during report publication')
+        }
+      }
+      if (beforePublicationUser) {
+        const finalUser = snapshotUserState(userEnvironment)
+        if (JSON.stringify(finalUser) !== JSON.stringify(beforePublicationUser)) throw new Error('protected user state changed during report publication')
+      }
+    } catch (error) {
+      if (published) {
+        try { removePublishedReports(reportTargets, published) }
+        catch { error = new Error('published report rollback failed') }
+      }
+      if (!failure) failure = error
+      report.status = 'fail'
+      if (!report.error) report.error = error.message
     }
   }
-  writeReports(args, report)
 }
 
 if (failure) {

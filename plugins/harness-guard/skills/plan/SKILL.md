@@ -2,7 +2,6 @@
 name: plan
 description: 새 기능을 설계하거나 복잡한 변경을 계획할 때 프로젝트 기준·수용 조건·승인된 스펙을 연결하는 데 사용. 구현·Git 변경·자명한 소규모 수정은 제외
 argument-hint: <feature-name> "<무엇을·왜>"
-effort: high
 ---
 
 # plan — 프로젝트 계획 계약

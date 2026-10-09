@@ -45,6 +45,20 @@ updated_by  BIGINT      NOT NULL
 | 코드성 값 | `varchar` + CHECK 또는 앱 enum | DB enum 타입(변경 비용 큼) |
 | 유연 속성 | `jsonb` (스키마 없는 부가정보 한정) | 핵심 업무 컬럼의 jsonb화 |
 
+### 금액 저장·전송 계약
+
+- `numeric(p,s)`의 p/scale·허용 범위와 통화·단위를 도메인에서 정한다. 비유한 값은 업무 금액으로 허용하지 않는다.
+  PostgreSQL은 지정 scale 초과 값을 반올림한 뒤 범위 초과를 오류로 처리하고, numeric의 정확한 tie는 0에서 멀어지는 쪽으로 반올림한다.
+  앱의 반올림 모드·시점(항목/세금/합계), 초과 자릿수 거부 또는 반올림 정책과 대조한다.
+  [PostgreSQL numeric](https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL)은 저장·계산 계약이며 클라이언트 보장이 아니다.
+- ORM/드라이버 decimal → JSON → 클라이언트 파싱/연산 → 재전송 → DB까지 표현을 명시한다.
+  정확한 십진 값은 decimal 문자열이나 단위/scale이 있는 최소 화폐 단위 정수로 전송한다.
+  JSON number는 클라이언트와 중간 연산까지 안전한 제한된 범위만 허용한다 ([API 금액 계약](api-standards.md#필드데이터-포맷)).
+  DB 값을 먼저 float/double로 바꾼 뒤 문자열로 감싸도 잃은 정밀도는 복구되지 않는다.
+- 허용 최대/최소·음수·0·scale 초과·반올림 tie·합계 초과를 정확한 기대값과 비교한다.
+  실제 DB/직렬화/지원 클라이언트 경계를 통과시켜 저장값·전송값·재전송값을 대조한다.
+  DB 컬럼 선언이나 JavaScript 숫자 표본만으로 그 전체 경계를 통과했다고 보고하지 않는다.
+
 ## 삭제 정책
 
 - **업무 전표 데이터**(주문·전표·이력): 물리 삭제 금지 → `deleted_at timestamptz NULL` soft delete
@@ -102,3 +116,7 @@ updated_by  BIGINT      NOT NULL
 - N+1 방지: 목록 조회는 fetch 전략 명시 (QueryDSL projection 권장)
 - 트랜잭션 경계는 application 유스케이스 단위 (`clean-architecture.md`) — 컨트롤러/리포지토리에서 열지 않는다
 - 운영 DB 직접 DML 금지 — 데이터 보정도 마이그레이션 또는 관리 화면 경유
+
+현재 정적 DDL 검사는 Python 한 줄 upgrade·Ruby 탭 호출·ALTER TABLE의 COLUMN 생략/인용 식별자도 검사한다.
+ORM raw SQL의 MySQL 실행 주석은 실행 구문으로 취급한다. 동적 SQL·helper의 전체 동작을 해석하지는 않는다.
+Alembic 설정이 없을 때만 heads 검사는 비적용이다. 설정이 있는 repo의 설치/heads 실행 실패는 CI 실패다.

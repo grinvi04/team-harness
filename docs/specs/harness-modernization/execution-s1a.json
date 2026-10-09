@@ -1,0 +1,48 @@
+{
+  "scope": "AC-S1 and independent verification runtime readiness",
+  "baseline": {
+    "command": "bash tests/set-branch-protection-test.sh",
+    "assertions": "53 PASS / 0 FAIL"
+  },
+  "red": {
+    "command": "bash tests/set-branch-protection-test.sh",
+    "exit_code": 1,
+    "pass": 53,
+    "fail": 8,
+    "reason": "errors/empty inputs emitted PUT requests"
+  },
+  "green": {
+    "command": "bash tests/set-branch-protection-test.sh",
+    "exit_code": 0,
+    "pass": 61,
+    "fail": 0
+  },
+  "readonly_runtime": {
+    "thread_id": "01a11d61-1eab-78d2-9712-518af22cfaa5",
+    "surface": "standalone Codex CLI; not collaboration role enforcement",
+    "protected_file_unchanged": true,
+    "session_path": "$HOME/.codex/sessions/2026/10/09/rollout-2026-10-09T06-17-47-01a11d61-1eab-78d2-9712-518af22cfaa5.jsonl",
+    "runtime": {
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "sandbox_policy": {
+        "type": "read-only"
+      },
+      "approval_policy": "never"
+    }
+  },
+  "limits": [
+    "fake GitHub API; no real protection writes",
+    "remaining stage-1 checks pending"
+  ],
+  "final": {
+    "command": "bash tests/set-branch-protection-test.sh",
+    "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+    "exit_code": 0,
+    "pass": 62,
+    "fail": 0,
+    "normal_control": "automatic context discovery with both branches and post-write verification",
+    "source_sha256": "ad925dd9daebe01750faca57f029800b2912fafbf062d3b7c1a44304dfe5e4b7"
+  },
+  "evidence_directory": "evidence/s1a"
+}

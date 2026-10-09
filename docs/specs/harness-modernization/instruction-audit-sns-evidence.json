@@ -1,0 +1,53 @@
+{
+  "date": "2026-10-09 KST",
+  "scope": "Public search and two opened Reddit pages only; no X login, account creation, paid tools or model inference.",
+  "queries": [
+    {
+      "q": "site:x.com \"GPT-6.1\" \"Sol\" Codex after:2026-09-01"
+    },
+    {
+      "q": "site:x.com (\"Haiku 5.5\" OR \"Sonnet 5.5\" OR \"Opus 5.5\") effort coding after:2026-09-01"
+    },
+    {
+      "q": "site:reddit.com/r/codex \"GPT-6.1\" \"Sol\""
+    },
+    {
+      "q": "site:reddit.com \"Haiku 5.5\" effort coding"
+    },
+    {
+      "q": "\"GPT-6.1 Sol\"",
+      "domains": [
+        "x.com",
+        "twitter.com"
+      ]
+    },
+    {
+      "q": "\"Haiku 5.5\" effort",
+      "domains": [
+        "x.com",
+        "twitter.com"
+      ]
+    }
+  ],
+  "outcome": "Relevant current X originals not obtained in these searches; not evidence that posts do not exist.",
+  "excluded": [
+    {
+      "url": "https://blog.x.com/en_us/a/2013/atl24-cnn-live-tweets-a-feature-story",
+      "reason": "2013 unrelated result; not a model-use case."
+    }
+  ],
+  "opened_sources": [
+    {
+      "url": "https://www.reddit.com/r/codex/comments/1wtq7vg/gpt61_sol_is_very_good_for_the_plus_users/",
+      "post_date": "2026-09-30",
+      "type": "User experience; positive quality/usage claims, not controlled comparison."
+    },
+    {
+      "url": "https://www.reddit.com/r/codex/comments/1wuatzt/gpt61_sol_feels_unlimited_because_it_runs_at_20/",
+      "post_date": "2026-09-30",
+      "type": "User experience; critical speed/usage claims, not controlled comparison."
+    }
+  ],
+  "status": "PARTIAL for requested latest X use cases; actual role quality and usage comparison NOT_RUN.",
+  "resume_condition": "New publicly accessible relevant originals or changed retrieval conditions; no identical repeated failed search without evidence."
+}

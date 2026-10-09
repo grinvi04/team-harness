@@ -329,6 +329,44 @@ fi
 # --help → 통과
 node "$GATE" --help >/dev/null 2>&1 && { echo "PASS: --help → 통과"; PASS=$((PASS+1)); } || { echo "FAIL: --help"; FAIL=$((FAIL+1)); }
 
+# Q2D: exit 0/MISSING 0의 실제 경고 출력이 skill의 종합 보고에서 사라지지 않아야 한다.
+WARNING_REPO="$TMP/q2d-weak-warn"
+cp -R "$GOOD/." "$WARNING_REPO"
+printf 'name: test-guard\njobs: {}\n' > "$WARNING_REPO/.github/workflows/test-guard.yml"
+rm "$WARNING_REPO/.claude/rules/java.md"
+if OUT=$(node "$GATE" --repo "$WARNING_REPO" --harness "$ROOT" 2>&1) &&
+   echo "$OUT" | grep -Eq '요약: .*WEAK [1-9][0-9]* .*WARN [1-9][0-9]* .*MISSING 0$' &&
+   ! echo "$OUT" | grep -q '드리프트 없음'; then
+  echo "PASS: Q2D MISSING 0에서도 WEAK/WARN 출력 보존"; PASS=$((PASS+1))
+else
+  echo "FAIL: Q2D WEAK/WARN 출력이 clean으로 축약됨"; FAIL=$((FAIL+1))
+fi
+
+if OUT=$(node "$GATE" --repo "$TMP/q2d-does-not-exist" --harness "$ROOT" 2>&1); then
+  echo "FAIL: Q2D 조회 실패를 정상 결과로 처리"; FAIL=$((FAIL+1))
+elif [ -n "$OUT" ] && ! echo "$OUT" | grep -q '요약:.*MISSING 0'; then
+  echo "PASS: Q2D 조회 실패에 MISSING 0 요약을 발명하지 않음"; PASS=$((PASS+1))
+else
+  echo "FAIL: Q2D 조회 실패 근거 누락"; FAIL=$((FAIL+1))
+fi
+
+# Instruction structure only: this is not an agent execution or semantic-completeness proof.
+if node - "$ROOT/plugins/harness-guard/skills/repo-sync/SKILL.md" <<'NODE'
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const skill = fs.readFileSync(process.argv[2], 'utf8');
+assert.match(skill, /WEAK.*WARN.*UNVERIFIED/);
+assert.match(skill, /조회 실패.*UNVERIFIED/);
+assert.match(skill, /종료 코드.*요약.*누락/);
+assert.doesNotMatch(skill, /전 대상 MISSING 0이면 "표준과 sync — 드리프트 없음"/);
+assert.match(skill, /의미.*적합성.*보장하지/);
+NODE
+then
+  echo "PASS: Q2D repo-sync 보고 계약의 경고·미확인 경계 (구조 검사)"; PASS=$((PASS+1))
+else
+  echo "FAIL: Q2D repo-sync 보고 계약 누락 (구조 검사)"; FAIL=$((FAIL+1))
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

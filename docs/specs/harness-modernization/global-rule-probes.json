@@ -1,0 +1,65 @@
+[
+  {
+    "command": [
+      "git",
+      "push",
+      "--force",
+      "origin",
+      "main"
+    ],
+    "exit_code": 0,
+    "decision": "allow",
+    "matched_rule_count": 1,
+    "json_keys": [
+      "matchedRules",
+      "decision"
+    ]
+  },
+  {
+    "command": [
+      "git",
+      "push",
+      "origin",
+      "HEAD:develop"
+    ],
+    "exit_code": 0,
+    "decision": "allow",
+    "matched_rule_count": 1,
+    "json_keys": [
+      "matchedRules",
+      "decision"
+    ]
+  },
+  {
+    "command": [
+      "gh",
+      "api",
+      "--method",
+      "DELETE",
+      "repos/example/example/branches/main/protection"
+    ],
+    "exit_code": 0,
+    "decision": "allow",
+    "matched_rule_count": 1,
+    "json_keys": [
+      "matchedRules",
+      "decision"
+    ]
+  },
+  {
+    "command": [
+      "gh",
+      "api",
+      "--method",
+      "PATCH",
+      "repos/example/example"
+    ],
+    "exit_code": 0,
+    "decision": "allow",
+    "matched_rule_count": 1,
+    "json_keys": [
+      "matchedRules",
+      "decision"
+    ]
+  }
+]

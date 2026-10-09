@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Codex compatibility must not mutate the Claude-facing source contract.
+# Pin the approved native Claude contract; Codex adaptation must preserve it.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
@@ -32,4 +32,4 @@ if [ "$status" != 2 ] \
   exit 1
 fi
 
-echo 'PASS: Claude-facing source hash·경계와 runtime 기본값 불변'
+echo 'PASS: Claude-facing 현재 승인 source hash·경계와 runtime 기본값 보존'

@@ -4,7 +4,8 @@
 # 머지 *전에* 게이트를 직접 검증한다 — CI required green · 미해결 리뷰 스레드 0 · mergeable.
 # 게이트를 통과하지 못하면 머지하지 않고 종료(게이트가 머지 경로에 박혀 건너뛸 수 없음).
 #
-# 사용: pr-merge.sh [<PR#>] [--base <branch>] [--auto]   (PR# 생략 시 현재 브랜치의 PR)
+# 사용: pr-merge.sh [<PR#>] [--base <branch>] [--auto] [--expected-head <OID>] [--expected-base-oid <OID>]
+#   expected-*는 앞선 리뷰 snapshot의 후보를 전달해 래퍼 시작 전 후보 변경도 차단한다.
 #   --auto: develop 전용 자동머지 — base가 develop이 아니면 거부(exit 3). settings allow-rule과 짝.
 #   브랜치 보호(승인 요건) 해제·복구는 이 스크립트가 하지 않는다 — solo-merge가 별도로 감싼다.
 #   머지 성공 후 로컬 head 브랜치도 정리한다(원격은 --delete-branch·repo delete_branch_on_merge로 삭제).
@@ -82,11 +83,41 @@ EOF
 # mergeable 게이트: "MERGEABLE"만 통과. UNKNOWN·CONFLICTING 등은 fail(충돌/계산 미완).
 gate_mergeable() { [ "$1" = "MERGEABLE" ]; }
 
+# JSON metadata만 후보로 인정한다. branch 이름과 OID를 함께 비교해 이름만 같은 base 이동도 잡는다.
+pr_candidate_state() {
+  local cfg out; cfg=$(cat)
+  if command -v python3 >/dev/null 2>&1; then
+    out=$(printf '%s' "$cfg" | python3 -c 'import json,re,sys
+d=json.load(sys.stdin); keys=("baseRefName","baseRefOid","headRefName","headRefOid")
+for key in keys:
+ value=d[key]
+ assert isinstance(value,str) and re.fullmatch(r"[0-9a-fA-F]{40}" if key.endswith("Oid") else r"[^\s|\x00-\x1f\x7f]+",value)
+print("|".join(d[key] for key in keys))' 2>/dev/null) && [ -n "$out" ] && { printf '%s\n' "$out"; return 0; }
+  fi
+  if command -v jq >/dev/null 2>&1; then
+    out=$(printf '%s' "$cfg" | jq -er '
+      [.baseRefName,.baseRefOid,.headRefName,.headRefOid] as $v |
+      select(all($v[]; type == "string")) |
+      select(($v[0] | test("^[^\\s|\\x00-\\x1f\\x7f]+$")) and ($v[2] | test("^[^\\s|\\x00-\\x1f\\x7f]+$"))) |
+      select(($v[1] | test("^[0-9a-fA-F]{40}$")) and ($v[3] | test("^[0-9a-fA-F]{40}$"))) |
+      $v | join("|")' 2>/dev/null) && [ -n "$out" ] && { printf '%s\n' "$out"; return 0; }
+  fi
+  return 1
+}
+
+read_pr_candidate() {
+  local metadata
+  metadata=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName,baseRefOid,headRefName,headRefOid) || return 1
+  printf '%s' "$metadata" | pr_candidate_state
+}
+
 # --auto 안전 계약: 무인 자동머지는 CI가 **서버-강제**(required status check 존재)여야 성립한다.
-# required check가 없으면(verdict=none) CI-green을 보장할 수 없어 자동머지는 거부(fail-CLOSED).
-# 수동 머지(auto=0)는 none도 허용 — 사람이 책임지고 머지(무인 자동화만 서버강제를 요구).
-auto_ci_ok() { # verdict, auto → rc0 허용 / rc1 거부(none + --auto)
-  { [ "$1" = "none" ] && [ "$2" = "1" ]; } && return 1
+# required가 없거나 조회 불가(none/fallback)이면 서버 필수 CI를 확인할 수 없어 자동머지는 거부.
+# 수동 머지(auto=0)는 기존 none/Actions fallback 계약을 유지한다.
+auto_ci_ok() { # verdict, auto → rc0 기존 게이트 계속 / rc1 자동머지 거부
+  if [ "$2" = "1" ]; then
+    case "$1" in none|fallback) return 1;; esac
+  fi
   return 0
 }
 
@@ -100,14 +131,20 @@ merge_cleanup_checkout() { # head base current → echo checkout 대상("" = 이
 # 테스트 훅: 함수만 로드하고 종료(main 로직·gh 호출 없이 순수 판정 함수만 검증).
 [ -n "${PRMERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
-PR="" BASE="" AUTO=0
+PR="" BASE="" AUTO=0 EXPECTED_HEAD="" EXPECTED_BASE_OID=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --auto) AUTO=1; shift;;
     --base) BASE="${2:-}"; shift 2;;
+    --expected-head) EXPECTED_HEAD="${2:?expected head OID required}"; shift 2;;
+    --expected-base-oid) EXPECTED_BASE_OID="${2:?expected base OID required}"; shift 2;;
     -*) echo "pr-merge.sh: 알 수 없는 인자 '$1'" >&2; exit 2;;
     *) PR="$1"; shift;;
   esac
+done
+
+for expected_oid in "$EXPECTED_HEAD" "$EXPECTED_BASE_OID"; do
+  [ -z "$expected_oid" ] || [[ "$expected_oid" =~ ^[0-9a-fA-F]{40}$ ]] || { echo "pr-merge.sh: expected OID 형식 오류" >&2; exit 2; }
 done
 
 OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
@@ -115,23 +152,31 @@ OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 OWNER="${OWNER_REPO%/*}"; NAME="${OWNER_REPO#*/}"
 echo "게이트 검증: $OWNER_REPO PR #$PR"
 
+# 게이트 시작의 정확한 후보를 고정한다. 조회 실패·malformed 응답을 빈 값으로 승인하지 않는다.
+VERIFIED_CANDIDATE=$(read_pr_candidate) || { echo "  ⛔ PR head/base 후보 조회·검증 실패 — 머지 중단" >&2; exit 1; }
+IFS='|' read -r PR_BASE BASE_SHA HBRANCH HEAD_SHA <<EOF
+$VERIFIED_CANDIDATE
+EOF
+[ -z "$BASE" ] || [ "$BASE" = "$PR_BASE" ] || { echo "  ⛔ 요청 base=$BASE, 실제 base=$PR_BASE — 머지 중단" >&2; exit 3; }
+[ -z "$EXPECTED_HEAD" ] || [ "$EXPECTED_HEAD" = "$HEAD_SHA" ] || { echo "  ⛔ 앞선 리뷰의 head와 현재 후보가 다름 — 재검토 필요" >&2; exit 1; }
+[ -z "$EXPECTED_BASE_OID" ] || [ "$EXPECTED_BASE_OID" = "$BASE_SHA" ] || { echo "  ⛔ 앞선 리뷰의 base OID와 현재 후보가 다름 — 재검토 필요" >&2; exit 1; }
+
 # --auto: 이 PR의 실제 base가 develop인지 강제(아니면 거부). 게이트 검증 전 선차단.
 if [ "$AUTO" = "1" ]; then
-  PR_BASE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName --jq .baseRefName)
   require_develop_base "$PR_BASE" || exit 3
   echo "  --auto: base=develop 확인"
 fi
 
 # 1) CI 검증 — 1차: gh pr checks(외부 CI 포함). 토큰이 checks API를 못 읽으면(GraphQL 403)
-#    2차: Actions run(gh run list)으로 이 커밋의 워크플로 결과를 폴백 검증.
+#    수동 머지만 2차 Actions run(gh run list)으로 이 커밋의 워크플로 결과를 폴백 검증.
 # 주의: set -e라 `VAR=$(실패명령)`는 RC 캡처 전에 스크립트를 죽인다 → `|| CHECKS_RC=$?`로 흡수.
 CHECKS_RC=0
 CHECKS_OUT=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1) || CHECKS_RC=$?
 CI_VERDICT=$(classify_ci_gate "$CHECKS_RC" "$CHECKS_OUT") || true
-# --auto는 required check가 없으면(none) 거부 — 자동머지의 CI-green 보장은 서버-강제 required check 전제.
+# --auto는 required 없음/조회 불가를 거부 — unrelated Actions 성공은 서버 필수 CI의 증거가 아니다.
 if ! auto_ci_ok "$CI_VERDICT" "$AUTO"; then
-  echo "  ⛔ --auto 거부: 이 브랜치에 required status check 없음(none) — 자동머지는 서버-강제 CI가 전제." >&2
-  echo "     set-branch-protection.sh <repo> --contexts <a,b>로 등록 후 재시도, 또는 --auto 없이 수동 머지." >&2
+  echo "  ⛔ --auto 거부: required status check 확인 불가($CI_VERDICT) — 자동머지는 서버 필수 CI 확인이 전제." >&2
+  echo "     required check 등록·조회 권한을 확인 후 재시도, 또는 --auto 없이 명시 수동 머지." >&2
   exit 1
 fi
 if [ "$CI_VERDICT" = "green" ]; then
@@ -140,8 +185,6 @@ elif [ "$CI_VERDICT" = "none" ]; then
   echo "  CI: required check 없음 → 통과"
 elif [ "$CI_VERDICT" = "fallback" ]; then
   # 토큰이 checks API 접근 불가 → Actions run으로 폴백(이 커밋 한정)
-  HEAD_SHA=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefOid --jq .headRefOid)
-  HBRANCH=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefName --jq .headRefName)
   # S3: gh run list를 1회만 호출하고 결과를 재사용(동일 쿼리 2회 중복 제거).
   RUNS_JSON=$(gh run list --repo "$OWNER_REPO" --branch "$HBRANCH" --limit 30 --json headSha,status,conclusion 2>/dev/null || echo '[]')
   RUNCOUNT=$(printf '%s' "$RUNS_JSON" | python3 -c "import sys,json; r=json.load(sys.stdin); print(len([x for x in r if x['headSha']=='$HEAD_SHA']))" 2>/dev/null || echo 0)
@@ -175,8 +218,16 @@ if ! gate_mergeable "$MERGEABLE"; then
 fi
 echo "  mergeable: MERGEABLE"
 
+# 게이트 뒤 후보가 바뀌었거나 재조회가 실패하면 검토를 다시 시작한다.
+CURRENT_CANDIDATE=$(read_pr_candidate) || { echo "  ⛔ 게이트 후 PR 후보 재조회·검증 실패 — 머지 중단" >&2; exit 1; }
+if [ "$CURRENT_CANDIDATE" != "$VERIFIED_CANDIDATE" ]; then
+  echo "  ⛔ 게이트 후 PR head/base 변경 — 현재 후보로 검토·검증을 다시 수행하세요." >&2; exit 1
+fi
+# head는 GitHub의 expected-head 옵션으로 서버에서 결박한다. base 재조회는 원자적 비교가 아니므로
+# 그 이후 base 이동은 strict required CI·현재 protected base 정책의 서버 계약이 계속 필요하다.
+
 echo "게이트 통과 → 머지"
-gh pr merge "$PR" --repo "$OWNER_REPO" --merge --delete-branch
+gh pr merge "$PR" --repo "$OWNER_REPO" --merge --delete-branch --match-head-commit "$HEAD_SHA"
 echo "✅ PR #$PR 머지 완료"
 
 # 로컬 head 브랜치 정리 — 원격은 --delete-branch로 삭제됨(로컬 복사본은 수동 삭제해야 누적을 막음).

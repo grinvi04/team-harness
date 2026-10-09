@@ -1,0 +1,570 @@
+{
+  "date": "2026-10-07",
+  "version": "0.81.0",
+  "mainPullRequest": {
+    "headRefOid": "641a996dcb787ebfd03d7b4ca3ee2b4190aa366d",
+    "mergeCommit": {
+      "oid": "9838c2ef288b4566f81fae03acb56530ee165c06"
+    },
+    "mergedAt": "2026-10-06T20:29:44Z",
+    "state": "MERGED",
+    "url": "https://github.com/grinvi04/team-harness/pull/489"
+  },
+  "releaseCandidate": "641a996dcb787ebfd03d7b4ca3ee2b4190aa366d",
+  "quality": {
+    "headRefOid": "641a996dcb787ebfd03d7b4ca3ee2b4190aa366d",
+    "mergeable": "MERGEABLE",
+    "reviewDecision": "REVIEW_REQUIRED",
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T20:26:58Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/grinvi04/team-harness/actions/runs/37526091474/job/112483348914",
+        "name": "quality",
+        "startedAt": "2026-10-06T20:23:39Z",
+        "status": "COMPLETED",
+        "workflowName": "ci-gate"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T20:23:45Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/grinvi04/team-harness/actions/runs/37526091596/job/112483350011",
+        "name": "commitlint-trusted",
+        "startedAt": "2026-10-06T20:23:39Z",
+        "status": "COMPLETED",
+        "workflowName": "commitlint-trusted"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T20:23:45Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/grinvi04/team-harness/actions/runs/37526091564/job/112483347711",
+        "name": "test-guard",
+        "startedAt": "2026-10-06T20:23:39Z",
+        "status": "COMPLETED",
+        "workflowName": "test-guard"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T20:23:53Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/grinvi04/team-harness/actions/runs/37526091474/job/112483348655",
+        "name": "atomic-trust-macos",
+        "startedAt": "2026-10-06T20:23:43Z",
+        "status": "COMPLETED",
+        "workflowName": "ci-gate"
+      },
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-10-06T20:23:46Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/grinvi04/team-harness/actions/runs/37526091474/job/112483348217",
+        "name": "secret-scan",
+        "startedAt": "2026-10-06T20:23:39Z",
+        "status": "COMPLETED",
+        "workflowName": "ci-gate"
+      }
+    ]
+  },
+  "independentReview": {
+    "candidate": "641a996dcb787ebfd03d7b4ca3ee2b4190aa366d",
+    "role": "harness-verifier",
+    "findingCount": 0,
+    "scope": "main..candidate19 paths; develop..candidate only3 docs; version/changelog/code identity/current main protection/previous evidence checked",
+    "limitations": "No new security or whole local quality rerun; prior validated code evidence reused, current candidate remote quality passed"
+  },
+  "approvalException": {
+    "userAuthorization": "예, 이번 PR만 해제·복원 후 발행",
+    "scope": "PR489 main review requirement only; CI and remaining protections unchanged",
+    "command": "bash plugins/harness-guard/scripts/solo-merge.sh 489",
+    "exitCode": 0,
+    "stdoutStderr": "🔓 break-glass: main 승인요건 일시 삭제(머지 후 복구)\n게이트 검증: grinvi04/team-harness PR #489\n  CI: required green\n  미해결 스레드: 0\n  mergeable: MERGEABLE\n게이트 통과 → 머지\n✅ PR #489 머지 완료\n🧹 로컬 브랜치 삭제: release/v0.81.0 (원격은 이미 삭제됨)\n🔒 복구 확인: main 승인요건 count=1\n✅ solo-merge 완료 — PR #489 MERGED\n",
+    "originalProtection": {
+      "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection",
+      "required_status_checks": {
+        "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/required_status_checks",
+        "strict": true,
+        "contexts": [
+          "quality",
+          "secret-scan",
+          "test-guard",
+          "atomic-trust-macos",
+          "commitlint-trusted"
+        ],
+        "contexts_url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/required_status_checks/contexts",
+        "checks": [
+          {
+            "context": "quality",
+            "app_id": 15368
+          },
+          {
+            "context": "secret-scan",
+            "app_id": 15368
+          },
+          {
+            "context": "test-guard",
+            "app_id": 15368
+          },
+          {
+            "context": "atomic-trust-macos",
+            "app_id": null
+          },
+          {
+            "context": "commitlint-trusted",
+            "app_id": 15368
+          }
+        ]
+      },
+      "required_pull_request_reviews": {
+        "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/required_pull_request_reviews",
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": false,
+        "require_last_push_approval": false,
+        "required_approving_review_count": 1
+      },
+      "required_signatures": {
+        "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/required_signatures",
+        "enabled": false
+      },
+      "enforce_admins": {
+        "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/enforce_admins",
+        "enabled": true
+      },
+      "required_linear_history": {
+        "enabled": false
+      },
+      "allow_force_pushes": {
+        "enabled": false
+      },
+      "allow_deletions": {
+        "enabled": false
+      },
+      "block_creations": {
+        "enabled": false
+      },
+      "required_conversation_resolution": {
+        "enabled": true
+      },
+      "lock_branch": {
+        "enabled": false
+      },
+      "allow_fork_syncing": {
+        "enabled": false
+      }
+    },
+    "restoredProtection": {
+      "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection",
+      "required_status_checks": {
+        "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/required_status_checks",
+        "strict": true,
+        "contexts": [
+          "quality",
+          "secret-scan",
+          "test-guard",
+          "atomic-trust-macos",
+          "commitlint-trusted"
+        ],
+        "contexts_url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/required_status_checks/contexts",
+        "checks": [
+          {
+            "context": "quality",
+            "app_id": 15368
+          },
+          {
+            "context": "secret-scan",
+            "app_id": 15368
+          },
+          {
+            "context": "test-guard",
+            "app_id": 15368
+          },
+          {
+            "context": "atomic-trust-macos",
+            "app_id": null
+          },
+          {
+            "context": "commitlint-trusted",
+            "app_id": 15368
+          }
+        ]
+      },
+      "required_pull_request_reviews": {
+        "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/required_pull_request_reviews",
+        "dismiss_stale_reviews": true,
+        "require_code_owner_reviews": false,
+        "require_last_push_approval": false,
+        "required_approving_review_count": 1
+      },
+      "required_signatures": {
+        "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/required_signatures",
+        "enabled": false
+      },
+      "enforce_admins": {
+        "url": "https://api.github.com/repos/grinvi04/team-harness/branches/main/protection/enforce_admins",
+        "enabled": true
+      },
+      "required_linear_history": {
+        "enabled": false
+      },
+      "allow_force_pushes": {
+        "enabled": false
+      },
+      "allow_deletions": {
+        "enabled": false
+      },
+      "block_creations": {
+        "enabled": false
+      },
+      "required_conversation_resolution": {
+        "enabled": true
+      },
+      "lock_branch": {
+        "enabled": false
+      },
+      "allow_fork_syncing": {
+        "enabled": false
+      }
+    },
+    "entireProtectionEqual": true
+  },
+  "tag": {
+    "name": "v0.81.0",
+    "target": "9838c2ef288b4566f81fae03acb56530ee165c06",
+    "remoteTarget": "9838c2ef288b4566f81fae03acb56530ee165c06",
+    "command": "git tag v0.81.0 <verified-main-merge>; git push origin refs/tags/v0.81.0",
+    "exitCode": 0,
+    "tagMainCandidateTreeEqual": true
+  },
+  "publicationHealth": {
+    "httpStagingProduction": "SKIP: no application server/database or deployment in this harness",
+    "versions": "PASS: both manifests, README, intro0.81.0",
+    "taggedChangelog": "PASS: generate-changelog --release v0.81.0 byte identical after tag",
+    "command": "node scripts/build-release-bundle.mjs --output /tmp/harness-release081-tagged-bundle",
+    "exitCode": 0,
+    "manifest": {
+      "schemaVersion": 1,
+      "version": "0.81.0",
+      "sourceCommit": "9838c2ef288b4566f81fae03acb56530ee165c06",
+      "sourceArchive": {
+        "path": "team-harness-v0.81.0-source.tar",
+        "sha256": "5a8c090331e7c38e7052f6434f958dfcb177e7841bb7542112c400c19b4d6de6"
+      },
+      "installable": false,
+      "packages": [
+        {
+          "path": "packages/harness-claude-adapter/.claude-plugin/plugin.json",
+          "sha256": "14a0f1aad6b70741729120420460e4757871dcb800681411e3b0a3b0454c63cc"
+        },
+        {
+          "path": "packages/harness-claude-adapter/.codex-plugin/plugin.json",
+          "sha256": "fd6afcba2cda0ed8aa73dfb1dee5b982c10858a3ea2a786db78a447bc4734c56"
+        },
+        {
+          "path": "packages/harness-claude-adapter/agents/security-reviewer.md",
+          "sha256": "25571bc57d77d67d7f6adcf9f7f28343a4e725a25e08dd16fcd658a407807360"
+        },
+        {
+          "path": "packages/harness-claude-adapter/agents/verifier.md",
+          "sha256": "2204f1970d9243d6fe836a057519f480fbd933793d49db4f8fbc10b380c0fd4e"
+        },
+        {
+          "path": "packages/harness-claude-adapter/harness-package.json",
+          "sha256": "93b6b8db93b0e9a58fc641bf91798d78b47ed2ee60e3b6549a3d9a84f5226221"
+        },
+        {
+          "path": "packages/harness-claude-adapter/hooks/hooks.json",
+          "sha256": "64ca9a733316876d0d4f3dc83c5a03996a91b8f0dc03bd4260e9b0d21f0a6844"
+        },
+        {
+          "path": "packages/harness-claude-adapter/scripts/enforce-subagent-model.py",
+          "sha256": "5d32d57e6c202dab62a727591f38e29d4629c57d55f85fa3ea952871dd424df7"
+        },
+        {
+          "path": "packages/harness-codex-adapter/.claude-plugin/plugin.json",
+          "sha256": "991d44558e41c858e6d8afa11bc4385bdc21655c0a16cbf65653ddd686351a85"
+        },
+        {
+          "path": "packages/harness-codex-adapter/.codex-plugin/plugin.json",
+          "sha256": "46bc4a7cb196736dfe224a76da56b9e9ddd5de7a6c709bd86db4aad4d7153818"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/hooks/hooks.json",
+          "sha256": "a5304b28e4b816c2d57ce0cd00daf628ff0487b7c9fbb42e8cae883edde6938b"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/native-runtime.md",
+          "sha256": "55a3cdea6ed4decca4c785c86726b192ac5e3e20c7d1f7836e0ffb6fd4be986b"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/ao-coordinate/SKILL.md",
+          "sha256": "b41a06f9422be98298545ccce4bafee854965bcaaaf65ec2de27e98dea57960c"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/feature-add/SKILL.md",
+          "sha256": "060b7ee7ecaa4688681f7a72fd2826520843755458cfc39d7d5ec0f5c4e70db4"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/feature-merge/SKILL.md",
+          "sha256": "c664863eab22b3ebf34c4b15abdeb5863ddae98b49c62dbaa0e02586459dc4b6"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/feature-modify/SKILL.md",
+          "sha256": "49a1bdc8970c52d4b709e411e947d297bbfd15b86e29ac3f5a0f3acc7422c616"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/hotfix/SKILL.md",
+          "sha256": "6bce7eba21189b6ffeb7957a1b503bffcf06bb653a722f8d666b9e97f6d5aa7d"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/loop/SKILL.md",
+          "sha256": "2215e53abbf423a266cd983674d8f7eac72cdadcc86d5bbd6cbbd23f12715e8e"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/milestone/SKILL.md",
+          "sha256": "88e2ce2c41c06a35b7fcdf903189985961e3a172bce0ff6ac55ff5bb76c4ea19"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/plan/SKILL.md",
+          "sha256": "e6ed93233e92facb32ec524cc832f8989c0eae2cf9dbf7dcd6976a1a52498a1f"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/pr-create/SKILL.md",
+          "sha256": "1a1b210d6d8c66445874ca6de4ec5d5d8932130d6e0682f2041f18289a4dcee4"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/pr-review-gate/SKILL.md",
+          "sha256": "80d11666a7448f60b967faa5d9822f4dedd365d1eed3b7ad80073425f22686be"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/qa/SKILL.md",
+          "sha256": "cb05e17b4e7e355bc0f583d56303ea956d28f6c0ad1990e0c52707680ed28c8b"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/release/SKILL.md",
+          "sha256": "8474fed4892263c9fabd63411337e67f950b7035e04cb8657d5f6e1132e66c6c"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/release-check/SKILL.md",
+          "sha256": "4fb8370e07b2ce42c4d7cf9951d296cd9a2af73a8376d83b6cfe36e56c43bc03"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/repo-sync/SKILL.md",
+          "sha256": "1b127e1f1149aff851c6dac5fe340e0a23f94a2620b9e1bf58aa92951e45cbd8"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/solo-merge/SKILL.md",
+          "sha256": "386da25412ea743237f5cfa54edd0c8427aa411aac5e44d927264f511c54569a"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/systematic-debugging/SKILL.md",
+          "sha256": "fc67767cb35a4abfc36112caaaf612e96a74542abaa87d04135e738524adda84"
+        },
+        {
+          "path": "packages/harness-codex-adapter/codex/skills/verification-before-completion/SKILL.md",
+          "sha256": "f719147bfa5524765b4cbb9c5b99958033db217c3ae9ed8b1b6435c07c755c5e"
+        },
+        {
+          "path": "packages/harness-codex-adapter/harness-package.json",
+          "sha256": "09572c43762667eb2e2474811b8f5fae5b6130d4e0df533d346dec2e10b9e06c"
+        },
+        {
+          "path": "packages/harness-codex-adapter/scripts/codex-pretool-guard.mjs",
+          "sha256": "647227b5f67666180eac25bad7678f4a7a452f6622effe681234c18ac7657edd"
+        },
+        {
+          "path": "packages/harness-codex-adapter/scripts/codex-secret-egress-guard.mjs",
+          "sha256": "1855fc7682a2b8d68f506a0cc4d548ffddb25e9e409e797343ec88af4ce51026"
+        },
+        {
+          "path": "packages/harness-codex-adapter/scripts/codex-security-guidance-adapter.mjs",
+          "sha256": "d3cfda191c0e8f787770e4550c01f49fd20bc77815ad815e2f421937d7d12c5a"
+        },
+        {
+          "path": "packages/harness-codex-adapter/scripts/patch-codex-security-guidance.mjs",
+          "sha256": "eb75dd198f1970eab4a68531f4c1f3a2fb09ce4a92fe2214414ed6a0ce0cb656"
+        },
+        {
+          "path": "packages/harness-governance-core/.claude-plugin/plugin.json",
+          "sha256": "9d6eb7ab1e92cdc076e847946aab79d558d8cd1d11dc97aadb22c2f1d1c55fda"
+        },
+        {
+          "path": "packages/harness-governance-core/.codex-plugin/plugin.json",
+          "sha256": "78ad84d3bbe188c683a07593af7bae0f69f4e8dd5cb02cdbcd2e675283d513ca"
+        },
+        {
+          "path": "packages/harness-governance-core/harness-package.json",
+          "sha256": "544102fdc986731ac93b9903d634aef388a72b0ee30d2444e8c09ff93d6a5e0c"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/check-document-sync.mjs",
+          "sha256": "95547e190ed8c3dab1851a9402134e005ddae445011b9413d647e35a053d7674"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/check-repo-sync.mjs",
+          "sha256": "564e34741953c7cf2b851235f21ec50c39c97f804845337e247abb8dd94dd82c"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/guard.sh",
+          "sha256": "f779abd97410c6461aaa0cf19bfa39ed2c2f117e00a82056f6692cff643c3fe2"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/lib/tokenize.sh",
+          "sha256": "6597e93baf21900d0aa2b48f105a0bad0e053b3a774af5b0e86d43eb3fc06ac4"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/pr-create.sh",
+          "sha256": "52ac991950b492c912792bdcc3a50715a99608d5092a3ab3a1d3d83e54b7e3c3"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/pr-merge.sh",
+          "sha256": "c5d368d82fcdc8eef01c5d86a45f40c7cf3d12e9e165802970a0c29bad3df803"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/route-intent.mjs",
+          "sha256": "ef4814fcfbf66ad9c1a126eb5259dcb8315a308ec08bf65a920f86140069f4fe"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/run-with-timeout.mjs",
+          "sha256": "200f33ab803ba72ee07b31136969f3845b9a15ad1f6815afb5006aad3dbe6ae1"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/set-branch-protection.sh",
+          "sha256": "53ca1123fa96ee07d4d10abd684e5530450f7fc0b7454d4393ad7fb7a4a0450a"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/solo-merge.sh",
+          "sha256": "81a38a6b14661878bf16d882095555ee260582bd8df26f20cc7b946c1ae9e9ce"
+        },
+        {
+          "path": "packages/harness-governance-core/scripts/worktree-fingerprint.mjs",
+          "sha256": "7255f751d2b92ce1c246cd59bbb0766a378f82c593b73e2692d14c4c5a24dac8"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/feature-merge/SKILL.md",
+          "sha256": "e34804ece6a9ebfb9ffad233dfdaf98d8161469925a82275b490da9de8a8baf6"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/hotfix/SKILL.md",
+          "sha256": "3125c36376107940cb44d5fbb7c454e5f57eda34c73548069324d13a8b756978"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/pr-create/SKILL.md",
+          "sha256": "6820231fe2cf012ef805689238b301e4e4742aaf816e51a483b19793e2def9fb"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/pr-review-gate/SKILL.md",
+          "sha256": "2529d408dacce71469853b9b1376a64be008e6b0bb47c54ef2b733224356f12b"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/release/SKILL.md",
+          "sha256": "ed6fa7cef6594e4675b77b3aabd6d707638d629d8c750c65968f05dc30a19639"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/release-check/SKILL.md",
+          "sha256": "7cc805c8473f658510b2351148a9997f077eed4a3b0007c7d4f5a28154e0747e"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/repo-sync/SKILL.md",
+          "sha256": "220ad1728e63419d63ea898868754990effe35784b25a9c1f9e77aa0abd5986f"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/solo-merge/SKILL.md",
+          "sha256": "fdfa69f23ea4eb92c00415ced51838eec8f6adae64035fe5fb9f3522a7056717"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/verification-before-completion/agents/openai.yaml",
+          "sha256": "9aa3d688a78d4d532ab2b90837e521562ed4c6affdc80d491030422dfff6e1d7"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/verification-before-completion/risk-boundaries.md",
+          "sha256": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/verification-before-completion/SKILL.md",
+          "sha256": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2"
+        },
+        {
+          "path": "packages/harness-governance-core/skills/verification-before-completion/test-design.md",
+          "sha256": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255"
+        },
+        {
+          "path": "packages/harness-workflows/.claude-plugin/plugin.json",
+          "sha256": "078f238240401c45869737c358328a427686c56c5988e4d655723483aeac4abd"
+        },
+        {
+          "path": "packages/harness-workflows/.codex-plugin/plugin.json",
+          "sha256": "7af09fea8e421394ac3e9341ef658ed197250a83a0d0396d6c73c52c93cf982c"
+        },
+        {
+          "path": "packages/harness-workflows/harness-package.json",
+          "sha256": "5776f689439d7f262bc9bcebc719874fb332b5dfa5218e021759180f756ee32d"
+        },
+        {
+          "path": "packages/harness-workflows/skills/ao-coordinate/SKILL.md",
+          "sha256": "2154708bab759f98a2217e574924e9392e0d3c16ecc46a3a34b96ba369d9c36c"
+        },
+        {
+          "path": "packages/harness-workflows/skills/feature-add/SKILL.md",
+          "sha256": "f24ba44b2aee1fbd69a408ad11a9ac9c5224728628cc14d14a5a4b938d557b4f"
+        },
+        {
+          "path": "packages/harness-workflows/skills/feature-modify/SKILL.md",
+          "sha256": "656c168f7a292928f25605506db044c7ee827ea539975060e9b0043c5f9c3c12"
+        },
+        {
+          "path": "packages/harness-workflows/skills/loop/SKILL.md",
+          "sha256": "e3ed29fa0b8e105d5644a006f72ea871c3df60aa4ec68a242229fe4f84ed322a"
+        },
+        {
+          "path": "packages/harness-workflows/skills/milestone/SKILL.md",
+          "sha256": "9301ed3885c445dcd7b9bb3568776cb358c7f065ed9e537a286ca5df7ef4385f"
+        },
+        {
+          "path": "packages/harness-workflows/skills/plan/SKILL.md",
+          "sha256": "983e073df9a18d50775661b1f9e8601a76cd2da7289852fb40ceb1dd18aa5b02"
+        },
+        {
+          "path": "packages/harness-workflows/skills/qa/SKILL.md",
+          "sha256": "5f6230ad6a85a2dd21d8c2caa72ae36faeddd733636a1c3f585754b8407e48e8"
+        },
+        {
+          "path": "packages/harness-workflows/skills/systematic-debugging/agents/openai.yaml",
+          "sha256": "048fcf7532097a1cd6c91b6d2b661da9503c5fcef04d386815c884808b20f9f0"
+        },
+        {
+          "path": "packages/harness-workflows/skills/systematic-debugging/SKILL.md",
+          "sha256": "42d184bc18c20fc695884f11355f299ab3f7c415c7dc12b8c0116425c4e2eead"
+        }
+      ]
+    },
+    "checksumCommand": "shasum -a 256 -c SHA256SUMS",
+    "checksumCwd": "/tmp/harness-release081-tagged-bundle",
+    "checksumExitCode": 0,
+    "checksumEntries": 73,
+    "checksumStdout": "packages/harness-claude-adapter/.claude-plugin/plugin.json: OK\npackages/harness-claude-adapter/.codex-plugin/plugin.json: OK\npackages/harness-claude-adapter/agents/security-reviewer.md: OK\npackages/harness-claude-adapter/agents/verifier.md: OK\npackages/harness-claude-adapter/harness-package.json: OK\npackages/harness-claude-adapter/hooks/hooks.json: OK\npackages/harness-claude-adapter/scripts/enforce-subagent-model.py: OK\npackages/harness-codex-adapter/.claude-plugin/plugin.json: OK\npackages/harness-codex-adapter/.codex-plugin/plugin.json: OK\npackages/harness-codex-adapter/codex/hooks/hooks.json: OK\npackages/harness-codex-adapter/codex/native-runtime.md: OK\npackages/harness-codex-adapter/codex/skills/ao-coordinate/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/feature-add/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/feature-merge/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/feature-modify/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/hotfix/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/loop/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/milestone/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/plan/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/pr-create/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/pr-review-gate/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/qa/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/release/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/release-check/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/repo-sync/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/solo-merge/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/systematic-debugging/SKILL.md: OK\npackages/harness-codex-adapter/codex/skills/verification-before-completion/SKILL.md: OK\npackages/harness-codex-adapter/harness-package.json: OK\npackages/harness-codex-adapter/scripts/codex-pretool-guard.mjs: OK\npackages/harness-codex-adapter/scripts/codex-secret-egress-guard.mjs: OK\npackages/harness-codex-adapter/scripts/codex-security-guidance-adapter.mjs: OK\npackages/harness-codex-adapter/scripts/patch-codex-security-guidance.mjs: OK\npackages/harness-governance-core/.claude-plugin/plugin.json: OK\npackages/harness-governance-core/.codex-plugin/plugin.json: OK\npackages/harness-governance-core/harness-package.json: OK\npackages/harness-governance-core/scripts/check-document-sync.mjs: OK\npackages/harness-governance-core/scripts/check-repo-sync.mjs: OK\npackages/harness-governance-core/scripts/guard.sh: OK\npackages/harness-governance-core/scripts/lib/tokenize.sh: OK\npackages/harness-governance-core/scripts/pr-create.sh: OK\npackages/harness-governance-core/scripts/pr-merge.sh: OK\npackages/harness-governance-core/scripts/route-intent.mjs: OK\npackages/harness-governance-core/scripts/run-with-timeout.mjs: OK\npackages/harness-governance-core/scripts/set-branch-protection.sh: OK\npackages/harness-governance-core/scripts/solo-merge.sh: OK\npackages/harness-governance-core/scripts/worktree-fingerprint.mjs: OK\npackages/harness-governance-core/skills/feature-merge/SKILL.md: OK\npackages/harness-governance-core/skills/hotfix/SKILL.md: OK\npackages/harness-governance-core/skills/pr-create/SKILL.md: OK\npackages/harness-governance-core/skills/pr-review-gate/SKILL.md: OK\npackages/harness-governance-core/skills/release/SKILL.md: OK\npackages/harness-governance-core/skills/release-check/SKILL.md: OK\npackages/harness-governance-core/skills/repo-sync/SKILL.md: OK\npackages/harness-governance-core/skills/solo-merge/SKILL.md: OK\npackages/harness-governance-core/skills/verification-before-completion/agents/openai.yaml: OK\npackages/harness-governance-core/skills/verification-before-completion/risk-boundaries.md: OK\npackages/harness-governance-core/skills/verification-before-completion/SKILL.md: OK\npackages/harness-governance-core/skills/verification-before-completion/test-design.md: OK\npackages/harness-workflows/.claude-plugin/plugin.json: OK\npackages/harness-workflows/.codex-plugin/plugin.json: OK\npackages/harness-workflows/harness-package.json: OK\npackages/harness-workflows/skills/ao-coordinate/SKILL.md: OK\npackages/harness-workflows/skills/feature-add/SKILL.md: OK\npackages/harness-workflows/skills/feature-modify/SKILL.md: OK\npackages/harness-workflows/skills/loop/SKILL.md: OK\npackages/harness-workflows/skills/milestone/SKILL.md: OK\npackages/harness-workflows/skills/plan/SKILL.md: OK\npackages/harness-workflows/skills/qa/SKILL.md: OK\npackages/harness-workflows/skills/systematic-debugging/agents/openai.yaml: OK\npackages/harness-workflows/skills/systematic-debugging/SKILL.md: OK\nRELEASE-MANIFEST.json: OK\nteam-harness-v0.81.0-source.tar: OK\n",
+    "sha256sumsDigest": "09df181af344cae3250171ac5c9aaf522620a52c444c05dbc9c07edcac621f58"
+  },
+  "backMerge": {
+    "stateAtRecord": "preparing sync/backmerge-v0.81.0 from tagged main; not merged",
+    "stateSource": "PR490 current head, CI, review and merge state; stateAtRecord above is a historical pre-creation snapshot",
+    "pullRequest": "https://github.com/grinvi04/team-harness/pull/490"
+  },
+  "scopeLimits": [
+    "No global plugin installation",
+    "No consumer project edits or deployment",
+    "Split package installable:false remains",
+    "No live model, live egress, positive native signature or consumer QA added by release"
+  ],
+  "backMergeIndependentReview": {
+    "candidate": "ea2bb64ac2d12063dac5ae44f15ae1d2e7a1d879",
+    "role": "harness-verifier",
+    "scope": "doc4 delta, actual tag/protection/bundle/native publication health source",
+    "initialFinding": "LOW: restored required approval count=1 wording could be read as an actual human approval; actual PR489 reviews=[]",
+    "remediation": "Explicitly distinguish required approval policy count=1 restoration from actual human approval in three documents",
+    "verified": "Protection full equality, local/remote tag/main SHA, bundle checksum73, version and changelog identity",
+    "limits": "Backmerge CI/merge still pending; no new security execution"
+  }
+}

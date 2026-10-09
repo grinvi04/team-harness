@@ -1,0 +1,154 @@
+{
+  "task": "4F common technical standard assurance boundaries",
+  "date": "2026-10-09",
+  "workflow": "existing approved executing-plans; ordinary scoped document correction with synthetic observations/content checks; no new mirrored production tests",
+  "status": "owned document correction verified locally; root independent review pending",
+  "scope": [
+    "docs/api-standards.md",
+    "docs/db-standards.md",
+    "docs/specs/harness-modernization/execution-d4f.json",
+    ".superpowers/sdd/harness-modernization/d4f/ ignored isolated evidence"
+  ],
+  "source_revision": "bbd069db3df2c8004e802d7dc3fed8d17e172e93",
+  "baseline": {
+    "docs/api-standards.md": {
+      "sha256": "586582aed1f090ed95b3571fbdca6f27ca0e90a89acf3b2cf90a25a9f588c65c",
+      "bytes": 5052,
+      "lines": 83
+    },
+    "docs/db-standards.md": {
+      "sha256": "9dfdbbc959a67e15444d03fe61849e14707d2b4a76095c780fb2e14f9df4057c",
+      "bytes": 7551,
+      "lines": 108
+    },
+    "head": "bbd069db3df2c8004e802d7dc3fed8d17e172e93",
+    "consumer_app_path_observation": {
+      "/Applications/Microsoft Excel.app": true,
+      "/Applications/LibreOffice.app": false,
+      "/Applications/Numbers.app": false
+    }
+  },
+  "candidate": {
+    "docs/api-standards.md": {
+      "lines": 110,
+      "bytes": 8159,
+      "sha256": "d97b321b0d6b3627cd3e20f84a9a4445a86332f7860fb84b4f43fc7a256a9a91"
+    },
+    "docs/db-standards.md": {
+      "lines": 122,
+      "bytes": 9084,
+      "sha256": "d9edcb7078455344faa20e2ed0d97b07b483ce2149e8b2c13b3a8b6f3a5dd860"
+    }
+  },
+  "changes": [
+    "CSV quoting/escape separated from formula interpretation; prefix/import/text-cell mitigation explicitly consumer/version/locale/resave conditional.",
+    "Generated OpenAPI/types reduce duplication but do not automatically prove auth/error/requirements/description drift; operation diff and actual runtime boundary checks required.",
+    "Money representation shared across DB/API/clients with currency/unit/scale/range/rounding mode/time; bounded number only, otherwise decimal string or explicitly scaled minor-unit integer; safe-integer aggregation and lossy coercion boundaries stated."
+  ],
+  "original_claims": ".superpowers/sdd/harness-modernization/d4f/original-claims-red.json",
+  "sources": [
+    {
+      "url": "https://community.owasp.org/attacks/CSV_Injection",
+      "supports": "Quotes do not neutralize formulas; apostrophe escape may fail on Excel re-save; quoted TAB observation specific to Excel and alters data; no universal sanitizer."
+    },
+    {
+      "url": "https://support.microsoft.com/en-us/excel/text-import-wizard",
+      "supports": "Text column import is selectable; file interpretation depends on import path/settings."
+    },
+    {
+      "url": "https://support.microsoft.com/en-us/excel/get-started/import-or-export-text-txt-or-csv-files",
+      "supports": "Direct CSV opening uses default data-format settings; text import and save/export routes differ."
+    },
+    {
+      "url": "https://support.google.com/docs/answer/40608?hl=en",
+      "supports": "Sheets CSV import has import/separator options; no neutralization guarantee inferred."
+    },
+    {
+      "url": "https://support.google.com/docs/answer/9331167?hl=en",
+      "supports": "Sheets can export Excel/CSV and other formats; export support is not formula safety proof."
+    },
+    {
+      "url": "https://spec.openapis.org/oas/v3.2.1.html#responses-object",
+      "supports": "Operation descriptions should cover successful responses and known errors; format is not implementation proof."
+    },
+    {
+      "url": "https://spec.openapis.org/oas/v3.2.1.html#security-requirement-object",
+      "supports": "Security requirements declare schemes; operation overrides and anonymous requirements possible; description is distinct from runtime enforcement."
+    },
+    {
+      "url": "https://www.rfc-editor.org/rfc/rfc8259.html#section-6",
+      "supports": "JSON implementations can limit numeric range/precision; interoperable exact integer range is bounded."
+    },
+    {
+      "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number/MAX_SAFE_INTEGER",
+      "supports": "JS Number safe integer maximum2^53-1; adjacent larger integers can compare equal."
+    },
+    {
+      "url": "https://www.postgresql.org/docs/18/datatype-numeric.html#DATATYPE-NUMERIC-DECIMAL",
+      "supports": "numeric scale coercion rounds before range enforcement; exact ties round away from zero; DB does not guarantee downstream client precision."
+    }
+  ],
+  "commands": [
+    {
+      "command": "python3 .superpowers/sdd/harness-modernization/d4f/observe-csv.py",
+      "exit": 0,
+      "raw": ".superpowers/sdd/harness-modernization/d4f/csv-red.log"
+    },
+    {
+      "command": "node .superpowers/sdd/harness-modernization/d4f/observe-number.mjs",
+      "exit": 0,
+      "raw": ".superpowers/sdd/harness-modernization/d4f/number-red.log"
+    },
+    {
+      "command": "git diff --check -- docs/api-standards.md docs/db-standards.md",
+      "exit": 0,
+      "raw": ".superpowers/sdd/harness-modernization/d4f/diff-check.log"
+    }
+  ],
+  "consumer_observation": {
+    "app": "Microsoft Excel for Mac16.113.4",
+    "fixture": "safe SUM(1,2), apostrophe/space/TAB variants, ordinary comma/quote text",
+    "result": "Quoted-only formula executed3 on initial direct local open; save exported3; closed/reopened file A1 formula bar3; A2 retained apostrophe-prefixed literal. This route-specific observation does not prove general neutralization.",
+    "UI_commands": [
+      "excel = await cua.getApp('Microsoft Excel')",
+      "excel.pressKey('super+o')",
+      "excel.pressKey('super+shift+g')",
+      "excel.setValue(PathTextField, absolute isolated synthetic.csv); pressKey('Return')",
+      "excel.click(observed Open button); getAXState(); getScreenshot()",
+      "excel.pressKey('super+s'); getAXState()",
+      "excel.pressKey('super+w'); getAXState()",
+      "excel.click(observed exact synthetic recent row,{clickCount:2}); getAXState()",
+      "excel.setValue(observed NameBox,'A2'); pressKey('Return'); getAXState()",
+      "excel.getAXState({emit:false,disableDiffing:true}); retain synthetic-only excerpt; close test workbook"
+    ],
+    "raw": ".superpowers/sdd/harness-modernization/d4f/excel-observation.json",
+    "AX_excerpt": ".superpowers/sdd/harness-modernization/d4f/excel-ax-observation.txt",
+    "before_csv": ".superpowers/sdd/harness-modernization/d4f/synthetic-before-excel.csv",
+    "after_csv": ".superpowers/sdd/harness-modernization/d4f/synthetic-after-excel.csv",
+    "screenshot": "Actual CUA screenshot observed in tool transcript; not saved as a standalone file.",
+    "UI_first_retry": "Immediate GoTo paste did not set intended path; fresh AX PathTextField setValue corrected target before opening. No unintended workbook opened.",
+    "side_effects": "Saved/closed only isolated synthetic CSV; ordinary Excel recent-file metadata may update. No explicit app/global settings/login/auth/payment changes."
+  },
+  "content_verification": {
+    "result": "PASS <=199lines, real local file references, corrected guarantees reviewed; unrelated original sections retained",
+    "raw": ".superpowers/sdd/harness-modernization/d4f/content-green.log",
+    "line_counts": {
+      "docs/api-standards.md": 110,
+      "docs/db-standards.md": 122
+    },
+    "limits": "Content assertions/line checks do not prove product implementation or formula safety. No live API generator/DB test."
+  },
+  "UNVERIFIED": [
+    "Sheets consumer execution: no login/new account/upload requested or performed.",
+    "Other Excel versions/locales/import settings/formula prefixes and broader re-save paths; no universal prefix guarantee.",
+    "Actual product export implementations/typed workbook mitigation, generated OpenAPI requirements/auth/error enforcement, DB/ORM/frontend money roundtrip.",
+    "Independent final review/fullCI parent-owned."
+  ],
+  "non_actions": [
+    "No malicious/network formula payload; no consumer/application source changes, database/production tests, deployment, authentication or payment.",
+    "No Git staging/commits/global policy edits; only owned documents/record/isolated raw evidence changed."
+  ],
+  "direct_callers": "Existing filenames/headings retained; db-standards monetary subsection added; no caller/API path migration identified. Targeted rg in listed doc-tests/CI found no exact these-claim reader (exit1, no matches); broader gate root-owned.",
+  "first_failure": "Old quote-as-neutralization claim contradicted before document edits by preserved =SUM(1,2) CSV text and actual Excel result3; old money assumption contradicted by Node actual numbers.",
+  "next": "Root independent semantic review and integration checks. Each product defines actual supported consumer/precision/rounding contract and verifies it within approved product scope before claiming PASS."
+}

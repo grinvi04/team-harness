@@ -1,0 +1,97 @@
+{
+  "claude_allow_rules": [
+    {
+      "tool": "Bash",
+      "tokens": [
+        "gh",
+        "pr",
+        "<operand>"
+      ]
+    },
+    {
+      "tool": "Bash",
+      "tokens": [
+        "gh",
+        "api",
+        "<operand>",
+        "DELETE",
+        "<path-pattern>"
+      ]
+    },
+    {
+      "tool": "Bash",
+      "tokens": [
+        "gh",
+        "api",
+        "<operand>",
+        "PATCH",
+        "<path-pattern>"
+      ]
+    }
+  ],
+  "shell_wrapper_source": {
+    "head": "f7aa616774b2de315674981b2ab22934414ad1c9",
+    "status": []
+  },
+  "wrapper_matches_reviewed_worktree": true,
+  "harness_marketplace": {
+    "source_type": "git",
+    "ref": "v0.81.0"
+  },
+  "codex_harness_cache_versions": [
+    {
+      "folder": "0.81.0",
+      "manifest_version": "0.81.0",
+      "manifest_present": true
+    }
+  ],
+  "desktop_state_inventory": {
+    "top_level_keys": [
+      "remote-project-connection-backfill-completed",
+      "electron-local-remote-control-installation-id",
+      "primary-runtime-update-jitter-ms",
+      "electron-persisted-atom-state",
+      "electron-main-window-bounds",
+      "projectless-thread-ids",
+      "thread-workspace-root-hints",
+      "thread-projectless-output-directories",
+      "electron-local-remote-control-environment-id",
+      "codex-mobile-has-connected-device",
+      "electron-saved-workspace-roots",
+      "project-order",
+      "active-workspace-roots",
+      "electron-internal-update-cdn-enabled",
+      "computer-use-bundled-plugin-auto-install-disabled",
+      "electron-openai-mcp-form-elicitations-enabled",
+      "thread-writable-roots",
+      "electron-local-data-migration-id",
+      "electron-avatar-overlay-open",
+      "electron-avatar-overlay-bounds",
+      "queued-follow-ups",
+      "selected-remote-host-id",
+      "electron-completed-local-data-migration-ids",
+      "local-projects",
+      "selected-project",
+      "electron-remote-control-config-migration-completed",
+      "electron-mac-push-deregistration-token",
+      "electron-desktop-otraces-sample-rate",
+      "electron-remote-hosted-pip-task-visibility-state",
+      "electron-initial-follow-up-queue-mode",
+      "app-server-project-id-by-legacy-project-id-by-host",
+      "app-server-projects-migration-by-host",
+      "sidebar-project-thread-orders",
+      "project-appearances",
+      "thread-project-assignments",
+      "electron-thread-read-state-v1",
+      "electron-windows-core-runtime-frameworks-enabled",
+      "electron-windows-primary-runtime-frameworks-enabled",
+      "electron-managed-worktree-archives",
+      "electron-prefer-mxc-enabled",
+      "environment-catalog-cache-v1",
+      "electron-chrome-extension-sync-managed-plugin-ids",
+      "thread-project-membership-host-ids"
+    ],
+    "selected_controls": {}
+  },
+  "automation_files": []
+}

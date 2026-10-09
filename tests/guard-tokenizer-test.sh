@@ -73,6 +73,9 @@ eq "H scan env 뒤 reset"            "reset"   "$(git_subcommand_scan 'env A=x g
 eq "H scan git -C reset"            "reset"   "$(git_subcommand_scan 'git -C . reset --hard' || true)"
 eq "H scan 따옴표 mention 미스캔"    ""        "$(git_subcommand_scan "grep 'git reset --hard' notes.txt" || true)"
 eq "H scan 비-git 빈값"             ""        "$(git_subcommand_scan 'rm -rf src' || true)"
+eq "H absolute git command" "reset" "$(git_subcommand '/usr/bin/git reset --hard' || true)"
+eq "H quoted absolute git wrapper" "reset" "$(git_subcommand_scan 'env X=y "/usr/bin/git" -C . reset --hard' || true)"
+eq "H absolute git mention" "" "$(git_subcommand_scan 'echo "/usr/bin/git reset --hard"' || true)"
 
 # ── AC-T6(bash 3.2)·AC-T7(파서 무의존)은 실행 환경 자체로 커버:
 #    이 테스트가 python3/jq 없이 순수 bash로 함수를 source·실행해 통과하면 두 AC 충족.

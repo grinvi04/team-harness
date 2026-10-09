@@ -300,19 +300,44 @@ function normalizeSql(s) {
       }
       while (i < n && s[i] !== '\n') i++; out += ' '; continue // MySQL '#' 라인주석 토큰-분리 차단
     }
-    if (c === '/' && c2 === '*') { i += 2; while (i < n && !(s[i] === '*' && s[i + 1] === '/')) i++; i = i < n ? i + 2 : n; out += ' '; continue }
+    if (c === '/' && c2 === '*') {
+      const start = i
+      i += 2
+      while (i < n && !(s[i] === '*' && s[i + 1] === '/')) i++
+      if (s[start + 2] === '!' && i < n) {
+        const rawBody = s.slice(start + 3, i)
+        const digits = rawBody.match(/^\d+/)?.[0] ?? ''
+        if (!digits || digits.length >= 5) {
+          const versionLength = !digits ? 0 : digits.length === 6 && (rawBody.length === 6 || /\s/.test(rawBody[6])) ? 6 : 5
+          out += ' ' + normalizeSql(rawBody.slice(versionLength)) + ' '
+        }
+      }
+      i = i < n ? i + 2 : n
+      out += ' '; continue
+    }
     if (c === "'") { i++; while (i < n) { if (s[i] === "'" && s[i + 1] === "'") { i += 2; continue } if (s[i] === "'") { i++; break } i++ } out += ' '; continue }
+    // 인용 식별자는 키워드를 숨기되 COLUMN 생략 DROP의 피연산자로 남긴다.
+    if (c === '"' || c === '`' || c === '[') {
+      const end = c === '[' ? ']' : c
+      i++
+      while (i < n) {
+        if (s[i] === end && s[i + 1] === end) { i += 2; continue }
+        if (s[i] === end) { i++; break }
+        i++
+      }
+      out += ' __identifier__ '; continue
+    }
     out += c; i++
   }
   return out
 }
 
 // ── 파괴 판정 규칙 ──────────────────────────────────────────
-// 수신자 무관 — 별칭·connection. 모두 매칭. ActiveRecord DSL은 괄호 생략 가능 → `\s*[( ]`(괄호 또는 공백).
+// 수신자 무관 — 별칭·connection. 모두 매칭. 괄호 생략 호출의 공백·탭도 구분자로 인정한다.
 const OP_DESTRUCTIVE = [
-  { label: 'drop_table', re: /\bdrop_table\s*[( ]/ },
-  { label: 'drop_join_table', re: /\bdrop_join_table\s*[( ]/ },
-  { label: 'remove_column(s)', re: /\bremove_columns?\s*[( ]/ },
+  { label: 'drop_table', re: /\bdrop_table(?:\s*\(|\s+)/ },
+  { label: 'drop_join_table', re: /\bdrop_join_table(?:\s*\(|\s+)/ },
+  { label: 'remove_column(s)', re: /\bremove_columns?(?:\s*\(|\s+)/ },
 ]
 // execute + 저수준 raw-SQL 실행 계열(exec_query/update/delete — 같은 데이터-손실 벡터). 수신자 무관.
 const EXEC_RE = /\b(?:execute|exec_query|exec_update|exec_delete)\b/
@@ -323,6 +348,8 @@ const SQL_DESTRUCTIVE = [
   { label: 'execute: DROP SCHEMA', re: /\bDROP\s+SCHEMA\b/i },
   { label: 'execute: TRUNCATE', re: /\bTRUNCATE\b(?!\s*\()/i }, // TRUNCATE(x,d) 수치함수 제외(오탐), TRUNCATE [TABLE] t는 차단
   { label: 'execute: DROP COLUMN', re: /\bDROP\s+COLUMN\b/i },
+  // COLUMN 생략은 ALTER TABLE의 컬럼 제거에서만 허용. 제약·인덱스·컬럼 속성 DROP은 비대상.
+  { label: 'execute: DROP COLUMN', re: /\bALTER\s+TABLE\b[^;]*?\bDROP\s+(?:IF\s+EXISTS\s+)?(?!(?:IF|COLUMN|CONSTRAINT|INDEX|KEY|PRIMARY|FOREIGN|CHECK|PARTITION|DEFAULT|NOT|IDENTITY|EXPRESSION)\b)[a-z_]\w*/i },
 ]
 const MARKER_RE = /migration-safety:\s*destructive-ok/i
 const DEF_RE = /^(?:private\s+|protected\s+|public\s+)?def\s+(?:self\.)?(\w+)/

@@ -112,3 +112,5 @@ Alembic `.py` 마이그레이션의 `upgrade()` 경로에 있는 승인마커 �
 3. **실 데이터 반증(webhook-service):** 실제 마이그레이션(파괴가 downgrade에만) → 통과. `downgrade`의 `op.drop_column`을 `upgrade`로 옮긴 사본 → exit 1. `op.execute("DROP TABLE …")` 주입본 → exit 1.
 4. **self-skip:** 리포 루트 스캔 시 마이그레이션 지문 없으면 exit 0.
 5. **PR:** `pr-create.sh --milestone audit-followup`로 #1 연결.
+
+2026-10-09 현재 지원 경계: [현대화 1C](harness-modernization/plan/01-safety.md#1c--유효한-마이그레이션-구문의-누락)와 [실행 증거](harness-modernization/execution-s1c.json)를 따른다. 위 당시 후보/결과는 보존한다.

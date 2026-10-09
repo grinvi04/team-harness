@@ -231,6 +231,107 @@ expect_fail "update가 외부 generation symlink 거부" node "$MANAGE" update -
 expect_ok "명시적 전체 제거" node "$MANAGE" remove --all --target "$TMP/repo-only"
 [ ! -e "$TMP/repo-only" ] && pass "전체 제거는 관리 대상만 삭제" || fail "전체 제거"
 
+
+# These catch raw JSON substitution, shell expansion/splitting, and doctor accepting
+# a path mentioned by a different command. Only temporary, harmless scripts run.
+if node --input-type=module - "$ROOT" "$TMP" <<'NODE'
+import assert from 'node:assert/strict'
+import { spawnSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+import { pathToFileURL } from 'node:url'
+const [root, temporary] = process.argv.slice(2)
+const { treeDigest } = await import(pathToFileURL(path.join(root, 'scripts/profile-doctor.mjs')))
+const run = (script, args) => spawnSync(process.execPath, [path.join(root, 'scripts', script), ...args], { encoding: 'utf8' })
+let failures = 0
+for (const name of ['ordinary', 'with spaces', 'with "quote', 'dollar-$HOME', 'with $(printf SUBSTITUTED)', 'with `printf SUBSTITUTED`', "with 'quote"]) {
+  try {
+    const target = path.join(temporary, name)
+    const install = run('manage-profile.mjs', ['install', '--profile', 'workflow-assisted', '--runtime', 'claude', '--target', target])
+    assert.equal(install.status, 0, `install failed: ${install.stderr}`)
+    const core = path.join(target, 'packages/harness-governance-core')
+    const adapter = path.join(target, 'packages/harness-claude-adapter')
+    const workflow = path.join(target, 'packages/harness-workflows')
+    const hooks = JSON.parse(fs.readFileSync(path.join(adapter, 'hooks/hooks.json'), 'utf8'))
+    fs.writeFileSync(path.join(core, 'scripts/guard.sh'), '#!/usr/bin/env bash\nprintf "guard\\n%s\\n" "$0" > "$HARNESS_HOOK_PROBE"\n')
+    fs.writeFileSync(path.join(core, 'scripts/route-intent.mjs'), 'import fs from "node:fs"; fs.writeFileSync(process.env.HARNESS_HOOK_PROBE, `route\\n${process.argv[1]}\\n`)\n')
+    fs.writeFileSync(path.join(core, 'scripts/pr-create.sh'), '#!/usr/bin/env bash\nprintf "pr\\n%s\\n" "$0" > "$HARNESS_HOOK_PROBE"\n')
+    const stateFile = path.join(target, 'profile-state.json')
+    const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'))
+    state.packages.find(entry => entry.unit === 'governance-core').digest = treeDigest(core)
+    fs.writeFileSync(stateFile, JSON.stringify(state))
+    const doctor = run('profile-doctor.mjs', ['--target', target])
+    assert.equal(doctor.status, 0, `doctor failed: ${doctor.stderr}`)
+    const commands = Object.values(hooks.hooks).flatMap(groups => groups.flatMap(group => group.hooks))
+    const output = path.join(temporary, 'hook-probe.txt')
+    for (const [file, kind] of [['guard.sh', 'guard'], ['route-intent.mjs', 'route']]) {
+      const command = commands.find(hook => hook.type === 'command' && hook.command.includes(`/scripts/${file}`))?.command
+      assert.ok(command, `missing ${file} hook`)
+      fs.rmSync(output, { force: true })
+      const executed = spawnSync('/bin/sh', ['-c', command], { encoding: 'utf8', env: { ...process.env, HARNESS_HOOK_PROBE: output } })
+      assert.equal(executed.status, 0, `${file} execution failed: ${executed.stderr}`)
+      assert.equal(fs.readFileSync(output, 'utf8'), `${kind}\n${path.join(core, 'scripts', file)}\n`, 'hook must execute intended script and preserve literal path')
+    }
+    const loop = ['SKILL.md', 'iteration.md'].map(file => fs.readFileSync(path.join(workflow, 'skills/loop', file), 'utf8')).join('\n')
+    const assignments = loop.match(/^PLUGIN_ROOT=.*$/gm)
+    assert.ok(assignments?.length, 'loop assignment missing')
+    for (const assignment of assignments) {
+      const executed = spawnSync('/bin/sh', ['-c', `${assignment}\nprintf '%s' "$PLUGIN_ROOT"`], { encoding: 'utf8' })
+      assert.equal(executed.status, 0)
+      assert.equal(executed.stdout, core, 'loop assignment must preserve literal core path')
+    }
+    const milestone = fs.readFileSync(path.join(workflow, 'skills/milestone/SKILL.md'), 'utf8')
+    const command = milestone.match(/^bash .*scripts\/pr-create\.sh.*$/m)?.[0]
+    assert.ok(command, 'milestone command missing')
+    fs.rmSync(output, { force: true })
+    const executed = spawnSync('/bin/sh', ['-c', command], { encoding: 'utf8', env: { ...process.env, HARNESS_HOOK_PROBE: output } })
+    assert.equal(executed.status, 0, `milestone execution failed: ${executed.stderr}`)
+    assert.equal(fs.readFileSync(output, 'utf8'), `pr\n${path.join(core, 'scripts/pr-create.sh')}\n`)
+    console.log(`PASS path binding runtime: ${JSON.stringify(name)}`)
+  } catch (error) {
+    failures += 1
+    console.error(`FAIL path binding runtime: ${JSON.stringify(name)}: ${error.message}`)
+  }
+}
+const target = path.join(temporary, 'ordinary')
+const adapter = path.join(target, 'packages/harness-claude-adapter')
+const hookFile = path.join(adapter, 'hooks/hooks.json')
+const hooks = JSON.parse(fs.readFileSync(hookFile, 'utf8'))
+const guard = hooks.hooks.PreToolUse[0].hooks[0]
+const validCommand = guard.command
+for (const command of [`echo ${validCommand}`, `echo skipped # ${validCommand}`, `${validCommand}; echo extra`, `${validCommand} >/dev/null`]) {
+  guard.command = command
+  fs.writeFileSync(hookFile, JSON.stringify(hooks))
+  const stateFile = path.join(target, 'profile-state.json')
+  const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'))
+  state.packages.find(entry => entry.unit === 'claude-adapter').digest = treeDigest(adapter)
+  fs.writeFileSync(stateFile, JSON.stringify(state))
+  const doctor = run('profile-doctor.mjs', ['--target', target])
+  if (doctor.status === 0) {
+    failures += 1
+    console.error(`FAIL doctor accepted non-contract command: ${JSON.stringify(command)}`)
+  } else console.log(`PASS doctor rejects non-contract command: ${JSON.stringify(command)}`)
+}
+guard.command = 'echo skipped'
+hooks.metadata = { type: 'command', command: validCommand }
+fs.writeFileSync(hookFile, JSON.stringify(hooks))
+const stateFile = path.join(target, 'profile-state.json')
+const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'))
+state.packages.find(entry => entry.unit === 'claude-adapter').digest = treeDigest(adapter)
+fs.writeFileSync(stateFile, JSON.stringify(state))
+const doctor = run('profile-doctor.mjs', ['--target', target])
+if (doctor.status === 0) {
+  failures += 1
+  console.error('FAIL doctor accepted target command outside hook registration')
+} else console.log('PASS doctor rejects target command outside hook registration')
+process.exit(failures ? 1 : 0)
+NODE
+then
+  pass "경로 문자의 실제 hook·workflow 실행과 doctor command 관계"
+else
+  fail "경로 문자의 실제 hook·workflow 실행과 doctor command 관계"
+fi
+
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

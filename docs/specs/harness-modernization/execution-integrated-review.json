@@ -1,0 +1,354 @@
+{
+  "dateUtc": "2026-10-09T00:47:53.587458+00:00",
+  "status": "SOURCE_REVIEW_PASS_FINAL_ISOLATED_INSTALL_PASS_DELIVERY_PENDING",
+  "firstIndependentReview": {
+    "head": "fc05d31f110218b0d8a99dc2202050f56134fba3",
+    "verdict": "NEEDS_FIX",
+    "model": "gpt-6-astra",
+    "effort": "medium",
+    "sandbox": "read-only",
+    "approval": "never",
+    "denialProbe": "PermissionError; exact task-owned file unchanged",
+    "seconds": 358.14,
+    "exit": 0,
+    "rawFinalSha256": "2b5ac7a0ca0bb17922ca928d951310c6dbcdffa03fdaa39a8ec3b3d88cca8817"
+  },
+  "findings": [
+    {
+      "severity": "P1",
+      "path": "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+      "counterexample": "curl --form file=@.env;type=text/plain (literal classifier input only)",
+      "red": {
+        "exit": 1,
+        "pass": 245,
+        "fail": 14,
+        "first_failure": "form env type metadata rc=0 want=2"
+      },
+      "green": [
+        {
+          "command": "bash tests/codex-secret-egress-guard-test.sh",
+          "exit": 0,
+          "summary": [
+            "결과: PASS=273 FAIL=0"
+          ]
+        },
+        {
+          "command": "bash tests/codex-pretool-guard-test.sh",
+          "exit": 0,
+          "summary": []
+        },
+        {
+          "command": "bash tests/guard-test.sh",
+          "exit": 0,
+          "summary": [
+            "결과: PASS=168 FAIL=0"
+          ]
+        },
+        {
+          "command": "bash tests/guard-matrix-test.sh",
+          "exit": 0,
+          "summary": [
+            "결과: PASS=112 FAIL=0"
+          ]
+        },
+        {
+          "command": "bash tests/guard-tokenizer-test.sh",
+          "exit": 0,
+          "summary": [
+            "결과: PASS=32 FAIL=0"
+          ]
+        }
+      ],
+      "currentSourceSha256": [
+        {
+          "path": "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+          "sha256": "d3c2f3b240de5fdaee437ff26fdc02002b07803fb15844b1dabe85b5affdfc1e"
+        },
+        {
+          "path": "tests/codex-secret-egress-guard-test.sh",
+          "sha256": "2db5c75ec338c5acf86ab74b88ce9cda805025def52aee9d85e43312d4e92d20"
+        }
+      ],
+      "limit": "Classification only; no actual transfer or credential read."
+    },
+    {
+      "severity": "P1",
+      "path": "plugins/harness-guard/scripts/pr-merge.sh",
+      "counterexample": "inaccessible required checks plus successful unrelated Actions run accepted --auto",
+      "red": {
+        "productionSha256": "4854a111ceef38f11bf85d9e944739040685cafd026399f3b574f897019a8651",
+        "testSha256": "252072dd30624f05c1e29816849a70e70779f8ba7438692c32992ea46d80cb63",
+        "exit": 1,
+        "pass": 56,
+        "fail": 2,
+        "cause": "Pure predicate and real fake-gh wrapper incorrectly permit --auto after inaccessible required checks plus successful unrelated head Actions run."
+      },
+      "green": {
+        "exit": 0,
+        "pass": 58,
+        "fail": 0
+      },
+      "currentSource": [
+        {
+          "path": "plugins/harness-guard/scripts/pr-merge.sh",
+          "baselineSha256": "4854a111ceef38f11bf85d9e944739040685cafd026399f3b574f897019a8651",
+          "candidateSha256": "95dd6250d07cafa35635a2d46f50b323c828a90f011d3daa634318e9325b635a",
+          "diffExit": 1
+        },
+        {
+          "path": "tests/pr-merge-auto-test.sh",
+          "baselineSha256": "e46c803285a72f6662a4c93ad1a00f2a9d4d78304f888ea79125fe622754efa1",
+          "candidateSha256": "252072dd30624f05c1e29816849a70e70779f8ba7438692c32992ea46d80cb63",
+          "diffExit": 1
+        }
+      ],
+      "limit": "Manual Actions fallback is historical explicit non-auto behavior and does not establish the complete current server-required contexts."
+    },
+    {
+      "severity": "P2",
+      "path": ".claude/workflows/harness-review.js",
+      "counterexample": "missing review status + empty findings completed coverage",
+      "red": "red.log exit1; prior missing status falsely complete",
+      "green": "green.log exit0; 12customcases",
+      "currentSource": [
+        {
+          "path": ".claude/workflows/harness-review.js",
+          "sha256": "d183c56bf733a9c39312fe09de6f84f37e97a2475c760469659cf74e3082ff17"
+        },
+        {
+          "path": "tests/harness-review-test.mjs",
+          "sha256": "a52387875a5f350da5186b625d32fa716a0ad374c6883f5b941da0b7dcf7d254"
+        }
+      ]
+    }
+  ],
+  "laterModelBoundary": {
+    "record": "execution-m3-representative.json",
+    "result": "both saved candidates11PASS1FAIL; original11cases unchanged plus one missing-status case",
+    "newInference": false,
+    "incompatibleFirstRecheck": "current12case normal status protocol differed from old frozen candidates; preserved and corrected, not treated as12 genuine defects"
+  },
+  "limits": [
+    "Required remote CI and actual user plugin install/native dispatch, release/delivery and owned cleanup pending.",
+    "Fresh final isolated installation and bounded source review completed; no whole-system security guarantee.",
+    "Actual Claude inference/authentication USER-DEFERRED.",
+    "No consumer remote push/PR, deployment, production, new account or payment."
+  ],
+  "privateEvidence": "task-owned review-fix-{egress,merge,qa}; originals/commands/cwd/digests/initial failures retained for private export",
+  "publicationFirstFailure": {
+    "step": "pre-commit staged secret scan",
+    "result": "generic-api-key matched a public source SHA256 adjacent to a filename containing secret; changed metadata layout only",
+    "ruleChanged": false,
+    "secretOrAuthValue": false
+  },
+  "secondIndependentReview": {
+    "head": "3549d2f239e38c83d386154ea8bd505f8a41ef5e",
+    "verdict": "Harness NEEDS_FIX; MCP preapply PASS",
+    "seconds": 408.424,
+    "sandbox": "actual read-only/never; append PermissionError; unchanged probe",
+    "finding": "P1 repeated curl type= continuation hides header/multiple-file paths",
+    "rawFinalSha256": "07e06b93b7fc1ccb02f88b132484a47eed104b38a2466c30b6e4a5ac7d12889a"
+  },
+  "repeatedTypeFix": {
+    "status": "LOCAL_FIXED_AFFECTED_TESTS_AND_FINAL_INDEPENDENT_SOURCE_REVIEW_PASS",
+    "recorded_at": "2026-10-09T00:35:39.535286+00:00",
+    "reviewed_commit": "3549d2f239e38c83d386154ea8bd505f8a41ef5e",
+    "review_source": ".superpowers/sdd/harness-modernization/fixed-review/final.txt",
+    "review_source_sha256": "07e06b93b7fc1ccb02f88b132484a47eed104b38a2466c30b6e4a5ac7d12889a",
+    "owned_files": [
+      "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+      "tests/codex-secret-egress-guard-test.sh"
+    ],
+    "before_sha256": [
+      {
+        "path": "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+        "sha256": "d3c2f3b240de5fdaee437ff26fdc02002b07803fb15844b1dabe85b5affdfc1e"
+      },
+      {
+        "path": "tests/codex-secret-egress-guard-test.sh",
+        "sha256": "2db5c75ec338c5acf86ab74b88ce9cda805025def52aee9d85e43312d4e92d20"
+      }
+    ],
+    "candidate_sha256": [
+      {
+        "path": "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs",
+        "sha256": "49fcaee5d6332a293843a1d9368de4793ced17528a5de3030cb2ff5e84094fbf"
+      },
+      {
+        "path": "tests/codex-secret-egress-guard-test.sh",
+        "sha256": "bd95dbcc1543344184b31f1d811746b069b68adb4cab8848e36adc295b67ae27"
+      }
+    ],
+    "root_cause": "Repeated type= incorrectly entered the quoted-attribute parser, cleared active content type and hid semicolon/comma-delimited sensitive file reads.",
+    "fix": "One condition excludes type= from recognized attributes while a content type is active. Existing continuation scan then reaches semicolon/commas; header/file reads are classified normally. Two explanatory comment lines added.",
+    "official_basis": {
+      "url": "https://raw.githubusercontent.com/curl/curl/master/src/tool_formparse.c",
+      "retained_source": ".superpowers/sdd/harness-modernization/review-fix-egress/tool_formparse.c",
+      "sha256": "6a45bd1a75ef73eb1dd958e25c1cd33ac78f1d3d9feb40d9a659c1ac7342ab33",
+      "function": "get_param_part",
+      "rule": "type= recognized only when !endct; otherwise endct continuation stops at semicolon/endchar before headers or subsequent files are processed.",
+      "local_excerpt": "official-retained-parser-excerpt.txt",
+      "new_network_requests": 0
+    },
+    "first_command": [
+      "bash",
+      "tests/codex-secret-egress-guard-test.sh"
+    ],
+    "red": {
+      "exit": 1,
+      "pass": 277,
+      "fail": 2,
+      "first_failure": "repeated form type exposes sensitive header file rc=0 want=2",
+      "second_failure": "repeated form type exposes sensitive second file rc=0 want=2",
+      "log": "red.log"
+    },
+    "green": [
+      {
+        "command": [
+          "bash",
+          "tests/codex-secret-egress-guard-test.sh"
+        ],
+        "exit": 0,
+        "summary": [
+          "결과: PASS=279 FAIL=0"
+        ]
+      },
+      {
+        "command": [
+          "bash",
+          "tests/codex-pretool-guard-test.sh"
+        ],
+        "exit": 0,
+        "summary": []
+      },
+      {
+        "command": [
+          "bash",
+          "tests/guard-matrix-test.sh"
+        ],
+        "exit": 0,
+        "summary": [
+          "결과: PASS=112 FAIL=0"
+        ]
+      },
+      {
+        "command": [
+          "node",
+          "--check",
+          "plugins/harness-guard/scripts/codex-secret-egress-guard.mjs"
+        ],
+        "exit": 0,
+        "summary": []
+      },
+      {
+        "command": [
+          "bash",
+          "-n",
+          "tests/codex-secret-egress-guard-test.sh"
+        ],
+        "exit": 0,
+        "summary": []
+      }
+    ],
+    "final_command": [
+      "bash",
+      "-n",
+      "tests/codex-secret-egress-guard-test.sh"
+    ],
+    "egress_final": {
+      "pass": 279,
+      "fail": 0,
+      "previous_cases_retained": 273,
+      "new_cases": 6,
+      "negative_new": 2,
+      "public_literal_controls_new": 4
+    },
+    "preservation": {
+      "shellParts": true,
+      "shiftedExpansionOffsets": true,
+      "codexHomeSuffix": true,
+      "curlFormWord": true
+    },
+    "previous_result": {
+      "path": ".superpowers/sdd/harness-modernization/review-fix-egress/result.json",
+      "sha256": "035878997680da96d8369a2975b4aa899ae962d530f41341fdfa1361423eb007",
+      "unchanged": true
+    },
+    "environment": "Literal hook classification only; regression runners have isolated temporary HOME. Existing guard matrix creates local temporary Git fixtures; no original/source Git state changed.",
+    "not_executed": [
+      "actual curl",
+      "network requests",
+      "sensitive file reads",
+      "real authentication",
+      "Git operations on original/source checkout",
+      "global installation",
+      "MCP changes",
+      "public docs",
+      "whole repository quality gate",
+      "independent review"
+    ],
+    "caller_migration": "No caller/API change; parent owns refreshed source/install hash pins, public status, independent review and whole-candidate checks.",
+    "limits": "Bounded curl form continuation correction. Not an exhaustive shell/curl parser or proof of all secret-egress detection."
+  },
+  "pluginFixedInstall": {
+    "head": "3549d2f239e38c83d386154ea8bd505f8a41ef5e",
+    "cliCommands": 16,
+    "result": "3runtimes installed/enabled66files match; no dispatch; later repeated-type script change requires final source check",
+    "rawSummarySha256": "f2d67573446b95e92a4385e28a8db20314a4bd2cb527680fe43197e9e40ffe58"
+  },
+  "repeatedTypePublicationFirstFailure": {
+    "step": "pre-commit",
+    "findings": 2,
+    "reason": "public SHA256 adjacent to file identity containing secret; same metadata layout issue",
+    "ruleChanged": false,
+    "values": "source fingerprints only"
+  },
+  "finalIndependentReview": {
+    "head": "143ca921de0a79f0396fe9b18d46191030fe25fd",
+    "verdict": "PASS_BOUNDED_SOURCE_REVIEW",
+    "model": "gpt-6-astra",
+    "effort": "medium",
+    "actualSandbox": "read-only",
+    "actualApproval": "never",
+    "sessionId": "01a11e1a-8e26-7083-9d09-0362da41b16a",
+    "seconds": 150.03,
+    "exit": 0,
+    "denialProbe": "one actual append PermissionError; exact probe unchanged",
+    "newClassifierCases": "54/54; two prior counterexamples exit2; public/header/multi-file/literal controls",
+    "reused": "unchanged areas from two earlier independent reviews; no entire279 or quality suite rerun",
+    "rawFinalSha256": "2e3c584d1f6ec5fc90fabcc68d3bb161bd2e40211b594546a65de08817a7fe74",
+    "usage": {
+      "input_tokens": 498445,
+      "cached_input_tokens": 423808,
+      "output_tokens": 3314,
+      "reasoning_output_tokens": 167
+    },
+    "limits": [
+      "source review only",
+      "no remote CI, actual user plugin install, dispatch, release, live personal-map activation or cleanup proof"
+    ]
+  },
+  "pluginFinalInstall": {
+    "head": "143ca921de0a79f0396fe9b18d46191030fe25fd",
+    "cliCommands": 16,
+    "result": "3 official runtimes install/enabled66files equal;17skills,2agents,2hookevents;original152hashes unchanged",
+    "rawSummarySha256": "a25600d09ba60c3036a0b5081fe3664d0a3974fb2c0cd4ef1f4d37f3df8e020f",
+    "noInferenceOrAuthCopies": true,
+    "limit": "registration/content/inventory only; actual dispatch and active-app reload unverified"
+  },
+  "publicDocumentationBoundary": {
+    "redHead": "143ca921de0a79f0396fe9b18d46191030fe25fd",
+    "red": "clean Git archive checker289files;exit1;six scratch-only links missing",
+    "fix": "six hyperlinks now use this committed public record; raw private proofs retained separately",
+    "checkerUnchanged": true,
+    "firstDriverFailure": "default TMPDIR symlink spelling bypassed Node import main guard; empty stdout JSON parse failed; preserved; resolved explicit /private/tmp snapshot path",
+    "green": {
+      "head": "323ecd5fee7107515fcb6d29dd0f609243ce0c77",
+      "files": 289,
+      "exitCode": 0,
+      "failures": [],
+      "affectedNodeTests": "34PASS0FAIL",
+      "limits": "structural references/line count, not semantic guarantee"
+    }
+  }
+}

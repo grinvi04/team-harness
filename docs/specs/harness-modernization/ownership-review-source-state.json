@@ -1,0 +1,22 @@
+{
+  "harness_head": "980fe87b4429e601e7f95155063eb2c28906fbaf",
+  "harness_status": [
+    " M .gitignore"
+  ],
+  "tracked_sha256": "440c4645e947e1dea767e351e6a7139ce784b89c59460bf17f276a07b8ec95c4",
+  "global_sha256": {
+    "$HOME/.codex/config.toml": "ca47ecad59de336ed4de54003b0e611f4c8aeea1ba0222353193978b1b91e046",
+    "$HOME/.config/ai-instructions/common.md": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
+    "$HOME/.codex/AGENTS.md": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
+    "$HOME/.claude/CLAUDE.md": "9c73fb0686baf8a7195e8aa1bb7ecd830ca826d542c4294080def8bce12648cd",
+    "$HOME/.claude/settings.json": "98392e708adf926731ee7cd0ed73e4bb39b8caa9955e6a463ea02c0b7d8c01bf"
+  },
+  "fixture_sha256": {
+    "TASK.md": "e2041ea1d90458ba2cfbcf0d229b2459e597871a05d1a23155d010e4f055bd81",
+    "candidate.py": "b9ecfa5e6028e62bf3b0bde31cd0edcfc4b2a6e1048e763683db104f621a54b9"
+  },
+  "notes": [
+    "global config drift earlier in the overall audit remains recorded",
+    "this snapshot does not attribute earlier changes"
+  ]
+}

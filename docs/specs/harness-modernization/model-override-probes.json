@@ -1,0 +1,100 @@
+[
+  {
+    "name": "explicit_general_opus",
+    "input": {
+      "tool_name": "Agent",
+      "session_id": "audit-fixture-no-agent-spawn",
+      "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6",
+      "tool_input": {
+        "subagent_type": "general-purpose",
+        "prompt": "isolated model-policy probe",
+        "model": "opus"
+      }
+    },
+    "exit": 0,
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "updatedInput": {
+          "subagent_type": "general-purpose",
+          "prompt": "isolated model-policy probe",
+          "model": "sonnet"
+        }
+      }
+    },
+    "stderr": "",
+    "effective_input_model": "sonnet",
+    "did_spawn_agent": false
+  },
+  {
+    "name": "explicit_explore_sonnet",
+    "input": {
+      "tool_name": "Agent",
+      "session_id": "audit-fixture-no-agent-spawn",
+      "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6",
+      "tool_input": {
+        "subagent_type": "Explore",
+        "prompt": "isolated model-policy probe",
+        "model": "sonnet"
+      }
+    },
+    "exit": 0,
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "updatedInput": {
+          "subagent_type": "Explore",
+          "prompt": "isolated model-policy probe",
+          "model": "haiku"
+        }
+      }
+    },
+    "stderr": "",
+    "effective_input_model": "haiku",
+    "did_spawn_agent": false
+  },
+  {
+    "name": "explicit_verifier_sonnet",
+    "input": {
+      "tool_name": "Agent",
+      "session_id": "audit-fixture-no-agent-spawn",
+      "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6",
+      "tool_input": {
+        "subagent_type": "harness-guard:verifier",
+        "prompt": "isolated model-policy probe",
+        "model": "sonnet"
+      }
+    },
+    "exit": 0,
+    "output": null,
+    "stderr": "",
+    "effective_input_model": "sonnet",
+    "did_spawn_agent": false
+  },
+  {
+    "name": "missing_verifier_model",
+    "input": {
+      "tool_name": "Agent",
+      "session_id": "audit-fixture-no-agent-spawn",
+      "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6",
+      "tool_input": {
+        "subagent_type": "harness-guard:verifier",
+        "prompt": "isolated model-policy probe"
+      }
+    },
+    "exit": 0,
+    "output": {
+      "hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "updatedInput": {
+          "subagent_type": "harness-guard:verifier",
+          "prompt": "isolated model-policy probe",
+          "model": "opus"
+        }
+      }
+    },
+    "stderr": "",
+    "effective_input_model": "opus",
+    "did_spawn_agent": false
+  }
+]

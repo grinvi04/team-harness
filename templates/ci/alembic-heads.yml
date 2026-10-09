@@ -26,14 +26,14 @@ jobs:
         with:
           python-version: '3.12'
       # 자기-스킵: alembic.ini(루트) 없으면(비-alembic·셋업 이전·모노레포는 workflow 조정) 통과.
-      # 있으면 `alembic heads`로 head 수를 세어 다중 head(분기 마이그레이션)를 차단.
+      # 있으면 Alembic 설치와 `alembic heads` 실행 실패를 CI 실패로 전달하고 다중 head를 차단.
       # (GitHub 기본 셸 = bash -eo pipefail → grep 0매치 rc1을 `|| true`로 흡수해야 self-skip 성립)
       - name: Alembic 다중 head 차단 (자기-스킵)
         run: |
           if [ ! -f alembic.ini ]; then echo "alembic.ini 없음 — self-skip (통과)"; exit 0; fi
-          pip install --quiet alembic || { echo "⚠️  alembic 설치 실패 — 다중 head 검사 skip"; exit 0; }
-          # 실패 시 에러를 삼키지 않고 노출(마이그레이션 env·구문 오류 가시화) 후 skip(required check 데드락 회피).
-          out=$(alembic heads 2>&1) || { echo "⚠️  'alembic heads' 실행 실패 — 검사 skip:"; echo "$out"; exit 0; }
+          pip install --quiet alembic || { echo "::error::alembic 설치 실패 — 다중 head 검사를 수행할 수 없습니다."; exit 1; }
+          # 설정이 적용된 repo에서 실행 실패를 self-skip으로 바꾸지 않는다.
+          out=$(alembic heads 2>&1) || { echo "::error::'alembic heads' 실행 실패 — 검사를 완료할 수 없습니다."; echo "$out"; exit 1; }
           # 각 head 는 '(head)' 또는 depends_on 시 '(effective head)'로 표시 → 'head)'로 세면 둘 다 포함
           # ('(head)'만 세면 effective head 누락 → 실제 2-head인데 통과하는 false-negative).
           heads=$(printf '%s\n' "$out" | grep -c 'head)' || true)

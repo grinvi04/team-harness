@@ -5,8 +5,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 REPORT="$ROOT/docs/platform-overlap-audit.md"
 SPEC="$ROOT/docs/specs/platform-overlap-audit.md"
 README="$ROOT/README.md"
-PRODUCT="$ROOT/docs/product-direction.md"
-DECISIONS="$ROOT/docs/decisions.md"
+PRODUCT="$ROOT/docs/product-direction-governance-history.md"
+DECISIONS="$ROOT/docs/decisions-native-and-delivery.md"
 PASS=0
 FAIL=0
 
@@ -88,8 +88,10 @@ if len([item for item in expected if item.startswith("skill:")]) != 17:
     errors.append("source skill count is not 17")
 if len([item for item in expected if item.startswith("agent:")]) != 2:
     errors.append("source agent count is not 2")
-if len([item for item in expected if item.startswith("hook:")]) != 4:
-    errors.append("source hook count is not 4")
+if len([item for item in expected if item.startswith("hook:")]) != 3:
+    errors.append("source hook count is not 3 after native Agent selection migration")
+if any(group.get("matcher") == "Agent" for group in hooks.get("PreToolUse", [])):
+    errors.append("retired Agent model-forcing hook is still registered")
 if len([item for item in expected if item.startswith("codex-file:")]) != 13:
     errors.append("source Codex compatibility file count is not 13")
 if expected_counts != counts:
@@ -110,7 +112,7 @@ if errors:
 print(f"PASS: implementation inventory classified exactly once ({len(expected)} items)")
 PY
 then
-  pass "현재 구현 인벤토리 36개 전수 단일 판정"
+  pass "현재 구현 인벤토리 35개 전수 단일 판정"
 else
   fail "현재 구현 인벤토리와 감사 분류 불일치"
 fi

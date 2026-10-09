@@ -5,7 +5,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIRECTION="$ROOT/docs/product-direction.md"
 README="$ROOT/README.md"
 AGENTS="$ROOT/AGENTS.md"
-DECISIONS="$ROOT/docs/decisions.md"
+DECISIONS="$ROOT/docs/decisions-native-and-delivery.md"
 PASS=0
 FAIL=0
 

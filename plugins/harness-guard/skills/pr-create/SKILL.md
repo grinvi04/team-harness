@@ -1,7 +1,6 @@
 ---
 name: pr-create
 description: 현재 feature/fix 브랜치의 품질을 확인하고 올바른 base로 PR만 생성할 때 사용. 코드 수정·리뷰 처리·머지·릴리즈는 제외
-effort: low
 ---
 
 # /pr-create — base 자동감지 PR 생성 (단일 프리미티브)

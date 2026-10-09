@@ -6,6 +6,9 @@
 > 기존 SVG 산출물(webhook-service·siku·DriveTree)은 그대로 유효 — **강제 마이그레이션 없음**(신규만 mermaid→PNG 기본).
 > 생성기 스크립트: [`templates/gen_arch_svg.py`](../templates/gen_arch_svg.py)
 
+생성기는 라벨 충돌에서 출력 파일을 쓰지 않고 실패한다. 텍스트·색상 속성은 XML로 escape한다.
+재생성 hook의 잘못된 JSON도 nonzero이며, 해당 파일이 아닌 정상 event만 비적용으로 끝난다.
+
 ---
 
 ## 1. 언제 커스텀 SVG를 쓰나 (정본 아님)
@@ -64,48 +67,7 @@ gap = 140px                        # 박스 사이 순수 공백
 
 ## 4. 레이아웃 패턴
 
-### 4.1 선형 파이프라인 (webhook-service 형)
-
-```
-[A] ─── [B] ─── [C] ─── [D] ...
-         │
-        [E]  ← 상단 서비스 (y - 155)
-         │
-        [F]  ← 하단 모니터링 (y + 180)
-```
-
-- 모든 수평 연결은 **오른쪽 에지 → 왼쪽 에지** 직선
-- 상단/하단 서비스는 주 파이프 노드에서 수직 직선
-- 예외(sync 등 비정상 경로)만 베지어 곡선 + `dash=True`
-
-### 4.2 단일 소스 팬아웃 (siku 형)
-
-```
-[소스] ─── [서비스1]
-     └──── [서비스2]
-     └──── [서비스3]
-     └──── [서비스4]
-```
-
-- 소스 **오른쪽 에지(x = cx + BW/2)** 에서 출발
-- 각 서비스 **왼쪽 에지(x = cx - BW/2)** 로 직선
-- 출발점을 소스 박스 내부에서 y값을 살짝 분산(2~8px 간격)시켜 화살표 출발점을 구분
-- **모든 중간점 x = (출발x + 도착x) // 2** → 서비스 컬럼 왼쪽을 절대 침범 안 함 → 충돌 없음
-
-### 4.3 CI/CD V자 대각선 (DriveTree 형)
-
-```
-      [CI]
-     /    \
-[FE]      [BE]
-```
-
-- CI 중심이 FE와 BE의 정중앙에 위치할 때 양쪽 대각선은 **완전 대칭**
-- 출발점: `(ci_cx ± offset, ci_cy + BH/2)`, 도착점: `(fe_cx, fe_cy - BH/2)`
-- `offset = (be_cx - fe_cx) // 2 // 3` 정도로 자연스러운 각도 조절
-- 반드시 `dash=True` (배포=비기능 경로)
-
----
+[세 가지 배치 패턴](architecture-diagram-layouts.md)을 적용할 레이아웃을 고르기 전에 읽는다.
 
 ## 5. 화살표 규칙
 
@@ -164,22 +126,7 @@ ok = check_labels('diagram_name', boxes_list, [(lx, ly-7, text) for lx, ly, text
 
 ## 8. SVG 구조
 
-```
-<svg viewBox="0 0 W H">
-  <defs> arrowhead markers (arr, arr-dash) </defs>
-  <rect fill="#0f172a"/>                     ← 전체 배경
-  <text> 제목 (20px, bold, #f1f5f9) </text>  ← x=48, y=42
-  <text> 부제 (12px, #64748b) </text>        ← x=48, y=62
-  <rect rx="12" fill="#1e293b"/>             ← 콘텐츠 영역 (x=28, y=72)
-  {boxes}
-  {edges + labels}
-  {legend}
-</svg>
-```
-
-범례(legend): 콘텐츠 영역 하단 50px 위, `font-size: 11px, fill: #94a3b8`
-
----
+[SVG 구성 순서](architecture-diagram-layouts.md)를 생성기 작성 전에 읽는다.
 
 ## 9. 신규 프로젝트 다이어그램 생성 절차
 

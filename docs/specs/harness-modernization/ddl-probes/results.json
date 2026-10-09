@@ -1,0 +1,163 @@
+{
+  "candidate": "980fe87b4429e601e7f95155063eb2c28906fbaf",
+  "scope": "static checker counterexamples only; no DB execution",
+  "priorIndependentProbes": "ephemeral inputs removed; this fresh run preserves inputs and raw results",
+  "records": [
+    {
+      "case": "sql-column-omitted",
+      "cmd": [
+        "node",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+        "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-omitted"
+      ],
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+      "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-omitted/migrations/V1__probe.sql",
+      "inputSha256": "2c1a7b47453d0766b732419822a58fae3b9f310ed908a757b22c22c86a8fdb6c",
+      "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
+      "syntax": null,
+      "exit": 0,
+      "stdout": "• 파괴적 DDL 게이트: 마이그레이션 디렉터리 하위 *.sql 없음 — 통과(skip)\n  대상: db/migration/ · prisma/migrations/ · supabase/migrations/ (Alembic .py는 비대상).\n",
+      "stderr": ""
+    },
+    {
+      "case": "sql-column-explicit",
+      "cmd": [
+        "node",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+        "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-explicit"
+      ],
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+      "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-column-explicit/migrations/V1__probe.sql",
+      "inputSha256": "8fe4971a20c7d8314f4426c54fecbf850fa6faaab21ec4821776607442105aa8",
+      "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
+      "syntax": null,
+      "exit": 0,
+      "stdout": "• 파괴적 DDL 게이트: 마이그레이션 디렉터리 하위 *.sql 없음 — 통과(skip)\n  대상: db/migration/ · prisma/migrations/ · supabase/migrations/ (Alembic .py는 비대상).\n",
+      "stderr": ""
+    },
+    {
+      "case": "sql-executable-comment",
+      "cmd": [
+        "node",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-destructive-ddl.mjs",
+        "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-executable-comment"
+      ],
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+      "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/sql-executable-comment/migrations/V1__probe.sql",
+      "inputSha256": "abaa000aa525d9473ca12def931aa239e4e6cc95bd0cd6a6fc0933fcf2b0093b",
+      "checkerSha256": "5649c30ca11742924e74a70deb825fa9e0e27bd32ee97d25a7bce180e91f2ecd",
+      "syntax": null,
+      "exit": 0,
+      "stdout": "• 파괴적 DDL 게이트: 마이그레이션 디렉터리 하위 *.sql 없음 — 통과(skip)\n  대상: db/migration/ · prisma/migrations/ · supabase/migrations/ (Alembic .py는 비대상).\n",
+      "stderr": ""
+    },
+    {
+      "case": "alembic-inline",
+      "cmd": [
+        "node",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-alembic-destructive-ddl.mjs",
+        "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-inline"
+      ],
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+      "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-inline/alembic/versions/001_probe.py",
+      "inputSha256": "6642b4abdaf93c3893f3c0688b0995af48ac50ab3408def36828369513e33fcd",
+      "checkerSha256": "8575d4aa058069be061fe298576d201e46ac238669bc18581b9fa6b1e04918ad",
+      "syntax": "Python ast.parse PASS",
+      "exit": 0,
+      "stdout": "✓ Alembic 파괴적 DDL 게이트 통과 — 마이그레이션 1개 · upgrade 계열에 승인 없는 파괴 DDL 없음\n",
+      "stderr": ""
+    },
+    {
+      "case": "alembic-multiline",
+      "cmd": [
+        "node",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-alembic-destructive-ddl.mjs",
+        "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-multiline"
+      ],
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+      "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-multiline/alembic/versions/001_probe.py",
+      "inputSha256": "71a29504a8287327c22df336bc7ceedc3716c12859376b86efcd4036bcc65bdd",
+      "checkerSha256": "8575d4aa058069be061fe298576d201e46ac238669bc18581b9fa6b1e04918ad",
+      "syntax": "Python ast.parse PASS",
+      "exit": 1,
+      "stdout": "",
+      "stderr": "\n✖ Alembic 파괴적 DDL 게이트 실패 — 승인마커 없는 데이터-손실 DDL(upgrade 계열):\n  • drop_table  (/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-multiline/alembic/versions/001_probe.py)\n      op.drop_table( )\n\n  파괴 DDL은 CI(빈 DB)는 통과하고 운영(기존 데이터)에서만 비가역 손실을 냅니다.\n  해결:\n    • 정당한 변경(예: forward-only 2단계 배포의 컬럼 제거)이면 파괴 op와 같은 문장(또는 바로 앞 줄)에\n      승인 주석을 답니다:  # migration-safety: destructive-ok\n    • 아니면 파괴 DDL을 제거하고 forward-only(새 리비전 추가) 경로로 대체하세요.\n  단일 출처: docs/db-standards.md · docs/specs/alembic-destructive-ddl.md\n\n"
+    },
+    {
+      "case": "alembic-executable-comment",
+      "cmd": [
+        "node",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-alembic-destructive-ddl.mjs",
+        "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-executable-comment"
+      ],
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+      "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/alembic-executable-comment/alembic/versions/001_probe.py",
+      "inputSha256": "d402d0335ad034a5a755238d19b7cadb31a53f2bb861fee010cc5d2e24085c26",
+      "checkerSha256": "8575d4aa058069be061fe298576d201e46ac238669bc18581b9fa6b1e04918ad",
+      "syntax": "Python ast.parse PASS",
+      "exit": 0,
+      "stdout": "✓ Alembic 파괴적 DDL 게이트 통과 — 마이그레이션 1개 · upgrade 계열에 승인 없는 파괴 DDL 없음\n",
+      "stderr": ""
+    },
+    {
+      "case": "ruby-tab",
+      "cmd": [
+        "node",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-activerecord-destructive-ddl.mjs",
+        "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-tab"
+      ],
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+      "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-tab/db/migrate/20261009000000_probe.rb",
+      "inputSha256": "0f27671f5f62c098336340116a7a9765d54a20a9bc6e23173f022f01f5221af5",
+      "checkerSha256": "43137026735fe498619af4e416d518a0041cf761d5a09a3e777691a747cf53d2",
+      "syntax": {
+        "exit": 0,
+        "stdout": "Syntax OK\n",
+        "stderr": ""
+      },
+      "exit": 0,
+      "stdout": "✓ ActiveRecord 파괴적 DDL 게이트 통과 — 마이그레이션 1개 · def change/up에 승인 없는 파괴 DDL 없음\n",
+      "stderr": ""
+    },
+    {
+      "case": "ruby-space",
+      "cmd": [
+        "node",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-activerecord-destructive-ddl.mjs",
+        "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-space"
+      ],
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+      "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-space/db/migrate/20261009000000_probe.rb",
+      "inputSha256": "50bb58cb41a5f76246f300389240416aa28417575eca126c643b2ce6821649db",
+      "checkerSha256": "43137026735fe498619af4e416d518a0041cf761d5a09a3e777691a747cf53d2",
+      "syntax": {
+        "exit": 0,
+        "stdout": "Syntax OK\n",
+        "stderr": ""
+      },
+      "exit": 1,
+      "stdout": "",
+      "stderr": "\n✖ ActiveRecord 파괴적 DDL 게이트 실패 — 승인마커 없는 데이터-손실 DDL(def change/def up):\n  • drop_table  (/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-space/db/migrate/20261009000000_probe.rb)\n      drop_table :audit_log\n\n  파괴 DDL은 CI(빈 DB)는 통과하고 운영(기존 데이터)에서만 비가역 손실을 냅니다.\n  해결:\n    • 정당한 변경(예: forward-only 2단계 배포의 컬럼 제거)이면 파괴 op와 같은 문장(또는 바로 앞 줄)에\n      승인 주석을 답니다:  # migration-safety: destructive-ok\n    • 아니면 파괴 DDL을 제거하고 forward-only(새 마이그레이션 추가) 경로로 대체하세요.\n  단일 출처: docs/db-standards.md · docs/specs/rails-stack-completion.md\n\n"
+    },
+    {
+      "case": "ruby-executable-comment",
+      "cmd": [
+        "node",
+        "$HOME/.codex/worktrees/c833/team-harness/scripts/check-activerecord-destructive-ddl.mjs",
+        "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-executable-comment"
+      ],
+      "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+      "input": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-reaudit-20261009-tpw77fq6/ddl-probes/ruby-executable-comment/db/migrate/20261009000000_probe.rb",
+      "inputSha256": "7db9f1b88474e0b98d1ac7cbaf8615b0533316b02ddd34ffb48cd9bb6b889871",
+      "checkerSha256": "43137026735fe498619af4e416d518a0041cf761d5a09a3e777691a747cf53d2",
+      "syntax": {
+        "exit": 0,
+        "stdout": "Syntax OK\n",
+        "stderr": ""
+      },
+      "exit": 0,
+      "stdout": "✓ ActiveRecord 파괴적 DDL 게이트 통과 — 마이그레이션 1개 · def change/up에 승인 없는 파괴 DDL 없음\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -112,101 +112,41 @@ Team Harness의 해당 스킬은 프로젝트 기준·계획 산출물·테스�
 6. [ ] **점진적 공유:** 개인 프로젝트에서 유용성이 확인된 구성만 동료의 프로젝트에 적용한다.
    반복 설정 감소·검사 누락·재작업을 기준으로 판단하며 회사 전체 도입을 미리 완료 처리하지 않는다.
 
-공통 QA 계약은 [범위·완료 기준 보강](specs/qa-scope-contract.md),
-[근거 조사·평가](specs/qa-strategy-research-plan.md),
-[명령별 보고·계약 연결 후속 검증](specs/qa-command-binding-validation.md)까지 완료했다.
-행동 평가는 0.79.0 스킬 후보의 제한된 수용 범위에 한정한다. 0.80.0에서는 PR 사전 검사의 큰 문서
-오판을 추가 수정했고 [PR #480](https://github.com/grinvi04/team-harness/pull/480)에서 develop 통합 상태를 추적한다.
-해당 PR은 develop에 병합됐고 `3c5b4b3` 후보의 0.80.0 릴리즈 사전 검증도 통과했다.
-실행 근거·비적용 항목은 같은 후속 문서에 보존한다. [정식 릴리즈 PR #481](https://github.com/grinvi04/team-harness/pull/481)을
-main에 병합했고 [v0.80.0 태그](https://github.com/grinvi04/team-harness/tree/v0.80.0)를 발행했다.
-솔로 머지 뒤 main의 사람 승인 1명과 기존 보호 정책의 복구를 확인했다. develop 반영 상태는
-[역병합 PR #482](https://github.com/grinvi04/team-harness/pull/482) 원본에서 추적한다. 전역 v0.80.0 설치와 새 세션의 제한된 샘플 설치본 검증도 완료했다.
-17개 스킬 발견과 명령별 보고·격리 회귀/API unit 검증 근거는 같은 후속 문서에 연결했다.
-현재 대화의 skill catalog도 0.80.0 경로로 갱신됐고, 샘플의 정본 전체 로컬 자동 검사도 최초 exit 0으로 통과했다.
-실제 API 흐름을 포함한 브라우저 49개와 임시 DB 재시작 보존을 확인했다. axe 색상 대비 incomplete는 2026-10-06에 해당 두 기호의 실제 렌더 색상 24개를 확인해 해소했다.
-최소 대비는 5.4466:1이며, 전체 WCAG·모든 브라우저 검증이나 무결함 보장으로 확대하지 않는다.
-실행 결과·한계는 같은 후속 문서에 기록하며 설치 이후 기록의 전달·병합 상태는
-[기록 통합 PR #483](https://github.com/grinvi04/team-harness/pull/483)을 정본으로 추적한다.
-2026-10-06 재조회로 현재 설치·로딩을 확인했으며, 과거 설치 전환/설정 복구의 원문 미보존은 독립 재검증의 한계로 구분한다.
-소비 프로젝트별 수정/배포는 후속 작업이며, 제한된 평가는 자동 선택 전반과 제품 전체 품질 보장을 뜻하지 않는다.
-
-2026-10-06 네 소비 repo의 읽기 전용 표준 자산 점검에서 Python `venv` 탐색 중단을 발견했다.
-[공통 검사기 보완 명세](specs/repo-sync-python-venv.md)에 재현·회귀와 실제 드리프트를 연결한다.
-이 작업은 제품별 QA 실행·표준 반영·배포를 재개하지 않으며, 0.81.0은 아직 소스 후보다.
-`7cafd144` 후보의 사전검증은 로컬 품질 63단계·외부 파일럿 live 원본·릴리즈 묶음 검사가 통과했지만,
-보안 음성 시험의 판정자 결함 [#486](https://github.com/grinvi04/team-harness/issues/486)으로 **NO-GO**다.
-[후보별 결과·한계](specs/repo-sync-python-venv.md#0810-릴리즈-사전검증--no-go)를 보존하고,
-2026-10-07 [시험 보완](specs/binary-trust-oracle.md)은 로컬 품질 63단계·실제 macOS unsigned 거부·변이
-검출·독립 보안 검토를 통과했다. 전달·최종 CI·병합은 [PR #488](https://github.com/grinvi04/team-harness/pull/488),
-최종 사전검증 판정은 [#486](https://github.com/grinvi04/team-harness/issues/486) 원본을 따른다. 과거 NO-GO 기록은 보존한다.
-2026-10-07 사전검증 GO 후 [정식 릴리즈 준비](specs/binary-trust-oracle.md#0810-정식-릴리즈-진행)를 시작했다.
-main 승인·CI·병합은 [릴리즈 PR #489](https://github.com/grinvi04/team-harness/pull/489)에서 추적한다.
-태그·develop 역병합의 증거를 확인하기 전에는 발행 완료로 표시하지 않는다.
-전역 설치·소비 프로젝트 수정·배포는 보류한다.
-
-작업의 범위·결정·단계가 바뀌면 관련 현재 로드맵·스펙 체크리스트·안내를 같은 변경에서 갱신한다.
-검사가 아직 없거나 미실행이면 완료 표시하지 않는다. 적용 절차는 [Markdown 동기화](ai-collaboration.md#markdown-동기화)를 따른다.
-
-열린 [split runtime 이슈 #412](https://github.com/grinvi04/team-harness/issues/412)는 2026-10-06에
-CLI 0.156.1과 공식 manifest 문서를 재확인했으나 필요한 cross-plugin dependency/root binding 계약이
-확인되지 않아 WAIT를 유지한다. 새 root manifest 권장과 기존 호환 형식 지원을 구분하며,
-[최신 capability 기록](pilots/codex-split-runtime-v0.61.0.md#2026-10-06-capability-재확인)에 근거·미실행 범위를 연결한다.
+관련 판단 전에 [해당 본문](product-direction-roadmap-evidence.md)을 읽는다.
 
 ## 기존 거버넌스 작업과 보류 항목
 
-아래는 기존 개발 결과와 플랫폼 조건 때문에 보류한 항목이다. 개인 개발의 현재 우선순위를 대신하지 않는다.
-
-1. [x] **공개 안전성 감사:** Git 히스토리 시크릿, 공개 식별정보·개인 경로, 라이선스 provenance 점검. 결과는
-   [`public-safety-audit.md`](public-safety-audit.md)에 기록했다.
-2. [x] **플랫폼 중복 감사:** 현재 skill·hook·agent·Codex patch를 소유/연결/위임으로 전수 분류. 결과는
-   [`platform-overlap-audit.md`](platform-overlap-audit.md)에 기록했다.
-3. [x] **제품 경계 분리:** 서버 거버넌스 core, runtime adapter, 선택 workflow의 설치·운영 경계를
-   [`product-boundaries.md`](product-boundaries.md)에 정의했다.
-4. [x] **배포 단순화:** package 정본·재현 build와 세 profile의 filesystem 설치·업데이트·비활성화·제거·doctor
-   실측을 완료했다. 사용자 전역 marketplace 승격은 호환성 검증 뒤 별도 승인으로 남긴다.
-5. [x] **오픈소스 제품화:** 영문 Quick Start, 지원 환경, SECURITY·CONTRIBUTING·생성형 CHANGELOG와
-   기록된 `HEAD` 기반 release bundle·SHA-256 provenance를 정리했다. marketplace 공개는 호환성 검증 뒤다.
-6. [x] **호환성 검증:** 다른 plugin과 세 profile을 clean filesystem session에 함께 배치해 identity 충돌,
-   namespaced skill 공존, hook overlap 위임, 파일 불변과 malformed·symlink 거부를 검증했다.
-7. [x] **외부 파일럿:** DriveTree clean `develop`에서 profile 설치 952.225ms, doctor 38.883ms,
-   guard 표본 오탐·누락 0/9, repo-sync MISSING 11을 측정했다. 결과와 한계는
-   [`pilots/drivertree-v0.60.0.md`](pilots/drivertree-v0.60.0.md)에 기록했다. v0.61.0에서 stack-rule 전달
-   backlog 1건을 실제 처리한 전후 증거와 잔여 MISSING 10은
-   [`pilots/drivertree-v0.61.0.md`](pilots/drivertree-v0.61.0.md)에 기록했으며, 판정은 **연결**이고
-   후속 commit-provenance·destructive-DDL 두 slice를 완료해 같은 보고서와
-   [zero-drift 원본](pilots/drivertree-v0.61.0-remediated.json)에 OK 18 · MISSING 0,
-   repositoryUnchanged와 main/develop required gate 적용을 기록했다. 단일 repo 표본이므로 split package의
-   `installable:false`와 marketplace 승격 보류를 유지한다.
-8. [x] **Codex 공식 loader 전환:** monolith에 native manifest·command hooks·16개 skill wrapper를 직접 싣고
-   harness cache patch·overlay·custom agent 복사·unified exec 비활성화를 제거했다. 격리 loader와 실제 새 세션
-   결과는 [`pilots/codex-native-loader-v0.61.0.md`](pilots/codex-native-loader-v0.61.0.md)에 기록한다. 이 증거는
-   operator-approved GitHub ref의 exact revision, allowlisted subprocess 환경, 격리 HOME·XDG root,
-   refresh/API-key와 inherited long-lived credential 환경이 없는 session credential에 결박한다. monolith
-   전환만 승인하며 split package의 `installable:false`와 marketplace 승격 보류는 유지한다.
-9. [x] **두 번째 외부 파일럿:** Python·Alembic 소비 repo webhook-service의 격리 clean `develop`에서
-   profile healthy, guard 9/9, repo-sync OK 5 · WARN 2 · MISSING 11을 측정하고 정본 세 slice로
-   OK 18 · WARN 0 · MISSING 0 수렴을 simulation했다. 원본·판정은
-   [`pilots/webhook-service-v0.61.0.md`](pilots/webhook-service-v0.61.0.md)에 기록했다. 실제 소비 repo
-   [PR #69](https://github.com/grinvi04/webhook-service/pull/69)을 develop에 병합하고 앱 품질 56 tests,
-   zero-drift 재측정, main/develop의 `commitlint`·`destructive-ddl` 포함 required context 5개 강제를
-    [완료 원본](pilots/webhook-service-v0.61.0-remediated.json)으로 고정했다. 판정은 **연결**이며 두 public
-    repo·단일 운영 환경 표본이므로 split package의 `installable:false`와 marketplace 승격 보류를 유지한다.
-10. [x] **split package 공식 loader·rollback:** v0.62.0 이후 exact commit `d580808`에서 생성한 staged
-    package를 Codex 0.144.6 공식 local marketplace loader로 세 profile에 각각 설치했다. 생성 artifact와 설치
-    cache의 전체 tree digest, core-first 설치, workflow→adapter→core 역순 제거, 사용자 Codex 상태 불변과 격리
-    HOME 삭제를 [`pilots/codex-split-loader-v0.61.0.md`](pilots/codex-split-loader-v0.61.0.md)에 고정했다.
-    판정은 **연결**이며 loader 수명주기 증거만 충족했으므로 `installable:false`를 유지한다.
-11. [ ] **split runtime 결과 계약:** 독립 core+Codex adapter에서 native hook·skill fresh-session outcome parity를
-    검증한다. Codex가 plugin dependency와 runtime binding을 선언하는 공식 surface를 제공하지 않는 동안 custom
-    resolver를 만들지 않고 전환기 monolith를 유지한다. 공식 surface가 생기거나 지원 가능한 native 연결이
-    확인된 뒤에만 marketplace 승격·호환 기간·rollback 계획을 별도 결정한다. 2026-09-03 Codex 0.144.6과 공식
-    plugin manifest를 재확인했지만 연결 surface가 없었고, 독립 artifact의 hook도 core root를 해석하지 못함을
-    [`pilots/codex-split-runtime-v0.61.0.md`](pilots/codex-split-runtime-v0.61.0.md)에 기록했다. 따라서 항목은
-    **WAIT**로 열어 두고 `installable:false`·monolith를 유지한다.
-
-기존 거버넌스는 유지한다. 보류 항목은 새 플랫폼 근거가 있을 때만 재개하며 같은 실험을 반복하지 않는다.
+[완료 범위·보류 조건](product-direction-governance-history.md)을 기존 거버넌스의 채택·재개를 판단하기 전에 읽는다. 아래 최신 소비 인수 경계와 함께 대조한다.
 
 ## 공통 개발 기반과 선택형 개발 조정
 
 여러 개발자가 LLM으로 백엔드·프론트엔드·인프라를 다루는 공통 기반으로 사용한다. 기술 기준·governance core·native adapter에 [개발 조정](development-coordination.md)을 선택적으로 연결한다. Agent Orchestration에서는 인계·현재 증거 확인·재개 원칙만 선택해 workflow-pack의 짧은 skill로 연결한다. 별도 선언 검사 패키지·역할 상태 체계는 가져오지 않는다. 제품 코드·진행은 제품 저장소, 모델 실행·권한은 native 플랫폼, 품질 gate는 기존 core가 책임진다. 새 실행 엔진이나 별도 정책 체계를 만들지 않는다. 회사의 실제 기준 채택 여부는 제품 원본에서 확인한다.
+
+원격 전달 전 webhook 로컬 코드 `ef6585a`는 SDK 7.1.1 전환 후 전체 110개·집중 31개·실제 별도 Keycloak/Chrome 로그인·역할 경계 및 전체 runtime/dev graph 감사 0을 확인했다. 독립 검토와 전달 기록은 위 소비 진행 기록을 따른다. 당시 운영 IdP·원격 gate·배포는 미확인이었다. 현재 원격 CI·develop 병합 결과는 아래 후속을 따른다.
+
+DriveTree `907ea04`는 제품 전용 braces 깊이 보완·설치 확인·stdin import 회귀를 보안 10개로 검증했다. unit/build/Chromium의 기존 동일 앱 입력 증거 재사용과 full 감사 high 5는 구분한다. ERP `03a4bad`는 ignore-scripts·미확인 도달성 때문에 보완 미적용 조건과 증거 보존만 기록했다. Harness 공통 패치 기능이나 운영 배포는 추가하지 않았다.
+
+### 소비 원격 인수 후속 (2026-10-07)
+
+webhook은 기존 검증 입력을 보존하고 [develop PR #71](https://github.com/grinvi04/webhook-service/pull/71)의 실제 원격 필수 검사·독립 검토를 통과하고 develop `c4214248`로 병합했다. 보호 설정을 유지했으며 이미지 게시·운영 배포는 하지 않았다. SHA 지문 두 건의 secret-scan 오탐은 정확한 역사상 fingerprint만 식별하고 같은 경로의 합성 token 거부를 확인한다. ERP의 메시지 scope 오류를 고친 `b3fbfb36`은 기존 제품 입력을 유지한다. 사용자가 Vercel 관련 원격 작업 보류를 재확인해 DriveTree·siku와 제공자 preview 연결 미확인 ERP는 로컬 후보를 보존한다. main/default trusted 초기 배치·필수 context 전환·릴리즈·운영 배포는 완료되지 않았다. 실제 인수·정리 결과와 다음 행동은 [준비 기록](pilots/consumer-readiness-2026-10-07.md#후속-소비-원격-전달과-보류-조건-2026-10-07) 및 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)이 정본이다. 공통 Harness 동작·버전은 바꾸지 않는다.
+
+의존성 후속 재확인에서 DriveTree 운영 감사 0·깊이 보완 10/10, ERP 보완 후보 high 9/7과 공식 수정판 부재를 확인했다. webhook trusted 자산의 로컬 계약 시험은 통과했지만 main 게시 영향 때문에 활성화는 준비 상태다. 현재 경계·완료 한계·복구 순서는 [후속 기록](pilots/consumer-readiness-2026-10-07.md#후속-의존성-재확인과-trusted-전환-준비-2026-10-07)을 따른다.
+
+ERP 후속 `7a13802`는 제품 전용 깊이 보완 코드 `18b18a06`를 로컬 인수했다. ignore-scripts를 유지한 명시 설치 보완, 보안 11·단위 60·브라우저 38·Docker와 CSS/세 화면 동일성을 확인했고 고정 후보 독립 검토에 추가 P1/P2는 없었다. backend 불변의 기존 Java/실 IdP 증거 재사용, 합성 세션 smoke 및 전체 high 9/운영 high 7 FAIL을 구분한다. 공용 Harness 기능·버전은 바꾸지 않았으며 Vercel 원격 보류·trusted 활성화·배포 잔여는 유지한다. 범위와 실패·증거 연결은 [ERP 로컬 인수 기록](pilots/consumer-readiness-2026-10-07.md#후속-erp-깊이-보완의-로컬-인수-2026-10-07)을 따른다.
+
+2026-10-07 당시 사용자가 미리보기 포함 원격 전달을 허용했다. DriveTree [PR #85](https://github.com/grinvi04/drivertree/pull/85) `907ea045`·siku [PR #87](https://github.com/grinvi04/siku/pull/87) `dea9994`·ERP [PR #255](https://github.com/grinvi04/erp/pull/255) `7a13802`는 모두 develop 대상 OPEN이고 현재 head의 필수 CI 6·6·8개가 각각 PASS다. DriveTree의 같은 SHA Vercel Preview는 SUCCESS·GET 200, siku는 배포 SUCCESS지만 비인증 GET 302 보호 화면이어서 앱 확인 UNVERIFIED, ERP는 deployment/status 연결이 없고 Vercel 인증도 없어 Preview UNVERIFIED다. 세 PR의 병합·staging·운영 반영과 감사 잔여 해소는 완료가 아니다. 당시 보류 기록은 위 문단의 시점으로 보존하고 [최신 후보·원격 경계](pilots/consumer-readiness-2026-10-07.md#후속-소비-원격-인수와-webhook-릴리즈-2026-10-07)를 당시 정본으로 삼는다. 현재 병합 상태는 아래 2026-10-08 절을 따른다.
+
+webhook은 [main PR #72](https://github.com/grinvi04/webhook-service/pull/72) 병합 SHA `661ee4f`에 `v1.5.0`을 발행하고 [develop 역병합 PR #73](https://github.com/grinvi04/webhook-service/pull/73)을 마쳤다. main push의 GHCR 게시 job과 action metadata digest는 SUCCESS지만 직접 registry readback은 인증 401/403으로 UNVERIFIED다. [정상 PR #74](https://github.com/grinvi04/webhook-service/pull/74)에서 trusted target 검사가 실제 통과했고 main/develop 보호의 기존 commitlint 요구를 trusted context로 단계적으로 교체·readback했다. [정리 PR #75](https://github.com/grinvi04/webhook-service/pull/75)는 필수 5개·독립 검토를 통과해 develop `e1eee56e`에 병합됐으며 develop legacy workflow를 제거했다. 같은 SHA의 develop push CI는 앱 품질·DB head·비밀 검사 SUCCESS, 이미지 게시 SKIPPED다. main v1.5.0의 역사상 legacy 파일은 다음 정상 릴리즈에서 전파한다. 새 event 정책 예외는 승인·적용하지 않았고 이미지 게시 성공을 운영 배포 완료로 취급하지 않는다. 제품별 전체 보안·인수 상태는 여전히 미완료다.
+
+
+### develop 병합·외부 기능 관찰 (2026-10-08)
+
+사용자 승인 순서대로 DriveTree PR #85 → siku PR #87 → ERP PR #255를 develop에 병합했다. 필수 CI와 기존 고정 후보 검토를 대조했으며 보호 설정을 유지했다. DriveTree·siku의 merge SHA Preview는 생성됐지만 DriveTree 실제 유지비 계산은 오류로 FAIL, siku 앱 화면은 Vercel 로그인 보호로 UNVERIFIED, ERP 배포 연결도 UNVERIFIED다. 세 제품 main/default trusted 전환·운영 배포는 제외했다. 현재 상태·원문·다음 행동은 [최신 병합·실화면 점검](pilots/consumer-readiness-2026-10-07.md#후속-develop-병합과-실화면점검-2026-10-08)과 [이슈 #496](https://github.com/grinvi04/team-harness/issues/496)을 따른다. 공식 보안 수정판 부재와 전체 감사 잔여, 이전 ERP 컨테이너 런타임의 제한된 패키지 부재를 구분한다. 공통 Harness 동작·버전은 변경하지 않았다.
+
+
+DriveTree staging 복구 후속 조사에서 실제 소스 연결 null과 Railway 배포 자격 INACTIVE/체험 종료를 확인했다. API health404와 원격 계산 FAIL을 유지하고 결제·계정/인프라/DB·production 변경은 하지 않았다. 계정 활성화 여부·workspace 영향·환경 단독 소스 복원·고정 SHA 기능 검증의 재개 조건은 [staging 진단 후속](pilots/consumer-readiness-2026-10-07.md#staging-복구-진단-후속-2026-10-08)과 제품 PR87·이슈 #496을 따른다. 전체 소비 채택이나 실제 복구 완료로 판정하지 않는다.
+
+
+2026-10-08 현재 사용자는 DriveTree 추가 결제·Railway 활성화와 별도 테스트 Supabase가 없는 siku 원격 검증을 보류했다. 인증된 siku 미리보기는 Production 전용 Supabase 변수 때문에 실제 앱 기동 FAIL이며, 현재 Vercel 작업 공간 ERP 검색은 결과가 없고 ERP README는 운영 미배포다. 비용 없는 현재 잠금파일 감사와 공식 수정판 재확인에도 보안 판정 변화는 없다. 현재 결정·보류 해제 조건은 [최신 소비 관찰](pilots/consumer-readiness-2026-10-07.md#비용테스트-환경-결정과-인증된-미리보기-관찰-2026-10-08)을 따른다. 이전 활성화 순서는 조건부 계획이며 현재 실행할 다음 단계가 아니다. 새 운영/유료 환경을 만들거나 실패를 반복하지 않는다.
+
+사용자 결정에 따라 이번 배포 제외 인수는 Harness QA 보강과 네 소비 제품의 선정 로컬 QA·develop 필수 CI·독립 검토 적용 검증까지다. 현재 입력·실행 원문·소비 경계의 독립 대조에서 이 범위의 새 차단 결함을 찾지 못해 해당 단계는 완료로 판정한다. 전체 보안 감사 FAIL과 DriveTree·siku·ERP trusted 실제 전환은 남아 있으므로 전체 소비 도입·출시 준비 완료로 판정하지 않는다. 기존 제품별 단계 종료 조건은 유지하며 이슈 #496을 열어 둔다. 현재 완료 범위·증거·재개 조건은 [배포 제외 최종 인수](pilots/consumer-readiness-2026-10-07.md#배포-제외-범위의-최종-인수-2026-10-08)를 따른다. 새 공용 기능·플러그인 버전 변경은 없다.

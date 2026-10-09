@@ -1,0 +1,140 @@
+{
+  "task": "3A/3C fresh standalone native-role runtime evidence",
+  "date": "2026-10-09",
+  "status": "BOUNDED_OBSERVATION_COMPLETE_WITH_ROLE_SANDBOX_COUNTEREXAMPLE",
+  "scope": {
+    "ownedPrivateRoot": ".superpowers/sdd/harness-modernization/m3-native-role",
+    "fixture": "$FIXTURE (isolated synthetic Git project under /private/tmp)",
+    "originalConsumerWrites": false,
+    "directGlobalEdits": false,
+    "sourcePluginEdits": false,
+    "realRepoGitMutations": false,
+    "claudeInference": "USER-DEFERRED; refresh required; no calls",
+    "parentAttempts": 2,
+    "furtherAttempts": 0
+  },
+  "contract": {
+    "plan": "docs/specs/harness-modernization/plan/03-model-global.md",
+    "acceptance": [
+      "AC-M1",
+      "3A native roles",
+      "3C native-first boundary"
+    ],
+    "officialSource": "https://learn.chatgpt.com/docs/agent-configuration/subagents",
+    "officialBoundary": "Role model/effort overrides apply; parent live runtime overrides are reapplied, including sandbox.",
+    "denialBoundary": "No role was asked to violate readonly developer instructions; absence of writes is not enforcement evidence."
+  },
+  "candidate": {
+    "cliVersion": "0.161.0",
+    "binary": "$HOME/.local/bin/codex",
+    "resolvedBinary": "$HOME/.codex/packages/standalone/releases/0.161.0-aarch64-apple-darwin/bin/codex",
+    "binarySha256": "12ac11d2c7eee27cfae34393986d7b7c9ed0dea537cb749831cdd7033893e6de",
+    "policy": "$HOME/.codex/model-policy.md",
+    "policySha256": "6a4e410be611540c06fc79e14a2eb6d0634b5216c1f4ee9b8c7d4758e32db9d4",
+    "roleFiles": "$HOME/.codex/agents/<role>.toml",
+    "expectedModels": {
+      "harness-explorer": "gpt-6.1-sol",
+      "harness-verifier": "gpt-6.1-sol",
+      "harness-security-reviewer": "gpt-6-astra",
+      "personal-bounded-worker": "gpt-6.1-sol",
+      "personal-critical-verifier": "gpt-6-astra",
+      "project-mapper": "gpt-6.1-sol"
+    },
+    "expectedEffort": "medium for all six",
+    "expectedRoleSandbox": "read-only for five; workspace-write for personal-bounded-worker",
+    "fixedRoleHashes": {
+      "harness-explorer": "849f9a611829c05e11043e9a8ce5372180ba2939677a4f22419b9ea33ee1cb71",
+      "harness-verifier": "041ac006383f0c4ab23227eedbaf559c98127a468ffeac507b1431374d722620",
+      "harness-security-reviewer": "821de0ba6e69004f5244b609c1caef4a6f040f791a10b20b658fb9b61b85e475",
+      "personal-bounded-worker": "04ac13424d71583c1998523662aa97ef392d1acff825563e09a59fa5a028349a",
+      "personal-critical-verifier": "4d2f924800ceb104fa3432208c90e89fbecfda4779d080b2eabe322d16775139",
+      "project-mapper": "defa9b63228d273f71855be18a65b3ea080c0e1b6bf3b43c6c85812d6be76266"
+    }
+  },
+  "firstRun": {
+    "parentId": "01a11dd9-7455-7a71-b597-32bb69a5ef17",
+    "children": {
+      "harness-explorer": "01a11dd9-9f93-7cd0-8c43-fc0d24a63374",
+      "personal-critical-verifier": "01a11dda-0583-70a3-9aba-5d0aa5c045ae",
+      "harness-verifier": "01a11dd9-b675-72f3-a6f0-8bb6830e2d49",
+      "project-mapper": "01a11dda-1e14-75b2-8fcf-286bacb118b7",
+      "personal-bounded-worker": "01a11dd9-eae9-7fc1-a470-bcd2c206ced7",
+      "harness-security-reviewer": "01a11dd9-cf17-7353-90e8-555cf518b352"
+    },
+    "actualParentSandbox": "workspace-write",
+    "actualChildSandbox": "workspace-write",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 105.204,
+    "finishedAtUtc": "2026-10-08T23:30:57.508349+00:00",
+    "explicitSandboxOverride": false,
+    "approvalPolicy": "never",
+    "modelOrEffortOverride": false,
+    "initialFailure": "All five readonly-role TOMLs produced actual workspace-write child contexts under workspace-write parent."
+  },
+  "secondRun": {
+    "parentId": "01a11ddd-874e-7c71-9e4e-dda0fbe6a29b",
+    "children": {
+      "harness-explorer": "01a11ddd-aa54-7bb1-b137-fb52012e6a29",
+      "harness-verifier": "01a11ddd-bcf5-7df0-8374-b1b4e8d29133",
+      "personal-critical-verifier": "01a11ddd-ddf7-7be2-add3-08e454bc3b43",
+      "harness-security-reviewer": "01a11ddd-cd82-7f01-a639-6b78278efe58",
+      "project-mapper": "01a11ddd-f25d-7b43-9311-ce4266e78860"
+    },
+    "actualParentSandbox": "read-only",
+    "actualChildSandbox": "read-only",
+    "exitCode": 0,
+    "timedOut": false,
+    "elapsedSeconds": 64.026,
+    "finishedAtUtc": "2026-10-08T23:34:43.404257+00:00",
+    "explicitSandboxOverride": "read-only",
+    "approvalPolicy": "never",
+    "modelOrEffortOverride": false,
+    "result": "Five exact readonly roles inherited actual read-only contexts from separate read-only parent; worker was excluded."
+  },
+  "results": {
+    "nativeRoleSelection": "PASS: source child metadata names and parent/child session IDs, not cached collaboration definitions",
+    "fixedModelsAndEffort": "PASS: all 11 actual child turn_context records matched configured model and medium",
+    "benignToolExecution": "PASS: all 11 children actually read AGENTS.md, README.md, access.py; raw command outputs retained",
+    "knownDefect": "Readonly reviewers identified unconditional True at access.py:2 against README.md:10; static evidence only, no product/security quality claim",
+    "workerWrite": "PASS: first-run actual tool created only owned marker and asserted exact 22 bytes; outer byte/hash check agrees",
+    "workerMarkerSha256": "96bb4e8f0d199e5d79fb2c0fd13379048ca15cdc8e0ed9bd2addd80149bf73ca",
+    "readonlyRoleIsolationUnderWriteParent": "FAIL: role TOML sandbox alone did not narrow observed child context",
+    "separateReadonlyParentApplication": "PASS: second parent and all five children recorded read-only plus approval never",
+    "permissionDenial": "UNVERIFIED in these role runs; no mutation attempted or counted as denial",
+    "sourcePreservation": "PASS: three fixture sources and six role TOMLs unchanged; model-policy and binary hashes unchanged",
+    "secondRunPreservation": "PASS: source hashes and marker matched second-run initial hashes",
+    "globalConfig": "Native runtime effect: added synthetic fixture project trust entry. Parent independently diffed applied candidate; model/effort/memory/permissions unchanged. No direct agent config edits.",
+    "globalConfigBaselineSha256": "7aa93cda1dcd105741c7c416f70b3fc4fd65a1e5fd27672c109923e8aff164f4",
+    "globalConfigObservedEndSha256": "3f55426d10b45c681e2d4eb78e2065d04302f1cc71104198128dbf19cf9e9640",
+    "authOrRateLimitFailure": false,
+    "timeout": false
+  },
+  "evidence": {
+    "firstInvocationAndRuntime": ".superpowers/sdd/harness-modernization/m3-native-role/invocation.json",
+    "firstSessionProof": ".superpowers/sdd/harness-modernization/m3-native-role/session-evidence.json",
+    "secondInvocationAndRuntime": ".superpowers/sdd/harness-modernization/m3-native-role/read-only-parent/invocation.json",
+    "secondSessionProof": ".superpowers/sdd/harness-modernization/m3-native-role/read-only-parent/session-evidence.json",
+    "usage": "Per-response and final per-thread actual token_usage_record retained privately; no cost conversion or model-efficiency comparison",
+    "preservation": ".superpowers/sdd/harness-modernization/m3-native-role/after.json",
+    "assertions": ".superpowers/sdd/harness-modernization/m3-native-role/verification.json",
+    "artifactHashes": ".superpowers/sdd/harness-modernization/m3-native-role/artifact-manifest.json",
+    "firstProofSha256": "be33b78a6589a9181452cba1cf82d7a91e8af00c7031255ea631ffc253bedb84",
+    "secondProofSha256": "dc7b961b114e73340cf764adc5cd507d4c67d5f13bcc308e92f5f0a153b7185d",
+    "manifestSha256": "8b3e9fec752e16155e8e4c5138004042a5f2e4a1949e519c7afb02b416c219ea",
+    "runtimeConfigEffect": ".superpowers/sdd/harness-modernization/m3-native-role/runtime-config-effect.json"
+  },
+  "remaining": {
+    "parentOwnedPolicyUpdate": "Require a separate explicitly read-only parent for native independent verification; ordinary worker context remains workspace-write. Role TOML alone is insufficient isolation on this tested CLI.",
+    "parentOwnedIntegration": "Align current policy/role contract and shared plan with actual boundary; this task does not edit globals or source registration.",
+    "unverified": [
+      "Actual denial in role sessions",
+      "Worker isolation from other writable paths",
+      "Broader quality/efficiency comparison",
+      "Claude actual role/effort/quality until user refreshes authentication",
+      "Remote/CI/release/production outcomes"
+    ],
+    "noRetry": "Both approved fresh attempts completed; no third run or provider/model fallback.",
+    "parentOwnedCleanup": "Remove only the demonstrated task-generated temporary project trust entry with current-digest application; preserve original 53/user trusts."
+  }
+}

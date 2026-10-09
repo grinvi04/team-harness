@@ -1,0 +1,56 @@
+{
+  "scenario": "missing-reply",
+  "status": 1,
+  "stdout": "",
+  "stderr": "Malformed/duplicate/out-of-snapshot processed thread or missing reply/evidence\n",
+  "snapshot": {
+    "repo": "test/repo",
+    "pr": 42,
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "id": "PRRT_reviewed",
+        "commentId": 101
+      }
+    ]
+  },
+  "processed": {
+    "repo": "test/repo",
+    "pr": 42,
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "threadId": "PRRT_reviewed",
+        "evidence": "local regression result for aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "state": {
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "id": "PRRT_reviewed",
+        "commentId": 101,
+        "isResolved": false
+      }
+    ],
+    "replies": [],
+    "resolves": [],
+    "calls": []
+  }
+}

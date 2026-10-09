@@ -1,0 +1,98 @@
+# 단계 5 — 통합 인수·기록·delivery·정리
+
+선행: 단계 1–4의 현재 후보와 원시 결과. 근거: [원래 완료 기준](../review/04-coverage-design.md).
+진행 상태: 소스143ca921 독립 최종 검토, 세 CLI 격리 설치, 유효한 로컬 영향 시험과 PR #506 required CI5개를 통과해 develop에 병합했다. 현재 release-check·79파일 bundle/checksum PASS이며 main 전달·사용자 설치/dispatch·지도 실제 적용·정리는 [전달 기록](../execution-delivery.json)에서 진행 중이다. 당시 실패·보류는 보존한다.
+
+## 추가 독립 리뷰 수정의 인수 범위
+
+| 경계 | 최초 실패 → 로컬 수정 결과 | 후보·원시 기록 |
+|---|---|---|
+| 민감 curl form 파일 | exit1, 14 FAIL → egress 273 PASS → 반복 type= 반례 2건 수정 후 279 PASS 및 관련 검사 exit0 | [egress](../execution-integrated-review.json) |
+| 자동머지 required CI 조회 실패 | exit1, 2 FAIL → merge 58 PASS 및 관련 caller 검사 exit0 | [merge](../execution-integrated-review.json) |
+| review status 누락/null | exit1, 1 FAIL → 실제 workflow 행동 사례 12 PASS | [QA](../execution-integrated-review.json) |
+
+위 기록의 source digest는 수정된 로컬 바이트에 묶인다. fc05d31 검토와 이전 단계 PASS를 새 통합 후보의 PASS로 옮기지 않는다.
+공개 링크는 Git에 포함된 후보·검증 기록이다. 원시 로그·첫 실패는 별도 비공개 보존본에 남기며 공개 링크가 그 로컬 폴더에 의존하지 않는다.
+통합 담당은 현재 diff와 영향 문서·필수 gate를 다시 대조한다. 소스 재검토·격리 설치 PASS와 실제 사용자 설치/새 세션·원격 CI·발행·worktree 정리의 완료는 구분한다.
+소비 앱 검증·전역 적용·서비스 재시작은 이 기록 정리로 실행하거나 완료 판정하지 않는다.
+
+## 요구와 검증의 연결
+
+| 수용 기준 | 관찰 대상·정상/실패 경계 | 필수 증거 |
+|---|---|---|
+| AC-S1–S5 | 조회 실패·입력 차이·DDL·바이너리/source/report·경로 quoting | 원래 반례 RED, 수정 결과, 정상 대조군, 영향 caller 시험 |
+| AC-Q1–Q5 | PR/thread 교체·복구 실패·태그 SHA·빈 실행·uncertain·SVG 오류 | fake API/순수/격리 결과, 실제 gate 조건과의 일치 |
+| AC-M1–M6 | 지원/명시 선택·권한·품질·대체·부분 적용/복구·혼합 버전 | 실제 runtime·같은 과제 결과·동시 변경 보존·지원/전환 fixture·사용량 한계 |
+| AC-D1–D6 | 줄 수·역사·generator·package·지도·네 소비 지침·기술 표준 | 전체 소유 목록, reader 실행, 당시 기록 보존, 현재 코드/명령·보장 범위 대조 |
+
+## 5A — 같은 후보의 전체 품질
+
+- [ ] 현재 `.github/workflows/ci-gate.yml` quality 스텝을 읽고 그 후보에 적용 가능한 전량 gate를 재현한다.
+- [ ] 최초 감사의 63 PASS는 이전 후보다. 추가/제거한 스텝을 반영한 현재 목록으로 검사한다.
+- [ ] 구문 Bash/Node/Python, JSON/YAML, Ruff, package/release-bundle/semantic parity를 실제 변경 범위와 연결한다.
+- [ ] baseline failure·설정 오류·의도적 invalid fixture는 구분한다. 최초 실패와 재시도 조건을 보존한다.
+- [ ] 시크릿 검사는 현재 후보/변경 범위로 실행하고 인증정보의 값을 보고서에 출력하지 않는다.
+- [ ] 문서/설정만 바뀐 소비 repo는 링크·내용·명령·필수 로딩/reader 영향 검사로 확인한다.
+- [ ] 코드/CI/검사 entry가 바뀐 소비 repo는 실제 영향 흐름과 그 프로젝트 필수 gate를 실행한다.
+- [ ] 쓰기 성격의 format·서버 기동·DB 접근은 명시된 안전한 환경에서만 수행하고 원본/운영을 시험 대상으로 쓰지 않는다.
+
+동일 후보·파일/바이트·환경·검사 범위의 유효한 결과는 재사용한다. 보고할 때마다 의미 없이 재시험하지 않는다.
+변경·드리프트·새 실패·gate의 신선도 조건이 있으면 영향 검사를 다시 수행한다.
+
+## 5B — 증거와 doc-sync
+
+- [ ] 원래 사용자 지시를 요구→담당 변경/증거→이행 상태로 대조한다. 보고서 발견 개수나 계획에 ID가 있다는 사실로 지시 충족을 대신하지 않는다.
+- [ ] 실행 기록에 명령·작업 디렉터리·후보·시도 순서·환경·종료 코드·실제 관찰 결과를 연결한다.
+- [ ] source HEAD만으로 미커밋 바이트를 증명하지 않는다. 해당 diff/digest와 원본을 대조한다.
+- [ ] 실제 실행하지 않은 검사의 최초 결과를 다른 검사 성공으로 채우지 않는다.
+- [ ] 관련 README·스펙·로드맵·체크리스트의 상태·현재 정본·다음 행동이 같은 후보와 일치하는지 확인한다.
+- [ ] 과거 실패/보류는 당시 기록으로 보존하고 새 결과와 연결한다.
+- [ ] PR 대상이면 `harness-doc-sync`에 실제 영향 경로·진행 문서·후보 근거를 선언한다.
+- [ ] `plugins/harness-guard/scripts/check-document-sync.mjs`와 `tests/document-sync-test.mjs`를 현재 계약으로 실행한다.
+- [ ] 선언/기계적 통과가 의미 누락을 보장하지 않는다는 한계를 독립 검토에서 확인한다.
+- [ ] 모든 소유 MD와 새 산출물의 199줄·실제 링크/앵커·버전·읽기 경로·내용 보존을 확인한다.
+
+## 5C — 독립 검토와 실제 로딩
+
+- [ ] 구현자와 다른 읽기 전용 인스턴스에 원래 요구·현재 후보·raw diff·원시 결과를 제공한다.
+- [ ] 검증 역할의 설정값과 실제 runtime 권한을 대조한다. 이번 검토에서 role의 read-only가 workspace-write로 실행된 반례를 보존하고, 지원 경로의 실제 권한 강제와 격리 거부 시험을 확인한다.
+- [ ] 읽기 전용 행동 계약만 지킨 실행을 쓰기 차단의 증거로 취급하지 않는다. 필요한 강제가 미확인인 실행으로 필수 독립 검증을 완료하지 않는다.
+- [ ] 안전 가드·보호/복구·후보 증거·전역 권한은 고위험 경계로 독립 반증한다.
+- [ ] 모델/effort 기본값 변경이 권한·독립성·필수 QA를 바꾸지 않았는지 확인한다.
+- [ ] 제약 때문에 독립 인스턴스가 실행되지 않으면 그 검토는 UNVERIFIED로 남긴다.
+- [ ] Codex/Claude의 공식 로더로 검증한 묶음을 격리 설치하고 hook·skill·reference·manifest 결과를 확인한다.
+- [ ] 실제 사용자 적용이 승인 범위라면 같은 검증 후보를 적용하고 새 세션의 실제 모델·역할·검사 집행을 관찰한다.
+- [ ] 3F·3G의 부분 적용/동시 변경/복구와 실제 설치·설정·실행기·세션의 지원 조합을 통과한 뒤 전역 적용을 완료로 판정한다.
+- [ ] 실제 설치/새 세션을 확인하지 않은 부분은 source 구현·격리 검증과 구분한다.
+
+완료 품질 판정은 통합 담당이 소유한다. 리뷰어의 추천·모델 자기보고·JSON PASS만으로 완료하지 않는다.
+
+## 5D — Git 전달·릴리즈·설치 경계
+
+- [ ] Git 작업은 승인된 범위에서 기존 feature/fix workflow로 처리한다. 현재 사용자의 변경을 덮어쓰지 않는다.
+- [ ] 동작 변경은 두 plugin manifest·README 버전·CHANGELOG 생성·maintenance 안내와 함께 정렬한다.
+- [ ] PR은 `plugins/harness-guard/scripts/pr-create.sh`, 머지는 `pr-merge.sh`와 현재 required CI/리뷰 계약을 따른다.
+- [ ] CI는 해당 PR head의 현재 required context를 대조한다. 옛 63개 로컬 검사나 다른 SHA를 CI 완료로 쓰지 않는다.
+- [ ] 릴리즈가 작업 승인에 포함되면 사전 gate → main PR → merge SHA 태그 → develop 역병합을 수행한다.
+- [ ] main 자기승인 불가/보호 예외가 필요하면 정확한 PR·해제 항목·복구 계획을 검토 가능한 결과로 제시한다.
+- [ ] 새 예외를 과거 #489 승인으로 실행하지 않는다. 자동 승인 거부도 다른 경로로 우회하지 않는다.
+- [ ] 공식 설치/refresh 뒤 실제 version·source digest·새 세션 로딩을 대조하고 등록만으로 설치 완료를 주장하지 않는다.
+
+승인되지 않은 원격 전달/발행은 로컬 인수와 구분해 남긴다. 필수 승인/검사가 남은 단계를 완료로 표시하지 않는다.
+소비 앱의 배포·유료 환경·운영 데이터 변경은 이 계획에서 제외한다.
+
+## 5E — 종료와 worktree 정리
+
+- [ ] 변경한 범위·실제 검증 후보·필수 결과·잔여 한계·후속 재개 조건을 기존 spec/issue/PR에 현행화한다.
+- [ ] 장기 추적 지도는 승인된 `.project-map/`에 실제 단계만 반영한다. 미확인/blocked를 done으로 바꾸지 않는다.
+- [ ] 이 작업에서 만든/reused 작업용 worktree의 사용자 변경·미푸시 commit·untracked/ignored 필요한 자료를 확인한다.
+- [ ] 보존할 증거/commit을 확보하고 적합한 managed archive로 정리한다. primary/pinned/shared checkout은 지우지 않는다.
+- [ ] 소비 repo의 기존 worktree는 소유권·작업 잔여·보류 후보 보존을 확인한 뒤 승인 범위에서 정리한다.
+- [ ] unrelated 작업 공간·전역 backup·사용자의 `.gitignore` 변경은 정리 대상으로 삼지 않는다.
+
+## 최종 판정
+
+승인 범위의 필수 항목 모두 PASS, 미해결 차단 결함 0, 현재 후보/증거 일치, 독립 검토,
+관련 문서 현행화와 필요한 실제 적용 확인을 함께 충족하면 그 범위는 VERIFIED다.
+필수 FAIL/UNVERIFIED가 남으면 해당 단계는 NOT VERIFIED이며, 영향받지 않는 승인 작업은 계속한다.
+사용량 미제공·지원 미확인·보류 원격/배포는 실제 결과대로 표시하고 전체 최적화/보안/출시 완료로 확대하지 않는다.

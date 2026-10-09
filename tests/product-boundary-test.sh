@@ -5,8 +5,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DOC="$ROOT/docs/product-boundaries.md"
 SPEC="$ROOT/docs/specs/product-boundary-separation.md"
 README="$ROOT/README.md"
-PRODUCT="$ROOT/docs/product-direction.md"
-DECISIONS="$ROOT/docs/decisions.md"
+PRODUCT="$ROOT/docs/product-direction-governance-history.md"
+DECISIONS="$ROOT/docs/decisions-native-and-delivery.md"
 PASS=0
 FAIL=0
 
