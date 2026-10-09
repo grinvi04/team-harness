@@ -46,7 +46,7 @@ git status --short   # 미커밋 변경 있으면 중단
 
 **프롬프트:**
 - 먼저 `docs/db-standards.md`와 채택한 도구의 stack rule·프로젝트 규약을 읽는다.
-  실제 DB·마이그레이션이 없으면 사유와 함께 SKIP한다. 테스트 fixture를 운영 대상으로 세지 않는다.
+  실제 DB·마이그레이션이 없으면 관련 항목만 사유와 함께 SKIP한다. 테스트 fixture를 운영 대상으로 세지 않는다.
 - 마지막 릴리즈 이후 마이그레이션 변경을 확인한다. 이전 태그에 있다는 사실만으로 적용됐다고 가정하지 않는다.
   공유·운영 환경에 적용한 파일은 수정하지 않고 새 변경으로 보정한다. 적용 이력이 미확인이면 미확인으로 보고한다.
 - **적용 순서 점검**: 연결된 `check-migration-safety.mjs`가 있으면 실행하고 기존 실패 기준을 유지한다.
@@ -91,9 +91,11 @@ node scripts/check-external-pilot-provenance.mjs --manifest docs/pilots/external
 |---|---|---|
 | A 품질 (lint·test·build) | ✅/❌ | |
 | B 보안 | ✅/❌ | |
-| C 마이그레이션·DB 표준 | ✅/❌ | |
+| C 마이그레이션·DB 표준 | ✅/❌/SKIP | 모든 항목이 실제 비적용일 때만 전체 SKIP |
 | D 외부 파일럿 live provenance | ✅/❌/SKIP | manifest가 없을 때만 SKIP |
 ```
 
-- A·B·C가 전부 ✅이고 D가 ✅ 또는 정당한 SKIP → **"release-check 통과 — /release <version> 진행 가능"** 출력
+- A·B가 ✅이고 C·D가 ✅ 또는 정당한 SKIP → **"release-check 통과 — /release <version> 진행 가능"** 출력
+- C의 전체 SKIP은 실제 DB·마이그레이션과 검토할 DB 계약이 모두 없을 때만 허용하고 사유를 기록한다.
+  일부만 비적용이면 나머지 항목을 판정한다. 적용 이력 미확인·검사 미실행·환경 실패는 SKIP이 아니며 통과를 막는다.
 - 하나라도 ❌ → 실패 항목·원인·수정 방향을 리포트하고 **중단** (수정 후 재실행)
