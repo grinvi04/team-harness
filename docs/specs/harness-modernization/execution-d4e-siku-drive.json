@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "task": "4E siku + DriveTree document candidates",
+  "recordedAtUtc": "2026-10-08T22:46:51.223276+00:00",
+  "status": "DOCUMENT_CANDIDATES_VERIFIED_NOT_APPLIED",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+  "originals": {
+    "siku": {
+      "root": "$HOME/project/siku",
+      "head": "2476e1754c4e2fcf2e53ce749f3464cd8228ea74",
+      "clean": true,
+      "ownedOriginalMarkdown": 10,
+      "originalByteHashesEqual": true,
+      "gitExitCodes": [
+        0,
+        0
+      ]
+    },
+    "DriveTree": {
+      "root": "$HOME/project/DriveTree",
+      "head": "ff5f26f120ad4bb5629cc371839ff69edea544cc",
+      "clean": true,
+      "ownedOriginalMarkdown": 28,
+      "originalByteHashesEqual": true,
+      "gitExitCodes": [
+        0,
+        0
+      ]
+    }
+  },
+  "authority": "Approved plan04 AC-D1/D2/D4/D5; candidate paths only; root owns safe original application and integrated review.",
+  "scope": {
+    "candidateRoot": "$HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/consumer-candidates",
+    "stagedMarkdown": 52,
+    "changedAndNewMarkdown": 39,
+    "maxPhysicalLines": 188,
+    "originalWrites": 0,
+    "appBuildFormatTests": "NOT_RUN",
+    "database": "NOT_RUN",
+    "networkDeployment": "NOT_RUN",
+    "newClaudeCalls": 0
+  },
+  "firstFailures": [
+    {
+      "stage": "prechange document contract",
+      "actualExit": 1,
+      "failures": 12,
+      "raw": "baseline-red.json",
+      "meaning": "Five oversized docs, four phantom command/enforcement assertions, three absent screenshots."
+    },
+    {
+      "stage": "first builder",
+      "actualExit": 1,
+      "raw": "build-first.log",
+      "cause": "Duplicate moved local link processed twice; helper deduplication fixed."
+    },
+    {
+      "stage": "first verification",
+      "actualExit": 1,
+      "failures": 6,
+      "raw": "verification-first.json",
+      "cause": "Two variation-selector slug-validator false negatives; two incorrect new anchors; two rebased wrapper links. Source anchors/wrappers corrected and variation selector retained."
+    },
+    {
+      "stage": "metadata source hash check",
+      "actualExit": 1,
+      "raw": "source-hash-first.log",
+      "cause": "Wrong siku workflow filename in metadata. Actual ci-gate.yml inspected and evidence corrected."
+    }
+  ],
+  "finalChecks": {
+    "documentSource": {
+      "command": "python3 $HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/consumer-candidates/DriveTree/d4e-verify.py",
+      "exit": 0,
+      "checks": 351,
+      "localLinkAssetChecks": 130,
+      "raw": "verification-final.log"
+    },
+    "actualReaders": {
+      "command": "python3 -B $HOME/.codex/worktrees/c833/team-harness/.superpowers/sdd/harness-modernization/consumer-candidates/DriveTree/d4e-readers.py",
+      "exit": 0,
+      "normalProjects": 2,
+      "negativeFixtures": 4,
+      "raw": "reader-final.log"
+    },
+    "inventory": "inventory-verification.json: os.walk set equals10/28 originals; ignored local/map MD included; dependencies/generated/backups/scratch/VCS explicitly excluded."
+  },
+  "preservation": {
+    "splitDocuments": [
+      "README.md",
+      "PRD.md",
+      "DESIGN.md",
+      "docs/CODING_STANDARDS.md",
+      "docs/specs/quality-remediation.md"
+    ],
+    "exactFinalOriginalBody": [
+      "DESIGN.md",
+      "PRD.md",
+      "docs/specs/quality-remediation.md"
+    ],
+    "allFiveOrderedCoverage": "split-coverage-proof.json",
+    "intentionalCorrections": "corrections.json + candidate.diff: actual scripts/cwd, contribution, host, fixture DB, provider/sanitizer and navigation. Historical dates/SHA/AC/first failures retained."
+  },
+  "readerContract": {
+    "acceptanceBeforeAfter": {
+      "siku": [
+        3,
+        3
+      ],
+      "DriveTree": [
+        5,
+        5
+      ]
+    },
+    "requiredRemainingBeforeAfter": {
+      "siku": [
+        3,
+        3
+      ],
+      "DriveTree": [
+        4,
+        4
+      ]
+    },
+    "pureReaderOutputsEqualWithIdenticalAppInputs": true,
+    "milestoneBytesAndParseEqual": true,
+    "stagedRoadmapFingerprintDrift": {
+      "siku": [
+        "README.md",
+        "AGENTS.md"
+      ],
+      "DriveTree": [
+        "PRD.md",
+        "docs/specs/quality-remediation.md"
+      ]
+    },
+    "migration": "reader-proof.json retains root §0/§2/§6+current evidence tables; maps moved PRD/design/quality sections. No current reader edit needed for retained surfaces. Reader SHA pins comparison; later edits require rerun."
+  },
+  "limits": [
+    "Source/script inspection proves existence and described side effects, not actual successful app execution.",
+    "DriveTree e2e has no URL fixture guard and deletes all three table rows. Directions require verified new synthetic loopback DB; none executed.",
+    "DriveTree SessionStart can auto-link Railway production. Actual behavior documented; hook not invoked or modified.",
+    "Actual Railway npm install --include=dev vs CI npm ci mismatch retained as deployment-resume item.",
+    "siku authenticated preview failure/user remote-test deferral and DriveTree staging/account/cost hold/public API cancellation retained.",
+    "Claude actual inference remains user-deferred; no retry or provider/model fallback.",
+    "No service refresh/restart, native host instruction-delivery, whole-app QA, tenant-security, remote CI, deployment or token/cost-saving claim."
+  ],
+  "handoff": {
+    "manifest": "staged-manifest.json: absolute original/candidate+old/new SHA for52 MD; new oldSha256=null",
+    "safeApply": "Root verify original HEAD/clean state and old SHA; reject symlinks/new-file collisions; preserve user bytes/modes. Apply only changed/new MD after integrated review, never helper/log/metadata.",
+    "sharedDocs": "Root update plan04/review/execution overview: this bounded candidate verification complete; original application, native instruction delivery and integrated review separate. Keep old map fingerprints historical and show real drift."
+  },
+  "artifactSha256": {
+    "d4e-verify.py": "753dfeed48fd238cb255dafb21dc928fe34d5ed72d46ba9f6c993e58c2d40e0b",
+    "d4e-readers.py": "6f61903c9c26420daf30ae12929ba039a6b0844e192c1df5f3fa4b71ba90788f",
+    "d4e-record.py": "fa3cda92a761a4b5aaceee2fd5d93749a13eb4768a805c4d04eb4e037228bf73",
+    "original-inventory.json": "071d3e5d613aa0f7f63dcc0816c31f4f71a9be027afb9ad1465c6bbe0b268e82",
+    "staged-manifest.json": "124bf9f61100b06602143092c89565959999d93206f495d8a032b7a0f5767e66",
+    "corrections.json": "7b17ae975cbcd3b4dcd5b328cf4dff576ff2d855832f71d307299f8d3dde0249",
+    "move-manifest.json": "d610f324564969bfd2606ad73c7a0e071408be65b04ce43440cc7495832543a2",
+    "preservation-proof.json": "6588e8911dc08201cd1ef641e4bcb0f849152e17b212cf751de0c983c3ea6b35",
+    "split-coverage-proof.json": "3ec439a3930c061ddcaede7d5119a0cd4d783f854cdbc9a1ced14db193967b36",
+    "asset-proof.json": "30e25c97f01dbd39df752ea87a1ce2dbed8b4678e79d56c194baeebec9910f15",
+    "command-contract.json": "875607f5eeffb1a1785a21d1dfd6021549ed650209903ece1e44979b12d63381",
+    "source-proof.json": "29f5591964194bcc269370090fba16d8e890f9fbce2f1f7b6af8ca64e2843255",
+    "reader-proof.json": "a26f6bfb82c8e4b3d877332c7b58c30e478c98d45726c19729e2f5a001ee1e6c",
+    "verification.json": "93a1b1e94f8794966b11136dcf73e6c7bb8650e301bc5a0d40ee1923dea9a5a6",
+    "verification-first.json": "8aa97e0a9b0ace98d8a5969575c0cd78772767d506e94b75f04ba50131e87839",
+    "inventory-verification.json": "47da3be58cf06119c3abf8f86948fd410504e63dc924640c3a8ea73f1c507bc1",
+    "baseline-red.json": "4f82292d2f856828b86a4f8682c6fc9cf1bf746c1ef14481f422d162806b6eb4",
+    "build-first.log": "b8d791f1286b5e50e797ef9babe44188e678a93f8d9d2df095bf99dc48451082",
+    "build-final.log": "094064d09e2374c3c8bb98b2700161cbe9715d0c0e993f7c955201e7756f3466",
+    "verification-first.log": "00c40fd72d4680b41d356fef0f537b63fc539174984fda673f3744520b887130",
+    "verification-final.log": "f30618d4f4384d848db985477ad34cdd9c0049d7a4c6e55900e88e1b2ec3746a",
+    "reader-final.log": "db1d97d854f17647560fd68b9d85925af5f4d7b89ce5eccfb862822ed04b3fe3",
+    "source-hash-first.log": "cc3605b60c0a76590acda120f36e75db7db0e5432a74eaaa05bded78fd92d18d",
+    "candidate.diff": "9d021646c2b4ac83bbe85d6e0f5711a504966b036b58077bf6780f3f33eb1b7e"
+  }
+}

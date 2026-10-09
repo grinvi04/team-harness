@@ -20,6 +20,11 @@
 
 > **넛지 vs load-bearing**: 커밋·force-push·gh 차단은 서버 branch protection이 막는 **넛지**(best-effort — protection 미설정/드리프트 repo에선 guard가 유일선이라 repo-sync가 protection-on을 점검). `reset --hard`·`rm -rf 코어`·검증기 삭제·`npm -g`는 서버 백스톱이 없는 **진짜 방어선**이라 로컬에서 하드블록한다. F5(스펙-먼저)는 서버 백스톱 없는 절차 넛지(사람 리뷰만).
 
+일반 `git`/`rm`뿐 아니라 `/usr/bin/git`, `/bin/rm`처럼 절대 실행 경로도 같은 파괴 입력을 검사한다.
+따옴표 안의 설명 문자열은 실행 토큰과 구별한다. 모든 셸 난독화의 완전한 차단을 보장하지 않는다.
+Codex 전송 검사는 curl URL-query의 `이름@파일`·form의 `<파일`, wget body-file을 포함한다.
+일반 README 전송과 문자 그대로인 `이름=@문자열`은 허용한다.
+
 ## 2. 정당한 명령이 막혔다 (과탐)
 
 가드는 서버-백스톱 있는 넛지에서 **under-block 편향**(과차단 안 함)이 원칙이나, 정규식 한계로 드문 과탐이 있을 수 있다.

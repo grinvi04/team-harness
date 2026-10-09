@@ -33,35 +33,41 @@ contains CONTRIBUTING.md 'Conventional Commits' '커밋 형식 안내'
 contains CHANGELOG.md 'generated|Generated' 'CHANGELOG 생성물 표시'
 contains CHANGELOG.md 'generate-changelog\.mjs' 'CHANGELOG 재생성 명령'
 
-node "$ROOT/scripts/generate-changelog.mjs" >"$TMP/tagged-a.md"
-node "$ROOT/scripts/generate-changelog.mjs" >"$TMP/tagged-b.md"
-if cmp -s "$TMP/tagged-a.md" "$TMP/tagged-b.md" &&
-   grep -q '^## v0\.60\.0 - ' "$TMP/tagged-a.md"; then
-  pass "태그 기반 CHANGELOG 결정론"
+node "$ROOT/scripts/generate-changelog.mjs" --write --output "$TMP/tagged-a"
+node "$ROOT/scripts/generate-changelog.mjs" --write --output "$TMP/tagged-b"
+if diff -rq "$TMP/tagged-a" "$TMP/tagged-b" >/dev/null &&
+   grep -q '^# v0\.60\.0 - ' "$TMP/tagged-a/docs/changelog/2026/v0.60.0.md"; then
+  pass "태그 기반 전체 CHANGELOG 결정론"
 else
-  fail "태그 기반 CHANGELOG 결정론"
+  fail "태그 기반 전체 CHANGELOG 결정론"
 fi
 
 CANDIDATE_VERSION=$(node -p "require('$ROOT/plugins/harness-guard/.claude-plugin/plugin.json').version")
 CANDIDATE_TAG="v$CANDIDATE_VERSION"
-node "$ROOT/scripts/generate-changelog.mjs" --release "$CANDIDATE_TAG" >"$TMP/candidate-a.md"
-node "$ROOT/scripts/generate-changelog.mjs" --release "$CANDIDATE_TAG" >"$TMP/candidate-b.md"
-if cmp -s "$TMP/candidate-a.md" "$TMP/candidate-b.md"; then
-  pass "사전 태그 release candidate 결정론"
+node "$ROOT/scripts/generate-changelog.mjs" --release "$CANDIDATE_TAG" --write --output "$TMP/candidate-a"
+node "$ROOT/scripts/generate-changelog.mjs" --release "$CANDIDATE_TAG" --write --output "$TMP/candidate-b"
+if diff -rq "$TMP/candidate-a" "$TMP/candidate-b" >/dev/null; then
+  pass "사전 태그 전체 release candidate 결정론"
 else
-  fail "사전 태그 release candidate 결정론"
+  fail "사전 태그 전체 release candidate 결정론"
 fi
-if cmp -s "$ROOT/CHANGELOG.md" "$TMP/candidate-a.md"; then
-  pass "현재 CHANGELOG release candidate 재현"
+if node "$ROOT/scripts/generate-changelog.mjs" --release "$CANDIDATE_TAG" --check; then
+  pass "현재 CHANGELOG index와 모든 chunk byte 재현"
 else
-  fail "현재 CHANGELOG release candidate 재현"
+  fail "현재 CHANGELOG index 또는 chunk가 현재 후보와 다름"
 fi
-if grep -Fq "## $CANDIDATE_TAG - " "$TMP/candidate-a.md" &&
-   grep -q '^## v0\.60\.0 - ' "$TMP/candidate-a.md" &&
-   [ "$(grep -nF "## $CANDIDATE_TAG - " "$TMP/candidate-a.md" | cut -d: -f1)" -lt "$(grep -n '^## v0\.60\.0 - ' "$TMP/candidate-a.md" | cut -d: -f1)" ]; then
-  pass "사전 태그 $CANDIDATE_TAG 항목 생성"
+if node - "$TMP/candidate-a" "$CANDIDATE_TAG" <<'NODE'
+const fs = require('fs'), path = require('path')
+const directory = process.argv[2], tag = process.argv[3]
+const releases = fs.readFileSync(path.join(directory, 'docs/changelog/releases.md'), 'utf8')
+if (!(releases.indexOf(`[${tag} - `) >= 0 && releases.indexOf(`[${tag} - `) < releases.indexOf('[v0.60.0 - '))) process.exit(1)
+const page = fs.readFileSync(path.join(directory, `docs/changelog/2026/${tag}.md`), 'utf8')
+if (!page.startsWith(`# ${tag} - `)) process.exit(1)
+NODE
+then
+  pass "사전 태그 $CANDIDATE_TAG 항목과 기존 release 순서 생성"
 else
-  fail "사전 태그 $CANDIDATE_TAG 항목 생성"
+  fail "사전 태그 $CANDIDATE_TAG 항목 또는 기존 release 순서 누락"
 fi
 if grep -q 'generate-changelog\.mjs --release' "$ROOT/plugins/harness-guard/skills/release/SKILL.md"; then
   pass "release skill이 사전 태그 CHANGELOG 생성"
@@ -97,21 +103,21 @@ printf 'fix\n' >>"$STABLE_REPO/state.txt"
 git -C "$STABLE_REPO" add state.txt
 GIT_AUTHOR_DATE=2026-01-02T00:00:00Z GIT_COMMITTER_DATE=2026-01-02T00:00:00Z \
   git -C "$STABLE_REPO" commit -qm "fix: release note"
-node "$STABLE_REPO/scripts/generate-changelog.mjs" --release v1.1.0 >"$TMP/stable-a.md"
+node "$STABLE_REPO/scripts/generate-changelog.mjs" --release v1.1.0 --write --output "$TMP/stable-a"
 printf 'docs\n' >>"$STABLE_REPO/state.txt"
 git -C "$STABLE_REPO" add state.txt
 GIT_AUTHOR_DATE=2026-01-03T00:00:00Z GIT_COMMITTER_DATE=2026-01-03T00:00:00Z \
   git -C "$STABLE_REPO" commit -qm "docs: release prep"
-node "$STABLE_REPO/scripts/generate-changelog.mjs" --release v1.1.0 >"$TMP/stable-b.md"
-if cmp -s "$TMP/stable-a.md" "$TMP/stable-b.md" &&
-   grep -q '^## v1\.1\.0 - 2026-01-02$' "$TMP/stable-b.md"; then
+node "$STABLE_REPO/scripts/generate-changelog.mjs" --release v1.1.0 --write --output "$TMP/stable-b"
+if diff -rq "$TMP/stable-a" "$TMP/stable-b" >/dev/null &&
+   grep -q '^# v1\.1\.0 - 2026-01-02$' "$TMP/stable-b/docs/changelog/2026/v1.1.0.md"; then
   pass "release prep 커밋 뒤 candidate 날짜 안정"
 else
   fail "release prep 커밋 뒤 candidate 날짜 안정"
 fi
 git -C "$STABLE_REPO" tag v1.1.0
-node "$STABLE_REPO/scripts/generate-changelog.mjs" --release v1.1.0 >"$TMP/stable-tagged.md"
-if cmp -s "$TMP/stable-b.md" "$TMP/stable-tagged.md"; then
+node "$STABLE_REPO/scripts/generate-changelog.mjs" --release v1.1.0 --write --output "$TMP/stable-tagged"
+if diff -rq "$TMP/stable-b" "$TMP/stable-tagged" >/dev/null; then
   pass "정식 태그 뒤 candidate 명령 byte 재현"
 else
   fail "정식 태그 뒤 candidate 명령 byte 재현"

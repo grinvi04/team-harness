@@ -2,7 +2,10 @@
 /*
  * Codex adapter for claude-plugins-official/security-guidance hooks.
  *
- * The upstream plugin is intentionally Claude Code-shaped. It emits telemetry
+ * Optional legacy compatibility, not a required Harness security detector or
+ * an automatic installation path. Retained for existing authorized patched
+ * installations until upstream Codex output compatibility is verified.
+ * The historic upstream plugin is Claude Code-shaped. It emits telemetry
  * fields such as metrics/rewakeSummary and relies on asyncRewake. Codex knows
  * hookSpecificOutput.additionalContext, decision, and reason, but rejects the
  * Claude-only fields when they appear in PostToolUse JSON. This wrapper keeps

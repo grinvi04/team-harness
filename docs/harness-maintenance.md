@@ -5,6 +5,9 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 
 ## 변경 절차
 
+보호 적용은 두 브랜치와 비어 있지 않은 필수 검사 집합의 사전 조회를 모두 통과해야 시작한다.
+조회 오류·잘못된 응답·빈 집합은 보호를 쓰지 않고 실패한다. 첫 CI 또는 명시한 `--contexts`를 확인한 뒤 재실행한다.
+
 1. 브랜치 생성 (`fix/*`·`feature/*`·`docs/*`·`chore/*`) — main 직접 커밋은 이 repo에서도 금지
 2. 수정 + 검증
    - 가드(guard.sh) 변경: 차단/허용 시나리오를 `echo '{"tool_name":"Bash","tool_input":{"command":"..."}}' | bash guard.sh`로 실측하고 PR에 결과 기재
@@ -23,7 +26,7 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 버전 변경 시 함께 갱신: `plugins/harness-guard/.claude-plugin/plugin.json` +
 `plugins/harness-guard/.codex-plugin/plugin.json` + README 배지.
 자체 CI는 `docs/intro.html`의 소스 후보 버전과 `CHANGELOG.md` 재현도 검사한다. 구현 커밋 뒤
-`node scripts/generate-changelog.mjs --release vX.Y.Z`로 CHANGELOG를 생성한다(태그 발행 아님).
+`node scripts/generate-changelog.mjs --release vX.Y.Z --write`로 CHANGELOG index와 `docs/changelog/` 전체를 생성한다(태그 발행 아님).
 동작 변경을 머지하고 버전을 안 올리면 팀원에게 배포되지 않은 것과 같다.
 
 ## 진행 문서 검사 배포 경계
@@ -151,3 +154,7 @@ node scripts/check-external-pilot-provenance.mjs \
   feature→develop→release→main. `ci-gate.yml`은 실제로 있으며 `[main, develop]` PR마다 실행된다.
 - **branch protection 적용됨**(2026-07 public 전환 #73 이후) — main·develop에 required status checks·force-push/삭제 차단·대화 resolve·`enforce_admins=on`. 현재 team-harness는 **팀 모드(main 승인1 + stale 승인 무효화, develop 승인0)** 다. `guard.sh` 훅·`.githooks/pre-commit`(dogfooding)은 직접커밋·맨손 gh 머지를 로컬에서 선차단하는 **방어심화 계층**으로 병존(서버 강제와 이중). 전환 완료 후 드리프트 점검 = `set-branch-protection.sh --check --approvals 1 --contexts quality,secret-scan,test-guard,commitlint-trusted,atomic-trust-macos`; `--contexts`를 주면 개수만이 아니라 exact set을 검증한다. main은 승인 수를 명시하고 develop 승인0과 나머지 불변식도 엄격하게 확인한다. 전환 진행 증거는 [#432](https://github.com/grinvi04/team-harness/issues/432)와 연결 PR이 정본이다.
 - `presentation.html` 등 발표 자료는 커밋 대상이 아니다 — repo는 운영 자산만
+
+Profile 경로는 JSON과 shell 양쪽에서 전체 파일 경로로 인용한다. doctor는 알려진 hook 등록과 정확한 실행 대상의 관계를 검사한다.
+이전 raw 경로 profile이 unhealthy이면 `manage-profile`의 기존 update 경로로 다시 바인딩한다. POSIX 역슬래시 경로의 Node ESM 실행은 지원 확인 밖이다.
+test-guard는 `check`/`case_` 등 단언 호출 줄의 감소와 조회 실패를 검사한다. 본문 의미·실행 수·실제 실패는 필수 시험의 실행 증거로 별도 확인한다.

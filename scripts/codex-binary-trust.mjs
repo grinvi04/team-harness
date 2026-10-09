@@ -143,9 +143,11 @@ export function establishCodexTrust({
   command = 'codex',
   env = process.env,
   expectedDigest = null,
+  expectedIdentity = null,
   fixtureMode = false,
   trustedBinariesPath,
 }) {
+  if (expectedIdentity) assertExecutableIdentity(expectedIdentity)
   const executable = resolveExecutable(command, env)
   const binaryDigest = digestFile(executable)
   if (expectedDigest && binaryDigest !== expectedDigest) {
@@ -169,6 +171,9 @@ export function establishCodexTrust({
   }
 
   const identity = captureExecutableIdentity(executable, binaryDigest, signature.cdHash || null)
+  if (expectedIdentity && JSON.stringify(expectedIdentity) !== JSON.stringify(identity)) {
+    throw new Error('Codex executable changed after trust verification')
+  }
   let version = null
   if (!fixtureMode) {
     const result = runVerifiedExecutable(identity, ['--version'], { env })
@@ -189,10 +194,18 @@ function parseCli(argv) {
   let trustedBinariesPath = null
   let fixtureMode = false
   let executeArgs = null
+  let expectedIdentity = null
+  let fixtureBeforeExec = null
   for (let index = 0; index < argv.length; index += 1) {
     if (argv[index] === '--candidate' && argv[index + 1]) command = argv[++index]
     else if (argv[index] === '--expected-digest' && argv[index + 1]) {
       expectedDigest = argv[++index]
+    }
+    else if (argv[index] === '--expected-identity' && argv[index + 1]) {
+      expectedIdentity = JSON.parse(argv[++index])
+    }
+    else if (argv[index] === '--fixture-before-exec' && argv[index + 1]) {
+      fixtureBeforeExec = argv[++index]
     }
     else if (argv[index] === '--trusted-binaries' && argv[index + 1]) {
       trustedBinariesPath = path.resolve(argv[++index])
@@ -203,10 +216,16 @@ function parseCli(argv) {
     } else throw new Error(`unknown or incomplete argument: ${argv[index]}`)
   }
   if (!fixtureMode && !trustedBinariesPath) throw new Error('--trusted-binaries is required')
-  return { command, executeArgs, expectedDigest, fixtureMode, trustedBinariesPath }
+  if (fixtureBeforeExec && !fixtureMode) throw new Error('fixture pre-exec hook requires --fixture')
+  return { command, executeArgs, expectedDigest, expectedIdentity, fixtureBeforeExec, fixtureMode, trustedBinariesPath }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+function canonicalPath(file) {
+  try { return realpathSync(file) }
+  catch { return null }
+}
+
+if (process.argv[1] && canonicalPath(process.argv[1]) === canonicalPath(fileURLToPath(import.meta.url))) {
   try {
     const args = parseCli(process.argv.slice(2))
     const trust = establishCodexTrust(args)
@@ -214,6 +233,10 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
       const result = runVerifiedExecutable(trust.identity, args.executeArgs, {
         env: process.env,
         stdio: 'inherit',
+        beforeSpawn: args.fixtureBeforeExec ? () => {
+          const hook = spawnSync(args.fixtureBeforeExec, [], { env: process.env, encoding: 'utf8' })
+          if (hook.error || hook.status !== 0) throw new Error('Codex fixture pre-exec hook failed')
+        } : null,
       })
       if (result.error) throw result.error
       if (result.signal) process.kill(process.pid, result.signal)
@@ -224,6 +247,7 @@ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.me
         digest: trust.digest,
         version: trust.version,
         cdHash: trust.identity.cdHash,
+        identity: trust.identity,
         fixture: args.fixtureMode,
       })}\n`)
     }

@@ -115,11 +115,14 @@ if [ "$*" = 'plugin list --json' ]; then
       echo '{"installed":[{"pluginId":"keep@existing","version":"1"}]}'
     fi
   else
-    printf '{"installed":[{"pluginId":"harness-guard@team-harness","version":"%s","enabled":true,"source":{"source":"local","path":"%s"}}]}\n' "$SOURCE_VERSION" "$SOURCE_ROOT/plugins/harness-guard"
+    installed_source="$SOURCE_ROOT"
+    [ ! -f "$CODEX_HOME/fixture-marketplace-source" ] || installed_source=$(cat "$CODEX_HOME/fixture-marketplace-source")
+    printf '{"installed":[{"pluginId":"harness-guard@team-harness","version":"%s","enabled":true,"source":{"source":"local","path":"%s"}}]}\n' "$SOURCE_VERSION" "$installed_source/plugins/harness-guard"
   fi
   exit 0
 fi
 if [[ "$1 $2 $3" == 'plugin marketplace add' ]]; then
+  printf '%s' "$4" >"$CODEX_HOME/fixture-marketplace-source"
   echo '{"marketplaceName":"team-harness"}'
   exit 0
 fi
@@ -528,6 +531,175 @@ else
   CONTRACT_FAILURES=$((CONTRACT_FAILURES + 1))
 fi
 
+# S04-S06: committed input, invocation identity, and exclusive report boundaries.
+S1D_FAILURES=0
+s1d_run() {
+  local stem=$1; shift
+  : >"$USER_PLUGIN_CALLS"
+  set +e
+  "$@" >"$TMP/$stem.out" 2>"$TMP/$stem.err"
+  S1D_RC=$?
+  set -e
+}
+for input in checker manifest; do
+  if [ "$input" = checker ]; then
+    file=scripts/check-codex-native-plugin.mjs
+  else
+    file=plugins/harness-guard/.codex-plugin/plugin.json
+  fi
+  cp "$SOURCE_ROOT/$file" "$TMP/original-$input"
+  git -C "$SOURCE_ROOT" update-index --assume-unchanged "$file"
+  if [ "$input" = checker ]; then
+    printf '\nthrow new Error("working-tree-checker-must-not-run")\n' >>"$SOURCE_ROOT/$file"
+  else
+    node - "$SOURCE_ROOT/$file" <<'NODE'
+const fs = require('node:fs'), file = process.argv[2]
+const manifest = JSON.parse(fs.readFileSync(file, 'utf8'))
+manifest.version = '999.0.0'
+fs.writeFileSync(file, JSON.stringify(manifest))
+NODE
+  fi
+  hidden_before=$(shasum -a 256 "$SOURCE_ROOT/$file" | awk '{print $1}')
+  s1d_run "hidden-$input" node "$RUNNER" --source "$SOURCE_ROOT" \
+    --json-report "$TMP/hidden-$input.json" --markdown-report "$TMP/hidden-$input.md"
+  hidden_after=$(shasum -a 256 "$SOURCE_ROOT/$file" | awk '{print $1}')
+  if [ "$S1D_RC" -eq 0 ] && [ "$hidden_before" = "$hidden_after" ] && \
+    node - "$TMP/hidden-$input.json" "$APPROVED_REVISION" "$SOURCE_VERSION" <<'NODE'
+const fs = require('node:fs'), [file, revision, version] = process.argv.slice(2)
+const report = JSON.parse(fs.readFileSync(file, 'utf8'))
+if (report.status !== 'pass' || report.harness.revision !== revision || report.harness.version !== version || report.sourceState.unchanged !== true) process.exit(1)
+NODE
+  then echo "PASS: hidden $input bytes remain untouched and committed candidate executes"
+  else echo "FAIL: hidden $input bytes affected approved committed candidate (rc=$S1D_RC)"; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+  cp "$TMP/original-$input" "$SOURCE_ROOT/$file"
+  git -C "$SOURCE_ROOT" update-index --no-assume-unchanged "$file"
+done
+for key in GIT_DIR GIT_INDEX_FILE; do
+  s1d_run "inherited-$key" env "$key=$TMP/unrelated-$key" node "$RUNNER" --source "$SOURCE_ROOT" \
+    --json-report "$TMP/inherited-$key.json" --markdown-report "$TMP/inherited-$key.md"
+  if [ "$S1D_RC" -eq 0 ] && node - "$TMP/inherited-$key.json" "$APPROVED_REVISION" <<'NODE'
+const fs = require('node:fs'), report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
+if (report.harness.revision !== process.argv[3] || report.sourceState.unchanged !== true) process.exit(1)
+NODE
+  then echo "PASS: $key cannot redirect source or fixture Git commands"
+  else echo "FAIL: inherited $key affected explicit source (rc=$S1D_RC)"; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+done
+
+for kind in json markdown guard routing; do
+  stem="existing-$kind"
+  json="$TMP/$stem.json"; markdown="$TMP/$stem.md"
+  case "$kind" in json) protected="$json";; markdown) protected="$markdown";; guard) protected="$TMP/$stem.guard.txt";; routing) protected="$TMP/$stem.routing.jsonl";; esac
+  printf 'preserve-existing\n' >"$protected"
+  calls_before=$(wc -l <"$FAKE_CALLS")
+  s1d_run "$stem" node "$RUNNER" --source "$SOURCE_ROOT" --json-report "$json" --markdown-report "$markdown"
+  if [ "$S1D_RC" -ne 0 ] && [ "$(cat "$protected")" = preserve-existing ] && [ "$(wc -l <"$FAKE_CALLS")" = "$calls_before" ]; then
+    echo "PASS: existing $kind output rejected before Codex and preserved"
+  else echo "FAIL: existing $kind output overwritten or pilot executed (rc=$S1D_RC)"; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+done
+printf 'preserve-symlink-target\n' >"$TMP/report-victim"
+ln -s "$TMP/report-victim" "$TMP/symlink-output.json"
+s1d_run symlink-output node "$RUNNER" --source "$SOURCE_ROOT" --json-report "$TMP/symlink-output.json" --markdown-report "$TMP/symlink-output.md"
+if [ "$S1D_RC" -ne 0 ] && [ -L "$TMP/symlink-output.json" ] && [ "$(cat "$TMP/report-victim")" = preserve-symlink-target ]; then
+  echo 'PASS: symlink output and its target remain untouched'
+else echo 'FAIL: symlink output followed or overwritten'; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+
+for protected_root in "$SOURCE_ROOT" "$USER_CODEX_HOME"; do
+  json="$protected_root/inside-output.json"
+  s1d_run inside-output node "$RUNNER" --source "$SOURCE_ROOT" --json-report "$json" --markdown-report "$TMP/inside-output.md"
+  if [ "$S1D_RC" -ne 0 ] && [ ! -e "$json" ]; then echo 'PASS: source/user-home output rejected without writing'
+  else echo 'FAIL: source/user-home output was written'; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+  # Clean only the regression fixture's newly generated outputs on the RED run.
+  rm -f "$json" "$protected_root/inside-output.guard.txt" "$protected_root/inside-output.routing.jsonl" "$TMP/inside-output.md"
+done
+ln -s "$SOURCE_ROOT" "$TMP/source-output-alias"
+s1d_run alias-output node "$RUNNER" --source "$SOURCE_ROOT" --json-report "$TMP/source-output-alias/docs/alias-output.json" --markdown-report "$TMP/alias-output.md"
+if [ "$S1D_RC" -ne 0 ] && [ ! -e "$SOURCE_ROOT/docs/alias-output.json" ]; then echo 'PASS: source parent alias cannot bypass report boundary'
+else echo 'FAIL: source parent alias accepted'; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+rm -f "$SOURCE_ROOT/docs/alias-output.json" "$SOURCE_ROOT/docs/alias-output.guard.txt" "$SOURCE_ROOT/docs/alias-output.routing.jsonl" "$TMP/alias-output.md"
+s1d_run same-output node "$RUNNER" --source "$SOURCE_ROOT" --json-report "$TMP/same-output" --markdown-report "$TMP/same-output"
+if [ "$S1D_RC" -ne 0 ] && [ ! -e "$TMP/same-output" ]; then echo 'PASS: aliased JSON/Markdown destinations rejected'
+else echo 'FAIL: aliased report destinations accepted'; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+
+cat >"$TMP/concurrent-report" <<'SH'
+#!/usr/bin/env bash
+if [ ! -e "$PILOT_CONCURRENT_REPORT" ]; then printf 'concurrent-owner\n' >"$PILOT_CONCURRENT_REPORT"; fi
+SH
+chmod +x "$TMP/concurrent-report"
+for kind in json markdown guard routing; do
+  stem="concurrent-$kind"
+  json="$TMP/$stem.json"; markdown="$TMP/$stem.md"
+  outputs=("$json" "$markdown" "$TMP/$stem.guard.txt" "$TMP/$stem.routing.jsonl")
+  case "$kind" in json) protected="$json";; markdown) protected="$markdown";; guard) protected="${outputs[2]}";; routing) protected="${outputs[3]}";; esac
+  s1d_run "$stem" env HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC="$TMP/concurrent-report" \
+    PILOT_CONCURRENT_REPORT="$protected" node "$RUNNER" --source "$SOURCE_ROOT" \
+    --json-report "$json" --markdown-report "$markdown"
+  leftovers=0
+  for output in "${outputs[@]}"; do [ "$output" = "$protected" ] || [ ! -e "$output" ] || leftovers=$((leftovers + 1)); done
+  if [ "$S1D_RC" -ne 0 ] && [ "$(cat "$protected")" = concurrent-owner ] && [ "$leftovers" -eq 0 ]; then
+    echo "PASS: concurrent $kind destination owner preserved and partial publication rolled back"
+  else echo "FAIL: concurrent $kind owner overwritten or partial artifacts remained"; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+done
+
+mkdir "$TMP/report-parent"
+cat >"$TMP/swap-report-parent" <<'SH'
+#!/usr/bin/env bash
+[ ! -d "$PILOT_REPORT_PARENT.held" ] || exit 0
+mv "$PILOT_REPORT_PARENT" "$PILOT_REPORT_PARENT.held"
+ln -s "$PILOT_PROTECTED_SOURCE" "$PILOT_REPORT_PARENT"
+SH
+chmod +x "$TMP/swap-report-parent"
+s1d_run parent-swap env HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC="$TMP/swap-report-parent" \
+  PILOT_REPORT_PARENT="$TMP/report-parent" PILOT_PROTECTED_SOURCE="$SOURCE_ROOT" node "$RUNNER" --source "$SOURCE_ROOT" \
+  --json-report "$TMP/report-parent/swap-output.json" --markdown-report "$TMP/report-parent/swap-output.md"
+if [ "$S1D_RC" -ne 0 ] && [ ! -e "$SOURCE_ROOT/swap-output.json" ] && [ ! -e "$SOURCE_ROOT/swap-output.md" ]; then
+  echo 'PASS: report parent replacement cannot write into source'
+else echo 'FAIL: report parent replacement wrote into source'; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+rm -f "$SOURCE_ROOT/swap-output.json" "$SOURCE_ROOT/swap-output.md" "$SOURCE_ROOT/swap-output.guard.txt" "$SOURCE_ROOT/swap-output.routing.jsonl"
+
+# An ignored file can mimic the old digest stream of a directory + child.
+mkdir -p "$SOURCE_ROOT/.runtime"
+node - "$SOURCE_ROOT/.runtime/byte-shape" <<'NODE'
+const fs = require('node:fs')
+fs.writeFileSync(process.argv[2], '.runtime/byte-shape/child\0PAYLOAD\0')
+NODE
+cat >"$TMP/change-source-byte-shape" <<'SH'
+#!/usr/bin/env bash
+node - "$PILOT_SOURCE_BYTE_SHAPE" <<'NODE'
+const fs = require('node:fs'), path = require('node:path'), target = process.argv[2]
+if (fs.statSync(target).isDirectory()) process.exit(0)
+fs.unlinkSync(target)
+fs.mkdirSync(target)
+fs.writeFileSync(path.join(target, 'child'), 'PAYLOAD')
+NODE
+SH
+chmod +x "$TMP/change-source-byte-shape"
+s1d_run source-byte-shape env HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC="$TMP/change-source-byte-shape" \
+  PILOT_SOURCE_BYTE_SHAPE="$SOURCE_ROOT/.runtime/byte-shape" node "$RUNNER" --source "$SOURCE_ROOT" \
+  --json-report "$TMP/source-byte-shape.json" --markdown-report "$TMP/source-byte-shape.md"
+if [ "$S1D_RC" -ne 0 ] && node - "$TMP/source-byte-shape.json" <<'NODE'
+const fs = require('node:fs'), report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
+if (report.status !== 'fail' || report.sourceState.unchanged !== false) process.exit(1)
+NODE
+then echo 'PASS: source file-to-directory change cannot collide with byte preservation digest'
+else echo 'FAIL: source entry type change falsely reported unchanged'; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+rm -rf "$SOURCE_ROOT/.runtime/byte-shape"
+
+MALFORMED_SOURCE="$TMP/malformed-source"
+cp -R "$SOURCE_ROOT" "$MALFORMED_SOURCE"
+printf '{malformed\n' >"$MALFORMED_SOURCE/plugins/harness-guard/.codex-plugin/plugin.json"
+git -C "$MALFORMED_SOURCE" add plugins/harness-guard/.codex-plugin/plugin.json
+git -C "$MALFORMED_SOURCE" commit -qm 'test: malformed committed manifest'
+malformed_before=$(shasum -a 256 "$MALFORMED_SOURCE/plugins/harness-guard/.codex-plugin/plugin.json" | awk '{print $1}')
+s1d_run malformed-source node "$RUNNER" --source "$MALFORMED_SOURCE" --json-report "$TMP/malformed-source.json" --markdown-report "$TMP/malformed-source.md"
+malformed_after=$(shasum -a 256 "$MALFORMED_SOURCE/plugins/harness-guard/.codex-plugin/plugin.json" | awk '{print $1}')
+if [ "$S1D_RC" -ne 0 ] && [ "$malformed_before" = "$malformed_after" ] && node - "$TMP/malformed-source.json" <<'NODE'
+const fs = require('node:fs'), report = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'))
+if (report.status !== 'fail' || typeof report.error !== 'string') process.exit(1)
+NODE
+then echo 'PASS: malformed committed source rejected with failure evidence and preserved bytes'
+else echo 'FAIL: malformed source evidence or preservation missing'; S1D_FAILURES=$((S1D_FAILURES + 1)); fi
+
+[ "$S1D_FAILURES" -eq 0 ]
 [ "$SWAP_FAILURES" -eq 0 ]
 [ "$CONTRACT_FAILURES" -eq 0 ]
 echo 'PASS: native loader pilot isolates auth/state, records live outcomes, and fails closed on drift'

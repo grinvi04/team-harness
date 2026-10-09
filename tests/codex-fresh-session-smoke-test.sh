@@ -53,7 +53,7 @@ chmod +x "$TMP/fake-codex"
 export CODEX_BIN="$TMP/fake-codex"
 export FAKE_CODEX_CALLS="$TMP/calls"
 export FAKE_SESSION_COUNT="$TMP/session-count"
-export TMPDIR="$TMP"
+export TMPDIR="$TMP" HARNESS_PILOT_FIXTURE=1
 
 SMOKE_FAILURES=0
 out=$(bash "$SMOKE")
@@ -144,6 +144,55 @@ if ! grep -Fq 'FAIL: credential-egress guard did not block' "$TMP/model-claims.o
   echo 'FAIL: assistant text was not rejected as credential-egress evidence'
   SMOKE_FAILURES=$((SMOKE_FAILURES + 1))
 fi
+
+ln -s "$ROOT" "$TMP/source-alias"
+if bash "$TMP/source-alias/scripts/codex-fresh-session-smoke.sh" >"$TMP/alias-smoke.out" 2>&1; then
+  echo 'PASS: smoke trust CLI executes through a source path alias'
+else
+  echo 'FAIL: source path alias skipped the trust CLI entry point'
+  cat "$TMP/alias-smoke.out"
+  SMOKE_FAILURES=$((SMOKE_FAILURES + 1))
+fi
+
+# Swap after initial trust capture and immediately before the actual smoke exec.
+cp "$TMP/fake-codex" "$TMP/swap-codex"
+cat >"$TMP/replacement-codex" <<'SH'
+#!/usr/bin/env bash
+printf 'replacement-executed\n' >"$FAKE_REPLACEMENT_EXECUTIONS"
+exit 86
+SH
+chmod +x "$TMP/replacement-codex"
+cat >"$TMP/swap-before-smoke-exec" <<'SH'
+#!/usr/bin/env bash
+[ ! -f "$PILOT_SMOKE_SWAP_DONE" ] || exit 0
+: >"$PILOT_SMOKE_SWAP_DONE"
+mv "$PILOT_SMOKE_REPLACEMENT" "$PILOT_SMOKE_TARGET"
+SH
+chmod +x "$TMP/swap-before-smoke-exec"
+if CODEX_BIN="$TMP/swap-codex" HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC="$TMP/swap-before-smoke-exec" \
+  PILOT_SMOKE_SWAP_DONE="$TMP/swap-done" PILOT_SMOKE_REPLACEMENT="$TMP/replacement-codex" PILOT_SMOKE_TARGET="$TMP/swap-codex" \
+  FAKE_REPLACEMENT_EXECUTIONS="$TMP/replacement-executions" bash "$SMOKE" >"$TMP/swap.out" 2>&1; then
+  echo 'FAIL: smoke accepted executable replacement at invocation'; SMOKE_FAILURES=$((SMOKE_FAILURES + 1))
+elif [ -e "$TMP/replacement-executions" ] || ! grep -Fq 'Codex executable changed after trust verification' "$TMP/swap.out"; then
+  echo 'FAIL: replacement ran or exact invocation identity rejection missing'; SMOKE_FAILURES=$((SMOKE_FAILURES + 1))
+else echo 'PASS: smoke actual invocation rejects changed executable before replacement executes'; fi
+cp "$TMP/fake-codex" "$TMP/swap-codex"
+cp "$TMP/fake-codex" "$TMP/same-bytes-replacement"
+rm -f "$TMP/swap-done"
+call_count_before=$(wc -l <"$FAKE_CODEX_CALLS")
+if CODEX_BIN="$TMP/swap-codex" HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC="$TMP/swap-before-smoke-exec" \
+  PILOT_SMOKE_SWAP_DONE="$TMP/swap-done" PILOT_SMOKE_REPLACEMENT="$TMP/same-bytes-replacement" PILOT_SMOKE_TARGET="$TMP/swap-codex" \
+  bash "$SMOKE" >"$TMP/same-bytes-swap.out" 2>&1; then
+  echo 'FAIL: smoke accepted same-byte executable inode replacement'; SMOKE_FAILURES=$((SMOKE_FAILURES + 1))
+elif [ "$(wc -l <"$FAKE_CODEX_CALLS")" != "$call_count_before" ] || ! grep -Fq 'Codex executable changed after trust verification' "$TMP/same-bytes-swap.out"; then
+  echo 'FAIL: same-byte replacement executed or invocation identity rejection missing'; SMOKE_FAILURES=$((SMOKE_FAILURES + 1))
+else echo 'PASS: smoke rejects same-byte inode replacement before any Codex command executes'; fi
+if HARNESS_PILOT_FIXTURE=0 HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC="$TMP/swap-before-smoke-exec" \
+  bash "$SMOKE" >"$TMP/live-seam.out" 2>&1; then
+  echo 'FAIL: smoke fixture seam accepted without explicit fixture opt-in'; SMOKE_FAILURES=$((SMOKE_FAILURES + 1))
+elif ! grep -Fq 'HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC requires HARNESS_PILOT_FIXTURE=1' "$TMP/live-seam.out"; then
+  echo 'FAIL: smoke live fixture seam rejection missing'; SMOKE_FAILURES=$((SMOKE_FAILURES + 1))
+else echo 'PASS: live smoke rejects fixture execution seam'; fi
 
 [ "$SMOKE_FAILURES" -eq 0 ]
 echo 'PASS: fresh-session smoke requires router hook evidence and fails closed on missing evidence'

@@ -1,0 +1,55 @@
+{
+  "scenario": "snapshot-existing-output",
+  "status": 1,
+  "stdout": "",
+  "stderr": "EEXIST: file already exists, open '/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/q2a-threads-ye6fYW/snapshot-existing-output/snapshot.json'\n",
+  "state": {
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "id": "PRRT_reviewed",
+        "commentId": 101,
+        "isResolved": false
+      }
+    ],
+    "replies": [],
+    "resolves": [],
+    "calls": [
+      [
+        "pr",
+        "view",
+        "42",
+        "--repo",
+        "test/repo",
+        "--json",
+        "baseRefName,baseRefOid,headRefName,headRefOid"
+      ],
+      [
+        "api",
+        "graphql",
+        "-f",
+        "query=query($owner:String!,$name:String!,$pr:Int!,$after:String){repository(owner:$owner,name:$name){pullRequest(number:$pr){reviewThreads(first:100,after:$after){nodes{id isResolved comments(first:1){nodes{databaseId}}} pageInfo{hasNextPage endCursor}}}}}",
+        "-F",
+        "owner=test",
+        "-F",
+        "name=repo",
+        "-F",
+        "pr=42"
+      ],
+      [
+        "pr",
+        "view",
+        "42",
+        "--repo",
+        "test/repo",
+        "--json",
+        "baseRefName,baseRefOid,headRefName,headRefOid"
+      ]
+    ]
+  }
+}

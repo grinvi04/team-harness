@@ -144,3 +144,5 @@ clone된 건 못 지움 → 2차") ④통지(SEV1 선언·#incident·키 소유 
 4. CI `.github/workflows/ci-gate.yml` quality 잡 GREEN.
 5. 런북: 5단계 소절 존재 + 폐기-우선 문구 + 기존 계층 참조(중복 서술 없음) 수동 확인.
 6. 반증 원칙: 게이트 통과가 아니라 **우회 시도 실패**로 확정 — 픽스처에 스푸핑 케이스가 load-bearing.
+
+2026-10-09 현재 지원 경계: [현대화 1C](harness-modernization/plan/01-safety.md#1c--유효한-마이그레이션-구문의-누락)와 [실행 증거](harness-modernization/execution-s1c.json)를 따른다. 위 당시 후보/결과는 보존한다.

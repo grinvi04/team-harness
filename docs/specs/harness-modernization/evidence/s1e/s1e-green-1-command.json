@@ -1,0 +1,12 @@
+{
+  "command": "bash tests/profile-lifecycle-test.sh",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+  "phase": "GREEN attempt 1",
+  "timestamp": "2026-10-08T21:32:38.821127+00:00",
+  "sha256": {
+    "scripts/manage-profile.mjs": "930c693011a1c922c9779aab51e90a7e6818f817491097f5a0689fefd59fde6c",
+    "scripts/profile-doctor.mjs": "825e0af4212d56014554073f2e1451619c90967c6dbb2bc8bf97dce861980b83",
+    "tests/profile-lifecycle-test.sh": "d4db72c24a4c3f62233063a882fbb15dfbb621b23b5bc2a37d93ff08f5c78c39"
+  },
+  "exit_code": 1
+}

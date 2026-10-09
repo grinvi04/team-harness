@@ -1,0 +1,46 @@
+{
+  "scope": "tracked plus nonignored untracked MD and explicit owned instruction/map paths; not a blanket scan of dependencies/cache/backups",
+  "repositories": [
+    {
+      "root": "$HOME/.codex/worktrees/c833/team-harness",
+      "head": "980fe87b4429e601e7f95155063eb2c28906fbaf",
+      "tracked_md": 171,
+      "extra_explicit_managed_candidates": [
+        "$HOME/.codex/worktrees/c833/team-harness/.project-map/milestones.md",
+        "$HOME/.codex/worktrees/c833/team-harness/.project-map/security-followup-2026-10-08.md"
+      ]
+    },
+    {
+      "root": "$HOME/project/erp",
+      "head": "085d0cebb6aefd3152e475e8337ff988a281f5ff",
+      "tracked_md": 40,
+      "extra_explicit_managed_candidates": [
+        "$HOME/project/erp/.project-map/milestones.md"
+      ]
+    },
+    {
+      "root": "$HOME/project/siku",
+      "head": "2476e1754c4e2fcf2e53ce749f3464cd8228ea74",
+      "tracked_md": 9,
+      "extra_explicit_managed_candidates": [
+        "$HOME/project/siku/.project-map/milestones.md"
+      ]
+    },
+    {
+      "root": "$HOME/project/webhook-service",
+      "head": "e1eee56e101be3fc61526430599773116cd95797",
+      "tracked_md": 9,
+      "extra_explicit_managed_candidates": [
+        "$HOME/project/webhook-service/.project-map/milestones.md"
+      ]
+    },
+    {
+      "root": "$HOME/project/drivetree",
+      "head": "ff5f26f120ad4bb5629cc371839ff69edea544cc",
+      "tracked_md": 24,
+      "extra_explicit_managed_candidates": [
+        "$HOME/project/drivetree/.project-map/milestones.md"
+      ]
+    }
+  ]
+}

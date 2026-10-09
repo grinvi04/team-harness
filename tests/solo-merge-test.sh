@@ -55,6 +55,8 @@ args="$*"; S="$GH_STATE"
 case "$args" in
   *"repo view"*) echo "owner/repo"; exit 0 ;;
   *"pr view"*"--json number"*) echo 42; exit 0 ;;
+  *"pr view"*"--json baseRefName,baseRefOid,headRefName,headRefOid"*)
+    printf '{"baseRefName":"main","baseRefOid":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","headRefName":"hotfix/example","headRefOid":"%s"}' "${FAKE_HEAD_OID:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"; exit 0 ;;
   *"pr view"*"--json baseRefName"*) echo main; exit 0 ;;
   *"pr view"*"--json state"*) echo MERGED; exit 0 ;;
   *"pr view"*"--json mergeable"*) echo "${FAKE_MERGEABLE:-MERGEABLE}"; exit 0 ;;
@@ -68,10 +70,29 @@ case "$args" in
   *"-X DELETE"*required_pull_request_reviews*) echo DELETE >> "$GH_LOG"; echo deleted > "$S"; exit 0 ;;
   *"-X PATCH"*required_pull_request_reviews*) p=$(cat)
     if [ "${FAKE_PATCH_RC:-0}" != 0 ]; then echo "PATCH-FAIL" >> "$GH_LOG"; exit 1; fi   # PATCH 5xx 시뮬(복원 안 됨)
-    if [ -n "$p" ]; then echo "PATCH $p" >> "$GH_LOG"; echo restored > "$S"; exit 0
+    if [ -n "$p" ]; then
+      echo "PATCH $p" >> "$GH_LOG"
+      node -e 'const c=JSON.parse(process.argv[1]); for(const k of ["dismissal_restrictions","bypass_pull_request_allowances"]) { if(!c[k])continue; for(const t of ["users","teams","apps"]) c[k][t]=(c[k][t]||[]).map(v=>typeof v==="string"?{[t==="users"?"login":"slug"]:v}:v); } process.stdout.write(JSON.stringify(c))' "$p" > "$S.payload"
+      echo restored > "$S"; exit 0
     else echo "PATCH(empty)" >> "$GH_LOG"; exit 1; fi ;;                                  # 빈 payload=422, 복원 안 됨
   *required_pull_request_reviews*--jq*) [ "$cur" = deleted ] && exit 1; echo 1; exit 0 ;; # 삭제상태 count GET=404
-  *required_pull_request_reviews*) [ "$cur" = deleted ] && exit 1; printf '%s' "$FAKE_REVIEWS_CONFIG"; [ -n "$FAKE_REVIEWS_CONFIG" ]; exit $? ;;  # GET save
+  *required_pull_request_reviews*)
+    [ "$cur" = deleted ] && exit 1
+    [ "${FAKE_GET_RC:-0}" = 0 ] || exit "$FAKE_GET_RC"
+    if [ "$cur" = restored ]; then
+      [ "${FAKE_VERIFY_RC:-0}" = 0 ] || exit "$FAKE_VERIFY_RC"
+      printf '%s' "${FAKE_READBACK_CONFIG:-$(cat "$S.payload")}"; exit 0
+    fi
+    printf '%s' "$FAKE_REVIEWS_CONFIG"; [ -n "$FAKE_REVIEWS_CONFIG" ]; exit $? ;;
+  *branches/*/protection*)
+    [ "${FAKE_GET_RC:-0}" = 0 ] || exit "$FAKE_GET_RC"
+    if [ "$cur" = restored ]; then
+      [ "${FAKE_VERIFY_RC:-0}" = 0 ] || exit "$FAKE_VERIFY_RC"
+      reviews="${FAKE_READBACK_CONFIG:-$(cat "$S.payload")}"
+    else reviews="${FAKE_REVIEWS_CONFIG:-null}"; fi
+    admins=true
+    if [ "$cur" = restored ] && [ "${FAKE_OTHER_POLICY_DRIFT:-0}" = 1 ]; then admins=false; fi
+    printf '{"required_pull_request_reviews":%s,"enforce_admins":{"enabled":%s},"required_status_checks":{"strict":true,"contexts":["quality","test-guard"]},"allow_force_pushes":{"enabled":false}}' "$reviews" "$admins"; exit 0 ;;
 esac
 exit 0
 GHEOF
@@ -82,11 +103,13 @@ NOPARSE="$E2E_DIR/noparse"; mkdir -p "$NOPARSE"; for b in python3 jq; do printf 
 E2E_N=0; L=""; RC=0
 run_e2e() { # merge_body, fake_config, [path_prefix] → 전역 L(로그경로)·RC 설정 (커맨드치환 서브셸 회피)
   E2E_N=$((E2E_N+1)); L="$E2E_DIR/log.$E2E_N"; local mc="$E2E_DIR/merge.$E2E_N.sh"
-  : > "$L"; local st="$E2E_DIR/state.$E2E_N"; : > "$st"; printf '#!/bin/sh\n%s\n' "$1" > "$mc"; chmod +x "$mc"
+  : > "$L"; local st="$E2E_DIR/state.$E2E_N"; : > "$st"; printf '#!/bin/sh\nprintf "MERGE %%s\\n" "$*" >> "$GH_LOG"\n%s\n' "$1" > "$mc"; chmod +x "$mc"
   PATH="${3:+$3:}$E2E_DIR:$PATH" GH_LOG="$L" GH_STATE="$st" FAKE_REVIEWS_CONFIG="$2" SOLO_MERGE_MERGE_CMD="$mc" \
-    FAKE_CI_RC="${FAKE_CI_RC:-0}" FAKE_UNRESOLVED="${FAKE_UNRESOLVED:-0}" FAKE_MERGEABLE="${FAKE_MERGEABLE:-MERGEABLE}" \
+    FAKE_HEAD_OID="${FAKE_HEAD_OID:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}" FAKE_CI_RC="${FAKE_CI_RC:-0}" FAKE_UNRESOLVED="${FAKE_UNRESOLVED:-0}" FAKE_MERGEABLE="${FAKE_MERGEABLE:-MERGEABLE}" \
     FAKE_PATCH_RC="${FAKE_PATCH_RC:-0}" \
-    bash "$SM" 42 >/dev/null 2>&1; RC=$?
+    FAKE_GET_RC="${FAKE_GET_RC:-0}" FAKE_VERIFY_RC="${FAKE_VERIFY_RC:-0}" \
+    FAKE_READBACK_CONFIG="${FAKE_READBACK_CONFIG:-}" FAKE_OTHER_POLICY_DRIFT="${FAKE_OTHER_POLICY_DRIFT:-0}" \
+    bash "$SM" 42 ${EXPECTED_ARGS:-} >/dev/null 2>&1; RC=$?
 }
 ok() { [ "$1" = "$2" ] && { echo "PASS: $3"; PASS=$((PASS+1)); } || { echo "FAIL: $3 — want '$2' got '$1'"; FAIL=$((FAIL+1)); }; }
 
@@ -160,6 +183,50 @@ if command -v jq >/dev/null 2>&1; then
 else
   echo "SKIP: R1 jq 폴백 (jq 미설치)"
 fi
+
+for altered in \
+  '{"required_approving_review_count":1,"dismiss_stale_reviews":false,"require_code_owner_reviews":false,"require_last_push_approval":false}' \
+  '{"required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":true,"require_last_push_approval":false}' \
+  '{"required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":false,"require_last_push_approval":true}' \
+  '{"required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":false,"require_last_push_approval":false,"dismissal_restrictions":{"users":[],"teams":[],"apps":[]},"bypass_pull_request_allowances":{"users":[],"teams":["release"],"apps":[]}}'; do
+  FAKE_READBACK_CONFIG="$altered" run_e2e 'exit 0' "$FULL"
+  if [ "$RC" -ne 0 ]; then echo 'PASS: unchanged count cannot hide review policy drift'; PASS=$((PASS+1))
+  else echo 'FAIL: review policy drift passed'; FAIL=$((FAIL+1)); fi
+done
+FAKE_VERIFY_RC=1 run_e2e 'exit 0' "$FULL"
+if [ "$RC" -ne 0 ]; then echo 'PASS: failed policy readback is unverified'; PASS=$((PASS+1))
+else echo 'FAIL: failed policy readback passed'; FAIL=$((FAIL+1)); fi
+FAKE_GET_RC=1 run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^MERGE' "$L")" 0 'policy query error does not invoke merge'
+ok "$(grep -c '^DELETE' "$L")" 0 'policy query error does not open exception'
+if [ "$RC" -ne 0 ]; then echo 'PASS: initial policy query failure stops'; PASS=$((PASS+1))
+else echo 'FAIL: initial query failure treated as absent policy'; FAIL=$((FAIL+1)); fi
+FAKE_OTHER_POLICY_DRIFT=1 run_e2e 'exit 0' "$FULL"
+if [ "$RC" -ne 0 ]; then echo 'PASS: other branch protection drift prevents success'; PASS=$((PASS+1))
+else echo 'FAIL: changed admin protection passed restoration'; FAIL=$((FAIL+1)); fi
+
+EXPECTED_ARGS='--base main --expected-head aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --expected-base-oid bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' run_e2e 'exit 0' "$FULL"
+ok "$RC" 0 'review snapshot normal solo merge'
+if grep -q -- '--expected-head aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --expected-base-oid bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' "$L"; then
+  echo 'PASS: solo forwards reviewed candidate to merge'; PASS=$((PASS+1))
+else echo 'FAIL: solo lost reviewed candidate'; FAIL=$((FAIL+1)); fi
+EXPECTED_ARGS='--expected-head cccccccccccccccccccccccccccccccccccccccc' run_e2e 'exit 0' "$FULL"
+if [ "$RC" -ne 0 ] && ! grep -Eq '^(DELETE|PATCH|MERGE)' "$L"; then
+  echo 'PASS: stale reviewed head stops before protection write'; PASS=$((PASS+1))
+else echo 'FAIL: stale solo candidate opened exception'; FAIL=$((FAIL+1)); fi
+
+# Explicit nullable policy is the only absence case; malformed schemas stop in both parsers.
+for parser in python jq; do
+  prefix=""; [ "$parser" = jq ] && prefix="$PYSTUB:"
+  for cfg in '{}' '[]' 'bad' '{"required_pull_request_reviews":{}}' '{"required_pull_request_reviews":{"required_approving_review_count":-1}}' '{"required_pull_request_reviews":{"required_approving_review_count":1.5}}' '{"required_pull_request_reviews":{"required_approving_review_count":true}}'; do
+    PATH="$prefix$PATH" SOLO_MERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | branch_review_config' _ "$SM" "$cfg" >/dev/null 2>&1
+    policy_status=$?
+    if [ "$policy_status" -ne 0 ]; then echo "PASS: $parser rejects malformed review policy"; PASS=$((PASS+1))
+    else echo "FAIL: $parser accepted malformed review policy"; FAIL=$((FAIL+1)); fi
+  done
+  PATH="$prefix$PATH" SOLO_MERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | branch_review_config' _ "$SM" '{"required_pull_request_reviews":null}' >/dev/null 2>&1
+  ok "$?" 0 "$parser explicit null is legitimate absence"
+done
 
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

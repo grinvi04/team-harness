@@ -47,7 +47,6 @@ process.stdout.write(manifest.version)
 "$NODE_BIN" "$ROOT/scripts/check-codex-native-plugin.mjs" \
   --expected-version "$EXPECTED_VERSION" \
   --trusted-root "$TRUSTED_PLUGIN_ROOT"
-"$NODE_BIN" "$ROOT/plugins/harness-guard/scripts/patch-codex-security-guidance.mjs"
 
 exec "$NODE_BIN" "$ROOT/scripts/codex-binary-trust.mjs" \
   "${TRUST_ARGS[@]}" \

@@ -29,6 +29,36 @@ check() { # desc, expected_exit, target_path
   fi
 }
 
+# S1C: literal regressions for supported syntax and independent safe contrasts.
+check "S1C bad-inline-upgrade" 1 "$FIX/s1c-bad-inline-upgrade"
+check "S1C bad-inline-upgrade-column" 1 "$FIX/s1c-bad-inline-upgrade-column"
+check "S1C bad-inline-upgrade-execute" 1 "$FIX/s1c-bad-inline-upgrade-execute"
+check "S1C bad-inline-typed-upgrade" 1 "$FIX/s1c-bad-inline-typed-upgrade"
+check "S1C bad-inline-semicolon-marker" 1 "$FIX/s1c-bad-inline-semicolon-marker"
+check "S1C good-inline-acknowledged" 0 "$FIX/s1c-good-inline-acknowledged"
+check "S1C good-inline-scope" 0 "$FIX/s1c-good-inline-scope"
+check "S1C good-inline-string" 0 "$FIX/s1c-good-inline-string"
+check "S1C bad-exec-mysql-comment" 1 "$FIX/s1c-bad-exec-mysql-comment"
+check "S1C bad-exec-mysql-version" 1 "$FIX/s1c-bad-exec-mysql-version"
+check "S1C bad-exec-mysql-six-digit" 1 "$FIX/s1c-bad-exec-mysql-six-digit"
+check "S1C bad-exec-mysql-split" 1 "$FIX/s1c-bad-exec-mysql-split"
+check "S1C bad-exec-mysql-marker-spoof" 1 "$FIX/s1c-bad-exec-mysql-marker-spoof"
+check "S1C bad-exec-drop-column-omitted" 1 "$FIX/s1c-bad-exec-drop-column-omitted"
+check "S1C good-exec-mysql-four-digit" 0 "$FIX/s1c-good-exec-mysql-four-digit"
+check "S1C good-exec-mysql-comment-spoof" 0 "$FIX/s1c-good-exec-mysql-comment-spoof"
+check "S1C good-exec-mysql-string" 0 "$FIX/s1c-good-exec-mysql-string"
+check "S1C good-exec-mysql-inner-string" 0 "$FIX/s1c-good-exec-mysql-inner-string"
+check "S1C good-exec-mysql-ack" 0 "$FIX/s1c-good-exec-mysql-ack"
+check "S1C good-exec-mysql-safe" 0 "$FIX/s1c-good-exec-mysql-safe"
+check "S1C good-exec-drop-constraint" 0 "$FIX/s1c-good-exec-drop-constraint"
+
+check "S1C bad-exec-quoted-drop-column-omitted" 1 "$FIX/s1c-bad-exec-quoted-drop-column-omitted"
+check "S1C bad-exec-backtick-drop-column-omitted" 1 "$FIX/s1c-bad-exec-backtick-drop-column-omitted"
+check "S1C good-exec-quoted-keyword" 0 "$FIX/s1c-good-exec-quoted-keyword"
+check "S1C good-exec-drop-view-tail" 0 "$FIX/s1c-good-exec-drop-view-tail"
+
+check "S1C multiline header approval does not leak" 1 "$FIX/s1c-bad-header-marker-leak"
+
 # ── AC-1: 승인마커 없는 upgrade() 파괴 op → 차단(exit 1) ──
 check "upgrade op.drop_table 미승인 → FAIL(AC-1)"        1 "$FIX/bad-drop-table"
 check "upgrade op.drop_column 미승인 → FAIL(AC-1)"       1 "$FIX/bad-drop-column"

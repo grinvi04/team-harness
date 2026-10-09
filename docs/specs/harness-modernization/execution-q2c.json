@@ -1,0 +1,85 @@
+{
+  "task": "2C",
+  "branch": "fix/harness-modernization",
+  "source_revision_before_edits": "50ffec700b39176609e0951ca758a7b817f930d3",
+  "captured_at": "2026-10-09T06:43:08+09:00",
+  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
+  "baseline_sha256": {
+    "templates/ci/alembic-heads.yml": "8f74e038d6edb0280f2e05dd1ab21fd1841622605e7f04365a867dacaba8d339",
+    ".github/workflows/test-guard.yml": "d4852de45cdee3ef0e7dc3849a7b02365f90d6c1c294c391d6f429103a0fbbe6",
+    "templates/ci/test-guard.yml": "d4852de45cdee3ef0e7dc3849a7b02365f90d6c1c294c391d6f429103a0fbbe6",
+    "tests/alembic-heads-test.sh": "8e4f0562db664e2ee2a37d4f1e4b6af0f52b9f1afbdcc1a0ba2096dd6807165b"
+  },
+  "candidate_sha256": {
+    ".github/workflows/test-guard.yml": "d4b302ac3222015ae778ab18a30b0c80ab9f72f87e12a59c860c8d1981065ac3",
+    "templates/ci/test-guard.yml": "d4b302ac3222015ae778ab18a30b0c80ab9f72f87e12a59c860c8d1981065ac3",
+    "templates/ci/alembic-heads.yml": "c5efffe4d1f76b7d9c94da3b06bab460e97a0e585c0769c9f0b2889bc5c1f164",
+    "tests/alembic-heads-test.sh": "7841e7ad9d1c0ae4c286d8dd7b46fa1efd6555a58e44a32fcb093b211b25dd81",
+    "tests/test-guard-test.sh": "6b65b895c1f0145f4b88d37edd4b9504a1fbfae8611046bd4ae23741cb0988f3"
+  },
+  "checks": [
+    {
+      "name": "Alembic baseline RED",
+      "command": "bash tests/alembic-heads-test.sh",
+      "exit_code": 1,
+      "result": "EXPECTED_FAILURE",
+      "evidence": "evidence/q2c/q2c-alembic-red.log.gz",
+      "detail": "14 passed, 2 failed: configured pip and heads failures were incorrectly skipped with exit 0"
+    },
+    {
+      "name": "test-guard baseline replay",
+      "command": "TEST_GUARD_WORKFLOW=<git-show-HEAD-file> TEST_GUARD_TEMPLATE=<git-show-HEAD-file> bash tests/test-guard-test.sh",
+      "exit_code": 1,
+      "result": "EXPECTED_FAILURE",
+      "evidence": "evidence/q2c/q2c-test-guard-red.log.gz",
+      "detail": "2 passed, 8 failed: check/case_ calls were omitted and failed base fetch was fail-open; marker-preserving runtime cases remain count-only by design"
+    },
+    {
+      "name": "Alembic gate and head-count regression",
+      "command": "bash tests/alembic-heads-test.sh",
+      "exit_code": 0,
+      "result": "PASS",
+      "detail": "16 passed; genuine no-config skip, configured fake pip/heads failures, single head and multiple heads"
+    },
+    {
+      "name": "test-guard mutations",
+      "command": "bash tests/test-guard-test.sh",
+      "exit_code": 0,
+      "result": "PASS",
+      "detail": "10 scenarios: recognized marker forms, check/case_ deletion, empty previously-applicable set, matching workflow/template, fetch failure, plus runtime boundary fixtures"
+    },
+    {
+      "name": "count-only runtime boundary",
+      "command": "bash tests/test-guard-test.sh",
+      "exit_code": 0,
+      "result": "LIMITATION_RECORDED",
+      "detail": "Marker-preserving forced-failure and zero-runtime fixtures pass the count guard; their separate runner exits nonzero. The guard does not claim runtime or semantic detection."
+    },
+    {
+      "name": "new-repo consumer setup regression",
+      "command": "bash tests/new-repo-test.sh",
+      "exit_code": 0,
+      "result": "PASS",
+      "detail": "13 passed, 0 failed"
+    },
+    {
+      "name": "Bash syntax",
+      "command": "bash -n tests/alembic-heads-test.sh tests/test-guard-test.sh",
+      "exit_code": 0,
+      "result": "PASS"
+    },
+    {
+      "name": "extracted workflow Bash syntax",
+      "command": "bash -n <(python3 extract current test-guard run block)",
+      "exit_code": 0,
+      "result": "PASS"
+    }
+  ],
+  "scope_notes": [
+    "Alembic test commands use temporary fake pip/alembic executables; no install, network access or real Alembic process was used.",
+    "test-guard fixtures use temporary repositories and local-only fetches; the failed-fetch case uses a temporary fake git executable.",
+    "The parent owns ci-gate registration, shared documentation and version metadata."
+  ],
+  "run_log": "evidence/q2c/q2c-run.log.gz",
+  "raw_log_encoding": "gzip; lossless original bytes, see evidence/encoded-files.json for decoded SHA256. Plain controlled evidence was secret-scanned before encoding."
+}

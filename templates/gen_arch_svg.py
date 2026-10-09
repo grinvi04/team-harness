@@ -7,6 +7,8 @@ Usage: Copy this file to your project's docs/gen_arch_svg.py,
 Standards: team-harness/docs/architecture-diagram-standards.md
 """
 
+from html import escape
+
 # ─── Constants ───────────────────────────────────────────────────────────────
 BG = "#0f172a"  # background
 AREA = "#1e293b"  # content area
@@ -43,19 +45,25 @@ ARROW = """<defs>
 # ─── Primitives ───────────────────────────────────────────────────────────────
 
 
+def xml_escape(value, quote=False):
+    """Escape dynamic values for SVG text or attribute content."""
+    return escape(str(value), quote=quote)
+
+
 def box(cx, cy, ctype, title, sub):
     """Render a labeled box centered at (cx, cy)."""
     clr = C[ctype]
     x, y = cx - BW // 2, cy - BH // 2
     return (
         f'<rect x="{x}" y="{y}" width="{BW}" height="{BH}" rx="{BR}" '
-        f'fill="{clr["f"]}" stroke="{clr["s"]}" stroke-width="2.5"/>'
+        f'fill="{xml_escape(clr["f"], quote=True)}" '
+        f'stroke="{xml_escape(clr["s"], quote=True)}" stroke-width="2.5"/>'
         f'<text x="{cx}" y="{cy - 8}" text-anchor="middle" '
         f'font-family="\'Segoe UI\',system-ui,sans-serif" font-size="14" '
-        f'font-weight="700" fill="#f1f5f9">{title}</text>'
+        f'font-weight="700" fill="#f1f5f9">{xml_escape(title)}</text>'
         f'<text x="{cx}" y="{cy + 14}" text-anchor="middle" '
         f'font-family="\'Segoe UI\',system-ui,sans-serif" font-size="11" '
-        f'fill="{clr["t"]}" opacity="0.9">{sub}</text>'
+        f'fill="{xml_escape(clr["t"], quote=True)}" opacity="0.9">{xml_escape(sub)}</text>'
     )
 
 
@@ -70,7 +78,7 @@ def lbl(lx, ly, text):
         f'fill="#0f172a" opacity="0.92"/>'
         f'<text x="{lx}" y="{ly}" text-anchor="middle" '
         f"font-family=\"'Segoe UI',system-ui,sans-serif\" "
-        f'font-size="11" font-weight="600" fill="#e2e8f0">{text}</text>'
+        f'font-size="11" font-weight="600" fill="#e2e8f0">{xml_escape(text)}</text>'
     )
 
 
@@ -137,10 +145,11 @@ def legend(items, y, W):
         clr = C[ctype]
         parts.append(
             f'<rect x="{x}" y="{y - 10}" width="14" height="14" rx="3" '
-            f'fill="{clr["f"]}" stroke="{clr["s"]}" stroke-width="1.5"/>'
+            f'fill="{xml_escape(clr["f"], quote=True)}" '
+            f'stroke="{xml_escape(clr["s"], quote=True)}" stroke-width="1.5"/>'
             f'<text x="{x + 20}" y="{y + 2}" '
             f"font-family=\"'Segoe UI',system-ui,sans-serif\" "
-            f'font-size="11" fill="#94a3b8">{lbl_text}</text>'
+            f'font-size="11" fill="#94a3b8">{xml_escape(lbl_text)}</text>'
         )
         x += len(lbl_text) * 8 + 60
     return "".join(parts)
@@ -158,9 +167,9 @@ def wrap(W, H, title, subtitle, body, leg):
         f"{ARROW}\n"
         f'<rect width="{W}" height="{H}" fill="{BG}"/>\n'
         f'<text x="48" y="42" font-family="\'Segoe UI\',system-ui,sans-serif" '
-        f'font-size="20" font-weight="700" fill="#f1f5f9">{title}</text>\n'
+        f'font-size="20" font-weight="700" fill="#f1f5f9">{xml_escape(title)}</text>\n'
         f'<text x="48" y="62" font-family="\'Segoe UI\',system-ui,sans-serif" '
-        f'font-size="12" fill="#64748b">{subtitle}</text>\n'
+        f'font-size="12" fill="#64748b">{xml_escape(subtitle)}</text>\n'
         f'<rect x="28" y="72" width="{cx - 28}" height="{cy - 72}" '
         f'rx="12" fill="{AREA}" opacity="0.6"/>\n'
         f"{body}\n"
@@ -228,7 +237,8 @@ def gen_example(out_path="docs/architecture.svg"):
         ((N["client"][0] + N["api"][0]) // 2, (N["client"][1] + N["api"][1]) // 2 - 7, "REST"),
         ((N["api"][0] + N["db"][0]) // 2, (N["api"][1] + N["db"][1]) // 2 - 7, "SQL"),
     ]
-    check_labels("example", boxes_list, label_pairs)
+    if not check_labels("example", boxes_list, label_pairs):
+        raise RuntimeError(f"Cannot generate {out_path}: label collision")
 
     leg = legend([("client", "Browser"), ("api", "API"), ("db", "DB")], H - 30, W)
     svg = wrap(

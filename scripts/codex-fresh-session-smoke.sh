@@ -4,6 +4,30 @@
 set -uo pipefail
 
 CODEX_BIN=${CODEX_BIN:-codex}
+ROOT=$(cd "$(dirname "$0")/.." && pwd)
+TRUST_ARGS=(--candidate "$CODEX_BIN")
+if [ "${HARNESS_PILOT_FIXTURE:-}" = 1 ]; then
+  TRUST_ARGS+=(--fixture)
+else
+  if [ -n "${HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC:-}" ]; then
+    echo 'FAIL: HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC requires HARNESS_PILOT_FIXTURE=1'
+    exit 1
+  fi
+  TRUST_ARGS+=(--trusted-binaries "$ROOT/docs/pilots/codex-native-loader-trusted-binaries.json")
+fi
+if [ -n "${HARNESS_CODEX_EXPECTED_DIGEST:-}" ]; then
+  TRUST_ARGS+=(--expected-digest "$HARNESS_CODEX_EXPECTED_DIGEST")
+fi
+if [ -n "${HARNESS_CODEX_VERIFIED_IDENTITY:-}" ]; then
+  EXPECTED_IDENTITY=$HARNESS_CODEX_VERIFIED_IDENTITY
+else
+  TRUST_JSON=$(node "$ROOT/scripts/codex-binary-trust.mjs" "${TRUST_ARGS[@]}") || exit 1
+  EXPECTED_IDENTITY=$(node -e 'process.stdout.write(JSON.stringify(JSON.parse(process.argv[1]).identity))' "$TRUST_JSON") || exit 1
+fi
+TRUST_ARGS+=(--expected-identity "$EXPECTED_IDENTITY")
+if [ -n "${HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC:-}" ]; then
+  TRUST_ARGS+=(--fixture-before-exec "$HARNESS_PILOT_FIXTURE_BEFORE_CODEX_EXEC")
+fi
 TMP_BASE=${TMPDIR:-/tmp}
 PROBE_ROOT=$(mktemp -d "$TMP_BASE/team-harness-codex-smoke.XXXXXX") || exit 1
 trap 'rm -rf "$PROBE_ROOT"' EXIT
@@ -17,7 +41,7 @@ rc=0
 
 run_fresh() {
   local output=$1 prompt=$2
-  "$CODEX_BIN" exec \
+  node "$ROOT/scripts/codex-binary-trust.mjs" "${TRUST_ARGS[@]}" --execute -- exec \
     --ephemeral \
     --skip-git-repo-check \
     --dangerously-bypass-hook-trust \

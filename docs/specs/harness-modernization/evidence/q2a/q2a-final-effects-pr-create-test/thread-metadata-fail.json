@@ -1,0 +1,68 @@
+{
+  "scenario": "metadata-fail",
+  "status": 1,
+  "stdout": "",
+  "stderr": "GitHub request failed: pr\n",
+  "snapshot": {
+    "repo": "test/repo",
+    "pr": 42,
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "id": "PRRT_reviewed",
+        "commentId": 101
+      }
+    ]
+  },
+  "processed": {
+    "repo": "test/repo",
+    "pr": 42,
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "threadId": "PRRT_reviewed",
+        "reply": "Fixed and tested the reported branch.",
+        "evidence": "local regression result for aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    ]
+  },
+  "state": {
+    "candidate": {
+      "baseRefName": "develop",
+      "baseRefOid": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "headRefName": "fix/candidate",
+      "headRefOid": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    "threads": [
+      {
+        "id": "PRRT_reviewed",
+        "commentId": 101,
+        "isResolved": false
+      }
+    ],
+    "replies": [],
+    "resolves": [],
+    "calls": [
+      [
+        "pr",
+        "view",
+        "42",
+        "--repo",
+        "test/repo",
+        "--json",
+        "baseRefName,baseRefOid,headRefName,headRefOid"
+      ]
+    ],
+    "metadataFail": true
+  }
+}

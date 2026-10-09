@@ -1,0 +1,193 @@
+[
+  {
+    "function": "build_checks",
+    "case": "fetch unavailable",
+    "expected": "raises RuntimeError",
+    "observed": {
+      "required_status_checks": null
+    },
+    "contract_match": false
+  },
+  {
+    "function": "build_checks",
+    "case": "fetch successful",
+    "expected": {
+      "required_status_checks": [
+        "quality"
+      ]
+    },
+    "observed": {
+      "required_status_checks": [
+        "quality"
+      ]
+    },
+    "contract_match": true
+  },
+  {
+    "function": "restore_equivalent",
+    "case": "changed approvals",
+    "expected": false,
+    "observed": true,
+    "contract_match": false
+  },
+  {
+    "function": "restore_equivalent",
+    "case": "identical policy",
+    "expected": true,
+    "observed": true,
+    "contract_match": true
+  },
+  {
+    "function": "merge_ready",
+    "case": "new unresolved thread",
+    "expected": false,
+    "observed": true,
+    "contract_match": false
+  },
+  {
+    "function": "merge_ready",
+    "case": "no threads",
+    "expected": true,
+    "observed": true,
+    "contract_match": true
+  },
+  {
+    "function": "migration_verdict",
+    "case": "applicable failed run",
+    "expected": "FAIL",
+    "observed": "PASS",
+    "contract_match": false
+  },
+  {
+    "function": "migration_verdict",
+    "case": "applicable successful run",
+    "expected": "PASS",
+    "observed": "PASS",
+    "contract_match": true
+  },
+  {
+    "function": "migration_verdict",
+    "case": "not applicable",
+    "expected": "SKIP",
+    "observed": "SKIP",
+    "contract_match": true
+  },
+  {
+    "function": "release_target",
+    "case": "main advanced",
+    "expected": "merged",
+    "observed": "advanced",
+    "contract_match": false
+  },
+  {
+    "function": "release_target",
+    "case": "main identical",
+    "expected": "merged",
+    "observed": "merged",
+    "contract_match": true
+  },
+  {
+    "function": "qa_gate",
+    "case": "applicable skip",
+    "expected": false,
+    "observed": true,
+    "contract_match": false
+  },
+  {
+    "function": "qa_gate",
+    "case": "unknown applicability skip",
+    "expected": false,
+    "observed": true,
+    "contract_match": false
+  },
+  {
+    "function": "qa_gate",
+    "case": "explicit non-applicable skip",
+    "expected": true,
+    "observed": true,
+    "contract_match": true
+  },
+  {
+    "function": "qa_gate",
+    "case": "fail",
+    "expected": false,
+    "observed": false,
+    "contract_match": true
+  },
+  {
+    "function": "qa_gate",
+    "case": "unverified",
+    "expected": false,
+    "observed": false,
+    "contract_match": true
+  },
+  {
+    "function": "qa_gate",
+    "case": "pass",
+    "expected": true,
+    "observed": true,
+    "contract_match": true
+  },
+  {
+    "function": "count_unresolved",
+    "case": "empty",
+    "expected": 0,
+    "observed": 0,
+    "contract_match": true
+  },
+  {
+    "function": "count_unresolved",
+    "case": "mixed",
+    "expected": 2,
+    "observed": 2,
+    "contract_match": true
+  },
+  {
+    "function": "audit_record",
+    "case": "BOGUS/False",
+    "expected": "raises ValueError",
+    "observed": "raises ValueError",
+    "contract_match": true
+  },
+  {
+    "function": "audit_record",
+    "case": "SKIP/True",
+    "expected": "raises ValueError",
+    "observed": "raises ValueError",
+    "contract_match": true
+  },
+  {
+    "function": "audit_record",
+    "case": "SKIP/False",
+    "expected": {
+      "status": "SKIP",
+      "candidate": "sha",
+      "command": "check",
+      "applicable": false
+    },
+    "observed": {
+      "status": "SKIP",
+      "candidate": "sha",
+      "command": "check",
+      "applicable": false
+    },
+    "contract_match": true
+  },
+  {
+    "function": "audit_record",
+    "case": "PASS/True",
+    "expected": {
+      "status": "PASS",
+      "candidate": "sha",
+      "command": "check",
+      "applicable": true
+    },
+    "observed": {
+      "status": "PASS",
+      "candidate": "sha",
+      "command": "check",
+      "applicable": true
+    },
+    "contract_match": true
+  }
+]

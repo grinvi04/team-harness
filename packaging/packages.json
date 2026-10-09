@@ -111,6 +111,18 @@
           "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
           "unit": "governance-core",
           "target": "scripts/pr-create.sh"
+        },
+        {
+          "consumer": "skills/loop/iteration.md",
+          "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
+          "unit": "governance-core",
+          "target": "scripts/run-with-timeout.mjs"
+        },
+        {
+          "consumer": "skills/loop/iteration.md",
+          "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
+          "unit": "governance-core",
+          "target": "scripts/worktree-fingerprint.mjs"
         }
       ],
       "sources": [

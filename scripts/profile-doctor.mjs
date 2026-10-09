@@ -17,6 +17,38 @@ function readJson(file) {
   return JSON.parse(readFileSync(file, 'utf8'))
 }
 
+export function quoteShellPath(value) {
+  return `'${value.replaceAll("'", "'\\''")}'`
+}
+
+function inspectRuntimeBinding(consumer, binding, coreRoot) {
+  const executable = path.join(coreRoot, binding.target)
+  if (consumer.includes(`\${${binding.environment}}`)) return false
+  if (binding.consumer.endsWith('.json')) {
+    const config = JSON.parse(consumer)
+    if (!config.hooks || typeof config.hooks !== 'object') return false
+    const commands = []
+    for (const groups of Object.values(config.hooks)) {
+      if (!Array.isArray(groups)) return false
+      for (const group of groups) {
+        if (!Array.isArray(group.hooks)) return false
+        for (const hook of group.hooks) {
+          if (hook.type === 'command' && typeof hook.command === 'string') commands.push(hook.command)
+        }
+      }
+    }
+    const interpreter = binding.target.endsWith('.sh') ? 'bash' : binding.target.endsWith('.mjs') ? 'node' : null
+    const matching = commands.filter(command => command.includes(binding.target))
+    return interpreter !== null && matching.length === 1 && matching[0] === `${interpreter} ${quoteShellPath(executable)}`
+  }
+  // Workflow instructions are inspected, never executed by doctor.
+  const assignments = consumer.split('\n').filter(line => line.startsWith('PLUGIN_ROOT='))
+  if (assignments.length > 0 && assignments.every(line => line === `PLUGIN_ROOT=${quoteShellPath(coreRoot)}`)) {
+    return consumer.includes(`"$PLUGIN_ROOT/${binding.target}"`)
+  }
+  return consumer.split('\n').some(line => line.startsWith(`bash ${quoteShellPath(executable)} `))
+}
+
 function expectedUnits(state) {
   if (state.profile === 'repository-only' && state.runtime === null) return ['governance-core']
   if (!['claude', 'codex'].includes(state.runtime)) throw new Error('invalid profile runtime')
@@ -112,7 +144,7 @@ export function inspectProfile(target, { quiet = false, expectedTarget = target 
       if (!existsSync(resolvedTarget)) throw new Error(`runtime binding target missing: ${entry.unit}`)
       const consumer = readFileSync(path.join(packageRoot, binding.consumer), 'utf8')
       const effectiveCoreRoot = path.join(state.installRoot, 'packages', 'harness-governance-core')
-      if (!consumer.includes(effectiveCoreRoot) || consumer.includes(`\${${binding.environment}}`)) {
+      if (!inspectRuntimeBinding(consumer, binding, effectiveCoreRoot)) {
         throw new Error(`runtime binding is not effective: ${entry.unit}`)
       }
     }

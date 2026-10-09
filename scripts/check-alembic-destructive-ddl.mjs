@@ -221,6 +221,11 @@ function tokenize(src) {
       continue
     }
     if (c === ';' && depth === 0) { push(); lineCol++; i++; continue }
+    // 한 줄 suite도 def 헤더와 분리해 실제 본문으로 검사한다. annotation/default 내부 ':'는 depth로 제외.
+    if (c === ':' && depth === 0 && /^(?:async\s+)?def\s+/.test(code.trim()) &&
+      /^[ \t\r]*[^ \t\r\n#]/.test(src.slice(i + 1))) {
+      push(); lineCol++; i++; continue
+    }
     if (c === '(' || c === '[' || c === '{') depth++
     else if (c === ')' || c === ']' || c === '}') { if (depth > 0) depth-- }
     code += c
@@ -241,8 +246,33 @@ function normalizeSql(s) {
     const c = s[i], c2 = s[i + 1]
     if (c === '-' && c2 === '-') { while (i < n && s[i] !== '\n') i++; out += ' '; continue }
     if (c === '#') { while (i < n && s[i] !== '\n') i++; out += ' '; continue } // MySQL '#' 라인주석 토큰-분리 차단(DROP#x\nTABLE == DROP TABLE, #258). Python/SQL은 인터폴레이션 없어 단순 #→EOL로 충분(AR판 #{} 제외 불필요)
-    if (c === '/' && c2 === '*') { i += 2; while (i < n && !(s[i] === '*' && s[i + 1] === '/')) i++; i = i < n ? i + 2 : n; out += ' '; continue }
+    if (c === '/' && c2 === '*') {
+      const start = i
+      i += 2
+      while (i < n && !(s[i] === '*' && s[i + 1] === '/')) i++
+      if (s[start + 2] === '!' && i < n) {
+        const rawBody = s.slice(start + 3, i)
+        const digits = rawBody.match(/^\d+/)?.[0] ?? ''
+        if (!digits || digits.length >= 5) {
+          const versionLength = !digits ? 0 : digits.length === 6 && (rawBody.length === 6 || /\s/.test(rawBody[6])) ? 6 : 5
+          out += ' ' + normalizeSql(rawBody.slice(versionLength)) + ' '
+        }
+      }
+      i = i < n ? i + 2 : n
+      out += ' '; continue
+    }
     if (c === "'") { i++; while (i < n) { if (s[i] === "'" && s[i + 1] === "'") { i += 2; continue } if (s[i] === "'") { i++; break } i++ } out += ' '; continue }
+    // 인용 식별자는 키워드를 숨기되 COLUMN 생략 DROP의 피연산자로 남긴다.
+    if (c === '"' || c === '`' || c === '[') {
+      const end = c === '[' ? ']' : c
+      i++
+      while (i < n) {
+        if (s[i] === end && s[i + 1] === end) { i += 2; continue }
+        if (s[i] === end) { i++; break }
+        i++
+      }
+      out += ' __identifier__ '; continue
+    }
     out += c; i++
   }
   return out
@@ -262,6 +292,8 @@ const SQL_DESTRUCTIVE = [
   { label: 'execute: DROP SCHEMA', re: /\bDROP\s+SCHEMA\b/i },
   { label: 'execute: TRUNCATE', re: /\bTRUNCATE\b(?!\s*\()/i }, // TRUNCATE(x,d) 수치함수 제외(오탐), TRUNCATE [TABLE] t는 차단(#258)
   { label: 'execute: DROP COLUMN', re: /\bDROP\s+COLUMN\b/i },
+  // COLUMN 생략은 ALTER TABLE의 컬럼 제거에서만 허용. 제약·인덱스·컬럼 속성 DROP은 비대상.
+  { label: 'execute: DROP COLUMN', re: /\bALTER\s+TABLE\b[^;]*?\bDROP\s+(?:IF\s+EXISTS\s+)?(?!(?:IF|COLUMN|CONSTRAINT|INDEX|KEY|PRIMARY|FOREIGN|CHECK|PARTITION|DEFAULT|NOT|IDENTITY|EXPRESSION)\b)[a-z_]\w*/i },
 ]
 const MARKER_RE = /migration-safety:\s*destructive-ok/i
 const DEF_RE = /^(?:async\s+)?def\s+(\w+)/

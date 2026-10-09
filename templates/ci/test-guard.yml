@@ -5,6 +5,7 @@
 #
 # 스택 무관: 흔한 테스트 마커를 repo 전역에서 센다(@Test / it()·test() / def test_ / rspec it).
 # 필요 시 프로젝트가 count() 정규식을 스택에 맞게 좁혀도 된다.
+# 이 gate는 줄 수만 비교하며 테스트를 실행하지 않으므로 의미 보존이나 실패 실행을 보장하지 않는다.
 # 셋업: new-repo.sh가 이 파일을 복사하고 'test-guard'를 required check에 등록한다.
 name: test-guard
 
@@ -25,28 +26,44 @@ jobs:
           BASE: ${{ github.base_ref }}
           LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
         run: |
-          set -uo pipefail
+          set -euo pipefail
 
           if echo "$LABELS" | grep -q "allow-test-removal"; then
             echo "::notice::'allow-test-removal' 라벨 — 테스트 감소 허용(게이트 스킵)"
             exit 0
           fi
 
-          git fetch --quiet origin "$BASE"
+          if ! git fetch --quiet origin "$BASE"; then
+            echo "::error::기준 브랜치를 가져오지 못해 테스트 단언 수를 비교할 수 없습니다."; exit 1
+          fi
 
-          # 테스트 마커 총개수(스택 무관): JUnit @Test / JS·TS it()·test() / pytest def test_
+          # 테스트·실행 단언 줄 총개수(스택 무관): JUnit @Test / JS·TS it()·test() / pytest def test_
           # / rspec·minitest 블록 DSL(it/describe/context/test '...' do — 괄호 없이 공백+따옴표)
+          # / 이 repo shell 테스트의 check "..."·case_ "..." 호출 형태
           # rspec/minitest 대안은 줄-시작 앵커(^[[:space:]]*)로 산문 오탐 차단 — 예제는 항상 들여쓰기 후 줄 시작,
           # 산문의 the feature "x"·we test "y" 같은 문중 매칭을 배제(전역 git grep이라 오탐이 삭제를 상쇄하는 것 방지).
-          MARKER='@Test|(^|[^A-Za-z_])(it|test)[[:space:]]*\(|def[[:space:]]+test_|^[[:space:]]*(it|describe|context|specify|scenario|feature|test)[[:space:]]+["'"'"']'
+          MARKER='@Test|(^|[^A-Za-z_])(it|test)[[:space:]]*\(|def[[:space:]]+test_|^[[:space:]]*(it|describe|context|specify|scenario|feature|test)[[:space:]]+["'"'"']|^[[:space:]]*(check|case_)[[:space:]]+'
           count() {
-            git grep -hIE "$MARKER" "$1" 2>/dev/null | grep -cE "$MARKER" || true
+            local matches rc
+            if matches=$(git grep -hIE "$MARKER" "$1" 2>/dev/null); then
+              printf '%s\n' "$matches" | grep -cE "$MARKER"
+            else
+              rc=$?
+              if [ "$rc" -eq 1 ]; then echo 0; else return "$rc"; fi
+            fi
           }
 
-          BEFORE=$(count "origin/$BASE")
-          AFTER=$(count "HEAD")
+          if ! BEFORE=$(count "origin/$BASE"); then
+            echo "::error::기준 브랜치 테스트 단언 수를 확인할 수 없습니다."; exit 1
+          fi
+          if ! AFTER=$(count "HEAD"); then
+            echo "::error::PR 테스트 단언 수를 확인할 수 없습니다."; exit 1
+          fi
           echo "테스트 마커 — base($BASE)=$BEFORE, PR(merge)=$AFTER"
 
+          if [ "$BEFORE" -gt 0 ] && [ "$AFTER" -eq 0 ]; then
+            echo "::error::기준의 테스트 단언 전체가 사라졌습니다."; exit 1
+          fi
           if [ "$AFTER" -lt "$BEFORE" ]; then
             echo "::error::테스트가 $((BEFORE - AFTER))개 감소했습니다. 의도된 제거라면 PR에 'allow-test-removal' 라벨을 붙이세요."
             exit 1

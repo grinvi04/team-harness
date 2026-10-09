@@ -1,0 +1,161 @@
+{
+  "system_requirements": {
+    "path": "/etc/codex/requirements.toml",
+    "bytes": 70,
+    "sha256": "afbe2d94e1e7ac35e4871daea65ba5abbbd840d90659c860a2f7df59217a22c9",
+    "settings": {
+      "features": {
+        "hooks": true
+      }
+    }
+  },
+  "statusline_command_paths": [
+    {
+      "path": "$HOME/.claude/statusline-command.sh",
+      "exists": true,
+      "file": true
+    }
+  ],
+  "codex_alias_wrapper": {
+    "path": "$HOME/team-harness/scripts/codex-hardened.sh",
+    "lines": 55,
+    "sha256": "3d04a532364e4f6049267291a9aeaaac4f55f46ed37929323425914147ac785e",
+    "dangerously_bypass_sandbox_flag": false,
+    "hook_trust_bypass_flag": false,
+    "model_option_literals": [],
+    "profile_option_literals": [],
+    "uses_argument_passthrough": true,
+    "cache_patch_reference": true,
+    "exec_command_names": [
+      "set",
+      "if",
+      "echo",
+      "exit",
+      "fi",
+      "if",
+      "fi",
+      "const",
+      "if",
+      "const",
+      "if",
+      "const",
+      "if",
+      "export",
+      "const",
+      "const",
+      "if",
+      "exec"
+    ],
+    "configuration_lines": [
+      {
+        "line": 2,
+        "text": "# Sync and validate Codex's native harness plugin before starting the CLI."
+      },
+      {
+        "line": 8,
+        "text": "if [[ -n \"${CODEX_BIN:-}\" && \"$FIXTURE_MODE\" != \"1\" ]]; then"
+      },
+      {
+        "line": 9,
+        "text": "  echo \"codex-hardened: CODEX_BIN requires HARNESS_HARDENED_FIXTURE=1\" >&2"
+      },
+      {
+        "line": 12,
+        "text": "CODEX_CANDIDATE=${CODEX_BIN:-codex}"
+      },
+      {
+        "line": 13,
+        "text": "TRUSTED_BINARIES=\"$ROOT/docs/pilots/codex-native-loader-trusted-binaries.json\""
+      },
+      {
+        "line": 15,
+        "text": "  --candidate \"$CODEX_CANDIDATE\""
+      },
+      {
+        "line": 21,
+        "text": "TRUST_JSON=$(\"$NODE_BIN\" \"$ROOT/scripts/codex-binary-trust.mjs\" \"${TRUST_ARGS[@]}\")"
+      },
+      {
+        "line": 22,
+        "text": "CODEX_BIN=$(\"$NODE_BIN\" -e '"
+      },
+      {
+        "line": 27,
+        "text": "HARNESS_CODEX_EXPECTED_DIGEST=$(\"$NODE_BIN\" -e '"
+      },
+      {
+        "line": 32,
+        "text": "HARNESS_CODEX_EXPECTED_CDHASH=$(\"$NODE_BIN\" -e '"
+      },
+      {
+        "line": 37,
+        "text": "export CODEX_BIN HARNESS_CODEX_EXPECTED_DIGEST HARNESS_CODEX_EXPECTED_CDHASH"
+      },
+      {
+        "line": 44,
+        "text": "' \"$TRUSTED_PLUGIN_ROOT/.codex-plugin/plugin.json\")"
+      },
+      {
+        "line": 46,
+        "text": "\"$NODE_BIN\" \"$ROOT/scripts/sync-codex-plugin-cache.mjs\""
+      },
+      {
+        "line": 47,
+        "text": "\"$NODE_BIN\" \"$ROOT/scripts/check-codex-native-plugin.mjs\" \\"
+      },
+      {
+        "line": 50,
+        "text": "\"$NODE_BIN\" \"$ROOT/plugins/harness-guard/scripts/patch-codex-security-guidance.mjs\""
+      },
+      {
+        "line": 52,
+        "text": "exec \"$NODE_BIN\" \"$ROOT/scripts/codex-binary-trust.mjs\" \\"
+      },
+      {
+        "line": 54,
+        "text": "  --expected-digest \"$HARNESS_CODEX_EXPECTED_DIGEST\" \\"
+      }
+    ]
+  },
+  "claude_harness_install": [
+    {
+      "recorded_version": "0.68.0",
+      "install_path": "$HOME/.claude/plugins/cache/team-harness/harness-guard/0.68.0",
+      "manifest_exists": true,
+      "manifest_version": "0.68.0",
+      "skill_count": 16
+    }
+  ],
+  "runtime_path_checks": [
+    {
+      "setting": "NODE_REPL_NODE_PATH",
+      "path_exists": true,
+      "symlink": false
+    },
+    {
+      "setting": "CODEX_HOME",
+      "path_exists": true,
+      "symlink": false
+    },
+    {
+      "setting": "SKY_CUA_SERVICE_PATH",
+      "path_exists": true,
+      "symlink": false
+    },
+    {
+      "setting": "CODEX_CLI_PATH",
+      "path_exists": true,
+      "symlink": false
+    },
+    {
+      "setting": "node_repl.command",
+      "path_exists": true,
+      "symlink": false
+    },
+    {
+      "setting": "notify.executable",
+      "path_exists": true,
+      "symlink": false
+    }
+  ]
+}

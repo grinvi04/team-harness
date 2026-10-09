@@ -96,22 +96,57 @@ contexts_normalized() {
   printf '%s' "$1" | python3 -c "import sys; print(','.join(sorted(set(x.strip() for x in sys.stdin.read().split(',') if x.strip()))))"
 }
 
+# 조회 성공과 유효한 비어 있지 않은 context 집합을 분리한다. 실패/빈 결과로 보호를 약화하지 않는다.
+validated_contexts() {
+  python3 -c 'import sys,json
+d=json.load(sys.stdin)
+if not isinstance(d,list) or not d or any(not isinstance(x,str) or not x.strip() for x in d):
+    raise SystemExit("required contexts must be a nonempty string list")
+print(json.dumps(sorted(set(d))))'
+}
+
 # 테스트 훅: 함수만 로드하고 종료(REPO 인자 파싱·gh 없이 순수 함수만 검증).
 [ -n "${SBP_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
 REPO="${1:?사용: set-branch-protection.sh <repo> [--check] [--contexts a,b,c] [--approvals N]}"; shift
-CHECK=false; CONTEXTS=""; APPROVALS=""
+CHECK=false; CONTEXTS=""; CONTEXTS_SET=false; APPROVALS=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --check)     CHECK=true; shift;;
     # 값 필수(마지막 인자로 값 없이 오면 shift 2가 no-op → 무한루프): $#>=2 확인 후 소비.
-    --contexts)  [ $# -ge 2 ] || { echo "set-branch-protection.sh: --contexts는 값이 필요합니다 (a,b,c)" >&2; exit 2; }; CONTEXTS="$2"; shift 2;;   # 기존 repo 리메디에이션 — 명시 required check 이름
+    --contexts)  [ $# -ge 2 ] || { echo "set-branch-protection.sh: --contexts는 값이 필요합니다 (a,b,c)" >&2; exit 2; }; CONTEXTS="$2"; CONTEXTS_SET=true; shift 2;;
     --approvals) [ $# -ge 2 ] || { echo "set-branch-protection.sh: --approvals는 값이 필요합니다 (0 이상 정수)" >&2; exit 2; }; APPROVALS="$2"; shift 2;;   # 팀 모드 — main에 리뷰 승인 N(develop은 0 유지)
     *) echo "set-branch-protection.sh: 알 수 없는 인자 '$1'" >&2; exit 2;;
   esac
 done
 [ -n "$APPROVALS" ] && ! [[ "$APPROVALS" =~ ^[0-9]+$ ]] && { echo "set-branch-protection.sh: --approvals는 0 이상 정수여야 합니다 ('$APPROVALS')" >&2; exit 2; }
 [[ "$REPO" == */* ]] || REPO="$(gh api user --jq .login 2>/dev/null)/$REPO"
+
+EXPLICIT_CONTEXTS=""; MAIN_CONTEXTS=""; DEVELOP_CONTEXTS=""
+if $CONTEXTS_SET; then
+  EXPLICIT_CONTEXTS=$(contexts_json "$CONTEXTS" | validated_contexts) || {
+    echo "set-branch-protection.sh: --contexts는 비어 있지 않은 검사 목록이어야 합니다" >&2; exit 2;
+  }
+fi
+# 두 브랜치의 사전 조회를 모두 통과한 뒤에만 첫 PUT을 보낸다.
+if ! $CHECK; then
+  for branch in main develop; do
+    gh api "repos/$REPO/branches/$branch" >/dev/null 2>&1 || {
+      echo "✗ $REPO:$branch — 사전 브랜치 조회 실패; 보호 변경 없음" >&2; exit 1;
+    }
+    if $CONTEXTS_SET; then
+      ctx="$EXPLICIT_CONTEXTS"
+    else
+      detected=$(gh api "repos/$REPO/commits/$branch/check-runs" --jq '[.check_runs[].name]|unique' 2>/dev/null) || {
+        echo "✗ $REPO:$branch — 검사 조회 실패; 보호 변경 없음" >&2; exit 1;
+      }
+      ctx=$(printf '%s' "$detected" | validated_contexts) || {
+        echo "✗ $REPO:$branch — 유효한 필수 검사 없음; 첫 CI 또는 --contexts 확인 후 재실행; 보호 변경 없음" >&2; exit 1;
+      }
+    fi
+    case "$branch" in main) MAIN_CONTEXTS="$ctx";; develop) DEVELOP_CONTEXTS="$ctx";; esac
+  done
+fi
 
 rc=0
 for branch in main develop; do
@@ -155,12 +190,8 @@ for branch in main develop; do
 
   # 적용: --contexts 지정 시 그 이름을 required로(기존 repo 리메디에이션 — base 머지커밋엔 check-run이 없어
   #       자동감지 불가한 경우). 미지정 시 실제 보고되는 check 이름을 자동감지(없으면 생략 → 데드락 방지).
-  if [ -n "$CONTEXTS" ]; then
-    ctx=$(contexts_json "$CONTEXTS")
-  else
-    ctx=$(gh api "repos/$REPO/commits/$branch/check-runs" --jq '[.check_runs[].name]|unique' 2>/dev/null); [ -z "$ctx" ] && ctx='[]'
-  fi
-  rsc="null"; [ "$ctx" != "[]" ] && rsc="{\"strict\":true,\"contexts\":$ctx}"
+  case "$branch" in main) ctx="$MAIN_CONTEXTS";; develop) ctx="$DEVELOP_CONTEXTS";; esac
+  rsc="{\"strict\":true,\"contexts\":$ctx}"
   # 승인요건: main만 --approvals N(팀 모드) — develop은 0 유지(pr-merge.sh --auto 무프롬프트 머지 보존).
   bappr=0; [ "$branch" = "main" ] && bappr="${APPROVALS:-0}"
   rpr=$(reviews_json "$bappr")
@@ -169,10 +200,6 @@ for branch in main develop; do
 JSON
   then
     echo "✗ $REPO:$branch — 적용 실패(private+Free? 권한?)"; rc=1; continue
-  fi
-  if [ "$ctx" = "[]" ]; then
-    # B1: 감지된 check가 0개면 required_status_checks=null(약한 보호)로 걸린 것 — 성공으로 은폐하지 않는다.
-    echo "⚠ $REPO:$branch — 보호 적용됐으나 required status check 0개(첫 CI 이전?) — CI 실행 후 재실행 필요"; rc=1; continue
   fi
 
   # GitHub가 PUT을 성공으로 받아도 실제 정책이 정규화·부분 적용될 수 있으므로 postcondition을 다시 읽는다.

@@ -6,6 +6,67 @@ set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 YML="$ROOT/templates/ci/alembic-heads.yml"
 PASS=0; FAIL=0
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+
+extract_run_step() {
+  local yaml="$1" step_name="$2" destination="$3"
+  python3 - "$yaml" "$step_name" > "$destination" <<'PY'
+import sys
+from pathlib import Path
+
+lines = Path(sys.argv[1]).read_text().splitlines()
+needle = f"- name: {sys.argv[2]}"
+try:
+    step = next(i for i, line in enumerate(lines) if line.strip() == needle)
+    run = next(i for i in range(step + 1, len(lines)) if lines[i].strip() == "run: |")
+except StopIteration as error:
+    raise SystemExit(f"missing workflow step or run block: {needle}") from error
+
+indent = len(lines[run]) - len(lines[run].lstrip()) + 2
+for line in lines[run + 1 :]:
+    leading = len(line) - len(line.lstrip())
+    if line.strip() and leading < indent:
+        break
+    print(line[indent:] if line.strip() else "")
+PY
+}
+
+extract_run_step "$YML" "Alembic 다중 head 차단 (자기-스킵)" "$TMP/alembic-heads.sh"
+mkdir -p "$TMP/bin"
+cat > "$TMP/bin/pip" <<'MOCK'
+#!/bin/bash
+printf 'pip %s\n' "$*" >> "$FAKE_LOG"
+exit "${PIP_RC:-0}"
+MOCK
+cat > "$TMP/bin/alembic" <<'MOCK'
+#!/bin/bash
+printf 'alembic %s\n' "$*" >> "$FAKE_LOG"
+printf '%s\n' "${ALEMBIC_OUTPUT:-}"
+exit "${ALEMBIC_RC:-0}"
+MOCK
+chmod +x "$TMP/bin/pip" "$TMP/bin/alembic"
+
+gate_case() { # desc, config, pip rc, heads rc, output, expected gate rc/text/tools
+  local desc="$1" config="$2" pip_rc="$3" heads_rc="$4" output="$5" want_rc="$6"
+  local want_text="$7" want_tools="$8" got_tools
+  local repo="$TMP/$desc" rc=0
+  mkdir -p "$repo"
+  [ "$config" = yes ] && touch "$repo/alembic.ini"
+  : > "$TMP/fake.log"
+  (
+    cd "$repo" && PATH="$TMP/bin:$PATH" FAKE_LOG="$TMP/fake.log" PIP_RC="$pip_rc" \
+      ALEMBIC_RC="$heads_rc" ALEMBIC_OUTPUT="$output" bash "$TMP/alembic-heads.sh"
+  ) > "$TMP/$desc.log" 2>&1 || rc=$?
+  got_tools=$(cat "$TMP/fake.log")
+  if [ "$rc" = "$want_rc" ] && grep -Fq "$want_text" "$TMP/$desc.log" &&
+    [ "$got_tools" = "$want_tools" ]; then
+    echo "PASS: $desc → exit $rc"; PASS=$((PASS+1))
+  else
+    cat "$TMP/$desc.log"
+    echo "FAIL: $desc → exit $rc (expected $want_rc; output should contain '$want_text')"; FAIL=$((FAIL+1))
+  fi
+}
 
 # 드리프트 가드 — 워크플로가 실제로 쓰는 계수 패턴을 이 테스트에 묶는다(YAML 패턴 변경 시 여기서 잡힘).
 if grep -qF "grep -c 'head)'" "$YML"; then
@@ -44,6 +105,17 @@ blk_case "head 0 → 통과"                    ""                              
 blk_case "head 1(선형) → 통과"              "abc (head)"                                  pass
 blk_case "head 2 → 차단"                    $'abc (head)\ndef (head)'                     block
 blk_case "effective 섞인 2-head → 차단(F1)" $'abc (branchA) (head)\ndef (effective head)' block
+
+# Run the exact workflow step from the YAML with controlled external commands. No pip install
+# or Alembic process outside these temporary fake executables is invoked.
+gate_case "no-config-self-skip" no 0 0 "" 0 "self-skip" ""
+gate_case "configured-install-failure" yes 23 0 "" 1 "alembic 설치 실패" "pip install --quiet alembic"
+gate_case "configured-heads-failure" yes 0 24 "fixture heads failure" 1 "fixture heads failure" \
+  $'pip install --quiet alembic\nalembic heads'
+gate_case "configured-single-head" yes 0 0 "abc123 (head)" 0 "head=1" \
+  $'pip install --quiet alembic\nalembic heads'
+gate_case "configured-multiple-heads" yes 0 0 $'abc (head)\ndef (head)' 1 "head=2" \
+  $'pip install --quiet alembic\nalembic heads'
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

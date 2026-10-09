@@ -1,7 +1,6 @@
 ---
 name: feature-merge
 description: 완성된 feature/fix 브랜치를 develop에 머지할 때 사용. 품질·리뷰·승인·CI 게이트를 거치며 코드 구현·PR만 생성·main 릴리즈는 제외
-effort: medium
 ---
 
 # /feature-merge — feature 브랜치를 develop에 머지
