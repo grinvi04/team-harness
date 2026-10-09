@@ -541,5 +541,21 @@
     "testGuardCause": "one Ruby documentation syntax marker was removed; actual test files were not removed",
     "correction": "redacted personal path; restored useful Minitest syntax; guard and scanner unchanged",
     "originalRubySHA256": "c6fdd54b41a09a605abb6a7325891bbf3992d55d034bb2aab6c49c7fd2eba759"
+  },
+  "preMergeReview": {
+    "candidate": "94b72e269d8799b6cc2af4218402abf28824d3d4",
+    "findings": 2,
+    "report": "merge-review-initial.md",
+    "correction": "currency display is conditional on product conversion contract; generic Minitest methods distinguished from Rails DSL",
+    "runtimeRequest": {
+      "model": "gpt-6.1-sol",
+      "effort": "medium",
+      "sandbox": "read-only",
+      "approval": "never"
+    },
+    "runtimeLimit": "CLI settings and actual denied temp writes observed; full model metadata not separately verified",
+    "mergeGateBlocked": "branch protection read rejected by host: approval required but AskForApproval Never",
+    "followupRemainingFindings": 0,
+    "followupReport": "merge-review-followup.md"
   }
 }
