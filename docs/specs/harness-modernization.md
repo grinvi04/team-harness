@@ -48,7 +48,7 @@ Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 
 
 ### Task 5: 통합 인수·기록·전달·정리
 
-상태: 통합 산출물 인수 VERIFIED. 전달·정리의 최종 판정은 [역병합 PR #508](https://github.com/grinvi04/team-harness/pull/508) 본문을 따른다.
+상태: 통합 산출물 인수 VERIFIED; 지정 작업공간 정리는 아래 현재 대조에서 확인. 이전 전달 판정은 [역병합 PR #508](https://github.com/grinvi04/team-harness/pull/508) 본문을 따른다.
 [세부 계획](harness-modernization/plan/05-acceptance.md).
 현재 후보 전체 quality/필수 검사·독립 보안/권한 검토·문서 현행화·실제 설치/새 세션을 구분해 확인한다.
 원격 전달은 기존 wrapper/CI/리뷰 계약을 따른다. 새 보호 예외는 과거 PR의 승인을 재사용하지 않는다.
@@ -61,7 +61,7 @@ Claude 최신 지원 실행기·강제 hook 제거/기본값·cache 대체·새 
 main PR #507의 CI5개·승인·원자 병합/보호 전체 복원과 정확한 병합 SHA 태그 발행을 확인했다.
 Codex/Claude 공식 설치66파일 일치, 새 Codex 스킬/세 합성 가드 거부, 실제 지도218검사·정본 연결을 확인했다.
 커밋된 실행 기록은 해당 후보 시점의 결과다. 뒤이어 수행하는 develop 역병합·보존·worktree 정리의
-최신 결과는 [PR #508 본문](https://github.com/grinvi04/team-harness/pull/508)에 같은 담당자가 현행화한다. Claude 추론·열린 앱 재로딩은 완료로 주장하지 않는다.
+당시 결과는 [PR #508 본문](https://github.com/grinvi04/team-harness/pull/508), 이번 보관 후 정리는 [실행 기록](harness-modernization/execution-progress.md)의 현재 대조를 따른다. Claude 추론·열린 앱 재로딩은 완료로 주장하지 않는다.
 당시 실패와 적용 순서는 [실행 기록](harness-modernization/execution-progress.md)에서 보존한다.
 
 ## 이 변경의 문서 동기화 범위
