@@ -8,15 +8,17 @@ MANIFEST="$ROOT/tests/fixtures/claude-surface.sha256"
 cd "$ROOT"
 shasum -a 256 -c "$MANIFEST"
 
-if rg -n '## Codex 실행|CODEX_PLUGIN_ROOT|Codex가 대신' \
+search_status=0
+rg -n '## Codex 실행|CODEX_PLUGIN_ROOT|Codex가 대신' \
   plugins/harness-guard/hooks \
   plugins/harness-guard/skills \
   plugins/harness-guard/agents \
   plugins/harness-guard/runtime-path.md \
   plugins/harness-guard/scripts/resolve-skill-root.mjs \
   plugins/harness-guard/scripts/guard.sh \
-  plugins/harness-guard/scripts/enforce-subagent-model.py; then
-  echo 'FAIL: Codex 전용 계약이 Claude-facing source에 섞임'
+  plugins/harness-guard/scripts/enforce-subagent-model.py || search_status=$?
+if [ "$search_status" -ne 1 ]; then
+  echo "FAIL: Claude-facing source 격리 위반 또는 검색 실패(status=$search_status)"
   exit 1
 fi
 
