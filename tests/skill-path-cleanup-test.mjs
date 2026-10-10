@@ -49,7 +49,7 @@ test('each documented tool-call initialization rejects a stale root before the t
     const old = path.join(dir, 'old plugin/scripts')
     mkdirSync(old, { recursive: true })
     copyFileSync(resolver, path.join(old, 'resolve-skill-root.mjs'))
-    const block = readFileSync(path.join(plugin, 'skills/runtime-path.md'), 'utf8').split('```bash\n')[1].split('```')[0]
+    const block = readFileSync(path.join(plugin, 'runtime-path.md'), 'utf8').split('```bash\n')[1].split('```')[0]
     const assignments = block.split('HARNESS_PLUGIN_ROOT="$(node')[0]
     for (const literal of ['ordinary', 'with spaces', 'dollar-$HOME', 'with $(printf SUBSTITUTED)', 'with `printf SUBSTITUTED`', "with 'quote", 'with "quote']) {
       const skillPath = '/tmp/' + literal + '/skills/pr-create/SKILL.md'
@@ -74,7 +74,7 @@ test('release script paths work after common bootstrap in each fresh shell', () 
   const text = readFileSync(path.join(plugin, 'skills/release/SKILL.md'), 'utf8')
   const operands = [...text.matchAll(/(?:bash|node|test -f) "([^"\n]+\/scripts\/[^"\n]+)"/g)].map(match => match[1])
   assert.ok(operands.length >= 4)
-  const bootstrap = readFileSync(path.join(plugin, 'skills/runtime-path.md'), 'utf8').split('```bash\n')[1].split('```')[0].replace("'<현재 읽은 SKILL.md의 절대 경로>'", shellQuote(path.join(plugin, 'codex/skills/release/SKILL.md'))).replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", shellQuote(plugin))
+  const bootstrap = readFileSync(path.join(plugin, 'runtime-path.md'), 'utf8').split('```bash\n')[1].split('```')[0].replace("'<현재 읽은 SKILL.md의 절대 경로>'", shellQuote(path.join(plugin, 'codex/skills/release/SKILL.md'))).replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", shellQuote(plugin))
   for (const operand of operands) {
     const result = run('bash', ['-c', bootstrap + '\ntest -f "' + operand + '"'])
     assert.equal(result.status, 0, result.stderr)

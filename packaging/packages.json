@@ -30,7 +30,7 @@
         "scripts/set-branch-protection.sh",
         "scripts/solo-merge.sh",
         "scripts/worktree-fingerprint.mjs",
-        "skills/runtime-path.md",
+        "runtime-path.md",
         "scripts/resolve-skill-root.mjs"
       ]
     },

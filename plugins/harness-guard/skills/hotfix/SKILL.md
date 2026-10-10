@@ -6,7 +6,7 @@ argument-hint: <fix-name> "<증상 설명>"
 
 # /hotfix — 운영 긴급 수정
 
-스크립트 실행 전 [현재 스킬 경로 검증](../runtime-path.md)을 각 도구 호출에서 적용한다.
+스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
 
 **사용법**: `/hotfix <fix-name> "<증상 설명>"`
 예) `/hotfix auth-cookie "로그인 후 쿠키가 발급되지 않는 문제"`

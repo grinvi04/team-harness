@@ -192,7 +192,7 @@ NODEFILL`;
   assert.equal(literal.status, 0); assert.equal(literal.stdout, value, 'bootstrap path quoting must preserve literal text');
  }
  const pluginRoot = path.join(root, 'plugins/harness-guard');
- const runtime = fs.readFileSync(path.join(pluginRoot, 'skills/runtime-path.md'), 'utf8');
+ const runtime = fs.readFileSync(path.join(pluginRoot, 'runtime-path.md'), 'utf8');
  const bootstrap = [...runtime.matchAll(/```bash\n([\s\S]*?)\n```/g)][0][1]
   .replace("'<현재 읽은 SKILL.md의 절대 경로>'", shellQuote(path.join(pluginRoot, 'skills/pr-review-gate/SKILL.md')))
   .replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", shellQuote(pluginRoot));

@@ -5,7 +5,7 @@ description: 현재 feature/fix 브랜치의 품질을 확인하고 올바른 ba
 
 # /pr-create — base 자동감지 PR 생성 (단일 프리미티브)
 
-스크립트 실행 전 [현재 스킬 경로 검증](../runtime-path.md)을 각 도구 호출에서 적용한다.
+스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
 
 **사용법**: `/pr-create`
 현재 브랜치가 `feature/*` 또는 `fix/*`인 상태에서 실행한다.

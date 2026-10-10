@@ -18,7 +18,7 @@ else
 fi
 
 WORKFLOW="$TMP/output/harness-workflows"
-if grep -Fq '(../../../harness-governance-core/skills/runtime-path.md)' "$WORKFLOW/skills/loop/SKILL.md" \
+if grep -Fq '(../../../harness-governance-core/runtime-path.md)' "$WORKFLOW/skills/loop/SKILL.md" \
   && grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$WORKFLOW/skills/loop/SKILL.md" \
   && grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$WORKFLOW/skills/loop/iteration.md" \
   && ! grep -Fq '${CLAUDE_PLUGIN_ROOT' "$WORKFLOW/skills/loop/iteration.md" \
@@ -42,7 +42,7 @@ for consumer in ["skills/loop/SKILL.md", "skills/loop/iteration.md", "skills/mil
     link = re.search(r"\]\(([^)]+/runtime-path\.md)\)", source.read_text())
     assert link, f"missing reader link: {consumer}"
     reader = (source.parent / link.group(1)).resolve()
-    assert reader == (manifest.parent.parent / "harness-governance-core/skills/runtime-path.md").resolve()
+    assert reader == (manifest.parent.parent / "harness-governance-core/runtime-path.md").resolve()
     assert reader.is_file(), f"shared runtime reader missing: {consumer}"
 data = json.loads(manifest.read_text())
 actual = {

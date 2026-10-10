@@ -215,7 +215,7 @@ assert.match(core, /closed_issues.*행정.*완료.*아니/);
 assert.match(core, /UNVERIFIED.*완료.*판정하지/);
 assert.match(core, /후보.*시험.*명령.*결과/);
 assert.ok(core.includes('${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh'), 'validated plugin root keeps the packaging target in the core');
-assert.ok(core.includes('(../runtime-path.md)'), 'script execution requires the current skill path contract');
+assert.ok(core.includes('(../../runtime-path.md)'), 'script execution requires the current skill path contract');
 assert.match(reference, /Phase C0/);
 assert.match(reference, /Phase C1/);
 assert.match(reference, /Phase C2/);

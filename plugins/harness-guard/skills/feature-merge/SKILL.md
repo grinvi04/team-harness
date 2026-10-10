@@ -5,7 +5,7 @@ description: 완성된 feature/fix 브랜치를 develop에 머지할 때 사용.
 
 # /feature-merge — feature 브랜치를 develop에 머지
 
-스크립트 실행 전 [현재 스킬 경로 검증](../runtime-path.md)을 각 도구 호출에서 적용한다.
+스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
 
 **사용법**: `/feature-merge`
 현재 브랜치가 `feature/*` 또는 `fix/*`인 상태에서 실행한다.

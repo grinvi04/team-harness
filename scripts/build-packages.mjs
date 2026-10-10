@@ -273,7 +273,7 @@ function applyRuntimeBindings(packageRoot, unit) {
         rewritten = rewritten.replaceAll(`"${operand}"`, operand)
       }
     }
-    rewritten = rewritten.replaceAll('(../runtime-path.md)', '(../../../harness-governance-core/skills/runtime-path.md)')
+    rewritten = rewritten.replaceAll('(../../runtime-path.md)', '(../../../harness-governance-core/runtime-path.md)')
     if (rewritten === original || !rewritten.includes(dependencyRoot)) {
       throw new Error(`runtime binding root missing: ${consumerPath}:${environment}`)
     }

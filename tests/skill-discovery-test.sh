@@ -78,8 +78,8 @@ else
   echo "FAIL: 발견 불가한 소문자 skill.md 존재:"; printf '  %s\n' "$lower"; FAIL=$((FAIL+1))
 fi
 
-# 2) 파일의 부모인 실제 스킬 디렉터리에 SKILL.md 존재. 루트 공용 안내 파일은 폴더가 아니다.
-for d in $(printf '%s\n' "$TRACKED" | sed -nE 's#^(plugins/harness-guard/skills/[^/]+)/.+$#\1#p' | sort -u); do
+# 2) 각 스킬 디렉터리에 SKILL.md(대문자) 매니페스트 존재
+for d in $(printf '%s\n' "$TRACKED" | sed -E 's#(plugins/harness-guard/skills/[^/]+)/.*#\1#' | sort -u); do
   [ -n "$d" ] || continue
   if printf '%s\n' "$TRACKED" | grep -qxE "$d/SKILL\.md"; then
     PASS=$((PASS+1))
