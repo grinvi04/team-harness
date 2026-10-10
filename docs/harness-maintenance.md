@@ -103,6 +103,8 @@ node scripts/check-external-pilot-provenance.mjs \
   bash /path/to/team-harness/scripts/codex-hardened.sh --version
   bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe
   ```
+  설치 실행 파일은 `docs/pilots/codex-native-loader-trusted-binaries.json`의 버전·SHA-256과 독립 OpenAI 서명을 모두 만족해야 한다.
+  현재 등록은 Codex CLI 0.144.6·0.161.0이다. 미등록 버전은 검사 생략 대신 서명·digest 확인과 지원 데이터 검토 후 등록한다.
   **갱신 안 하면 소비 repo가 옛 버전으로 계속 강제됨** — 예: 감사로 guard 우회·게이트를 고쳐도 캐시가
   0.17.0이면 그 구멍이 소비 repo에 그대로 남는다. 동작이 바뀌는 MINOR 이상은 팀 채널 공지 + 갱신 안내.
 - **활성화 구분 (dev vs 소비)**: 소비 repo(`~/project/*`)는 `~/project/.claude/settings.local.json`의
