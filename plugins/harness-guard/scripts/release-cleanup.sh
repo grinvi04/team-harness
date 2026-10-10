@@ -25,7 +25,10 @@ for branch in "release/v$version" "sync/backmerge-v$version"; do
   elif ! git merge-base --is-ancestor "refs/heads/$branch" refs/heads/develop; then
     echo "⚠️ 로컬 브랜치 보존: $branch; develop 병합 미확인" >&2
     failed=1
-  elif git branch -d "$branch"; then
+  # Recheck against develop inside Git's normal deletion path, even if a
+  # tracking upstream or local tip changed after our explicit ancestry query.
+  # Command-scoped configuration preserves the stored upstream and worktree guard.
+  elif git -c "branch.$branch.remote=." -c "branch.$branch.merge=refs/heads/develop" branch -d "$branch"; then
     if git show-ref --verify --quiet "refs/heads/$branch"; then
       state=0
     else

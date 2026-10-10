@@ -127,3 +127,13 @@ helper는 로컬·원격 tip의 develop ancestry를 명시 확인하고, 조회 
 tracking·원격만 미병합·ancestry 조회 실패·원격 tip 변경 회귀를 포함한 18개가 PASS, exit0.
 변경 기록 생성과 package 검사 중첩의 source-status 실패(19PASS/1FAIL)는 통합 실행 오염이었다.
 수정 커밋·생성 기록 이후 쓰기를 멈춘 후보에서 package/전량 quality를 재실행한다.
+
+## 로컬 경합 보정
+
+후보 a4ffc546의 검토는 ancestry 조회 뒤 local tip과 upstream이 바뀌는 반례를 지적했다.
+해당 fixture는 수정 전 exit1(0PASS/1FAIL)로 실제 미병합 삭제를 재현했다.
+로컬은 직접 ref 삭제/CAS로 worktree 보호를 우회하지 않는다. 명령 범위의 Git 설정으로
+branch -d의 내부 병합 판단 대상도 develop으로 고정해 새 tip을 다시 검사한다.
+저장된 추적 설정은 바꾸지 않는다. 로컬 ref 삭제의 모든 내부 동시성을 원자적으로 보장한다는
+주장은 하지 않으며 동일 branch의 동시 writer는 작업 계약에서 허용하지 않는다.
+보정 후 전체 cleanup/skill path 회귀19개 PASS, exit0. a4ffc546 전량 검사는10단계 후 중단했다.
