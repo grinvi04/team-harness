@@ -1,5 +1,43 @@
 # Team Harness 0.86.0 전달
 
+## 발행·설치 결과
+
+2026-10-11. [main PR #521](https://github.com/grinvi04/team-harness/pull/521)은 병합됐다.
+실제 병합 커밋은 `48ab3d569eba8b18b2f2f9499e9dbad85610108a`다.
+`v0.86.0` 태그의 원격 ref가 이 커밋을 가리키는 것을 확인했다. 발행 범위는 Git 태그와
+기존 marketplace 원본이다. 별도 GitHub Release나 분리 package의 설치 승격은 하지 않았다.
+
+공식 CLI로 Codex·Claude Harness를 **0.86.0**으로 갱신했고 두 도구에서 활성 상태를 확인했다.
+Codex CLI는 **0.161.0**이다. 플러그인 버전과 CLI 버전을 구분한다.
+
+| 검사 | 실제 결과와 범위 |
+|---|---|
+| 설치 원본 | 두 marketplace의 HEAD가 main 병합 SHA와 일치. Codex는 v0.86.0 ref를 지정 |
+| 설치 파일 | Codex·Claude cache 각각 69개 파일의 경로·SHA-256이 발행 원본과 모두 동일 |
+| Native 계약 | manifest·hook·17개 skill 구조 검사 PASS |
+| 새 세션 로딩 | 새 app-server의 skills/list에서 Harness17개, 로딩 오류0개 |
+| 가드 표본 | 설치 script 직접 호출로 파괴 삭제·비밀값/인증파일 유출 입력3개 거부, sentinel 보존 |
+| Doctor | managed requirements·CLI·plugin·native 계약·repo sync·branch protection PASS |
+| 보호 복원 | solo 병합 전후 main의 전체 보호 JSON 의미 동일. 승인1개와 필수 CI5개 유지 |
+| 설정 보존 | Harness ref 외 Codex 설정, Claude 설정, 전역 규칙의 SHA-256 동일. 활성 목록도 보존 |
+
+비활성 `security-guidance`의 CLI 표시 버전은 2.0.12→2.0.13으로 달라졌다.
+활성 여부·원본 경로·다른 설정은 동일하다. 이 변화의 원인은 미확인이며 임의로 되돌리지 않았다.
+
+이 결과는 실제 host hook 발화나 기존 열린 채팅의 재로딩을 증명하지 않는다.
+Doctor의 fresh-session 모델 probe는 실행하지 않았다. Claude 인증 갱신·실제 모델 검증은 계속 보류다.
+
+## 역병합과 보관의 판정 경로
+
+이 기록을 포함한 `sync/backmerge-v0.86.0` → develop PR로 main의 릴리즈 이력을 반영한다.
+문서에 설치 결과를 추가했으므로 순수한 동일 내용 역병합으로 취급하지 않고 추가 변경도 검토한다.
+현재 병합 상태는 [해당 역병합 PR](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Async%2Fbackmerge-v0.86.0)과
+현재 origin/develop이 정본이다. PR이 MERGED이고 그 commit이 develop에 포함됐을 때 역병합 완료다.
+
+소유 작업공간은 병합 후 앱의 archive_worktree로 보관한다. 앱 영수증과 실제 경로·Git 등록의 부재를
+함께 확인했을 때만 정리 완료다. 사용자 branch와 다른 worktree는 보존하며 앱의 제한을 우회하지 않는다.
+최종 역병합·보관의 실행 결과는 프로젝트의 `.project-map/`과 전달 결과에 함께 기록한다.
+
 ## 릴리즈 준비 시점의 상태
 
 발행 태그의 이 기록은 준비 시점의 스냅샷이다. 최종 설치·역병합 결과는
