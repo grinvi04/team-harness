@@ -147,3 +147,10 @@ helper는 HEAD=develop을 먼저 요구하고 branch -d 호출에서 remote를 �
 local tip 변경·보존 후 기존 remote/merge 설정 동일·잘못된 checkout 거부를 포함한20개 PASS, exit0.
 로컬 ref 삭제의 모든 내부 동시성에 대한 원자 보장은 주장하지 않는다. 동일 branch 동시 writer는
 작업 계약에서 허용하지 않으며, 재현한 검사→삭제 경합에서 미병합 커밋 보존을 확인했다.
+
+## 전량 품질의 승인 원본 해시 갱신
+
+후보0c6693d의 quality1~52단계는 PASS,53단계는 release SKILL 승인 해시 불일치로 FAIL.
+독립 검토한 현재 공용 release SKILL의 SHA-256 항목1개만 갱신했다. 나머지 원본27항목과
+검사 로직은 보존한다. 이미 실행한 불변 소스 단계는 재사용하고 영향 검사·미실행53~67단계는
+갱신 후보에서 실행한다. 기록된 HEAD와 diff를 연결하며 전체 통과를 선행 주장하지 않는다.
