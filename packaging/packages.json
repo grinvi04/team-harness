@@ -29,7 +29,9 @@
         "scripts/run-with-timeout.mjs",
         "scripts/set-branch-protection.sh",
         "scripts/solo-merge.sh",
-        "scripts/worktree-fingerprint.mjs"
+        "scripts/worktree-fingerprint.mjs",
+        "skills/runtime-path.md",
+        "scripts/resolve-skill-root.mjs"
       ]
     },
     {

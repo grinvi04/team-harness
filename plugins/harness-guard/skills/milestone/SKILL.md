@@ -6,6 +6,8 @@ argument-hint: <slug> "<목표 설명>" [--by YYYY-MM-DD] | status | breakdown <
 
 # /milestone — 제품 마일스톤 추적
 
+스크립트 실행 전 [현재 스킬 경로 검증](../runtime-path.md)을 각 도구 호출에서 적용한다.
+
 **사용법 (3가지 모드)**
 
 ```
@@ -152,7 +154,7 @@ cat "docs/milestones/$SLUG.md"
 
 ```bash
 # PR 생성은 pr-create 래퍼 경유(맨손 gh pr create는 guard 차단) — 마일스톤은 --milestone로 전달
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --milestone "<slug>" --title "..." --body "..."
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" --milestone "<slug>" --title "..." --body "..."
 gh pr edit <PR번호> --milestone "<slug>"
 ```
 

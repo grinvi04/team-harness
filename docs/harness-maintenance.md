@@ -160,3 +160,8 @@ node scripts/check-external-pilot-provenance.mjs \
 Profile 경로는 JSON과 shell 양쪽에서 전체 파일 경로로 인용한다. doctor는 알려진 hook 등록과 정확한 실행 대상의 관계를 검사한다.
 이전 raw 경로 profile이 unhealthy이면 `manage-profile`의 기존 update 경로로 다시 바인딩한다. POSIX 역슬래시 경로의 Node ESM 실행은 지원 확인 밖이다.
 test-guard는 `check`/`case_` 등 단언 호출 줄의 감소와 조회 실패를 검사한다. 본문 의미·실행 수·실제 실패는 필수 시험의 실행 증거로 별도 확인한다.
+
+공용 스킬의 스크립트 실행은 [현재 스킬 경로 검증](../plugins/harness-guard/skills/runtime-path.md)을
+먼저 적용한다. 현재 로드된 스킬의 root와 실행 root가 다르면 중단하며 HOME checkout으로 대체하지 않는다.
+PR 병합 성공과 branch 정리는 별도 결과다. 정리 실패·조회 실패는 각각 실패·미확인으로 보존한다.
+현재 수정 후보·격리 시험 범위는 [스킬 경로·정리 보고](specs/skill-path-cleanup.md)를 따른다.

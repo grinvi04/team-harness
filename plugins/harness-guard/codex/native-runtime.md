@@ -27,3 +27,6 @@
 - Claude 전용 plan mode·slash command·도구 이름은 Codex에서 가장 가까운 현재 기능으로 수행하되,
   수용기준·wrapper·CI·리뷰 게이트는 바꾸지 않는다.
 - 공용 skill과 이 문서가 충돌하면 공용 skill의 안전·완료 계약을 우선한다.
+
+스크립트 실행은 [현재 스킬 경로 검증](../skills/runtime-path.md)을 각 도구 호출에서 먼저 적용한다.
+플랫폼이 제공한 현재 스킬 절대 경로를 쓰며 오래된 HOME checkout을 fallback으로 실행하지 않는다.

@@ -6,6 +6,8 @@ argument-hint: "\"[PR번호]\" (생략 시 현재 브랜치의 PR)"
 
 # /solo-merge — 솔로 환경 안전 머지 (break-glass)
 
+스크립트 실행 전 [현재 스킬 경로 검증](../runtime-path.md)을 각 도구 호출에서 적용한다.
+
 솔로 개발자는 자기 PR을 승인할 수 없다(GitHub 자기승인 불가). branch protection이 승인 1+를 요구하면 머지가 영구히 막힌다. 이 커맨드는 **CI·리뷰·스레드 resolve 등 품질 게이트는 그대로 통과시킨 뒤, 솔로라 충족 불가능한 승인 요건만** `required_pull_request_reviews`를 일시 삭제해 머지하고 **즉시 복구·검증**한다.
 
 > **언제 필요한가**: 브랜치 보호에 **승인요건(1+)이 걸린 repo**(팀 모드 / 리뷰어 합류로 재활성)에서만. **솔로 표준**(decisions "브랜치 보호 표준" — 승인요건 0·CI-gate·enforce_admins on)에선 우회할 승인요건이 없어 소유자가 바로 `pr-merge.sh`로 머지하므로 **이 커맨드가 불필요**하다. 즉 승인요건을 재활성했을 때의 **break-glass**다.
@@ -37,7 +39,7 @@ argument-hint: "\"[PR번호]\" (생략 시 현재 브랜치의 PR)"
 # pr-review-gate에서 검토한 snapshot을 그대로 전달한다.
 REVIEW_CANDIDATE=$(node -e 'const c=JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).candidate; console.log([c.baseRefName,c.baseRefOid,c.headRefOid].join("|"))' "$REVIEW_SNAPSHOT") || exit 1
 IFS='|' read -r REVIEW_BASE REVIEW_BASE_OID REVIEW_HEAD_OID <<< "$REVIEW_CANDIDATE"
-bash "${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/solo-merge.sh" "$PR" \
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/solo-merge.sh" "$PR" \
   --base "$REVIEW_BASE" --expected-head "$REVIEW_HEAD_OID" --expected-base-oid "$REVIEW_BASE_OID"
 # snapshot 변경은 보호 DELETE 전에 거부하고 동일 후보를 머지 래퍼에 전달한다.
 ```

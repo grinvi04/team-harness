@@ -64,13 +64,11 @@ release-check는 그 커밋을 본 적이 없다 — 머지 전 **변경 범위 
 
 Phase 2(해당 시) ✅인 경우에만 진행.
 
-`HARNESS_RELEASE_PLUGIN_ROOT`를 현재 사용할 플러그인의 실제 절대 경로로 설정한다.
-Team Harness 소스 후보를 작업할 때는 해당 체크아웃의 `plugins/harness-guard`를 사용한다
-(repo 루트에서 `HARNESS_RELEASE_PLUGIN_ROOT="$PWD/plugins/harness-guard"`). 소비 repo에서는
-현재 실행 플랫폼이 제공하는 설치 경로를 사용하고, 설치본과 소스 후보를 혼동하지 않는다.
+[현재 스킬 경로 검증](../runtime-path.md)을 각 도구 호출에서 먼저 적용한다.
+HOME checkout이나 현재 제품 경로를 플러그인 경로로 추정하지 않는다.
 
 ```bash
-: "${HARNESS_RELEASE_PLUGIN_ROOT:?현재 사용할 플러그인의 실제 절대 경로를 설정하세요}"
+HARNESS_RELEASE_PLUGIN_ROOT="${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}"
 test -f "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh"
 ```
 

@@ -6,6 +6,8 @@ argument-hint: "\"<작업 설명>\" \"<통과 기준 명령>\" [--max <N=5>] [--
 
 # /loop — 조건 기반 자율 수정 루프
 
+스크립트 실행 전 [현재 스킬 경로 검증](../runtime-path.md)을 각 도구 호출에서 적용한다.
+
 **사용법**: `/loop "<작업 설명>" "<통과 기준 명령>" [--max <N>] [--timeout <초>] [--no-commit]`
 
 예)
@@ -112,7 +114,7 @@ git status --short
 ### 0-3. 통과 기준 즉시 실행
 
 ```bash
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
+PLUGIN_ROOT="${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}"
 node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" -- "$EXIT_CMD"
 ```
 
@@ -154,7 +156,7 @@ FIXED_FILES=""    # 줄바꿈으로 구분한 누적 수정 파일 목록
 
 에이전트 spawn **직전** 오케스트레이터는 stuck 감지용 기준 지문(이번 반복 시작 시 워킹트리 상태)을 캡처한다:
 ```bash
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
+PLUGIN_ROOT="${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}"
 ITER=$((ITER+1))
 TREE_BEFORE=$(
   node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" --argv -- \

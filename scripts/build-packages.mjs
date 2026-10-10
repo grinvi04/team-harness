@@ -262,7 +262,7 @@ function applyRuntimeBindings(packageRoot, unit) {
     }
 
     rewritten = rewritten.replaceAll(
-      '${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}',
+      '${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}',
       dependencyRoot,
     )
     if (rewritten === original || !rewritten.includes(dependencyRoot)) {
