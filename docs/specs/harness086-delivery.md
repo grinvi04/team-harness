@@ -1,6 +1,9 @@
 # Team Harness 0.86.0 전달
 
-## 현재 상태
+## 릴리즈 준비 시점의 상태
+
+발행 태그의 이 기록은 준비 시점의 스냅샷이다. 최종 설치·역병합 결과는
+[develop의 최신 전달 기록](https://github.com/grinvi04/team-harness/blob/develop/docs/specs/harness086-delivery.md)에서 확인한다.
 
 2026-10-11. develop `ef0d123`의 release-check는 **GO_SCOPED**다.
 PR #519의 정리·업그레이드와 PR #520의 CI 검색 결함 수정을 포함한다.
