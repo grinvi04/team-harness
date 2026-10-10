@@ -145,7 +145,9 @@ bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scr
 
 ---
 
-정리 출력과 종료 코드를 별도로 기록한다. 사용 중·미병합 로컬 branch는 보존하며 강제 삭제하지 않는다.
+정리 출력과 종료 코드를 별도로 기록한다. develop에 병합되지 않은 로컬·원격 tip은 보존한다.
+추적 원격의 병합만으로 로컬 삭제를 허용하지 않고, 원격 삭제는 조회한 OID에 결박한다.
+사용 중 로컬 branch를 강제 삭제하지 않는다.
 정리 실패·조회 미확인(nonzero)은 release/back-merge 병합 실패와 구분하고 미완료 정리로 보고한다.
 
 ## Phase 5 — 배포 후 헬스 체크 (`subagent_type: Explore`, `model: haiku`, **foreground**)

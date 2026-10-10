@@ -148,3 +148,6 @@ PR 병합과 branch 정리를 구분하며 실제 삭제 실패·원격 조회 �
 스킬 동작 변경의 maintenance MINOR 기준에 따라 0.86.0 소스 후보로 올린다.
 legacy security-guidance는 자동 패치 없이 삭제 보류하며 [현재 근거·검증](specs/global-cleanup-upgrade.md)을 따른다.
 로컬 구현·검사는 병합·릴리즈·설치·배포 완료가 아니다.
+
+독립 검토 후 develop ancestry를 로컬·원격 tip에 명시 확인하고 원격 삭제를 조회 OID에 결박했다.
+추적 원격에만 병합된 branch 삭제와 원격 경합의 재현·보정은 위 스펙에 연결한다.

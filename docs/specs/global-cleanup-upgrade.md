@@ -116,3 +116,14 @@ config.toml·실제 patcher 설치·Git push·GitHub API 승인 규칙은 변경
 release cleanup/skill path 회귀14개를 현재 후보에서 다시 확인했다.
 새 helper를 포함한 구현을 Git 후보로 기록한 뒤 package 회귀와 전량 quality를 실행한다.
 커밋 생성은 품질·PR·병합·릴리즈·설치 완료 판정이 아니며 전체 수용은 계속 미확인이다.
+
+## 독립 검토 P1 보정
+
+후보 c75f387의 읽기 전용 Astra/medium 검토는 추적 원격에만 병합된 branch를
+Git -d가 삭제할 수 있음을 지적했다. 추가한 실제 tracking/remote-only 두 fixture에서
+수정 전 7PASS/2FAIL로 미병합 삭제를 재현했다. 전량 quality는 9단계 통과 뒤 중단(전체 미확인).
+helper는 로컬·원격 tip의 develop ancestry를 명시 확인하고, 조회 오류·미병합을 보존한다.
+원격 삭제는 조회한 OID와 force-with-lease를 결박해 중간 원격 변경도 거부한다. 강제 로컬 삭제는 없다.
+tracking·원격만 미병합·ancestry 조회 실패·원격 tip 변경 회귀를 포함한 18개가 PASS, exit0.
+변경 기록 생성과 package 검사 중첩의 source-status 실패(19PASS/1FAIL)는 통합 실행 오염이었다.
+수정 커밋·생성 기록 이후 쓰기를 멈춘 후보에서 package/전량 quality를 재실행한다.

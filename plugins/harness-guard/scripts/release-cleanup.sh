@@ -7,6 +7,10 @@ if [ "$#" -ne 1 ] || ! [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 version=$1
 failed=0
+if ! git rev-parse --verify 'refs/heads/develop^{commit}' >/dev/null; then
+  echo '⚠️ 정리 중단: 병합 대상 develop 조회 실패' >&2
+  exit 1
+fi
 for branch in "release/v$version" "sync/backmerge-v$version"; do
   if git show-ref --verify --quiet "refs/heads/$branch"; then
     state=0
@@ -17,6 +21,9 @@ for branch in "release/v$version" "sync/backmerge-v$version"; do
     echo "🧹 로컬 브랜치 없음 확인: $branch"
   elif [ "$state" -ne 0 ]; then
     echo "⚠️ 로컬 브랜치 정리 미확인: $branch; 조회 실패($state)" >&2
+    failed=1
+  elif ! git merge-base --is-ancestor "refs/heads/$branch" refs/heads/develop; then
+    echo "⚠️ 로컬 브랜치 보존: $branch; develop 병합 미확인" >&2
     failed=1
   elif git branch -d "$branch"; then
     if git show-ref --verify --quiet "refs/heads/$branch"; then
@@ -42,7 +49,13 @@ else
   state=$?
 fi
 if [ "$state" -eq 0 ]; then
-  if git push origin --delete "$branch"; then
+  read -r remote_oid remote_ref <<< "$remote"
+  if [ "$remote_ref" != "refs/heads/$branch" ] ||
+     ! git merge-base --is-ancestor "$remote_oid" refs/heads/develop; then
+    echo "⚠️ 원격 브랜치 보존: $branch; develop 병합 미확인" >&2
+    failed=1
+    state=-1
+  elif git push --force-with-lease="refs/heads/$branch:$remote_oid" origin ":refs/heads/$branch"; then
     if remote=$(git ls-remote --exit-code --heads origin "refs/heads/$branch" 2>&1); then
       state=0
     else
