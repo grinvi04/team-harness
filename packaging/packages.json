@@ -25,6 +25,7 @@
         "scripts/lib/tokenize.sh",
         "scripts/pr-create.sh",
         "scripts/pr-merge.sh",
+        "scripts/release-cleanup.sh",
         "scripts/route-intent.mjs",
         "scripts/run-with-timeout.mjs",
         "scripts/set-branch-protection.sh",

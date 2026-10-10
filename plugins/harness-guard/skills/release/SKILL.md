@@ -139,13 +139,16 @@ bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scr
 
 ```bash
 # 머지 완료 후 브랜치 정리 (sync 브랜치에서 벗어난 뒤 로컬 삭제 — 원격 sync는 back-merge 머지 시 자동 삭제)
-git checkout develop && git pull origin develop
-git branch -d release/v$VERSION 2>/dev/null || true
-git push origin --delete release/v$VERSION 2>/dev/null || true
-git branch -d sync/backmerge-v$VERSION 2>/dev/null || true
+git checkout develop && git pull --ff-only origin develop || exit 1
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/release-cleanup.sh" "$VERSION"
 ```
 
 ---
+
+정리 출력과 종료 코드를 별도로 기록한다. develop에 병합되지 않은 로컬·원격 tip은 보존한다.
+추적 원격의 병합만으로 로컬 삭제를 허용하지 않고, 원격 삭제는 조회한 OID에 결박한다.
+사용 중 로컬 branch를 강제 삭제하지 않는다.
+정리 실패·조회 미확인(nonzero)은 release/back-merge 병합 실패와 구분하고 미완료 정리로 보고한다.
 
 ## Phase 5 — 배포 후 헬스 체크 (`subagent_type: Explore`, `model: haiku`, **foreground**)
 
