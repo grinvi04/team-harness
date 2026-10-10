@@ -14,14 +14,14 @@ const scripts = [
   'codex-native-loader-report-test.sh',
 ];
 
-function runWithSearchFailure(script, status, authFilter = false) {
+function runWithSearchFailure(script, status, authStage = null) {
   const directory = mkdtempSync(join(tmpdir(), 'harness-search-failure-'));
   try {
-    const body = authFilter
+    const body = authStage
       ? `case "$*" in
   *github_pat_*) exit 1 ;;
-  *' -v '*|-v*) exit ${status} ;;
-  *) printf '%s\\n' 'synthetic auth.json fixture'; exit 0 ;;
+  *' -v '*|-v*) exit ${authStage === 'filter' ? status : 1} ;;
+  *) ${authStage === 'producer' ? `exit ${status}` : "printf '%s\\n' 'synthetic auth.json fixture'; exit 0"} ;;
 esac`
       : `exit ${status}`;
     writeFileSync(join(directory, 'rg'), `#!/bin/bash\n${body}\n`, { mode: 0o755 });
@@ -49,8 +49,16 @@ for (const script of scripts) {
 
 for (const status of [2, 127]) {
   test(`report rejects auth-path filter execution failure ${status}`, () => {
-    const result = runWithSearchFailure('codex-native-loader-report-test.sh', status, true);
+    const result = runWithSearchFailure('codex-native-loader-report-test.sh', status, 'filter');
     assert.ifError(result.error);
     assert.notEqual(result.status, 0, `auth filter failed, but test passed:\n${result.stdout}`);
+  });
+}
+
+for (const status of [2, 127]) {
+  test(`report rejects auth-path producer execution failure ${status}`, () => {
+    const result = runWithSearchFailure('codex-native-loader-report-test.sh', status, 'producer');
+    assert.ifError(result.error);
+    assert.notEqual(result.status, 0, `auth producer failed, but test passed:\n${result.stdout}`);
   });
 }
