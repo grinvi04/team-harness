@@ -230,17 +230,51 @@ echo "게이트 통과 → 머지"
 gh pr merge "$PR" --repo "$OWNER_REPO" --merge --delete-branch --match-head-commit "$HEAD_SHA"
 echo "✅ PR #$PR 머지 완료"
 
-# 로컬 head 브랜치 정리 — 원격은 --delete-branch로 삭제됨(로컬 복사본은 수동 삭제해야 누적을 막음).
-# 안전: origin/<base>에 브랜치 tip이 포함(=머지됨)일 때만 -D — 미머지 로컬 커밋 유실 방지.
-HEAD_BRANCH=$(gh pr view "$PR" --repo "$OWNER_REPO" --json headRefName --jq .headRefName 2>/dev/null) || HEAD_BRANCH=""
-if [ -n "$HEAD_BRANCH" ] && git show-ref --verify --quiet "refs/heads/$HEAD_BRANCH"; then
-  CB_BASE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName --jq .baseRefName 2>/dev/null) || CB_BASE=""
-  git fetch origin --quiet 2>/dev/null || true
-  if git merge-base --is-ancestor "$HEAD_BRANCH" "origin/${CB_BASE:-main}" 2>/dev/null; then
-    CB_CO=$(merge_cleanup_checkout "$HEAD_BRANCH" "$CB_BASE" "$(git branch --show-current 2>/dev/null || echo)")
-    if [ -n "$CB_CO" ]; then git checkout "$CB_CO" --quiet 2>/dev/null || true; fi
-    git branch -D "$HEAD_BRANCH" >/dev/null 2>&1 && echo "🧹 로컬 브랜치 삭제: $HEAD_BRANCH (원격은 이미 삭제됨)" || true
+# PR 병합과 정리 결과는 별도다. 실패를 숨기거나 삭제를 추정하지 않는다.
+HEAD_BRANCH=$HBRANCH
+if REMOTE_CHECK=$(git ls-remote --exit-code --heads origin "refs/heads/$HEAD_BRANCH" 2>&1); then
+  REMOTE_EXIT=0
+else
+  REMOTE_EXIT=$?
+fi
+if [ "$REMOTE_EXIT" -eq 2 ]; then
+  echo "🧹 원격 브랜치 삭제 확인: $HEAD_BRANCH"
+elif [ "$REMOTE_EXIT" -eq 0 ]; then
+  echo "⚠️ 원격 브랜치 남아 있음: $HEAD_BRANCH" >&2
+else
+  echo "⚠️ 원격 브랜치 정리 미확인: $REMOTE_CHECK" >&2
+fi
+if git show-ref --verify --quiet "refs/heads/$HEAD_BRANCH"; then
+  LOCAL_EXIT=0
+else
+  LOCAL_EXIT=$?
+fi
+if [ "$LOCAL_EXIT" -eq 0 ]; then
+  if ! git fetch origin "$PR_BASE" --quiet; then
+    echo "⚠️ 로컬 브랜치 보존: 최신 병합 원본 조회 실패" >&2
   else
-    echo "ℹ️ 로컬 '$HEAD_BRANCH' 보존 — origin/${CB_BASE:-main}에 미포함(미머지 커밋 가능)"
+    if git merge-base --is-ancestor "$HEAD_BRANCH" "origin/$PR_BASE"; then
+      ANCESTRY_EXIT=0
+    else
+      ANCESTRY_EXIT=$?
+    fi
+    if [ "$ANCESTRY_EXIT" -eq 1 ]; then
+      echo "ℹ️ 로컬 '$HEAD_BRANCH' 보존 — origin/$PR_BASE에 미포함" >&2
+    elif [ "$ANCESTRY_EXIT" -ne 0 ]; then
+      echo "⚠️ 로컬 브랜치 정리 미확인: 병합 관계 조회 실패($ANCESTRY_EXIT); 브랜치 보존" >&2
+    else
+    CB_CO=$(merge_cleanup_checkout "$HEAD_BRANCH" "$PR_BASE" "$(git branch --show-current)")
+    if [ -n "$CB_CO" ] && ! git checkout "$CB_CO" --quiet; then
+      echo "⚠️ 로컬 브랜치 정리 실패: checkout 불가; 사용 중인 worktree와 변경을 보존함" >&2
+    elif git branch -d "$HEAD_BRANCH"; then
+      echo "🧹 로컬 브랜치 삭제 확인: $HEAD_BRANCH"
+    else
+      echo "⚠️ 로컬 브랜치 정리 실패: $HEAD_BRANCH; 다른 worktree 사용 여부를 확인하세요" >&2
+    fi
+    fi
   fi
+elif [ "$LOCAL_EXIT" -eq 1 ]; then
+  echo "🧹 로컬 브랜치 없음 확인: $HEAD_BRANCH"
+else
+  echo "⚠️ 로컬 브랜치 정리 미확인: 조회 실패($LOCAL_EXIT)" >&2
 fi

@@ -103,6 +103,8 @@ node scripts/check-external-pilot-provenance.mjs \
   bash /path/to/team-harness/scripts/codex-hardened.sh --version
   bash /path/to/team-harness/scripts/harness-doctor.sh --repo . --probe
   ```
+  설치 실행 파일은 `docs/pilots/codex-native-loader-trusted-binaries.json`의 버전·SHA-256과 독립 OpenAI 서명을 모두 만족해야 한다.
+  현재 등록은 Codex CLI 0.144.6·0.161.0이다. 미등록 버전은 검사 생략 대신 서명·digest 확인과 지원 데이터 검토 후 등록한다.
   **갱신 안 하면 소비 repo가 옛 버전으로 계속 강제됨** — 예: 감사로 guard 우회·게이트를 고쳐도 캐시가
   0.17.0이면 그 구멍이 소비 repo에 그대로 남는다. 동작이 바뀌는 MINOR 이상은 팀 채널 공지 + 갱신 안내.
 - **활성화 구분 (dev vs 소비)**: 소비 repo(`~/project/*`)는 `~/project/.claude/settings.local.json`의
@@ -158,3 +160,8 @@ node scripts/check-external-pilot-provenance.mjs \
 Profile 경로는 JSON과 shell 양쪽에서 전체 파일 경로로 인용한다. doctor는 알려진 hook 등록과 정확한 실행 대상의 관계를 검사한다.
 이전 raw 경로 profile이 unhealthy이면 `manage-profile`의 기존 update 경로로 다시 바인딩한다. POSIX 역슬래시 경로의 Node ESM 실행은 지원 확인 밖이다.
 test-guard는 `check`/`case_` 등 단언 호출 줄의 감소와 조회 실패를 검사한다. 본문 의미·실행 수·실제 실패는 필수 시험의 실행 증거로 별도 확인한다.
+
+공용 스킬의 스크립트 실행은 [현재 스킬 경로 검증](../plugins/harness-guard/runtime-path.md)을
+먼저 적용한다. 현재 로드된 스킬의 root와 실행 root가 다르면 중단하며 HOME checkout으로 대체하지 않는다.
+PR 병합 성공과 branch 정리는 별도 결과다. 정리 실패·조회 실패는 각각 실패·미확인으로 보존한다.
+현재 수정 후보·격리 시험 범위는 [스킬 경로·정리 보고](specs/skill-path-cleanup.md)를 따른다.

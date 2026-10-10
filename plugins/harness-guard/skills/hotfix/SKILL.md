@@ -6,6 +6,8 @@ argument-hint: <fix-name> "<증상 설명>"
 
 # /hotfix — 운영 긴급 수정
 
+스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
+
 **사용법**: `/hotfix <fix-name> "<증상 설명>"`
 예) `/hotfix auth-cookie "로그인 후 쿠키가 발급되지 않는 문제"`
 
@@ -73,7 +75,7 @@ Phase 2 ✅인 경우에만 진행.
 
 ```bash
 # 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base main \
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" --base main \
   --title "fix($FIX_NAME): $DESCRIPTION" \
   --body "긴급 수정: $DESCRIPTION"
 PR=$(gh pr view --json number --jq .number)
@@ -116,7 +118,7 @@ develop도 branch protection이 걸려 있어 직접 push가 거부된다 — **
 git checkout main && git pull origin main
 git checkout -b sync/backmerge-$FIX_NAME
 git push -u origin sync/backmerge-$FIX_NAME
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh --base develop \
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" --base develop \
   --title "chore: hotfix/$FIX_NAME develop 반영" \
   --body "main PR과 동일 내용의 back-merge — main 머지·태그(v$PATCH) 완료 후 develop 반영."
 ```

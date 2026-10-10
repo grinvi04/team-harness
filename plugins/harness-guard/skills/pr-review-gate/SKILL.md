@@ -5,13 +5,15 @@ description: 열린 PR의 AI 리뷰·사람 승인·CI·외부 배포 상태를 
 
 # PR 리뷰·CI 게이트 (공통 절차)
 
+스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
+
 `feature-merge`·`hotfix`·`release`가 PR 생성 후 머지 전까지 공통으로 따르는 단일 출처 절차다.
 커맨드별로 복붙하지 말고 이 절차를 참조한다. (복붙 드리프트 = 게이트 누락 사고의 원인)
 
 전제: `PR` = PR 번호. `OWNER_REPO`는 동적으로 구한다.
 ```bash
 OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
-REVIEW_SCOPE="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/skills/pr-review-gate/review-thread-scope.mjs"
+REVIEW_SCOPE="${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/skills/pr-review-gate/review-thread-scope.mjs"
 REVIEW_DIR=$(mktemp -d)
 REVIEW_SNAPSHOT="$REVIEW_DIR/review.json"
 PROCESSED_REVIEW="$REVIEW_DIR/processed.json"
@@ -132,7 +134,7 @@ gh api "repos/$OWNER_REPO/commits/$HEAD_SHA/status" \
 ```bash
 REVIEW_CANDIDATE=$(node -e 'const c=JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).candidate; console.log([c.baseRefName,c.baseRefOid,c.headRefOid].join("|"))' "$REVIEW_SNAPSHOT") || exit 1
 IFS='|' read -r REVIEW_BASE REVIEW_BASE_OID REVIEW_HEAD_OID <<< "$REVIEW_CANDIDATE"
-bash "${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-merge.sh" "$PR" \
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-merge.sh" "$PR" \
   --base "$REVIEW_BASE" --expected-base-oid "$REVIEW_BASE_OID" --expected-head "$REVIEW_HEAD_OID"
 ```
 
