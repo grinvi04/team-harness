@@ -2,9 +2,9 @@
 
 ## 현재 통합 상태 (2026-10-11)
 
-PR #519는 develop에 `4022813`으로 병합됐다. 재시작 후 API·push 실행도 확인했다.
-릴리즈 검토에서 CI의 검색 오류를 통과로 오판하는 결함을 발견해 발행·설치는 보류한다.
-최신 후보·수정·검증·전달은 [후속 기록](ci-negative-assertions.md)을 따른다.
+PR #519·#520은 develop `ef0d123`에 반영됐다. 재시작 후 API·push 실행을 확인했고,
+CI 검색 결함 수정·독립 재검토·전체 CI를 통과했다. release-check는 범위 내 GO다.
+[검색 결함 기록](ci-negative-assertions.md)과 [현재 릴리즈 전달](harness086-delivery.md)을 따른다.
 
 ## 병합 전 후보의 당시 기록
 
