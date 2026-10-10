@@ -362,13 +362,20 @@ grep -Fq '## 판정·한계' "$REPORT"
 grep -Fq '실행 증거: live' "$REPORT"
 grep -Fq 'session-network-unavailable' "$REPORT"
 grep -Fq 'split package 승격: **아니오**' "$REPORT"
-if rg -n 'github_pat_|gh[pousr]_|sk-[A-Za-z0-9]' "$JSON" "$REPORT" "$GUARD" "$ROUTING"; then
-  echo 'FAIL: pilot report contains a token-shaped value'
+search_status=0
+rg -n 'github_pat_|gh[pousr]_|sk-[A-Za-z0-9]' "$JSON" "$REPORT" "$GUARD" "$ROUTING" || search_status=$?
+if [ "$search_status" -ne 1 ]; then
+  echo "FAIL: pilot report contains a token-shaped value or search failed(status=$search_status)"
   exit 1
 fi
-if rg -n 'auth\.json' "$JSON" "$REPORT" "$GUARD" "$ROUTING" |
-  rg -v '\$\{CODEX_HOME:\?\}/\./auth\.json'; then
-  echo 'FAIL: pilot report contains an unredacted auth path'
+set +e
+rg -n 'auth\.json' "$JSON" "$REPORT" "$GUARD" "$ROUTING" |
+  rg -v '\$\{CODEX_HOME:\?\}/\./auth\.json'
+search_status=("${PIPESTATUS[@]}")
+set -e
+if { [ "${search_status[0]}" -ne 0 ] && [ "${search_status[0]}" -ne 1 ]; } \
+  || [ "${search_status[1]}" -ne 1 ]; then
+  echo "FAIL: pilot report contains an unredacted auth path or search failed(status=${search_status[*]})"
   exit 1
 fi
 grep -Fq 'pilots/codex-native-loader-v0.61.0.md' "$ROOT/docs/product-direction-governance-history.md"
