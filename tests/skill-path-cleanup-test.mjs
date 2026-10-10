@@ -70,6 +70,26 @@ test('each documented tool-call initialization rejects a stale root before the t
   } finally { rmSync(dir, { recursive: true, force: true }) }
 })
 
+test('repo-sync documented consumers preserve literal plugin paths', () => {
+  const text = readFileSync(path.join(plugin, 'skills/repo-sync/SKILL.md'), 'utf8')
+  const calls = [...text.matchAll(/^\s+(node|bash) (.+?)(?: --repo <경로>| <owner\/repo> --check)$/gm)]
+  assert.equal(calls.length, 2)
+  const dir = mkdtempSync(path.join(tmpdir(), 'harness-consumer-'))
+  try {
+    for (const literal of ['with spaces', 'dollar-$HOME', 'with $(printf WRONG)', 'with `printf WRONG`', "with 'quote", 'with "quote']) {
+      const scripts = path.join(dir, literal, 'scripts')
+      mkdirSync(scripts, { recursive: true })
+      writeFileSync(path.join(scripts, 'check-repo-sync.mjs'), 'console.log(JSON.stringify(process.argv.slice(2)))')
+      writeFileSync(path.join(scripts, 'set-branch-protection.sh'), 'printf "%s" "$1"')
+      for (const [, interpreter, operand] of calls) {
+        const result = run('bash', ['-c', interpreter + ' ' + operand + " 'literal argument'"], { env: { ...env, HARNESS_PLUGIN_ROOT: path.dirname(scripts) } })
+        assert.equal(result.status, 0, result.stderr)
+        assert.equal(result.stdout.trim(), interpreter === 'node' ? '["literal argument"]' : 'literal argument')
+      }
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
 test('release script paths work after common bootstrap in each fresh shell', () => {
   const text = readFileSync(path.join(plugin, 'skills/release/SKILL.md'), 'utf8')
   const operands = [...text.matchAll(/(?:bash|node|test -f) "([^"\n]+\/scripts\/[^"\n]+)"/g)].map(match => match[1])
