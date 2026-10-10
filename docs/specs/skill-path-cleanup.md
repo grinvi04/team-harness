@@ -74,3 +74,11 @@
 
 안내 이전 후보19e4e0f: 경로 회귀6, 발견19, workflow binding3, plugin 공존10, profile 수명주기74 통과.
 공존·profile 시험은 현재 기록된 plugin source로 조립했고 실제 사용자 설정·cache는 수정하지 않았다.
+
+후보de2d0d4의 native-loader 실패: 검토된 공용 스킬 변경10개가 현재 승인 원문 체크섬 fixture에 미반영됐다.
+이전 manifest SHA-256 ffa6fd71a11fe4e601e662188fcd02870683f43ef5999e973b9f1852b2601f70는 당시 Git 후보에 보존한다.
+변경된10개만 동기화하고 새 공용 안내·resolver도 고정한다. guard·hook·agent의 기존 hash는 유지한다.
+격리 계약의 Codex 전용 내용 거부 검사도 새 두 공용 파일에 적용하며 Claude 인증·모델 시험은 하지 않는다.
+
+현재 공용 source 체크섬28개·격리·기본 가드 거부 및 native-loader17개 wrapper 계약 검사가 통과했다.
+고정 체크섬의 일치는 의미·품질 보장이 아니며 앞서 수행한 코드 리뷰·실행 검증과 구분한다.
