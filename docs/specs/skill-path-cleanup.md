@@ -103,3 +103,15 @@ release-check GO: 현재 diff36파일과 원문을 대조한 독립 품질·보�
 main 릴리즈 고유 커밋은 이 준비 기록과 생성 이력만 추가한다. 후보 버전0.85.0은 이미 반영됐다.
 main CI·승인 게이트, 태그 발행, develop 역병합, 실제 설치의 결과는 관련 PR과 프로젝트 지도에서 이어 기록한다.
 자체 런타임 서버가 없어 배포 헬스체크는 비적용이다. 소비 원격·배포·결제·Claude 실제 검증 제외는 유지한다.
+
+## 발행·실제 설치 결과 (2026-10-11)
+
+main PR #517 병합3b3a19c970f67201260b909f73c917643ea28c09와 같은 커밋의 v0.85.0 태그를 원격에서 확인했다.
+솔로 래퍼의 main 보호 복구는 실행 전 전체 정책과 실제 API 응답의 의미를 대조해 통과했다.
+공식 갱신으로 Codex용 Harness0.84.0 → 0.85.0 installed=true/enabled=true를 확인했다.
+marketplace commit·실제 cache 전체 파일은 발행 태그 원본과 일치했고 doctor는 healthy였다.
+새 app-server는0.85.0 스킬17개를 오류 없이 로드했다. 합성 fixture만 사용한 서로 다른 새 세션3개에서
+삭제·가짜 비밀값 전송·가짜 인증 파일 전송을 실제 PreToolUse router가 차단했다.
+검증 세션의 훅 신뢰 옵션 사용과 영구 신뢰·기존 채팅의 재로딩은 구분한다. 후자는 미확인이다.
+다른 설치 plugin·marketplace 등록과 사용자 작업공간을 보존했다. Claude 실제 인증·모델 검증은 하지 않았다.
+develop 반영과 최종 보관 결과는 [PR #518](https://github.com/grinvi04/team-harness/pull/518)과 프로젝트 지도에서 확인한다.
