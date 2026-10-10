@@ -50,8 +50,17 @@ test('each documented tool-call initialization rejects a stale root before the t
     mkdirSync(old, { recursive: true })
     copyFileSync(resolver, path.join(old, 'resolve-skill-root.mjs'))
     const block = readFileSync(path.join(plugin, 'skills/runtime-path.md'), 'utf8').split('```bash\n')[1].split('```')[0]
+    const assignments = block.split('HARNESS_PLUGIN_ROOT="$(node')[0]
+    for (const literal of ['ordinary', 'with spaces', 'dollar-$HOME', 'with $(printf SUBSTITUTED)', 'with `printf SUBSTITUTED`', "with 'quote", 'with "quote']) {
+      const skillPath = '/tmp/' + literal + '/skills/pr-create/SKILL.md'
+      const rootPath = '/tmp/' + literal
+      const quoted = assignments.replace("'<현재 읽은 SKILL.md의 절대 경로>'", shellQuote(skillPath)).replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", shellQuote(rootPath))
+      const probe = run('bash', ['-c', quoted + '\nprintf "%s\\n%s" "$HARNESS_SKILL_FILE" "$HARNESS_PLUGIN_ROOT"'])
+      assert.equal(probe.status, 0, probe.stderr)
+      assert.equal(probe.stdout, skillPath + '\n' + rootPath)
+    }
     const marker = path.join(dir, 'target-ran')
-    const invoke = (candidate) => run('bash', ['-c', block.replace("'<현재 읽은 SKILL.md의 절대 경로>'", JSON.stringify(path.join(plugin, 'codex/skills/pr-create/SKILL.md'))).replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", JSON.stringify(candidate)) + '\nprintf reached > "$MARKER"'], { env: { ...env, HOME: dir, MARKER: marker } })
+    const invoke = (candidate) => run('bash', ['-c', block.replace("'<현재 읽은 SKILL.md의 절대 경로>'", shellQuote(path.join(plugin, 'codex/skills/pr-create/SKILL.md'))).replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", shellQuote(candidate)) + '\nprintf reached > "$MARKER"'], { env: { ...env, HOME: dir, MARKER: marker } })
     const rejected = invoke(path.dirname(old))
     assert.notEqual(rejected.status, 0)
     assert.throws(() => readFileSync(marker))

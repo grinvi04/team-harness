@@ -64,3 +64,6 @@
 선언된 실행 인수의 중복 shell quoting은 조립 단계에서만 교정했고 placeholder 거부·doctor 판정은 유지했다.
 독립 후속 리뷰의 시험 JSON→shell 인용 P2는 shell 단일 인용과 특수 문자 literal 시험으로 수정했다.
 공용 안내는 활성/staged package 세 소비자의 실제 링크와 파일을 확인했다. disabled 안내 접근은 보장하지 않는다.
+
+최종 후속 리뷰는 신규 시험의 다른 JSON→shell 치환2곳도 찾아냈다. 동일 shellQuote로 고치고
+문서 초기화 블록의7개 특수 문자 literal 전달 반례를 추가했다. 첫 인용 보완이 불완전했던 결과를 보존한다.
