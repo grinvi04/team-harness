@@ -136,4 +136,14 @@ tracking·원격만 미병합·ancestry 조회 실패·원격 tip 변경 회귀�
 branch -d의 내부 병합 판단 대상도 develop으로 고정해 새 tip을 다시 검사한다.
 저장된 추적 설정은 바꾸지 않는다. 로컬 ref 삭제의 모든 내부 동시성을 원자적으로 보장한다는
 주장은 하지 않으며 동일 branch의 동시 writer는 작업 계약에서 허용하지 않는다.
-보정 후 전체 cleanup/skill path 회귀19개 PASS, exit0. a4ffc546 전량 검사는10단계 후 중단했다.
+be2321a에 기록한 19PASS는 결과 완료 전 잘못 기재한 값이었다. 실제는18PASS/1FAIL, exit1.
+a4ffc546 전량 검사는10단계 후 중단했다. 첫 명령 범위 merge 설정은 다중 값 때문에 해결하지 못했다.
+
+## 로컬 재검사 최종 보정
+
+helper는 HEAD=develop을 먼저 요구하고 branch -d 호출에서 remote를 명령 범위의 빈 값으로
+지정해 native 삭제 검사 기준을 HEAD(develop)로 만든다. 저장 upstream은 보존하고 worktree
+사용 금지 검사를 유지한다. 직접 ref 삭제나 force 로컬 삭제는 사용하지 않는다.
+local tip 변경·보존 후 기존 remote/merge 설정 동일·잘못된 checkout 거부를 포함한20개 PASS, exit0.
+로컬 ref 삭제의 모든 내부 동시성에 대한 원자 보장은 주장하지 않는다. 동일 branch 동시 writer는
+작업 계약에서 허용하지 않으며, 재현한 검사→삭제 경합에서 미병합 커밋 보존을 확인했다.

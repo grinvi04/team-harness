@@ -7,6 +7,10 @@ if [ "$#" -ne 1 ] || ! [[ "$1" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 version=$1
 failed=0
+if [ "$(git symbolic-ref --quiet --short HEAD)" != develop ]; then
+  echo '⚠️ 정리 중단: develop에서만 실행하세요' >&2
+  exit 1
+fi
 if ! git rev-parse --verify 'refs/heads/develop^{commit}' >/dev/null; then
   echo '⚠️ 정리 중단: 병합 대상 develop 조회 실패' >&2
   exit 1
@@ -28,7 +32,7 @@ for branch in "release/v$version" "sync/backmerge-v$version"; do
   # Recheck against develop inside Git's normal deletion path, even if a
   # tracking upstream or local tip changed after our explicit ancestry query.
   # Command-scoped configuration preserves the stored upstream and worktree guard.
-  elif git -c "branch.$branch.remote=." -c "branch.$branch.merge=refs/heads/develop" branch -d "$branch"; then
+  elif git -c "branch.$branch.remote=" branch -d "$branch"; then
     if git show-ref --verify --quiet "refs/heads/$branch"; then
       state=0
     else
