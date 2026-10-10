@@ -115,6 +115,10 @@ skill과 agent의 prose는 실행 엔진이 아니다. 유지되는 항목도 �
 우선순위는 cache·snapshot mutation 제거가 1순위, 모델 강제 hook과 중복 agent 제거가 2순위, 일반 방법론
 skill의 선택 패키지 분리가 3순위다. 실제 제거는 각각 별도 승인 spec과 릴리스로 진행한다.
 
+2026-10-11 정리에서는 외부 security-guidance의 실제 상류 호환과 patched 소비 경계를 확인하지 못해
+삭제를 보류한다. launcher 자동 호출은 없으며 [현재 근거](specs/global-cleanup-upgrade.md#security-guidance-삭제-보류-근거)를 따른다.
+위 제거 판정은 방향이며 제거 완료가 아니다.
+
 ## 잔여 위험과 재검토 조건
 
 - 로컬 CLI 확인은 0.144.5 한 버전의 시점 증거다. 지원 최소·최대 버전에서 hook payload와 plugin trust가 같다는
