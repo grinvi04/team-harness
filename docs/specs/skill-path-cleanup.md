@@ -52,3 +52,6 @@
 후보2cc5765의 quality는 기존 pr-create 리뷰 흐름 fixture가 새 경로 검증 전제를 누락해 실패했다.
 실제 runtime-path 문서의 검증 블록을 fixture에 연결하며 reply/resolve/head 결박 판정은 유지한다.
 필수 다른4개는 통과했고 병합은 멈췄다. 후속 후보의 CI 결과로 이 기록을 연결한다.
+
+후보538890e의 첫 fixture 보완은 통과했으나 스킬 발견 검사에서 공용 root 안내 파일을 폴더로 오인했다.
+디렉터리 경로 추출만 교정하고 모든 실제 스킬의 대문자 SKILL.md 필수 검사·frontmatter 검사는 유지한다.
