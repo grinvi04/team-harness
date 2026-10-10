@@ -265,7 +265,15 @@ function applyRuntimeBindings(packageRoot, unit) {
       '${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}',
       dependencyRoot,
     )
-    rewritten = rewritten.replaceAll('(../runtime-path.md)', `(${dependencyRoot}/skills/runtime-path.md)`)
+    // The profile installer supplies shell quoting for each declared executable.
+    // Remove only that complete argument's source quotes, never arbitrary text.
+    if (!consumerPath.endsWith('.json')) {
+      for (const binding of group) {
+        const operand = `${dependencyRoot}/${binding.target}`
+        rewritten = rewritten.replaceAll(`"${operand}"`, operand)
+      }
+    }
+    rewritten = rewritten.replaceAll('(../runtime-path.md)', '(../../../harness-governance-core/skills/runtime-path.md)')
     if (rewritten === original || !rewritten.includes(dependencyRoot)) {
       throw new Error(`runtime binding root missing: ${consumerPath}:${environment}`)
     }

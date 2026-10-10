@@ -55,3 +55,12 @@
 
 후보538890e의 첫 fixture 보완은 통과했으나 스킬 발견 검사에서 공용 root 안내 파일을 폴더로 오인했다.
 디렉터리 경로 추출만 교정하고 모든 실제 스킬의 대문자 SKILL.md 필수 검사·frontmatter 검사는 유지한다.
+
+후보2174fa0의 profile 설치 회귀: 공용 안내 링크에만 추가된 core 환경 placeholder가 미해소로 거부됐다.
+분리 패키지는 같은 조립 폴더의 core 안내를 상대 링크로 읽도록 교정한다. 스크립트 binding 검사는 유지한다.
+시험은 임시 filesystem profile만 사용하며 실제 사용자 cache·설정·공급 등록은 변경하지 않는다.
+
+후속 로컬 결과: profile 수명주기74개, PR receiver37사례 포함9개, 신규 회귀6개, workflow binding3개 통과.
+선언된 실행 인수의 중복 shell quoting은 조립 단계에서만 교정했고 placeholder 거부·doctor 판정은 유지했다.
+독립 후속 리뷰의 시험 JSON→shell 인용 P2는 shell 단일 인용과 특수 문자 literal 시험으로 수정했다.
+공용 안내는 활성/staged package 세 소비자의 실제 링크와 파일을 확인했다. disabled 안내 접근은 보장하지 않는다.

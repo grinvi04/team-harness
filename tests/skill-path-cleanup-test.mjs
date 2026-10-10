@@ -1,3 +1,4 @@
+const shellQuote = value => "'" + value.replaceAll("'", "'\"'\"'") + "'"
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtempSync, readFileSync, readdirSync, mkdirSync, writeFileSync, rmSync, copyFileSync } from 'node:fs'
@@ -64,7 +65,7 @@ test('release script paths work after common bootstrap in each fresh shell', () 
   const text = readFileSync(path.join(plugin, 'skills/release/SKILL.md'), 'utf8')
   const operands = [...text.matchAll(/(?:bash|node|test -f) "([^"\n]+\/scripts\/[^"\n]+)"/g)].map(match => match[1])
   assert.ok(operands.length >= 4)
-  const bootstrap = readFileSync(path.join(plugin, 'skills/runtime-path.md'), 'utf8').split('```bash\n')[1].split('```')[0].replace("'<현재 읽은 SKILL.md의 절대 경로>'", JSON.stringify(path.join(plugin, 'codex/skills/release/SKILL.md'))).replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", JSON.stringify(plugin))
+  const bootstrap = readFileSync(path.join(plugin, 'skills/runtime-path.md'), 'utf8').split('```bash\n')[1].split('```')[0].replace("'<현재 읽은 SKILL.md의 절대 경로>'", shellQuote(path.join(plugin, 'codex/skills/release/SKILL.md'))).replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", shellQuote(plugin))
   for (const operand of operands) {
     const result = run('bash', ['-c', bootstrap + '\ntest -f "' + operand + '"'])
     assert.equal(result.status, 0, result.stderr)
