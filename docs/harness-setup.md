@@ -54,6 +54,7 @@ node /path/to/release-source/scripts/check-codex-native-plugin.mjs --expected-ve
 
 launcher는 공식 설치 상태·native loader를 점검하며 외부 `security-guidance` cache를 자동 수정하지 않는다.
 이전 cache 보완은 별도 승인 후 `patch-codex-security-guidance.mjs --apply`로만 실행한다.
+[현재 삭제 보류 근거](specs/global-cleanup-upgrade.md#security-guidance-삭제-보류-근거)는 실제 상류 호환·patched 소비 경계의 미확인을 구분한다.
 `--probe`는 별도 격리 fixture·모델 실행 검증이다.
 
 ```bash

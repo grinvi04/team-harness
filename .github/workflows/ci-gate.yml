@@ -19,10 +19,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: 필수 검색 도구 설치
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes ripgrep
+          rg --version
+
       - name: 진행 문서 동기화 선언 검사
         run: |
           node plugins/harness-guard/scripts/check-document-sync.mjs --repo . --event "$GITHUB_EVENT_PATH"
-          node --test tests/document-sync-test.mjs tests/skill-path-cleanup-test.mjs
+          node --test tests/document-sync-test.mjs tests/skill-path-cleanup-test.mjs tests/release-cleanup-test.mjs
+          node --test tests/negative-search-assertions-test.mjs
 
       - name: 문서 구조·생성·판정·모델 설정 계약
         run: |
@@ -41,6 +48,7 @@ jobs:
           bash -n plugins/harness-guard/scripts/guard.sh
           bash -n plugins/harness-guard/scripts/pr-create.sh
           bash -n plugins/harness-guard/scripts/pr-merge.sh
+          bash -n plugins/harness-guard/scripts/release-cleanup.sh
           bash -n plugins/harness-guard/scripts/set-branch-protection.sh
           bash -n plugins/harness-guard/scripts/solo-merge.sh
           bash -n templates/githooks/pre-commit

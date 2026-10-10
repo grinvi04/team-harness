@@ -28,11 +28,13 @@ else
   FAIL=1
 fi
 
+search_status=0
+rg -n 'harness-(explorer|verifier|security-reviewer)' "$ROOT/plugins/harness-guard/codex/skills" || search_status=$?
 if ! find "$ROOT/plugins/harness-guard/codex" -type f -print | grep -Eq '/(agents|skill-overlays)/' \
-  && ! rg -n 'harness-(explorer|verifier|security-reviewer)' "$ROOT/plugins/harness-guard/codex/skills"; then
+  && [ "$search_status" -eq 1 ]; then
   echo "PASS: Codex custom agent·cache overlay 의존 제거"
 else
-  echo "FAIL: Codex custom agent 또는 cache overlay 의존 잔존"
+  echo "FAIL: Codex custom agent/cache overlay 의존 또는 검색 실패(status=$search_status)"
   FAIL=1
 fi
 
