@@ -1,6 +1,6 @@
 # Loop 반복 프롬프트·판정·체크포인트
 
-[상위 문서](SKILL.md)로 돌아간다. 아래는 원문의 해당 주제 본문을 순서대로 보존한 실행 계약이다. 상위 문서와 함께 적용한다.
+[상위 문서](SKILL.md)로 돌아간다. 각 shell 호출은 [경로 검증](../../runtime-path.md)을 먼저 적용한다. 아래는 원문의 해당 주제 본문을 순서대로 보존한 실행 계약이다. 상위 문서와 함께 적용한다.
 
 **프롬프트 (반복마다 갱신):**
 
@@ -34,7 +34,7 @@
 ### Phase 2b — 반복 후 검증 (오케스트레이터 직접 실행)
 
 ```bash
-PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"
+PLUGIN_ROOT="${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}"
 
 # 수정 파일 목록 확인
 CHANGED=$(git status --short)

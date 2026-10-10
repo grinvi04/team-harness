@@ -6,10 +6,12 @@ argument-hint: "\"[repo 경로 ...]\" (생략 시 현재 작업 repo)"
 
 # /repo-sync — team-harness 표준 드리프트 점검
 
+스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
+
 프로젝트가 team-harness 표준과 sync 됐는지 점검한다(드리프트 감지). `templates/`는 신규 셋업에만 적용돼 기존 repo에 자동 전파되지 않으므로, 표준 게이트가 빠진 채 드리프트가 쌓인다. 이 커맨드를 **수동 호출**해 그 공백을 점검한다.
 
 > 단일 출처: `docs/harness-maintenance.md` (기존 repo 드리프트 점검 절).
-> 점검 로직은 `${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/check-repo-sync.mjs` — 신규 셋업 `new-repo.sh`의 대칭 도구.
+> 점검 로직은 `${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/check-repo-sync.mjs` — 신규 셋업 `new-repo.sh`의 대칭 도구.
 
 ---
 
@@ -18,14 +20,14 @@ argument-hint: "\"[repo 경로 ...]\" (생략 시 현재 작업 repo)"
 1. **대상 결정**: 인자로 repo 경로(들)를 받으면 그 repo들, 없으면 현재 작업 repo(cwd) 하나.
 2. **각 대상 점검**: 대상마다 실행한다.
    ```bash
-   node ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/check-repo-sync.mjs --repo <경로>
+   node ${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/check-repo-sync.mjs --repo <경로>
    ```
    스크립트가 repo 스택(java·flyway·typescript·nestjs·vite·python·prisma·alembic·supabase)을 파일 신호로 감지하고, 그 스택의 필수 harness 자산(test-guard·commitlint·secret-scan·migration-safety 게이트 + 스택 룰)이 표준과 sync 됐는지 자산별 `OK / WEAK / WARN / MISSING` 표로 출력한다.
    - **exit 1이어도 보고는 계속한다** — MISSING 출력이 있으면 누락으로, 실행·조회 오류이면 미확인으로 보존한다.
      종료 코드와 요약 모두 수집하고, 요약 누락을 MISSING 0으로 채우지 않는다. 다음 대상도 실행하고 종합한다.
 3. **브랜치 보호 점검**(gh 인증 필요 · GitHub repo 대상): 표준 솔로 보호(승인0·CI-gate) 적용 여부를 점검한다.
    ```bash
-   bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/set-branch-protection.sh <owner/repo> --check
+   bash ${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/set-branch-protection.sh <owner/repo> --check
    ```
    `✗ 보호 미적용`이면 보고에 포함(적용은 `--check` 빼고 실행 — 사용자 승인 후). `--approvals` 없이 `--check`하면 승인 개수는 **정보성**(0/≥1 모두 통과, 드리프트 아님)이고 `enforce_admins`·required checks·**`allow_force_pushes`/`allow_deletions`(=false, 계층0이 force-push·브랜치삭제를 실제 차단하는지 — 재설계 [A]가 force-push를 계층0에 위임하는 전제)**·strict만 엄격 판정한다 — 팀 repo는 `--approvals N`을 함께 줘 그 baseline으로 검증한다(불일치 시 `⚠ 승인요건 불일치`). check-repo-sync.mjs는 무의존 정적검사라 이 네트워크 점검은 별도 스크립트로 분리.
    인증·API·조회 실패는 보호 없음이나 정상 보호로 추정하지 않고 UNVERIFIED로 기록한다.

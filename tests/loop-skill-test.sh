@@ -306,7 +306,7 @@ from pathlib import Path
 import sys
 
 text = Path(sys.argv[1]).read_text(encoding="utf-8")
-root = 'PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}"'
+root = 'PLUGIN_ROOT="${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}"'
 phase_0 = text.split("### 0-3.", 1)[1].split("---", 1)[0]
 phase_2a = text.split("### Phase 2a", 1)[1].split("### Phase 2b", 1)[0]
 phase_2b = text.split("### Phase 2b", 1)[1].split("### Phase 2c", 1)[0]

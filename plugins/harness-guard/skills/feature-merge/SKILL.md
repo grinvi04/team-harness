@@ -5,6 +5,8 @@ description: 완성된 feature/fix 브랜치를 develop에 머지할 때 사용.
 
 # /feature-merge — feature 브랜치를 develop에 머지
 
+스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
+
 **사용법**: `/feature-merge`
 현재 브랜치가 `feature/*` 또는 `fix/*`인 상태에서 실행한다.
 
@@ -42,7 +44,7 @@ git status --short
 PR 생성은 **래퍼 스크립트**로 한다(맨손 `gh pr create`는 guard 차단). §2에서 품질검증을 이미 했으므로, 스크립트가 base 자동감지(develop 기반이면 base=develop)·push·`gh pr create`를 수행한다(hotfix·release와 동일 경로):
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh \
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" \
   --title "<타입(scope): 요약>" --body "<무엇을·왜·검증>"
 ```
 
@@ -65,17 +67,16 @@ PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(AI 리뷰 대기·이슈 
 
 **`pr-review-gate` 스킬의 4~7단계**(사람 승인 확인 · CI watch · 외부 배포 commit-status 게이트 · 머지)를 따른다.
 
-### 5. 브랜치 정리 (직접 실행)
+### 5. 브랜치 정리와 결과 확인
 
-```bash
-git checkout develop && git pull origin develop
-git branch -d "$FEATURE_BRANCH" 2>/dev/null || true   # 원격은 pr-merge.sh --delete-branch가 이미 삭제(E7: 중복 원격 delete 제거 — 없는 ref 삭제 에러 방지)
-```
+`pr-merge.sh`의 정리 결과를 먼저 확인한다. 실패·보존·미확인은 삭제 완료가 아니다.
+다른 worktree가 사용하는 브랜치를 강제 삭제하거나 사용자 변경을 stash/reset하지 않는다.
+필요하면 사용 중인 작업공간과 해제 조건을 보고한다. 원격 삭제도 서버 조회 결과로 판단한다.
 
-완료 후 출력:
+최종 보고는 확인된 결과에 따라 작성한다:
 ```
-✅ 머지 완료
-- 브랜치: [feature명] → develop
-- PR 머지: 완료 (#번호)
-- 브랜치 정리: 로컬·원격 삭제 완료
+- PR 병합: 완료 / 실패 / 미확인 (#번호, 실제 서버 결과)
+- 로컬 브랜치 정리: 삭제 확인 / 보존 / 실패 / 미확인 (근거와 다음 행동)
+- 원격 브랜치 정리: 삭제 확인 / 남아 있음 / 미확인 (조회 결과)
 ```
+PR 병합 성공과 정리 성공을 구분한다. 삭제 실패를 숨기거나 고정된 전체 완료 문구를 출력하지 않는다.

@@ -12,6 +12,8 @@ if rg -n '## Codex 실행|CODEX_PLUGIN_ROOT|Codex가 대신' \
   plugins/harness-guard/hooks \
   plugins/harness-guard/skills \
   plugins/harness-guard/agents \
+  plugins/harness-guard/runtime-path.md \
+  plugins/harness-guard/scripts/resolve-skill-root.mjs \
   plugins/harness-guard/scripts/guard.sh \
   plugins/harness-guard/scripts/enforce-subagent-model.py; then
   echo 'FAIL: Codex 전용 계약이 Claude-facing source에 섞임'

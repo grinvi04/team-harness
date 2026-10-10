@@ -5,6 +5,8 @@ description: 현재 feature/fix 브랜치의 품질을 확인하고 올바른 ba
 
 # /pr-create — base 자동감지 PR 생성 (단일 프리미티브)
 
+스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
+
 **사용법**: `/pr-create`
 현재 브랜치가 `feature/*` 또는 `fix/*`인 상태에서 실행한다.
 
@@ -40,7 +42,7 @@ description: 현재 feature/fix 브랜치의 품질을 확인하고 올바른 ba
 > 스크립트가 base 자동 감지(develop 있으면 develop, 없으면 기본 브랜치) · push · `gh pr create`를 수행한다(내부 gh는 자식 프로세스라 guard에 안 걸린다).
 
 ```bash
-bash ${CLAUDE_PLUGIN_ROOT:-$HOME/team-harness/plugins/harness-guard}/scripts/pr-create.sh \
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" \
   --title "<타입(scope): 요약>" --body "<무엇을·왜·검증>"
 # base를 강제해야 하면(hotfix/release 등) --base <branch> 추가.
 ```
