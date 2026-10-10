@@ -186,7 +186,12 @@ NODEFILL`;
  const resolving = blocks.find(x => x.includes('node "$REVIEW_SCOPE" resolve'));
  const merging = blocks.find(x => x.includes('--expected-head'));
  assert.ok(initial && template && resolving && merging, 'executable skill receiver blocks');
- const workflow = [initial, template, processing, resolving, merging, 'rm -rf "$REVIEW_DIR"'].join('\n');
+ const pluginRoot = path.join(root, 'plugins/harness-guard');
+ const runtime = fs.readFileSync(path.join(pluginRoot, 'skills/runtime-path.md'), 'utf8');
+ const bootstrap = [...runtime.matchAll(/```bash\n([\s\S]*?)\n```/g)][0][1]
+  .replace("'<현재 읽은 SKILL.md의 절대 경로>'", JSON.stringify(path.join(pluginRoot, 'skills/pr-review-gate/SKILL.md')))
+  .replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", JSON.stringify(pluginRoot));
+ const workflow = [bootstrap, initial, template, processing, resolving, merging, 'rm -rf "$REVIEW_DIR"'].join('\n');
  const workflowFile = path.join(workflowDir, 'workflow.sh'); fs.writeFileSync(workflowFile, workflow + '\n');
  const workflowResult = spawnSync('bash', [workflowFile], { env: { ...process.env, PATH: bin + path.delimiter + process.env.PATH, Q2A_STATE: workflowState, PR: '42', CLAUDE_PLUGIN_ROOT: path.join(root, 'plugins/harness-guard') }, encoding: 'utf8' });
  assert.equal(workflowResult.status, 0, workflowResult.stdout + workflowResult.stderr);
