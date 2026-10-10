@@ -30,3 +30,19 @@
 구현: 0.85.0 후보의 경로 검증 계약·resolver·스킬 경로와 정리 보고 수정.
 검증·독립 리뷰·커밋·PR·병합·릴리즈·설치는 각각 실제 결과가 확인된 뒤 기록한다.
 실제 설치는 이전 완료 상태 0.84.0이며 이 후보 설치를 주장하지 않는다.
+
+## 로컬 검증과 독립 리뷰
+
+- 구현 커밋 cacf147과 후속 7파일 보완: 상대 root 환경값 거부, release 호출별 직접 root 사용,
+  ancestry exit1과 조회 오류 구분, 분리 package reader 경로 보완.
+- 실제 격리 회귀 시험6개 통과: `node --test tests/skill-path-cleanup-test.mjs`.
+- 기존 loop30, PR merge58, flagship53, Codex skill mapping, package build20와 workflow binding3 통과.
+- artifact integrity 최초 실행은 sandbox가 실제 변형·복구 쓰기를 거부했으므로 출력 PASS를 채택하지 않았다.
+  승인된 동일 격리 작업공간 재실행은 변형·HEAD 원본 조립·복구6개를 실제 통과했다.
+- Markdown302개·관련 구문·diff 검사 통과. 패키지 검사는 기록된 후보를 조립한다.
+- 독립 Astra/medium read-only 첫 리뷰 P2 3건은 현재 코드와 반례 시험으로 해결했다.
+  후속 리뷰는 추가 지적 없음. 관련 읽기 전용 실행4개와 reader 변환을 직접 확인했다.
+  review 대상은 cacf147 + 후속7파일, diff SHA-256 e28b65b97474ce8ab2b0b67b3cf7df0688c44ce26f60bc9cbd953a8c7216b489다.
+- 독립 sandbox의 Git/임시파일 쓰기 거부를 관찰했다. reviewer의 Git fixture·package 조립은 미실행이며
+  구현자의 격리 실행과 구분한다. 테스트 통과가 모든 LLM 호출의 경로 준수를 보장하지 않는다.
+- 현재 후보의 PR CI·병합·정식 릴리즈·실제 설치는 아직 미확인/미실행이다. 설치0.84.0과 후보0.85.0을 구분한다.

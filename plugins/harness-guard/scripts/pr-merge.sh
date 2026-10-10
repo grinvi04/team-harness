@@ -252,9 +252,17 @@ fi
 if [ "$LOCAL_EXIT" -eq 0 ]; then
   if ! git fetch origin "$PR_BASE" --quiet; then
     echo "⚠️ 로컬 브랜치 보존: 최신 병합 원본 조회 실패" >&2
-  elif ! git merge-base --is-ancestor "$HEAD_BRANCH" "origin/$PR_BASE"; then
-    echo "ℹ️ 로컬 '$HEAD_BRANCH' 보존 — origin/$PR_BASE에 미포함" >&2
   else
+    if git merge-base --is-ancestor "$HEAD_BRANCH" "origin/$PR_BASE"; then
+      ANCESTRY_EXIT=0
+    else
+      ANCESTRY_EXIT=$?
+    fi
+    if [ "$ANCESTRY_EXIT" -eq 1 ]; then
+      echo "ℹ️ 로컬 '$HEAD_BRANCH' 보존 — origin/$PR_BASE에 미포함" >&2
+    elif [ "$ANCESTRY_EXIT" -ne 0 ]; then
+      echo "⚠️ 로컬 브랜치 정리 미확인: 병합 관계 조회 실패($ANCESTRY_EXIT); 브랜치 보존" >&2
+    else
     CB_CO=$(merge_cleanup_checkout "$HEAD_BRANCH" "$PR_BASE" "$(git branch --show-current)")
     if [ -n "$CB_CO" ] && ! git checkout "$CB_CO" --quiet; then
       echo "⚠️ 로컬 브랜치 정리 실패: checkout 불가; 사용 중인 worktree와 변경을 보존함" >&2
@@ -262,6 +270,7 @@ if [ "$LOCAL_EXIT" -eq 0 ]; then
       echo "🧹 로컬 브랜치 삭제 확인: $HEAD_BRANCH"
     else
       echo "⚠️ 로컬 브랜치 정리 실패: $HEAD_BRANCH; 다른 worktree 사용 여부를 확인하세요" >&2
+    fi
     fi
   fi
 elif [ "$LOCAL_EXIT" -eq 1 ]; then

@@ -12,6 +12,7 @@ try {
   const manifest = JSON.parse(readFileSync(path.join(root, '.claude-plugin/plugin.json'), 'utf8'))
   if (manifest.name !== 'harness-guard') throw new Error('loaded skill is not from harness-guard')
   for (const key of ['CLAUDE_PLUGIN_ROOT', 'HARNESS_PLUGIN_ROOT']) {
+    if (process.env[key] && !path.isAbsolute(process.env[key])) throw new Error(`${key} absolute path is required`)
     if (process.env[key] && realpathSync(process.env[key]) !== root) throw new Error(`${key} differs from loaded skill root`)
   }
   process.stdout.write(`${root}\n`)

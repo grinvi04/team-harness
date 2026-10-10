@@ -18,7 +18,8 @@ else
 fi
 
 WORKFLOW="$TMP/output/harness-workflows"
-if grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$WORKFLOW/skills/loop/SKILL.md" \
+if grep -Fq '(${HARNESS_GOVERNANCE_CORE_ROOT}/skills/runtime-path.md)' "$WORKFLOW/skills/loop/SKILL.md" \
+  && grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$WORKFLOW/skills/loop/SKILL.md" \
   && grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$WORKFLOW/skills/loop/iteration.md" \
   && ! grep -Fq '${CLAUDE_PLUGIN_ROOT' "$WORKFLOW/skills/loop/iteration.md" \
   && grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$WORKFLOW/skills/milestone/SKILL.md" \

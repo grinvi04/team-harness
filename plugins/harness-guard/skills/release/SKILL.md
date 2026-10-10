@@ -68,8 +68,8 @@ Phase 2(해당 시) ✅인 경우에만 진행.
 HOME checkout이나 현재 제품 경로를 플러그인 경로로 추정하지 않는다.
 
 ```bash
-HARNESS_RELEASE_PLUGIN_ROOT="${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}"
-test -f "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh"
+: "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}"
+test -f "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh"
 ```
 
 먼저 `/tmp/release-main-pr.md`에 버전·변경 내용·검증한 후보와 결과·남은 단계를 작성한다.
@@ -79,7 +79,7 @@ test -f "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh"
 관련 문서 변경을 커밋한 뒤, 채택 repo에서는 push 전에 본문을 검사한다:
 
 ```bash
-node "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/check-document-sync.mjs" \
+node "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/check-document-sync.mjs" \
   --repo . --record /tmp/release-main-pr.md --committed
 ```
 
@@ -87,7 +87,7 @@ node "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/check-document-sync.mjs" \
 
 ```bash
 # 1. main으로 PR 생성 — 맨손 gh pr create는 guard 차단. 래퍼가 push·생성(--base main 강제).
-bash "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh" --base main \
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" --base main \
   --title "release: v$VERSION" \
   --body-file /tmp/release-main-pr.md
 PR=$(gh pr view --json number --jq .number)
@@ -128,7 +128,7 @@ sync 브랜치에서 커밋하고, PR 생성 전에 이 본문으로 `--committe
 git checkout main && git pull origin main
 git checkout -b sync/backmerge-v$VERSION
 # 위 본문·문서 검사를 마친 뒤 래퍼가 push와 PR 생성을 수행한다.
-bash "$HARNESS_RELEASE_PLUGIN_ROOT/scripts/pr-create.sh" --base develop \
+bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" --base develop \
   --title "chore: release/v$VERSION develop 반영" \
   --body-file /tmp/release-backmerge-pr.md
 ```

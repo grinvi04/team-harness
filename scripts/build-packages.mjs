@@ -265,6 +265,7 @@ function applyRuntimeBindings(packageRoot, unit) {
       '${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}',
       dependencyRoot,
     )
+    rewritten = rewritten.replaceAll('(../runtime-path.md)', `(${dependencyRoot}/skills/runtime-path.md)`)
     if (rewritten === original || !rewritten.includes(dependencyRoot)) {
       throw new Error(`runtime binding root missing: ${consumerPath}:${environment}`)
     }

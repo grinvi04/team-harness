@@ -33,6 +33,11 @@ test('missing, relative, unrelated skill and conflicting Claude/root paths fail 
     assert.notEqual(result.status, 0)
     assert.equal(result.stdout, '')
   }
+  for (const key of ['CLAUDE_PLUGIN_ROOT', 'HARNESS_PLUGIN_ROOT']) {
+    const result = run(process.execPath, [resolver, path.join(plugin, 'skills/pr-create/SKILL.md')], { cwd: root, env: { ...env, [key]: 'plugins/harness-guard' } })
+    assert.notEqual(result.status, 0)
+    assert.equal(result.stdout, '')
+  }
   const valid = run(process.execPath, [resolver, path.join(plugin, 'skills/pr-create/SKILL.md')], { env: { ...env, CLAUDE_PLUGIN_ROOT: plugin } })
   assert.equal(valid.status, 0, valid.stderr)
 })
@@ -53,6 +58,18 @@ test('each documented tool-call initialization rejects a stale root before the t
     assert.equal(accepted.status, 0, accepted.stderr)
     assert.equal(readFileSync(marker, 'utf8'), 'reached')
   } finally { rmSync(dir, { recursive: true, force: true }) }
+})
+
+test('release script paths work after common bootstrap in each fresh shell', () => {
+  const text = readFileSync(path.join(plugin, 'skills/release/SKILL.md'), 'utf8')
+  const operands = [...text.matchAll(/(?:bash|node|test -f) "([^"\n]+\/scripts\/[^"\n]+)"/g)].map(match => match[1])
+  assert.ok(operands.length >= 4)
+  const bootstrap = readFileSync(path.join(plugin, 'skills/runtime-path.md'), 'utf8').split('```bash\n')[1].split('```')[0].replace("'<현재 읽은 SKILL.md의 절대 경로>'", JSON.stringify(path.join(plugin, 'codex/skills/release/SKILL.md'))).replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", JSON.stringify(plugin))
+  for (const operand of operands) {
+    const result = run('bash', ['-c', bootstrap + '\ntest -f "' + operand + '"'])
+    assert.equal(result.status, 0, result.stderr)
+    assert.notEqual(run('bash', ['-c', 'test -f "' + operand + '"']).status, 0)
+  }
 })
 
 test('skill readers remove checkout fallbacks and fixed deletion success claims', () => {
@@ -93,6 +110,13 @@ test('cleanup reports actual Git refusal, successful deletion and remote lookup 
     assert.doesNotMatch(result.stdout, /로컬 브랜치 삭제 확인/)
     git('show-ref', '--verify', 'refs/heads/fix/fixture')
     assert.match(result.stdout, /원격 브랜치 삭제 확인/)
+    const gitBinary = run('bash', ['-c', 'command -v git']).stdout.trim()
+    const shim = path.join(dir, 'bin'); mkdirSync(shim)
+    writeFileSync(path.join(shim, 'git'), '#!/bin/sh\nif [ "$1" = merge-base ]; then exit 128; fi\nexec "' + gitBinary + '" "$@"\n', { mode: 0o755 })
+    result = run('bash', ['-c', 'set -euo pipefail\n' + cleanup], { cwd: repo, env: { ...env, PATH: shim + ':' + env.PATH, HBRANCH: 'fix/fixture', PR_BASE: 'develop' } })
+    assert.match(result.stderr, /병합 관계 조회 실패/)
+    assert.doesNotMatch(result.stderr, /에 미포함/)
+    git('show-ref', '--verify', 'refs/heads/fix/fixture')
     git('worktree', 'remove', path.join(dir, 'other'))
     result = invoke()
     assert.equal(result.status, 0, result.stderr)
