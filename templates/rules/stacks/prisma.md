@@ -1,31 +1,27 @@
 ---
-paths: ["backend/prisma/**", "backend/src/**/*.ts"]
+paths: ["**/prisma/**", "**/schema.prisma"]
 ---
 
 # Prisma 작업 규칙
 
-## 마이그레이션 안전 순서
-```bash
-# 1. schema.prisma 수정
-# 2. 마이그레이션 생성
-cd backend && npx prisma migrate dev --name <설명적인_이름>
-# 3. 클라이언트 재생성
-npx prisma generate
-# 4. 타입 오류 확인
-npm run lint:check
-```
+프로젝트의 Prisma·DB·driver adapter 버전과 연결 환경을 확인한다.
+공통 계약은 `docs/db-standards.md`, 진단은 `docs/stack-troubleshooting-database.md`를 따른다.
 
-## 절대 금지
-- `prisma migrate reset` — ⚠️ 전체 데이터 삭제 (가드 미차단 — AI·사람 모두 직접 실행 금지)
-- 마이그레이션 파일 직접 수정 — `prisma migrate dev`로만 생성
-- `$queryRawUnsafe()` — SQL 인젝션 위험, `Prisma.sql` 템플릿 사용
+## 생성과 적용
 
-## 마이그레이션 실패 시
-- DB 스키마와 코드 불일치 시 서버 기동 불가
-- 롤백: `prisma migrate resolve --rolled-back <migration_name>`
-- 운영 DB: `prisma migrate deploy`가 배포 시 자동 실행
+- 개발용 migrate dev와 운영용 migrate deploy를 구분한다. MongoDB 등 도구 비적용도 확인한다.
+- 미적용 초안은 생성 후 검토·수정할 수 있다. 공유·적용한 파일은 원본을 보존한다.
+- client 생성·타입 검사·적용은 프로젝트의 실제 경로와 명령으로 연결한다.
+- migrate deploy가 자동 실행된다고 가정하지 않는다. 실제 배포 구성을 확인한다.
 
-## 운영 정합성 함정 (단일 출처: `docs/db-standards.md`)
-- **소프트삭제 필터**: Prisma는 ORM 차원 글로벌 필터가 없어 client extension(구 `$use` 미들웨어)이나
-  쿼리별 `where`로 거르는데, 모델·쿼리 누락 시 삭제 데이터가 노출된다 — 모든 모델/쿼리에 실제 적용되는지
-  삭제 후 제외 테스트로 검증(`docs/db-standards.md`).
+## 실패와 안전 경계
+
+`migrate resolve --rolled-back`은 이력 표시 변경이다. 실행된 SQL을 되돌리지 않는다.
+부분 적용·실패 로그·데이터 영향을 확인하고 승인된 보정·복구 계획을 따른다.
+`migrate reset`은 전체 데이터 삭제이므로 실패의 기본 대응으로 사용하지 않는다.
+raw SQL은 파라미터를 바인딩한다. $queryRawUnsafe에 비신뢰 값을 전달하지 않는다.
+소프트 삭제 extension의 nested write·관계 조회·raw 경로는 별도로 검사한다.
+client 생성·재사용·pool 크기는 장기 실행과 serverless 환경의 차이를 확인한다.
+
+공식 자료: [운영 복구](https://www.prisma.io/docs/orm/prisma-migrate/workflows/patching-and-hotfixing),
+[미적용 초안 편집](https://www.prisma.io/docs/orm/prisma-migrate/workflows/customizing-migrations).

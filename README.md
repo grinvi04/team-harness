@@ -2,7 +2,7 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.82.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.84.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
@@ -145,6 +145,9 @@ team-harness/
 ```
 
 ## 📚 팀 표준 문서 (`docs/`)
+
+먼저 [표준 적용 기준](docs/standards-scope.md)을 읽는다. 기술·제품 선택은 조건에 맞춰 채택한다.
+[스택별 문제 해결](docs/standards-scope.md#문제-해결-안내를-읽는-방법)은 공식 자료와 실행 결과를 구분한다.
 
 | 문서 | 내용 |
 |---|---|

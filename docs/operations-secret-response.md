@@ -1,13 +1,13 @@
 # 시크릿 유출 대응 런북
 
-[상위 문서](operations.md)로 돌아간다. 아래는 원문의 해당 주제 본문을 순서대로 보존한 실행 계약이다. 상위 문서와 함께 적용한다.
+[상위 문서](operations.md)와 [적용 기준](standards-scope.md)을 함께 읽는다.
+아래의 폐기·접근 로그 조회·통지·히스토리 변경은 각각 기존 권한과 승인된 대응 범위 안에서 수행한다.
 
 ### 시크릿 유출 대응 런북
 
 > **감지·차단은 이미 계층으로 존재**한다 — GitHub Secret Scanning·Push Protection, gitleaks(CI
 > `ci-gate.yml` secret-scan 잡), guard 명령 마스킹·PreToolUse 유출 탐지 프롬프트·release 전
-> `security-reviewer`·`.gitignore`(.env/*.key/*.pem). 저장 표준은 `auth-standards.md`(AWS Secrets
-> Manager/SSM — 코드·.env 금지)다. 이 런북은 그 계층이 **뚫린 뒤의 대응**만 다룬다(중복 서술 안 함 — 참조).
+> `security-reviewer`·`.gitignore`(.env/*.key/*.pem). 저장 기준은 `auth-standards.md`의 보호된 비밀정보 주입 계약이다. 이 런북은 그 계층이 **뚫린 뒤의 대응**만 다룬다(중복 서술 안 함 — 참조).
 > 시크릿 유출은 **SEV1(데이터 유출)로 선언**하고 §1 대응 절차(IC/조치자 분리)를 따르되, 아래 시크릿 특유
 > 단계를 얹는다.
 
@@ -31,7 +31,7 @@
    - AWS 키 → IAM에서 비활성화 후 삭제, Secrets Manager 값은 rotate
    - DB 비밀번호·커넥션 문자열 → 회전 + 노출 계정 권한 축소
    - 서드파티 API 키 → 발급처 콘솔에서 폐기·재발급
-   - 회전한 새 값의 저장 위치 = `auth-standards.md`(Secrets Manager/SSM — 코드·.env 재유입 금지)
+   - 회전한 새 값의 저장 위치 = `auth-standards.md`의 보호된 저장소(코드·로그·공개 설정에 재유입 금지)
 2. **영향 범위 산정** — 무엇이·언제부터·어디까지 노출됐나:
    - gitleaks 리포트(`ci-gate.yml`)와 `git log -p`로 노출 커밋·기간을 특정
    - **public repo였나**(fork·clone·검색 인덱싱 가능성 ↑) vs private였나

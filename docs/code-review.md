@@ -52,10 +52,10 @@ develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, �
 - **셀프 리뷰 먼저**: 본인이 diff를 한 번 훑고 나서 리뷰 요청 (AI 생성 코드는 특히 — `ai-collaboration.md`)
 - CI 통과 + 리뷰 스레드 전부 resolve = 공통 머지 조건 (branch protection 강제). **승인**은 조건부 — **팀 모드**(리뷰어 有)는 사람 승인 1명 이상, **솔로 표준**은 승인요건 0이라 CI-gate·enforce_admins=on이 대신한다(아래 "솔로/리뷰어 부재" 참조)
 - **솔로/리뷰어 부재**: 자기 PR 자기승인이 불가하므로 승인요건 충족이 구조적으로 막힌다. 두 운용을 **자유롭게 선택**한다(품질 게이트=CI·스레드 resolve는 항상 유지):
-  - (a) **승인요건 유지 + `/solo-merge`**: 머지할 때만 승인요건을 일시 우회·즉시 복구. 리뷰 흐름을 언제든 다시 쓸 수 있게 보존. 반복 마찰을 줄이려면 한 줄 별칭(`sm <PR>`) 권장 — AI는 보호 토글이 분류기에 막혀 사람이 실행.
+  - (a) **승인요건 유지 + `/solo-merge`**: 머지할 때만 승인요건을 일시 우회·즉시 복구. 리뷰 흐름을 언제든 다시 쓸 수 있게 보존. 반복 마찰을 줄이려면 한 줄 별칭(`sm <PR>`) 권장 — 보호 변경은 현재 플랫폼 권한과 사용자 승인 범위 안에서 실행한다.
   - (b) **승인요건 제거 + CI 게이트만**: `required_pull_request_reviews` 삭제 → 그 뒤 **`pr-merge.sh`(게이트 래퍼)로 머지**(AI도 가능 — 맨손 `gh pr merge`는 guard가 차단하므로 래퍼가 CI·스레드·mergeable 검증 후 머지). 리뷰어 합류 시 `required_approving_review_count`로 복구 — 이 복구/설정은 `set-branch-protection.sh <repo> --approvals N`(main에만 승인 N + `dismiss_stale_reviews`, develop은 0 유지)으로 한다.
   - **main(릴리즈)은 보호 유지 권장** — 머지가 드물고 운영 배포 대상이라 게이트 한 겹이 안전.
-  - **develop 자동머지(개선2)**: develop CI-green PR은 `bash pr-merge.sh --auto <PR>`로 **분류기 프롬프트 없이** 머지한다(settings `Bash(bash * pr-merge.sh --auto *)` allow-rule이 분류기를 우회). `--auto`는 **base=develop만** 허용하고 main base는 거부(exit 3)하므로 자동승인돼도 main은 못 뚫는다 — **안전 1차 보증은 스크립트의 base 강제**(allow-rule 매처는 마찰감소, fragile해도 최악=분류기 폴백). enforce_admins=true로 CI가 서버 강제라 develop 자동의 남은 리스크는 "의도"뿐(revertable). **main/release는 --auto 대상 아님** — /release·/hotfix로 확인 유지. 단일 출처: `docs/specs/develop-auto-merge.md`.
+  - **develop 자동머지(개선2)**: develop CI-green PR은 `bash pr-merge.sh --auto <PR>`로 현재 플랫폼 정책이 허용하면 추가 프롬프트 없이 머지를 실행할 수 있다(settings의 allow-rule만으로 호스트 승인·sandbox 정책이 사라지지는 않는다). `--auto`는 **base=develop만** 허용하고 main base는 거부(exit 3)하므로 자동승인돼도 main은 못 뚫는다 — **안전 1차 보증은 스크립트의 base 강제**(allow-rule은 마찰을 줄이는 설정이며 거부 시 같은 요청이 실행되지 않을 수 있다). enforce_admins=true로 CI가 서버 강제라 현재 후보의 리뷰·CI·복구 가능성과 사용자 승인 범위도 확인해야 한다. **main/release는 --auto 대상 아님** — /release·/hotfix로 확인 유지. 단일 출처: `docs/specs/develop-auto-merge.md`.
 - 리뷰 SLA: **1영업일** — 지연 시 리뷰어 재지정
 
 ## 리뷰 관점 체크리스트 (리뷰어용)
@@ -63,12 +63,12 @@ develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, �
 우선순위 순 — 위에서 막히면 아래는 보지 않아도 된다:
 
 1. **정확성**: 요구사항 충족? 경계값·동시성·트랜잭션 경계? 에러 경로?
-2. **경계 준수**: 모듈 직접 참조 없나? 계층 역류 없나? (ArchUnit이 1차, 리뷰는 설계 의도 확인)
-   크로스 스키마 조인 없나?
+2. **경계 준수**: 프로젝트가 선택한 모듈·계층·데이터 소유 경계를 지키는가?
+   ArchUnit 같은 검사를 연결했다면 실제 실행 결과도 확인한다. 스키마 간 조인은 선택한 데이터 계약으로 판단한다.
 3. **테스트**: 명세를 검증하나(구현 복사 아닌)? 실패 케이스 있나? domain 로직에 단위 테스트?
 4. **보안**: 입력 검증? 권한 코드 검사 누락? 데이터 스코프 필터? 개인정보 로그 출력?
 5. **DB**: 마이그레이션 forward-only·무중단 호환? 인덱스? N+1?
-6. **일관성**: API envelope·에러 코드·네이밍이 표준 문서와 일치?
+6. **일관성**: 선택한 API 응답 형식·에러 코드·이름 규칙과 구현이 일치하는가?
 7. **문서 현행화**: 관련 로드맵·체크리스트·진행·사용 안내가 현재 변경·검사·미해결 항목과 일치하고 갱신 근거가 연결됐는가?
 
 설계·도메인 적합성은 사람 리뷰의 본분 — 기계적 버그 스캔은 **Claude Code `/code-review`

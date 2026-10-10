@@ -1,5 +1,7 @@
 # 개발자 워크플로 가이드
 
+기술 기준은 [표준 적용 범위](standards-scope.md)를 먼저 확인하고 해당 프로젝트의 채택 조건으로 읽는다.
+
 > 이 문서는 team-harness를 **사용해 제품 코드를 개발하는 사람**을 위한 길잡이다.
 > 처음 설치한다면 [onboarding.md](onboarding.md), 전체 구조를 먼저 보고 싶다면
 > [intro.html](intro.html)을 읽는다.
