@@ -71,3 +71,6 @@
 후보e4df589의 공존 검사 실패는 공용 안내를 skills 루트에 둔 발견 계약 위반이었다.
 안내를 plugin 루트 runtime-path.md로 이전하고 필수 reader·catalog·조립·시험 경로를 함께 옮겼다.
 공존 검사기는 완화하지 않았다. 새 배치에서는 불필요해진 스킬 발견 검사 변경도 원래 계약으로 복구했다.
+
+안내 이전 후보19e4e0f: 경로 회귀6, 발견19, workflow binding3, plugin 공존10, profile 수명주기74 통과.
+공존·profile 시험은 현재 기록된 plugin source로 조립했고 실제 사용자 설정·cache는 수정하지 않았다.
