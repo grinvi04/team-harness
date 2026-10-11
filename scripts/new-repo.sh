@@ -38,7 +38,7 @@ echo ""
 
 node "$HARNESS_DIR/scripts/stack-catalog.mjs" --menu
 echo ""
-read -rp "번호 입력 (1-8): " STACK_CHOICE
+read -rp "번호 한 개 또는 백엔드+프론트엔드 (예: 2+6=Spring+Vue): " STACK_CHOICE
 
 STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE")
 # Read catalog data as JSON; never evaluate generated shell text.
@@ -48,9 +48,14 @@ selection_value() {
     const v = process.argv[1].split(".").reduce((value, key) => value[key], d);
     console.log(Array.isArray(v) ? v.join(" ") : (v ?? ""));' "$1"
 }
-if [ -n "$(selection_value frontendOptions)" ]; then
-  read -rp "프론트엔드 (node=React/Vite, vue, nextjs; 기본 node): " FRONTEND_CHOICE || FRONTEND_CHOICE=""
-  STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE" --frontend "${FRONTEND_CHOICE:-node}")
+if [ "$(selection_value mode)" = composed ]; then
+  read -rp "백엔드 디렉터리 (기본 backend): " BACKEND_DIR || BACKEND_DIR=""
+  read -rp "프론트엔드 디렉터리 (기본 frontend): " FRONTEND_DIR || FRONTEND_DIR=""
+  BACKEND_DIR="${BACKEND_DIR:-backend}"
+  FRONTEND_DIR="${FRONTEND_DIR:-frontend}"
+  STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE" --backend-dir "$BACKEND_DIR" --frontend-dir "$FRONTEND_DIR")
+  # Render before filesystem/protection effects so invalid inputs fail closed.
+  COMPOSED_WORKFLOW=$(node "$HARNESS_DIR/scripts/generate-stack-templates.mjs" --compose "$STACK_CHOICE" --backend-dir "$BACKEND_DIR" --frontend-dir "$FRONTEND_DIR")
 fi
 STACK_TEMPLATE=$(selection_value template)
 read -r -a STACK_CHECKS <<< "$(selection_value checks)"
@@ -71,7 +76,7 @@ fi
 
 STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
 echo ""
-echo "선택: $STACK_TEMPLATE"
+echo "선택: $(selection_value label)"
 echo ""
 
 # ── 1. 템플릿 파일 복사 (기존 파일 덮어쓰지 않음) ────────────────────────
@@ -93,8 +98,12 @@ copy_once() {
 if [[ -f ".github/workflows/ci-gate.yml" ]]; then
   echo "  ⏭  ci-gate.yml (이미 있음)"
 else
-  cp "$STACK_TEMPLATE_PATH" .github/workflows/ci-gate.yml
-  echo "  ✅  ci-gate.yml ($STACK_TEMPLATE)  ← ⚠️ CUSTOMIZE 주석 부분 프로젝트에 맞게 수정"
+  if [ "$(selection_value mode)" = composed ]; then
+    printf '%s\n' "$COMPOSED_WORKFLOW" > .github/workflows/ci-gate.yml
+  else
+    cp "$STACK_TEMPLATE_PATH" .github/workflows/ci-gate.yml
+  fi
+  echo "  ✅  ci-gate.yml  ← ⚠️ CUSTOMIZE 주석 부분 프로젝트에 맞게 수정"
 fi
 
 copy_once "$HARNESS_DIR/templates/ci/test-guard.yml"        .github/workflows/test-guard.yml "test-guard.yml (테스트 삭제 차단 게이트)"

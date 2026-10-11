@@ -4,7 +4,7 @@
 
 > 이 문서는 team-harness를 **사용해 제품 코드를 개발하는 사람**을 위한 길잡이다.
 > 처음 설치한다면 [onboarding.md](onboarding.md), 전체 구조를 먼저 보고 싶다면
-> [intro.html](intro.html)을 읽는다.
+> [아키텍처 안내](harness-architecture.md)를 읽는다.
 
 ## 1. 이것만 먼저 이해하기
 
@@ -164,7 +164,7 @@ skill과 phase는 작업 업데이트에서 확인할 수 있어야 한다. 라�
 
 | 궁금한 내용 | 정본 |
 |---|---|
-| 전체 구조와 강제 계층 | [intro.html](intro.html) |
+| 전체 구조와 강제 계층 | [아키텍처 안내](harness-architecture.md) |
 | 프로젝트·개발자 최초 설치 | [onboarding.md](onboarding.md) |
 | AI에게 일을 맡기고 검수하는 원칙 | [ai-collaboration.md](ai-collaboration.md) |
 | 커밋·PR·리뷰 내용 기준 | [code-review.md](code-review.md) |

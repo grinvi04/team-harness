@@ -124,7 +124,7 @@ team-harness/
 ├── templates/                         신규 프로젝트에 복사하는 파일들
 │   ├── AGENTS.md · CLAUDE.md          규약 단일 출처 + Claude 전용 지침
 │   ├── settings.json                  .claude/settings.json (마켓플레이스·플러그인 선언)
-│   ├── stacks.json                   기존8개 선택·rules·required checks 정본
+│   ├── stacks.json                   개별6개 선택·조합·rules·required checks 정본
 │   ├── ci/migration-safety.yml        마이그레이션 정적 게이트 (out-of-order·forward-only)
 │   ├── ci/integration-e2e.yml         실 IdP·실 백엔드 통합 e2e (env-gated)
 │   ├── ci/test-guard.yml · commitlint.yml · repo-sync.yml  거버넌스 게이트 (스택 무관)
@@ -149,7 +149,6 @@ team-harness/
 | [public-safety-audit.md](docs/public-safety-audit.md) | Git 히스토리 시크릿 · 공개 식별정보 · 라이선스/provenance 공개 안전성 감사 |
 | [platform-overlap-audit.md](docs/platform-overlap-audit.md) | skill · hook · agent · Codex 호환 계층의 소유/연결/위임 전수 분류 |
 | [product-boundaries.md](docs/product-boundaries.md) | governance core · runtime adapter · 선택 workflow의 설치·운영 경계 |
-| [intro.html](docs/intro.html) | 한눈에 보는 team-harness 소개 페이지 (아키텍처·스킬·가드·티어링·게이트 시각화) |
 | [developer-workflow.md](docs/developer-workflow.md) | 개발자의 일상 작업 가이드 — 기능·수정·머지·hotfix·release 흐름과 막혔을 때의 다음 행동 |
 | [onboarding.md](docs/onboarding.md) | 신규 프로젝트 셋업 · 팀원 온보딩 · managed settings 로컬 시뮬레이션 |
 | [stack-guide.md](docs/stack-guide.md) | 기술 스택 선택 가이드 (SCM·ERP·업무 자동화 기준) |

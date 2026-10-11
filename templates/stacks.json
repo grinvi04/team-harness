@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "commonChecks": [
     "test-guard",
     "commitlint-trusted",
@@ -9,28 +9,6 @@
   "commonSources": {
     "workflow": "common/workflow.yml",
     "secretScan": "common/secret-scan.yml"
-  },
-  "frontendPresets": {
-    "node": {
-      "label": "React / Vite (generic Node.js)",
-      "rules": [
-        "typescript"
-      ]
-    },
-    "vue": {
-      "label": "Vue / Nuxt",
-      "rules": [
-        "typescript",
-        "vue"
-      ]
-    },
-    "nextjs": {
-      "label": "Next.js",
-      "rules": [
-        "typescript",
-        "nextjs"
-      ]
-    }
   },
   "stacks": [
     {
@@ -55,53 +33,20 @@
         "tool": null,
         "checks": []
       },
-      "frontendOptions": [],
       "sources": {
         "header": "headers/node.yml",
         "jobs": [
           "jobs/node.yml"
         ]
-      }
+      },
+      "key": "node",
+      "roles": [
+        "backend",
+        "frontend"
+      ]
     },
     {
       "id": 2,
-      "label": "NestJS 풀스택     — NestJS 백엔드 + React / Vue / Next.js 프론트엔드",
-      "template": "ci-gate-nestjs-frontend.yml",
-      "checks": [
-        "backend",
-        "frontend",
-        "secret-scan"
-      ],
-      "rules": [
-        "typescript",
-        "prisma"
-      ],
-      "backend": {
-        "preset": "nestjs"
-      },
-      "frontend": {
-        "preset": "node",
-        "default": "node"
-      },
-      "database": {
-        "tool": "prisma",
-        "checks": []
-      },
-      "frontendOptions": [
-        "node",
-        "vue",
-        "nextjs"
-      ],
-      "sources": {
-        "header": "headers/nestjs-frontend.yml",
-        "jobs": [
-          "jobs/nestjs-frontend-backend.yml",
-          "jobs/nestjs-frontend-frontend.yml"
-        ]
-      }
-    },
-    {
-      "id": 3,
       "label": "Spring Boot       — Java / Kotlin Gradle 백엔드 단독",
       "template": "ci-gate-spring.yml",
       "checks": [
@@ -125,56 +70,19 @@
           "migration-safety"
         ]
       },
-      "frontendOptions": [],
       "sources": {
         "header": "headers/spring.yml",
         "jobs": [
           "jobs/spring.yml"
         ]
-      }
+      },
+      "key": "spring",
+      "roles": [
+        "backend"
+      ]
     },
     {
-      "id": 4,
-      "label": "Spring 풀스택     — Spring Boot 백엔드 + Node.js 프론트엔드",
-      "template": "ci-gate-spring-frontend.yml",
-      "checks": [
-        "backend",
-        "frontend",
-        "secret-scan"
-      ],
-      "rules": [
-        "java",
-        "flyway",
-        "typescript"
-      ],
-      "backend": {
-        "preset": "spring"
-      },
-      "frontend": {
-        "preset": "node",
-        "default": "node"
-      },
-      "database": {
-        "tool": "flyway",
-        "checks": [
-          "migration-safety"
-        ]
-      },
-      "frontendOptions": [
-        "node",
-        "vue",
-        "nextjs"
-      ],
-      "sources": {
-        "header": "headers/spring-frontend.yml",
-        "jobs": [
-          "jobs/spring-frontend-backend.yml",
-          "jobs/spring-frontend-frontend.yml"
-        ]
-      }
-    },
-    {
-      "id": 5,
+      "id": 3,
       "label": "Python            — FastAPI / Django (+ PostgreSQL + Redis)",
       "template": "ci-gate-python.yml",
       "checks": [
@@ -198,16 +106,19 @@
           "alembic-heads"
         ]
       },
-      "frontendOptions": [],
       "sources": {
         "header": "headers/python.yml",
         "jobs": [
           "jobs/python.yml"
         ]
-      }
+      },
+      "key": "python",
+      "roles": [
+        "backend"
+      ]
     },
     {
-      "id": 6,
+      "id": 4,
       "label": "Rails 8           — 소팀 MVP · Hotwire 풀스택",
       "template": "ci-gate-rails.yml",
       "checks": [
@@ -228,16 +139,19 @@
         "tool": null,
         "checks": []
       },
-      "frontendOptions": [],
       "sources": {
         "header": "headers/rails.yml",
         "jobs": [
           "jobs/rails.yml"
         ]
-      }
+      },
+      "key": "rails",
+      "roles": [
+        "backend"
+      ]
     },
     {
-      "id": 7,
+      "id": 5,
       "label": "Next.js 단독      — App Router 풀스택 (RSC · server actions)",
       "template": "ci-gate-nextjs.yml",
       "checks": [
@@ -259,16 +173,19 @@
         "tool": null,
         "checks": []
       },
-      "frontendOptions": [],
       "sources": {
         "header": "headers/nextjs.yml",
         "jobs": [
           "jobs/nextjs.yml"
         ]
-      }
+      },
+      "key": "nextjs",
+      "roles": [
+        "frontend"
+      ]
     },
     {
-      "id": 8,
+      "id": 6,
       "label": "Vue 3             — Vite SPA (Composition API · Pinia)",
       "template": "ci-gate-vue.yml",
       "checks": [
@@ -290,13 +207,16 @@
         "tool": null,
         "checks": []
       },
-      "frontendOptions": [],
       "sources": {
         "header": "headers/vue.yml",
         "jobs": [
           "jobs/vue.yml"
         ]
-      }
+      },
+      "key": "vue",
+      "roles": [
+        "frontend"
+      ]
     }
   ]
 }

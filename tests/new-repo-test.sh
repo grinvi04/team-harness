@@ -134,51 +134,55 @@ done
 
 # Selection metadata must reach the real copier and protection boundary.
 # Expectations are independent of the implementation catalog.
-for selection in 1 2:node 2:vue 2:nextjs 3 4:node 4:vue 4:nextjs 5 6 7 8; do
-  choice="${selection%%:*}"; frontend="${selection#*:}"
-  [ "$frontend" != "$selection" ] || frontend=""
-  target="$TMP/stack-${selection/:/-}"
+for selection in 1 2 3 4 5 6 1+1 1+5 1+6 2+1 2+5 2+6 3+1 3+5 3+6 4+1 4+5 4+6; do
+  target="$TMP/stack-${selection/+/-}"
   git clone -q "$TMP/source" "$target"
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
   : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
   rc=0
-  (cd "$target" && printf '%s\n%s\n' "$choice" "$frontend" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
-  if [ "$rc" = 0 ] && TARGET="$target" CHOICE="$choice" FRONTEND="$frontend" PROTECTION_LOG="$PROTECTION_LOG" python3 <<'PY'
+  (cd "$target" && printf '%s\napps/api\napps/web\n' "$selection" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
+  if [ "$rc" = 0 ] && TARGET="$target" SELECTION="$selection" PROTECTION_LOG="$PROTECTION_LOG" python3 <<'CHECK'
 import json, os
 from pathlib import Path
 target = Path(os.environ['TARGET'])
-choice = int(os.environ['CHOICE'])
-rules = {1: {'typescript'}, 2: {'typescript', 'prisma'}, 3: {'java', 'flyway'},
-         4: {'java', 'flyway', 'typescript'}, 5: {'python', 'alembic'}, 6: {'ruby'},
-         7: {'typescript', 'nextjs'}, 8: {'typescript', 'vue'}}[choice]
-if os.environ['FRONTEND'] in {'vue', 'nextjs'}:
-    rules.add(os.environ['FRONTEND'])
+parts = [int(p) for p in os.environ['SELECTION'].split('+')]
+rule_sets = {1: {'typescript'}, 2: {'java', 'flyway'}, 3: {'python', 'alembic'},
+             4: {'ruby'}, 5: {'typescript', 'nextjs'}, 6: {'typescript', 'vue'}}
+rules = set().union(*(rule_sets[p] for p in parts))
 assert rules == {p.stem for p in (target / '.claude/rules').glob('*.md') if p.stem != 'korean-ux'}
 settings = json.loads((target / '.claude/settings.json').read_text())
 baseline = json.loads(Path(os.environ['ROOT'] + '/templates/settings.json').read_text())
 assert settings == baseline, 'setup must not grant implicit stack permissions'
 policy = Path(os.environ['PROTECTION_LOG']).read_text()
 checks = {'secret-scan', 'test-guard', 'commitlint-trusted', 'integration-e2e', 'destructive-ddl'}
-checks.update({'backend', 'frontend'} if choice in {2, 4} else {'quality'})
-if choice in {3, 4}: checks.add('migration-safety')
-if choice == 5: checks.add('alembic-heads')
+checks.update({'backend', 'frontend'} if len(parts) == 2 else {'quality'})
+if parts[0] == 2: checks.add('migration-safety')
+if parts[0] == 3: checks.add('alembic-heads')
 for check in checks: assert check in policy, check
-PY
+workflow = (target / '.github/workflows/ci-gate.yml').read_text()
+if len(parts) == 2:
+    assert '\n  backend:\n' in workflow and '\n  frontend:\n' in workflow
+    assert 'working-directory: apps/api' in workflow and 'working-directory: apps/web' in workflow
+    assert 'cache-dependency-path: apps/web/package-lock.json' in workflow
+else:
+    template = ['node', 'spring', 'python', 'rails', 'nextjs', 'vue'][parts[0] - 1]
+    assert workflow == Path(os.environ['ROOT'] + '/templates/ci/stacks/ci-gate-' + template + '.yml').read_text()
+CHECK
   then
-    echo "PASS: setup stack $selection → rules, unchanged permissions and required checks"; PASS=$((PASS+1))
+    echo "PASS: setup stack $selection → actual workflow, rules, unchanged permissions and required checks"; PASS=$((PASS+1))
   else
     cat "$target.log"
     echo "FAIL: setup stack $selection → integration mismatch (exit=$rc)"; FAIL=$((FAIL+1))
   fi
 done
 
-for selection in 9 2:invalid; do
-  target="$TMP/invalid-${selection/:/-}"
+for selection in 7 5+6 2+3 2+6:../outside; do
+  target="$TMP/invalid-${selection//[^a-zA-Z0-9]/-}"
   git clone -q "$TMP/source" "$target"
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
   : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
   rc=0
-  (cd "$target" && printf '%s\n%s\n' "${selection%%:*}" "${selection#*:}" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
+  (cd "$target" && printf '%s\n%s\napps/web\n' "${selection%%:*}" "${selection#*:}" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
   if [ "$rc" != 0 ] && [ ! -s "$WRITE_LOG" ] && [ ! -d "$target/.github" ]; then
     echo "PASS: invalid selection $selection → no files or protection writes"; PASS=$((PASS+1))
   else
@@ -196,7 +200,7 @@ printf 'product rule sentinel\n' > "$target/.claude/rules/vue.md"
 cp "$target/.claude/settings.json" "$TMP/preserved-settings"
 export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
 : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
-if (cd "$target" && printf '4\nvue\n' | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
+if (cd "$target" && printf '2+6\nbackend\nfrontend\n' | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
   && cmp -s "$target/.claude/settings.json" "$TMP/preserved-settings" \
   && [ "$(cat "$target/.github/workflows/ci-gate.yml")" = 'product CI sentinel' ] \
   && [ "$(cat "$target/.claude/rules/vue.md")" = 'product rule sentinel' ]; then

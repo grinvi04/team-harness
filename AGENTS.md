@@ -101,7 +101,7 @@
 
 공용 release/release-check는 아래 repo 선언을 읽는다. 이 명령을 모든 소비 repo에 강제하지 않는다.
 
-- 버전 준비: 두 plugin manifest와 README 배지를 함께 갱신하고 docs/intro.html의 현재 버전을 맞춘다.
+- 버전 준비: 두 plugin manifest와 README 배지를 함께 갱신하고 CHANGELOG 재현을 확인한다.
 - 태그 전 변경 이력: `node scripts/generate-changelog.mjs --release v$VERSION --write`.
   구현 커밋 후 생성하고 `node scripts/generate-changelog.mjs --release v$VERSION --check`로 확인한다.
 - 사전 품질: 위 quality 잡 전체와 현재 커밋의 package/bundle·checksum 검증.

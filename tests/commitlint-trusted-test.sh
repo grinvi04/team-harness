@@ -12,13 +12,15 @@ fi
 cmp "$ROOT/.github/workflows/commitlint-trusted.yml" "$ROOT/templates/ci/commitlint.yml"
 ROOT="$ROOT" node --input-type=module -e '
   const { selectStack } = await import(process.env.ROOT + "/scripts/stack-catalog.mjs");
-  for (let id = 1; id <= 8; id++) {
-    const checks = selectStack(String(id)).checks;
+  const selections = Array.from({ length: 6 }, (_, i) => String(i + 1));
+  for (const backend of [1, 2, 3, 4]) for (const frontend of [1, 5, 6]) selections.push(`${backend}+${frontend}`);
+  for (const id of selections) {
+    const checks = selectStack(id).checks;
     for (const required of ["test-guard", "commitlint-trusted"]) {
       if (!checks.includes(required)) throw new Error(`stack ${id}: missing ${required}`);
     }
   }
-  console.log("PASS: all 8 stack selections retain trusted commitlint and test-guard requirements");'
+  console.log("PASS: all 6 single stacks and 12 compositions retain trusted commitlint and test-guard requirements");'
 # The actual setup-to-protection handoff is exercised in new-repo-test.sh.
 
 # Parse the workflow contract, then execute its actual shell against local Git objects.
