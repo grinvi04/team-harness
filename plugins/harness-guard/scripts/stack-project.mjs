@@ -96,7 +96,11 @@ export function inspectStackProjects(projectRoot, selected) {
       }
     }
     if (Object.hasOwn(deps, 'typescript')) components.typescript = { ecosystem: 'npm', packageName: 'typescript', required: false };
-    result.packages[project.role] = Object.fromEntries(Object.entries(deps).map(([name, range]) => [name, { range, version: lock?.packages?.[`node_modules/${name}`]?.version ?? null }]));
+    result.packages[project.role] = Object.fromEntries(Object.entries(deps).map(([name, range]) => [name, { range, version: lock?.packages?.[`node_modules/${name}`]?.version ?? null, declared:true }]));
+    for (const [path, entry] of Object.entries(lock?.packages ?? {})) {
+      const name = path.match(/^node_modules\/((?:@[^/]+\/)?[^/]+)$/)?.[1];
+      if (name && !Object.hasOwn(result.packages[project.role], name)) result.packages[project.role][name] = { range:null, version:entry.version ?? null, declared:false };
+    }
     for (const [component, descriptor] of Object.entries(components).filter(([, d]) => d.ecosystem === 'npm')) {
       const name = descriptor.packageName, declared = deps[name], entry = lock?.packages?.[`node_modules/${name}`];
       if (declared !== undefined) {
@@ -224,7 +228,8 @@ export function inspectStackProjects(projectRoot, selected) {
     if (!boot && /org\.springframework\.boot/.test(build)) issue('DYNAMIC_DECLARATION', `${project.role}.spring-boot`, 'Use a literal Boot plugin version or verify dynamic Gradle logic separately.');
     observe(project, 'spring-boot', components['spring-boot'], [boot?.[1] ?? (build ? 'unresolved' : null)]);
     const java = build.match(/JavaLanguageVersion\.of\(\s*(\d+)\s*\)/)?.[1];
-    observe(project, 'java', components.java, [java ?? (build ? 'unresolved' : null)]);
+    const vendor=build.match(/JvmVendorSpec\.ADOPTIUM\b/) ? 'adoptium' : null;
+    observe(project, 'java', { ...components.java, versionScope:'feature', ...(vendor ? {vendor} : {}) }, [java ?? (build ? 'unresolved' : null)]);
     const wrapper = read(project, 'gradle/wrapper/gradle-wrapper.properties');
     const gradle = wrapper?.match(/^distributionUrl=.*\/gradle-(\d+(?:\.\d+){1,2})-(?:bin|all)\.zip\s*$/m)?.[1];
     observe(project, 'gradle', components.gradle, [gradle ?? (wrapper ? 'unresolved' : null)]);

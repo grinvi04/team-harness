@@ -38,7 +38,7 @@
 `requirements`는 정적 조건, `packages`는 peer 판정을 위한 직접 npm 의존성 증거이며 최종 기록에서 전체 목록을 제외한다.
 `inputs`는 허용한 상대경로·SHA-256 목록이며 부재 파일은 null 지문으로 남긴다. `.env`·자격증명은 읽지 않는다. 허용 manifest/설정만 읽고 앱 코드를 실행하지 않는다.
 `VersionResult={schema:1,selection,observed,targets,requirements,sources,inputs,issues,status}`; status는 `compatible|conflict|unverified`다.
-`targets`는 exact 버전 map, sources는 공식 URL·조회 시각·조건, issues는 code·대상·조치다. 출력에 전체 의존성 그래프를 넣지 않는다.
+`targets`는 exact 버전 map, sources는 공식 URL·조회 시각·조건, issues는 code·대상·조치다. Java toolchain은 feature 증거이며 sources.runtimePin/vendor가 CI의 exact JDK를 지정한다. 출력에 전체 의존성 그래프를 넣지 않는다.
 새 Node 시험은 `node:test`; `tests/fixtures/stack-profiles/`의 작은 고정 manifest를 쓴다. 네트워크·gh는 시험에서 stub이다.
 커밋은 각 Task의 소유 파일만 `git -C "$STACK_WORKTREE" add <경로>`로 stage하고 Conventional 한국어 제목으로 한다.
 `feat|fix|refactor`는 `git -C "$STACK_WORKTREE" commit -m '<제목>' -m '이유: <문제와 변경 목적>'`을 사용한다.
@@ -91,22 +91,22 @@ Rails는 gem에 포함된 Hotwire와 외부 importmap pin을 구분하고 Inerti
 생성 같은 tooling 폴더의 `package.json`, `package-lock.json`, `requirements.txt`; 수정 `.github/workflows/ci-gate.yml`의 tooling 준비·시험.
 **Interfaces:** `lookupVersionMetadata(component:string,request:string,fetchImpl=fetch): Promise<Metadata>`; Metadata는 exact·조건·source·시각이다.
 `checkStackVersions({inspection:Inspection,requests:object,lookup,parsers}): Promise<VersionResult>`; ranges는 `satisfies(ecosystem,version,range,environment): {matches,issues}`를 제공한다.
-- [ ] `constraints_and_lookup_failure` 시험에 정상·실패·Review Focus3/5를 고정한다.
+- [x] `constraints_and_lookup_failure` 시험에 정상·실패·Review Focus3/5를 고정한다.
 ```js
 assert.equal((await checkStackVersions(nuxtNode22_0)).status, 'conflict'); // Nuxt4.6.1 engine 미충족
 assert.equal((await checkStackVersions(missingInertiaAdapter)).status, 'unverified');
 assert.equal((await checkStackVersions(timeoutMetadata)).status, 'unverified');
 ```
 선택 peer 부재/설치, PEP440 marker·prerelease, Ruby `~>` 경계, exact/latest/기존 우선, 요청/기존 차이 사례도 추가한다.
-- [ ] `node --test tests/stack-version-check-test.mjs`: export 부재로 RED.
-- [ ] Harness tooling에 semver7.8.5·packaging26.3를 고정한다. RubyGems `Gem::Requirement`는 설치된 Ruby를 이용한다.
+- [x] `node --test tests/stack-version-check-test.mjs`: export 부재로 RED.
+- [x] Harness tooling에 semver7.8.5·packaging26.3를 고정한다. RubyGems `Gem::Requirement`는 설치된 Ruby를 이용한다.
 격리 준비는 `npm ci --prefix scripts/stack-versions`, Python3.11+ venv `.runtime/stack-versions/venv`에 requirements 설치다.
 `STACK_VERSION_PYTHON`으로 해당 Python을 지정한다. 읽기 명령은 자동 설치하지 않으며 도구 부재도 unverified다.
 공식 npm/PyPI/RubyGems·Node 릴리즈·선택 Java 배포판·Spring Boot/Gradle 지원 자료를 조회한다. source host·schema·크기·timeout을 제한한다. 조건을 쓰는 package의 실제 설치 여부와 정적 module 선언을 확인한다.
 각 확정 릴리즈의 runtime·peer·UI 조건만 대조한다. Java 배포판/공식 조건 추출 불가·조회 실패는 추정 PASS 대신 unverified다.
 최신 제안으로 unresolved를 숨기지 않는다. optional peer/marker는 실제 사용·대상 환경에 맞추고 API 통합까지 보장하지 않는다.
-- [ ] 위 tooling 준비 뒤 `node --test tests/stack-version-check-test.mjs`: PASS. 조회는 stub이며 공식 parser 경계는 실제 실행한다.
-- [ ] 커밋 `feat(stack): 공식 조건 기반 버전 충돌 판정`.
+- [x] 위 tooling 준비 뒤 `node --test tests/stack-version-check-test.mjs`: PASS. 조회는 stub이며 공식 parser 경계는 실제 실행한다.
+- [x] 커밋 `feat(stack): 공식 조건 기반 버전 충돌 판정`.
 
 ### Task 4: 미리보기·원자적 기록과 CI 재현
 
