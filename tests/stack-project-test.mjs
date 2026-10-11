@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 import { selectStack } from '../scripts/stack-catalog.mjs';
 import { inspectStackProjects } from '../plugins/harness-guard/scripts/stack-project.mjs';
+import { checkStackVersions } from '../scripts/stack-versions/check.mjs';
 const fixtures = join(dirname(fileURLToPath(import.meta.url)), 'fixtures/stack-profiles');
 function snapshot(root, prefix = '') {
   return readdirSync(root).sort().flatMap(name => {
@@ -155,4 +156,79 @@ test('Spring Boot literals inside comments/strings and duplicate plugin declarat
   let result=inspectStackProjects(root,selectStack('2'));assert.equal(result.observed['project.spring-boot'].state,'unresolved');assert.equal(result.observed['project.java'].vendor,undefined);
   writeFileSync(build,'plugins { id("org.springframework.boot") version "3.5.6"; id("org.springframework.boot") version "3.4.0" }\njava { toolchain { languageVersion = JavaLanguageVersion.of(21); vendor = JvmVendorSpec.ADOPTIUM } }\n');
   result=inspectStackProjects(root,selectStack('2'));assert.equal(result.observed['project.spring-boot'].state,'unresolved');
+});
+
+function editableFixture(t, name) {
+  const root=mkdtempSync(join(tmpdir(),'stack-review-'));
+  t.after(()=>rmSync(root,{recursive:true,force:true}));
+  cpSync(join(fixtures,name),root,{recursive:true});return root;
+}
+async function checkInspected(inspection, unavailable='') {
+  return checkStackVersions({inspection,lookup:async(name,version)=>{
+    if(name.includes(unavailable) && unavailable)throw Error('unavailable used module');
+    return {version,requirements:[],source:'https://registry.npmjs.org/fixture',checkedAt:'2026-10-12T00:00:00Z'};
+  }});
+}
+test('Python markers select active pins before observing the framework',async t=>{
+  const root=editableFixture(t,'python-multiple');
+  writeFileSync(join(root,'requirements.txt'),'Django==4.2.9; python_version < "3.12"\nDjango==5.2.7; python_version >= "3.12"\n');
+  const before=snapshot(root),r=inspectStackProjects(root,selectStack('3',{framework:'django',ui:'templates'}));
+  assert.equal(r.observed['project.django'].version,'5.2.7');assert.deepEqual(r.issues,[]);
+  assert.equal((await checkInspected(r)).status,'compatible');assert.deepEqual(snapshot(root),before);
+});
+test('inactive Python framework and tools cannot count as installed',async t=>{
+  const root=editableFixture(t,'python-multiple');
+  writeFileSync(join(root,'requirements.txt'),'Django==5.2.7; python_version < "3.12"\nruff==0.15.15; python_version < "3.12"\n');
+  const r=inspectStackProjects(root,selectStack('3',{framework:'django',ui:'templates'}));
+  assert.equal(r.observed['project.django'].state,'absent');assert.ok(!r.tooling.project.dependencies.includes('ruff'));
+  assert.notEqual((await checkInspected(r)).status,'compatible');
+});
+test('unknown Python marker environment or missing native parser is unverified',t=>{
+  const root=editableFixture(t,'python-multiple');
+  writeFileSync(join(root,'requirements.txt'),'Django==5.2.7; sys_platform == "win32"\n');
+  assert.ok(codes(inspectStackProjects(root,selectStack('3',{framework:'django',ui:'templates'}))).includes('PYTHON_MARKER_UNVERIFIED'));
+  writeFileSync(join(root,'requirements.txt'),'Django==5.2.7; python_version >= "3.12"\n');
+  const old=process.env.STACK_VERSION_PYTHON;process.env.STACK_VERSION_PYTHON='/missing-marker-python';
+  try{assert.ok(codes(inspectStackProjects(root,selectStack('3',{framework:'django',ui:'templates'}))).includes('PYTHON_MARKER_UNVERIFIED'));}
+  finally{if(old===undefined)delete process.env.STACK_VERSION_PYTHON;else process.env.STACK_VERSION_PYTHON=old;}
+});
+function nuxtFixture(t, config) {
+  const root=editableFixture(t,'react'),deps={nuxt:'4.6.1',vue:'3.5.43','example-module':'1.0.0'};
+  writeFileSync(join(root,'package.json'),JSON.stringify({dependencies:deps}));
+  writeFileSync(join(root,'package-lock.json'),JSON.stringify({lockfileVersion:3,packages:{'':{dependencies:deps},...Object.fromEntries(Object.entries(deps).map(([name,version])=>['node_modules/'+name,{version}]))}}));
+  writeFileSync(join(root,'nuxt.config.ts'),config);return root;
+}
+test('Nuxt shorthand and computed module declarations refuse unknown conditions',async t=>{
+  for(const config of ['const modules=["example-module"]; export default defineNuxtConfig({modules});',
+    'export default defineNuxtConfig({modules: ["example-module"].concat(extra)});',
+    'export default defineNuxtConfig({...base});']){
+    const r=inspectStackProjects(nuxtFixture(t,config),selectStack('8'));
+    assert.ok(codes(r).includes('DYNAMIC_DECLARATION'));assert.notEqual((await checkInspected(r,'example-module')).status,'compatible');
+  }
+});
+test('active literal Nuxt modules are checked; comments and strings do not select them',async t=>{
+  const root=nuxtFixture(t,'export default defineNuxtConfig({modules: ["example-module"]});');
+  const r=inspectStackProjects(root,selectStack('8'));assert.equal(r.observed['project.module:example-module'].version,'1.0.0');
+  assert.equal((await checkInspected(r,'example-module')).status,'unverified');
+  writeFileSync(join(root,'nuxt.config.ts'),'// modules: ["missing-module"]\nexport default defineNuxtConfig({caption: "modules: [\\\"missing-module\\\"]"});');
+  const clean=inspectStackProjects(root,selectStack('8'));assert.deepEqual(clean.issues,[]);assert.ok(!Object.keys(clean.observed).some(k=>k.includes('module:')));
+});
+test('Hotwire comments, conditional pins and unknown local files do not prove active assets',async t=>{
+  for(const source of ['# pin "@hotwired/turbo-rails", to: "turbo.min.js"\n# pin "@hotwired/stimulus", to: "stimulus.min.js"\n',
+    'pin "@hotwired/turbo-rails", to: "not-a-gem-asset.js"\npin "@hotwired/stimulus", to: "not-a-gem-asset.js"\n',
+    'if ENV["USE_HOTWIRE"]\n  pin "@hotwired/turbo-rails", to: "turbo.min.js"\n  pin "@hotwired/stimulus", to: "stimulus.min.js"\nend\n']){
+    const root=editableFixture(t,'rails-hotwire');writeFileSync(join(root,'config/importmap.rb'),source);
+    const r=inspectStackProjects(root,selectStack('4',{ui:'hotwire'}));assert.ok(r.issues.length);assert.notEqual((await checkInspected(r)).status,'compatible');
+  }
+});
+test('npm lock v2/v3 missing resolved entries cannot fall back to manifest exact pins',async t=>{
+  for(const lockfileVersion of [2,3]){
+    const root=editableFixture(t,'react');const lock=JSON.parse(readFileSync(join(root,'package-lock.json')));
+    const pkg=JSON.parse(readFileSync(join(root,'package.json')));
+    for(const key of ['dependencies','devDependencies'])for(const name of Object.keys(pkg[key] || {}))pkg[key][name]=lock.packages['node_modules/'+name].version;
+    writeFileSync(join(root,'package.json'),JSON.stringify(pkg));lock.packages['']={dependencies:pkg.dependencies,devDependencies:pkg.devDependencies};
+    lock.lockfileVersion=lockfileVersion;lock.packages={'':lock.packages['']};writeFileSync(join(root,'package-lock.json'),JSON.stringify(lock));
+    const r=inspectStackProjects(root,selectStack('7'));assert.equal(r.observed['project.react'].state,'unresolved');
+    assert.equal(r.observed['project.react'].version,null);assert.notEqual((await checkInspected(r)).status,'compatible');
+  }
 });

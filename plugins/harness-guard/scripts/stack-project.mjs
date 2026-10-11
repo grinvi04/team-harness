@@ -9,6 +9,54 @@ const exact = value => typeof value === 'string' && /^v?\d+(?:\.\d+){0,3}(?:[-+]
 const safeNpmRange = value => typeof value === 'string' && /^[A-Za-z0-9*^~<>=|.,+! -]+$/.test(value) ? value : 'unsupported declaration';
 const canonicalPython = name => name.toLowerCase().replace(/[-_.]+/g, '-');
 
+function literalNuxtModules(config) {
+  // Read the direct exported object only; do not evaluate imports, variables or JS.
+  const tokens=[...config.matchAll(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|`(?:\\.|[^`\\])*`|[A-Za-z_$][A-Za-z0-9_$]*|\.\.\.|[^\s]/g)]
+    .map(m=>m[0]).filter(t=>!t.startsWith('//') && !t.startsWith('/*'));
+  const starts=tokens.map((_,i)=>tokens.slice(i,i+5).join(' ')==='export default defineNuxtConfig ( {'?i:-1).filter(i=>i>=0);
+  if(starts.length!==1)return null;
+  const properties=[],stack=['{'];let property=[];let i=starts[0]+5;
+  for(;i<tokens.length;i++) {
+    const token=tokens[i];
+    if(['{','[','('].includes(token))stack.push(token);
+    else if(['}',']',')'].includes(token)) {
+      if(stack.pop()!==({'}':'{',']':'[',')':'('}[token]))return null;
+      if(!stack.length){if(property.length)properties.push(property);break;}
+    }
+    if(token===',' && stack.length===1){properties.push(property);property=[];}else property.push(token);
+  }
+  if(stack.length || tokens[i+1]!==')' || tokens.slice(i+2).some(t=>t!==';'))return null;
+  const modules=[];let seen=false;
+  for(const p of properties.filter(p=>p.length)) {
+    const key=p[0].replace(/^['"]|['"]$/g,'');
+    if(p[0]==='...' || key==='extends' || p[0]==='[')return null;
+    if(key!=='modules')continue;
+    if(seen || p[1]!==':' || p[2]!=='[' || p.at(-1)!==']')return null;seen=true;
+    const entries=p.slice(3,-1);let expectValue=true;
+    for(const token of entries) {
+      if(expectValue) {
+        const match=token.match(/^['"](@?[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)?)['"]$/);
+        if(!match)return null;modules.push(match[1]);
+      }else if(token!==',')return null;
+      expectValue=!expectValue;
+    }
+  }
+  return modules;
+}
+
+function literalImportmapPins(source) {
+  const pins=new Map();let dynamic=false;
+  for(const line of source?.split('\n') ?? []) {
+    const text=line.trim();if(!text || text.startsWith('#'))continue;
+    const pin=text.match(/^pin\s+['"]([^'"\\]+)['"](?:\s*,\s*to:\s*['"]([^'"\\]+)['"])?(?:\s*,\s*preload:\s*(?:true|false))?\s*(?:#.*)?$/);
+    if(pin && !pin[1].includes('#{') && !pin[2]?.includes('#{')) {
+      if(pins.has(pin[1]))dynamic=true;
+      pins.set(pin[1],pin[2] ?? null);
+    }else if(!/^pin_all_from\s+['"][^'"#\\]+['"],\s*under:\s*['"][^'"#\\]+['"]\s*(?:#.*)?$/.test(text))dynamic=true;
+  }
+  return {pins,dynamic};
+}
+
 function literalGradleEvidence(build) {
   // A bounded lexical reader, not a Gradle evaluator. Only direct named DSL blocks are supported.
   const evidence={boot:[],java:[],vendor:null};
@@ -110,16 +158,13 @@ export function inspectStackProjects(projectRoot, selected) {
     }
     if (project.stackKey === 'nuxt') {
       const configs = ['nuxt.config.ts', 'nuxt.config.js', 'nuxt.config.mjs'].map(path => read(project, path)).filter(v => v !== null);
+      if(configs.length>1)issue('DYNAMIC_DECLARATION',`${project.role}.nuxt.modules`,'Choose one supported literal Nuxt configuration.');
       for (const config of configs) {
-        const declaration = config.match(/\bmodules\s*:\s*\[([^\]]*)\]/s);
-        if (/\bmodules\s*:/.test(config) && !declaration) issue('DYNAMIC_DECLARATION', `${project.role}.nuxt.modules`, 'Declare a static module list or review these modules separately.');
-        if (declaration) {
-          const entries = declaration[1].split(',').map(v => v.trim()).filter(Boolean);
-          for (const entry of entries) {
-            const match = entry.match(/^['"]([^'"]+)['"]$/);
-            if (!match || !Object.hasOwn(deps, match[1])) { issue('UNRESOLVED_MODULE', `${project.role}.nuxt.modules`, 'Only declared packages in a static module list are supported.'); continue; }
-            components[`module:${match[1]}`] = { ecosystem: 'npm', packageName: match[1], required: true };
-          }
+        const modules=literalNuxtModules(config);
+        if(modules===null)issue('DYNAMIC_DECLARATION',`${project.role}.nuxt.modules`,'Use a literal modules array in the exported defineNuxtConfig object, or review dynamic/inherited configuration separately.');
+        else for(const name of modules) {
+          if(!Object.hasOwn(deps,name)){issue('UNRESOLVED_MODULE',`${project.role}.nuxt.modules`,'Only declared packages in a static module list are supported.');continue;}
+          components[`module:${name}`]={ecosystem:'npm',packageName:name,required:true};
         }
       }
     }
@@ -136,7 +181,7 @@ export function inspectStackProjects(projectRoot, selected) {
         const lockedRange = { ...lockRoot?.dependencies, ...lockRoot?.devDependencies, ...lockRoot?.optionalDependencies }[name];
         if (lock && rawDeclared !== lockedRange) issue('MANIFEST_LOCK_MISMATCH', `${project.role}.${component}`, 'Regenerate the application lockfile deliberately, then repeat inspection.');
         if (entry?.link) issue('UNSUPPORTED_LOCK', `${project.role}.${component}`, 'Workspace/link dependencies require a separate reviewed version check.');
-        observe(project, component, descriptor, [entry?.version ?? (exact(declared) ? declared : declared)], declared);
+        observe(project, component, descriptor, [entry?.version ?? 'unresolved'], declared);
         result.requirements.push({ target: `${project.role}.${component}`, ecosystem: 'npm', range: declared, origin: 'manifest' });
       } else observe(project, component, descriptor, []);
     }
@@ -145,7 +190,8 @@ export function inspectStackProjects(projectRoot, selected) {
     runtime(project, 'node', ['.nvmrc', '.node-version'], components.node ?? { ecosystem: 'node', required: false });
   }
   function python(project, components) {
-    const dependencies = [], req = [read(project, 'requirements.txt'), read(project, 'requirements-dev.txt')].filter(value=>value !== null).join('\n'), pyproject = read(project, 'pyproject.toml');
+    let dependencies = [];
+    const req = [read(project, 'requirements.txt'), read(project, 'requirements-dev.txt')].filter(value=>value !== null).join('\n'), pyproject = read(project, 'pyproject.toml');
     for (const path of ['poetry.lock', 'uv.lock', 'Pipfile.lock']) if (read(project, path) !== null) issue('UNSUPPORTED_LOCK', project.role, 'Only PEP621/static requirements are supported; retain the existing application tooling.');
     if (req !== null) {
       for (const line of req.split('\n')) {
@@ -166,6 +212,22 @@ export function inspectStackProjects(projectRoot, selected) {
         if (parsed.requiresPython) result.requirements.push({ target: `${project.role}.python`, ecosystem: 'python', range: parsed.requiresPython, origin: 'requires-python' });
       }
     }
+    runtime(project, 'python', ['.python-version'], components.python);
+    const runtimeTxt = read(project, 'runtime.txt');
+    if (runtimeTxt !== null) {
+      const version = runtimeTxt.trim().replace(/^python-/, ''), existing = result.observed[`${project.role}.python`];
+      observe(project, 'python', components.python, [existing.state === 'exact' ? existing.version : existing.state === 'unresolved' ? 'unresolved' : null, version]);
+    }
+    if(dependencies.some(line=>line.includes(';'))) {
+      const runtimeVersion=result.observed[`${project.role}.python`];
+      const environment=runtimeVersion.state==='exact'?{python_version:runtimeVersion.version.split('.').slice(0,2).join('.'),python_full_version:runtimeVersion.version}:{};
+      const child=spawnSync(process.env.STACK_VERSION_PYTHON ?? 'python3',['-I',helper,'--filter-markers'],{input:JSON.stringify({dependencies,environment}),encoding:'utf8',timeout:5000,maxBuffer:1024*1024});
+      let parsed;try{parsed=JSON.parse(child.stdout ?? '');}catch{/* reported below */}
+      if(child.error || child.status!==0 || !Array.isArray(parsed?.dependencies)) {
+        issue('PYTHON_MARKER_UNVERIFIED',project.role,'Provide the native packaging parser and exact declared Python runtime; platform/extra marker contexts require separate review.');
+        dependencies=[];
+      }else dependencies=parsed.dependencies;
+    }
     const byName = new Map();
     for (const line of dependencies) {
       if (/:\/\/|\s@\s/.test(line)) { issue('DYNAMIC_DECLARATION',project.role,'URL dependency declarations are unsupported and are not echoed.'); continue; }
@@ -183,13 +245,6 @@ export function inspectStackProjects(projectRoot, selected) {
       const versions = pinned.length ? pinned : ranges;
       observe(project, component, descriptor, versions, ranges[0]);
       for (const range of ranges) result.requirements.push({ target: `${project.role}.${component}`, ecosystem: 'python', range, origin: 'manifest' });
-    }
-    runtime(project, 'python', ['.python-version'], components.python);
-    const runtimeTxt = read(project, 'runtime.txt');
-    if (runtimeTxt !== null) {
-      const version = runtimeTxt.trim().replace(/^python-/, '');
-      const existing = result.observed[`${project.role}.python`];
-      observe(project, 'python', components.python, [existing.state === 'exact' ? existing.version : null, version]);
     }
     if (project.ui === 'htmx') {
       const pkg = json(project, 'package.json');
@@ -233,19 +288,20 @@ export function inspectStackProjects(projectRoot, selected) {
       const pkg = json(project, 'package.json');
       const npmDeps = { ...pkg?.dependencies, ...pkg?.devDependencies };
       const npmComponents = {};
+      const {pins,dynamic}=literalImportmapPins(importmap);
+      if(dynamic)issue('DYNAMIC_DECLARATION',`${project.role}.importmap`,'Review dynamic Ruby/duplicate pins separately; only active literal importmap declarations are supported.');
       for (const [name, component, gem] of [['@hotwired/turbo-rails', 'turbo', 'turbo-rails'], ['@hotwired/stimulus', 'stimulus', 'stimulus-rails']]) {
-        const line = importmap?.split('\n').find(value => value.includes(`"${name}"`) || value.includes(`'${name}'`));
+        const to=pins.get(name);
         if (Object.hasOwn(npmDeps, name)) { npmComponents[component] = { ecosystem: 'npm', packageName: name, required: true }; }
-        if (!line && Object.hasOwn(npmDeps, name)) continue;
-        if (!line) { issue('UNRESOLVED_UI', `${project.role}.${component}`, 'Provide supported literal importmap pins or an npm-backed Hotwire declaration.'); continue; }
-        const to = line.match(/\bto:\s*['"]([^'"]+)['"]/);
+        if (!pins.has(name) && Object.hasOwn(npmDeps, name)) continue;
+        if (!pins.has(name)) { issue('UNRESOLVED_UI', `${project.role}.${component}`, 'Provide supported literal importmap pins or an npm-backed Hotwire declaration.'); continue; }
         if (!to) { issue('UNRESOLVED_IMPORTMAP', `${project.role}.${component}`, 'Provide a literal gem-local file or exact external version pin.'); continue; }
-        if (/^https?:/.test(to[1])) {
-          const version = to[1].match(/@(\d+\.\d+\.\d+)(?:[/?]|$)/)?.[1];
+        if (/^https?:/.test(to)) {
+          const version = to.match(/@(\d+\.\d+\.\d+)(?:[/?]|$)/)?.[1];
           const descriptor = { ecosystem: 'npm', packageName: component === 'turbo' ? '@hotwired/turbo' : name, required: true };
           observe(project, component, descriptor, [version ?? 'unresolved external pin']);
           if (!version) issue('UNRESOLVED_IMPORTMAP', `${project.role}.${component}`, 'Pin an exact browser package version; the gem version does not prove an external CDN version.');
-        } else if (to[1].includes('/') || !gems.has(gem)) issue('UNRESOLVED_IMPORTMAP', `${project.role}.${component}`, 'Only gem-bundled local file names are supported; verify custom JS separately.');
+        } else if (!new RegExp(`^${component}(?:\\.min)?\\.js$`).test(to) || !gems.has(gem)) issue('UNRESOLVED_IMPORTMAP', `${project.role}.${component}`, 'Only known gem-bundled turbo/stimulus(.min).js assets are supported; verify custom JS separately.');
       }
       // Importmap-only Hotwire has no mandatory Node runtime.
       if (Object.keys(npmComponents).length) node(project, { node: { ecosystem: 'node', required: false }, ...npmComponents });

@@ -121,7 +121,7 @@ Java·Gradle은 선택한 릴리즈의 공식 지원 구간을 확인하고 추�
 API schema·인증·오류·시간 형식·CORS는 별도 [연결 계약](../api-standards.md)과 실제 통합 검사 대상이다.
 선언 호환·앱 빌드/테스트·API 통합을 각각 기록하며 미실행을 통과로 표시하지 않는다.
 
-## Spring·Thymeleaf 확인 결과
+## Spring Boot·Thymeleaf 확인 결과
 
 2026-10-12 확인한 [State of Spring 2024](https://www.vmware.com/docs/vmw-the-state-of-spring)는 응답자1,464명 조사다.
 내부 API 제공80%·외부 API 제공70%를 보고한다. 복수 선택 결과이며 Thymeleaf의 점유율이나 감소율이 아니다.
@@ -165,7 +165,8 @@ Thymeleaf는 기존 서버 화면 프로젝트의 선택 사항으로 안내하�
 
 구현 시 안내·카탈로그·reader·fixture·검사를 함께 갱신한다. 두 manifest·README·changelog도 동작 변경 때 맞춘다.
 소스 후보는0.91.0이며 Task1~6의 구현과 범위 검사를 수행했다. 전체 quality와 독립 검토는 Task6에서 확인한다.
-첫 quality 후보5acc8be는60/73 통과였다. 패키지 소유 목록·안내 checksum·임시 실행기 문제를 수정하고 전체 재검사한다.
+첫 quality 후보5acc8be는60/73, 수정 후보0b71c48은73/73 통과였다. 독립 검토는 네 Important 지적으로 FAIL이었다.
+Python marker·Nuxt module·Hotwire pin·npm lock 경계를 수정했다. 새 회귀7개와 핵심/셋업74개 통과; 수정 후보 전체 quality 재검사 중이다.
 실제 소비 앱·원격 CI·호스트 훅·설치는 실행 증거가 없으면 미확인이다. fixture 통과로 대신하지 않는다.
 명세·계획 작성은 완료했다. 현재는 승인한 구현과 필수 검증·독립 검토·현재 안내/지도 일치까지 수행한다.
 구현 종료 조건은 위 기준 충족과 현재 안내·지도 일치다. 발행·설치를 자동 추가하지 않는다.

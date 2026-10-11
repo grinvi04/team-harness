@@ -23,7 +23,10 @@ Spring Boot의 리터럴 Gradle plugin·wrapper·Java toolchain을 판독한다.
 Java는 선택한 Adoptium LTS·Linux x64 Temurin JDK의 정확한 release pin을 확인하는 범위다.
 다른 JDK 공급자를 조용히 대체하지 않는다. 조회/조건 추출이 실패하면 현재 범위에서 적용하지 않는다.
 HTMX는 htmx.org npm의 정확한 pin을 지원한다. CDN-only 구성은 미확인이고 django-htmx를 강제하지 않는다.
-Hotwire의 gem 제공 importmap 파일에는 Node를 추가하지 않는다. 외부 JS는 자체 버전 증거가 필요하다.
+Python marker는 선언한 정확한 Python 버전으로 먼저 활성 여부를 판단한다. 플랫폼·extra 조건은 미확인이다.
+Nuxt는 exported defineNuxtConfig의 리터럴 module 목록만 판독한다. 축약형·계산·상속 설정은 별도 검토한다.
+Hotwire는 활성 리터럴 pin과 gem의 turbo/stimulus(.min).js를 확인한다. 주석·조건부 Ruby·임의 파일은 근거가 아니다.
+이 importmap 방식에는 Node를 추가하지 않는다. 외부 JS는 자체 버전 증거가 필요하다. npm은 실제 lock 항목이 필요하다.
 
 ## 선택과 읽기 전용 미리보기
 
@@ -58,7 +61,8 @@ exit0은 compatible, exit1은 conflict/unverified, exit2는 잘못된 입력이�
 
 같은 명령에 --apply를 붙이면 compatible일 때만 harness-stack.versions.json을 새로 만든다.
 선택·실제/대상 버전·조건·공식 출처/시각·허용 입력 SHA-256과 부재 지문을 저장한다.
-기존 파일·링크를 덮지 않는다. 검사 뒤 바뀐 입력과 동시에 생성된 파일도 거부한다.
+기존 파일·링크를 덮지 않는다. 게시 직전 입력 지문을 다시 확인하고 같은 기록의 동시 생성을 거부한다.
+이는 파일시스템 전체의 트랜잭션이 아니다. 악의적인 디렉터리 교체 등 검사·사용 사이의 모든 경쟁을 보장하지 않는다.
 미리보기 JSON에서 issues의 다음 조치를 해결한 뒤 다시 확인한다. 실패를 PASS로 수정하지 않는다.
 기록은 서명·전체 의존성 목록·비밀 파일 보관소가 아니다.
 
