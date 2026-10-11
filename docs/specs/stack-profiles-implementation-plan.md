@@ -32,10 +32,11 @@
 ## 공통 인터페이스·실행 준비
 
 경로는 저장소 루트 기준이다. 현재 기준 `c701ecc`, 작업공간 `fix/structure-cleanup`; 먼저 실제 원본·다른 작업을 확인한다.
-`Selection`은 기존 반환 필드를 유지하고 `projects`를 추가한다. 각 항목은 `{role,directory,stackKey,framework,ui,legacy}`다.
+`Selection`은 기존 반환 필드를 유지하고 `projects`를 추가한다. 각 항목은 `{role,directory,stackKey,framework,ui,legacy,versionComponents}`다.
 `role`은 단독 `project` 또는 분리형 `backend|frontend`; 단독 directory는 `.`이며 framework/ui는 미선택 시 null이다.
-`Inspection={selection,observed,inputs,issues}`; observed는 `role.component`별 `{state,version}`, state는 `exact|absent|unresolved`다.
-`inputs`는 허용한 상대경로·SHA-256 목록이다. `.env`·자격증명은 읽지 않는다. 허용 manifest/설정만 읽고 앱 코드를 실행하지 않는다.
+`Inspection={selection,observed,inputs,issues,requirements,packages}`; observed는 `role.component`별 `{state,version}`, state는 `exact|absent|unresolved`다.
+`requirements`는 정적 조건, `packages`는 peer 판정을 위한 직접 npm 의존성 증거이며 최종 기록에서 전체 목록을 제외한다.
+`inputs`는 허용한 상대경로·SHA-256 목록이며 부재 파일은 null 지문으로 남긴다. `.env`·자격증명은 읽지 않는다. 허용 manifest/설정만 읽고 앱 코드를 실행하지 않는다.
 `VersionResult={schema:1,selection,observed,targets,requirements,sources,inputs,issues,status}`; status는 `compatible|conflict|unverified`다.
 `targets`는 exact 버전 map, sources는 공식 URL·조회 시각·조건, issues는 code·대상·조치다. 출력에 전체 의존성 그래프를 넣지 않는다.
 새 Node 시험은 `node:test`; `tests/fixtures/stack-profiles/`의 작은 고정 manifest를 쓴다. 네트워크·gh는 시험에서 stub이다.
@@ -70,19 +71,19 @@ React/Vue 공통 rule 재사용 경로는 Task6에서 채운다. 다른 소유 �
 **Interfaces:** `inspectStackProjects(projectRoot:string,selected:Selection): Inspection`을 plugin 정본에서 export한다. Task1의 projects를 소비한다.
 Node package.json/npm lock v2·v3/런타임 선언, Python PEP621·정확히 고정한 requirements·런타임 선언을 읽는다.
 Rails Gemfile.lock·.ruby-version·정적 선언과 importmap/package manifest, Spring Boot Gradle plugin·Java toolchain·wrapper를 읽는다.
-- [ ] `ambiguous_framework_and_ui`·`hotwire_without_node`·`unresolved_is_not_absent` 시험을 작성한다.
+- [x] `ambiguous_framework_and_ui`·`hotwire_without_node`·`unresolved_is_not_absent` 시험을 작성한다.
 ```js
 assert.ok(inspectStackProjects(multiPython, pythonSelection).issues.some(i => i.code === 'AMBIGUOUS_FRAMEWORK'));
 assert.equal(inspectStackProjects(hotwireImportmap, hotwireSelection).observed['project.node'].state, 'absent');
 assert.equal(inspectStackProjects(unpinnedPython, pythonSelection).observed['project.django'].state, 'unresolved');
 ```
-- [ ] `node --test tests/stack-project-test.mjs`: export 부재로 RED.
-- [ ] inspector를 구현한다. PEP621는 동봉 helper의 Python3.11+ tomllib, lock/static 선언은 제한된 형식만 해석한다.
+- [x] `node --test tests/stack-project-test.mjs`: export 부재로 RED.
+- [x] inspector를 구현한다. PEP621는 동봉 helper의 Python3.11+ tomllib, lock/static 선언은 제한된 형식만 해석한다.
 다중 framework/UI는 명시적으로 좁히고 미지원 lock·동적 Gemfile/Gradle·파서 부재는 issues에 남긴다. symlink 경로 탈출도 거부한다. Python3.11+가 없으면 pyproject 시험은 미확인으로 기록하고 통과라 하지 않는다.
 Rails는 gem에 포함된 Hotwire와 외부 importmap pin을 구분하고 Inertia gem+선택 JS adapter를 확인한다. 누락/해석 불가는 미확인이다. installed plugin의 경로에도 inspector/helper가 포함돼야 한다.
 선택하지 않은 framework의 버전까지 검증하지 않는다. DRF·django-htmx·Node를 서버 화면의 공통 필수물로 취급하지 않는다.
-- [ ] `node --test tests/stack-project-test.mjs`: PASS; 각 fixture 파일 digest·앱 실행 sentinel이 시험 전후 같다.
-- [ ] 커밋 `feat(stack): 기존 프레임워크와 버전 증거 판독`.
+- [x] `node --test tests/stack-project-test.mjs`: PASS; 각 fixture 파일 digest·앱 실행 sentinel이 시험 전후 같다.
+- [x] 커밋 `feat(stack): 기존 프레임워크와 버전 증거 판독`.
 
 ### Task 3: 공식 metadata와 생태계 버전 판정
 

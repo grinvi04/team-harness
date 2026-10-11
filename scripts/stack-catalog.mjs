@@ -50,12 +50,13 @@ function withProfile(stack, options) {
     profile = stack.uiProfiles[ui];
   }
   return { ...stack, framework, ui, legacy: stack.id <= 6 && !profile,
+    versionComponents: { ...stack.versionComponents, ...profile?.versionComponents },
     ...(profile ? { profile, rules: [...new Set([...stack.rules.filter(rule => rule !== 'alembic'), ...profile.rules])],
       database: { tool: null, checks: [] } } : {}) };
 }
 
 function project(stack, role, directory) {
-  return { role, directory, stackKey: stack.key, framework: stack.framework, ui: stack.ui, legacy: stack.legacy };
+  return { role, directory, stackKey: stack.key, framework: stack.framework, ui: stack.ui, legacy: stack.legacy, versionComponents: stack.versionComponents };
 }
 
 function validateDirectory(directory) {

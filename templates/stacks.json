@@ -44,7 +44,13 @@
         "backend",
         "frontend"
       ],
-      "assetSources": {}
+      "assetSources": {},
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        }
+      }
     },
     {
       "id": 2,
@@ -86,7 +92,21 @@
         "gitignore": "templates/stacks/spring-boot/gitignore",
         "checkstyle": "templates/stacks/spring-boot/checkstyle.xml"
       },
-      "localCheck": "templates/stacks/spring-boot/local-check.sh"
+      "localCheck": "templates/stacks/spring-boot/local-check.sh",
+      "versionComponents": {
+        "java": {
+          "ecosystem": "java",
+          "required": false
+        },
+        "spring-boot": {
+          "ecosystem": "spring-boot",
+          "required": false
+        },
+        "gradle": {
+          "ecosystem": "gradle",
+          "required": false
+        }
+      }
     },
     {
       "id": 3,
@@ -134,7 +154,14 @@
           ],
           "defaultUi": "templates",
           "steps": "templates/stacks/python/frameworks/django/ci/steps.yml",
-          "rules": []
+          "rules": [],
+          "versionComponents": {
+            "django": {
+              "ecosystem": "pypi",
+              "packageName": "django",
+              "required": true
+            }
+          }
         },
         "fastapi": {
           "uiModes": [
@@ -142,7 +169,14 @@
           ],
           "defaultUi": "api",
           "steps": "templates/stacks/python/frameworks/fastapi/ci/steps.yml",
-          "rules": []
+          "rules": [],
+          "versionComponents": {
+            "fastapi": {
+              "ecosystem": "pypi",
+              "packageName": "fastapi",
+              "required": true
+            }
+          }
         },
         "flask": {
           "uiModes": [
@@ -151,7 +185,20 @@
           ],
           "defaultUi": "templates",
           "steps": "templates/stacks/python/frameworks/flask/ci/steps.yml",
-          "rules": []
+          "rules": [],
+          "versionComponents": {
+            "flask": {
+              "ecosystem": "pypi",
+              "packageName": "flask",
+              "required": true
+            }
+          }
+        }
+      },
+      "versionComponents": {
+        "python": {
+          "ecosystem": "python",
+          "required": false
         }
       }
     },
@@ -192,19 +239,90 @@
       "uiProfiles": {
         "hotwire": {
           "steps": "templates/stacks/rails/ui/hotwire/ci/steps.yml",
-          "rules": []
+          "rules": [],
+          "versionComponents": {
+            "turbo-rails": {
+              "ecosystem": "gem",
+              "packageName": "turbo-rails",
+              "required": true
+            },
+            "stimulus-rails": {
+              "ecosystem": "gem",
+              "packageName": "stimulus-rails",
+              "required": true
+            }
+          }
         },
         "inertia-react": {
           "steps": "templates/stacks/rails/ui/inertia-react/ci/steps.yml",
-          "rules": []
+          "rules": [],
+          "versionComponents": {
+            "inertia-rails": {
+              "ecosystem": "gem",
+              "packageName": "inertia_rails",
+              "required": true
+            },
+            "inertia-react": {
+              "ecosystem": "npm",
+              "packageName": "@inertiajs/react",
+              "required": true
+            },
+            "react": {
+              "ecosystem": "npm",
+              "packageName": "react",
+              "required": true
+            },
+            "react-dom": {
+              "ecosystem": "npm",
+              "packageName": "react-dom",
+              "required": true
+            },
+            "node": {
+              "ecosystem": "node",
+              "required": false
+            }
+          }
         },
         "inertia-vue": {
           "steps": "templates/stacks/rails/ui/inertia-vue/ci/steps.yml",
-          "rules": []
+          "rules": [],
+          "versionComponents": {
+            "inertia-rails": {
+              "ecosystem": "gem",
+              "packageName": "inertia_rails",
+              "required": true
+            },
+            "inertia-vue": {
+              "ecosystem": "npm",
+              "packageName": "@inertiajs/vue3",
+              "required": true
+            },
+            "vue": {
+              "ecosystem": "npm",
+              "packageName": "vue",
+              "required": true
+            },
+            "node": {
+              "ecosystem": "node",
+              "required": false
+            }
+          }
         },
         "api": {
           "steps": "templates/stacks/rails/ui/api/ci/steps.yml",
-          "rules": []
+          "rules": [],
+          "versionComponents": {}
+        }
+      },
+      "versionComponents": {
+        "ruby": {
+          "ecosystem": "ruby",
+          "required": false
+        },
+        "rails": {
+          "ecosystem": "gem",
+          "packageName": "rails",
+          "required": true
         }
       }
     },
@@ -243,6 +361,27 @@
       ],
       "assetSources": {
         "dockerfile": "templates/stacks/nextjs/Dockerfile"
+      },
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        },
+        "nextjs": {
+          "ecosystem": "npm",
+          "packageName": "next",
+          "required": true
+        },
+        "react": {
+          "ecosystem": "npm",
+          "packageName": "react",
+          "required": true
+        },
+        "react-dom": {
+          "ecosystem": "npm",
+          "packageName": "react-dom",
+          "required": true
+        }
       }
     },
     {
@@ -279,7 +418,28 @@
         "frontend"
       ],
       "assetSources": {},
-      "localCheck": "templates/stacks/vue/local-check.sh"
+      "localCheck": "templates/stacks/vue/local-check.sh",
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        },
+        "vue": {
+          "ecosystem": "npm",
+          "packageName": "vue",
+          "required": true
+        },
+        "vite": {
+          "ecosystem": "npm",
+          "packageName": "vite",
+          "required": true
+        },
+        "vite-vue": {
+          "ecosystem": "npm",
+          "packageName": "@vitejs/plugin-vue",
+          "required": true
+        }
+      }
     },
     {
       "id": 7,
@@ -312,7 +472,33 @@
       "roles": [
         "frontend"
       ],
-      "assetSources": {}
+      "assetSources": {},
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        },
+        "react": {
+          "ecosystem": "npm",
+          "packageName": "react",
+          "required": true
+        },
+        "react-dom": {
+          "ecosystem": "npm",
+          "packageName": "react-dom",
+          "required": true
+        },
+        "vite": {
+          "ecosystem": "npm",
+          "packageName": "vite",
+          "required": true
+        },
+        "vite-react": {
+          "ecosystem": "npm",
+          "packageName": "@vitejs/plugin-react",
+          "required": true
+        }
+      }
     },
     {
       "id": 8,
@@ -346,7 +532,23 @@
       "roles": [
         "frontend"
       ],
-      "assetSources": {}
+      "assetSources": {},
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        },
+        "nuxt": {
+          "ecosystem": "npm",
+          "packageName": "nuxt",
+          "required": true
+        },
+        "vue": {
+          "ecosystem": "npm",
+          "packageName": "vue",
+          "required": true
+        }
+      }
     }
   ],
   "pathBase": "repository-root",
