@@ -3,7 +3,7 @@ set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILDER="$ROOT/scripts/build-packages.mjs"
-CATALOG="$ROOT/packaging/packages.json"
+CATALOG="$ROOT/experiments/split-packaging/packages.json"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/team-harness-catalog-integrity.XXXXXX")" || exit 1
 trap 'rm -rf "$TMP"' EXIT
 PASS=0

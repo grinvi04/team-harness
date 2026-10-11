@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 2,
+  "commonChecks": [
+    "test-guard",
+    "commitlint-trusted",
+    "integration-e2e",
+    "destructive-ddl"
+  ],
+  "commonSources": {
+    "workflow": "common/workflow.yml",
+    "secretScan": "common/secret-scan.yml"
+  },
+  "stacks": [
+    {
+      "id": 1,
+      "label": "Node.js 단독      — React / Vite SPA, NestJS 단독 API",
+      "template": "ci-gate-node.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "typescript"
+      ],
+      "backend": {
+        "preset": "node"
+      },
+      "frontend": {
+        "preset": null,
+        "default": null
+      },
+      "database": {
+        "tool": null,
+        "checks": []
+      },
+      "sources": {
+        "header": "headers/node.yml",
+        "jobs": [
+          "jobs/node.yml"
+        ]
+      },
+      "key": "node",
+      "roles": [
+        "backend",
+        "frontend"
+      ]
+    },
+    {
+      "id": 2,
+      "label": "Spring Boot       — Java / Kotlin Gradle 백엔드 단독",
+      "template": "ci-gate-spring.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "java",
+        "flyway"
+      ],
+      "backend": {
+        "preset": "spring"
+      },
+      "frontend": {
+        "preset": null,
+        "default": null
+      },
+      "database": {
+        "tool": "flyway",
+        "checks": [
+          "migration-safety"
+        ]
+      },
+      "sources": {
+        "header": "headers/spring.yml",
+        "jobs": [
+          "jobs/spring.yml"
+        ]
+      },
+      "key": "spring",
+      "roles": [
+        "backend"
+      ]
+    },
+    {
+      "id": 3,
+      "label": "Python            — FastAPI / Django (+ PostgreSQL + Redis)",
+      "template": "ci-gate-python.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "python",
+        "alembic"
+      ],
+      "backend": {
+        "preset": "python"
+      },
+      "frontend": {
+        "preset": null,
+        "default": null
+      },
+      "database": {
+        "tool": "alembic",
+        "checks": [
+          "alembic-heads"
+        ]
+      },
+      "sources": {
+        "header": "headers/python.yml",
+        "jobs": [
+          "jobs/python.yml"
+        ]
+      },
+      "key": "python",
+      "roles": [
+        "backend"
+      ]
+    },
+    {
+      "id": 4,
+      "label": "Rails 8           — 소팀 MVP · Hotwire 풀스택",
+      "template": "ci-gate-rails.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "ruby"
+      ],
+      "backend": {
+        "preset": "rails"
+      },
+      "frontend": {
+        "preset": null,
+        "default": null
+      },
+      "database": {
+        "tool": null,
+        "checks": []
+      },
+      "sources": {
+        "header": "headers/rails.yml",
+        "jobs": [
+          "jobs/rails.yml"
+        ]
+      },
+      "key": "rails",
+      "roles": [
+        "backend"
+      ]
+    },
+    {
+      "id": 5,
+      "label": "Next.js 단독      — App Router 풀스택 (RSC · server actions)",
+      "template": "ci-gate-nextjs.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "typescript",
+        "nextjs"
+      ],
+      "backend": {
+        "preset": null
+      },
+      "frontend": {
+        "preset": "nextjs",
+        "default": null
+      },
+      "database": {
+        "tool": null,
+        "checks": []
+      },
+      "sources": {
+        "header": "headers/nextjs.yml",
+        "jobs": [
+          "jobs/nextjs.yml"
+        ]
+      },
+      "key": "nextjs",
+      "roles": [
+        "frontend"
+      ]
+    },
+    {
+      "id": 6,
+      "label": "Vue 3             — Vite SPA (Composition API · Pinia)",
+      "template": "ci-gate-vue.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "typescript",
+        "vue"
+      ],
+      "backend": {
+        "preset": null
+      },
+      "frontend": {
+        "preset": "vue",
+        "default": null
+      },
+      "database": {
+        "tool": null,
+        "checks": []
+      },
+      "sources": {
+        "header": "headers/vue.yml",
+        "jobs": [
+          "jobs/vue.yml"
+        ]
+      },
+      "key": "vue",
+      "roles": [
+        "frontend"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+# ci-gate — Python FastAPI / Django
+# CUSTOMIZE: python-version, postgres/redis 자격증명, env 변수
+# Redis 불필요하면 services.redis 블록과 CELERY_* env 제거

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
-// scripts/merge-permissions.mjs — base settings.json의 permissions.allow에 스택별 권한 fragment를 병합·dedup.
+// Explicit user fragments only. Stack setup never expands automatic permissions.
 import { readFileSync, writeFileSync, renameSync } from 'fs';
 import { fileURLToPath } from 'url';
-import { resolve, dirname } from 'path';
+import { resolve } from 'path';
 
 // rule 이름 → fragment 파일명 매핑 (null = 매핑 없음·무시)
 const RULE_TO_FRAGMENT = {
@@ -97,10 +97,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     process.exit(1);
   }
 
-  // --fragments 미전달 시 스크립트 상대 기본값(templates/permissions)
-  if (!fragmentsDir) {
-    fragmentsDir = resolve(dirname(fileURLToPath(import.meta.url)), '../templates/permissions');
-  }
+  // No implicit stack permissions. A user fragment requires explicit --fragments.
 
   const settings = JSON.parse(readFileSync(resolve(baseFile), 'utf8'));
   const baseAllow = settings?.permissions?.allow ?? [];

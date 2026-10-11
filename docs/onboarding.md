@@ -62,8 +62,9 @@ bash /path/to/team-harness/scripts/new-repo.sh
 
 ### 2. 수동 3단계 (스크립트 출력이 안내)
 
-- [ ] **ci-gate.yml 수정**: placeholder → 스택 맞는 lint·test·build 명령으로 교체
-      (placeholder는 항상 실패 — 교체 전 protection 걸면 첫 PR부터 머지 불가)
+- [ ] **ci-gate.yml 확인**: 선택한 스택의 `CUSTOMIZE`와 lint·test·build 명령을 실제 프로젝트에 맞춘다.
+      개별 스택 번호1–6을 고르거나 `2+6`처럼 백엔드·프론트엔드를 조합한다.
+      조합에서는 두 작업 경로(기본값 `backend`·`frontend`)를 지정한다. 규칙도 함께 설치되며 기존 파일은 덮어쓰지 않는다.
 - [ ] **AGENTS.md 작성**: 프로젝트 개요·디렉터리·빌드·테스트 명령 채우기
       (빌드·테스트 명령 섹션은 하네스 커맨드가 필수로 읽음)
 - [ ] **스택별 검사 연결**: 아래 기준으로 제품의 검사 명령·대상·한계를 정하고 같은 명령을 CI에 연결
@@ -100,7 +101,7 @@ bash /path/to/team-harness/scripts/new-repo.sh
       이 정책은 셋업·플러그인 갱신으로 자동 적용되지 않는다. 소비 repo의 실제 workflow 경로를 사용한다.
 
 - [ ] 테스트 PR 1개 생성 → ci-gate 통과 확인 (`pull_request` 트리거 전용 — push로는 실행 안 됨)
-      체크명은 스택별로 다름: Node/Python/Rails=`quality`·`secret-scan`, Spring/NestJS 풀스택=`backend`·`frontend`·`secret-scan`
+      체크명은 선택별로 다름: 개별 스택=`quality`·`secret-scan`, 조합=`backend`·`frontend`·`secret-scan`
 - [ ] CI가 §2의 제품 검사 명령을 실제로 실행하고, 결과의 커밋이 PR 후보와 일치하는지 확인
 
 ### 계층 2 — 플러그인

@@ -36,54 +36,60 @@ echo ""
 
 # ── 스택 선택 ────────────────────────────────────────────────────────────────
 
-echo "스택을 선택하세요:"
-echo "  1) Node.js 단독      — React / Vite SPA, NestJS 단독 API"
-echo "  2) NestJS 풀스택     — NestJS 백엔드 + React / Vue / Next.js 프론트엔드"
-echo "  3) Spring Boot       — Java / Kotlin Gradle 백엔드 단독"
-echo "  4) Spring 풀스택     — Spring Boot 백엔드 + Node.js 프론트엔드"
-echo "  5) Python            — FastAPI / Django (+ PostgreSQL + Redis)"
-echo "  6) Rails 8           — 소팀 MVP · Hotwire 풀스택"
-echo "  7) Next.js 단독      — App Router 풀스택 (RSC · server actions)"
-echo "  8) Vue 3             — Vite SPA (Composition API · Pinia)"
+node "$HARNESS_DIR/scripts/stack-catalog.mjs" --menu
 echo ""
-read -rp "번호 입력 (1-8): " STACK_CHOICE
+read -rp "번호 한 개 또는 백엔드+프론트엔드 (예: 2+6=Spring+Vue): " STACK_CHOICE
 
-case "$STACK_CHOICE" in
-  1) STACK_TEMPLATE="ci-gate-node.yml";             STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript") ;;
-  2) STACK_TEMPLATE="ci-gate-nestjs-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan"); STACK_RULES=("typescript" "prisma") ;;
-  3) STACK_TEMPLATE="ci-gate-spring.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("java" "flyway") ;;
-  4) STACK_TEMPLATE="ci-gate-spring-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan"); STACK_RULES=("java" "flyway" "typescript") ;;
-  5) STACK_TEMPLATE="ci-gate-python.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("python" "alembic") ;;
-  6) STACK_TEMPLATE="ci-gate-rails.yml";            STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("ruby") ;;
-  7) STACK_TEMPLATE="ci-gate-nextjs.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript" "nextjs") ;;
-  8) STACK_TEMPLATE="ci-gate-vue.yml";              STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript" "vue") ;;
-  *) echo "❌ 잘못된 선택 — 1~8 중 입력하세요." >&2; exit 1 ;;
-esac
+STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE")
+# Read catalog data as JSON; never evaluate generated shell text.
+selection_value() {
+  printf '%s' "$STACK_SELECTION" | node -e '
+    const d = JSON.parse(require("fs").readFileSync(0, "utf8"));
+    const v = process.argv[1].split(".").reduce((value, key) => value[key], d);
+    console.log(Array.isArray(v) ? v.join(" ") : (v ?? ""));' "$1"
+}
+if [ "$(selection_value mode)" = composed ]; then
+  read -rp "백엔드 디렉터리 (기본 backend): " BACKEND_DIR || BACKEND_DIR=""
+  read -rp "프론트엔드 디렉터리 (기본 frontend): " FRONTEND_DIR || FRONTEND_DIR=""
+  BACKEND_DIR="${BACKEND_DIR:-backend}"
+  FRONTEND_DIR="${FRONTEND_DIR:-frontend}"
+  STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE" --backend-dir "$BACKEND_DIR" --frontend-dir "$FRONTEND_DIR")
+  # Render before filesystem/protection effects so invalid inputs fail closed.
+  COMPOSED_WORKFLOW=$(node "$HARNESS_DIR/scripts/generate-stack-templates.mjs" --compose "$STACK_CHOICE" --backend-dir "$BACKEND_DIR" --frontend-dir "$FRONTEND_DIR")
+fi
+STACK_TEMPLATE=$(selection_value template)
+read -r -a STACK_CHECKS <<< "$(selection_value checks)"
+read -r -a STACK_RULES <<< "$(selection_value rules)"
 
-# 모든 스택 공통 required check — 테스트 삭제 차단 게이트 + 커밋 컨벤션 게이트(stack 무관)
-# + integration-e2e: "실 IdP 인증 + 실 백엔드 데이터 통합 e2e" 결정(decisions.md)을 자동 배선.
-#   job-level `if: vars.E2E_ENABLED` 라 미설정 repo는 잡이 skip → required여도 통과(머지 안 막힘).
-#   E2E_ENABLED=true 등록한 repo에서만 강제된다.
-STACK_CHECKS+=("test-guard" "commitlint-trusted" "integration-e2e" "destructive-ddl")
-
-# Flyway 스택 — 마이그레이션 안전성 게이트(접두사 대역 + out-of-order 정합성)
+# The catalog owns required checks, including common and database gates.
 HAS_FLYWAY=false
-if [[ ${#STACK_RULES[@]} -gt 0 ]] && printf '%s\n' "${STACK_RULES[@]}" | grep -qx flyway; then
+if [ "$(selection_value database.tool)" = flyway ]; then
   HAS_FLYWAY=true
-  STACK_CHECKS+=("migration-safety")
 fi
 
 # Alembic 스택 — 다중 head(분기 마이그레이션) 차단 게이트(별도 CI 점검, decisions "정적 게이트 Flyway 전용").
 # 검증기(check-repo-sync.mjs)가 alembic 감지 시 이 게이트를 required로 기대 → 프로비저너가 대칭 제공.
 HAS_ALEMBIC=false
-if [[ ${#STACK_RULES[@]} -gt 0 ]] && printf '%s\n' "${STACK_RULES[@]}" | grep -qx alembic; then
+if [ "$(selection_value database.tool)" = alembic ]; then
   HAS_ALEMBIC=true
-  STACK_CHECKS+=("alembic-heads")
+fi
+
+# Alembic runs in the selected backend too; render before copying any files.
+if [ "$HAS_ALEMBIC" = true ] && [ "$(selection_value mode)" = composed ]; then
+  ALEMBIC_WORKFLOW=$(node - "$HARNESS_DIR/templates/ci/alembic-heads.yml" "$BACKEND_DIR" <<'NODE'
+const fs = require('node:fs');
+const source = fs.readFileSync(process.argv[2], 'utf8');
+const anchor = '    runs-on: ubuntu-latest\n';
+if (source.split(anchor).length !== 2) throw new Error('Unsupported Alembic job shape');
+process.stdout.write(source.replace(anchor,
+  anchor + '    defaults:\n      run:\n        working-directory: ' + JSON.stringify(process.argv[3]) + '\n'));
+NODE
+  )
 fi
 
 STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
 echo ""
-echo "선택: $STACK_TEMPLATE"
+echo "선택: $(selection_value label)"
 echo ""
 
 # ── 1. 템플릿 파일 복사 (기존 파일 덮어쓰지 않음) ────────────────────────
@@ -105,8 +111,12 @@ copy_once() {
 if [[ -f ".github/workflows/ci-gate.yml" ]]; then
   echo "  ⏭  ci-gate.yml (이미 있음)"
 else
-  cp "$STACK_TEMPLATE_PATH" .github/workflows/ci-gate.yml
-  echo "  ✅  ci-gate.yml ($STACK_TEMPLATE)  ← ⚠️ CUSTOMIZE 주석 부분 프로젝트에 맞게 수정"
+  if [ "$(selection_value mode)" = composed ]; then
+    printf '%s\n' "$COMPOSED_WORKFLOW" > .github/workflows/ci-gate.yml
+  else
+    cp "$STACK_TEMPLATE_PATH" .github/workflows/ci-gate.yml
+  fi
+  echo "  ✅  ci-gate.yml  ← ⚠️ CUSTOMIZE 주석 부분 프로젝트에 맞게 수정"
 fi
 
 copy_once "$HARNESS_DIR/templates/ci/test-guard.yml"        .github/workflows/test-guard.yml "test-guard.yml (테스트 삭제 차단 게이트)"
@@ -134,7 +144,12 @@ fi
 
 # Alembic 스택 — 다중 head 차단 게이트 워크플로(자기-스킵 — alembic.ini 없으면 통과)
 if [[ "$HAS_ALEMBIC" == true ]]; then
-  copy_once "$HARNESS_DIR/templates/ci/alembic-heads.yml" .github/workflows/alembic-heads.yml "alembic-heads.yml (다중 head 차단 게이트)"
+  if [ "$(selection_value mode)" = composed ] && [ ! -f .github/workflows/alembic-heads.yml ]; then
+    printf '%s\n' "$ALEMBIC_WORKFLOW" > .github/workflows/alembic-heads.yml
+    echo "  ✅  alembic-heads.yml (선택한 백엔드의 다중 head 차단)"
+  else
+    copy_once "$HARNESS_DIR/templates/ci/alembic-heads.yml" .github/workflows/alembic-heads.yml "alembic-heads.yml (다중 head 차단 게이트)"
+  fi
 fi
 
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
@@ -147,20 +162,7 @@ copy_once "$HARNESS_DIR/templates/CLAUDE.md"                 CLAUDE.md          
 copy_once "$HARNESS_DIR/templates/settings.json"             .claude/settings.json      ".claude/settings.json"
 copy_once "$HARNESS_DIR/templates/PULL_REQUEST_TEMPLATE.md"  .github/PULL_REQUEST_TEMPLATE.md "PR 템플릿"
 
-# 스택별 dev 권한을 커밋 settings.json에 병합 (공통 베이스라인은 템플릿에 이미 포함).
-# dev 권한 단일출처 = 커밋 settings.json — settings.local.json은 폐지(진짜 머신-특정만).
-if [[ ${#STACK_RULES[@]} -gt 0 && -f .claude/settings.json ]]; then
-  RULES_CSV=$(IFS=,; echo "${STACK_RULES[*]}")
-  DOCKER_FLAG=""
-  printf '%s\n' "${STACK_RULES[@]}" | grep -qxE 'java|python|prisma' && DOCKER_FLAG="--docker"
-  if node "$HARNESS_DIR/scripts/merge-permissions.mjs" --base .claude/settings.json \
-       --rules "$RULES_CSV" $DOCKER_FLAG --fragments "$HARNESS_DIR/templates/permissions" --write; then
-    echo "  ✅  .claude/settings.json 스택 권한 병합 ($RULES_CSV${DOCKER_FLAG:+ +docker})"
-  else
-    echo "  ❌  스택 권한 병합 실패 — .claude/settings.json 수동 확인 필요 (베이스라인만 적용됨)" >&2
-    SETUP_FAILED=1   # 부분 프로비저닝(베이스라인만)을 exit 0으로 은폐하지 않는다 — 보호 실패(PROT_FAILED)와 대칭(#215)
-  fi
-fi
+# Stack selection grants no automatic execution permissions; copy_once preserves settings.
 
 # 스택별 rules 파일 복사
 if [[ ${#STACK_RULES[@]} -gt 0 ]]; then
@@ -186,23 +188,25 @@ else
 fi
 
 # Spring 스택 전용 추가 파일
-if [[ "$STACK_TEMPLATE" == *spring* ]]; then
-  mkdir -p backend/config/checkstyle
-  copy_once "$HARNESS_DIR/templates/backend-gitignore.spring" "backend/.gitignore" \
-    "backend/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
-  copy_once "$HARNESS_DIR/templates/checkstyle.xml" "backend/config/checkstyle/checkstyle.xml" \
-    "backend/config/checkstyle/checkstyle.xml"
+if [ "$(selection_value backend.preset)" = spring ]; then
+  SPRING_DIR=backend
+  if [ "$(selection_value mode)" = composed ]; then SPRING_DIR="$BACKEND_DIR"; fi
+  mkdir -p "$SPRING_DIR/config/checkstyle"
+  copy_once "$HARNESS_DIR/templates/backend-gitignore.spring" "$SPRING_DIR/.gitignore" \
+    "$SPRING_DIR/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
+  copy_once "$HARNESS_DIR/templates/checkstyle.xml" "$SPRING_DIR/config/checkstyle/checkstyle.xml" \
+    "$SPRING_DIR/config/checkstyle/checkstyle.xml"
 fi
 
 # 프론트엔드 분리 스택 전용 — Prettier 포맷 게이트 + 디자인 토큰 게이트 스크립트
 # (ci-gate frontend 잡의 `npm run lint:design`가 이 스크립트를 실행. package.json scripts에
 #  `"lint:design": "node scripts/check-design-tokens.mjs"` 추가는 수동.)
-if [[ "$STACK_TEMPLATE" == *frontend* ]]; then
-  mkdir -p frontend/scripts
-  copy_once "$HARNESS_DIR/templates/.prettierrc" "frontend/.prettierrc" \
-    "frontend/.prettierrc" "Prettier 포맷 게이트 — prettier --check를 CI에"
-  copy_once "$HARNESS_DIR/templates/frontend/check-design-tokens.mjs" "frontend/scripts/check-design-tokens.mjs" \
-    "frontend/scripts/check-design-tokens.mjs" "⚠️ package.json scripts에 lint:design 추가 필요"
+if [ "$(selection_value mode)" = composed ]; then
+  mkdir -p "$FRONTEND_DIR/scripts"
+  copy_once "$HARNESS_DIR/templates/.prettierrc" "$FRONTEND_DIR/.prettierrc" \
+    "$FRONTEND_DIR/.prettierrc" "Prettier 포맷 게이트 — prettier --check를 CI에"
+  copy_once "$HARNESS_DIR/templates/frontend/check-design-tokens.mjs" "$FRONTEND_DIR/scripts/check-design-tokens.mjs" \
+    "$FRONTEND_DIR/scripts/check-design-tokens.mjs" "⚠️ package.json scripts에 lint:design 추가 필요"
 fi
 
 echo ""
@@ -324,4 +328,3 @@ echo "────────────────────────�
 
 # B4: 보호 적용에 실패했으면(위 ❌) 성공 요약을 냈더라도 non-zero로 종료 — 체이닝·자동화가 감지.
 prot_exit_ok "${PROT_FAILED:-0}" || { echo ""; echo "⚠️  branch protection 미적용 — 위 ❌ 확인 후 재실행 필요"; exit 1; }
-prot_exit_ok "${SETUP_FAILED:-0}" || { echo ""; echo "⚠️  스택 권한 병합 실패(베이스라인만 적용) — 위 ❌ 확인 후 재실행 필요"; exit 1; }

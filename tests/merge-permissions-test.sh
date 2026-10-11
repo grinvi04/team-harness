@@ -68,11 +68,11 @@ assert_out \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if 'Bash(npm run *)' in a else 1)" \
   --base "$FIX/base.json" --rules " typescript " --fragments "$FRAGS"
 
-# AC8: 실 stack template은 자식 프로세스 가능한 Bash 명령을 자동허용하지 않는다.
+# AC8: 기본 실행은 스택별 자동허용을 추가하지 않는다.
 assert_out \
   "AC8: 모든 실 stack profile → base allow 외 자동허용 없음" \
   "import sys,json; d=json.load(sys.stdin); a=d['permissions']['allow']; exit(0 if a == ['Bash(git *)'] else 1)" \
-  --base "$FIX/base.json" --rules typescript,python,alembic,java,nextjs,prisma,vue --docker --fragments "$ROOT/templates/permissions"
+  --base "$FIX/base.json" --rules typescript,python,alembic,java,nextjs,prisma,vue --docker
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

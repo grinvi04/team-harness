@@ -51,7 +51,7 @@
 
 ## 7. 기술 접근 (HOW)
 
-- `packaging/packages.json`을 파일 소속·단방향 dependency·호환 version의 정본으로 둔다.
+- `experiments/split-packaging/packages.json`을 파일 소속·단방향 dependency·호환 version의 정본으로 둔다.
 - `scripts/build-packages.mjs`는 catalog 검증과 clean output 조립만 수행한다. 각 artifact에는 도구별 유효
   manifest와 설치 전 단계임을 명시하는 내부 `harness-package.json`을 생성한다.
 - `harness-guard`의 16 skill은 기존 제품 경계의 core 9/workflow 7 배치를 그대로 사용한다. Claude hook·agent와
@@ -64,5 +64,5 @@
 | # | 태스크 | AC 참조 | 대상 파일 | 검증(이 명령 exit 0) | 의존 | [P] |
 |---|---|---|---|---|---|---|
 | 1 | package catalog·builder 계약을 RED로 잠금 | AC-1~7 | `tests/package-build-test.sh`, CI | `bash tests/package-build-test.sh` | — | |
-| 2 | catalog와 artifact builder 최소 구현 | AC-1~6 | `packaging/packages.json`, `scripts/build-packages.mjs` | `bash tests/package-build-test.sh` | #1 | |
+| 2 | catalog와 artifact builder 최소 구현 | AC-1~6 | `experiments/split-packaging/packages.json`, `scripts/build-packages.mjs` | `bash tests/package-build-test.sh` | #1 | |
 | 3 | 전환 상태·버전·결정 정합성 반영 | AC-7 | manifests, `README.md`, `docs/` | 전체 quality gate | #2 | |

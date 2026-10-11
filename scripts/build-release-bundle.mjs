@@ -53,7 +53,14 @@ try {
     }),
   ).version
   const catalog = path.join(temporary, 'packages.json')
-  writeFileSync(catalog, execFileSync('git', ['--no-replace-objects', 'show', `${commit}:packaging/packages.json`], { cwd: root }))
+  // Resolve the catalog inside the pinned revision, including pre-move releases.
+  const catalogPaths = ['experiments/split-packaging/packages.json', 'packaging/packages.json']
+  const recordedPaths = execFileSync('git', [
+    '--no-replace-objects', 'ls-tree', '--name-only', commit, '--', ...catalogPaths,
+  ], { cwd: root, encoding: 'utf8' }).trim().split('\n')
+  const catalogPath = catalogPaths.find((file) => recordedPaths.includes(file))
+  if (!catalogPath) throw new Error('package catalog missing from recorded revision')
+  writeFileSync(catalog, execFileSync('git', ['--no-replace-objects', 'show', `${commit}:${catalogPath}`], { cwd: root }))
   const archive = `team-harness-v${version}-source.tar`
   execFileSync('git', ['--no-replace-objects', 'archive', '--format=tar', `--prefix=team-harness-v${version}/`, '-o', path.join(temporary, archive), commit], { cwd: root })
   execFileSync(process.execPath, [

@@ -2,8 +2,8 @@
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-BUILDER="$ROOT/scripts/build-packages.mjs"
-CATALOG="$ROOT/packaging/packages.json"
+BUILDER="$ROOT/experiments/split-packaging/build-packages.mjs"
+CATALOG="$ROOT/experiments/split-packaging/packages.json"
 TMP="$(mktemp -d "${TMPDIR:-/tmp}/team-harness-package-test.XXXXXX")" || exit 1
 trap 'rm -rf "$TMP"' EXIT
 PASS=0
@@ -80,6 +80,7 @@ if [ -f "$BUILDER" ]; then pass "builder stub 존재"; else fail "builder 누락
 if [ -f "$CATALOG" ]; then pass "package catalog 존재"; else fail "package catalog 누락"; fi
 
 expect_ok "실제 source catalog 완전성" node "$BUILDER" --catalog "$CATALOG" --check
+expect_ok "기존 builder CLI 호환" node "$ROOT/scripts/build-packages.mjs" --check
 
 for operation in duplicate missing reverse-dependency adapter-dependency traversal invalid-version invalid-leading-zero invalid-prerelease missing-source; do
   mutated="$TMP/$operation.json"

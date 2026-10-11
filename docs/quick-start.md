@@ -21,54 +21,14 @@ gates without repeating that workflow. Native execution remains available withou
 - macOS or Linux; see the [support matrix](support.md) before production adoption
 - Claude Code or Codex only if you want the optional agent adapters
 
-## Verify the checkout
+## Install and verify
 
-```bash
-git clone https://github.com/grinvi04/team-harness.git
-cd team-harness
-node scripts/build-packages.mjs --check
-bash tests/package-build-test.sh
-```
+Follow [onboarding](onboarding.md) for the current public `harness-guard` plugin installation and its checks.
+Keep branch protection and required CI as the final enforcement layer.
 
-The current split packages are staged artifacts, not marketplace products. Their metadata deliberately remains
-`installable:false`; do not publish or install them as independent marketplace plugins.
-
-## Try a filesystem profile
-
-Use an empty, disposable directory. This does not change your user plugin cache or global configuration.
-
-```bash
-node scripts/manage-profile.mjs install \
-  --profile agent-governed \
-  --runtime codex \
-  --target /tmp/team-harness-profile
-node scripts/profile-doctor.mjs --target /tmp/team-harness-profile
-```
-
-Available profiles are `repository-only`, `agent-governed`, and `workflow-assisted`. The latter two require a runtime
-selection of `claude` or `codex`.
-
-To remove only an optional unit, use `remove --unit <unit-id>`. To remove the managed profile completely:
-
-```bash
-node scripts/manage-profile.mjs remove --target /tmp/team-harness-profile --all
-```
-
-For a real repository rollout, follow [`onboarding.md`](onboarding.md). Keep branch protection and required CI as the
-final enforcement layer; local hooks are defense in depth, not the security boundary.
-
-To validate coexistence with other unpacked plugins without executing their hooks or changing a user cache:
-
-```bash
-node scripts/check-plugin-coexistence.mjs \
-  --profile /tmp/team-harness-profile \
-  --plugins /path/to/external-plugin-directory \
-  --json
-```
-
-Each direct child of `--plugins` must contain matching Claude and Codex plugin manifests. Repeated skill names are
-reported with `plugin:skill` identities. Hook matcher overlaps are reported as `delegated`; the tool does not invent a
-platform execution order or choose a winner.
+Split packages, `profile-doctor.mjs`, and disposable filesystem profiles are an optional [packaging experiment](../experiments/split-packaging/README.md).
+They remain `installable: false` and are not public marketplace products. Their staged version is independent
+of the current monolith release.
 
 ## Build a release candidate bundle
 
