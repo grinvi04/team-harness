@@ -10,7 +10,16 @@ if [ -e "$ROOT/.github/workflows/commitlint.yml" ]; then
   exit 1
 fi
 cmp "$ROOT/.github/workflows/commitlint-trusted.yml" "$ROOT/templates/ci/commitlint.yml"
-grep -Fq 'STACK_CHECKS+=("test-guard" "commitlint-trusted"' "$ROOT/scripts/new-repo.sh"
+ROOT="$ROOT" node --input-type=module -e '
+  const { selectStack } = await import(process.env.ROOT + "/scripts/stack-catalog.mjs");
+  for (let id = 1; id <= 8; id++) {
+    const checks = selectStack(String(id)).checks;
+    for (const required of ["test-guard", "commitlint-trusted"]) {
+      if (!checks.includes(required)) throw new Error(`stack ${id}: missing ${required}`);
+    }
+  }
+  console.log("PASS: all 8 stack selections retain trusted commitlint and test-guard requirements");'
+# The actual setup-to-protection handoff is exercised in new-repo-test.sh.
 
 # Parse the workflow contract, then execute its actual shell against local Git objects.
 ruby -ryaml -e '

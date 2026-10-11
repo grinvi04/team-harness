@@ -78,6 +78,8 @@ jobs:
           bash -n tests/solo-merge-test.sh
           bash -n tests/hotfix-tag-test.sh
           bash -n tests/new-repo-test.sh
+          bash -n tests/repository-config-test.sh
+          bash -n tests/stack-templates-test.sh
           bash -n tests/alembic-heads-test.sh
           bash -n tests/alembic-destructive-ddl-test.sh
           bash -n tests/activerecord-destructive-ddl-test.sh
@@ -159,7 +161,7 @@ jobs:
       - name: JSON 유효성 검사
         run: |
           python3 - <<'EOF'
-          import json, glob
+          import json
           paths = [
               "plugins/harness-guard/.claude-plugin/plugin.json",
               "plugins/harness-guard/.codex-plugin/plugin.json",
