@@ -36,6 +36,17 @@ gitleaks git --no-banner --redact=100 --log-opts="--all" \
 공개 프로젝트명과 공개 프로필 이메일은 식별정보이지만 비공개 정보는 아니다. 이를 자동 삭제하면 결정의 근거와
 실제 소비 관계를 훼손하므로 공개 여부를 원본에서 확인한 뒤 수용했다.
 
+## 2026-10-11 추가 자산
+
+현재 자산 목록은 기존 PNG 2개와 docs/diagrams/team-harness.svg다. 과거 감사 결과와 창작 과정의 한계는 유지한다.
+새 SVG는 [공식 Archify](https://github.com/tt-a1i/archify) 3.0.1의
+commit 58ab0b98d2d0def8e49dced705c7b566936723ec으로 생성한 HTML에서 정적으로 추출했다.
+[원본 JSON·재생성·변경 방식](harness-architecture.md#html-보기와-재생성)을 연결하고,
+[MIT](diagrams/ARCHIFY-LICENSE.txt)와 포함 폰트의 [OFL](diagrams/JetBrainsMono-OFL.txt) 고지를 보존한다.
+SVG는 밝은 테마와 확대 글자를 사용한다. HTML·JSON·SVG·추출기·출처를 같은 PR에서 관리한다.
+정확한 배포 자산 집합 검사는 새 SVG를 포함하도록 갱신하며, 미등록 자산 탐지는 계속 유지한다.
+이번 자산 점검은 과거의 전체 Git 히스토리 감사나 원격 공개 여부를 재실행한 증거가 아니다.
+
 ## 조치 사항
 
 - 현재 문서의 구체적 사용자 홈 절대경로 4곳을 `$HOME` 또는 `~` 기반 표기로 교체했다.
