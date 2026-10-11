@@ -192,7 +192,8 @@ native loader59단계는 이전한 repo-sync 경로 안내의 옛 fixture digest
 변경 범위를 확인하고 해당 지문만 갱신했다. 원문 일치와 임의 변조 거부를 다시 확인했다.
 최초 실패·교정·전체 실행 원문은 작업공간 `.runtime/structure-cleanup/`에 보존한다.
 
-최종 전체 quality와 교정 후 독립 검토는 진행 중이다. 통과 전 완료로 판정하지 않는다.
+전체 quality73/73은 후보 `84191ecb4d58b6f1359ec4bc89b766199f387070`에서 통과했다.
+교정 후 독립 검토는 진행 중이다. 판정 전 완료로 보고하지 않는다.
 quality는 macOS 로컬 재현이며 checkout·Ubuntu apt·pipx 설치만 현재 작업공간·rg·격리 ruff0.15.15로 대체한다.
 실제 소비 앱 Gradle/npm/browser·원격 CI·발행·설치·Claude 인증/실모델은 미실행이다.
 fixture 명령 경계·로컬 회귀와 실제 소비 실행·전달 결과를 구분한다.
