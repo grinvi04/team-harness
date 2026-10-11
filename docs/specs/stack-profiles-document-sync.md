@@ -150,6 +150,14 @@
     {
       "path": "docs/specs/local-spring-vue-setup.md",
       "reason": "기존 구조/로컬 셋업 명세의 Spring Boot 현재 경로 연결"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "reason": "소스 후보0.91.0 재현 인덱스"
+    },
+    {
+      "path": "docs/changelog/2026/v0.91.0.md",
+      "reason": "실제 구현 커밋의 후보 변경 이력"
     }
   ],
   "items": []
