@@ -1,5 +1,6 @@
 # AI 워크플로 표준화 스펙
-
+\n라우팅 범위의 후속 변경(2026-10-11)은 [현재 수정 계약](workflow-routing-scope.md)을 따른다.
+아래 구현·검증 기록은 당시 후보의 결과로 보존한다.\n
 > 구현 당시 범위·수치의 기록이다. 2026-09-20 개발 조정 통합으로 현재 skill은 17개(core 9, workflow 8)이며 현행 범위는 [통합 명세](agent-orchestration-integration.md)와 [제품 경계](../product-boundaries.md)를 따른다. 당시 실행 증거와 수용 기록은 변경하지 않는다.
 
 ## 1. 목표 & Why

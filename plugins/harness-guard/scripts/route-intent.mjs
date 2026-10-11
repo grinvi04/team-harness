@@ -15,28 +15,17 @@ import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
 
-// ── 액션어블 판정 ─────────────────────────────────────────────────────────────
-// 조회·분석·질문 신호: 있으면 actionable 아님(오버트리거 방지 — "확인해줘"·"진행상황 알려줘" 등).
-const NON_ACTIONABLE = [
-  '?', '？', '뭐', '뭔', '무엇', '어때', '어떻게', '왜', '언제', '어디', '누가',
-  '보여', '알려', '확인', '요약', '설명', '복사', '공유', '검토', '분석', '상황', '비교',
-  '말고', '말아', // 부정문 — "배포하지 말고"·"머지하지 말아"는 실행 지시 아님 (F6)
-]
-// 알려진 한계(decisions #46): '해줘' 같은 generic 접미사는 비-하네스 동사와 붙어("정리해줘")
-// 오탐 가능 — 키워드 substring은 근본적으로 부정확. veto로 흔한 경우만 거르고,
-// 정밀 라우팅은 상태 신호(branch·PR·spec)에 의존한다. 키워드 확장 금지(두더지잡기).
-// 명확한 실행 지시(한국어 + 최소 영어). substring 매칭이되 위 veto가 먼저 걸러낸다.
-const ACTIONABLE = [
-  '진행해', '진행시', '머지', '배포', '릴리즈', '올려줘', '커밋해', '푸시해',
-  '고고', 'ㄱㄱ', '계속해', '해줘', 'go ahead', 'merge it', 'proceed', 'ship it',
-]
+// 일반·복합 요청의 의미는 native agent가 판단한다. 짧은 명시 요청에만 상태 후보를 연결한다.
+function requestedPhase(prompt) {
+  if (typeof prompt !== 'string') return null
+  const p = prompt.trim().toLowerCase()
+  if (/^(?:머지해(?:줘)?|머지해 주세요|merge it)[.!]?$/.test(p)) return 'integrate'
+  if (/^(?:구현해(?:줘)?|구현해 주세요|implement it)[.!]?$/.test(p)) return 'implement'
+  return null
+}
 
 export function isActionable(prompt) {
-  const p = (prompt ?? '').trim().toLowerCase()
-  if (!p) return false
-  // veto 먼저 — 조회·분석·질문이면 실행 지시어가 섞여 있어도 actionable 아님
-  if (NON_ACTIONABLE.some(kw => p.includes(kw.toLowerCase()))) return false
-  return ACTIONABLE.some(kw => p.includes(kw.toLowerCase()))
+  return requestedPhase(prompt) !== null
 }
 
 // inject=true 결과 빌더 — 주입 메시지 형식의 단일 출처
@@ -49,24 +38,22 @@ function inject(skill) {
   }
 }
 
-const isFeatureBranch = (b) => b.startsWith('feature/') || b.startsWith('fix/')
+const isFeatureBranch = (b) => ['feature/', 'fix/', 'codex/'].some(prefix => b.startsWith(prefix))
 
 // ── 순수 코어 ─────────────────────────────────────────────────────────────────
 export function decide(state) {
   const { prompt, branch = '', committed, openPR, hasSpec, isSolo } = state
 
-  if (!isActionable(prompt)) return { inject: false }
+  const intent = requestedPhase(prompt)
+  if (intent === 'integrate') {
+    if (openPR) return inject(isSolo ? 'solo-merge' : 'pr-review-gate')
+    if (isFeatureBranch(branch) && committed) return inject('feature-merge')
+  }
+  if (intent === 'implement' && !openPR && hasSpec && ['main', 'develop'].includes(branch)) {
+    return inject('feature-add')
+  }
 
-  // 1. openPR 있음 → 머지 게이트 (최우선). 솔로 repo면 solo-merge.
-  if (openPR) return inject(isSolo ? 'solo-merge' : 'pr-review-gate')
-
-  // 2. feature/fix 브랜치 + 커밋됨 → feature-merge (PR 생성)
-  if (isFeatureBranch(branch) && committed) return inject('feature-merge')
-
-  // 3. spec 있고 아직 feature 브랜치 아님 → feature-add (개발 시작)
-  if (hasSpec && !isFeatureBranch(branch)) return inject('feature-add')
-
-  // 4. 판정 신호 없음 → 무주입
+  // 판정 근거가 부족하면 일반 요청을 막지 않고 후보만 생략한다.
   return { inject: false }
 }
 

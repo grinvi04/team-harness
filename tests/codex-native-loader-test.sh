@@ -155,7 +155,7 @@ echo 'PASS: native PreToolUse preserves benign commands and blocks destructive/e
 
 (
   cd "$TMP/repo"
-  printf '%s' '{"session_id":"native-route","cwd":"'"$TMP/repo"'","prompt":"진행해"}' \
+  printf '%s' '{"session_id":"native-route","cwd":"'"$TMP/repo"'","prompt":"구현해줘"}' \
     | PLUGIN_ROOT="$PLUGIN" PLUGIN_DATA="$TMP/plugin-data" bash -c "$PROMPT_COMMAND"
 ) >"$TMP/route.json"
 node - "$TMP/route.json" <<'NODE'
@@ -167,5 +167,13 @@ if (!context.includes('상태 기반 후보=feature-add') || !context.includes('
 }
 NODE
 echo 'PASS: native UserPromptSubmit exposes the feature-add routing context'
+
+(
+  cd "$TMP/repo"
+  printf '%s' '{"session_id":"native-route-generic","cwd":"'"$TMP/repo"'","prompt":"진행해"}' \
+    | PLUGIN_ROOT="$PLUGIN" PLUGIN_DATA="$TMP/plugin-data" bash -c "$PROMPT_COMMAND"
+) >"$TMP/route-generic.out"
+[[ ! -s "$TMP/route-generic.out" ]] || fail 'generic continuation must not infer a phase from old specs'
+echo 'PASS: native UserPromptSubmit leaves generic continuation to the current agent'
 
 bash "$ROOT/tests/claude-surface-isolation-test.sh"

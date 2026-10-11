@@ -41,33 +41,33 @@ echo "=== AC-1: 상태별 올바른 skill ==="
 # AC-1a: openPR 존재 + isSolo=false → pr-review-gate
 check_grep "AC-1a: openPR+notSolo → skill=pr-review-gate" \
   '"skill":"pr-review-gate"' \
-  --prompt "진행해" --branch "feature/x" --open-pr 5
+  --prompt "머지해" --branch "feature/x" --open-pr 5
 
 # AC-1b: openPR 존재 + isSolo=true → solo-merge
 check_grep "AC-1b: openPR+solo → skill=solo-merge" \
   '"skill":"solo-merge"' \
-  --prompt "진행해" --branch "feature/x" --open-pr 5 --solo
+  --prompt "머지해" --branch "feature/x" --open-pr 5 --solo
 
 # AC-1c: feature 브랜치 + committed + openPR 없음 → feature-merge
 check_grep "AC-1c: feature+committed+noPR → skill=feature-merge" \
   '"skill":"feature-merge"' \
-  --prompt "진행해" --branch "feature/x" --committed
+  --prompt "머지해" --branch "feature/x" --committed
 
 # AC-1d: hasSpec + develop(비-feature) 브랜치 → feature-add
 check_grep "AC-1d: hasSpec+develop → skill=feature-add" \
   '"skill":"feature-add"' \
-  --prompt "진행해" --branch "develop" --has-spec
+  --prompt "구현해줘" --branch "develop" --has-spec
 
 # ── AC-2: 액션어블 감지 (오버트리거 0) ────────────────────────────────────
 echo ""
 echo "=== AC-2: 액션어블 감지 (오버트리거 0) ==="
 
-# AC-2a: "진행해" + openPR → inject=true AND skill=pr-review-gate (복합 단언)
-out_2a=$(node "$SCRIPT" --explain --prompt "진행해" --branch "feature/x" --open-pr 5 2>/dev/null)
+# AC-2a: "머지해" + openPR → inject=true AND skill=pr-review-gate (복합 단언)
+out_2a=$(node "$SCRIPT" --explain --prompt "머지해" --branch "feature/x" --open-pr 5 2>/dev/null)
 if echo "$out_2a" | grep -q '"inject":true' && echo "$out_2a" | grep -q '"skill":"pr-review-gate"'; then
-  echo "PASS: AC-2a: 진행해 → inject=true+skill=pr-review-gate"; PASS=$((PASS+1))
+  echo "PASS: AC-2a: 머지해 → inject=true+skill=pr-review-gate"; PASS=$((PASS+1))
 else
-  echo "FAIL: AC-2a: 진행해 → inject=true+skill=pr-review-gate 없음 | 출력: $out_2a"; FAIL=$((FAIL+1))
+  echo "FAIL: AC-2a: 머지해 → inject=true+skill=pr-review-gate 없음 | 출력: $out_2a"; FAIL=$((FAIL+1))
 fi
 
 # AC-2a-contract: Codex에는 별도 Skill tool이 없다. SKILL.md 적용 + 사용자 가시성 계약이어야 한다.
@@ -82,13 +82,10 @@ else
   echo "FAIL: AC-2a-contract: 실행 불가능한 Skill tool 지시 또는 가시성 계약 누락 | 출력: $out_2a"; FAIL=$((FAIL+1))
 fi
 
-# AC-2b: "해줘" + openPR → inject=true AND skill=pr-review-gate
-out_2b=$(node "$SCRIPT" --explain --prompt "해줘" --branch "feature/x" --open-pr 5 2>/dev/null)
-if echo "$out_2b" | grep -q '"inject":true' && echo "$out_2b" | grep -q '"skill":"pr-review-gate"'; then
-  echo "PASS: AC-2b: 해줘 → inject=true+skill=pr-review-gate"; PASS=$((PASS+1))
-else
-  echo "FAIL: AC-2b: 해줘 → inject=true+skill=pr-review-gate 없음 | 출력: $out_2b"; FAIL=$((FAIL+1))
-fi
+# AC-2b: ambiguous request with an open PR must not infer integration
+check_grep "AC-2b: ambiguous request with openPR -> inject=false" \
+  '"inject":false' \
+  --prompt "해줘" --branch "feature/x" --open-pr 5
 
 # AC-2c: "머지해" + openPR → inject=true AND skill=pr-review-gate
 out_2c=$(node "$SCRIPT" --explain --prompt "머지해" --branch "feature/x" --open-pr 5 2>/dev/null)
@@ -151,7 +148,7 @@ echo "=== AC-3: 상태 불명확 → inject=false ==="
 # 아무 판정 신호 없음(main 브랜치, 액션어블 프롬프트지만 컨텍스트 없음) → inject=false
 check_no_grep "AC-3: 신호 없음(main+액션어블) → inject=false" \
   '"inject":true' \
-  --prompt "진행해" --branch "main"
+  --prompt "머지해" --branch "main"
 
 # ── AC-4: isSolo 라우팅 ──────────────────────────────────────────────────
 echo ""
@@ -160,12 +157,12 @@ echo "=== AC-4: isSolo 라우팅 ==="
 # AC-4a: isSolo=true + openPR → solo-merge
 check_grep "AC-4a: isSolo=true+openPR → skill=solo-merge" \
   '"skill":"solo-merge"' \
-  --prompt "진행해" --branch "feature/x" --open-pr 3 --solo
+  --prompt "머지해" --branch "feature/x" --open-pr 3 --solo
 
 # AC-4b: isSolo=false(기본) + openPR → pr-review-gate
 check_grep "AC-4b: isSolo=false+openPR → skill=pr-review-gate" \
   '"skill":"pr-review-gate"' \
-  --prompt "진행해" --branch "feature/x" --open-pr 3
+  --prompt "머지해" --branch "feature/x" --open-pr 3
 
 # ── AC-5: fail-open (라이브 모드) ─────────────────────────────────────────
 echo ""
@@ -222,6 +219,13 @@ cbr() { # desc, hasDevelop(1/0), originHead, want
 cbr "origin/develop 있으면 develop 우선(origin/main 아님)" 1 origin/main origin/develop
 cbr "develop 없으면 origin/HEAD 사용"                       0 origin/main origin/main
 cbr "develop 없고 HEAD 불명이면 origin/main 폴백"           0 ""          origin/main
+
+# Explicit request scope regressions are part of the same local/CI gate.
+if node --test "$ROOT/tests/route-intent-scope.test.mjs"; then
+  PASS=$((PASS+1))
+else
+  FAIL=$((FAIL+1))
+fi
 
 # ── 결과 ──────────────────────────────────────────────────────────────────
 echo ""
