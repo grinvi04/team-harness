@@ -76,8 +76,10 @@ Claude 인증 갱신·실제 모델 호출도 보류한다. 기본 작업 폴더
   잘못된 역할·경로 탈출·같은 경로·기존 파일 보존과 필수 검사를 확인했다.
 - 소개 HTML의 현재 reader는 아키텍처 안내로, 실제17스킬 목록 검사는 플러그인 Markdown 안내로 이전했다.
 - 역사773파일은 사용자 변경이 없는 Git 추적 파일만 삭제했다. 원문 고정 커밋과 복구 명령을 연결했다.
-- 전체 검사·별도 읽기 전용 보안 검토·현재 PR CI: 미완료.
-- PR528 병합·main 태그/GitHub 발행·develop 역병합·공식 설치: 미완료. 실제 설치는 아직0.87.0이다.
+- 최종 후보85ad820: GitHub quality72단계·필수 CI5개와 별도 Astra/medium 읽기 전용 검토 PASS_SCOPED.
+  실제 실행 metadata readOnly/networkAccess:false를 확인했다. 셋업39·Alembic16·스킬51·문서296파일도 통과했다.
+- PR528은 develop에 병합했다(d430d00). 병합 tree는 검토·CI 후보와 동일하다.
+  원격 작업 branch는 삭제됐고 사용 중인 로컬 branch는 보존했다. main 태그·발행·설치는 아래 체크포인트를 따른다.
 - 독립 검토 d1c90f5: Python 조합의 Alembic 루트 self-skip과 Spring·프론트 보조 파일 누락2건으로 NO-GO.
   전체 검사는29단계 통과 시 중단했다. 당시 성공을 수정 후보의 전체 성공으로 옮기지 않는다.
   실제 셋업 보조 파일 시험24 PASS/12 FAIL과 조합 Alembic의 다중 head 오통과를 재현했다.
@@ -93,3 +95,14 @@ Claude 인증 갱신·실제 모델 호출도 보류한다. 기본 작업 폴더
 실험/역사 이동의 실제 직접 reader와 안내를 함께 갱신한다.
 버전 준비는 두 plugin manifest·README 배지·CHANGELOG를 맞추며 발행 상태와 구분한다.
 프로젝트 지도는 기본 작업 폴더 `.project-map/`의 기존 스타일·기록을 보존해 갱신한다.
+
+## 0.88.0 릴리즈 준비 체크포인트
+
+이 절은 main PR 생성 전 확인한 상태다. 이후 단계의 실제 결과는 release PR과 역병합 PR을 따른다.
+- 소스 버전: 두 manifest·README0.88.0, CHANGELOG 재현 확인. 공개 설치 단위는 기존 harness-guard 하나다.
+- 사전 검증: 코드 후보85ad820의 필수5CI·전체 quality·독립 보안 검토 통과. develop 병합 tree 동일.
+- 외부 provenance: 실제 GitHub 원문7개 확인. 사전 bundle82개 checksum 확인; 발행 묶음은 태그 SHA에서 다시 만든다.
+- DB·서버: Harness 자체 runtime DB·마이그레이션·배포 서버가 없어 실제 적용/health는 SKIP.
+  SQL·Alembic·ActiveRecord·Flyway 템플릿과 거부/경계 시험은 quality에 포함했다.
+- main PR·태그·GitHub 발행·Codex/Claude 공식 설치·develop 역병합은 이 체크포인트에서 미실행이다.
+- 사용자 branch·다른 worktree를 보존하고 Claude 인증·실제 모델 검증 및 소비 원격·배포·결제는 제외한다.
