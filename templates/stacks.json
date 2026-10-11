@@ -110,7 +110,7 @@
     },
     {
       "id": 3,
-      "label": "Python            — FastAPI / Django (+ PostgreSQL + Redis)",
+      "label": "Python            — Django / FastAPI / Flask 개별 프로필",
       "template": "ci-gate-python.yml",
       "checks": [
         "quality",
@@ -154,7 +154,9 @@
           ],
           "defaultUi": "templates",
           "steps": "templates/stacks/python/frameworks/django/ci/steps.yml",
-          "rules": [],
+          "rules": [
+            "django"
+          ],
           "versionComponents": {
             "django": {
               "ecosystem": "pypi",
@@ -169,7 +171,9 @@
           ],
           "defaultUi": "api",
           "steps": "templates/stacks/python/frameworks/fastapi/ci/steps.yml",
-          "rules": [],
+          "rules": [
+            "fastapi"
+          ],
           "versionComponents": {
             "fastapi": {
               "ecosystem": "pypi",
@@ -185,7 +189,9 @@
           ],
           "defaultUi": "templates",
           "steps": "templates/stacks/python/frameworks/flask/ci/steps.yml",
-          "rules": [],
+          "rules": [
+            "flask"
+          ],
           "versionComponents": {
             "flask": {
               "ecosystem": "pypi",
@@ -204,7 +210,7 @@
     },
     {
       "id": 4,
-      "label": "Rails 8           — 소팀 MVP · Hotwire 풀스택",
+      "label": "Rails             — Hotwire / Inertia / API 개별 선택",
       "template": "ci-gate-rails.yml",
       "checks": [
         "quality",
@@ -239,7 +245,9 @@
       "uiProfiles": {
         "hotwire": {
           "steps": "templates/stacks/rails/ui/hotwire/ci/steps.yml",
-          "rules": [],
+          "rules": [
+            "rails-hotwire"
+          ],
           "versionComponents": {
             "turbo-rails": {
               "ecosystem": "gem",
@@ -255,7 +263,11 @@
         },
         "inertia-react": {
           "steps": "templates/stacks/rails/ui/inertia-react/ci/steps.yml",
-          "rules": [],
+          "rules": [
+            "typescript",
+            "react",
+            "rails-inertia-react"
+          ],
           "versionComponents": {
             "inertia-rails": {
               "ecosystem": "gem",
@@ -285,7 +297,11 @@
         },
         "inertia-vue": {
           "steps": "templates/stacks/rails/ui/inertia-vue/ci/steps.yml",
-          "rules": [],
+          "rules": [
+            "typescript",
+            "vue",
+            "rails-inertia-vue"
+          ],
           "versionComponents": {
             "inertia-rails": {
               "ecosystem": "gem",
@@ -310,7 +326,9 @@
         },
         "api": {
           "steps": "templates/stacks/rails/ui/api/ci/steps.yml",
-          "rules": [],
+          "rules": [
+            "rails-api"
+          ],
           "versionComponents": {}
         }
       },
@@ -336,6 +354,7 @@
       ],
       "rules": [
         "typescript",
+        "react",
         "nextjs"
       ],
       "backend": {
@@ -450,7 +469,8 @@
         "secret-scan"
       ],
       "rules": [
-        "typescript"
+        "typescript",
+        "react"
       ],
       "backend": {
         "preset": null
@@ -510,7 +530,8 @@
       ],
       "rules": [
         "typescript",
-        "vue"
+        "vue",
+        "nuxt"
       ],
       "backend": {
         "preset": null
@@ -561,6 +582,15 @@
     "ruby": "templates/stacks/rails/rules/ruby.md",
     "nextjs": "templates/stacks/nextjs/rules/nextjs.md",
     "vue": "templates/stacks/vue/rules/vue.md",
-    "prisma": "templates/stacks/node/rules/prisma.md"
+    "prisma": "templates/stacks/node/rules/prisma.md",
+    "react": "templates/stacks/react/rules/react.md",
+    "nuxt": "templates/stacks/nuxt/rules/nuxt.md",
+    "django": "templates/stacks/python/frameworks/django/rules/django.md",
+    "fastapi": "templates/stacks/python/frameworks/fastapi/rules/fastapi.md",
+    "flask": "templates/stacks/python/frameworks/flask/rules/flask.md",
+    "rails-hotwire": "templates/stacks/rails/ui/hotwire/rules/hotwire.md",
+    "rails-inertia-react": "templates/stacks/rails/ui/inertia-react/rules/inertia-react.md",
+    "rails-inertia-vue": "templates/stacks/rails/ui/inertia-vue/rules/inertia-vue.md",
+    "rails-api": "templates/stacks/rails/ui/api/rules/api.md"
   }
 }

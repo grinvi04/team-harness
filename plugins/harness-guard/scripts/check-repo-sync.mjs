@@ -224,7 +224,12 @@ try {
   profiles=(record.selection?.projects || []).map(p=>p.framework ? `${p.framework}:${p.ui}` : p.ui ? `${p.stackKey}:${p.ui}` : p.stackKey);
 } catch(e){if(e.code!=='ENOENT'){recordPresent=true;versionIssues=[{code:'INVALID_VERSION_RECORD',action:'Preserve the existing record; resolve input/schema/tooling failures before applying.'}];}}
 if(!profiles.length){if(isNuxt)profiles.push('nuxt');else if(isReact && !hasNext)profiles.push('react');if(hasNext)profiles.push('nextjs');if(hasVue && !isNuxt)profiles.push('vue');}
-const selectedRules=recordSelection?.rules || [];
+const selectedRules=[...(recordSelection?.rules || [])];
+for(const project of recordSelection?.projects || []){
+  const stack=catalog?.stacks?.find(s=>s.key===project.stackKey), profile=project.framework?stack?.frameworks?.[project.framework]:project.ui?stack?.uiProfiles?.[project.ui]:null;
+  for(const rule of [...(stack?.rules || []),...(profile?.rules || [])])if(rule!=='alembic' || !profile)selectedRules.push(rule);
+}
+
 
 // ── 워크플로 내용 수집 (sentinel 매칭용) ──────────────────
 const wfFiles = files.filter((f) => /^\.github\/workflows\/[^/]+\.ya?ml$/.test(f.rel))

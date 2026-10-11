@@ -70,3 +70,6 @@ Playwright Test를 유지하며 Stagehand v4로 자동 교체하지 않는다.
 [도구 선택 근거](decisions.md#브라우저-자동화-도구-선택-2026-09-22)를 따른다.
 기존 조합의 당시 결과는 [원래 명세](specs/local-spring-vue-setup.md), 이번 변경 범위는
 [후속 구조 정리](specs/structure-cleanup.md), 제품 우선순위는 [로드맵](product-direction.md)에서 확인한다.
+
+스택 버전 미리보기·기록과 GitHub 셋업은 [별도 버전 안내](stack-versions.md)를 따른다.
+이 로컬 실행 연결과 버전 metadata 검사를 같은 검증 결과로 합치지 않는다. `spring` 입력은 호환 별칭이다.

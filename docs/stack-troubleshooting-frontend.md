@@ -53,3 +53,11 @@ Vue 3.5+의 `defineProps` 구조분해는 컴파일러가 반응성을 유지하
 앱 셸·차트·검색·테마·상태관리 라이브러리는 제품에 필요할 때만 추가한다.
 키보드·초점·로딩·실패·빈 상태는 [디자인 표준](frontend-design-standards.md#8-검증-pr-전-프레임워크-무관)의 범위로 확인한다.
 정적 lint와 한 화면의 표본만으로 모든 사용자·브라우저의 품질을 보장하지 않는다.
+
+## 새 프로필의 재발 검사
+
+React+Vite에서는 서버 응답과 편집 중인 폼을 구분해 늦은 재조회·중복 제출·취소를 시험한다.
+Nuxt에서는 useFetch/useAsyncData 키와 payload, SSR 요청 격리, 다른 사용자 동시 요청을 확인한다.
+[Nuxt4 데이터 조회](https://nuxt.com/docs/4.x/getting-started/data-fetching)를 설치 major와 대조한다.
+Rails Hotwire는 뒤로가기·Turbo 재방문·Stimulus 재연결, Inertia는 props 최소화·폼 오류·부분 reload를 검사한다.
+개별 rule의 조건·비용·단순 대안부터 적용한다. 이 안내 자체는 소비 화면 실행 증거가 아니다.

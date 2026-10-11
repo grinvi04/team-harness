@@ -1,5 +1,7 @@
 # 로컬 Spring Boot+Vue 검사 시작 구성
 
+이 문서는 당시 설계를 보존한다. 현재 Spring Boot 명칭·경로와 개별/조합 명령은 [현재 안내](../local-development.md)를 따른다.
+
 이 문서는 당시 구현의 범위·경로를 보존한다. 현재 원문 위치·명령은
 [구조 안내](../repository-structure.md)와 [후속 스펙](structure-cleanup.md)을 따른다.
 

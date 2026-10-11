@@ -86,6 +86,9 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 | 에이전트 | Claude 역할별 agent + Codex native agent 실행 위임 |
 | 테스트 | Bash 통합 테스트 (`tests/route-intent-test.sh`) |
 
+기존 앱의 React+Vite·Nuxt·Python 프레임워크·Rails UI와 [버전 확인·기록·CI 연결](docs/stack-versions.md)을 지원한다.
+최신 기본 제안은 호환 안정 버전이며 미확인·충돌에서는 적용을 중단한다. 실제 앱 검증은 별도다.
+
 ## 🏗️ 아키텍처
 
 ![Team Harness: 플랫폼 실행 → 로컬 가드·Git 훅 → PR 생성 → 현재 후보의 검증·CI·리뷰 → 병합 래퍼 → GitHub 브랜치 보호](docs/diagrams/team-harness.svg)
@@ -152,7 +155,7 @@ team-harness/
 | [product-boundaries.md](docs/product-boundaries.md) | governance core · runtime adapter · 선택 workflow의 설치·운영 경계 |
 | [developer-workflow.md](docs/developer-workflow.md) | 개발자의 일상 작업 가이드 — 기능·수정·머지·hotfix·release 흐름과 막혔을 때의 다음 행동 |
 | [onboarding.md](docs/onboarding.md) | 신규 프로젝트 셋업 · 팀원 온보딩 · managed settings 로컬 시뮬레이션 |
-| [stack-guide.md](docs/stack-guide.md) | 기술 스택 선택 가이드 (SCM·ERP·업무 자동화 기준) |
+| [stack-guide.md](docs/stack-guide.md) | 기술 스택·프레임워크·화면 방식 선택과 조건부 실무 기준 |
 | [architecture-infra.md](docs/architecture-infra.md) | 레포 전략 · 모듈러 모놀리스→미니서비스 · GitOps · 인프라 |
 | [clean-architecture.md](docs/clean-architecture.md) | 1차 경계=도메인 모듈, 2차 경계=내부 계층 |
 | [api-standards.md](docs/api-standards.md) | 공통 Envelope · 에러코드 체계 · 페이지네이션 |

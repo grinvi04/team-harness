@@ -9,8 +9,34 @@ const exact = value => typeof value === 'string' && /^v?\d+(?:\.\d+){0,3}(?:[-+]
 const safeNpmRange = value => typeof value === 'string' && /^[A-Za-z0-9*^~<>=|.,+! -]+$/.test(value) ? value : 'unsupported declaration';
 const canonicalPython = name => name.toLowerCase().replace(/[-_.]+/g, '-');
 
+function literalGradleEvidence(build) {
+  // A bounded lexical reader, not a Gradle evaluator. Only direct named DSL blocks are supported.
+  const evidence={boot:[],java:[],vendor:null};
+  if(build.includes('"""') || build.includes("'".repeat(3)))return evidence;
+  const tokens=[...build.matchAll(/\/\*[\s\S]*?\*\/|\/\/[^\n]*|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"|[A-Za-z_][A-Za-z0-9_]*|\d+|[^\s]/g)]
+    .map(m=>m[0]).filter(t=>!t.startsWith('//') && !t.startsWith('/*'));
+  const scopes=[];
+  const literal=t=>t && (t[0]==='"' || t[0]==="'") ? t.slice(1,-1):null;
+  for(let i=0;i<tokens.length;i++) {
+    if(tokens[i]==='{'){scopes.push(tokens[i-1]);continue;}
+    if(tokens[i]==='}'){scopes.pop();continue;}
+    if(scopes.length===1 && scopes[0]==='plugins' && tokens[i]==='id'){
+      let k=i+1;if(tokens[k]==='(')k++;if(literal(tokens[k])!=='org.springframework.boot')continue;k++;if(tokens[k]===')')k++;
+      if(tokens[k++]!=='version'){evidence.boot.push('unresolved');continue;}if(tokens[k]==='(')k++;
+      evidence.boot.push(literal(tokens[k]) || 'unresolved');
+    }
+    if(scopes.length===2 && scopes[0]==='java' && scopes[1]==='toolchain'){
+      if(tokens.slice(i,i+4).join('')==='JavaLanguageVersion.of(')evidence.java.push(/^\d+$/.test(tokens[i+4]) && tokens[i+5]===')'?tokens[i+4]:'unresolved');
+      if(tokens.slice(i,i+3).join('')==='JvmVendorSpec.ADOPTIUM')evidence.vendor='adoptium';
+    }
+  }
+  if(evidence.boot.length>1)evidence.boot=['unresolved'];
+  if(evidence.java.length>1)evidence.java=['unresolved'];
+  return evidence;
+}
+
 export function inspectStackProjects(projectRoot, selected) {
-  const root = resolve(projectRoot), result = { selection: selected, observed: {}, inputs: [], issues: [], requirements: [], packages: {} };
+  const root = resolve(projectRoot), result = { selection: selected, observed: {}, inputs: [], issues: [], requirements: [], packages: {}, tooling: {} };
   const issue = (code, target, action) => result.issues.push({ code, target, action });
   function safePath(path, allowMissing = false) {
     const rel = relative(root, path);
@@ -72,6 +98,7 @@ export function inspectStackProjects(projectRoot, selected) {
     if (alternate.length) issue('UNSUPPORTED_LOCK', project.role, 'This inspector supports package-lock.json v2/v3 only; do not convert the application lockfile automatically.');
     if (lock && (![2, 3].includes(lock.lockfileVersion) || !lock.packages || typeof lock.packages !== 'object')) issue('UNSUPPORTED_LOCK', project.role, 'Use a supported npm lock v2/v3 with the root package declaration.');
     const deps = { ...pkg?.dependencies, ...pkg?.devDependencies, ...pkg?.optionalDependencies };
+    result.tooling[project.role]={...result.tooling[project.role],scripts:Object.keys(pkg?.scripts || {}).filter(k=>typeof pkg.scripts[k]==='string' && pkg.scripts[k].trim())};
     if (pkg && ['dependencies', 'devDependencies', 'optionalDependencies'].some(key => pkg[key] && (typeof pkg[key] !== 'object' || Array.isArray(pkg[key])))) issue('INVALID_MANIFEST', project.role, 'Dependency maps must contain static package ranges.');
     if (usesNpm && !lock) issue('MISSING_LOCK', project.role, 'Resolve dependencies outside this read-only command and provide the npm lockfile.');
     if (project.stackKey === 'node') {
@@ -146,6 +173,7 @@ export function inspectStackProjects(projectRoot, selected) {
       if (match) { const name = canonicalPython(match[1]); byName.set(name, [...(byName.get(name) ?? []), match[2]]); }
       else issue('INVALID_MANIFEST', project.role, 'Use static PEP508 dependency declarations.');
     }
+    result.tooling[project.role]={dependencies:[...byName.keys()]};
     const frameworks = ['django', 'fastapi', 'flask'].filter(name => byName.has(name));
     if (!project.framework && frameworks.length > 1) issue('AMBIGUOUS_FRAMEWORK', project.role, 'Select --framework django, fastapi or flask explicitly.');
     if (!project.framework && frameworks.length === 1) components[frameworks[0]] = { ecosystem: 'pypi', packageName: frameworks[0], required: true };
@@ -186,6 +214,7 @@ export function inspectStackProjects(projectRoot, selected) {
       if (!match) issue('DYNAMIC_DECLARATION', project.role, 'Only literal Gemfile names/ranges are inspected; Ruby is never evaluated.');
       else declarations.set(match[1], match[2] ?? '>= 0');
     }
+    result.tooling[project.role]={dependencies:[...declarations.keys()].filter(name=>gems.has(name))};
     const uiEvidence = [declarations.has('turbo-rails') || declarations.has('stimulus-rails') ? 'hotwire' : null, declarations.has('inertia_rails') ? 'inertia' : null].filter(Boolean);
     if (!project.ui && uiEvidence.length > 1) issue('AMBIGUOUS_UI', project.role, 'Select --ui hotwire, inertia-react, inertia-vue or api explicitly.');
     if (!project.ui && uiEvidence.length === 1) issue('UI_SELECTION_REQUIRED', project.role, 'Select the UI scope explicitly so the matching CI/rules can be generated.');
@@ -227,12 +256,10 @@ export function inspectStackProjects(projectRoot, selected) {
     const builds = ['build.gradle', 'build.gradle.kts'].map(path => read(project, path)).filter(v => v !== null);
     if (read(project, 'pom.xml') !== null) issue('UNSUPPORTED_BUILD_TOOL', project.role, 'The existing supported build tool is Gradle; do not convert Maven automatically.');
     if (builds.length !== 1) issue('UNRESOLVED_BUILD', project.role, 'Provide one supported Gradle build declaration.');
-    const build = builds.join('\n'), boot = build.match(/\bid\s*(?:\(\s*)?['"]org\.springframework\.boot['"]\s*\)?\s+version\s*(?:\(\s*)?['"]([0-9][A-Za-z0-9.+-]*)['"]\s*\)?/);
-    if (!boot && /org\.springframework\.boot/.test(build)) issue('DYNAMIC_DECLARATION', `${project.role}.spring-boot`, 'Use a literal Boot plugin version or verify dynamic Gradle logic separately.');
-    observe(project, 'spring-boot', components['spring-boot'], [boot?.[1] ?? (build ? 'unresolved' : null)]);
-    const java = build.match(/JavaLanguageVersion\.of\(\s*(\d+)\s*\)/)?.[1];
-    const vendor=build.match(/JvmVendorSpec\.ADOPTIUM\b/) ? 'adoptium' : null;
-    observe(project, 'java', { ...components.java, versionScope:'feature', ...(vendor ? {vendor} : {}) }, [java ?? (build ? 'unresolved' : null)]);
+    const build=builds.join('\n'), evidence=literalGradleEvidence(build);
+    if((!evidence.boot.length || evidence.boot.includes('unresolved')) && /org\.springframework\.boot/.test(build))issue('DYNAMIC_DECLARATION',`${project.role}.spring-boot`,'Only a literal version inside the direct plugins block is supported.');
+    observe(project,'spring-boot',components['spring-boot'],evidence.boot.length?evidence.boot:[build?'unresolved':null]);
+    observe(project,'java',{...components.java,versionScope:'feature',...(evidence.vendor?{vendor:evidence.vendor}:{})},evidence.java.length?evidence.java:[build?'unresolved':null]);
     const wrapper = read(project, 'gradle/wrapper/gradle-wrapper.properties');
     const gradle = wrapper?.match(/^distributionUrl=.*\/gradle-(\d+(?:\.\d+){1,2})-(?:bin|all)\.zip\s*$/m)?.[1];
     observe(project, 'gradle', components.gradle, [gradle ?? (wrapper ? 'unresolved' : null)]);

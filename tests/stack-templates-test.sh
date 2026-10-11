@@ -29,7 +29,7 @@ const defaults = [
   ['spring-boot', ['java', 'flyway'], 'flyway'],
   ['python', ['python', 'alembic'], 'alembic'],
   ['rails', ['ruby'], null],
-  ['nextjs', ['typescript', 'nextjs'], null],
+  ['nextjs', ['typescript', 'react', 'nextjs'], null],
   ['vue', ['typescript', 'vue'], null],
 ];
 let passed = 0;
@@ -121,7 +121,7 @@ try {
     assert.deepEqual(selected.checks, checks);
     assert.equal(selected.database.tool, database);
   }
-  pass('6 standalone selections retain rules/checks/DB without stored fullstack templates');
+  pass('6 standalone selections retain checks/DB with the approved shared React rule without stored fullstack templates');
   for (const backend of [1, 2, 3, 4]) {
     for (const frontend of [1, 5, 6]) {
       const selection = `${backend}+${frontend}`;
@@ -203,3 +203,5 @@ try {
   rmSync(fixture, { recursive: true, force: true });
 }
 JS
+
+node --test "$ROOT/tests/stack-rules-test.mjs"

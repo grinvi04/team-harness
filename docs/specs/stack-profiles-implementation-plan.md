@@ -139,7 +139,7 @@ repo-sync의 실제 구현은 plugin 안에 있다. 루트 `scripts/check-repo-s
 - [x] `setup_profile_and_prewrite_refusal`·`sync_profile_and_drift` 시험을 기존 shell 시험에 추가한다.
 ```js
 assert.equal(rejectedSetup.ghWrites, 0); assert.deepEqual(rejectedSetup.filesAfter, rejectedSetup.filesBefore);
-assert.ok(syncNuxt.rules.includes('vue')); assert.ok(syncDjango.rules.includes('python')); // Django guidance shares this canonical rule
+assert.ok(syncNuxt.rules.includes('vue')); assert.ok(syncDjango.rules.includes('django')); // common Python plus selected framework
 assert.equal(syncVersionDrift.versionStatus, 'unverified');
 ```
 프레임워크 선택·Hotwire/Inertia 같은 앱 처리·사용자 CI 보존·metadata timeout·루트 wrapper와 저장소 없는 plugin fixture의 동일 결과를 함께 검증한다.
@@ -158,9 +158,9 @@ rule 배치·repo-sync 탐지도 카탈로그와 plugin 안의 inspector/record 
 생성 `templates/stacks/rails/ui/{hotwire,inertia-react,inertia-vue,api}/rules/<ui>.md`; 수정 기존 Python/Ruby/Vue/Next.js rule과 카탈로그 ruleSources.
 수정 `docs/{repository-structure,local-development,stack-guide,stack-troubleshooting-frontend,stack-troubleshooting-backend}.md`, 두 스펙·README·CHANGELOG·두 plugin manifest.
 **Interfaces:** 공통 TypeScript→React/Vue 또는 Python/Ruby→선택한 전문 rule→필요한 공식 링크의 읽기 경로를 문서·셋업이 공유한다.
-- [ ] `rule_sources_and_scope` 사례를 stack/new-repo 시험에 추가한다: Next.js는 React, Nuxt는 Vue도 배치; Python/Rails 전문 rule 누락 시 FAIL.
-- [ ] `bash tests/stack-templates-test.sh`, `bash tests/new-repo-test.sh`: 신규 rule 경로 누락으로 RED.
-- [ ] rule은 공식 설명을 major/주제 링크로 연결하고 조건·비용·단순 대안·진단·재발 검사를 쓴다. 공식 내용/검증한 실무 판단을 구분한다.
+- [x] `rule_sources_and_scope` 사례를 stack/new-repo 시험에 추가한다: Next.js는 React, Nuxt는 Vue도 배치; Python/Rails 전문 rule 누락 시 FAIL.
+- [x] `bash tests/stack-templates-test.sh`, `bash tests/new-repo-test.sh`: 신규 rule 경로 누락으로 RED.
+- [x] rule은 공식 설명을 major/주제 링크로 연결하고 조건·비용·단순 대안·진단·재발 검사를 쓴다. 공식 내용/검증한 실무 판단을 구분한다.
 React 상태·서버 경계, Nuxt hydration/요청 상태, Django/Flask escaping·CSRF, FastAPI async 경계, Inertia props/폼·Hotwire navigation을 다룬다.
 CQRS/outbox/BFF는 필요 조건이 있는 선택이다. 특정 소비자·고정 운영 수치·DB 제품을 강제하지 않는다.
 Spring Boot API 중심 안내와 Thymeleaf 지원/추세 한계를 유지한다. 공식 출처·199줄·필수 계약은 내용 검토로도 확인한다.

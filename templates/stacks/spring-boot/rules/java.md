@@ -4,7 +4,7 @@ paths: ["**/*.java"]
 
 # Java / Spring Boot 작업 규칙
 
-프로젝트가 선택한 JDK·Spring·ORM 버전과 구조를 따른다. 공통 적용 기준은 `docs/standards-scope.md`다.
+프로젝트가 선택한 JDK·Spring Boot·ORM 버전과 구조를 따른다. 공통 적용 기준은 `docs/standards-scope.md`다.
 경로는 소비 repo에서 조회하는 Team Harness 문서 이름이다. 로컬 복사 여부를 먼저 확인한다.
 
 ## 검사 연결
@@ -31,3 +31,7 @@ paths: ["**/*.java"]
 자세한 진단과 공식 자료는 `docs/stack-troubleshooting-backend.md`를 따른다.
 단위·HTTP·JPA slice·전체 통합 테스트 중 변경 경계에 맞는 것을 선택한다.
 아키텍처 검사나 Testcontainers는 프로젝트에 실제 연결한 경우에만 검사 결과로 보고한다.
+
+Spring Boot는 API와 독립 frontend 조합을 주 안내로 한다. Thymeleaf는 여전히 공식 지원된다.
+[공식 template engine 안내](https://docs.spring.io/spring-boot/reference/web/servlet.html#web.servlet.spring-mvc.template-engines)를 따른다.
+화면 기술의 사용 감소를 입증한 조사 없이 Thymeleaf를 폐기된 기술로 취급하지 않는다.

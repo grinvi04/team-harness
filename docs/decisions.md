@@ -35,7 +35,7 @@
 ## 2026-10-12 구조 정리 후속 결정
 
 스택 자산은 `templates/stacks/<스택>/`에 모으고 카탈로그의 저장소 루트 기준 경로로 reader를 연결한다.
-Spring·Vue 로컬 검사는 개별 원문에서 조합하며 기존 명령을 유지한다. 과거 원문은 고정 Git·digest로
+Spring Boot·Vue 로컬 검사는 개별 원문에서 조합하며 기존 명령을 유지한다. 과거 원문은 고정 Git·digest로
 읽고 현재 정책·인수 실패·검증 필수 자료를 보존한다. 발행 검토에는 `--source-only`를 제공하고
 기존 네 staged package 출력도 유지한다. [후속 스펙](specs/structure-cleanup.md)의 승인 범위이며
 실제 병합·발행·설치나 분리 패키지 승격은 포함하지 않는다.

@@ -35,6 +35,8 @@ argument-hint: "\"[repo 경로 ...]\" (생략 시 현재 작업 repo)"
 
 ## 보고
 
+- 버전 기록/선택 프로필·catalogStatus와 versionStatus도 함께 보고한다. 기록 없는 기존 자산 exit0은 버전 PASS가 아니다.
+  `--versions`는 기록 부재도 실패하며 기록이 있는 repo의 입력/schema/parser 미확인은 항상 실패한다.
 - 대상별 한 줄 요약: 스택·OK/WEAK/WARN/MISSING 카운트 + 보호 검사 결과·UNVERIFIED 여부·실행 명령/종료 코드.
 - **MISSING이 있으면**: 어떤 자산이 빠졌는지 나열하고, team-harness `templates/`의 해당 자산에서 **백필 PR을 제안**한다(자동 백필하지 않는다 — 사용자 승인 후 각 repo에 PR).
   - 공통 CI는 `templates/ci/`, 완성 스택 CI는 `templates/ci/stacks/`에서 찾는다.

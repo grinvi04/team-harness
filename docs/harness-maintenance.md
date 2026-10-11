@@ -36,7 +36,7 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 스택 카탈로그와 YAML 조각이 정본이며 완성 CI와 공통 Git/CI 사본은 생성·일치 검사로 관리한다.
 빈 스택 권한 파일과 사용하지 않는 placeholder CI는 제거했다. 기존 프로젝트 파일과 자동 허용 범위를 보존한다.
 실험 catalog는 `experiments/split-packaging/`로 옮겼고 이전 script 명령은 같은 구현으로 연결한다.
-개별 스택6개를 유지하며 풀스택 CI는 선택한 두 스택에서 조합한다. 소개 HTML은 삭제했다.
+개별 스택8개를 유지하며 풀스택 CI는 선택한 두 스택에서 조합한다. 소개 HTML은 삭제했다.
 과거 실행 원문은 [Git 고정 커밋](https://github.com/grinvi04/team-harness/tree/85338bdcb691727ebd098f4ee0ce5167faf36e24/docs/specs/harness-modernization)에서 읽고 복구 방법은 [구조 안내](repository-structure.md)를 따른다.
 공개 플러그인은 하나다. 구현·검증과 실제 병합·발행·설치는 [스펙](specs/structure-maintenance.md)에서 구분한다.
 
@@ -141,12 +141,12 @@ node scripts/check-external-pilot-provenance.mjs \
 게이트가 일부 repo에 누락). 신규/기존 양쪽을 도구로 닫는다:
 
 - **신규 repo 셋업**: `bash scripts/new-repo.sh` — 표준 자산을 복사하고 branch protection 등록.
-  마지막에 `check-repo-sync.mjs`로 self-check를 한 번 돌려 sync를 즉시 확인한다.
+  [버전 안내](stack-versions.md)의 preflight가 먼저 수행된다. self-check와 실제 CI 성공은 구분한다.
 - **기존 repo 드리프트 점검**: `/repo-sync` 스킬(설치 후 어디서나) 또는
   `node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <대상 repo>` — repo 스택을
   파일 신호로 감지하고, 그 스택의 필수 harness 자산(test-guard·commitlint·secret-scan·migration-safety
   게이트 + 스택 룰)이 표준과 sync 됐는지 본다. 자산별 `OK / WEAK / WARN / MISSING` 표를 출력하고,
-  **필수 자산이 빠지면 exit 1**(드리프트), WEAK(sentinel 없음)/WARN(룰 없음)은 경고(exit 0).
+  **필수 자산이 빠지면 exit 1**이며 WEAK/WARN은 자산 경고다. 버전 기록이 있으면 드리프트는 항상 exit1.
   오탐 회피: ci-gate 본문은 스택별 커스터마이즈라 존재만 보고, 스택 무관 게이트는 내용 sentinel로
   매칭(완전일치 강요 X), 무관 스택 자산은 스킵.
   단, 커밋 메시지 강제 체인(commit metadata provenance를 포함한 commitlint workflow·commitlint config·
@@ -155,7 +155,7 @@ node scripts/check-external-pilot-provenance.mjs \
   검사 중 소비 repo 코드가 실행되지 않는다. 따라서 `if:false`, `continue-on-error`, block scalar 안 가짜 validator
   같은 비활성 workflow도 정본 불일치로 차단한다.
   team-harness 자기 자신을 점검할 때는 배포용 `templates/`, 테스트 입력인 `tests/fixtures/`, 로컬 목표 실행
-  산출물인 `docs/goals/`를 활성 스택 신호에서 제외한다. 이 예외는 `--repo`와 `--harness`가 같은 self-check에만 적용되며,
+  산출물 `docs/goals/`와 격리 tooling `scripts/stack-versions/`를 활성 스택 신호에서 제외한다. 이 예외는 `--repo`와 `--harness`가 같은 self-check에만 적용되며,
   repo 루트의 실제 워크플로·설정 자산 검사는 그대로 수행한다.
   생성 의존 디렉터리는 스택 탐색에서 제외한다. `venv`는 실제 디렉터리이며 직하 `pyvenv.cfg`가
   symlink가 아닌 일반 파일일 때만 제외한다. 이름만 `venv`인 소스와 directory symlink는 기존 탐색·거부
@@ -164,6 +164,7 @@ node scripts/check-external-pilot-provenance.mjs \
   읽도록 지시하는지도 검사한다. Claude는 해당 경로를 자동 로드하고 Codex/Gemini는 AGENTS pointer로 같은
   원문을 명시적으로 읽는다.
   - 스크립트 단일 출처는 **플러그인 안**(`plugins/harness-guard/scripts/check-repo-sync.mjs`) — `/plugin` 설치 시 함께 배포돼 어디서나 동작한다. 루트 `scripts/check-repo-sync.mjs`는 기존 경로(CI 템플릿·테스트·dormant 워크플로)를 위한 위임 shim이다.
+  기록 없는 repo의 버전은 미확인이다. `--versions`는 부재도 실패, `--json`은 자산/버전/프로필을 분리한다.
 - **CI 상시 점검(선택)**: `templates/ci/repo-sync.yml` 스캐폴드를 각 프로젝트에 배치하면 team-harness를
   checkout해 PR마다 드리프트를 잡는다(required check 여부는 프로젝트 정책).
 

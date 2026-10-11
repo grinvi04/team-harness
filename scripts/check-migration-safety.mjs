@@ -407,7 +407,7 @@ if (failures.length > 0) {
     console.error('  버전이 낮은 "구조적 out-of-order"를 만듭니다. 허용이 꺼져 있으면 기존·운영 DB가')
     console.error('  validate 실패로 기동 불가합니다 (CI는 빈 DB라 통과 — 운영에서만 터집니다).')
     console.error('\n  해결:')
-    console.error('    • Spring(yaml):  spring.flyway.out-of-order: true')
+    console.error('    • Spring Boot(yaml):  spring.flyway.out-of-order: true')
     console.error('    • flyway.conf:   flyway.outOfOrder=true')
     console.error('  또는 모든 모듈을 단일 단조 증가 번호 체계로 통일하세요.')
   }

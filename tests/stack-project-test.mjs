@@ -149,3 +149,10 @@ test('Django HTMX reads a pinned npm browser package without requiring django-ht
   const result = inspectStackProjects(root, selectStack('3', { framework:'django', ui:'htmx' }));
   assert.equal(result.observed['project.htmx'].version, '2.0.7'); assert.deepEqual(result.issues, []);
 });
+test('Spring Boot literals inside comments/strings and duplicate plugin declarations cannot prove versions',t=>{
+  const root=mkdtempSync(join(tmpdir(),'boot-static-'));t.after(()=>rmSync(root,{recursive:true,force:true}));cpSync(join(fixtures,'spring-boot'),root,{recursive:true});
+  const build=join(root,'build.gradle.kts');writeFileSync(build,'// plugins { id("org.springframework.boot") version "3.5.6" }\nval sample = "JvmVendorSpec.ADOPTIUM JavaLanguageVersion.of(21)"\n');
+  let result=inspectStackProjects(root,selectStack('2'));assert.equal(result.observed['project.spring-boot'].state,'unresolved');assert.equal(result.observed['project.java'].vendor,undefined);
+  writeFileSync(build,'plugins { id("org.springframework.boot") version "3.5.6"; id("org.springframework.boot") version "3.4.0" }\njava { toolchain { languageVersion = JavaLanguageVersion.of(21); vendor = JvmVendorSpec.ADOPTIUM } }\n');
+  result=inspectStackProjects(root,selectStack('2'));assert.equal(result.observed['project.spring-boot'].state,'unresolved');
+});

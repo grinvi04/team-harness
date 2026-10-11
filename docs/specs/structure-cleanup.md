@@ -8,7 +8,7 @@
 이전 [구조 정리](structure-maintenance.md)의 통과 범위를 전체 유지보수성의 완료로 확대하지 않는다.
 
 사용자가 승인한 범위는 스택 자산, 현재 문서와 과거 기록, 실험과 발행 의존성, 안내와 로컬 잔재다.
-로컬 지원은 기존 Spring·Vue 검사를 개별화해 조합한다는 답변으로 확정했다.
+로컬 지원은 기존 Spring Boot·Vue 검사를 개별화해 조합한다는 답변으로 확정했다.
 스택 정본 배치·역사 보존·호환 발행 모드도 마지막 설계 확인으로 승인받았다.
 제품 방향 판정은 **소유**다. 기존 개발 구성과 검증 연결을 정리한다.
 
@@ -29,10 +29,10 @@
 | 대상 | 제안하는 정본 |
 |---|---|
 | 스택별 CI 원문 | `templates/stacks/<스택>/ci/{header,quality}.yml` |
-| Spring·Vue 로컬 명령 | `templates/stacks/{spring,vue}/local-check.sh` |
+| Spring Boot·Vue 로컬 명령 | `templates/stacks/{spring-boot,vue}/local-check.sh` |
 | 스택별 rule | `templates/stacks/<스택>/rules/` |
 | TypeScript 공통 rule | `templates/rules/typescript.md` |
-| Spring 보조 설정 | `templates/stacks/spring/{Dockerfile,gitignore,checkstyle.xml}` |
+| Spring Boot 보조 설정 | `templates/stacks/spring-boot/{Dockerfile,gitignore,checkstyle.xml}` |
 | Next.js 이미지 예시 | `templates/stacks/nextjs/Dockerfile` |
 | 공통 CI 원문 | `templates/ci/common/` |
 
@@ -44,11 +44,11 @@
 
 `Dockerfile.node`는 실제로 Next.js standalone 출력만 사용하므로 위 경로로 이름을 바로잡는다.
 일반 Node·NestJS 이미지 지원으로 설명하지 않는다.
-Spring 이미지의 기존 Gradle Groovy 전제도 사용 안내에 명시한다.
+Spring Boot 이미지의 기존 Gradle Groovy 전제도 사용 안내에 명시한다.
 
 ## 2. 로컬 검사를 개별 선택하고 조합
 
-`setup-local.mjs --project <경로> [--apply]`는 기존 Spring+Vue 동작을 유지한다.
+`setup-local.mjs --project <경로> [--apply]`는 기존 Spring Boot+Vue 동작을 유지한다.
 고정 조합 템플릿을 없애고 개별 명령과 공통 실행 틀로 checker 하나를 생성한다.
 생성 파일은 Harness 설치 경로에 의존하지 않고 다른 작업 디렉터리에서도 동작한다.
 
@@ -57,7 +57,7 @@ Spring 이미지의 기존 Gradle Groovy 전제도 사용 안내에 명시한다
 조합의 기본 경로는 기존 `backend`·`frontend`이며, 경로 옵션은 조합에서만 받는다.
 다른 스택 선택은 지원하지 않는다는 오류를 내고 파일을 쓰지 않는다.
 
-- Spring: `./gradlew check bootJar`.
+- Spring Boot: `./gradlew check bootJar`.
 - Vue: `npm ci`, type-check, lint, test:unit, build, Chromium 준비, test:e2e 순서.
 - 어느 단계든 실패하면 중단하며 마지막 PASS를 출력하지 않는다.
 - 기본 실행은 미리보기이며 파일 쓰기·설치·검사를 수행하지 않는다.
@@ -112,7 +112,7 @@ README·구조 안내·로컬 개발·온보딩·유지보수 안내를 실제 �
 ## 수용 기준과 종료 조건
 
 1. 스택 명령·보조 파일·rule을 고칠 정본과 직접 소비자가 구조 안내에 하나씩 대응한다.
-2. CI 여섯 개와 기존 조합, Spring·Vue 검사 순서와 실패 차단, 사용자 파일 보존이 유지된다.
+2. CI 여섯 개와 기존 조합, Spring Boot·Vue 검사 순서와 실패 차단, 사용자 파일 보존이 유지된다.
 3. 과거 원문은 고정 Git에서 읽을 수 있고 현재 정책·필수 읽기·회귀 판정은 유실되지 않는다.
 4. source-only bundle은 실험 catalog 없이 생성되고 기존 bundle 계약도 회귀 검사를 통과한다.
 5. 현재 문서·지도·체크리스트의 경로와 상태가 실제 후보·검사 결과와 일치한다.
@@ -132,7 +132,7 @@ README·구조 안내·로컬 개발·온보딩·유지보수 안내를 실제 �
 | 순서·요구 | 정상·실패·경계 사례와 판정 | 검사 |
 |---|---|---|
 | 스택 자산과 직접 소비자 | CI6개 명령 불변, 기존 조합과 잘못된 역할·경로 거부 | stack-templates·new-repo·repo-sync |
-| Spring·Vue 로컬 검사 | 기본 조합·단독·경로 지정, 실패 순서·PASS 억제, 링크·덮어쓰기 거부 | local-setup |
+| Spring Boot·Vue 로컬 검사 | 기본 조합·단독·경로 지정, 실패 순서·PASS 억제, 링크·덮어쓰기 거부 | local-setup |
 | 역사 읽기 이전 | 고정 원문과 다이제스트 일치, 누락·불일치 실패, 현재 판정 유지 | history-blob·기존 역사 검사 |
 | source-only와 기존 bundle | catalog 없는 기록 SHA, builder 미호출, 원자적 출력·실패 정리 | release-bundle |
 | 안내와 현재 상태 | 자연스러운 문장·정본 발견·참조·199줄, 구현과 전달 구분 | Markdown 검사·실제 읽기 경로 |
@@ -176,7 +176,7 @@ HEAD만으로 미커밋 파일을 검증했다고 말하지 않고 diff와 대�
 ## 구현·검증 현황
 
 스택 정본 27파일을 옮기고 카탈로그 schema3의 저장소 루트 경로로 셋업·생성·repo-sync를 연결했다.
-CI6개의 배너 외 원문과 12조합을 보존했다. 로컬 검사는 Spring·Vue 단독·조합·무옵션 호환을 제공한다.
+CI6개의 배너 외 원문과 12조합을 보존했다. 로컬 검사는 Spring Boot·Vue 단독·조합·무옵션 호환을 제공한다.
 과거30파일은 고정 Git으로 옮겼고 decisions 원문2개는 현재 안내로 축약했다. 원문32개의 digest를
 대조했으며 현재 trust/provenance와 외부 JSON7개는 바이트 그대로다. 인수 실패·보류 조건을 유지했다.
 source-only를 추가하고 기존 네 staged package 출력을 유지했다. 빈 로컬 src 디렉터리4개만 rmdir했다.

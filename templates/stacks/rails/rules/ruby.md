@@ -6,6 +6,8 @@ paths: ["**/*.rb", "Gemfile"]
 
 프로젝트의 Ruby·Rails·DB·테스트 도구를 따른다. 공통 적용 기준은 `docs/standards-scope.md`다.
 
+선택한 rails-hotwire.md·rails-inertia-react.md·rails-inertia-vue.md·rails-api.md에서 화면 방식의 계약을 읽는다.
+
 ## 검사와 안전 경계
 
 RuboCop은 채택한 cop·확장·버전으로 CI에 연결한다.

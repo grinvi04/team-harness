@@ -157,7 +157,7 @@ from pathlib import Path
 target = Path(os.environ['TARGET'])
 parts = [int(p) for p in os.environ['SELECTION'].split('+')]
 rule_sets = {1: {'typescript'}, 2: {'java', 'flyway'}, 3: {'python', 'alembic'},
-             4: {'ruby'}, 5: {'typescript', 'nextjs'}, 6: {'typescript', 'vue'}}
+             4: {'ruby'}, 5: {'typescript', 'react', 'nextjs'}, 6: {'typescript', 'vue'}}
 rules = set().union(*(rule_sets[p] for p in parts))
 assert rules == {p.stem for p in (target / '.claude/rules').glob('*.md') if p.stem != 'korean-ux'}
 settings = json.loads((target / '.claude/settings.json').read_text())

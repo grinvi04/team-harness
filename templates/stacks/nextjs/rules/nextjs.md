@@ -5,7 +5,7 @@ paths: ["**/app/**/*.tsx", "**/app/**/*.ts", "**/pages/**/*.tsx", "**/pages/**/*
 # Next.js 작업 규칙
 
 설치한 Next.js·React 버전과 App/Pages Router를 먼저 확인한다.
-공통 TypeScript 기준은 typescript.md다. 서버 컴포넌트 규칙을 Pages Router 전체에 강제하지 않는다.
+공통 TypeScript와 React 기준은 typescript.md·react.md다. 서버 컴포넌트 규칙을 Pages Router 전체에 강제하지 않는다.
 
 ## 서버·브라우저 경계
 

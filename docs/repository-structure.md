@@ -38,7 +38,7 @@ React+Vite는7번, Nuxt는8번이다. 기존1~6 번호는 유지하며 Spring Bo
 Python은 `--framework django|fastapi|flask`와 해당 `--ui`로 전문 자산을 선택한다.
 Rails는 `--ui hotwire|inertia-react|inertia-vue|api`로 앱 안의 화면 방식을 고른다.
 CI 생성기의 `--render <번호>`는 선택 자산을 조합해 출력한다. 전문 프로필은 고정 DB·Redis·Celery를 넣지 않는다.
-셋업·버전 판정의 후속 구현은 [현재 계획](specs/stack-profiles-implementation-plan.md)을 따른다.
+셋업·버전 판정은 [버전 안내](stack-versions.md)의 미리보기·기록·실패 경계를 따른다.
 schema3의 `pathBase: repository-root`는 카탈로그의 원문 경로가 저장소 루트 기준임을 뜻한다.
 `sources`는 CI, `ruleSources`는 rule 이름과 원문, `assetSources`는 보조 파일,
 `localCheck`는 현재 지원하는 Spring Boot·Vue 로컬 명령을 연결한다.
@@ -58,7 +58,7 @@ bash tests/stack-templates-test.sh
 bash tests/new-repo-test.sh
 ```
 
-풀스택 고정 파일은 없다. 백엔드(Node·Spring Boot·Python·Rails)와 프론트엔드(Node·Next.js·Vue)를
+풀스택 고정 파일은 없다. 백엔드(Node·Spring Boot·Python·Rails)와 프론트엔드(React·Next.js·Vue·Nuxt; Node 입력은 호환용)를
 조합하면 같은 개별 job 원본에서 `backend`·`frontend`와 공통 검사를 생성하고 두 rule을 설치한다.
 예를 들어 `new-repo.sh`에서 `2+6`은 Spring Boot+Vue다. 두 작업 경로는 기본값 `backend`·`frontend`를
 사용하거나 `apps/api`·`apps/web`처럼 지정한다. 경로 탈출·같은 경로·잘못된 역할 조합은 파일 쓰기 전에 거부한다.
@@ -70,14 +70,14 @@ node scripts/generate-stack-templates.mjs --compose 2+6 --backend-dir apps/api -
 이 명령은 YAML을 표준 출력으로 보낸다. 개별 템플릿과 CI 검사 이름은 바뀌지 않는다.
 Spring Boot 보조 설정은 선택한 백엔드에, Prettier·디자인 토큰 검사기는 선택한 프론트엔드에 복사한다.
 Python 조합의 `alembic-heads`도 같은 백엔드 경로에서 실행한다. 기존 보조 파일·workflow는 덮어쓰지 않는다.
-이전 메뉴의 NestJS 풀스택2번은 `1+1`, Spring 풀스택4번은 `2+1`로 선택한다.
+이전 메뉴의 NestJS 풀스택2번은 `1+1`, Spring Boot 풀스택4번은 `2+1`로 선택한다.
 Python·Rails·Next.js·Vue의 새 번호는 각각3·4·5·6이다. 기존 프로젝트의 CI를 자동 교체하지 않는다.
 이 선택이 앱이나 패키지 설정을 생성하지는 않는다. 이미 사용하는 검사 명령에 맞춰 소비 CI를 조정한다.
 Prisma/Flyway/Alembic는 기존 프리셋 연결이며 DB 제품이나 운영 자격증명을 강제하지 않는다.
 `templates/stacks/nextjs/Dockerfile`은 Next.js standalone 예시다. 이전 이름은 `Dockerfile.node`였으며
 일반 Node 이미지 예시로 해석하지 않는다. Spring Boot Dockerfile·Checkstyle 예시는 Gradle Groovy 전제다.
 
-셋업은 기존 CI·설정·rule을 덮어쓰지 않는다. 스택 선택이 실행기 자동 허용을 추가하지도 않는다.
+셋업은 기존 CI·설정·rule을 덮어쓰지 않는다. 기록을 소비하는 생성 CI와 다른 사용자 CI는 보존·중단한다. 스택 선택이 실행기 자동 허용을 추가하지도 않는다.
 빈 권한 fragment는 제거했다. 별도 사용자 fragment가 필요한 경우에만
 `scripts/merge-permissions.mjs --fragments <dir>`를 명시하며, 승인 범위는 사용자 정책을 따른다.
 

@@ -17,8 +17,16 @@ function regularOrAbsent(root,path){let current=resolve(root);const parts=relati
 function preflight(root,prepared){for(const path of destinations(prepared.selection))regularOrAbsent(root,path);const ci='.github/workflows/ci-gate.yml';if(regularOrAbsent(root,ci) && readFileSync(resolve(root,ci),'utf8')!==prepared.workflow)throw Error('Existing CI preserved; review exact runtime pins and fingerprint gate manually before setup.');if(regularOrAbsent(root,'scripts/check-stack-record.mjs') && !readFileSync(resolve(root,'scripts/check-stack-record.mjs')).equals(readFileSync(checkerSource)))throw Error('Existing fingerprint checker preserved; review its contract before setup.');const file=resolve(root,'harness-stack.versions.json');if(regularOrAbsent(root,'harness-stack.versions.json')){let old;try{old=JSON.parse(readFileSync(file,'utf8'));}catch{throw Error('Existing record preserved; invalid JSON.');}if(!checkStackRecord(root,old).valid || JSON.stringify(old.selection.projects)!==JSON.stringify(prepared.selection.projects) || JSON.stringify(old.targets)!==JSON.stringify(prepared.result.targets) || Object.keys(old.sources).some(k=>old.sources[k].runtimePin!==prepared.result.sources[k]?.runtimePin))throw Error('Existing record preserved; selection, inputs or targets differ.');return 'reuse';}return 'create';}
 export async function prepareStackSetup({projectRoot,selected,requests={},lookup}){
   const root=resolve(projectRoot),inspection=inspectStackProjects(root,selected);
-  // New frontend jobs invoke these commands unconditionally. Presence is checked without running app code.
-  for(const project of selected.projects.filter(p=>['react','nuxt'].includes(p.stackKey))){const pkg=JSON.parse(readFileSync(resolve(root,project.directory,'package.json'),'utf8'));for(const name of ['lint','typecheck','test:unit','build'])if(typeof pkg.scripts?.[name]!=='string' || !pkg.scripts[name].trim())throw Error(`Missing required command ${project.role}.${name}; define the application check before setup.`);}
+  if(inspection.issues.length)throw Error(`Version unverified; setup refused: ${inspection.issues.map(i=>`${i.code}:${i.target}`).join(', ')}`);
+  // Static command/tool declarations are prerequisites, not proof that app checks pass.
+  for(const project of selected.projects){
+    const tools=inspection.tooling[project.role] || {};
+    if(['react','nuxt'].includes(project.stackKey) || project.stackKey==='rails' && project.ui?.startsWith('inertia-')){
+      for(const name of ['lint','typecheck','test:unit','build'])if(!tools.scripts?.includes(name))throw Error(`Missing required command ${project.role}.${name}; define the application check before setup.`);
+    }
+    const required=project.stackKey==='python' && project.framework ? ['ruff','mypy',...(project.framework==='django'?[]:['pytest'])] : project.stackKey==='rails' && project.ui ? ['rubocop']:[];
+    for(const name of required)if(!tools.dependencies?.includes(name))throw Error(`Missing declared check tool ${project.role}.${name}; prepare the application checks before setup.`);
+  }
   const result=await checkStackVersions({inspection,requests,...(lookup?{lookup}:{})});
   if(result.status!=='compatible')throw Error(`Version ${result.status}; setup refused: ${result.issues.map(i=>`${i.code}:${i.target}`).join(', ')}`);
   const prepared={selection:selected,result,workflow:renderSelectedWorkflow(selected,result)};

@@ -2,9 +2,9 @@
 paths: ["**/*.vue", "src/**/*.ts"]
 ---
 
-# Vue / Nuxt 작업 규칙
+# Vue 작업 규칙
 
-설치한 Vue·Nuxt 버전과 기존 Options/Composition API 방식을 따른다.
+설치한 Vue 버전과 기존 Options/Composition API 방식을 따른다. Nuxt에서는 nuxt.md도 읽는다.
 공통 TypeScript 기준은 typescript.md다. React·Next.js 전용 lint를 적용하지 않는다.
 
 ## 반응성과 상태

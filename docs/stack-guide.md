@@ -17,11 +17,13 @@
 
 | 기술 | 공식 자료 | 선택할 때 확인할 것 |
 |---|---|---|
-| Java/Kotlin·Spring | [Spring Boot](https://docs.spring.io/spring-boot/index.html) | JDK 지원, 프레임워크·ORM 호환, 빌드 도구 |
+| Java/Kotlin·Spring Boot | [Spring Boot](https://docs.spring.io/spring-boot/index.html) | JDK 지원, 프레임워크·ORM 호환, 빌드 도구 |
 | TypeScript·NestJS | [NestJS](https://docs.nestjs.com/) | 런타임 입력 검증, 이벤트 루프, 작업 처리 방식 |
 | Python·Django | [Django](https://docs.djangoproject.com/) | 관리 기능, ORM, 동기·비동기 경계 |
+| Python·Flask | [Flask3.1](https://flask.palletsprojects.com/en/stable/) | 작은 서버 화면·API, escaping·CSRF·app factory |
 | Python·FastAPI | [FastAPI](https://fastapi.tiangolo.com/) | ASGI, 동기 호출, 작업·DB 세션 수명 |
 | Ruby·Rails | [Rails Guides](https://guides.rubyonrails.org/) | 프레임워크 관례, DB 변경, 배포·작업 처리 |
+| React+Vite | [React](https://react.dev/learn), [Vite](https://vite.dev/guide/) | SPA 상태·브라우저 경계, Node/peer 조건 |
 | React·Next.js | [Next.js](https://nextjs.org/docs) | 서버·브라우저 경계, 캐시, 배포 런타임 |
 | Vue·Nuxt | [Vue](https://vuejs.org/guide/introduction.html), [Nuxt](https://nuxt.com/docs) | 반응성, SSR 요청 격리, 빌드·타입 검사 |
 | PostgreSQL | [공식 설명서](https://www.postgresql.org/docs/) | 데이터 타입, 트랜잭션, 연결·잠금, 백업 복원 |
@@ -48,3 +50,20 @@ JDK 배포판과 컨테이너 레지스트리는 지원·라이선스·공급망
 선택과 원문 경로는 `templates/stacks.json`에 연결한다. [구조 안내](repository-structure.md)에 따라
 필요한 파일만 복사하고 경로·명령을 실제 프로젝트에 맞춘다.
 현재 예시는 소비 앱에서 모두 실행한 결과가 아니다. 프로젝트의 지원 버전으로 검증한 뒤 채택한다.
+
+## 개별 구성과 조건부 설계
+
+[버전 확인과 적용](stack-versions.md)으로 기존 선언을 먼저 읽고 official metadata 조건을 확인한다.
+Python은 Django templates/HTMX/API, FastAPI API, Flask templates/API로 구분한다.
+Rails Hotwire·Inertia는 같은 앱의 UI이며, Rails API는 React·Next.js·Vue·Nuxt와 독립 조합한다.
+Spring Boot는 API+개별 frontend를 주 안내로 한다. Thymeleaf는 공식 지원되며 사용 감소를 단정할 자료는 없다.
+
+| 선택 패턴 | 필요한 문제 | 비용·단순 대안·검증 |
+|---|---|---|
+| 모듈 단위 업무 함수 | 여러 쓰기·권한 규칙을 재사용 | 경계·DTO 유지 비용. 작은 함수부터 시작하고 롤백·권한 회귀 확인 |
+| CQRS | 읽기/쓰기 모델의 요구가 실제로 다름 | 동기화·이벤트 지연 비용. 단일 모델+조회 DTO와 비교하고 지연·복구 확인 |
+| outbox | DB 쓰기와 메시지 전달의 이중 쓰기 문제 | 중복·publisher·보관 비용. 동기 완료와 비교하고 재시작·멱등 확인 |
+| BFF | frontend마다 인증·응답 결합이 다름 | 홉·운영·계약 중복 비용. API 직접 연결과 비교하고 권한·실패 전파 확인 |
+
+패턴 이름을 직급이나 조직 규모의 필수 조건으로 강제하지 않는다. 위 선택은 Harness의 실무 판단이다.
+공식 기능은 링크로 읽고, 채택 이유·제약·실제 검증은 소비 프로젝트에 기록한다.
