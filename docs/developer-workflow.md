@@ -92,24 +92,22 @@ skill 이름을 함께 말해도 된다. 자동 선택 여부와 현재 phase는
 `release-check`가 품질·보안·DB 마이그레이션을 먼저 확인한다. 모두 통과한 뒤 `release`가 release 브랜치,
 `main` PR, 버전 태그, `develop` 역병합, 배포 후 헬스 체크를 순서대로 수행한다.
 
-## 6. 자동 선택과 “진행해” 라우팅
+## 6. 자동 선택과 좁은 라우팅 안내
 
-일반 작업은 Claude Code와 Codex가 skill description을 보고 의미에 맞는 절차를 선택한다. 반면 의도 라우터는
-키워드 분류기가 아니라 현재 Git/PR 상태에 따라 이미 시작된 작업의 다음 단계를 이어 주는 장치다.
+일반 작업과 `진행해` 같은 이어가기 요청은 native agent가 대화의 목표·기존 승인·프로젝트 원본을
+보고 적절한 절차를 선택한다. 사용자가 정해진 문구나 스킬 명령을 외울 필요는 없다.
 
-의도 라우터는 현재 브랜치와 열린 PR 상태를 읽어 다음 절차를 안내한다. 예를 들어:
+훅 라우터는 짧은 명시 요청에만 Git/PR 상태를 연결해 다음 후보를 안내한다.
 
-- `docs/specs/`에 spec이 있고 구현 전이면 `feature-add`
-- feature 브랜치에 커밋이 있고 PR이 없으면 `feature-merge`
-- 열린 PR이 있고 base 브랜치가 보호된 repo면 `pr-review-gate`
-- 열린 PR의 base 브랜치 보호가 없어 솔로 repo로 판정되면 `solo-merge`
+- `구현해줘` / `implement it`: main/develop에 spec이 있고 열린 PR이 없으면 `feature-add`
+- `머지해줘` / `merge it`: 열린 PR이 있으면 `pr-review-gate` 또는 기존 솔로 판정에 따른 `solo-merge`
+- 같은 병합 요청에 PR이 없고 feature/fix/codex 브랜치에 커밋이 있으면 `feature-merge`
 
-라우터와 자동 선택은 편의를 위한 안내 장치다. 최종 판단 기준은 현재 상태와 각 skill의 수용기준이며, 적용 중인
-skill과 phase는 작업 업데이트에서 확인할 수 있어야 한다. 라우터는 spec 파일의 존재만 확인하며 plan의
-사람 승인 완료 여부까지 판정하지 않는다. 따라서 `feature-add`로 넘어가기 전 승인 게이트 완료를 별도로
-확인해야 한다. `solo-merge`도 리뷰를 건너뛰는 절차가 아니다.
-먼저 AI 리뷰 지적을 처리하고 모든 리뷰 스레드를 resolve해야 하며, 머지 직전 CI·스레드·mergeability를
-다시 검증한다.
+`정리해줘`, 질문·부정·복합 요청이나 detached HEAD의 spec만으로는 후보를 주입하지 않는다.
+후보가 없어도 일반 요청은 계속 처리한다. 후보는 현재 단계·실행 권한·spec 승인 완료를 증명하지 않는다.
+선택한 skill과 phase는 작업 업데이트에 표시하고 현재 요청·원본·기존 승인과 대조한다.
+`solo-merge`도 리뷰를 건너뛰는 절차가 아니다. AI 지적·리뷰 스레드·필수 CI·mergeability를 확인한다.
+변경 계약과 범위는 [라우팅 수정 스펙](specs/workflow-routing-scope.md)에서 확인한다.
 
 ## 7. 막혔을 때 우회하지 않기
 

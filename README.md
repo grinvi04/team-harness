@@ -2,7 +2,7 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.88.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.89.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
@@ -63,7 +63,7 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 | 기능 | 설명 |
 |---|---|
 | 🛡️ 가드 훅 | main/develop 직접 커밋·force push·맨손 `gh pr` 차단 — 차단 시 audit 로그 기록 |
-| 📋 의도 라우터 | 캐주얼 지시("진행해/해줘") → 현재 git 상태에서 다음 하네스 스킬 자동 안내 |
+| 📋 의도 라우터 | 짧은 명시 구현·병합 요청에 Git/PR 상태를 연결해 후보 안내. 일반 요청은 native agent가 판단 |
 | 🧠 맥락 기반 skill 선택 | 17개 description의 사용·제외 경계로 Claude Code·Codex implicit invocation 지원 |
 | ✍️ 커밋 메시지 계약 | Conventional Commits 호환 한국어 형식을 로컬 `commit-msg`와 CI에서 강제하고 merge 예외는 Git metadata로 확인 |
 | 🧭 체계적 디버깅 | `/systematic-debugging` — 선택한 진단 방법에 프로젝트 재현 증거·무수정 경계·수정 인계를 연결 |
@@ -104,7 +104,7 @@ Codex·Claude가 실행하고, Harness가 정책과 검증 증거를 연결하�
 ## 🧪 테스트
 
 ```bash
-bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (30 케이스)
+bash tests/route-intent-test.sh   # 의도 라우터 통합·범위 회귀 테스트
 bash tests/codex-fresh-session-smoke-test.sh
 bash tests/harness-doctor-test.sh
 bash tests/profile-lifecycle-test.sh
