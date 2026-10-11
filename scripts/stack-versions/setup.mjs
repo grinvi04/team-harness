@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Setup preflight performs no writes or remote mutations. Application dependencies stay untouched.
-import {lstatSync,readFileSync,realpathSync} from 'node:fs';
+import {existsSync,lstatSync,readFileSync,realpathSync} from 'node:fs';
 import {resolve,relative,sep} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {parseVersionArgs} from '../check-stack-versions.mjs';
@@ -33,4 +33,4 @@ export async function prepareStackSetup({projectRoot,selected,requests={},lookup
   prepared.recordAction=preflight(root,prepared);return prepared;
 }
 export function applyStackSetup(projectRoot,prepared){const root=resolve(projectRoot);if(!checkStackRecord(root,prepared.result).valid)throw Error('Input drift or incomplete version record; setup refused.');const action=preflight(root,prepared);if(action==='create')writeVersionRecord(root,prepared.result);return action;}
-if(process.argv[1] && import.meta.url===pathToFileURL(realpathSync(process.argv[1])).href){try{const [mode,...args]=process.argv.slice(2);if(mode==='prepare'){const parsed=parseVersionArgs(args);if(parsed.apply)throw Error('Setup prepare is read-only.');console.log(JSON.stringify(await prepareStackSetup(parsed)));}else if(mode==='apply' && args.length===1){const text=readFileSync(0,'utf8');if(Buffer.byteLength(text)>8*1024*1024)throw Error('Oversized setup input');console.log(applyStackSetup(args[0],JSON.parse(text)));}else throw Error('Use prepare with version options, or apply <project> with prepared JSON on stdin.');}catch(e){console.error(e.message);process.exitCode=1;}}
+if(process.argv[1] && existsSync(process.argv[1]) && import.meta.url===pathToFileURL(realpathSync(process.argv[1])).href){try{const [mode,...args]=process.argv.slice(2);if(mode==='prepare'){const parsed=parseVersionArgs(args);if(parsed.apply)throw Error('Setup prepare is read-only.');console.log(JSON.stringify(await prepareStackSetup(parsed)));}else if(mode==='apply' && args.length===1){const text=readFileSync(0,'utf8');if(Buffer.byteLength(text)>8*1024*1024)throw Error('Oversized setup input');console.log(applyStackSetup(args[0],JSON.parse(text)));}else throw Error('Use prepare with version options, or apply <project> with prepared JSON on stdin.');}catch(e){console.error(e.message);process.exitCode=1;}}

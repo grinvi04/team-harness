@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { realpathSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { selectStack } from './stack-catalog.mjs';
@@ -34,6 +34,6 @@ export async function runStackVersions(args, dependencies={}) {
   }
   console.log(JSON.stringify(result,null,2));return result.status === 'compatible' ? 0:1;
 }
-if(process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+if(process.argv[1] && existsSync(process.argv[1]) && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try {process.exitCode=await runStackVersions(process.argv.slice(2));}catch {console.error('Version checking could not be completed; no project dependencies were changed.');process.exitCode=1;}
 }

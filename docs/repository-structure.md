@@ -104,6 +104,9 @@ node scripts/setup-local.mjs --project /path/to/app --stack spring-boot+vue --ba
 명령·격리 조건은 [실험 안내](../experiments/split-packaging/README.md)를 읽는다.
 이전 `scripts/build-packages.mjs` 등의 진입점은 같은 구현을 호출하는 호환 경로다.
 
+설치본의 `repo-sync`가 쓰는 스택 판독기·Python helper·기록 검사기는 같은 governance core에 함께 배치한다.
+새 plugin 원문을 추가하면 `packages.json`의 소유 목록과 실제 artifact 포함 여부도 검사한다.
+
 발행 검토용 source bundle은 `build-release-bundle.mjs --source-only`로 만든다.
 기록된 Git 후보의 archive·버전·checksum을 만들며 실험 catalog·builder를 실행하지 않는다.
 archive에는 그 후보의 전체 소스가 들어간다. manifest의 `packages`는 빈 배열이고 설치 가능 표시는 false다.

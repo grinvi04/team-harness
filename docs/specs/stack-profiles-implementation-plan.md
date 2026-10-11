@@ -167,6 +167,7 @@ Spring Boot API 중심 안내와 Thymeleaf 지원/추세 한계를 유지한다.
 Task1에서 올린 소스 후보0.91.0과 두 manifest·README를 대조한다. 커밋 후 changelog 생성/검사를 수행한다; 태그/발행은 하지 않는다.
 - [ ] 해당 시험·Markdown/참조 검사·`git diff --check` PASS 후, `.github/workflows/ci-gate.yml` quality의 현재 모든 명령을 그대로 실행한다.
 각 명령·후보·최초 실패/수정·재시도·미실행을 보존한다. 테스트 fixture와 실제 앱/원격 CI/설치 증거는 구분한다.
+macOS 로컬 준비는 기존 rg·격리 ruff0.15.15·Python3.11을 사용한다. 실제 검사 명령은 CI와 같으며 remote CI 실행으로 보고하지 않는다.
 - [x] 커밋 `feat(stack): 공식 안내와 조건부 실무 기준 연결`; `node scripts/generate-changelog.mjs --release v0.91.0 --write` 후 별도 기록 커밋/`--check`.
 - [ ] 구현자와 다른 읽기 전용 인스턴스가 명세·현재 고정 후보·정상/거부 경계·harness-doc-sync 대상 누락을 검토한다. 필수 FAIL/미확인이면 종료 금지.
 - [ ] 실제 결과로 스펙·체크리스트·지도 갱신, 변경 범위·잔여 제약을 전달한다. 구현 수용 기준 충족 후 종료하며 delivery를 자동 추가하지 않는다.

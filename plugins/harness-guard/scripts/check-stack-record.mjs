@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Dependency-free CI fingerprint checker. A matching record is scoped evidence, not an app safety guarantee.
 import { createHash } from 'node:crypto';
-import { lstatSync, readFileSync, realpathSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync, realpathSync } from 'node:fs';
 import { relative, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 export const nodeInputs = ['package.json','package-lock.json','pnpm-lock.yaml','yarn.lock','npm-shrinkwrap.json','bun.lock','bun.lockb','.nvmrc','.node-version'];
@@ -91,6 +91,6 @@ export function runStackRecordCLI(args) {
   const result=checkStackRecord(root,JSON.parse(readFileSync(path,'utf8')));
   console.log(JSON.stringify(result));return result.valid ? 0:1;
 }
-if(process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
+if(process.argv[1] && existsSync(process.argv[1]) && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try { process.exitCode=runStackRecordCLI(process.argv.slice(2)); } catch { console.error('Stack record could not be verified; re-run the version checker.');process.exitCode=1; }
 }

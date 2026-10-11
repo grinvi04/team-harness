@@ -158,6 +158,10 @@
     {
       "path": "docs/changelog/2026/v0.91.0.md",
       "reason": "실제 구현 커밋의 후보 변경 이력"
+    },
+    {
+      "path": "docs/changelog/releases.md",
+      "reason": "소스 후보를 연결하는 생성 인덱스"
     }
   ],
   "items": []

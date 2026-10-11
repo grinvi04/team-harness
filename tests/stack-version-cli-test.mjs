@@ -119,3 +119,16 @@ test('optional Node setup inherits its reviewed action source instead of duplica
   const record={schema:1,status:'compatible',issues:[],selection:selected,targets:{'project.python':'3.13.7','project.node':'22.22.3'},sources:{}};
   const yaml=renderSelectedWorkflow(selected,record,root);assert.ok(yaml.includes('actions/setup-node@'+changed));assert.ok(yaml.indexOf('run: npm ci') < yaml.indexOf('Install dependencies'));
 });
+test('reusable version modules import from stdin without running their CLI',()=>{
+  const code = `
+    import assert from 'node:assert/strict';
+    const checker = await import('./plugins/harness-guard/scripts/check-stack-record.mjs');
+    const versions = await import('./scripts/check-stack-versions.mjs');
+    const setup = await import('./scripts/stack-versions/setup.mjs');
+    assert.equal(typeof checker.checkStackRecord, 'function');
+    assert.equal(typeof versions.runStackVersions, 'function');
+    assert.equal(typeof setup.prepareStackSetup, 'function');
+  `;
+  const result=spawnSync(process.execPath,['--input-type=module','-'],{input:code,encoding:'utf8'});
+  assert.equal(result.status,0,result.stderr);assert.equal(result.stdout,'');
+});
