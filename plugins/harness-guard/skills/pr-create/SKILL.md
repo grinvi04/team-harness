@@ -1,6 +1,6 @@
 ---
 name: pr-create
-description: 현재 feature/fix 브랜치의 품질을 확인하고 올바른 base로 PR만 생성할 때 사용. 코드 수정·리뷰 처리·머지·릴리즈는 제외
+description: 현재 feature/fix/codex 브랜치의 품질을 확인하고 올바른 base로 PR만 생성할 때 사용. 코드 수정·리뷰 처리·머지·릴리즈는 제외
 ---
 
 # /pr-create — base 자동감지 PR 생성 (단일 프리미티브)
@@ -8,7 +8,7 @@ description: 현재 feature/fix 브랜치의 품질을 확인하고 올바른 ba
 스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
 
 **사용법**: `/pr-create`
-현재 브랜치가 `feature/*` 또는 `fix/*`인 상태에서 실행한다.
+현재 브랜치가 `feature/*`, `fix/*` 또는 `codex/*`인 상태에서 실행한다.
 
 > 푸는 문제: **PR 생성을 맨손 `gh pr create`로 하던 노출**. `feature-merge`는 `--base develop` 하드코딩이라
 > develop 없는 main 기반 repo(team-harness 자체·develop 미사용 public repo)에서는 안 맞아 매번 맨손 gh로 샜다.
@@ -21,7 +21,7 @@ description: 현재 feature/fix 브랜치의 품질을 확인하고 올바른 ba
 
 | 상황 | 중단 사유 출력 |
 |---|---|
-| 현재 브랜치가 `feature/*` 또는 `fix/*`가 아님 | "feature/* 또는 fix/* 브랜치에서만 실행할 수 있습니다. 현재 브랜치: [브랜치명]" |
+| 현재 브랜치가 `feature/*`, `fix/*`, `codex/*` 중 어느 것도 아님 | "feature/*, fix/* 또는 codex/* 작업 브랜치에서만 실행할 수 있습니다. 현재 브랜치: [브랜치명]" |
 | 미커밋 변경사항 존재 | "미커밋 변경사항이 있습니다 — 커밋 또는 stash 후 재실행하세요." |
 | base 브랜치와 동일(브랜치가 곧 base) | "현재 브랜치가 base입니다 — feature/fix 브랜치에서 실행하세요." |
 

@@ -67,7 +67,7 @@ test('invalid prompt types are ignored instead of throwing', () => {
   }
 })
 
-test('ambiguous live prompts skip Git/PR probes and leave stdout empty', () => {
+test('live prompts skip ambiguous probes and fail open after explicit request lookup failures', () => {
   const script = fileURLToPath(new URL('../plugins/harness-guard/scripts/route-intent.mjs', import.meta.url))
   const scratch = mkdtempSync(join(tmpdir(), 'routing-probe-'))
   const probe = join(scratch, 'unexpected-probe')
@@ -86,6 +86,14 @@ test('ambiguous live prompts skip Git/PR probes and leave stdout empty', () => {
       assert.equal(result.stderr, '')
       assert.equal(existsSync(probe), false)
     }
+    const failedLookup = spawnSync(process.execPath, [script], {
+      input: JSON.stringify({ prompt: '머지해', cwd: scratch }),
+      encoding: 'utf8', env: { ...process.env, PATH: scratch, ROUTING_PROBE: probe },
+    })
+    assert.equal(existsSync(probe), true)
+    assert.equal(failedLookup.status, 0)
+    assert.equal(failedLookup.stdout, '')
+    assert.equal(failedLookup.stderr, '')
   } finally {
     rmSync(scratch, { recursive: true, force: true })
   }

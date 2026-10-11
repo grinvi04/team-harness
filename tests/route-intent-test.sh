@@ -170,7 +170,7 @@ echo "=== AC-5: fail-open (라이브 모드) ==="
 
 # 비-repo 디렉터리에서 라이브 모드 실행 → exit 0 + 프롬프트 처리 미차단
 _tmpdir=$(mktemp -d)
-_out=$(printf '{"prompt":"진행해","cwd":"%s"}' "$_tmpdir" | node "$SCRIPT" 2>/dev/null)
+_out=$(printf '{"prompt":"머지해","cwd":"%s"}' "$_tmpdir" | node "$SCRIPT" 2>/dev/null)
 _rc=$?
 rm -rf "$_tmpdir"
 if [ "$_rc" -eq 0 ]; then
