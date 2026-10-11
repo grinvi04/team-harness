@@ -28,7 +28,7 @@ package/bundle은 현재 committed 후보로 다시 생성·검사하며 install
 
 ## grill-me 정리 결과
 
-개별 폴더 /Users/grinvi04/.agents/skills/grill-me의 파일2개와 디렉터리를 실제 삭제했다.
+개별 폴더 ~/.agents/skills/grill-me의 파일2개와 디렉터리를 실제 삭제했다.
 해당 경로의 불필요한 skills.config 한 항목도 제거했다. 다른 설정은 보존했다.
 공식 managed mattpocock-skills1.2.3 설치를 유지한다. 새 app-server 발견은35개 중
 명시 활성 grill-me/grilling2개, 나머지33개 비활성, 개별 설치 발견0, errors0이다.
@@ -47,3 +47,6 @@ cache를 임의 수정하지 않는다. 향후 버전 변경 뒤 skill 활성 �
 
 각 단계의 후보·명령·결과는 현재 작업 증거 work/harness087-delivery/에 저장한다.
 최종 단계는 실제 PR 상태·원격 Git·설치 cache·앱 영수증과 경로/등록 부재로 판정한다.
+
+최초 PR523 후보1d07266의 CI는 새 문서의 개인 홈 절대 경로를 차단했다.
+공개 문서 경로를 일반 사용자 표기로 고쳤으며 검사 기준은 그대로 유지했다. 수정 후 현재 CI를 다시 확인한다.
