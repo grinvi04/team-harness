@@ -113,3 +113,22 @@ PR529 첫 후보7a3e0c3의 독립 문서 검토는 통과했지만, 병합 CI에
 아키텍처 수정이 main과 develop에 별도 커밋으로 있어 병합 기록에는 같은 제목의 fix가 하나 더 들어간다.
 소유한 release 브랜치에 main을 병합하고 생성 명령으로 실제 기록을 반영했다.
 기능·가드·템플릿 tree는 그대로이며, 수정 후보의 독립 검토·필수 CI를 다시 확인한 뒤 발행한다.
+
+## 0.88.0 발행·설치 체크포인트
+
+2026-10-11: 수정 후보55db36b의 독립 PASS_SCOPED·필수CI5개 통과 후 PR529를 main에 병합했다.
+main/tag SHA는95775650eb8b05efdbd77f3547f5ccf3c04b6d85다. 전체 브랜치 보호 원값 복원을 확인했다.
+[GitHub Release](https://github.com/grinvi04/team-harness/releases/tag/v0.88.0)의5개 첨부를 확인했고,
+이 SHA에서 만든 묶음82개 checksum이 일치한다. 분리 package는 installable:false를 유지한다.
+
+- Codex 공식 CLI: 발행 태그 원본·활성 버전0.88.0, native manifest/hook 계약·원본 digest 일치.
+  새 app-server에서 스킬17개·Harness 로딩 오류0건. 모델 호출 없이 로더를 확인했다.
+- Claude 공식 CLI: 활성 버전0.88.0·캐시70파일이 발행 원본과 동일. 이미 열린 실행은 재시작이 필요하다.
+- 전역 공통 지침·Claude 설정과 다른 plugin은 동일하다. Codex 설정은 해당 marketplace의 태그와 위치만 바뀌었다.
+  이전 위치/태그로 되돌린 내용의 전체 원본 checksum이 일치했다. 실제 설정을 되돌린 것은 아니다.
+- doctor: 설치·native 계약·managed requirements·브랜치 보호 통과, 종합은 exit1이다.
+  템플릿/시험 fixture의 스택 파일을 앱으로 감지해 소비용 migration-safety·alembic heads2개를 누락 보고했다.
+  Harness에는 실행 DB/앱이 없고 해당 두 checker는0.87.0과 byte 동일하다. 종합 healthy로 보고하지 않는다.
+- 실제 hook 발화·기존 대화 재로딩·Claude 인증/실모델은 이번 설치 검증에서 미실행이다.
+- 이 체크포인트의 develop 역병합은 미실행이며 이후 결과는
+  [역병합 PR](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Async%2Fbackmerge-v0.88.0)을 따른다.
