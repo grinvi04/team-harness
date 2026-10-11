@@ -1,0 +1,58 @@
+  quality:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci_user        # CUSTOMIZE
+          POSTGRES_PASSWORD: ci_password # CUSTOMIZE
+          POSTGRES_DB: ci_db            # CUSTOMIZE
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:  # CUSTOMIZE: Celery 안 쓰면 이 블록 전체 제거
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+psycopg2://ci_user:ci_password@localhost:5432/ci_db  # CUSTOMIZE
+      CELERY_BROKER_URL: redis://localhost:6379/0   # CUSTOMIZE: Celery 불필요 시 제거
+      CELERY_RESULT_BACKEND: redis://localhost:6379/0  # CUSTOMIZE: 동상
+      REDIS_URL: redis://localhost:6379/0            # CUSTOMIZE: 동상
+      # CUSTOMIZE: 필요한 env 추가 (JWT_SECRET, WEBHOOK_SECRET 등)
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'  # CUSTOMIZE
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+
+      - name: Lint + format (ruff)
+        run: |
+          ruff check .
+          ruff format --check .   # 포맷 게이트 — 어긋나면 차단 (`ruff format .`로 자동수정)
+
+      - name: Type check (mypy)
+        run: mypy .   # CUSTOMIZE: 패키지/경로 지정 (예: mypy app/) · pyproject [tool.mypy] strict 권장
+
+      - name: Test (pytest)
+        run: pytest

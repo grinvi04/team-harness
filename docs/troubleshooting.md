@@ -1,7 +1,7 @@
 # 트러블슈팅 — harness-guard
 
 > 증상 → 원인 → 해법. 가드가 막았을 때, 훅이 안 붙을 때, 의존성이 없을 때.
-> 판정 철학(무엇을 왜 막는가)은 `decisions.md`의 "가드/게이트 판정 철학" 항목, 계층은 `intro.html`.
+> 판정 철학(무엇을 왜 막는가)은 `decisions.md`의 "가드/게이트 판정 철학" 항목, 계층은 [아키텍처 안내](harness-architecture.md).
 
 ## 1. 가드가 명령을 막았다 (`⛔ [guard] …`, exit 2)
 

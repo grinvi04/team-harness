@@ -115,4 +115,4 @@ Rails 스택을 완전 배선한다: ① `ruby.md` rules, ② `db/migrate/*.rb` 
 6. **PR:** `pr-create.sh --milestone audit-followup`로 #2 연결.
 7. **한계 명시(원칙 7):** 실 Rails repo 부재라 실 데이터 대조 불가 — Rails-doc 정확 픽스처 + 적대적 리뷰로 갈음, 커버리지 한계 정직 보고.
 
-2026-10-09 현재 지원 경계: [현대화 1C](harness-modernization/plan/01-safety.md#1c--유효한-마이그레이션-구문의-누락)와 [실행 증거](harness-modernization/execution-s1c.json)를 따른다. 위 당시 후보/결과는 보존한다.
+2026-10-09 현재 지원 경계: [현대화 1C](https://github.com/grinvi04/team-harness/blob/85338bdcb691727ebd098f4ee0ce5167faf36e24/docs/specs/harness-modernization/plan/01-safety.md#1c--유효한-마이그레이션-구문의-누락)와 [실행 증거](https://github.com/grinvi04/team-harness/blob/85338bdcb691727ebd098f4ee0ce5167faf36e24/docs/specs/harness-modernization/execution-s1c.json)를 따른다. 위 당시 후보/결과는 보존한다.

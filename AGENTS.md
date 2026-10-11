@@ -31,9 +31,10 @@
 ## 빌드·테스트 명령
 
 - 구문: `bash -n <script>.sh` · `node --check <file>.mjs`
-- JSON 유효성: `plugin.json`·`hooks.json`·`templates/settings.json`·`templates/permissions/*.json`
+- JSON 유효성: `plugin.json`·`hooks.json`·`templates/settings.json`·`templates/stacks.json`
 - 테스트: `bash tests/<name>-test.sh` — guard·route-intent·merge-permissions·migration-safety·repo-sync·pr-merge-auto
 - **전량 게이트 = CI `.github/workflows/ci-gate.yml` quality 잡**. 로컬 재현 = 그 스텝들을 그대로 실행.
+- 구조·정본·생성 명령은 `docs/repository-structure.md`를 읽는다. 스택 YAML과 공통 Git/CI 배치 사본은 생성물이므로 정본 수정 후 생성·drift 검사를 함께 실행한다.
 
 ## 브랜치·PR (자기 guard.sh가 강제)
 
@@ -100,7 +101,7 @@
 
 공용 release/release-check는 아래 repo 선언을 읽는다. 이 명령을 모든 소비 repo에 강제하지 않는다.
 
-- 버전 준비: 두 plugin manifest와 README 배지를 함께 갱신하고 docs/intro.html의 현재 버전을 맞춘다.
+- 버전 준비: 두 plugin manifest와 README 배지를 함께 갱신하고 CHANGELOG 재현을 확인한다.
 - 태그 전 변경 이력: `node scripts/generate-changelog.mjs --release v$VERSION --write`.
   구현 커밋 후 생성하고 `node scripts/generate-changelog.mjs --release v$VERSION --check`로 확인한다.
 - 사전 품질: 위 quality 잡 전체와 현재 커밋의 package/bundle·checksum 검증.

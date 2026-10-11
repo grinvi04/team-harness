@@ -113,4 +113,4 @@ Alembic `.py` 마이그레이션의 `upgrade()` 경로에 있는 승인마커 �
 4. **self-skip:** 리포 루트 스캔 시 마이그레이션 지문 없으면 exit 0.
 5. **PR:** `pr-create.sh --milestone audit-followup`로 #1 연결.
 
-2026-10-09 현재 지원 경계: [현대화 1C](harness-modernization/plan/01-safety.md#1c--유효한-마이그레이션-구문의-누락)와 [실행 증거](harness-modernization/execution-s1c.json)를 따른다. 위 당시 후보/결과는 보존한다.
+2026-10-09 현재 지원 경계: [현대화 1C](https://github.com/grinvi04/team-harness/blob/85338bdcb691727ebd098f4ee0ce5167faf36e24/docs/specs/harness-modernization/plan/01-safety.md#1c--유효한-마이그레이션-구문의-누락)와 [실행 증거](https://github.com/grinvi04/team-harness/blob/85338bdcb691727ebd098f4ee0ce5167faf36e24/docs/specs/harness-modernization/execution-s1c.json)를 따른다. 위 당시 후보/결과는 보존한다.

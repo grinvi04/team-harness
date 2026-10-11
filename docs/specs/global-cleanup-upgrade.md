@@ -64,7 +64,7 @@ DB·UI·성능·production은 이 변경에 비적용이다. 전량 quality 및 
 자동 호출이 없다. patcher는 `--apply`만 외부 cache·marketplace·enablement를 쓰며, 인자 없음·
 모호한 인자·`--dry-run`의 쓰기 금지를 기존 fixture가 검증한다. adapter는 upstream 명령을
 실행하고 Claude 전용 telemetry/rewake 필드를 거르며 추가 context·block·reason을 전달한다.
-`packaging/packages.json`의 codex-adapter 소속, harness-setup의 opt-in 안내와 기존 회귀를 유지한다.
+`experiments/split-packaging/packages.json`의 codex-adapter 소속, harness-setup의 opt-in 안내와 기존 회귀를 유지한다.
 
 이 계약의 존재는 실제 상류의 현재 Codex 호환이나 기존 patched 설치의 부재를 증명하지 않는다.
 이번 worker는 외부 cache·config와 실제 Codex 세션을 조사·수정하지 않았으므로 현재 상류 출력의

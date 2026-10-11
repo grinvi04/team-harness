@@ -1,9 +1,0 @@
-{
-  "cwd": "$HOME/.codex/worktrees/c833/team-harness",
-  "head": "50ffec700b39176609e0951ca758a7b817f930d3",
-  "sha256": {
-    "plugins/harness-guard/scripts/pr-merge.sh": "c5d368d82fcdc8eef01c5d86a45f40c7cf3d12e9e165802970a0c29bad3df803",
-    "tests/pr-merge-auto-test.sh": "8cfefa7e471ada2da221cd8a619bcde366260c7ce9eedca0d857587e5367890a",
-    "plugins/harness-guard/skills/pr-review-gate/SKILL.md": "2529d408dacce71469853b9b1376a64be008e6b0bb47c54ef2b733224356f12b"
-  }
-}

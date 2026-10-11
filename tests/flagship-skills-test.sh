@@ -107,7 +107,7 @@ fi
 
 README="$ROOT/README.md"
 DEVELOPER_GUIDE="$ROOT/docs/developer-workflow.md"
-INTRO="$ROOT/docs/intro.html"
+PLUGIN_GUIDE="$ROOT/docs/harness-plugin.md"
 DECISIONS="$ROOT/docs/decisions-native-and-delivery.md"
 MANIFEST="$ROOT/plugins/harness-guard/.claude-plugin/plugin.json"
 CI="$ROOT/.github/workflows/ci-gate.yml"
@@ -134,16 +134,14 @@ check_contains "개발자 가이드가 systematic-debugging 안내" "$DEVELOPER_
   'systematic-debugging'
 check_contains "개발자 가이드가 verification-before-completion 안내" "$DEVELOPER_GUIDE" \
   'verification-before-completion'
-check_contains "소개 페이지가 스킬 17종 안내" "$INTRO" '스킬 17종'
-check_not_contains "소개 페이지에 스킬 14종 잔재 없음" "$INTRO" '스킬 14종'
-if grep -Fq "harness-guard v$PLUGIN_VERSION " "$INTRO"; then
-  pass "소개 페이지와 plugin manifest 버전 일치"
+if [ "$PLUGIN_VERSION" = "$(node -p "require('$ROOT/plugins/harness-guard/.codex-plugin/plugin.json').version")" ]; then
+  pass "Claude·Codex plugin manifest 버전 일치"
 else
-  fail "소개 페이지와 plugin manifest 버전 불일치"
+  fail "Claude·Codex plugin manifest 버전 불일치"
 fi
-check_contains "소개 페이지가 개발 조정 안내" "$INTRO" '/ao-coordinate'
-check_contains "소개 페이지가 systematic-debugging 안내" "$INTRO" '/systematic-debugging'
-check_contains "소개 페이지가 verification-before-completion 안내" "$INTRO" \
+check_contains "플러그인 가이드가 개발 조정 안내" "$PLUGIN_GUIDE" '/ao-coordinate'
+check_contains "플러그인 가이드가 systematic-debugging 안내" "$PLUGIN_GUIDE" '/systematic-debugging'
+check_contains "플러그인 가이드가 verification-before-completion 안내" "$PLUGIN_GUIDE" \
   '/verification-before-completion'
 check_contains "결정 기록이 v0.56.0과 두 스킬을 연결" "$DECISIONS" \
   'systematic-debugging.*verification-before-completion.*0\.56\.0'
@@ -158,20 +156,19 @@ const path = require('node:path');
 const root = process.argv[2];
 const skillRoot = path.join(root, 'plugins/harness-guard/skills');
 const names = fs.readdirSync(skillRoot).filter(name => fs.existsSync(path.join(skillRoot, name, 'SKILL.md'))).sort();
-const intro = fs.readFileSync(path.join(root, 'docs/intro.html'), 'utf8');
-const cards = [...intro.matchAll(/class="name">\/([a-z-]+)<\/div>/g)].map(match => match[1]).sort();
-assert.deepEqual(cards, names, 'every actual skill must have exactly one introduction card');
-const hero = intro.match(/class="n">(\d+)<\/div><div class="l">Skills/);
-assert.equal(Number(hero?.[1]), names.length, 'hero count must match source inventory');
+const guide = fs.readFileSync(path.join(root, 'docs/harness-plugin.md'), 'utf8');
+const inventory = guide.split('\n').filter(line => line.startsWith('|')).map(line => line.split(' — ')[0]).join('\n');
+const documented = [...new Set([...inventory.matchAll(/`\/([a-z-]+)`/g)].map(match => match[1]))].sort();
+assert.deepEqual(documented, names, 'current guide must describe every actual skill and no removed skill');
 const matrix = fs.readFileSync(path.join(root, 'docs/specs/codex-guard-compatibility.md'), 'utf8');
 for (const match of matrix.matchAll(/(\d+)(?:개)? (?:native wrapper|skills|skill을)/g)) {
   assert.equal(Number(match[1]), names.length, 'current mapping/runbook count must match source inventory');
 }
 NODE
 then
-  pass "소개 카드·hero·현행 매핑 수가 실제 skill 집합과 일치"
+  pass "현재 플러그인 안내·현행 매핑 수가 실제 skill 집합과 일치"
 else
-  fail "소개 또는 현행 매핑 inventory 불일치"
+  fail "현재 안내 또는 현행 매핑 inventory 불일치"
 fi
 
 # 구조 검사일 뿐 행동 평가의 대체물이 아니다. 설치 package에서도 상대 참조가 살아 있어야 한다.
@@ -186,7 +183,7 @@ assert.ok(skill.includes('(risk-boundaries.md)'), 'canonical skill must link its
 assert.ok(fs.readFileSync(path.join(dir, 'risk-boundaries.md'), 'utf8').length > 0);
 assert.ok(skill.includes('(test-design.md)'), 'canonical skill must route to its test design reference');
 assert.ok(fs.readFileSync(path.join(dir, 'test-design.md'), 'utf8').length > 0);
-const catalog = JSON.parse(fs.readFileSync(path.join(root, 'packaging/packages.json')));
+const catalog = JSON.parse(fs.readFileSync(path.join(root, 'experiments/split-packaging/packages.json')));
 assert.ok(catalog.packages.find(p => p.id === 'governance-core').sources.includes('skills/verification-before-completion'));
 NODE
 then

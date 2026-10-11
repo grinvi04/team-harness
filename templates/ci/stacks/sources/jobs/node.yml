@@ -1,0 +1,16 @@
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22  # CUSTOMIZE: .nvmrc 있으면 node-version-file: .nvmrc 로 교체
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run type-check --if-present     # tsc --noEmit (빌드가 타입오류를 무시 설정일 때 보완)
+      - run: npm run lint:design --if-present   # 디자인 토큰 게이트 (SPA 프론트면 활성, API-only면 no-op)
+      - run: npm test
+      - run: npm run build

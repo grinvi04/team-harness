@@ -40,6 +40,16 @@ jobs:
       - name: 선택형 개발 조정 배포 경계 검사
         run: bash tests/orchestration-integration-test.sh
 
+      - name: 공통 Git·CI 배치 사본 일치 검사
+        run: |
+          node scripts/sync-repository-config.mjs --check
+          bash tests/repository-config-test.sh
+
+      - name: 스택 정본·생성물·선택 계약 검사
+        run: |
+          node scripts/generate-stack-templates.mjs --check
+          bash tests/stack-templates-test.sh
+
       - name: 로컬 Spring Boot+Vue 시작 구성
         run: node --test tests/local-setup-test.mjs
 
@@ -68,6 +78,8 @@ jobs:
           bash -n tests/solo-merge-test.sh
           bash -n tests/hotfix-tag-test.sh
           bash -n tests/new-repo-test.sh
+          bash -n tests/repository-config-test.sh
+          bash -n tests/stack-templates-test.sh
           bash -n tests/alembic-heads-test.sh
           bash -n tests/alembic-destructive-ddl-test.sh
           bash -n tests/activerecord-destructive-ddl-test.sh
@@ -137,6 +149,10 @@ jobs:
           node --check scripts/run-codex-native-loader-pilot.mjs
           node --check scripts/run-codex-split-loader-pilot.mjs
           node --check scripts/merge-permissions.mjs
+          node --check scripts/sync-repository-config.mjs
+          node --check scripts/stack-catalog.mjs
+          node --check scripts/generate-stack-templates.mjs
+          for file in experiments/split-packaging/*.mjs; do node --check "$file"; done
           node --check scripts/check-destructive-ddl.mjs
           node --check scripts/check-alembic-destructive-ddl.mjs
           node --check scripts/check-activerecord-destructive-ddl.mjs
@@ -145,7 +161,7 @@ jobs:
       - name: JSON 유효성 검사
         run: |
           python3 - <<'EOF'
-          import json, glob
+          import json
           paths = [
               "plugins/harness-guard/.claude-plugin/plugin.json",
               "plugins/harness-guard/.codex-plugin/plugin.json",
@@ -153,11 +169,12 @@ jobs:
               "plugins/harness-guard/codex/hooks/hooks.json",
               ".claude-plugin/marketplace.json",
               "templates/settings.json",
-              "packaging/packages.json",
+              "experiments/split-packaging/packages.json",
+              "templates/stacks.json",
               "docs/pilots/external-pilot-provenance.json",
               "docs/pilots/codex-split-loader-v0.61.0.json",
               "docs/pilots/codex-split-runtime-v0.61.0.json",
-          ] + sorted(glob.glob("templates/permissions/*.json"))
+          ]
           for p in paths:
               json.load(open(p))
               print("OK", p)

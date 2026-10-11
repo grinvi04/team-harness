@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-MANAGE="$ROOT/scripts/manage-profile.mjs"
-DOCTOR="$ROOT/scripts/profile-doctor.mjs"
+MANAGE="$ROOT/experiments/split-packaging/manage-profile.mjs"
+DOCTOR="$ROOT/experiments/split-packaging/profile-doctor.mjs"
 TMP=$(mktemp -d "${TMPDIR:-/tmp}/profile-lifecycle.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 PASS=0; FAIL=0
@@ -31,6 +31,8 @@ wait_for_new_stage() {
 expect_ok "repository-only 설치" node "$MANAGE" install --profile repository-only --target "$TMP/repo-only"
 [ "$(state_packages "$TMP/repo-only")" = "governance-core" ] && pass "repository-only는 core만 포함" || fail "repository-only package 경계"
 expect_ok "repository-only doctor" node "$DOCTOR" --target "$TMP/repo-only"
+expect_ok "기존 profile doctor CLI 호환" node "$ROOT/scripts/profile-doctor.mjs" --target "$TMP/repo-only"
+expect_ok "기존 profile manager CLI 호환" node "$ROOT/scripts/manage-profile.mjs" update --profile repository-only --target "$TMP/repo-only"
 
 expect_ok "agent-governed Codex 설치" node "$MANAGE" install --profile agent-governed --runtime codex --target "$TMP/agent"
 [ "$(state_packages "$TMP/agent")" = "codex-adapter,governance-core" ] && pass "agent-governed는 선택 adapter만 포함" || fail "agent-governed package 경계"

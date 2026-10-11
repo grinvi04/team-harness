@@ -7,7 +7,7 @@
 공식 플러그인이 제공하지 않는 **자체 정책만** 담는다.
 
 현재 설치 단위는 호환성을 위해 `harness-guard` 하나다. 다음 배포 단계에서 사용할 governance core,
-Claude·Codex adapter, 선택 workflow의 파일 소속과 manifest는 `packaging/packages.json`이 정본이며 아래 명령으로
+Claude·Codex adapter, 선택 workflow의 파일 소속과 manifest는 `experiments/split-packaging/packages.json`이 정본이며 아래 명령으로
 clean 디렉터리에 재현 가능한 staged artifact를 만들 수 있다. 이 artifact는 아직 marketplace 설치 대상이 아니다.
 
 ```bash
@@ -23,6 +23,7 @@ node scripts/build-packages.mjs --output /tmp/team-harness-packages
 | **마일스톤 커맨드** | `/milestone` — 제품·마일스톤 정의→기능 분해→GitHub 마일스톤 생성→진행률 대시보드. `/plan` 위에 놓이는 목표 레이어. Claude Code 내장 `/goal`(세션 stopping condition)과 보완 관계 |
 | **계획 계약** | `/plan` — 선택된 방법론의 계획·승인을 프로젝트 spec·수용 기준에 연결. 기존 계획을 재사용하고 Git은 변경하지 않음 |
 | **개발 계약** | `/feature-add` · `/feature-modify` — 선택된 구현 방법론에 테스트 무결성·AGENTS.md 검사·제품 커밋 규약을 연결 |
+| **개발 조정** | `/ao-coordinate` — 여러 단계의 현재 후보·담당 범위·인계를 연결하고 중단된 작업을 재개 |
 | **진단 계약** | `/systematic-debugging` — 선택된 진단 방법에 프로젝트 재현 증거·무수정 경계를 연결. 원인 확인과 수정 승인 후 구현 계약으로 인계 |
 | **완료 검증 스킬** | `/verification-before-completion` — 현재 worktree·HEAD에 유효한 증거로 검증하며 같은 후보·환경·범위의 결과를 재사용. 변경·gate 신선도 조건에는 재검사, 실패·미확인은 fail-closed |
 | **자율 루프 커맨드** | `/loop` — 동기 조건-루프. CI·lint·테스트 등 "통과할 때까지 즉시 반복" 작업을 timeout·max·내용 기반 stuck·안전 checkpoint 안에서 자동화. 맥락 자동 선택은 명시적 요청 없이 commit하지 않으며 시간 예약 polling과 별개 |
@@ -31,7 +32,7 @@ node scripts/build-packages.mjs --output /tmp/team-harness-packages
 | **드리프트 점검** | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 점검(`check-repo-sync`). commit-msg·validator·CI·rules 등 필수 자산 누락 리포트 |
 | **PR 생성** | `/pr-create` — base 자동감지(develop 있으면 develop, 없으면 기본 브랜치) PR 생성 **단일 프리미티브**. 맨손 `gh pr create` 대체 — develop 없는 main 기반 repo도 한 경로로. `feature-merge`가 PR 생성 단계를 이 스킬에 위임 |
 | **머지·릴리즈 커맨드** | `/feature-merge` · `/hotfix` · `/release` · `/solo-merge` — git-flow 전 구간을 게이트 경유로 자동화 |
-| **스킬** `pr-review-gate` | PR 생성→머지의 표준 게이트 절차 **단일 출처** — AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
+| **리뷰 게이트** | `/pr-review-gate` — PR 생성→머지의 표준 절차. AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
 | **에이전트** `security-reviewer` | 릴리즈 전 보안 검토 기준 — Claude agent로 제공하고 Codex 실행·모델 선택은 native agent에 위임 |
 | **에이전트** `verifier` | 검증·연구·설계 반증 기준 — Claude agent로 제공하고 Codex 실행·모델 선택은 native agent에 위임 |
 

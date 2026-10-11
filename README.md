@@ -2,7 +2,7 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.87.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.88.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
@@ -117,33 +117,26 @@ team-harness/
 ├── .claude-plugin/marketplace.json    사내 마켓플레이스 카탈로그
 ├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
 ├── plugins/harness-guard/             플러그인 본체 (아래 상세)
-├── packaging/packages.json            core·adapter·workflow package 소속·호환성 정본
-├── scripts/build-packages.mjs         staged package artifact 검증·조립
-├── scripts/manage-profile.mjs         profile 설치·업데이트·비활성화·제거
-├── scripts/profile-doctor.mjs         staged profile 무결성 read-only 점검
+├── experiments/split-packaging/      분리 패키지·profile 평가 (공개 설치 보류)
 ├── scripts/new-repo.sh                신규 repo 셋업 자동화 (템플릿 복사 + branch protection)
 ├── scripts/harness-doctor.sh          Codex·repo·GitHub 상태 종합 점검 (`--probe`로 실세션 검증)
 ├── scripts/codex-fresh-session-smoke.sh  실제 ephemeral Codex hook 발화 검증
 ├── templates/                         신규 프로젝트에 복사하는 파일들
 │   ├── AGENTS.md · CLAUDE.md          규약 단일 출처 + Claude 전용 지침
 │   ├── settings.json                  .claude/settings.json (마켓플레이스·플러그인 선언)
-│   ├── ci/ci-gate.yml                 CI 기본 템플릿(placeholder)
+│   ├── stacks.json                   개별6개 선택·조합·rules·required checks 정본
 │   ├── ci/migration-safety.yml        마이그레이션 정적 게이트 (out-of-order·forward-only)
 │   ├── ci/integration-e2e.yml         실 IdP·실 백엔드 통합 e2e (env-gated)
 │   ├── ci/test-guard.yml · commitlint.yml · repo-sync.yml  거버넌스 게이트 (스택 무관)
-│   ├── ci/stacks/                     스택별 ci-gate 완성 템플릿 (new-repo.sh가 선택 복사)
-│   │   ├── ci-gate-node.yml           Node.js (React/Vite SPA, NestJS 단독)
-│   │   ├── ci-gate-nestjs-frontend.yml  NestJS 백엔드 + Node.js 프론트엔드
-│   │   ├── ci-gate-nextjs.yml         Next.js 단독 (App Router)
-│   │   ├── ci-gate-vue.yml            Vue 3 (Vite SPA)
-│   │   ├── ci-gate-spring.yml         Spring Boot Java/Kotlin 단독
-│   │   ├── ci-gate-spring-frontend.yml  Spring Boot + Node.js 프론트엔드
-│   │   ├── ci-gate-python.yml         FastAPI / Django (PostgreSQL + Redis)
-│   │   └── ci-gate-rails.yml          Rails 8 (소팀 MVP)
+│   ├── ci/stacks/sources/             공통·backend·frontend CI 정본 조각
+│   ├── ci/stacks/ci-gate-*.yml        스택별 완성 생성물 (new-repo.sh가 복사)
 │   ├── githooks/pre-commit            계층 0.5 git 훅
 │   └── PULL_REQUEST_TEMPLATE.md · gitignore.snippet
-└── docs/                              팀 표준 문서 (아래 표)
+└── docs/                              현재 표준·specs/명세·history/과거 증거
 ```
+
+수정할 정본·필수 배치 사본·생성 명령은 [저장소 유지보수 안내](docs/repository-structure.md)를 따른다.
+기본 설정은 소비 프로젝트용이며 이 저장소의 `.claude/settings.json`과 적용 대상이 다르다.
 
 ## 📚 팀 표준 문서 (`docs/`)
 
@@ -156,7 +149,6 @@ team-harness/
 | [public-safety-audit.md](docs/public-safety-audit.md) | Git 히스토리 시크릿 · 공개 식별정보 · 라이선스/provenance 공개 안전성 감사 |
 | [platform-overlap-audit.md](docs/platform-overlap-audit.md) | skill · hook · agent · Codex 호환 계층의 소유/연결/위임 전수 분류 |
 | [product-boundaries.md](docs/product-boundaries.md) | governance core · runtime adapter · 선택 workflow의 설치·운영 경계 |
-| [intro.html](docs/intro.html) | 한눈에 보는 team-harness 소개 페이지 (아키텍처·스킬·가드·티어링·게이트 시각화) |
 | [developer-workflow.md](docs/developer-workflow.md) | 개발자의 일상 작업 가이드 — 기능·수정·머지·hotfix·release 흐름과 막혔을 때의 다음 행동 |
 | [onboarding.md](docs/onboarding.md) | 신규 프로젝트 셋업 · 팀원 온보딩 · managed settings 로컬 시뮬레이션 |
 | [stack-guide.md](docs/stack-guide.md) | 기술 스택 선택 가이드 (SCM·ERP·업무 자동화 기준) |
