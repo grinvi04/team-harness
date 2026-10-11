@@ -44,7 +44,7 @@ check "good(자산 완비) → 통과"              0 "$GOOD"
 
 # Catalog routing must reach the drift report rather than retain a private rule path.
 if OUT=$(node "$GATE" --repo "$GOOD" --harness "$ROOT" 2>&1) && \
-   echo "$OUT" | grep -q '표준: templates/stacks/spring/rules/java.md'; then
+   echo "$OUT" | grep -q '표준: templates/stacks/spring-boot/rules/java.md'; then
   echo "PASS: catalog canonical Java source reaches drift reader"; PASS=$((PASS+1))
 else
   echo "FAIL: catalog canonical Java source missing in drift reader"; FAIL=$((FAIL+1))

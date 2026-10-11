@@ -8,16 +8,18 @@ export const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '
 
 export function loadCatalog(root = repositoryRoot) {
   const catalog = JSON.parse(readFileSync(resolve(root, 'templates/stacks.json'), 'utf8'));
-  const keys = ['node', 'spring', 'python', 'rails', 'nextjs', 'vue'];
+  const keys = ['node', 'spring-boot', 'python', 'rails', 'nextjs', 'vue', 'react', 'nuxt'];
   if (catalog.schemaVersion !== 3 || catalog.pathBase !== 'repository-root' || !Array.isArray(catalog.stacks)
-      || catalog.stacks.length !== 6 || catalog.stacks.some((stack, i) => stack.id !== i + 1
+      || catalog.stacks.length !== 8 || catalog.stacks.some((stack, i) => stack.id !== i + 1
         || stack.key !== keys[i] || JSON.stringify(stack.roles) !== JSON.stringify(
           i === 0 ? ['backend', 'frontend'] : i < 4 ? ['backend'] : ['frontend']))) {
-    throw new Error('Invalid stack catalog: expected schema 3 with repository-root paths and selections 1..6');
+    throw new Error('Invalid stack catalog: expected schema 3 with repository-root paths and selections 1..8');
   }
   for (const file of [...Object.values(catalog.commonSources), ...Object.values(catalog.ruleSources),
     ...catalog.stacks.flatMap(stack => [stack.sources.header, ...stack.sources.jobs,
-      ...Object.values(stack.assetSources), ...(stack.localCheck ? [stack.localCheck] : [])])]) {
+      ...Object.values(stack.assetSources), ...(stack.localCheck ? [stack.localCheck] : []),
+      ...(stack.profileQuality ? [stack.profileQuality] : []),
+      ...Object.values(stack.frameworks ?? stack.uiProfiles ?? {}).map(profile => profile.steps)])]) {
     if (typeof file !== 'string' || !/^templates\/[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/.test(file)
         || file.split('/').some(part => part === '.' || part === '..')) throw new Error('Invalid catalog path');
   }
@@ -25,6 +27,35 @@ export function loadCatalog(root = repositoryRoot) {
     if (stack.rules.some(rule => !catalog.ruleSources[rule])) throw new Error('Missing catalog rule source');
   }
   return catalog;
+}
+
+function withProfile(stack, options) {
+  for (const key of ['framework', 'ui']) {
+    if (Object.hasOwn(options, key) && (typeof options[key] !== 'string' || !/^[a-z][a-z-]*$/.test(options[key]))) {
+      throw new Error(`Invalid ${key} option`);
+    }
+  }
+  const framework = options.framework ?? null;
+  let ui = options.ui ?? null;
+  if (framework && (stack.key !== 'python' || !stack.frameworks?.[framework])) {
+    throw new Error('Unsupported framework for selected stack');
+  }
+  let profile;
+  if (framework) {
+    profile = stack.frameworks[framework];
+    ui ??= profile.defaultUi;
+    if (!profile.uiModes.includes(ui)) throw new Error('Unsupported UI for selected Python framework');
+  } else if (ui) {
+    if (stack.key !== 'rails' || !stack.uiProfiles?.[ui]) throw new Error('UI requires a Python framework or Rails');
+    profile = stack.uiProfiles[ui];
+  }
+  return { ...stack, framework, ui, legacy: stack.id <= 6 && !profile,
+    ...(profile ? { profile, rules: [...new Set([...stack.rules.filter(rule => rule !== 'alembic'), ...profile.rules])],
+      database: { tool: null, checks: [] } } : {}) };
+}
+
+function project(stack, role, directory) {
+  return { role, directory, stackKey: stack.key, framework: stack.framework, ui: stack.ui, legacy: stack.legacy };
 }
 
 function validateDirectory(directory) {
@@ -36,26 +67,28 @@ function validateDirectory(directory) {
 
 export function selectStack(selection, options = {}, catalog = loadCatalog()) {
   if (!options || typeof options !== 'object' || Array.isArray(options)
-      || Object.keys(options).some(key => !['backendDir', 'frontendDir'].includes(key))) {
+      || Object.keys(options).some(key => !['backendDir', 'frontendDir', 'framework', 'ui'].includes(key))) {
     throw new Error('Invalid stack options');
   }
   const id = String(selection);
-  if (!/^[1-6](\+[1-6])?$/.test(id)) throw new Error('Invalid stack selection: choose 1..6 or backend+frontend');
+  if (!/^[1-8](\+[1-8])?$/.test(id)) throw new Error('Invalid stack selection: choose 1..8 or backend+frontend');
   const stacks = id.split('+').map(value => catalog.stacks.find(entry => entry.id === Number(value)));
   if (stacks.length === 1) {
-    if (Object.keys(options).length) throw new Error('Directory options require a composed selection');
-    const stack = stacks[0];
+    if (Object.hasOwn(options, 'backendDir') || Object.hasOwn(options, 'frontendDir')) throw new Error('Directory options require a composed selection');
+    const stack = withProfile(stacks[0], options);
     return {
       ...stack,
       mode: 'single',
       ruleSources: catalog.ruleSources,
       checks: [...stack.checks, ...catalog.commonChecks, ...stack.database.checks],
+      projects: [project(stack, 'project', '.')],
     };
   }
-  const [backend, frontend] = stacks;
+  const backend = withProfile(stacks[0], options), frontend = withProfile(stacks[1], {});
   if (!backend.roles.includes('backend') || !frontend.roles.includes('frontend')) {
-    throw new Error('Invalid composition: backend must be 1..4 and frontend must be 1, 5 or 6');
+    throw new Error('Invalid composition: backend must be 1..4 and frontend must be 1, 5..8');
   }
+  if (backend.profile && backend.ui !== 'api') throw new Error('Separate frontend composition requires API UI mode');
   const backendDir = validateDirectory(Object.hasOwn(options, 'backendDir') ? options.backendDir : 'backend');
   const frontendDir = validateDirectory(Object.hasOwn(options, 'frontendDir') ? options.frontendDir : 'frontend');
   if (backendDir === frontendDir) throw new Error('Backend and frontend directories must be different');
@@ -72,6 +105,7 @@ export function selectStack(selection, options = {}, catalog = loadCatalog()) {
     database: backend.database,
     ruleSources: catalog.ruleSources,
     assetSources: backend.assetSources,
+    projects: [project(backend, 'backend', backendDir), project(frontend, 'frontend', frontendDir)],
   };
 }
 
@@ -79,7 +113,7 @@ export function parseSelectionArgs(args) {
   if (!args.length) throw new Error('Missing stack selection');
   const options = {};
   for (let i = 1; i < args.length; i += 2) {
-    const key = { '--backend-dir': 'backendDir', '--frontend-dir': 'frontendDir' }[args[i]];
+    const key = { '--backend-dir': 'backendDir', '--frontend-dir': 'frontendDir', '--framework': 'framework', '--ui': 'ui' }[args[i]];
     if (!key || Object.hasOwn(options, key) || i + 1 >= args.length) throw new Error('Invalid or duplicate directory option');
     options[key] = args[i + 1];
   }
@@ -96,7 +130,7 @@ function main(args) {
     return;
   }
   if (args[0] !== '--select') {
-    throw new Error('Usage: stack-catalog.mjs --menu | --select <1..6|backend+frontend> [--backend-dir relative] [--frontend-dir relative]');
+    throw new Error('Usage: stack-catalog.mjs --menu | --select <1..8|backend+frontend> [--backend-dir relative] [--frontend-dir relative] [--framework name] [--ui mode]');
   }
   const { selection, options } = parseSelectionArgs(args.slice(1));
   console.log(JSON.stringify(selectStack(selection, options)));

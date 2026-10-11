@@ -3,7 +3,7 @@ import { constants, accessSync, lstatSync, readFileSync, mkdirSync, writeFileSyn
 import path from 'node:path'
 import { loadCatalog, repositoryRoot, selectStack } from './stack-catalog.mjs'
 
-const usage = 'Usage: node scripts/setup-local.mjs --project <project> [--stack spring|vue|spring+vue] [--backend-dir relative] [--frontend-dir relative] [--apply]'
+const usage = 'Usage: node scripts/setup-local.mjs --project <project> [--stack spring-boot|vue|spring-boot+vue] [--backend-dir relative] [--frontend-dir relative] [--apply]'
 function stat(file) {
   try { return lstatSync(file) } catch (error) {
     if (error.code === 'ENOENT') return null
@@ -38,10 +38,10 @@ function main(args) {
     else throw new Error(usage)
   }
   if (!values.project) throw new Error(usage)
-  const stack = values.stack ?? 'spring+vue'
-  if (!['spring', 'vue', 'spring+vue'].includes(stack)) throw new Error(`Unsupported local stack: ${stack}`)
+  const stack = ({ spring: 'spring-boot', 'spring+vue': 'spring-boot+vue' })[values.stack] ?? values.stack ?? 'spring-boot+vue'
+  if (!['spring-boot', 'vue', 'spring-boot+vue'].includes(stack)) throw new Error(`Unsupported local stack: ${stack}`)
   const options = Object.fromEntries(['backendDir', 'frontendDir'].filter(key => Object.hasOwn(values, key)).map(key => [key, values[key]]))
-  const selected = selectStack(stack === 'spring+vue' ? '2+6' : stack === 'spring' ? '2' : '6', options)
+  const selected = selectStack(stack === 'spring-boot+vue' ? '2+6' : stack === 'spring-boot' ? '2' : '6', options)
   const root = path.resolve(values.project)
   requiredDirectory(root)
   const directories = selected.mode === 'composed' ? selected.directories : { backend: '', frontend: '' }
@@ -51,10 +51,10 @@ function main(args) {
     requiredFile(path.join(backend, 'gradlew'))
     accessSync(path.join(backend, 'gradlew'), constants.X_OK)
     if (!['build.gradle', 'build.gradle.kts'].some(name => stat(path.join(backend, name))?.isFile())) {
-      throw new Error('Required: build.gradle or build.gradle.kts in the Spring directory')
+      throw new Error('Required: build.gradle or build.gradle.kts in the Spring Boot directory')
     }
   }
-  if (stack !== 'spring') {
+  if (stack !== 'spring-boot') {
     const frontend = requiredDirectory(root, directories.frontend)
     const pkg = readObject(path.join(frontend, 'package.json'))
     readObject(path.join(frontend, 'package-lock.json'))
@@ -71,16 +71,16 @@ function main(args) {
   if (parent && !parent.isDirectory()) throw new Error(`scripts must be a regular directory, not a link: ${directory}`)
   if (stat(target)) throw new Error(`Refusing to replace existing destination: ${target}`)
   const catalog = loadCatalog()
-  const checks = (stack === 'spring+vue' ? ['spring', 'vue'] : [stack]).map(key => {
+  const checks = (stack === 'spring-boot+vue' ? ['spring-boot', 'vue'] : [stack]).map(key => {
     const source = catalog.stacks.find(entry => entry.key === key).localCheck
-    const role = key === 'spring' ? 'backend' : 'frontend'
+    const role = key === 'spring-boot' ? 'backend' : 'frontend'
     const destination = directories[role] ? `$PROJECT_ROOT/${directories[role]}` : '$PROJECT_ROOT'
     return readFileSync(path.join(repositoryRoot, source), 'utf8').replace(`$PROJECT_ROOT/${role}`, destination)
   }).join('\n') + '\n'
   const content = readFileSync(path.join(repositoryRoot, 'templates/local/check-harness.sh'), 'utf8').replace('{{CHECKS}}', checks)
   console.log(`${apply ? 'CREATE' : 'PREVIEW'}: ${target}`)
   if (stack !== 'vue') console.log(`${directories.backend || '.'}: ./gradlew check bootJar`)
-  if (stack !== 'spring') console.log(`${directories.frontend || '.'}: npm ci → ${commands.slice(0, -1).map(name => `npm run ${name}`).join(' → ')} → ./node_modules/.bin/playwright install chromium → npm run test:e2e`)
+  if (stack !== 'spring-boot') console.log(`${directories.frontend || '.'}: npm ci → ${commands.slice(0, -1).map(name => `npm run ${name}`).join(' → ')} → ./node_modules/.bin/playwright install chromium → npm run test:e2e`)
   if (stat(path.join(directory, 'check-local.sh'))) console.log('Keep existing check-local.sh and its product-specific checks; this adds a separate common checker.')
   if (!apply) { console.log('No files changed. Add --apply to create the checker.'); return }
   if (!parent) mkdirSync(directory)

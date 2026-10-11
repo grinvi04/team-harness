@@ -204,3 +204,13 @@ test('cleanup: unsupported stacks, unsafe paths and linked source directories re
   assert.notEqual(invoke(project, ['--stack', 'spring+vue', '--apply']).status, 0)
   assert.deepEqual(snapshot(root), linked)
 })
+
+test('Spring Boot canonical choices and legacy aliases produce the same portable checks', t => {
+  for (const [canonical, old] of [['spring-boot','spring'],['spring-boot+vue','spring+vue']]) {
+    const { project } = selectedFixture(t, old)
+    const before = snapshot(project)
+    const a = invoke(project, ['--stack',canonical]), b = invoke(project,['--stack',old])
+    assert.equal(a.status,0,a.stderr); assert.equal(b.status,0,b.stderr)
+    assert.equal(a.stdout,b.stdout); assert.deepEqual(snapshot(project),before)
+  }
+})

@@ -167,8 +167,8 @@ if len(parts) == 2:
     assert (target / 'apps/web/.prettierrc').read_bytes() == Path(os.environ['ROOT'] + '/templates/.prettierrc').read_bytes()
     assert (target / 'apps/web/scripts/check-design-tokens.mjs').read_bytes() == Path(os.environ['ROOT'] + '/templates/frontend/check-design-tokens.mjs').read_bytes()
     if parts[0] == 2:
-        assert (target / 'apps/api/.gitignore').read_bytes() == Path(os.environ['ROOT'] + '/templates/stacks/spring/gitignore').read_bytes()
-        assert (target / 'apps/api/config/checkstyle/checkstyle.xml').read_bytes() == Path(os.environ['ROOT'] + '/templates/stacks/spring/checkstyle.xml').read_bytes()
+        assert (target / 'apps/api/.gitignore').read_bytes() == Path(os.environ['ROOT'] + '/templates/stacks/spring-boot/gitignore').read_bytes()
+        assert (target / 'apps/api/config/checkstyle/checkstyle.xml').read_bytes() == Path(os.environ['ROOT'] + '/templates/stacks/spring-boot/checkstyle.xml').read_bytes()
     if parts[0] == 3:
         import subprocess
         config = target / 'apps/api/alembic.ini'
@@ -186,7 +186,7 @@ if len(parts) == 2:
                                 env={**os.environ, 'PATH': str(fake) + ':' + os.environ['PATH']}, capture_output=True, text=True)
         assert result.returncode == 1 and 'head=2' in result.stdout, result.stdout
 else:
-    template = ['node', 'spring', 'python', 'rails', 'nextjs', 'vue'][parts[0] - 1]
+    template = ['node', 'spring-boot', 'python', 'rails', 'nextjs', 'vue'][parts[0] - 1]
     assert workflow == Path(os.environ['ROOT'] + '/templates/ci/stacks/ci-gate-' + template + '.yml').read_text()
 CHECK
   then
@@ -209,7 +209,7 @@ for kind in relative traversal absolute; do
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
   : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
   if (cd "$target" && printf '2\n' | BACKEND_DIR="$foreign" FRONTEND_DIR="$foreign" PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
-    && cmp -s "$ROOT/templates/stacks/spring/checkstyle.xml" "$target/backend/config/checkstyle/checkstyle.xml" \
+    && cmp -s "$ROOT/templates/stacks/spring-boot/checkstyle.xml" "$target/backend/config/checkstyle/checkstyle.xml" \
     && [ ! -e "$outside" ]; then
     echo "PASS: standalone Spring ignores inherited $kind directory variables"; PASS=$((PASS+1))
   else
@@ -217,7 +217,7 @@ for kind in relative traversal absolute; do
   fi
 done
 
-for selection in 7 5+6 2+3 2+6:../outside; do
+for selection in 9 5+6 2+3 2+6:../outside; do
   target="$TMP/invalid-${selection//[^a-zA-Z0-9]/-}"
   git clone -q "$TMP/source" "$target"
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"

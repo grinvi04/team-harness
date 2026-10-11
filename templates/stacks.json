@@ -49,7 +49,7 @@
     {
       "id": 2,
       "label": "Spring Boot       — Java / Kotlin Gradle 백엔드 단독",
-      "template": "ci-gate-spring.yml",
+      "template": "ci-gate-spring-boot.yml",
       "checks": [
         "quality",
         "secret-scan"
@@ -59,7 +59,7 @@
         "flyway"
       ],
       "backend": {
-        "preset": "spring"
+        "preset": "spring-boot"
       },
       "frontend": {
         "preset": null,
@@ -72,21 +72,21 @@
         ]
       },
       "sources": {
-        "header": "templates/stacks/spring/ci/header.yml",
+        "header": "templates/stacks/spring-boot/ci/header.yml",
         "jobs": [
-          "templates/stacks/spring/ci/quality.yml"
+          "templates/stacks/spring-boot/ci/quality.yml"
         ]
       },
-      "key": "spring",
+      "key": "spring-boot",
       "roles": [
         "backend"
       ],
       "assetSources": {
-        "dockerfile": "templates/stacks/spring/Dockerfile",
-        "gitignore": "templates/stacks/spring/gitignore",
-        "checkstyle": "templates/stacks/spring/checkstyle.xml"
+        "dockerfile": "templates/stacks/spring-boot/Dockerfile",
+        "gitignore": "templates/stacks/spring-boot/gitignore",
+        "checkstyle": "templates/stacks/spring-boot/checkstyle.xml"
       },
-      "localCheck": "templates/stacks/spring/local-check.sh"
+      "localCheck": "templates/stacks/spring-boot/local-check.sh"
     },
     {
       "id": 3,
@@ -123,7 +123,37 @@
       "roles": [
         "backend"
       ],
-      "assetSources": {}
+      "assetSources": {},
+      "profileQuality": "templates/stacks/python/ci/profile-quality.yml",
+      "frameworks": {
+        "django": {
+          "uiModes": [
+            "templates",
+            "htmx",
+            "api"
+          ],
+          "defaultUi": "templates",
+          "steps": "templates/stacks/python/frameworks/django/ci/steps.yml",
+          "rules": []
+        },
+        "fastapi": {
+          "uiModes": [
+            "api"
+          ],
+          "defaultUi": "api",
+          "steps": "templates/stacks/python/frameworks/fastapi/ci/steps.yml",
+          "rules": []
+        },
+        "flask": {
+          "uiModes": [
+            "templates",
+            "api"
+          ],
+          "defaultUi": "templates",
+          "steps": "templates/stacks/python/frameworks/flask/ci/steps.yml",
+          "rules": []
+        }
+      }
     },
     {
       "id": 4,
@@ -157,7 +187,26 @@
       "roles": [
         "backend"
       ],
-      "assetSources": {}
+      "assetSources": {},
+      "profileQuality": "templates/stacks/rails/ci/profile-quality.yml",
+      "uiProfiles": {
+        "hotwire": {
+          "steps": "templates/stacks/rails/ui/hotwire/ci/steps.yml",
+          "rules": []
+        },
+        "inertia-react": {
+          "steps": "templates/stacks/rails/ui/inertia-react/ci/steps.yml",
+          "rules": []
+        },
+        "inertia-vue": {
+          "steps": "templates/stacks/rails/ui/inertia-vue/ci/steps.yml",
+          "rules": []
+        },
+        "api": {
+          "steps": "templates/stacks/rails/ui/api/ci/steps.yml",
+          "rules": []
+        }
+      }
     },
     {
       "id": 5,
@@ -231,13 +280,80 @@
       ],
       "assetSources": {},
       "localCheck": "templates/stacks/vue/local-check.sh"
+    },
+    {
+      "id": 7,
+      "label": "React + Vite     — SPA 프론트엔드",
+      "template": "ci-gate-react.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "typescript"
+      ],
+      "backend": {
+        "preset": null
+      },
+      "frontend": {
+        "preset": "react"
+      },
+      "database": {
+        "tool": null,
+        "checks": []
+      },
+      "sources": {
+        "header": "templates/stacks/react/ci/header.yml",
+        "jobs": [
+          "templates/stacks/react/ci/quality.yml"
+        ]
+      },
+      "key": "react",
+      "roles": [
+        "frontend"
+      ],
+      "assetSources": {}
+    },
+    {
+      "id": 8,
+      "label": "Nuxt             — Vue 프레임워크 프론트엔드",
+      "template": "ci-gate-nuxt.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "typescript",
+        "vue"
+      ],
+      "backend": {
+        "preset": null
+      },
+      "frontend": {
+        "preset": "nuxt"
+      },
+      "database": {
+        "tool": null,
+        "checks": []
+      },
+      "sources": {
+        "header": "templates/stacks/nuxt/ci/header.yml",
+        "jobs": [
+          "templates/stacks/nuxt/ci/quality.yml"
+        ]
+      },
+      "key": "nuxt",
+      "roles": [
+        "frontend"
+      ],
+      "assetSources": {}
     }
   ],
   "pathBase": "repository-root",
   "ruleSources": {
     "typescript": "templates/rules/typescript.md",
-    "java": "templates/stacks/spring/rules/java.md",
-    "flyway": "templates/stacks/spring/rules/flyway.md",
+    "java": "templates/stacks/spring-boot/rules/java.md",
+    "flyway": "templates/stacks/spring-boot/rules/flyway.md",
     "python": "templates/stacks/python/rules/python.md",
     "alembic": "templates/stacks/python/rules/alembic.md",
     "ruby": "templates/stacks/rails/rules/ruby.md",

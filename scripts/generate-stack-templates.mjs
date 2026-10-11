@@ -65,13 +65,31 @@ export function renderComposition(selection, options = {}, root = repositoryRoot
   const catalog = loadCatalog(root);
   const selected = selectStack(selection, options, catalog);
   if (selected.mode !== 'composed') throw new Error('Composition requires backend+frontend');
+  return renderSelectedWorkflow(selected, null, root);
+}
+
+export function renderSelectedWorkflow(selected, versionRecord = null, root = repositoryRoot) {
+  if (versionRecord !== null) throw new Error('Version record rendering is not yet available');
+  const catalog = loadCatalog(root);
   const read = relative => readFileSync(inside(root, relative), 'utf8');
-  const jobs = ['backend', 'frontend'].map(role => {
-    const stack = catalog.stacks.find(entry => entry.id === selected[role].id);
+  const jobs = selected.projects.map(project => {
+    const original = catalog.stacks.find(entry => entry.key === project.stackKey);
+    if (!original) throw new Error('Unknown selected project stack');
+    const options = {};
+    if (project.framework) options.framework = project.framework;
+    if (project.ui) options.ui = project.ui;
+    const stack = selectStack(String(original.id), options, catalog);
     if (stack.sources.jobs.length !== 1) throw new Error('Composition requires one standalone job source');
-    return composeJob(read(stack.sources.jobs[0]), role, selected[role].directory);
+    const source = stack.profile
+      ? read(stack.profileQuality).replace('{{PROFILE_STEPS}}', read(stack.profile.steps).trimEnd())
+      : read(stack.sources.jobs[0]);
+    return project.role === 'project' ? source : composeJob(source, project.role, project.directory);
   });
-  return generatedBanner + `# ci-gate — ${selected.backend.key} backend + ${selected.frontend.key} frontend\n`
+  const header = selected.mode === 'single' ? selected.profile
+    ? `# ci-gate — ${selected.key} ${selected.framework ?? ''} ${selected.ui}\n`
+    : read(selected.sources.header)
+    : `# ci-gate — ${selected.backend.key} backend + ${selected.frontend.key} frontend\n`;
+  return generatedBanner + header
     + read(catalog.commonSources.workflow) + jobs.map(job => job + '\n').join('')
     + read(catalog.commonSources.secretScan);
 }
@@ -96,9 +114,10 @@ export function generateTemplates(mode, root = repositoryRoot) {
 if (process.argv[1] && existsSync(process.argv[1]) && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
   try {
     const args = process.argv.slice(2);
-    if (args[0] === '--compose') {
+    if (['--compose', '--render'].includes(args[0])) {
       const { selection, options } = parseSelectionArgs(args.slice(1));
-      process.stdout.write(renderComposition(selection, options));
+      process.stdout.write(args[0] === '--compose' ? renderComposition(selection, options)
+        : renderSelectedWorkflow(selectStack(selection, options)));
     } else {
       if (args.length !== 1) throw new Error('Usage: generate-stack-templates.mjs --write | --check | --compose <backend+frontend> [--backend-dir relative] [--frontend-dir relative]');
       const count = generateTemplates(args[0]);

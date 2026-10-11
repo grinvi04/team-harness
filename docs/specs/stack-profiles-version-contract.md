@@ -7,7 +7,7 @@
 기준은 `fix/structure-cleanup`의 `c701eccb3b25820bdc14b9d2f144d54089d19a15`다.
 첫 명세는 로컬 Git의 `git show c701ecc:docs/specs/stack-profiles-version-contract.md`로 읽는다.
 이 커밋은 원격에 올리지 않았다. 로컬 작성과 원격 전달을 구분한다.
-이번에는 명세와 [구현 계획](stack-profiles-implementation-plan.md)을 작성한다. 구현 실행은 아직 승인받지 않았다.
+사용자는 [구현 계획](stack-profiles-implementation-plan.md)을 검토하고 Native 순차 구현·마지막 독립 검토를 승인했다.
 이전 [구조 정리](structure-cleanup.md)의 구현·검증 완료를 이번 기능의 실행 증거로 사용하지 않는다.
 [제품 방향](../product-direction.md) 판정은 **소유**다. 설정·검사 연결을 소유하고 생태계의 공식 기능을 활용한다.
 
@@ -27,7 +27,7 @@
 | 기존 번호·키 | 역할과 선택 |
 |---|---|
 | 1 `node` | Node·TypeScript backend. 기존 frontend 역할은 호환 입력으로만 유지 |
-| 2 `spring` | Spring backend. 주 안내는 API+독립 frontend |
+| 2 `spring-boot` | Spring Boot backend. 주 안내는 API+독립 frontend |
 | 3 `python` | `django`·`fastapi`·`flask` 개별 프로필; 기존 범용 Python 선택은 호환 유지 |
 | 4 `rails` | Rails backend와 기존 앱 안의 UI 방식 선택 |
 | 5 `nextjs` | Next.js frontend, 서버·브라우저 경계를 구분 |
@@ -35,7 +35,8 @@
 | 7 `react` | React+Vite SPA frontend |
 | 8 `nuxt` | Nuxt frontend |
 
-기존 1~6의 번호·키를 바꾸지 않고 React·Nuxt를 뒤에 추가한다.
+기존 1~6의 번호를 유지하고 React·Nuxt를 뒤에 추가한다. 사용자 추가 지시로 2번 키/경로를 `spring-boot`로 통일한다.
+기존 `spring` CLI 입력은 호환 별칭이다. 공식 패키지명·`spring.*` 설정키·Spring Framework 개념·과거 증거는 정확히 보존한다.
 Node는 런타임이며 독립 frontend 프레임워크처럼 추천하지 않는다. 기존 `1+1` 등은 호환 검사에 남긴다.
 Python 메뉴에서 Django·FastAPI·Flask를 각각 선택하고 공통 Python 설정을 재사용한다.
 프로젝트의 확인 가능한 의존성으로 프레임워크를 판정한다. 여러 개가 설치돼 있으면 명시적 선택을 받는다.
@@ -45,7 +46,7 @@ Python 메뉴에서 Django·FastAPI·Flask를 각각 선택하고 공통 Python 
 
 | 구성 방식 | 적용 대상과 선택 |
 |---|---|
-| API·frontend 분리 | Node·Spring·FastAPI, API로 사용하는 Django·Flask·Rails + React·Next.js·Vue·Nuxt |
+| API·frontend 분리 | Node·Spring Boot·FastAPI, API로 사용하는 Django·Flask·Rails + React·Next.js·Vue·Nuxt |
 | 서버에서 화면 생성 | Django Templates, 선택적 HTMX; Flask Jinja; Rails ERB+Hotwire |
 | 서버와 JS 화면 연결 | Rails Inertia+React 또는 Inertia+Vue; Rails 라우팅·세션·컨트롤러를 활용 |
 
@@ -71,14 +72,14 @@ Python 전문 자산은 `python/frameworks/{django,fastapi,flask}/`, Rails UI는
 React 공통 rule은 Next.js도 읽고 Vue 공통 rule은 Nuxt도 읽는다. SPA 전제를 SSR에 강제하지 않는다.
 TypeScript 공통 rule은 기존 정본을 재사용한다. 셋업·생성·repo-sync·검사 reader를 함께 이전한다.
 기존 생성물·번호·명령을 유지한다. 현재 지원하는 npm·Gradle·pip·Bundler 밖의 빌드 도구는 추가하지 않는다.
-Spring·Vue local checker의 무옵션·개별·조합 명령을 유지한다. 새 UI local checker는 추가하지 않는다.
+Spring Boot·Vue local checker의 무옵션·개별·조합 명령을 유지한다. 새 UI local checker는 추가하지 않는다.
 
 ## 버전 선택과 기록
 
 런타임·프레임워크·주요 빌드 도구·실제 UI 의존성을 따로 확인한다.
 React: Node·React/react-dom·Vite·React plugin. Nuxt: Node·Nuxt·Vue·사용 중인 module.
 Python: Python·선택한 Django/FastAPI/Flask. Rails: Ruby·Rails·선택한 Hotwire/Inertia·JS adapter.
-Spring: Java·Spring Boot·Gradle wrapper. Next.js·Vue·일반 Node도 실제 의존성을 확인한다.
+Spring Boot: Java·Spring Boot·Gradle wrapper. Next.js·Vue·일반 Node도 실제 의존성을 확인한다.
 
 | 우선순위 | 선택 규칙 |
 |---|---|
@@ -88,7 +89,7 @@ Spring: Java·Spring Boot·Gradle wrapper. Next.js·Vue·일반 Node도 실제 �
 
 `latest`는 영구 저장하는 버전이 아니다. prerelease·nightly는 기본 선택에서 제외한다.
 Node의 기본값과 `latest`는 호환되는 최신 지원 LTS다. 다른 지원 안정 버전은 정확하게 지정할 수 있다.
-Java는 선택한 배포판의 지원 LTS와 Spring·Gradle 조건을 본다. 배포판을 임의 선택하지 않는다.
+Java는 선택한 배포판의 지원 LTS와 Spring Boot·Gradle 조건을 본다. 배포판을 임의 선택하지 않는다.
 Python·Ruby는 프레임워크가 지원하는 안정 버전을 고른다. 지원하지 않는 최신 버전은 선택하지 않는다.
 범위 선언을 설치 버전으로 보고하지 않는다. 조회한 최신 버전으로 기존 앱의 불명확한 버전을 채우지 않는다.
 요청·기존 버전 차이, 선언·lockfile·런타임 충돌은 조치 안내와 함께 적용을 중단한다.
@@ -126,7 +127,7 @@ API schema·인증·오류·시간 형식·CORS는 별도 [연결 계약](../api
 내부 API 제공80%·외부 API 제공70%를 보고한다. 복수 선택 결과이며 Thymeleaf의 점유율이나 감소율이 아니다.
 [현재 Spring Boot 문서](https://docs.spring.io/spring-boot/reference/web/servlet.html#web.servlet.spring-mvc.template-engines)는 Thymeleaf 자동 설정을 지원한다.
 확인한 자료로 Thymeleaf 사용률의 연도별 감소나 '더 이상 쓰지 않는다'를 확정하지 못했다.
-이 제품의 Spring 주 안내는 API+React·Next.js·Vue·Nuxt로 둔다. 이는 제품 설계 판단이다.
+이 제품의 Spring Boot 주 안내는 API+React·Next.js·Vue·Nuxt로 둔다. 이는 제품 설계 판단이다.
 Thymeleaf는 기존 서버 화면 프로젝트의 선택 사항으로 안내하고 강제 제거·자동 변환하지 않는다.
 이번에 Thymeleaf 전용 profile·CI 생성 기능을 추가하지 않는다.
 
@@ -160,24 +161,27 @@ Thymeleaf는 기존 서버 화면 프로젝트의 선택 사항으로 안내하�
 | 버전 | 정확한 사용자 지정·latest·기존 버전, prerelease, runtime/peer 충돌, 선언/lock 상충, 조회 실패 |
 | 안전/재현 | 미리보기 무변경, 적용 전 차단, 기존 파일/링크 보호, 원자적 실패 정리, CI 지문 drift 거부 |
 | 문서 | 정본 발견·major 링크·조건부 패턴/진단, 특정 소비 프로젝트 내용 없음, 소유 Markdown199줄 이하 |
-| 회귀 | Spring/Vue checker, 기존 CI·가드·시크릿·권한·복구, 셋업/생성/repo-sync의 같은 선택·판정 |
+| 회귀 | Spring Boot/Vue checker, 기존 CI·가드·시크릿·권한·복구, 셋업/생성/repo-sync의 같은 선택·판정 |
 
 구현 시 안내·카탈로그·reader·fixture·검사를 함께 갱신한다. 두 manifest·README·changelog도 동작 변경 때 맞춘다.
 문서만 수정하는 지금은 버전을 바꾸지 않는다. 구현 뒤 범위 검사·quality 전체·독립 읽기 전용 검토를 수행한다.
 실제 소비 앱·원격 CI·호스트 훅·설치는 실행 증거가 없으면 미확인이다. fixture 통과로 대신하지 않는다.
-이번 종료 조건은 명세 보완·계획 작성·문서 일치 검사·검토 가능한 전달이다. 구현 실행은 다음 승인 단계다.
+명세·계획 작성은 완료했다. 현재는 승인한 구현과 필수 검증·독립 검토·현재 안내/지도 일치까지 수행한다.
 구현 종료 조건은 위 기준 충족과 현재 안내·지도 일치다. 발행·설치를 자동 추가하지 않는다.
 
 ```harness-doc-sync
 {
-  "version": 1,
-  "documents": [
-    {"path": "docs/specs/stack-profiles-version-contract.md", "reason": "프레임워크·화면 방식과 버전 검증 합의 수정"},
-    {"path": "docs/specs/stack-profiles-implementation-plan.md", "reason": "승인한 명세의 구현 순서·인터페이스·시험"}
+  "version":1,
+  "documents":[
+    {"path":"docs/specs/stack-profiles-version-contract.md","reason":"프레임워크·화면 방식과 버전 검증 합의 수정"},
+    {"path":"docs/specs/stack-profiles-implementation-plan.md","reason":"승인한 명세의 구현 순서·인터페이스·시험"},
+    {"path":"docs/repository-structure.md","reason":"Spring Boot 정식 경로와 새 프로필 생성 안내"},
+    {"path":"docs/local-development.md","reason":"Spring Boot 명령과 호환 별칭 안내"},
+    {"path":"README.md","reason":"동작 변경 소스 후보0.91.0 배지"}
   ],
-  "items": []
+  "items":[]
 }
 ```
 
-현재 단계는 명세 수정·구현 계획 작성 완료와 실행 전 사용자 검토 대기다.
+현재 단계는 승인한 Native 구현 진행이다. Spring Boot 정식 이름 통일도 이번 범위에 포함한다.
 계획의 checkbox는 미실행 작업이며 기능 완료 증거가 아니다.

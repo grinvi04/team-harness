@@ -11,14 +11,15 @@
 
 - 기존 번호1~6 유지, 7 `react`, 8 `nuxt` 추가; Python은 3번의 `django|fastapi|flask` 선택이다.
 - Django `templates|htmx|api`, Flask `templates|api`, FastAPI `api`, Rails `hotwire|inertia-react|inertia-vue|api`다.
-- 고정 풀스택 파일 없이 개별 자산을 조합한다. 기존6개 생성물·12조합·Spring/Vue local checker는 회귀 대상이다.
+- 고정 풀스택 파일 없이 개별 자산을 조합한다. 기존6개 생성물·12조합·Spring Boot/Vue local checker는 회귀 대상이다.
 - 기존 범용 Python/Rails 생성물은 호환 경로다. 새 전문 프로필에는 DB·Redis·Celery 제품을 기본 주입하지 않는다.
 - 버전 우선순위는 명시적 exact/latest → 기존 확정 버전 → 최신 안정 제안; Node 기본은 호환되는 지원 LTS다.
 - 불명확한 기존 버전을 최신으로 채우지 않는다. 요청/기존 차이·충돌·미확인은 nonzero와 조치 안내다.
 - 미리보기는 읽기만 한다. `--apply`도 앱 의존성·lockfile·전역 설정을 바꾸지 않는다.
 - 가드·시크릿·CI 권한/action SHA·브랜치 보호·사용자 파일·복구 자료를 보존한다. 소유 Markdown은199줄 이하다.
 - 소비 원격·배포·결제·Claude 인증/실제 모델·전역 설치·PR/병합/발행/설치는 이 구현 계획에서 제외한다.
-- 현재 문서 작업은 코드 실행 승인이 아니다. 아래 checkbox는 향후 실행자가 기록할 미실행 작업이다.
+- 사용자는 Native 순차 구현과 마지막 독립 검토를 승인했다. 아래 checkbox는 실제 실행 후에만 완료로 표시한다.
+- 2번 키·경로·정식 명령은 `spring-boot`로 통일한다. 기존 `spring` CLI 별칭·공식 설정키·Framework 명칭·과거 원문은 보존한다.
 
 ## Review Focus
 
@@ -41,34 +42,34 @@
 커밋은 각 Task의 소유 파일만 `git -C "$STACK_WORKTREE" add <경로>`로 stage하고 Conventional 한국어 제목으로 한다.
 `feat|fix|refactor`는 `git -C "$STACK_WORKTREE" commit -m '<제목>' -m '이유: <문제와 변경 목적>'`을 사용한다.
 
-### Task1: 선택 카탈로그와 개별 CI 자산
+### Task 1: 선택 카탈로그와 개별 CI 자산
 
-**Files:** 수정 `templates/stacks.json`, `scripts/{stack-catalog,generate-stack-templates}.mjs`, `tests/stack-templates-test.sh`.
+**Files:** 수정 `templates/stacks.json`, `scripts/{stack-catalog,generate-stack-templates}.mjs`, `tests/stack-templates-test.sh`, `scripts/setup-local.mjs`, `tests/local-setup-test.mjs`; Spring Boot 이름의 직접 reader·검사·사용 안내·버전도 같은 단계에서 이전한다.
 생성 `templates/stacks/{react,nuxt}/ci/{header,quality}.yml`, `python/ci/profile-quality.yml`, `rails/ci/profile-quality.yml`.
 생성 `templates/stacks/python/frameworks/{django,fastapi,flask}/ci/steps.yml`, `templates/stacks/rails/ui/{hotwire,inertia-react,inertia-vue,api}/ci/steps.yml`.
 **Interfaces:** 기존 `selectStack(selection,options={},catalog=loadCatalog()): Selection`에 framework/ui 옵션을 추가한다.
 `renderSelectedWorkflow(selected:Selection,versionRecord:VersionResult|null=null,root=repositoryRoot): string`을 생성기에 추가한다.
-- [ ] 실패 시험 `profile_selection_preserves_legacy`를 `tests/stack-templates-test.sh`에 추가한다.
+- [x] 실패 시험 `profile_selection_preserves_legacy`를 `tests/stack-templates-test.sh`에 추가한다.
 ```js
 assert.equal(selectStack('7').key, 'react'); assert.equal(selectStack('8').key, 'nuxt');
 assert.equal(selectStack('3', {framework:'django',ui:'htmx'}).projects[0].framework, 'django');
 assert.throws(() => selectStack('4+7', {ui:'inertia-react'}));
 ```
-- [ ] `bash tests/stack-templates-test.sh` 실행: 새 선택을 거부해서 RED, 기존 hash·12조합 사례는 유지한다.
-- [ ] 카탈로그·렌더러와 차이만 담은 자산을 구현한다. API 분리형만 조합하고 같은/탈출 경로는 기존 validator로 거부한다.
+- [x] `bash tests/stack-templates-test.sh` 실행: 새 선택을 거부해서 RED, 기존 hash·12조합 사례는 유지한다.
+- [x] 카탈로그·렌더러와 차이만 담은 자산을 구현한다. API 분리형만 조합하고 같은/탈출 경로는 기존 validator로 거부한다.
 새 Python job은 공통 설치·lint/format/type 검사와 framework 검사, Rails는 공통 Ruby 검사와 UI 단계만 합친다.
 DB 서비스는 자동 생성하지 않는다. Django는 `manage.py check`와 native test, FastAPI/Flask는 pytest를 기본 안내한다.
 설치된 검사 도구와 명시적 npm script/테스트 경로를 확인하며 없으면 안내·중단한다. `--if-present`로 필수 검사를 생략하지 않는다.
 React/Vue 공통 rule 재사용 경로는 Task6에서 채운다. 다른 소유 파일을 바꾸는 task와 동시 쓰지 않는다. 기존 `--compose` 유지, 새 단독/전문 선택 출력은 `--render <선택>`이다.
-- [ ] `node scripts/generate-stack-templates.mjs --write`, `--check`, `bash tests/stack-templates-test.sh`: PASS; 기존 생성물 hash와 보호 설정 동일.
-- [ ] 커밋 `feat(stack): 개별 프레임워크와 화면 구성 선택 추가`.
+- [x] `node scripts/generate-stack-templates.mjs --write`, `--check`, `bash tests/stack-templates-test.sh`: PASS; 기존 생성물 hash와 보호 설정 동일.
+- [x] 커밋 `feat(stack): 개별 프레임워크와 화면 구성 선택 추가`.
 
-### Task2: 기존 프로젝트를 실행하지 않고 읽기
+### Task 2: 기존 프로젝트를 실행하지 않고 읽기
 
 **Files:** 생성 `plugins/harness-guard/scripts/{stack-project.mjs,read-stack-pyproject.py}`, `tests/stack-project-test.mjs`, `tests/fixtures/stack-profiles/`; 카탈로그의 판정 대상 연결.
 **Interfaces:** `inspectStackProjects(projectRoot:string,selected:Selection): Inspection`을 plugin 정본에서 export한다. Task1의 projects를 소비한다.
 Node package.json/npm lock v2·v3/런타임 선언, Python PEP621·정확히 고정한 requirements·런타임 선언을 읽는다.
-Rails Gemfile.lock·.ruby-version·정적 선언과 importmap/package manifest, Spring Gradle Boot plugin·Java toolchain·wrapper를 읽는다.
+Rails Gemfile.lock·.ruby-version·정적 선언과 importmap/package manifest, Spring Boot Gradle plugin·Java toolchain·wrapper를 읽는다.
 - [ ] `ambiguous_framework_and_ui`·`hotwire_without_node`·`unresolved_is_not_absent` 시험을 작성한다.
 ```js
 assert.ok(inspectStackProjects(multiPython, pythonSelection).issues.some(i => i.code === 'AMBIGUOUS_FRAMEWORK'));
@@ -83,7 +84,7 @@ Rails는 gem에 포함된 Hotwire와 외부 importmap pin을 구분하고 Inerti
 - [ ] `node --test tests/stack-project-test.mjs`: PASS; 각 fixture 파일 digest·앱 실행 sentinel이 시험 전후 같다.
 - [ ] 커밋 `feat(stack): 기존 프레임워크와 버전 증거 판독`.
 
-### Task3: 공식 metadata와 생태계 버전 판정
+### Task 3: 공식 metadata와 생태계 버전 판정
 
 **Files:** 생성 `scripts/stack-versions/{metadata,check,ranges}.mjs`, `{python-ranges.py,ruby-ranges.rb}`, `tests/stack-version-check-test.mjs`.
 생성 같은 tooling 폴더의 `package.json`, `package-lock.json`, `requirements.txt`; 수정 `.github/workflows/ci-gate.yml`의 tooling 준비·시험.
@@ -100,13 +101,13 @@ assert.equal((await checkStackVersions(timeoutMetadata)).status, 'unverified');
 - [ ] Harness tooling에 semver7.8.5·packaging26.3를 고정한다. RubyGems `Gem::Requirement`는 설치된 Ruby를 이용한다.
 격리 준비는 `npm ci --prefix scripts/stack-versions`, Python3.11+ venv `.runtime/stack-versions/venv`에 requirements 설치다.
 `STACK_VERSION_PYTHON`으로 해당 Python을 지정한다. 읽기 명령은 자동 설치하지 않으며 도구 부재도 unverified다.
-공식 npm/PyPI/RubyGems·Node 릴리즈·선택 Java 배포판·Spring/Gradle 지원 자료를 조회한다. source host·schema·크기·timeout을 제한한다. 조건을 쓰는 package의 실제 설치 여부와 정적 module 선언을 확인한다.
+공식 npm/PyPI/RubyGems·Node 릴리즈·선택 Java 배포판·Spring Boot/Gradle 지원 자료를 조회한다. source host·schema·크기·timeout을 제한한다. 조건을 쓰는 package의 실제 설치 여부와 정적 module 선언을 확인한다.
 각 확정 릴리즈의 runtime·peer·UI 조건만 대조한다. Java 배포판/공식 조건 추출 불가·조회 실패는 추정 PASS 대신 unverified다.
 최신 제안으로 unresolved를 숨기지 않는다. optional peer/marker는 실제 사용·대상 환경에 맞추고 API 통합까지 보장하지 않는다.
 - [ ] 위 tooling 준비 뒤 `node --test tests/stack-version-check-test.mjs`: PASS. 조회는 stub이며 공식 parser 경계는 실제 실행한다.
 - [ ] 커밋 `feat(stack): 공식 조건 기반 버전 충돌 판정`.
 
-### Task4: 미리보기·원자적 기록과 CI 재현
+### Task 4: 미리보기·원자적 기록과 CI 재현
 
 **Files:** 생성 `scripts/check-stack-versions.mjs`, `scripts/stack-versions/record.mjs`, `tests/stack-version-cli-test.mjs`.
 생성 `plugins/harness-guard/scripts/check-stack-record.mjs` 정본과 루트 `scripts/check-stack-record.mjs` CLI wrapper.
@@ -129,7 +130,7 @@ assert.equal(checkStackRecord(changedProject, savedRecord).valid, false);
 - [ ] `node --test tests/stack-version-cli-test.mjs`와 `bash tests/stack-templates-test.sh`: PASS; 부작용·drift 거부 사례 포함.
 - [ ] 커밋 `feat(stack): 버전 미리보기와 재현 기록 추가`.
 
-### Task5: 셋업·repo-sync의 선택과 실패 경계 연결
+### Task 5: 셋업·repo-sync의 선택과 실패 경계 연결
 
 **Files:** 수정 `scripts/new-repo.sh`, `plugins/harness-guard/scripts/check-repo-sync.mjs`, `tests/{new-repo,repo-sync}-test.sh`.
 **Interfaces:** 셋업은 Selection→Inspection→VersionResult→renderSelectedWorkflow 순서로 호출한다. 실패 판정은 복사/protection 전에 종료한다.
@@ -147,10 +148,10 @@ assert.equal(syncVersionDrift.versionStatus, 'unverified');
 기존 명령·번호는 그대로 받되 셋업은 같은 버전 gate를 거친다. 범용 Python의 검사 범위도 표시하며 미확인은 쓰기 전에 nonzero다.
 rule 배치·repo-sync 탐지도 카탈로그와 plugin 안의 inspector/record checker를 재사용한다.
 설치된 plugin에 저장소 루트가 없어도 같은 디렉터리 정본을 읽는다. 카탈로그/기록 부재는 기존 탐지와 버전 미확인을 구분한다. 실제 소비 remote/gh mutation 시험은 하지 않는다.
-- [ ] 두 shell 시험·`node --test tests/local-setup-test.mjs`: PASS; 기존 Spring/Vue·12조합과 거부 전 무변경 확인.
+- [ ] 두 shell 시험·`node --test tests/local-setup-test.mjs`: PASS; 기존 Spring Boot/Vue·12조합과 거부 전 무변경 확인.
 - [ ] 커밋 `feat(stack): 셋업과 드리프트 검사에 프로필 연결`.
 
-### Task6: 공식 링크·실무 안내·동작 버전과 최종 검증
+### Task 6: 공식 링크·실무 안내·동작 버전과 최종 검증
 
 **Files:** 생성 `templates/stacks/react/rules/react.md`, `nuxt/rules/nuxt.md`, `python/frameworks/{django,fastapi,flask}/rules/<framework>.md`.
 생성 `templates/stacks/rails/ui/{hotwire,inertia-react,inertia-vue,api}/rules/<ui>.md`; 수정 기존 Python/Ruby/Vue/Next.js rule과 카탈로그 ruleSources.
@@ -161,8 +162,8 @@ rule 배치·repo-sync 탐지도 카탈로그와 plugin 안의 inspector/record 
 - [ ] rule은 공식 설명을 major/주제 링크로 연결하고 조건·비용·단순 대안·진단·재발 검사를 쓴다. 공식 내용/검증한 실무 판단을 구분한다.
 React 상태·서버 경계, Nuxt hydration/요청 상태, Django/Flask escaping·CSRF, FastAPI async 경계, Inertia props/폼·Hotwire navigation을 다룬다.
 CQRS/outbox/BFF는 필요 조건이 있는 선택이다. 특정 소비자·고정 운영 수치·DB 제품을 강제하지 않는다.
-Spring API 중심 안내와 Thymeleaf 지원/추세 한계를 유지한다. 공식 출처·199줄·필수 계약은 내용 검토로도 확인한다.
-동작 후보를 현재0.90.0에서0.91.0으로 두 manifest·README에 반영한다. 커밋 후 changelog 생성/검사를 수행한다; 태그/발행은 하지 않는다.
+Spring Boot API 중심 안내와 Thymeleaf 지원/추세 한계를 유지한다. 공식 출처·199줄·필수 계약은 내용 검토로도 확인한다.
+Task1에서 올린 소스 후보0.91.0과 두 manifest·README를 대조한다. 커밋 후 changelog 생성/검사를 수행한다; 태그/발행은 하지 않는다.
 - [ ] 해당 시험·Markdown/참조 검사·`git diff --check` PASS 후, `.github/workflows/ci-gate.yml` quality의 현재 모든 명령을 그대로 실행한다.
 각 명령·후보·최초 실패/수정·재시도·미실행을 보존한다. 테스트 fixture와 실제 앱/원격 CI/설치 증거는 구분한다.
 - [ ] 커밋 `feat(stack): 공식 안내와 조건부 실무 기준 연결`; `node scripts/generate-changelog.mjs --release v0.91.0 --write` 후 별도 기록 커밋/`--check`.
@@ -172,5 +173,5 @@ Spring API 중심 안내와 Thymeleaf 지원/추세 한계를 유지한다. 공�
 ## 이번 계획의 자체 검토와 전달
 
 명세 요구→Task1~6, Review Focus→해당 시험, 인터페이스·단계 순서·legacy 호환·scope를 대조했다.
-현재는 문서 작성 단계이며 위 시험·tooling 설치·0.91.0 변경은 실행하지 않았다. 코드 구현과 실제 앱 호환은 미확인이다.
-다음은 이 계획 검토와 실행 방식 선택이다. 인터페이스가 이어지는6작업이므로 같은 구현자가 순서대로 진행하고 마지막 독립 검토하는 Native를 추천한다.
+현재는 사용자 승인에 따른 Native 구현 단계다. 각 시험·tooling 준비·동작 변경은 실행 증거로 확인한다.
+같은 구현자가6작업을 순서대로 수행하고 마지막에 독립 검토한다. 실제 앱/원격 CI/설치는 미확인 범위로 구분한다.

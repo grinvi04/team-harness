@@ -38,7 +38,7 @@ echo ""
 
 node "$HARNESS_DIR/scripts/stack-catalog.mjs" --menu
 echo ""
-read -rp "번호 한 개 또는 백엔드+프론트엔드 (예: 2+6=Spring+Vue): " STACK_CHOICE
+read -rp "번호 한 개 또는 백엔드+프론트엔드 (예: 2+6=Spring Boot+Vue): " STACK_CHOICE
 
 STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE")
 # Read catalog data as JSON; never evaluate generated shell text.
@@ -187,15 +187,15 @@ else
   echo "  ✅  .gitignore (harness snippet 추가)"
 fi
 
-# Spring 스택 전용 추가 파일
-if [ "$(selection_value backend.preset)" = spring ]; then
-  SPRING_DIR=backend
-  if [ "$(selection_value mode)" = composed ]; then SPRING_DIR="$BACKEND_DIR"; fi
-  mkdir -p "$SPRING_DIR/config/checkstyle"
-  copy_once "$HARNESS_DIR/$(selection_value assetSources.gitignore)" "$SPRING_DIR/.gitignore" \
-    "$SPRING_DIR/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
-  copy_once "$HARNESS_DIR/$(selection_value assetSources.checkstyle)" "$SPRING_DIR/config/checkstyle/checkstyle.xml" \
-    "$SPRING_DIR/config/checkstyle/checkstyle.xml"
+# Spring Boot 스택 전용 추가 파일
+if [ "$(selection_value backend.preset)" = spring-boot ]; then
+  SPRING_BOOT_DIR=backend
+  if [ "$(selection_value mode)" = composed ]; then SPRING_BOOT_DIR="$BACKEND_DIR"; fi
+  mkdir -p "$SPRING_BOOT_DIR/config/checkstyle"
+  copy_once "$HARNESS_DIR/$(selection_value assetSources.gitignore)" "$SPRING_BOOT_DIR/.gitignore" \
+    "$SPRING_BOOT_DIR/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
+  copy_once "$HARNESS_DIR/$(selection_value assetSources.checkstyle)" "$SPRING_BOOT_DIR/config/checkstyle/checkstyle.xml" \
+    "$SPRING_BOOT_DIR/config/checkstyle/checkstyle.xml"
 fi
 
 # 프론트엔드 분리 스택 전용 — Prettier 포맷 게이트 + 디자인 토큰 게이트 스크립트

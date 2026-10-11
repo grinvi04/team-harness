@@ -13,7 +13,7 @@ Team Harness는 앱 코드가 아니라 개발 기준·설정·검사 연결을 
 | 스택 선택·경로·검사 이름 | `templates/stacks.json` | 셋업·CI 생성·로컬 검사·repo-sync |
 | 스택별 CI·rule·보조 설정 | `templates/stacks/<스택>/` | 선택한 스택의 생성물·배치 파일 |
 | 여러 스택이 함께 쓰는 원문 | `templates/ci/common/`, `templates/rules/typescript.md` | 공통 CI·TypeScript rule |
-| 로컬 검사 실행 틀 | `templates/local/check-harness.sh` | Spring·Vue 명령을 조합한 checker |
+| 로컬 검사 실행 틀 | `templates/local/check-harness.sh` | Spring Boot·Vue 명령을 조합한 checker |
 | 분리 패키지 평가 | `experiments/split-packaging/` | 격리된 실험; 공개 설치 경로와 구분 |
 | 과거 후보의 실행 증거 | Git 고정 커밋과 해당 PR | 당시 결과·실패·보류를 확인할 때 |
 
@@ -33,14 +33,19 @@ Codex 스킬 wrapper는 공통 스킬을 연결하는 공식 진입점이다. �
 
 ## 스택 템플릿을 바꿀 때
 
-카탈로그는 Node·Spring·Python·Rails·Next.js·Vue 여섯 개의 CI·rule·필수 검사·DB 연결을 관리한다.
+카탈로그는 Node·Spring Boot·Python·Rails·Next.js·Vue 기존 여섯 개와 React·Nuxt의 CI·rule·필수 검사·DB 연결을 관리한다.
+React+Vite는7번, Nuxt는8번이다. 기존1~6 번호는 유지하며 Spring Boot의 정식 key는 `spring-boot`다.
+Python은 `--framework django|fastapi|flask`와 해당 `--ui`로 전문 자산을 선택한다.
+Rails는 `--ui hotwire|inertia-react|inertia-vue|api`로 앱 안의 화면 방식을 고른다.
+CI 생성기의 `--render <번호>`는 선택 자산을 조합해 출력한다. 전문 프로필은 고정 DB·Redis·Celery를 넣지 않는다.
+셋업·버전 판정의 후속 구현은 [현재 계획](specs/stack-profiles-implementation-plan.md)을 따른다.
 schema3의 `pathBase: repository-root`는 카탈로그의 원문 경로가 저장소 루트 기준임을 뜻한다.
 `sources`는 CI, `ruleSources`는 rule 이름과 원문, `assetSources`는 보조 파일,
-`localCheck`는 현재 지원하는 Spring·Vue 로컬 명령을 연결한다.
+`localCheck`는 현재 지원하는 Spring Boot·Vue 로컬 명령을 연결한다.
 공통 workflow와 시크릿 검사는 `templates/ci/common/`에서 수정한다.
 완성 `ci-gate-*.yml`은 복사 가능한 생성물이다. 직접 편집하면 CI가 불일치를 거부한다.
 
-예를 들어 Spring의 CI 명령은 `templates/stacks/spring/ci/quality.yml`,
+예를 들어 Spring Boot의 CI 명령은 `templates/stacks/spring-boot/ci/quality.yml`,
 Java rule은 같은 스택의 `rules/java.md`, Checkstyle은 `checkstyle.xml`에서 고친다.
 CI 수정은 아래 생성 명령으로 반영한다. rule·보조 설정은 `new-repo.sh`가 카탈로그를 읽어 복사한다.
 `check-repo-sync.mjs`도 같은 rule 경로를 읽으므로 별도 경로 표를 고칠 필요가 없다.
@@ -53,9 +58,9 @@ bash tests/stack-templates-test.sh
 bash tests/new-repo-test.sh
 ```
 
-풀스택 고정 파일은 없다. 백엔드(Node·Spring·Python·Rails)와 프론트엔드(Node·Next.js·Vue)를
+풀스택 고정 파일은 없다. 백엔드(Node·Spring Boot·Python·Rails)와 프론트엔드(Node·Next.js·Vue)를
 조합하면 같은 개별 job 원본에서 `backend`·`frontend`와 공통 검사를 생성하고 두 rule을 설치한다.
-예를 들어 `new-repo.sh`에서 `2+6`은 Spring+Vue다. 두 작업 경로는 기본값 `backend`·`frontend`를
+예를 들어 `new-repo.sh`에서 `2+6`은 Spring Boot+Vue다. 두 작업 경로는 기본값 `backend`·`frontend`를
 사용하거나 `apps/api`·`apps/web`처럼 지정한다. 경로 탈출·같은 경로·잘못된 역할 조합은 파일 쓰기 전에 거부한다.
 
 ```bash
@@ -63,14 +68,14 @@ node scripts/generate-stack-templates.mjs --compose 2+6 --backend-dir apps/api -
 ```
 
 이 명령은 YAML을 표준 출력으로 보낸다. 개별 템플릿과 CI 검사 이름은 바뀌지 않는다.
-Spring 보조 설정은 선택한 백엔드에, Prettier·디자인 토큰 검사기는 선택한 프론트엔드에 복사한다.
+Spring Boot 보조 설정은 선택한 백엔드에, Prettier·디자인 토큰 검사기는 선택한 프론트엔드에 복사한다.
 Python 조합의 `alembic-heads`도 같은 백엔드 경로에서 실행한다. 기존 보조 파일·workflow는 덮어쓰지 않는다.
 이전 메뉴의 NestJS 풀스택2번은 `1+1`, Spring 풀스택4번은 `2+1`로 선택한다.
 Python·Rails·Next.js·Vue의 새 번호는 각각3·4·5·6이다. 기존 프로젝트의 CI를 자동 교체하지 않는다.
 이 선택이 앱이나 패키지 설정을 생성하지는 않는다. 이미 사용하는 검사 명령에 맞춰 소비 CI를 조정한다.
 Prisma/Flyway/Alembic는 기존 프리셋 연결이며 DB 제품이나 운영 자격증명을 강제하지 않는다.
 `templates/stacks/nextjs/Dockerfile`은 Next.js standalone 예시다. 이전 이름은 `Dockerfile.node`였으며
-일반 Node 이미지 예시로 해석하지 않는다. Spring Dockerfile·Checkstyle 예시는 Gradle Groovy 전제다.
+일반 Node 이미지 예시로 해석하지 않는다. Spring Boot Dockerfile·Checkstyle 예시는 Gradle Groovy 전제다.
 
 셋업은 기존 CI·설정·rule을 덮어쓰지 않는다. 스택 선택이 실행기 자동 허용을 추가하지도 않는다.
 빈 권한 fragment는 제거했다. 별도 사용자 fragment가 필요한 경우에만
@@ -78,14 +83,14 @@ Prisma/Flyway/Alembic는 기존 프리셋 연결이며 DB 제품이나 운영 �
 
 ## 로컬 검사를 바꿀 때
 
-Spring 명령은 `templates/stacks/spring/local-check.sh`, Vue 명령은 해당 스택의 같은 파일에 있다.
+Spring Boot 명령은 `templates/stacks/spring-boot/local-check.sh`, Vue 명령은 해당 스택의 같은 파일에 있다.
 공통 실행 틀과 이 원문에서 `setup-local.mjs`가 독립 실행 가능한 checker 하나를 만든다.
-옵션 없는 기존 Spring+Vue 순서와 기본 경로는 유지한다. 단독 검사나 조합 경로는 명시적으로 고른다.
+옵션 없는 기존 Spring Boot+Vue 순서와 기본 경로는 유지한다. 단독 검사나 조합 경로는 명시적으로 고른다.
 
 ```bash
-node scripts/setup-local.mjs --project /path/to/app --stack spring
+node scripts/setup-local.mjs --project /path/to/app --stack spring-boot
 node scripts/setup-local.mjs --project /path/to/app --stack vue
-node scripts/setup-local.mjs --project /path/to/app --stack spring+vue --backend-dir apps/api --frontend-dir apps/web
+node scripts/setup-local.mjs --project /path/to/app --stack spring-boot+vue --backend-dir apps/api --frontend-dir apps/web
 ```
 
 위 명령은 미리보기다. 준비 조건을 확인한 뒤 `--apply`를 붙이면 파일 하나를 추가한다.

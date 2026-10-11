@@ -1,0 +1,10 @@
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22' # Exact runtime is supplied by the checked version record.
+          cache: npm
+
+      - name: Inertia frontend dependencies
+        run: npm ci
+
+      - name: Inertia frontend build
+        run: npm run build
