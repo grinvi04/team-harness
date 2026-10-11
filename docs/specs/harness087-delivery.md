@@ -17,6 +17,19 @@ Claude 인증 갱신·실제 모델 검증과 소비 원격 작업·배포·결�
 실제 DB·서버·스테이징·프로덕션이 없는 저장소이므로 DB·배포 health만 SKIP이다.
 미실행 필수 검사·조회 실패를 SKIP으로 바꾸지 않는다.
 
+## 릴리즈 준비 결과
+
+PR [#523](https://github.com/grinvi04/team-harness/pull/523) 병합 커밋은 d06c78032eda86bc21fab7c51a4e03a17b9a10a9다.
+현재 원격 develop과 동일하고, 수정후 PR 후보7843657과 tracked tree가 같다.
+필수 CI5개 SUCCESS, quality의69개 실행 단계와 setup/cleanup 포함73개 단계가 모두 통과했다.
+별도 Astra/medium/read-only 검토가 raw diff31파일과 직접 소비자를 읽었고 구체적 차단 결함을 찾지 못했다.
+정정 문서도 별도 독립 검토했다. guard·hook·정책 실행 코드는 기존 버전과 같다.
+현재 develop에서 live 외부 자료7개, changelog72파일, package4종68파일, bundle checksum을 확인했다.
+필수 보안 검토 PASS_SCOPED, 실제 DB·배포 환경·health 비적용으로 **release-check GO_SCOPED**다.
+DB 공용 표준 문서는 소비자 계약이며 이 저장소에 운영 DB가 있다는 뜻이 아니다.
+이 기록은 릴리즈 준비 시점의 스냅샷이다. main 병합·태그·설치는 아직 미완료다.
+발행 뒤 실제 결과는 [develop의 최신 기록](https://github.com/grinvi04/team-harness/blob/develop/docs/specs/harness087-delivery.md)으로 연결한다.
+
 ## 준비 후보와 기존 증거
 
 구현0a0fb9d의 코드와 quality 검증cafdadff의 코드가 같다. 이후 변경은 현재 진행 기록이다.
@@ -40,7 +53,7 @@ cache를 임의 수정하지 않는다. 향후 버전 변경 뒤 skill 활성 �
 ## 현재 단계
 
 - [x] 기존 개별 설치 실제 삭제와 fresh native 발견 확인.
-- [ ] 독립 누락·보안 검토, 현재 PR CI와 develop 병합.
+- [x] 독립 누락·보안 검토, 현재 PR CI와 develop 병합.
 - [ ] 정식 release-check GO, main 병합·원격 태그 SHA 확인.
 - [ ] Codex·Claude 설치와 원본 파일·활성·발견 검증.
 - [ ] 실제 결과 기록·develop 역병합·소유 worktree 보관.
