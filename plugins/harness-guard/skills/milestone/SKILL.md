@@ -18,19 +18,18 @@ argument-hint: <slug> "<목표 설명>" [--by YYYY-MM-DD] | status | breakdown <
 
 예)
 ```
-/milestone hr-v1 "HR 모듈 완성 — 직원·부서·계약 이력" --by 2026-09-30
+/milestone first-release "첫 출시 목표" --by 2026-09-30
 /milestone status
-/milestone breakdown hr-v1
+/milestone breakdown first-release
 ```
 
 > **위치**: `/plan`(기능 단위)·`/feature-add`(구현) 위에 놓이는 **목표 레이어**다.
 > 하나의 Milestone → 여러 `/plan` 스펙(기능) → 여러 `/feature-add` 태스크 → GitHub PRs.
 > GitHub Milestone·Issue/PR가 상태 정본이다. 자동 open/closed 집계와 AC 검증 완료 수는 별도로 보여준다.
 >
-> **Claude Code 내장 `/goal`과의 구분**: 내장 `/goal`은 현재 세션에서 Claude가 멈추기 전
-> 체크할 stopping condition을 설정하는 도구다. `/milestone`은 제품 로드맵 추적 도구로
-> 완전히 다른 목적이다. 두 기능은 보완 관계이며 함께 쓴다.
->
+일반 목표 분해는 선택한 계획 방법론을 재사용하며 GitHub의 Milestone·Issue 기능으로 관리한다.
+별도 계획·승인 루프를 시작하지 않는다. 세션 중단 조건은 현재 플랫폼에 맡긴다.
+
 > **스택 의존 값은 repo의 `AGENTS.md`에서 읽는다** — 모듈 구조, 디렉터리, 기능 목록.
 
 ---
@@ -82,7 +81,9 @@ gh api --paginate "repos/$OWNER_REPO/milestones?state=all&per_page=100" \
 
 ## Phase S1 — 진행률 집계 (`subagent_type: general-purpose`, `model: haiku`, **foreground**)
 
-**프롬프트:**
+현재 담당자가 기존 계획 결과를 재사용한다. 필요한 위임은 플랫폼·제품 권한 안에서만 한다.
+
+**확인할 내용:**
 - `docs/milestones/*.md`를 모두 읽는다.
 - GitHub 마일스톤 데이터(Phase S0 결과)를 받는다.
 - 각 마일스톤 문서에서 GitHub Milestone 번호를 파싱한다.
@@ -124,9 +125,11 @@ cat "docs/milestones/$SLUG.md"
 
 ---
 
-## Phase B1 — 재분해 (`subagent_type: general-purpose`, `model: sonnet`, **foreground**)
+## Phase B1 — 재분해
 
-**프롬프트:**
+현재 담당자가 기존 계획 결과를 재사용한다. 필요한 위임은 플랫폼·제품 권한 안에서만 한다.
+
+**확인할 내용:**
 - 기존 마일스톤 문서(Phase B0 결과)를 읽는다.
 - AGENTS.md를 읽어 현재 프로젝트 구조를 파악한다.
 - `docs/specs/*.md`를 읽어 이미 완료·진행 중인 스펙을 파악한다.
@@ -156,20 +159,6 @@ cat "docs/milestones/$SLUG.md"
 # PR 생성은 pr-create 래퍼 경유(맨손 gh pr create는 guard 차단) — 마일스톤은 --milestone로 전달
 bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" --milestone "<slug>" --title "..." --body "..."
 gh pr edit <PR번호> --milestone "<slug>"
-```
-
-### 내장 `/goal`과 함께 쓰는 패턴
-
-```
-# 1. 제품 마일스톤 정의 (지속적 추적)
-/milestone hr-v1 "HR 모듈 완성" --by 2026-09-30
-
-# 2. 작업 세션 시작 시 stopping condition 설정 (세션 안전장치)
-/goal "hr-v1 마일스톤의 employee-crud 기능 완성"
-
-# 3. 기능 개발
-/plan employee-crud "직원 등록·수정·삭제"
-/feature-add employee-crud "..."
 ```
 
 ### 마일스톤 완료 기준

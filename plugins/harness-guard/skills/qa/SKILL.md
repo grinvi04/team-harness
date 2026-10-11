@@ -6,7 +6,9 @@ description: 프론트엔드 디자인 토큰과 WCAG 2.2 접근성을 검증할
 # /qa — 프론트엔드 디자인·접근성 QA
 
 **사용법**: `/qa`
-UI 변경 후 디자인 시스템 준수와 접근성을 검증한다.
+UI 변경 후 제품의 디자인·접근성 검사 결과를 완료 증거에 연결한다.
+일반 화면 감사는 설치된 Product Design audit 등 선택한 방법 하나를 재사용하며 검사·승인을 반복하지 않는다.
+고정 인원을 생성하지 않고 현재 담당자가 선언된 도구를 실행한다.
 
 > **스택 의존 값은 repo의 `AGENTS.md`에서 읽는다** — 프론트 소스 디렉터리, 디자인 스펙 파일(예: `DESIGN_IMPL.md`),
 > lint/a11y 도구 명령(stylelint·eslint-plugin-jsx-a11y·axe-core/Playwright·jest-axe 등).
@@ -33,7 +35,7 @@ UI 변경 후 디자인 시스템 준수와 접근성을 검증한다.
 
 ---
 
-## Agent A — 디자인 토큰 준수 (`subagent_type: Explore`, `model: haiku`, `run_in_background: true`)
+## 검사 A — 디자인 토큰 준수
 
 **디자인 스펙이 선언된 repo만 실행** (미선언 → "디자인 스펙 없음 — 스킵").
 
@@ -44,7 +46,7 @@ UI 변경 후 디자인 시스템 준수와 접근성을 검증한다.
 
 결과: 위반 없으면 "✅ 토큰 준수", 있으면 파일:라인:내용 (린터=blocking / 휴리스틱=advisory 구분).
 
-## Agent B — 접근성 WCAG 2.2 AA (`subagent_type: Explore`, `model: haiku`, `run_in_background: true`)
+## 검사 B — 접근성 WCAG 2.2 AA
 
 1. **a11y 도구 우선**: AGENTS.md가 a11y 도구(axe-core/Playwright, jest-axe, lighthouse, eslint-plugin-jsx-a11y)를 선언하면 그것을 실행해 렌더 DOM 기준 결과를 집계. 미선언 → 아래 정적 점검 폴백 + disclaimer.
 2. **정적 점검** (파일:라인·권고):
@@ -57,7 +59,7 @@ UI 변경 후 디자인 시스템 준수와 접근성을 검증한다.
 
 결과 — 통과 시: **"✅ 정적 점검 통과 — 단, 색상 대비(1.4.3)·키보드 조작(2.1.1)·포커스 순서/가시(2.4.3/2.4.7)·키보드 트랩(2.1.2)·reflow(1.4.10)는 정적으로 미검증(런타임/수동 필요)"** 를 항상 함께 출력(false pass 방지).
 
-## Agent C — 한국어 UX 적합성 (`subagent_type: Explore`, `model: haiku`, `run_in_background: true`)
+## 검사 C — 한국어 UX 적합성
 
 **프론트엔드가 있고 한국어 UI인 repo만 실행** (영어 UI·비해당 → "한국어 UI 아님 — 스킵"). 단일 출처: `docs/korean-ux.md`·`.claude/rules/korean-ux.md`(있으면).
 **advisory만 — 머지 차단 아님.** 정적 텍스트(JSX/Vue 문자열 리터럴·상수·i18n 키값)만 점검, 동적 서버 응답·번역 파일 내용은 범위 밖.
@@ -73,7 +75,7 @@ UI 변경 후 디자인 시스템 준수와 접근성을 검증한다.
 
 ---
 
-## 집계 (에이전트 완료 후)
+## 집계
 
 | 항목 | 결과 | 비고 |
 |---|---|---|

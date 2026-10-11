@@ -3,99 +3,97 @@ name: release-check
 description: 정식 릴리즈 직전에 품질·보안·DB 마이그레이션 준비를 검증할 때 사용. 실제 태그·배포·기능 PR 검증·버그 구현은 제외
 ---
 
-# /release-check — 릴리즈 사전 검증
+# /release-check — 릴리즈 사전 검증 계약
 
-**사용법**: `/release-check`
-develop 브랜치에서 실행한다. **필수 항목 통과와 아래 종합 판정의 정당한 SKIP 조건을 모두 확인해야 `/release` 진행 가능.**
+**사용법:** `/release-check`. 검증 결과를 현재 후보에 연결하며, 이 스킬은 수정·머지·배포 권한을 만들지 않는다.
+필수 항목이 모두 PASS이거나 실제 비적용으로 SKIP일 때만 `/release <version>`으로 인계한다.
 
-> 빌드·테스트 명령은 **repo의 AGENTS.md "빌드·테스트 명령" 섹션**에서 읽는다.
+## Phase 0 — 원본·후보·실행 범위 고정
 
----
+1. 대상 repo의 `AGENTS.md`, 적용 stack rule, 릴리즈 정책과
+   [완료 증거 계약](../verification-before-completion/SKILL.md)을 읽는다.
+   빌드·테스트·보안·릴리즈 추가 검사의 **필수 명령은 대상 repo의 AGENTS.md 선언**에서 가져온다.
+   생성 문서·외부 증거 검사가 선언돼 있으면 실제 명령을 실행한다. 특정 소비 repo의 경로나 mtime을
+   공용 기준으로 추정하지 않으며, 필수 명령·기준이 불명확하면 UNVERIFIED로 남긴다.
+2. `git status --short --branch`, `git worktree list --porcelain`로 사용자 변경과 사용 중인 브랜치를 확인한다.
+   기존 작업트리에 checkout·pull·reset·stash를 실행하지 않는다. 작업트리가 더러우면 그대로 보존한다.
+3. 승인된 원격·대상 ref를 확인하고 `git fetch origin refs/heads/develop:refs/remotes/origin/develop`로
+   명시적으로 조회한 후보 OID를 기록한다. 플랫폼의 worktree 기능을 우선 사용해 그 OID를 격리 검사한다.
+   해당 기능이 없을 때만 소유한 detached worktree를 직접 만들며 앱의 삭제 제한을 우회하지 않는다.
+   원격 조회 실패나 격리 경로 충돌은 UNVERIFIED이며, 오래된 로컬 develop로 대신하지 않는다.
+4. 마지막 릴리즈 태그·변경 범위·환경·필수 검사·기대 결과·명령을 기존 검증 기록에 고정한다.
+   버전 bump 이후 후보가 바뀌면 영향을 받는 검사를 재실행한다. 다른 SHA의 성공은 재사용하지 않는다.
+   운영 DB·운영 인프라 실행, 새 인증·유료 도구·추가 비용은 기존 승인 범위를 넘어서 실행하지 않는다.
 
-## Phase 0 — 준비 (오케스트레이터 직접 실행)
+## Phase 1 — 현재 플랫폼에서 검사 수행
 
-```bash
-git checkout develop && git pull origin develop
-git status --short   # 미커밋 변경 있으면 중단
-```
+고정된 에이전트 수·모델·background 호출을 요구하지 않는다. 단순·연속 검사는 현재 agent가 직접 한다.
+독립적인 검사를 위임할 이득과 권한이 있을 때만 현재 native 기능·승인된 역할·model·effort를 확인한다.
+Codex에서는 로드된 wrapper의 native 실행 계약도 함께 적용한다.
 
-## Phase 1 — 병렬 검증 (3개 에이전트 동시 spawn)
+- 위임 시 목표·비목표·원본 SHA·검사 범위·소유 경로·금지 행동·예산·중단 조건을 전달한다.
+- 보안 검토는 repo의 추가 선언 유무와 관계없이 반드시 구현자와 다른 독립 검증자가 수행한다.
+  다른 필수 독립 검토도 현재 후보를 직접 읽고 반증하며 자체 검사로 대체하지 않는다.
+- 검증자 위임 전 **실제 read-only 실행 권한**을 확인한다. 역할 이름·요청 문구·worktree·sandbox
+  설정만으로 쓰기 차단을 가정하지 않는다. 확인할 수 없으면 위임하지 않고 필수 검토는 UNVERIFIED다.
+  검증자는 파일 수정·Git 변경·PR·머지·배포를 하지 않으며, 현재 agent가 최종 판정을 맡는다.
 
-### Agent A — 품질 (`subagent_type: general-purpose`, `model: sonnet`, `run_in_background: true`)
+### A — 품질·직접 소비자
 
-**프롬프트:**
-- AGENTS.md의 품질 검증 명령 전체 실행 (lint + test + build, e2e 있으면 포함)
-- **배포 env 변수명 ↔ 코드 참조명 대조**: 코드가 실제로 읽는 환경변수 키(예: 프론트가
-  `process.env.KEYCLOAK_ISSUER`를 읽음)와 배포 설정/문서(`docs/deployment.md`·`railway.json`·
-  `vercel` env·`.env.example`)가 안내하는 키 목록이 **일치하는지** 대조한다. 불일치(예: 코드는
-  `KEYCLOAK_ISSUER`인데 문서는 `AUTH_KEYCLOAK_ISSUER`로 안내)는 배포 시 런타임에서야 터지는
-  로그인·연동 깨짐 클래스 → ❌로 리포트.
-- **아키텍처 SVG 신선도 점검**: `docs/gen_arch_svg.py`가 존재하면
-  `docs/architecture.svg`의 수정시각 ≥ `docs/gen_arch_svg.py`의 수정시각인지 확인
-  (`python3 -c "import os; s=os.stat; g=s('docs/gen_arch_svg.py').st_mtime; a=s('docs/architecture.svg').st_mtime; exit(0 if a>=g else 1)"`).
-  SVG가 스크립트보다 오래됐으면 ❌ (재생성 필요 — `python3 docs/gen_arch_svg.py` 실행 후 커밋).
-  `docs/gen_arch_svg.py` 자체가 없으면 이 항목은 SKIP.
-- 실패 항목은 파일·원인과 함께 리포트, 전부 통과 시 ✅
+- AGENTS.md의 품질 검증 명령 전체를 실행한다(lint·test·build·e2e 중 실제 채택한 항목).
+  CI가 이미 검사했으면 현재 후보·환경·범위·신선도가 같은 원본 실행 증거만 재사용한다.
+- 배포 환경이 있는 repo는 코드가 읽는 환경변수 **키 이름**과 배포 설정·문서·예제의 키 목록을 대조한다.
+  값·인증정보를 불필요하게 읽거나 출력하지 않는다. 키 불일치는 FAIL이다.
+  해당 설정이나 환경을 읽지 못한 경우는 UNVERIFIED이며, 실제 배포 환경이 없는 경우만 SKIP이다.
+- AGENTS.md가 선언한 생성 문서·산출물·외부 provenance 검사 등 릴리즈 필수 명령을 빠짐없이 실행한다.
+  명령·대상·종료 코드·실패 원인을 남긴다. 파일 존재나 수정시각만으로 산출물의 내용 일치를 증명하지 않는다.
+  network·rate limit·인증·permission 실패를 SKIP·offline·cache·이전 성공으로 대체하지 않는다.
 
-### Agent B — 보안 (`subagent_type: security-reviewer`, `run_in_background: true`)
+### B — 보안
 
-`security-reviewer` 에이전트를 spawn한다 (체크리스트는 에이전트 정의에 포함).
-검토 대상 디렉토리만 전달한다 — AGENTS.md의 "프로젝트 개요" 섹션(디렉토리 구조) 참조.
+- 현재 후보의 변경 범위와 직접 소비자를 대상 repo의 보안 규약·체크리스트로 검토한다.
+  인증·권한·입력 검증·시크릿·공급망의 관련 경계를 정상·거부·경계 사례와 함께 확인한다.
+- repo가 선언한 보안 검사와 위의 필수 독립 보안 검토를 수행한다. 독립 검토를 수행할 수 없으면 UNVERIFIED다.
+  발견 사항·반례·검토하지 못한 범위를 기록하며 독립성 미확인도 UNVERIFIED다. 운영 상태를 바꾸지 않는다.
 
-### Agent C — DB 마이그레이션·표준 (`subagent_type: general-purpose`, `model: sonnet`, `run_in_background: true`)
+### C — DB 마이그레이션·표준
 
-**프롬프트:**
-- 먼저 `docs/db-standards.md`와 채택한 도구의 stack rule·프로젝트 규약을 읽는다.
+- 먼저 대상 repo가 채택한 `docs/db-standards.md`와 도구의 stack rule·프로젝트 규약을 읽는다.
   실제 DB·마이그레이션이 없으면 관련 항목만 사유와 함께 SKIP한다. 테스트 fixture를 운영 대상으로 세지 않는다.
 - 마지막 릴리즈 이후 마이그레이션 변경을 확인한다. 이전 태그에 있다는 사실만으로 적용됐다고 가정하지 않는다.
-  공유·운영 환경에 적용한 파일은 수정하지 않고 새 변경으로 보정한다. 적용 이력이 미확인이면 미확인으로 보고한다.
-- **적용 순서 점검**: 연결된 `check-migration-safety.mjs`가 있으면 실행하고 기존 실패 기준을 유지한다.
+  공유·운영 환경에 적용한 파일은 수정하지 않고 새 변경으로 보정한다. 적용 이력 미확인은 UNVERIFIED다.
+- **적용 순서:** 연결된 `check-migration-safety.mjs`가 있으면 실행하고 기존 실패 기준을 유지한다.
   대역 번호로 판단한 Flyway 경로는 out-of-order 미설정/false를 거부한다.
-  검사 결과와 실제 SQL 순서 독립성은 구분한다. 실제 단조·timestamp 규약은 지원 선언과 근거를 확인한다.
+  검사 결과와 실제 SQL 순서 독립성은 구분한다. 단조·timestamp 규약은 지원 선언과 근거를 확인한다.
   검사기가 없으면 채택한 도구의 순서·분기 규약으로 동등하게 확인한다.
   빈 DB 전체 적용과 기존 상태의 증분 적용을 승인된 격리 DB에서 비교한다.
-- **되돌리기 점검**: Flyway undo 파일의 존재만으로 공통 표준 위반을 판정하지 않는다.
-  프로젝트가 채택한 forward-only 정책, 지원 버전·기능, 복구 가능성·데이터 영향·승인 범위를 확인한다.
-  정책 위반이나 승인 없는 파괴적 실행 계획은 ❌로 보고한다. 운영 downgrade를 자동 복구 명령으로 실행하지 않는다.
+- **되돌리기:** Flyway undo 파일의 존재만으로 공통 표준 위반을 판정하지 않는다.
+  forward-only 정책, 지원 버전·기능, 복구 가능성·데이터 영향·승인 범위를 확인한다.
+  정책 위반이나 승인 없는 파괴적 실행 계획은 FAIL이다. 운영 downgrade를 자동 복구 명령으로 실행하지 않는다.
   Alembic의 생성된 `downgrade()` 본문은 정상 구조지만 실행 허용이나 안전 보장이 아니다.
-  `alembic downgrade base`처럼 전체 이력을 되돌리는 계획도 실제 역방향 변경과 위의 조건으로 판단한다.
-- **파괴 DDL 점검**: 연결된 SQL·Alembic·ActiveRecord 정적 게이트의 차단 기준과 승인 마커 범위를 유지한다.
-  downgrade/def down이 정적 검사에서 제외됐다는 사실은 실행 권한이 아니다. 마커도 운영 권한을 만들지 않는다.
-  무중단 배포가 필요한 프로젝트는 확장·이관·검증·구버전 종료·제거의 호환성과 잠금 위험을 확인한다.
-- **삭제 정책 점검**: 물리 삭제·비활성화·소프트 삭제는 보존·복구·참조 무결성·파기 요구로 선택한다.
+  `alembic downgrade base`처럼 전체 이력을 되돌리는 계획도 실제 역방향 변경과 위 조건으로 판단한다.
+- **파괴 DDL:** 연결된 SQL·Alembic·ActiveRecord 정적 게이트의 차단 기준과 승인 마커 범위를 유지한다.
+  downgrade/def down의 정적 검사 제외나 승인 마커는 운영 실행 권한이 아니다.
+  무중단 배포가 필요하면 확장·이관·검증·구버전 종료·제거의 호환성과 잠금 위험을 확인한다.
+- **삭제 정책:** 물리 삭제·비활성화·소프트 삭제는 보존·복구·참조 무결성·파기 요구로 선택한다.
   소프트 삭제를 채택했으면 목록·단건·집계·수정·직접 SQL의 제외 정책과 복원·UNIQUE 제약을 검증한다.
   상위 필터 선언이나 목록 테스트만으로 모든 경로가 안전하다고 판단하지 않는다.
   새 물리 삭제는 사유·권한·참조 영향이 프로젝트의 선택과 일치하는지 확인한다.
-- **금액 계약 점검**: 정확한 값이 필요한 금액의 정밀도·범위·통화·단위와 반올림 정책을 확인한다.
-  부동소수 변환으로 값이 손실되지 않는지 실제 DB·직렬화·지원 클라이언트·재전송 경계에서 대조한다.
+- **금액 계약:** 정확한 값이 필요한 금액의 정밀도·범위·통화·단위·반올림 정책을 확인한다.
+  부동소수 변환으로 손실되지 않는지 실제 DB·직렬화·지원 클라이언트·재전송 경계에서 대조한다.
   컬럼 선언이나 숫자 표본만으로 전체 경계를 검증했다고 보고하지 않는다.
 
-## Phase 2 — 외부 파일럿 live provenance (오케스트레이터 직접 실행)
+## Phase 2 — 종합 판정·인계
 
-`docs/pilots/external-pilot-provenance.json`이 있으면 아래 명령을 **`--offline` 없이** 실행한다.
-
-```bash
-node scripts/check-external-pilot-provenance.mjs --manifest docs/pilots/external-pilot-provenance.json
-```
-
-- manifest가 없으면 이 항목만 SKIP한다.
-- manifest가 있는데 verifier가 없거나 non-zero이면 provenance 검증 실패를 **NO-GO**로 판정하고 중단한다.
-- network·rate limit·permission 실패를 SKIP, cache, 이전 성공 결과로 대체하지 않는다.
-
-## Phase 3 — 종합 판정 (오케스트레이터 직접 실행)
-
-세 에이전트 결과를 표로 종합:
-
-```
-| 항목 | 결과 | 비고 |
+| 필수 범위 | 판정 | 증거 |
 |---|---|---|
-| A 품질 (lint·test·build) | ✅/❌ | |
-| B 보안 | ✅/❌ | |
-| C 마이그레이션·DB 표준 | ✅/❌/SKIP | 모든 항목이 실제 비적용일 때만 전체 SKIP |
-| D 외부 파일럿 live provenance | ✅/❌/SKIP | manifest가 없을 때만 SKIP |
-```
+| A 품질·환경 키·repo 추가 릴리즈 검사 | PASS/FAIL/UNVERIFIED/SKIP | 항목별 명령·후보 OID·환경·종료 코드 |
+| B 보안·필수 독립 검토 | PASS/FAIL/UNVERIFIED/SKIP | 대상 범위·실행 권한·결과·반례 |
+| C 마이그레이션·DB 표준 | PASS/FAIL/UNVERIFIED/SKIP | 항목별 결과·실제 비적용 근거 |
 
-- A·B가 ✅이고 C·D가 ✅ 또는 정당한 SKIP → **"release-check 통과 — /release <version> 진행 가능"** 출력
-- C의 전체 SKIP은 실제 DB·마이그레이션과 검토할 DB 계약이 모두 없을 때만 허용하고 사유를 기록한다.
-  일부만 비적용이면 나머지 항목을 판정한다. 적용 이력 미확인·검사 미실행·환경 실패는 SKIP이 아니며 통과를 막는다.
-- 하나라도 ❌ → 실패 항목·원인·수정 방향을 리포트하고 **중단** (수정 후 재실행)
+- 필수 FAIL 또는 UNVERIFIED가 하나라도 있으면 **NO-GO**다. 실패 원인 또는 부족한 증거와
+  다음 행동을 보고하고 중단한다. 검사 미실행·환경 실패·접근 불가는 SKIP이 아니다.
+- C 전체 SKIP은 실제 DB·마이그레이션과 검토할 DB 계약이 모두 없을 때만 허용한다.
+  일부만 비적용이면 나머지는 개별 판정한다. 보안 검토 자체를 앱 서버 부재만으로 생략하지 않는다.
+- 필수 항목 모두 PASS 또는 정당한 SKIP이면 **GO — release-check 통과**로 보고한다.
+  검증 후보·필수 범위·잔여 한계·다음 `/release` 단계를 인계한다. 태그·배포 완료를 뜻하지 않는다.

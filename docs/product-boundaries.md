@@ -188,3 +188,11 @@ surface와 분리 core+adapter의 native hook·skill session parity다. 따라�
 ## 개발 조정의 staged split 제한
 
 통합 후보 0.69.0에서도 공개 사용 경로는 monolith다. split Codex adapter의 wrapper는 다른 artifact의 공용 skill을 가리키며, 생성된 workflow Codex manifest는 공용 `skills/`를 직접 가리킨다. wrapper의 native 실행 계약까지 자동 연결되는 것은 검증되지 않았다. 따라서 파일 inventory·profile doctor 통과만으로 split Codex 조정 실행을 지원한다고 주장하지 않는다. `installable:false`를 유지하며 별도 runtime resolver나 중복 installer를 이번 통합에 추가하지 않는다.
+
+## 공통 계약 연결
+
+0.87.0 구현 후보는 기존 17개 호출 이름과 core9/workflow8 소속을 유지한다.
+계획·신규/기존 구현·진단은 [공통 프로젝트 계약](../plugins/harness-guard/skills/ao-coordinate/project-contract.md)을
+공유하고 일반 방법론은 Superpowers 또는 native 실행 하나로 대체한다. 별도 승인·TDD 루프를 반복하지 않는다.
+release/release-check의 전용 검사·changelog·생성물 경로는 대상 repo AGENTS.md가 선언한다.
+GitHub 정책·현재 후보 증거·태그·역병합·복구와 필수 미확인 차단은 core에 남는다.
