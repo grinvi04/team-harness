@@ -36,49 +36,37 @@ echo ""
 
 # ── 스택 선택 ────────────────────────────────────────────────────────────────
 
-echo "스택을 선택하세요:"
-echo "  1) Node.js 단독      — React / Vite SPA, NestJS 단독 API"
-echo "  2) NestJS 풀스택     — NestJS 백엔드 + React / Vue / Next.js 프론트엔드"
-echo "  3) Spring Boot       — Java / Kotlin Gradle 백엔드 단독"
-echo "  4) Spring 풀스택     — Spring Boot 백엔드 + Node.js 프론트엔드"
-echo "  5) Python            — FastAPI / Django (+ PostgreSQL + Redis)"
-echo "  6) Rails 8           — 소팀 MVP · Hotwire 풀스택"
-echo "  7) Next.js 단독      — App Router 풀스택 (RSC · server actions)"
-echo "  8) Vue 3             — Vite SPA (Composition API · Pinia)"
+node "$HARNESS_DIR/scripts/stack-catalog.mjs" --menu
 echo ""
 read -rp "번호 입력 (1-8): " STACK_CHOICE
 
-case "$STACK_CHOICE" in
-  1) STACK_TEMPLATE="ci-gate-node.yml";             STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript") ;;
-  2) STACK_TEMPLATE="ci-gate-nestjs-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan"); STACK_RULES=("typescript" "prisma") ;;
-  3) STACK_TEMPLATE="ci-gate-spring.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("java" "flyway") ;;
-  4) STACK_TEMPLATE="ci-gate-spring-frontend.yml";  STACK_CHECKS=("backend" "frontend" "secret-scan"); STACK_RULES=("java" "flyway" "typescript") ;;
-  5) STACK_TEMPLATE="ci-gate-python.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("python" "alembic") ;;
-  6) STACK_TEMPLATE="ci-gate-rails.yml";            STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("ruby") ;;
-  7) STACK_TEMPLATE="ci-gate-nextjs.yml";           STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript" "nextjs") ;;
-  8) STACK_TEMPLATE="ci-gate-vue.yml";              STACK_CHECKS=("quality" "secret-scan");  STACK_RULES=("typescript" "vue") ;;
-  *) echo "❌ 잘못된 선택 — 1~8 중 입력하세요." >&2; exit 1 ;;
-esac
+STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE")
+# Read catalog data as JSON; never evaluate generated shell text.
+selection_value() {
+  printf '%s' "$STACK_SELECTION" | node -e '
+    const d = JSON.parse(require("fs").readFileSync(0, "utf8"));
+    const v = process.argv[1].split(".").reduce((value, key) => value[key], d);
+    console.log(Array.isArray(v) ? v.join(" ") : (v ?? ""));' "$1"
+}
+if [ -n "$(selection_value frontendOptions)" ]; then
+  read -rp "프론트엔드 (node=React/Vite, vue, nextjs; 기본 node): " FRONTEND_CHOICE || FRONTEND_CHOICE=""
+  STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE" --frontend "${FRONTEND_CHOICE:-node}")
+fi
+STACK_TEMPLATE=$(selection_value template)
+read -r -a STACK_CHECKS <<< "$(selection_value checks)"
+read -r -a STACK_RULES <<< "$(selection_value rules)"
 
-# 모든 스택 공통 required check — 테스트 삭제 차단 게이트 + 커밋 컨벤션 게이트(stack 무관)
-# + integration-e2e: "실 IdP 인증 + 실 백엔드 데이터 통합 e2e" 결정(decisions.md)을 자동 배선.
-#   job-level `if: vars.E2E_ENABLED` 라 미설정 repo는 잡이 skip → required여도 통과(머지 안 막힘).
-#   E2E_ENABLED=true 등록한 repo에서만 강제된다.
-STACK_CHECKS+=("test-guard" "commitlint-trusted" "integration-e2e" "destructive-ddl")
-
-# Flyway 스택 — 마이그레이션 안전성 게이트(접두사 대역 + out-of-order 정합성)
+# The catalog owns required checks, including common and database gates.
 HAS_FLYWAY=false
-if [[ ${#STACK_RULES[@]} -gt 0 ]] && printf '%s\n' "${STACK_RULES[@]}" | grep -qx flyway; then
+if [ "$(selection_value database.tool)" = flyway ]; then
   HAS_FLYWAY=true
-  STACK_CHECKS+=("migration-safety")
 fi
 
 # Alembic 스택 — 다중 head(분기 마이그레이션) 차단 게이트(별도 CI 점검, decisions "정적 게이트 Flyway 전용").
 # 검증기(check-repo-sync.mjs)가 alembic 감지 시 이 게이트를 required로 기대 → 프로비저너가 대칭 제공.
 HAS_ALEMBIC=false
-if [[ ${#STACK_RULES[@]} -gt 0 ]] && printf '%s\n' "${STACK_RULES[@]}" | grep -qx alembic; then
+if [ "$(selection_value database.tool)" = alembic ]; then
   HAS_ALEMBIC=true
-  STACK_CHECKS+=("alembic-heads")
 fi
 
 STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
@@ -147,20 +135,7 @@ copy_once "$HARNESS_DIR/templates/CLAUDE.md"                 CLAUDE.md          
 copy_once "$HARNESS_DIR/templates/settings.json"             .claude/settings.json      ".claude/settings.json"
 copy_once "$HARNESS_DIR/templates/PULL_REQUEST_TEMPLATE.md"  .github/PULL_REQUEST_TEMPLATE.md "PR 템플릿"
 
-# 스택별 dev 권한을 커밋 settings.json에 병합 (공통 베이스라인은 템플릿에 이미 포함).
-# dev 권한 단일출처 = 커밋 settings.json — settings.local.json은 폐지(진짜 머신-특정만).
-if [[ ${#STACK_RULES[@]} -gt 0 && -f .claude/settings.json ]]; then
-  RULES_CSV=$(IFS=,; echo "${STACK_RULES[*]}")
-  DOCKER_FLAG=""
-  printf '%s\n' "${STACK_RULES[@]}" | grep -qxE 'java|python|prisma' && DOCKER_FLAG="--docker"
-  if node "$HARNESS_DIR/scripts/merge-permissions.mjs" --base .claude/settings.json \
-       --rules "$RULES_CSV" $DOCKER_FLAG --fragments "$HARNESS_DIR/templates/permissions" --write; then
-    echo "  ✅  .claude/settings.json 스택 권한 병합 ($RULES_CSV${DOCKER_FLAG:+ +docker})"
-  else
-    echo "  ❌  스택 권한 병합 실패 — .claude/settings.json 수동 확인 필요 (베이스라인만 적용됨)" >&2
-    SETUP_FAILED=1   # 부분 프로비저닝(베이스라인만)을 exit 0으로 은폐하지 않는다 — 보호 실패(PROT_FAILED)와 대칭(#215)
-  fi
-fi
+# Stack selection grants no automatic execution permissions; copy_once preserves settings.
 
 # 스택별 rules 파일 복사
 if [[ ${#STACK_RULES[@]} -gt 0 ]]; then
@@ -324,4 +299,3 @@ echo "────────────────────────�
 
 # B4: 보호 적용에 실패했으면(위 ❌) 성공 요약을 냈더라도 non-zero로 종료 — 체이닝·자동화가 감지.
 prot_exit_ok "${PROT_FAILED:-0}" || { echo ""; echo "⚠️  branch protection 미적용 — 위 ❌ 확인 후 재실행 필요"; exit 1; }
-prot_exit_ok "${SETUP_FAILED:-0}" || { echo ""; echo "⚠️  스택 권한 병합 실패(베이스라인만 적용) — 위 ❌ 확인 후 재실행 필요"; exit 1; }

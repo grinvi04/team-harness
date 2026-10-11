@@ -3,6 +3,8 @@
 team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로젝트 작업 규약이 아니라
 **하네스에 PR을 보내는 사람**을 위한 문서다.
 
+수정할 정본과 생성물은 [저장소 구조 안내](repository-structure.md)를 먼저 읽는다.
+
 ## 변경 절차
 
 보호 적용은 두 브랜치와 비어 있지 않은 필수 검사 집합의 사전 조회를 모두 통과해야 시작한다.
@@ -29,6 +31,14 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 `node scripts/generate-changelog.mjs --release vX.Y.Z --write`로 CHANGELOG index와 `docs/changelog/` 전체를 생성한다(태그 발행 아님).
 동작 변경을 머지하고 버전을 안 올리면 팀원에게 배포되지 않은 것과 같다.
 
+## 0.88.0 구조 정리 후보
+
+스택 카탈로그와 YAML 조각이 정본이며 완성 CI와 공통 Git/CI 사본은 생성·일치 검사로 관리한다.
+빈 스택 권한 파일과 사용하지 않는 placeholder CI는 제거했다. 기존 프로젝트 파일과 자동 허용 범위를 보존한다.
+실험 catalog는 `experiments/split-packaging/`로 옮겼고 이전 script 명령은 같은 구현으로 연결한다.
+과거 증거는 `docs/history/harness-modernization/`에서 당시 내용 그대로 읽는다.
+공개 플러그인은 하나다. 이 후보의 구현·검증과 실제 병합·발행·설치는 [스펙](specs/structure-maintenance.md)에서 구분한다.
+
 ## 진행 문서 검사 배포 경계
 
 v0.74.0은 plugin의 `scripts/check-document-sync.mjs`와 PR wrapper의 선언 사전 검사를 제공한다.
@@ -40,9 +50,10 @@ v0.74.0은 plugin의 `scripts/check-document-sync.mjs`와 PR wrapper의 선언 �
 
 ### 분리 package artifact (전환 단계)
 
-`packaging/packages.json`은 governance core, Claude·Codex adapter, workflow pack의 파일 소속과 core 호환
+`experiments/split-packaging/packages.json`은 governance core, Claude·Codex adapter, workflow pack의 파일 소속과 core 호환
 version·runtime binding 정본이다. 아래 명령은 작업트리가 아니라 기록된 Git `HEAD`의 plugin source를 사용해
 clean output에 네 staged package를 조립하며, metadata에는 `sourcePluginCommit`과 `catalogDigest`를 분리해 남긴다.
+이 영역은 [분리 패키지 실험](../experiments/split-packaging/README.md)이며 공개 플러그인은 계속 하나다.
 
 ```bash
 node scripts/build-packages.mjs --check

@@ -1,0 +1,16 @@
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22  # CUSTOMIZE: .nvmrc 있으면 node-version-file: .nvmrc 로 교체
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint                       # eslint-plugin-vue (eslint-config-next 아님)
+      - run: npm run type-check --if-present     # vue-tsc --noEmit (.vue SFC 타입체크 — tsc만으론 부족)
+      - run: npm run lint:design --if-present    # 디자인 토큰 게이트
+      - run: npm run test:unit --if-present       # vitest + @vue/test-utils
+      - run: npm run build                       # vite build

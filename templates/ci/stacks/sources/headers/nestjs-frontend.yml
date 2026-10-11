@@ -1,0 +1,3 @@
+# ci-gate — NestJS 백엔드 + Node.js 프론트엔드 (React / Vue / Next.js / Nuxt)
+# CUSTOMIZE: postgres 자격증명, ORM(Prisma/TypeORM), 프론트 디렉터리, env 변수
+# DB 불필요하면 services.postgres 블록 전체 제거

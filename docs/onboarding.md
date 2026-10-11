@@ -62,8 +62,8 @@ bash /path/to/team-harness/scripts/new-repo.sh
 
 ### 2. 수동 3단계 (스크립트 출력이 안내)
 
-- [ ] **ci-gate.yml 수정**: placeholder → 스택 맞는 lint·test·build 명령으로 교체
-      (placeholder는 항상 실패 — 교체 전 protection 걸면 첫 PR부터 머지 불가)
+- [ ] **ci-gate.yml 확인**: 선택한 스택의 `CUSTOMIZE`와 lint·test·build 명령을 실제 프로젝트에 맞춘다.
+      풀스택은 `node`·`vue`·`nextjs`를 고른다. 규칙도 함께 설치되며 기존 설정·파일은 덮어쓰지 않는다.
 - [ ] **AGENTS.md 작성**: 프로젝트 개요·디렉터리·빌드·테스트 명령 채우기
       (빌드·테스트 명령 섹션은 하네스 커맨드가 필수로 읽음)
 - [ ] **스택별 검사 연결**: 아래 기준으로 제품의 검사 명령·대상·한계를 정하고 같은 명령을 CI에 연결

@@ -1,0 +1,22 @@
+  frontend:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend  # CUSTOMIZE
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: '22'  # CUSTOMIZE: .nvmrc 있으면 node-version-file: frontend/.nvmrc
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run type-check --if-present
+      - run: npm run lint
+      - run: npm run lint:design --if-present   # 디자인 토큰 게이트 (하드코딩 색 차단)
+      - run: npm run test:unit --if-present
+      - run: npm run build

@@ -4,6 +4,7 @@
 # NEWREPO_SOURCE_ONLY로 함수만 로드(git/gh/파일복사 없이). 로컬·CI 동일: bash tests/new-repo-test.sh
 set -u
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export ROOT
 NR="$ROOT/scripts/new-repo.sh"
 PASS=0; FAIL=0
 
@@ -82,7 +83,11 @@ cat > "$TMP/bin/gh" <<'MOCK'
 #!/bin/bash
 if [ "$1" = repo ]; then echo acme/example; exit 0; fi
 endpoint="$2"
-if [[ " $* " == *" -X PUT "* ]]; then echo "$endpoint" >> "$WRITE_LOG"; echo '{}'; exit 0; fi
+if [[ " $* " == *" -X PUT "* ]]; then
+  echo "$endpoint" >> "$WRITE_LOG"
+  [ -z "${PROTECTION_LOG:-}" ] || printf '%s\n' "$*" >> "$PROTECTION_LOG"
+  echo '{}'; exit 0
+fi
 case "$endpoint" in
   repos/acme/example/branches/main|repos/acme/example/branches/develop)
     if [ "$SETUP_CASE" = protected ]; then echo true
@@ -126,6 +131,80 @@ for scenario in protected missing legacy validator-missing api-error ready; do
     echo "FAIL: setup $scenario → writes=$writes/$expected exit=$rc/$expected_rc"; FAIL=$((FAIL+1))
   fi
 done
+
+# Selection metadata must reach the real copier and protection boundary.
+# Expectations are independent of the implementation catalog.
+for selection in 1 2:node 2:vue 2:nextjs 3 4:node 4:vue 4:nextjs 5 6 7 8; do
+  choice="${selection%%:*}"; frontend="${selection#*:}"
+  [ "$frontend" != "$selection" ] || frontend=""
+  target="$TMP/stack-${selection/:/-}"
+  git clone -q "$TMP/source" "$target"
+  export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
+  : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
+  rc=0
+  (cd "$target" && printf '%s\n%s\n' "$choice" "$frontend" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
+  if [ "$rc" = 0 ] && TARGET="$target" CHOICE="$choice" FRONTEND="$frontend" PROTECTION_LOG="$PROTECTION_LOG" python3 <<'PY'
+import json, os
+from pathlib import Path
+target = Path(os.environ['TARGET'])
+choice = int(os.environ['CHOICE'])
+rules = {1: {'typescript'}, 2: {'typescript', 'prisma'}, 3: {'java', 'flyway'},
+         4: {'java', 'flyway', 'typescript'}, 5: {'python', 'alembic'}, 6: {'ruby'},
+         7: {'typescript', 'nextjs'}, 8: {'typescript', 'vue'}}[choice]
+if os.environ['FRONTEND'] in {'vue', 'nextjs'}:
+    rules.add(os.environ['FRONTEND'])
+assert rules == {p.stem for p in (target / '.claude/rules').glob('*.md') if p.stem != 'korean-ux'}
+settings = json.loads((target / '.claude/settings.json').read_text())
+baseline = json.loads(Path(os.environ['ROOT'] + '/templates/settings.json').read_text())
+assert settings == baseline, 'setup must not grant implicit stack permissions'
+policy = Path(os.environ['PROTECTION_LOG']).read_text()
+checks = {'secret-scan', 'test-guard', 'commitlint-trusted', 'integration-e2e', 'destructive-ddl'}
+checks.update({'backend', 'frontend'} if choice in {2, 4} else {'quality'})
+if choice in {3, 4}: checks.add('migration-safety')
+if choice == 5: checks.add('alembic-heads')
+for check in checks: assert check in policy, check
+PY
+  then
+    echo "PASS: setup stack $selection → rules, unchanged permissions and required checks"; PASS=$((PASS+1))
+  else
+    cat "$target.log"
+    echo "FAIL: setup stack $selection → integration mismatch (exit=$rc)"; FAIL=$((FAIL+1))
+  fi
+done
+
+for selection in 9 2:invalid; do
+  target="$TMP/invalid-${selection/:/-}"
+  git clone -q "$TMP/source" "$target"
+  export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
+  : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
+  rc=0
+  (cd "$target" && printf '%s\n%s\n' "${selection%%:*}" "${selection#*:}" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
+  if [ "$rc" != 0 ] && [ ! -s "$WRITE_LOG" ] && [ ! -d "$target/.github" ]; then
+    echo "PASS: invalid selection $selection → no files or protection writes"; PASS=$((PASS+1))
+  else
+    echo "FAIL: invalid selection $selection was not rejected before side effects"; FAIL=$((FAIL+1))
+  fi
+done
+
+# Existing product-specific files must survive, including permissions and rules.
+target="$TMP/preserve"
+git clone -q "$TMP/source" "$target"
+mkdir -p "$target/.github/workflows" "$target/.claude/rules"
+printf 'product CI sentinel\n' > "$target/.github/workflows/ci-gate.yml"
+printf '{"permissions":{"allow":["product-only"],"deny":["deny-sentinel"]}}\n' > "$target/.claude/settings.json"
+printf 'product rule sentinel\n' > "$target/.claude/rules/vue.md"
+cp "$target/.claude/settings.json" "$TMP/preserved-settings"
+export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
+: > "$WRITE_LOG"; : > "$PROTECTION_LOG"
+if (cd "$target" && printf '4\nvue\n' | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
+  && cmp -s "$target/.claude/settings.json" "$TMP/preserved-settings" \
+  && [ "$(cat "$target/.github/workflows/ci-gate.yml")" = 'product CI sentinel' ] \
+  && [ "$(cat "$target/.claude/rules/vue.md")" = 'product rule sentinel' ]; then
+  echo 'PASS: existing CI/settings/rules remain byte-identical'; PASS=$((PASS+1))
+else
+  cat "$target.log"
+  echo 'FAIL: existing product configuration was changed'; FAIL=$((FAIL+1))
+fi
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"

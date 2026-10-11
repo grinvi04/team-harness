@@ -3,7 +3,7 @@ set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
-CATALOG="$ROOT/packaging/packages.json"
+CATALOG="$ROOT/experiments/split-packaging/packages.json"
 CATALOG_BACKUP="$TMP/packages.json"
 SENTINEL_FILE="$ROOT/.release-bundle-dirty-sentinel-$$"
 SENTINEL_VALUE="dirty-$RANDOM-$$-$(date +%s)"

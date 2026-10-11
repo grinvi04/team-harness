@@ -8,7 +8,7 @@ from pathlib import Path
 root = Path(sys.argv[1])
 plugin = root / 'plugins/harness-guard'
 assert not (plugin / 'tools/orchestration').exists(), 'retired AO toolchain is still shipped'
-catalog = json.loads((root / 'packaging/packages.json').read_text())
+catalog = json.loads((root / 'experiments/split-packaging/packages.json').read_text())
 units = {p['id']: p for p in catalog['packages']}
 assert 'skills/ao-coordinate' in units['workflow-pack']['sources']
 assert all('orchestration' not in s for p in units.values() for s in p['sources'])

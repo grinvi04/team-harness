@@ -1,7 +1,7 @@
 {
   "name": "harness-guard",
   "description": "팀 공통 정책·검증·복구 플러그인 — GitHub 보호와 PR·릴리즈 gate, systematic-debugging 진단 인계, verification-before-completion 완료 증거 계약. 일반 설계·TDD·디버깅은 선택한 Superpowers/native 방법론에 연결한다.",
-  "version": "0.87.0",
+  "version": "0.88.0",
   "author": {
     "name": "grinvi04"
   }

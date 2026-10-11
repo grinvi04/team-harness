@@ -1,0 +1,38 @@
+  backend:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci_user        # CUSTOMIZE
+          POSTGRES_PASSWORD: ci_password # CUSTOMIZE
+          POSTGRES_DB: ci_db            # CUSTOMIZE
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci_user -d ci_db"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_URL: jdbc:postgresql://localhost:5432/ci_db  # CUSTOMIZE
+      DB_USERNAME: ci_user      # CUSTOMIZE
+      DB_PASSWORD: ci_password  # CUSTOMIZE
+      # CUSTOMIZE: JWT_SECRET 등 필요한 env 추가
+
+    defaults:
+      run:
+        working-directory: backend  # CUSTOMIZE
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4
+        with:
+          java-version: '21'        # CUSTOMIZE: 17이면 '17'
+          distribution: corretto
+          cache: gradle
+
+      - run: ./gradlew check   # check가 spotlessCheck(포맷 게이트)·checkstyle·test를 모두 실행 — 별도 스텝 불필요

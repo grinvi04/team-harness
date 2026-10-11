@@ -186,7 +186,7 @@ assert.ok(skill.includes('(risk-boundaries.md)'), 'canonical skill must link its
 assert.ok(fs.readFileSync(path.join(dir, 'risk-boundaries.md'), 'utf8').length > 0);
 assert.ok(skill.includes('(test-design.md)'), 'canonical skill must route to its test design reference');
 assert.ok(fs.readFileSync(path.join(dir, 'test-design.md'), 'utf8').length > 0);
-const catalog = JSON.parse(fs.readFileSync(path.join(root, 'packaging/packages.json')));
+const catalog = JSON.parse(fs.readFileSync(path.join(root, 'experiments/split-packaging/packages.json')));
 assert.ok(catalog.packages.find(p => p.id === 'governance-core').sources.includes('skills/verification-before-completion'));
 NODE
 then

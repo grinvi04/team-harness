@@ -10,7 +10,8 @@
 **전환기 monolith**다. marketplace manifest도 하나이고 사용자는 구성 요소를 독립적으로 설치하거나 제거할 수
 없다. 아래 세 단위는 **목표 제품 경계**이며 아직 독립 설치 단위가 아니다.
 
-v0.59.0부터 `packaging/packages.json`과 `scripts/build-packages.mjs`가 네 단위의 파일 소속·호환 범위를
+[분리 패키징 실험](../experiments/split-packaging/README.md)의 staged `0.69.0`은 현재 monolith 버전과 별개다.
+v0.59.0부터 `experiments/split-packaging/packages.json`과 `scripts/build-packages.mjs`가 네 단위의 파일 소속·호환 범위를
 검증하고 staged artifact를 물리 디렉터리로 조립한다. source는 중복하지 않고 기록된 Git `HEAD`에서 결정적으로
 복사한다. adapter가 core 실행 파일을 호출하는 지점은 runtime binding으로 명시하며, 새 artifact는 profile
 installer가 binding을 제공하고 doctor로 실측하기 전이라 `installable: false`이고 marketplace에 노출하지 않는다.

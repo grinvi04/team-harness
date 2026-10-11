@@ -127,7 +127,7 @@ alias codex='bash "$HOME/team-harness/scripts/codex-hardened.sh"'
 
 영구 설치는 `.zshrc`에 같은 alias를 넣고 새 shell에서 확인한다. 제거는 그 alias 한 줄만 지운다.
 Desktop은 launcher를 실행하지 않으므로 plugin 갱신 뒤 doctor로 native 상태를 별도 확인한다.
-이 계약 변경의 로컬 검증은 [3E 실행 근거](harness-modernization/execution-m3e.json)를 따른다.
+이 계약 변경의 로컬 검증은 [3E 실행 근거](../history/harness-modernization/execution-m3e.json)를 따른다.
 전역 alias·실제 vendor cache 변경과 native app 실행 인수는 별도 단계다.
 [이전 mandatory adapter 경로](codex-guard-compatibility-native-history.md)는 아래 역사로 보존하며 현행 명령으로 사용하지 않는다.
 

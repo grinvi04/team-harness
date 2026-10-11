@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-RUNNER="$ROOT/scripts/run-codex-native-loader-pilot.mjs"
+RUNNER="$ROOT/experiments/split-packaging/run-codex-native-loader-pilot.mjs"
 TRUST_RUNNER="$ROOT/scripts/codex-binary-trust.mjs"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT

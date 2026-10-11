@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-RUNNER="$ROOT/scripts/run-codex-split-loader-pilot.mjs"
+RUNNER="$ROOT/experiments/split-packaging/run-codex-split-loader-pilot.mjs"
 TMP=$(mktemp -d)
 trap 'rm -rf "$TMP"' EXIT
 USER_CODEX_HOME="$TMP/user-codex"

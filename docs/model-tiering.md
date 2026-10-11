@@ -22,7 +22,7 @@ Team Harness는 요구 품질·권한·독립 검증·실행 증거를 소유하
 **소스 이전:** 타입별 강제 hook 등록을 제거하고 이전 호출 경로는 입력을 소비하는 무수정 호환 no-op으로 남겼다.
 명시·상속·unsupported 입력 48개에서 덮어쓰기·로그 변경이 없는 것을 확인했다. 이는 native 실행 성공과 별개다.
 전역 설정 15개 파일과 후속 권한 안내 2개를 적용하고 새 Codex 역할 여섯 개를 호출했다. Claude 실제 상속·effort·권한은 사용자 요청으로 인증 갱신 후 재개한다.
-현재 증거와 재개 조건은 [Phase 3 실행 기록](specs/harness-modernization/execution-m3ac.json)을 따른다.
+현재 증거와 재개 조건은 [Phase 3 실행 기록](history/harness-modernization/execution-m3ac.json)을 따른다.
 
 ## Claude native 선택
 
@@ -50,12 +50,12 @@ Team Harness 설치는 사용자의 Codex 전역 agent TOML이나 모델 기본�
 현재 task의 model·reasoning effort·sandbox는 native surface와 승인된 사용자 설정이 결정한다.
 Sol 6.1 일반 작업·Astra 중요한 판단을 전역 설정에 적용했다. 실제 새 역할 실행 검증과 설치된 plugin 갱신은 별도 단계다.
 
-기존 [고정 과제 비교](specs/harness-modernization/bounded-model-review-manifest.json)는 Sol 6.1/medium·Astra/medium·Luna/xhigh로 같은 작은 입력을 검토했다.
+기존 [고정 과제 비교](history/harness-modernization/bounded-model-review-manifest.json)는 Sol 6.1/medium·Astra/medium·Luna/xhigh로 같은 작은 입력을 검토했다.
 각 설정은 여섯 결함을 찾고 두 정상 함수를 구분했다. Luna의 일부 라인 근거는 정확하지 않았다.
 한 과제의 표본이며 다른 구현·보안 과제나 xhigh의 추가 품질 이득을 입증하지 않는다. 실행 권한은 요청과 실제 sandbox 기록을 구분한다.
 새 역할 후보의 read-only sandbox와 worker 소유 계약을 유지한다. 설정 변경이 열린 대화나 예약 작업의 명시 모델을 소급 변경한다고 가정하지 않는다.
 
-[실제 workflow 수정 표본](specs/harness-modernization/execution-m3-representative.json)에서는 동일한 11개 회귀 기준을 잠갔다.
+[실제 workflow 수정 표본](history/harness-modernization/execution-m3-representative.json)에서는 동일한 11개 회귀 기준을 잠갔다.
 요청한 Sol 6.1/medium과 Luna/xhigh 모두 한 번의 수정으로 통과했고 별도 oracle도 통과했다.
 관찰 시간은 48.731초와 85.846초였고 이 표본의 Sol 사용량이 적었다. ephemeral 출력이 실제 model/effort metadata를 제공하지 않아 그 적용값은 미확인이다.
 Luna/medium과 비교하지 않았으므로 xhigh의 추가 이득·모든 과제의 최적값·구독 비용 절감을 입증하지 않는다.
@@ -65,7 +65,7 @@ Luna/medium과 비교하지 않았으므로 xhigh의 추가 이득·모든 과�
 새 CLI의 실제 여섯 역할 호출에서 모델/medium 적용은 확인했다. 쓰기 가능한 부모 아래에서는
 다섯 read-only TOML도 실제 metadata가 workspace-write였다. 별도로 read-only 부모를 명시한 새 실행에서는
 다섯 자식의 read-only policy를 확인했다. 독립 검증에는 이 별도 실행 경로를 사용한다.
-읽기 행동만으로 쓰기 거부를 증명하지 않는다. [호출 증거](specs/harness-modernization/execution-m3-native-role.json)는
+읽기 행동만으로 쓰기 거부를 증명하지 않는다. [호출 증거](history/harness-modernization/execution-m3-native-role.json)는
 설정 적용·실제 policy·도구 행동·기존 별도 거부 시험을 구분한다. 앱의 현재 열린 역할에는 소급 적용을 주장하지 않는다.
 
 고정 역할을 호출 인자로 덮어쓸 수 있다고 가정하지 않는다. 전체 문맥 복사와 독립 문맥 전달의 실제 상속 규칙을 확인한다.

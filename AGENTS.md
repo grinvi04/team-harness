@@ -31,9 +31,10 @@
 ## 빌드·테스트 명령
 
 - 구문: `bash -n <script>.sh` · `node --check <file>.mjs`
-- JSON 유효성: `plugin.json`·`hooks.json`·`templates/settings.json`·`templates/permissions/*.json`
+- JSON 유효성: `plugin.json`·`hooks.json`·`templates/settings.json`·`templates/stacks.json`
 - 테스트: `bash tests/<name>-test.sh` — guard·route-intent·merge-permissions·migration-safety·repo-sync·pr-merge-auto
 - **전량 게이트 = CI `.github/workflows/ci-gate.yml` quality 잡**. 로컬 재현 = 그 스텝들을 그대로 실행.
+- 구조·정본·생성 명령은 `docs/repository-structure.md`를 읽는다. 스택 YAML과 공통 Git/CI 배치 사본은 생성물이므로 정본 수정 후 생성·drift 검사를 함께 실행한다.
 
 ## 브랜치·PR (자기 guard.sh가 강제)
 

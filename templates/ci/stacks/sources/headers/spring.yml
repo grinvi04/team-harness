@@ -1,0 +1,2 @@
+# ci-gate — Spring Boot (Java/Kotlin) + Gradle 백엔드 단독
+# CUSTOMIZE: java-version, postgres 자격증명, env 변수, working-directory

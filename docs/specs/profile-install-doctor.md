@@ -40,7 +40,7 @@ v0.59.0의 네 package artifact를 세 제품 profile로 안전하게 조립하�
 
 ## 7. 기술 접근 (HOW)
 
-- `scripts/manage-profile.mjs`가 `build-packages.mjs`를 clean staging에 호출하고 `packaging/packages.json`의 profile→package 선택을 적용한다.
+- `scripts/manage-profile.mjs`가 `build-packages.mjs`를 clean staging에 호출하고 `experiments/split-packaging/packages.json`의 profile→package 선택을 적용한다.
 - 대상 루트에 관리 marker와 `profile-state.json`을 기록한다. install/update는 sibling staging에서 doctor를 선검증한 뒤 기존 관리 디렉터리와 교체한다.
 - runtime binding은 설치 state에 실제 core 경로를 기록하고 adapter/workflow 파일의 선언된 환경 binding이 유효한 target을 가리키는지 doctor가 확인한다. 전역 환경이나 plugin cache는 변경하지 않는다.
 - `scripts/profile-doctor.mjs`는 설치 state, package metadata, 파일 digest, dependency, binding과 활성 상태만 읽는다.
