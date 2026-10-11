@@ -113,23 +113,23 @@ assert.equal((await checkStackVersions(timeoutMetadata)).status, 'unverified');
 **Files:** 생성 `scripts/check-stack-versions.mjs`, `scripts/stack-versions/record.mjs`, `tests/stack-version-cli-test.mjs`.
 생성 `plugins/harness-guard/scripts/check-stack-record.mjs` 정본과 루트 `scripts/check-stack-record.mjs` CLI wrapper.
 수정 생성기의 Task1 함수와 개별 CI job; 기록 검사기 정본은 셋업에서 소비 repo의 `scripts/check-stack-record.mjs`로 전달한다.
-**Interfaces:** CLI는 `--project`, `--stack`, `--framework`, `--ui`, 반복 `--version role.component=exact|latest`, `--apply`만 받는다.
+**Interfaces:** CLI는 `--project`, `--stack`, `--framework`, `--ui`, 선택 `--backend-dir|--frontend-dir`, 반복 `--version role.component=exact|latest`, `--apply`만 받는다.
 `writeVersionRecord(projectRoot:string,result:VersionResult): string`은 성공 시 새 기록 경로를 반환한다. `checkStackRecord(root,record): {valid,issues}`는 무의존이다.
-- [ ] `preview_and_atomic_apply`·`ci_input_drift` 시험을 작성한다. CLI는 임시 fixture에서 subprocess로 실행한다.
+- [x] `preview_and_atomic_apply`·`ci_input_drift` 시험을 작성한다. CLI는 임시 fixture에서 subprocess로 실행한다.
 ```js
 assert.deepEqual(afterPreview, beforePreview);
 assert.equal(applyAfterInputChange.status, 1); assert.equal(applyOverSymlink.status, 1);
 assert.equal(checkStackRecord(changedProject, savedRecord).valid, false);
 ```
 기존 기록 덮어쓰기 거부·저장 중 실패의 임시 파일 정리·conflict/unverified 시 파일 부재도 시험한다.
-- [ ] `node --test tests/stack-version-cli-test.mjs`: CLI 부재로 RED.
-- [ ] Task1~3을 호출해 JSON 결과와 조치를 출력한다. compatible=0, conflict/unverified=1, 잘못된 CLI=2다.
+- [x] `node --test tests/stack-version-cli-test.mjs`: CLI 부재로 RED.
+- [x] Task1~3을 호출해 JSON 결과와 조치를 출력한다. compatible=0, conflict/unverified=1, 잘못된 CLI=2다.
 `--apply` 직전 입력 digest를 재확인하고 동일 폴더 임시 파일→exclusive 공개로 `harness-stack.versions.json`을 저장한다.
 기존 파일/symlink를 덮어쓰지 않는다. 기록은 schema1·exact·출처/시각·지문·판정만 저장하며 결과가 같아도 기존 파일은 보존한다.
 생성 CI는 해당 exact runtime과 lockfile을 사용하고 먼저 기록/입력 지문을 검사한다. CI에서 latest·새 metadata를 조회하지 않는다.
 체크아웃의 `.runtime` tooling이나 외부 설치본에 의존하지 않는 record checker를 배치한다. record는 선택·지문이 일치할 때만 소비한다. 기존 명령·권한·action SHA를 유지한다.
-- [ ] `node --test tests/stack-version-cli-test.mjs`와 `bash tests/stack-templates-test.sh`: PASS; 부작용·drift 거부 사례 포함.
-- [ ] 커밋 `feat(stack): 버전 미리보기와 재현 기록 추가`.
+- [x] `node --test tests/stack-version-cli-test.mjs`와 `bash tests/stack-templates-test.sh`: PASS; 부작용·drift 거부 사례 포함.
+- [x] 커밋 `feat(stack): 버전 미리보기와 재현 기록 추가`.
 
 ### Task 5: 셋업·repo-sync의 선택과 실패 경계 연결
 

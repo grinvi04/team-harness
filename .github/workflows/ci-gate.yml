@@ -36,7 +36,7 @@ jobs:
           python3 -m venv .runtime/stack-versions/venv
           .runtime/stack-versions/venv/bin/python -m pip install --require-hashes -r scripts/stack-versions/requirements.txt
           echo "STACK_VERSION_PYTHON=$PWD/.runtime/stack-versions/venv/bin/python" >> "$GITHUB_ENV"
-          STACK_VERSION_PYTHON="$PWD/.runtime/stack-versions/venv/bin/python" node --test tests/stack-project-test.mjs tests/stack-version-check-test.mjs
+          STACK_VERSION_PYTHON="$PWD/.runtime/stack-versions/venv/bin/python" node --test tests/stack-project-test.mjs tests/stack-version-check-test.mjs tests/stack-version-cli-test.mjs
 
       - name: 진행 문서 동기화 선언 검사
         run: |

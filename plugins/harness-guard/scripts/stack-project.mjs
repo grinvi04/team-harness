@@ -6,6 +6,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 const helper = join(dirname(fileURLToPath(import.meta.url)), 'read-stack-pyproject.py');
 const exact = value => typeof value === 'string' && /^v?\d+(?:\.\d+){0,3}(?:[-+][A-Za-z0-9.-]+)?$/.test(value.trim());
+const safeNpmRange = value => typeof value === 'string' && /^[A-Za-z0-9*^~<>=|.,+! -]+$/.test(value) ? value : 'unsupported declaration';
 const canonicalPython = name => name.toLowerCase().replace(/[-_.]+/g, '-');
 
 export function inspectStackProjects(projectRoot, selected) {
@@ -96,28 +97,28 @@ export function inspectStackProjects(projectRoot, selected) {
       }
     }
     if (Object.hasOwn(deps, 'typescript')) components.typescript = { ecosystem: 'npm', packageName: 'typescript', required: false };
-    result.packages[project.role] = Object.fromEntries(Object.entries(deps).map(([name, range]) => [name, { range, version: lock?.packages?.[`node_modules/${name}`]?.version ?? null, declared:true }]));
+    result.packages[project.role] = Object.fromEntries(Object.entries(deps).map(([name, range]) => [name, { range:safeNpmRange(range), version: lock?.packages?.[`node_modules/${name}`]?.version ?? null, declared:true }]));
     for (const [path, entry] of Object.entries(lock?.packages ?? {})) {
       const name = path.match(/^node_modules\/((?:@[^/]+\/)?[^/]+)$/)?.[1];
       if (name && !Object.hasOwn(result.packages[project.role], name)) result.packages[project.role][name] = { range:null, version:entry.version ?? null, declared:false };
     }
     for (const [component, descriptor] of Object.entries(components).filter(([, d]) => d.ecosystem === 'npm')) {
-      const name = descriptor.packageName, declared = deps[name], entry = lock?.packages?.[`node_modules/${name}`];
+      const name = descriptor.packageName, rawDeclared = deps[name], declared = rawDeclared === undefined ? undefined : safeNpmRange(rawDeclared), entry = lock?.packages?.[`node_modules/${name}`];
       if (declared !== undefined) {
         const lockRoot = lock?.packages?.[''];
         const lockedRange = { ...lockRoot?.dependencies, ...lockRoot?.devDependencies, ...lockRoot?.optionalDependencies }[name];
-        if (lock && declared !== lockedRange) issue('MANIFEST_LOCK_MISMATCH', `${project.role}.${component}`, 'Regenerate the application lockfile deliberately, then repeat inspection.');
+        if (lock && rawDeclared !== lockedRange) issue('MANIFEST_LOCK_MISMATCH', `${project.role}.${component}`, 'Regenerate the application lockfile deliberately, then repeat inspection.');
         if (entry?.link) issue('UNSUPPORTED_LOCK', `${project.role}.${component}`, 'Workspace/link dependencies require a separate reviewed version check.');
         observe(project, component, descriptor, [entry?.version ?? (exact(declared) ? declared : declared)], declared);
         result.requirements.push({ target: `${project.role}.${component}`, ecosystem: 'npm', range: declared, origin: 'manifest' });
       } else observe(project, component, descriptor, []);
     }
     const engines = pkg?.engines?.node;
-    if (engines !== undefined) result.requirements.push({ target: `${project.role}.node`, ecosystem: 'npm', range: engines, origin: 'engines.node' });
+    if (engines !== undefined) result.requirements.push({ target: `${project.role}.node`, ecosystem: 'npm', range: safeNpmRange(engines), origin: 'engines.node' });
     runtime(project, 'node', ['.nvmrc', '.node-version'], components.node ?? { ecosystem: 'node', required: false });
   }
   function python(project, components) {
-    const dependencies = [], req = read(project, 'requirements.txt'), pyproject = read(project, 'pyproject.toml');
+    const dependencies = [], req = [read(project, 'requirements.txt'), read(project, 'requirements-dev.txt')].filter(value=>value !== null).join('\n'), pyproject = read(project, 'pyproject.toml');
     for (const path of ['poetry.lock', 'uv.lock', 'Pipfile.lock']) if (read(project, path) !== null) issue('UNSUPPORTED_LOCK', project.role, 'Only PEP621/static requirements are supported; retain the existing application tooling.');
     if (req !== null) {
       for (const line of req.split('\n')) {
@@ -140,6 +141,7 @@ export function inspectStackProjects(projectRoot, selected) {
     }
     const byName = new Map();
     for (const line of dependencies) {
+      if (/:\/\/|\s@\s/.test(line)) { issue('DYNAMIC_DECLARATION',project.role,'URL dependency declarations are unsupported and are not echoed.'); continue; }
       const match = line.match(/^([A-Za-z0-9_.-]+)(?:\[[^\]]+\])?\s*(.*)$/);
       if (match) { const name = canonicalPython(match[1]); byName.set(name, [...(byName.get(name) ?? []), match[2]]); }
       else issue('INVALID_MANIFEST', project.role, 'Use static PEP508 dependency declarations.');
@@ -149,7 +151,8 @@ export function inspectStackProjects(projectRoot, selected) {
     if (!project.framework && frameworks.length === 1) components[frameworks[0]] = { ecosystem: 'pypi', packageName: frameworks[0], required: true };
     for (const [component, descriptor] of Object.entries(components).filter(([, d]) => d.ecosystem === 'pypi')) {
       const ranges = byName.get(canonicalPython(descriptor.packageName)) ?? [];
-      const versions = ranges.map(range => range.match(/^==\s*([0-9][A-Za-z0-9.+-]*)(?:\s*;.*)?$/)?.[1] ?? range);
+      const pinned = ranges.map(range => range.match(/^==\s*([0-9][A-Za-z0-9.+-]*)(?:\s*;.*)?$/)?.[1]).filter(Boolean);
+      const versions = pinned.length ? pinned : ranges;
       observe(project, component, descriptor, versions, ranges[0]);
       for (const range of ranges) result.requirements.push({ target: `${project.role}.${component}`, ecosystem: 'python', range, origin: 'manifest' });
     }

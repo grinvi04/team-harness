@@ -95,7 +95,7 @@ Python·Ruby는 프레임워크가 지원하는 안정 버전을 고른다. 지�
 요청·기존 버전 차이, 선언·lockfile·런타임 충돌은 조치 안내와 함께 적용을 중단한다.
 
 검사 진입점은 `scripts/check-stack-versions.mjs --project <경로> --stack <선택>`이다.
-`--framework`와 `--ui`로 위 선택을 전달하고 `--version <역할.구성요소=버전>`은 반복해서 지정한다.
+`--framework`·`--ui`와 조합의 `--backend-dir|--frontend-dir`로 선택을 전달하고 `--version <역할.구성요소=버전>`은 반복해서 지정한다.
 역할은 단독 `project`, 분리형 `backend|frontend`다. 예: `frontend.node`, `backend.python`, `project.rails`.
 기본 실행은 읽기·결과 출력이며 파일을 쓰거나 프로젝트 코드를 실행하지 않는다.
 `--apply`는 호환 확인 뒤 `harness-stack.versions.json` 하나를 원자적으로 새로 저장한다. 기존 파일은 덮어쓰지 않는다.
@@ -164,7 +164,7 @@ Thymeleaf는 기존 서버 화면 프로젝트의 선택 사항으로 안내하�
 | 회귀 | Spring Boot/Vue checker, 기존 CI·가드·시크릿·권한·복구, 셋업/생성/repo-sync의 같은 선택·판정 |
 
 구현 시 안내·카탈로그·reader·fixture·검사를 함께 갱신한다. 두 manifest·README·changelog도 동작 변경 때 맞춘다.
-소스 후보는0.91.0이며 Task1~3의 선택·판독·공식 조건 판정과 범위 검사를 수행했다. 전체 quality와 독립 검토는 Task6에서 확인한다.
+소스 후보는0.91.0이며 Task1~4의 선택·판독·조건 판정·기록/CI와 범위 검사를 수행했다. 전체 quality와 독립 검토는 Task6에서 확인한다.
 실제 소비 앱·원격 CI·호스트 훅·설치는 실행 증거가 없으면 미확인이다. fixture 통과로 대신하지 않는다.
 명세·계획 작성은 완료했다. 현재는 승인한 구현과 필수 검증·독립 검토·현재 안내/지도 일치까지 수행한다.
 구현 종료 조건은 위 기준 충족과 현재 안내·지도 일치다. 발행·설치를 자동 추가하지 않는다.

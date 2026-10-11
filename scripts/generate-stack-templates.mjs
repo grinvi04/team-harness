@@ -68,8 +68,43 @@ export function renderComposition(selection, options = {}, root = repositoryRoot
   return renderSelectedWorkflow(selected, null, root);
 }
 
+function selectionSignature(selection) {
+  return JSON.stringify(selection.projects?.map(({role,directory,stackKey,framework,ui})=>({role,directory,stackKey,framework:framework ?? null,ui:ui ?? null})));
+}
+function pinVersionJob(job, project, record, nodeSource) {
+  const value = component => record.targets[`${project.role}.${component}`];
+  const exactPin = version => typeof version === 'string' && /^\d+\.\d+\.\d+(?:[-+][A-Za-z0-9.-]+)?$/.test(version);
+  if (project.role === 'project' && /^    defaults:\n      run:\n        working-directory:/m.test(job)) job=job.replace(/^(        working-directory: )[^\n]+$/m,"$1'.'");
+  const pins = [['node','node-version'],['python','python-version'],['ruby','ruby-version']];
+  for(const [component,key] of pins) {
+    if (new RegExp(`^          ${key}:`,'m').test(job)) {
+      if(!exactPin(value(component))) throw new Error(`Missing exact ${component} CI runtime`);
+      job=job.replace(new RegExp(`^(          ${key}: )[^\n]+$`,'m'),`$1'${value(component)}'`);
+    }
+  }
+  if (/^          java-version:/m.test(job)) {
+    const source=record.sources[`${project.role}.java`];
+    if(!exactPin(source?.runtimePin) || source.runtimeVendor !== 'temurin') throw new Error('Missing exact selected-vendor Java CI runtime');
+    job=job.replace(/^(          java-version: )[^\n]+$/m,`$1'${source.runtimePin}'`).replace(/^(          distribution: )[^\n]+$/m,`$1${source.runtimeVendor}`);
+  }
+  if (value('node') && !/uses: actions\/setup-node@/.test(job)) {
+    if(!exactPin(value('node'))) throw new Error('Missing exact Node CI runtime');
+    const cache=project.directory === '.' ? '' : `          cache-dependency-path: ${project.directory}/package-lock.json\n`;
+    const reviewedSetup=nodeSource.match(/      - uses: actions\/setup-node@[a-f0-9]{40}[^\n]*\n        with:\n(?:          [^\n]+\n)+/)?.[0];
+    if(!reviewedSetup || !/^          node-version:/m.test(reviewedSetup) || !/^          cache: npm/m.test(reviewedSetup)) throw new Error('Reviewed Node setup source missing');
+    const nodeSteps = `\n${reviewedSetup.replace(/^(          node-version: )[^\n]+$/m, `$1'${value('node')}'`)}${cache}\n      - run: npm ci\n`;
+    const setup = /^(      - uses: (?:ruby\/setup-ruby|actions\/setup-python)@)/m;
+    if(!setup.test(job)) throw new Error('Unsupported optional Node installation position');
+    job=job.replace(setup,`${nodeSteps}\n$1`);
+  }
+  const guard = `\n      - name: Verify recorded stack inputs\n        run: node scripts/check-stack-record.mjs --project .\n        working-directory: \${{ github.workspace }}\n`;
+  const checkout=/^(      - uses: actions\/checkout@[^\n]+\n)/m;
+  if(!checkout.test(job)) throw new Error('Recorded workflow requires a reviewed checkout');
+  return job.replace(checkout,`$1${guard}`);
+}
+
 export function renderSelectedWorkflow(selected, versionRecord = null, root = repositoryRoot) {
-  if (versionRecord !== null) throw new Error('Version record rendering is not yet available');
+  if (versionRecord !== null && (versionRecord.schema !== 1 || versionRecord.status !== 'compatible' || versionRecord.issues.length || selectionSignature(selected) !== selectionSignature(versionRecord.selection))) throw new Error('Compatible matching selection record required');
   const catalog = loadCatalog(root);
   const read = relative => readFileSync(inside(root, relative), 'utf8');
   const jobs = selected.projects.map(project => {
@@ -83,7 +118,8 @@ export function renderSelectedWorkflow(selected, versionRecord = null, root = re
     const source = stack.profile
       ? read(stack.profileQuality).replace('{{PROFILE_STEPS}}', read(stack.profile.steps).trimEnd())
       : read(stack.sources.jobs[0]);
-    return project.role === 'project' ? source : composeJob(source, project.role, project.directory);
+    const job = project.role === 'project' ? source : composeJob(source, project.role, project.directory);
+    return versionRecord ? pinVersionJob(job, project, versionRecord, read(catalog.stacks.find(entry=>entry.key === 'node').sources.jobs[0])) : job;
   });
   const header = selected.mode === 'single' ? selected.profile
     ? `# ci-gate — ${selected.key} ${selected.framework ?? ''} ${selected.ui}\n`
