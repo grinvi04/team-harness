@@ -69,13 +69,13 @@ then
 else
   fail "사전 태그 $CANDIDATE_TAG 항목 또는 기존 release 순서 누락"
 fi
-if grep -q 'generate-changelog\.mjs --release' "$ROOT/plugins/harness-guard/skills/release/SKILL.md"; then
-  pass "release skill이 사전 태그 CHANGELOG 생성"
+if grep -q 'generate-changelog\.mjs --release' "$ROOT/AGENTS.md"; then
+  pass "repo 선언이 사전 태그 CHANGELOG 생성"
 else
-  fail "release skill이 사전 태그 CHANGELOG 생성"
+  fail "repo 선언이 사전 태그 CHANGELOG 생성"
 fi
 contains plugins/harness-guard/skills/release/SKILL.md \
-  'git pull --ff-only origin main' 'release skill이 divergent local main 차단'
+  '기존 작업트리에서 checkout·pull·reset·stash를 하지 않는다' 'release skill이 사용자 main checkout 변경 차단'
 contains plugins/harness-guard/skills/release/SKILL.md \
   'mergeCommit\.oid' 'release skill이 merged PR SHA 조회'
 contains plugins/harness-guard/skills/release/SKILL.md \

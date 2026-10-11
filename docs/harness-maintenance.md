@@ -165,3 +165,11 @@ test-guard는 `check`/`case_` 등 단언 호출 줄의 감소와 조회 실패�
 먼저 적용한다. 현재 로드된 스킬의 root와 실행 root가 다르면 중단하며 HOME checkout으로 대체하지 않는다.
 PR 병합 성공과 branch 정리는 별도 결과다. 정리 실패·조회 실패는 각각 실패·미확인으로 보존한다.
 현재 수정 후보·격리 시험 범위는 [스킬 경로·정리 보고](specs/skill-path-cleanup.md)를 따른다.
+
+## 0.87.0 스킬 계약 전환
+
+계획·신규/기존 구현·진단의 공통 계약은 skills/ao-coordinate/project-contract.md에 있다.
+기존 호출 이름과 Codex wrapper는 유지하며 Superpowers/native 방법론 하나에 연결한다.
+release/release-check는 대상 repo AGENTS.md의 버전·changelog·생성물·추가 필수 검사·health 선언을 읽는다.
+이 저장소의 필수 live provenance와 changelog는 AGENTS.md에 명시돼 있으며 실패 기준은 유지한다.
+[현재 구현·검증](specs/skill-contract-consolidation.md)과 실제 발행 태그·설치 버전을 구분한다.

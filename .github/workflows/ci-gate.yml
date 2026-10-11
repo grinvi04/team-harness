@@ -125,6 +125,7 @@ jobs:
           node --check scripts/check-commit-message.cjs
           node --check scripts/build-packages.mjs
           node --check scripts/build-release-bundle.mjs
+          node --check tests/skill-contract-consolidation-test.mjs
           node --check scripts/generate-changelog.mjs
           node --check scripts/check-markdown-structure.mjs
           node --check scripts/check-plugin-coexistence.mjs
@@ -195,6 +196,9 @@ jobs:
         run: |
           bash tests/commit-message-test.sh
           bash tests/commitlint-trusted-test.sh
+
+      - name: 스킬 공통 계약과 릴리즈 적용 범위
+        run: node tests/skill-contract-consolidation-test.mjs
 
       - name: loop 실행 안전장치 계약
         run: bash tests/loop-skill-test.sh

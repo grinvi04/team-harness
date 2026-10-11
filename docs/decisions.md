@@ -151,3 +151,11 @@ legacy security-guidance는 자동 패치 없이 삭제 보류하며 [현재 근
 
 독립 검토 후 develop ancestry를 로컬·원격 tip에 명시 확인하고 원격 삭제를 조회 OID에 결박했다.
 추적 원격에만 병합된 branch 삭제와 원격 경합의 재현·보정은 위 스펙에 연결한다.
+
+## 2026-10-11 — 일반 방법론 계약 통합과 릴리즈 범위
+
+사용자 승인으로 일반 설계·TDD·디버깅은 Superpowers/native 하나에 위임하고 반복 프로젝트 계약을 공유한다.
+기존 스킬 이름·spec 진입·테스트 잠금·현재 후보 증거·서버 정책·복구는 유지한다.
+소비 repo 전용 생성물·provenance·changelog 경로는 공용 스킬에서 제거하고 제품 AGENTS 선언으로 연결한다.
+운영 health·설치·배포는 실제 결과에 따라 별도로 보고하며 고정 성공 문구를 제거한다.
+현재 [수용 기준·검증 기록](specs/skill-contract-consolidation.md)을 따르고 기존 0.86.0 발행·설치는 별개로 보존한다.

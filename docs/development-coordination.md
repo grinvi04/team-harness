@@ -17,7 +17,8 @@ Agent Orchestration에서는 **필요한 인계·검증·재개 원칙만** 가�
 | 인계·현재 후보 검증·GitHub delivery 조건 | 해당 Harness 계약, 기존 제품 기록·서버 gate |
 | 제품 코드·수용 기준·현재 진행 | 제품 저장소 |
 
-Harness의 plan·feature-add·feature-modify·systematic-debugging은 위 프로젝트 계약을 연결한다.
+Harness의 plan·feature-add·feature-modify·systematic-debugging은
+[공통 프로젝트 계약](../plugins/harness-guard/skills/ao-coordinate/project-contract.md)을 읽고 위 역할에 연결한다.
 에이전트가 시험 전에 [QA 범위·완료 기준](ai-collaboration.md#qa-범위와-완료-기준)을 요구·위험에서
 구체화하고 직접 검증한다. 사용자의 최종 승인 책임이 테스트 실행·오류 발견을 대신 맡는다는 뜻은 아니다.
 일반 방법론에서 만든 계획·재현·테스트를 다시 만들거나 별도 승인을 반복하지 않는다. 새 feature 브랜치의
@@ -82,3 +83,10 @@ Git 통합·최종 인수를 담당한다. 명확한 저위험 구현과 독립 
 당시 0.69.0 릴리즈 기록은 [PR #448](https://github.com/grinvi04/team-harness/pull/448)에 보존한다. 현재 릴리즈는 [버전 태그](https://github.com/grinvi04/team-harness/tags)가 정본이다.
 전역 plugin 갱신·새 native 역할 활성화·회사 전체 도입 완료를 뜻하지 않는다.
 수용 기준과 선택·제거 근거는 [통합 명세](specs/agent-orchestration-integration.md)를 따른다.
+
+## 릴리즈 검사와 실행
+
+공용 release-check는 제품 AGENTS.md가 선언한 품질·보안·DB·추가 검사를 현재 후보에서 판정한다.
+생성물 검사·changelog·외부 원본 경로는 제품이 선언한다. 필수 검사 누락과 접근 실패는 NO-GO다.
+release는 검증 후보의 main PR·태그·develop 역병합·정리를 증거별로 기록한다.
+서버 없는 제품의 health는 SKIP이며 태그 발행을 설치·배포·운영 정상으로 보고하지 않는다.

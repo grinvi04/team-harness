@@ -19,26 +19,15 @@ argument-hint: "\"<작업 설명>\" \"<통과 기준 명령>\" [--max <N=5>] [--
 /loop "의존성 취약점 해소" "npm audit --audit-level=high" --no-commit
 ```
 
-> **Claude Code 내장 `/loop`와의 구분**:
-> 내장 `/loop`는 `ScheduleWakeup` 기반 **비동기 예약 재실행** — "N분 뒤 같은 프롬프트를 다시 실행"하는 세션 재스케줄링 도구다.
-> 이 `/loop`는 **동기 조건-루프** — 한 세션 안에서 통과 기준 명령이 exit 0될 때까지 즉시 반복하는 수정 자동화 도구다.
-> 시간 간격 폴링·예약 재실행이 필요하면 내장 `/loop`를 써라.
->
-> **`/loop`의 목적**: 반복 실행이 필요한 수정 작업을 자율적으로 처리한다.
-> 각 반복마다 ONE 타깃 수정 → 통과 기준 검증 → 체크포인트 커밋(기본값) → 다음 반복.
-> 기능 개발(Red→Green→Refactor)은 이 커맨드가 아니라 `/feature-add`가 담당한다.
-> 자연어 맥락에서 자동 선택된 **implicit invocation**은 commit 권한을 새로 만들지 않는다.
-> 사용자가 현재 요청에서 commit을 명시적으로 요청하지 않았다면 `--no-commit`과 동일하게 실행한다.
->
-> **이 커맨드를 쓰지 말아야 할 때**:
-> - 새 기능 개발 → `/feature-add`
-> - 명세된 태스크 실행 → 승인된 `/plan` 스펙의 각 태스크를 `/feature-add`로
-> - 설계 없이 대규모 리팩터링 → `/plan`으로 먼저 범위를 잡는다
-> - 시간 간격 폴링 → 내장 `/loop`
+일반 수정·디버깅은 선택한 방법론 하나를 따른다. 이 연결은 timeout·fingerprint·exit 증거와
+반복 중단·체크포인트 계약만 더한다. 새 기능·설계가 불명확한 변경에는 사용하지 않는다.
+예약 재실행은 현재 플랫폼의 자동화 도구를 사용하며 이 스킬과 같은 동기 수정 루프로 취급하지 않는다.
+자연어 맥락의 implicit invocation은 commit 권한을 새로 만들지 않는다.
+사용자가 현재 요청에서 commit을 명시적으로 요청하지 않았다면 `--no-commit`으로 실행한다.
 
 ---
 
-## 안전 장치 (기업 환경 기본값)
+## 반복의 안전 장치
 
 | 장치 | 기본값 | 설명 |
 |---|---|---|
@@ -129,7 +118,7 @@ node "$PLUGIN_ROOT/scripts/run-with-timeout.mjs" --seconds "$TIMEOUT_SECONDS" --
 
 ---
 
-## Phase 1 — 컨텍스트 분석 (`subagent_type: general-purpose`, `model: sonnet`, **foreground**)
+## Phase 1 — 컨텍스트 분석
 
 Phase 1 실행 **전에** [분석 프롬프트·사용 패턴](analysis-and-patterns.md)을 읽고 전체 분석 결과를 Phase 2에 전달한다.
 
@@ -150,11 +139,11 @@ FIXED_FILES=""    # 줄바꿈으로 구분한 누적 수정 파일 목록
 
 ---
 
-### Phase 2a — 단일 반복 실행 (`subagent_type: general-purpose`, `model: sonnet`, **foreground**)
+### Phase 2a — 단일 반복 실행
 
-각 반복마다 아래 프롬프트로 에이전트를 spawn한다 (반드시 **foreground**, 이전 결과가 다음 프롬프트에 포함돼야 한다).
+현재 담당자가 직접 실행한다. 필요한 위임이 허용된 경우에만 순서대로 나누고 이전 결과를 전달한다.
 
-에이전트 spawn **직전** 오케스트레이터는 stuck 감지용 기준 지문(이번 반복 시작 시 워킹트리 상태)을 캡처한다:
+수정 **직전** 오케스트레이터는 stuck 감지용 기준 지문(이번 반복 시작 시 워킹트리 상태)을 캡처한다:
 ```bash
 PLUGIN_ROOT="${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}"
 ITER=$((ITER+1))

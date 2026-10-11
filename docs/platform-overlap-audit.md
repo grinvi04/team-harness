@@ -128,3 +128,13 @@ skill의 선택 패키지 분리가 3순위다. 실제 제거는 각각 별도 �
   분리할 수 있다. cache·snapshot 직접 수정은 복구하지 않는다.
 - 공식 surface가 불안정하거나 outcome parity가 깨지면 연결 계층을 유지하되 내부 patch 확대는 중단한다.
 - 새로운 skill·agent·hook·Codex 실행 파일이 추가되면 이 감사와 CI 인벤토리를 함께 갱신해야 한다.
+
+## 2026-10-11 통합 구현 후보
+
+plan·feature-add·feature-modify·systematic-debugging의 반복 계약을
+[공통 프로젝트 계약](../plugins/harness-guard/skills/ao-coordinate/project-contract.md)으로 모은다.
+일반 방법론은 선택한 Superpowers/native에 위임하고 기존 발견 이름·wrapper·라우팅은 유지한다.
+loop의 timeout·fingerprint·중단과 milestone의 AC 증거 집계는 유지하며 고정 모델·인원·플랫폼 전용 호출을 줄인다.
+release-check의 SVG·mtime·전용 provenance, release의 changelog 경로는 repo 선언으로 이전한다.
+이 저장소의 live provenance·changelog는 AGENTS.md 필수 선언으로 유지한다.
+0.87.0은 소스 구현 후보이며 검증·병합·발행·설치 상태는 [현재 스펙](specs/skill-contract-consolidation.md)에서 구분한다.
