@@ -1,185 +1,183 @@
-# 개별 스택 확장과 버전 검증 설계
+# 개별 스택·화면 방식과 버전 검증 설계
 
 ## 합의와 현재 단계
 
-2026-10-12 사용자는 React+Vite·Nuxt 추가와 아래 추천 설계의 명세 작성을 승인했다.
-기준 후보는 `fix/structure-cleanup`의 `1041675ad46aa3a16077445e0ac103c89fa89c58`다.
-이 문서는 구현 전 설계다. 작성한 명세의 검토와 구현 계획은 아직 남아 있다.
-이전 [구조 정리](structure-cleanup.md)의 구현·검증 완료와 이번 추가 기능을 구분한다.
+2026-10-12 사용자는 기존 프로젝트의 설정·버전 검증과 React+Vite·Nuxt 추가를 승인했다.
+같은 날 Python 프레임워크 구분·Rails Hotwire/Inertia·개별 조합 중심으로 명세 수정과 구현 계획 작성도 승인했다.
+기준은 `fix/structure-cleanup`의 `c701eccb3b25820bdc14b9d2f144d54089d19a15`다.
+첫 명세는 로컬 Git의 `git show c701ecc:docs/specs/stack-profiles-version-contract.md`로 읽는다.
+이 커밋은 원격에 올리지 않았다. 로컬 작성과 원격 전달을 구분한다.
+이번에는 명세와 [구현 계획](stack-profiles-implementation-plan.md)을 작성한다. 구현 실행은 아직 승인받지 않았다.
+이전 [구조 정리](structure-cleanup.md)의 구현·검증 완료를 이번 기능의 실행 증거로 사용하지 않는다.
+[제품 방향](../product-direction.md) 판정은 **소유**다. 설정·검사 연결을 소유하고 생태계의 공식 기능을 활용한다.
 
-[제품 방향](../product-direction.md) 판정은 **소유·연결**이다.
-Harness는 설정·검사·증거의 연결을 소유하고, 버전 정보와 의존성 해석은 공식 생태계에 연결한다.
-앱 생성기나 범용 패키지 관리자를 만들지 않는다.
+## 목표와 보존 경계
 
-## 목표와 제외 범위
+- 기존 프로젝트의 프레임워크·화면 방식·버전을 확인하고 필요한 Harness 설정과 검사만 연결한다.
+- 고정 풀스택 템플릿을 만들지 않는다. 개별 스택·공통 자산·선택한 UI 자산을 조합한다.
+- 특정 소비 프로젝트의 도메인·폴더·회사 정책·DB·Redis·Celery를 기본값으로 넣지 않는다.
+- 검사·셋업은 앱 생성·의존성 설치/업그레이드·lockfile 재작성·DB·인프라 변경을 수행하지 않는다.
+- CI의 기존 lock 기반 의존성 설치와 품질 검사 명령은 보존한다.
+- 가드·시크릿 검사·필수 CI·브랜치 보호·사용자 파일·지도·복구 자료와 기존 명령 호환을 보존한다.
+- 소비 원격·배포·결제·전역 설정/설치와 Claude 인증·실제 모델 검증은 제외·보류한다.
+- 명세·계획 작성, 구현·검증, PR·병합·발행·설치를 각각 구분한다.
 
-- 기존 프로젝트에 개별 스택의 Harness 설정과 버전 검증을 적용한다.
-- React·Nuxt를 추가하고 기존 스택에도 같은 버전 선택 원칙을 적용한다.
-- 공식 설명은 링크로 안내하고, 필요한 제약·실무 판단·문제 해결을 짧게 남긴다.
-- 특정 소비 프로젝트의 도메인·폴더·서버·회사 정책을 공용 기본값으로 넣지 않는다.
-- 앱 생성, 의존성 설치·업그레이드, lockfile 재작성, DB·인프라 변경은 제외한다.
-- 기존 가드·시크릿 검사·필수 CI·브랜치 보호·복구 자료·사용자 파일은 보존한다.
-- 소비 원격·배포·결제·전역 설정·설치와 Claude 인증·실제 모델 검증은 제외한다.
-- 이 단계에서는 명세만 작성한다. PR·병합·발행·설치는 별도 실행 단계다.
+## 개별 스택과 프레임워크
 
-## 개별 스택과 조합
+| 기존 번호·키 | 역할과 선택 |
+|---|---|
+| 1 `node` | Node·TypeScript backend. 기존 frontend 역할은 호환 입력으로만 유지 |
+| 2 `spring` | Spring backend. 주 안내는 API+독립 frontend |
+| 3 `python` | `django`·`fastapi`·`flask` 개별 프로필; 기존 범용 Python 선택은 호환 유지 |
+| 4 `rails` | Rails backend와 기존 앱 안의 UI 방식 선택 |
+| 5 `nextjs` | Next.js frontend, 서버·브라우저 경계를 구분 |
+| 6 `vue` | Vue+Vite frontend |
+| 7 `react` | React+Vite SPA frontend |
+| 8 `nuxt` | Nuxt frontend |
 
-| 번호·키 | 대상과 역할 | 정본 |
-|---|---|---|
-| 1 `node` | 일반 Node·TypeScript, 기존 backend/frontend 역할 유지 | `templates/stacks/node/` |
-| 2 `spring` | Spring, backend | `templates/stacks/spring/` |
-| 3 `python` | Python, backend; 실제 Django·FastAPI 사용 여부 확인 | `templates/stacks/python/` |
-| 4 `rails` | Rails, backend | `templates/stacks/rails/` |
-| 5 `nextjs` | Next.js, frontend | `templates/stacks/nextjs/` |
-| 6 `vue` | Vue+Vite, frontend | `templates/stacks/vue/` |
-| 7 `react` | React+Vite의 SPA, frontend | `templates/stacks/react/` |
-| 8 `nuxt` | Nuxt, frontend | `templates/stacks/nuxt/` |
+기존 1~6의 번호·키를 바꾸지 않고 React·Nuxt를 뒤에 추가한다.
+Node는 런타임이며 독립 frontend 프레임워크처럼 추천하지 않는다. 기존 `1+1` 등은 호환 검사에 남긴다.
+Python 메뉴에서 Django·FastAPI·Flask를 각각 선택하고 공통 Python 설정을 재사용한다.
+프로젝트의 확인 가능한 의존성으로 프레임워크를 판정한다. 여러 개가 설치돼 있으면 명시적 선택을 받는다.
+알 수 없는 프레임워크를 FastAPI로 가정하지 않는다. 기존 범용 Python은 새로운 기본 추천이 아니다.
 
-기존 번호·키·명령을 유지하고 새 두 항목을 뒤에 추가한다. Node 메뉴는 React와 구분해 설명한다.
-백엔드 1~4와 프론트엔드 1·5~8의 20조합을 허용하며, 기존 12조합을 포함한다.
-조합별 복사 템플릿은 만들지 않는다. 개별 자산을 현재 생성기로 조합한다.
-frontend끼리 조합, 같은 디렉터리, 역할·경로 오류는 기존처럼 거부한다.
-React 기본형은 SPA다. SSR·RSC가 필요한 제품은 Next.js 등 프레임워크 선택을 먼저 검토한다.
-[React의 선택 안내](https://react.dev/learn/build-a-react-app-from-scratch)와 [Vite 안내](https://vite.dev/guide/)를 연결한다.
+## 화면 구성과 조합
 
-`templates/stacks.json`은 선택·역할·자산·rule·버전 검사 대상의 단일 카탈로그다.
-CI 원문은 각 스택의 `ci/`, 공통 CI는 `templates/ci/common/`에 둔다.
-TypeScript 공통 rule은 기존 정본을 재사용한다. React 공통 rule은 Next.js도 읽되 SPA 전제를 강제하지 않는다.
-Vue 공통 rule은 Vue·Nuxt가 공유하고 Nuxt의 SSR·서버 경계는 Nuxt rule에 둔다.
-셋업·생성·repo-sync·문서·검사의 직접 reader를 함께 갱신해 경로 복제를 피한다.
-Spring·Vue 로컬 checker의 기존 무옵션·개별·조합 명령은 유지한다.
-React·Nuxt 전용 로컬 checker나 다른 빌드 도구 지원을 이번 범위에 추가하지 않는다.
+| 구성 방식 | 적용 대상과 선택 |
+|---|---|
+| API·frontend 분리 | Node·Spring·FastAPI, API로 사용하는 Django·Flask·Rails + React·Next.js·Vue·Nuxt |
+| 서버에서 화면 생성 | Django Templates, 선택적 HTMX; Flask Jinja; Rails ERB+Hotwire |
+| 서버와 JS 화면 연결 | Rails Inertia+React 또는 Inertia+Vue; Rails 라우팅·세션·컨트롤러를 활용 |
+
+선택값은 Django `templates|htmx|api`, Flask `templates|api`, FastAPI `api`다.
+Rails는 `hotwire|inertia-react|inertia-vue|api`를 받는다. Inertia는 Rails 기본 설치물이 아닌 선택 구성이다.
+Hotwire는 Turbo·Stimulus를 가리킨다. 기존 앱이 이 구성을 쓰는지 확인하고 설치하지 않는다.
+Django의 HTMX·DRF도 선택 사항이다. Templates·API 선택만으로 해당 패키지를 강제로 요구하지 않는다.
+Rails의 Inertia 화면은 같은 Rails 앱 안에 있으므로 `backend/frontend` 폴더 분리를 강제하지 않는다.
+API 분리형만 서로 다른 프로젝트 경로와 각자의 CI job을 조합한다.
+화면 방식의 근거가 부족하거나 여러 방식이 공존하면 명시적 선택을 받고 해당 범위만 검사한다.
+기존 프로젝트를 다른 방식으로 자동 변환하지 않는다. 미설치 UI·충돌하는 선택은 적용 전에 거부한다.
+서버 화면/연결형에 별도 frontend를 자동 덧붙이지 않는다. API 조합 요청은 `api` 선택과 일치해야 한다.
+첫 명세의 20조합은 분리형 선택의 산술 목록이었다. 전체 지원 방식이나 실제 제품 호환의 완료 기준으로 쓰지 않는다.
+기존 12조합 회귀와 새 선택·UI 방식·거부 사례를 각각 검증한다. frontend끼리·같은 경로 조합은 거부한다.
+React+Vite는 SPA다. SSR·RSC가 필요하면 [React 안내](https://react.dev/learn/build-a-react-app-from-scratch)를 따라 프레임워크 선택을 검토한다.
+
+## 정본과 직접 소비자
+
+`templates/stacks.json`을 선택·역할·프로필·자산·rule·버전 검사 대상의 단일 카탈로그로 유지한다.
+스택별 정본은 `templates/stacks/<스택>/`이며 공통 CI는 `templates/ci/common/`에 둔다.
+Python 전문 자산은 `python/frameworks/{django,fastapi,flask}/`, Rails UI는 `rails/ui/<선택>/`에 둔다.
+프레임워크별 차이만 분리하고 Python/Rails의 공통 job·명령·rule을 복제하지 않는다.
+React 공통 rule은 Next.js도 읽고 Vue 공통 rule은 Nuxt도 읽는다. SPA 전제를 SSR에 강제하지 않는다.
+TypeScript 공통 rule은 기존 정본을 재사용한다. 셋업·생성·repo-sync·검사 reader를 함께 이전한다.
+기존 생성물·번호·명령을 유지한다. 현재 지원하는 npm·Gradle·pip·Bundler 밖의 빌드 도구는 추가하지 않는다.
+Spring·Vue local checker의 무옵션·개별·조합 명령을 유지한다. 새 UI local checker는 추가하지 않는다.
 
 ## 버전 선택과 기록
 
-스택 하나에 버전 하나를 붙이지 않는다. 런타임·프레임워크·관련 빌드 도구를 따로 확인한다.
-예: React는 Node·React·react-dom·Vite·사용 중인 React plugin을 함께 본다.
-Nuxt는 Node·Nuxt·Vue와 프로젝트가 실제로 사용하는 module을 본다.
-Spring은 Java·Spring Boot·Gradle wrapper, Python은 Python·사용 중인 프레임워크,
-Rails는 Ruby·Rails를 확인한다. Next.js·Vue·일반 Node도 실제 의존성과 런타임을 확인한다.
+런타임·프레임워크·주요 빌드 도구·실제 UI 의존성을 따로 확인한다.
+React: Node·React/react-dom·Vite·React plugin. Nuxt: Node·Nuxt·Vue·사용 중인 module.
+Python: Python·선택한 Django/FastAPI/Flask. Rails: Ruby·Rails·선택한 Hotwire/Inertia·JS adapter.
+Spring: Java·Spring Boot·Gradle wrapper. Next.js·Vue·일반 Node도 실제 의존성을 확인한다.
 
 | 우선순위 | 선택 규칙 |
 |---|---|
-| 1. 사용자 지정 | 구성요소별 정확한 버전 또는 명시적 `latest`를 받는다. |
-| 2. 기존 프로젝트 | 지정이 없으면 manifest·lockfile·런타임 선언의 확정 버전을 우선 보존한다. |
-| 3. 미지정 기본값 | 확정 버전이 없으면 최신 안정 버전을 제안하고 정확한 버전으로 기록한다. |
+| 사용자 지정 | 구성요소별 정확한 버전 또는 명시적 `latest` |
+| 기존 프로젝트 | 지정이 없으면 manifest·lockfile·런타임 선언의 확정 버전 보존 |
+| 미지정 기본값 | 최신 안정 버전을 제안하고 조회 시점의 정확한 버전으로 기록 |
 
-`latest`는 프로젝트에 영구 저장할 떠 있는 버전이 아니라 조회 시점의 선택 요청이다.
-프리릴리즈·nightly는 기본 선택에서 제외한다. Node 기본 제안은 호환되는 최신 지원 LTS다.
-Node의 `latest`도 지원 LTS 중에서 선택한다. 다른 지원 안정 버전은 정확한 버전으로 지정할 수 있다.
-Java는 선택한 배포판의 지원 LTS와 Spring·Gradle 요구를 확인한다.
-Python·Ruby는 프레임워크가 지원하는 안정 버전을 제안한다. 지원하지 않는 최신 버전은 고르지 않는다.
-기존 범위 선언은 lockfile의 정확한 버전과 대조한다. 범위 문자열을 설치 버전으로 보고하지 않는다.
-최신 버전의 조회 성공으로 기존 앱의 불명확한 버전을 확인했다고 처리하지 않는다.
-선언·lockfile·런타임 파일이 충돌하거나 해석할 수 없으면 추정으로 채우지 않는다.
-요청 버전과 기존 버전이 다르면 차이와 필요한 조치를 보여주고 적용을 중단한다.
-사용자가 기존 정확한 버전을 지정하면 지원·호환 여부를 검사한 뒤 유지할 수 있다.
+`latest`는 영구 저장하는 버전이 아니다. prerelease·nightly는 기본 선택에서 제외한다.
+Node의 기본값과 `latest`는 호환되는 최신 지원 LTS다. 다른 지원 안정 버전은 정확하게 지정할 수 있다.
+Java는 선택한 배포판의 지원 LTS와 Spring·Gradle 조건을 본다. 배포판을 임의 선택하지 않는다.
+Python·Ruby는 프레임워크가 지원하는 안정 버전을 고른다. 지원하지 않는 최신 버전은 선택하지 않는다.
+범위 선언을 설치 버전으로 보고하지 않는다. 조회한 최신 버전으로 기존 앱의 불명확한 버전을 채우지 않는다.
+요청·기존 버전 차이, 선언·lockfile·런타임 충돌은 조치 안내와 함께 적용을 중단한다.
 
-독립 버전 검사 명령은 프로젝트 경로·스택 선택과 구성요소별 버전 요청을 받는다.
-사용자는 런타임과 프레임워크를 각각 지정할 수 있고, 지정하지 않은 항목은 위 우선순위를 따른다.
-정확한 CLI 인수와 결과 파일 이름은 구현 계획에서 기존 명령 형식에 맞춰 확정한다.
-셋업의 버전 요청도 같은 검사에 전달하며 셋업과 단독 검사의 판정이 달라지지 않아야 한다.
-기본 실행은 읽기와 미리보기다. 의존성 설치나 프로젝트 코드를 실행하지 않는다.
-미리보기는 결과를 출력하고 파일을 쓰지 않는다. 기록 저장은 검사를 통과한 명시적 적용에서만 한다.
-기록은 프로젝트 안에 선택·관측 버전, 공식 출처·조회 시각, 입력 파일 지문과 판정을 남긴다.
-비밀정보·전체 의존성 그래프·중복 과거 로그를 저장하지 않는다. 기존 기록을 덮어쓰지 않는다.
-CI는 확정 런타임과 기존 lockfile을 사용하며 매 실행마다 `latest`를 다시 선택하지 않는다.
-기존 CI의 검사 명령·권한·action pin은 유지하고 런타임 지정은 확인한 버전 기록에 맞춘다.
-갱신은 명시적인 재검사에서만 제안하고 의존성을 바꾸지 않는다.
-[Node 지원 정책](https://nodejs.org/en/about/previous-releases)과 [npm ci 계약](https://docs.npmjs.com/cli/v11/commands/npm-ci/)을 연결한다.
+검사 진입점은 `scripts/check-stack-versions.mjs --project <경로> --stack <선택>`이다.
+`--framework`와 `--ui`로 위 선택을 전달하고 `--version <역할.구성요소=버전>`은 반복해서 지정한다.
+역할은 단독 `project`, 분리형 `backend|frontend`다. 예: `frontend.node`, `backend.python`, `project.rails`.
+기본 실행은 읽기·결과 출력이며 파일을 쓰거나 프로젝트 코드를 실행하지 않는다.
+`--apply`는 호환 확인 뒤 `harness-stack.versions.json` 하나를 원자적으로 새로 저장한다. 기존 파일은 덮어쓰지 않는다.
+기록에는 선택·관측/대상 버전·공식 출처/조회 시각·입력 지문·판정을 담고 비밀정보·전체 그래프·중복 과거 로그는 제외한다.
+셋업도 동일 판정자를 적용한다. 충돌/미확인은 파일 생성·브랜치 보호 변경 전에 중단한다.
+CI는 이 기록의 정확한 런타임과 기존 lockfile을 사용한다. 입력이 바뀌면 재검사를 요구한다.
+CI마다 latest를 조회하지 않는다. 갱신은 명시적인 재검사에서만 제안하며 앱 의존성을 수정하지 않는다.
+기존 CI 명령·권한·action pin은 보존하고 런타임 지정은 확인한 기록에 맞춘다.
 
-## 호환성 판정과 적용 중단
+## 판정과 확인 가능한 범위
 
-1. 현재 프로젝트의 버전 선언·정확한 잠금 버전·런타임 지정과 요청을 읽는다.
-2. 공식 릴리즈 정보·해당 버전의 패키지 metadata·공식 지원 조건으로 대상 버전을 확인한다.
-3. runtime 요구와 실제 사용 중인 peer·plugin·module·빌드 도구의 제약을 대조한다.
-4. 모든 필수 정보가 확인되고 충돌이 없을 때만 Harness 설정의 적용 후보를 만든다.
-5. 사용자 파일 보존·경로 검사까지 통과한 뒤에만 기존 셋업의 적용 단계로 넘긴다.
+공식 릴리즈·해당 버전의 metadata·지원 조건으로 runtime·peer·plugin·UI adapter 제약을 대조한다.
+선언 호환, 충돌, 미확인을 구분한다. 충돌/미확인은 nonzero이며 부족한 근거와 사용자 조치를 표시한다.
+선택 의존성은 미사용이면 요구하지 않는다. 사용 중인데 필요한 조건을 확인할 수 없으면 미확인이다.
+오프라인은 정확한 버전과 확인 가능한 공식 근거가 있는 항목만 판정한다. 조회 실패를 PASS로 대체하지 않는다.
+metadata가 없거나 동적 선언·미지원 lock 형식은 미확인이다. 새 장기 캐시·범용 의존성 해결기를 만들지 않는다.
+버전 범위는 npm semver·PyPA packaging·RubyGems 등 생태계의 해석기를 사용한다.
+필요한 검사 도구는 Harness 안의 격리된 tooling으로 준비하며 소비 앱의 의존성이나 전역 설정에 넣지 않는다.
+도구가 없으면 미확인으로 종료한다. 읽기 실행 중 도구를 자동 설치하지 않는다.
+Java·Gradle은 선택한 릴리즈의 공식 지원 구간을 확인하고 추출할 수 없는 조건은 미확인으로 남긴다.
+각 검사에서 본 구성요소와 제외한 범위를 표시한다. 전체 transitive graph·실제 앱의 안전을 보장하지 않는다.
+서로 다른 프로세스의 버전을 같게 맞추지 않는다. 공유 런타임/의존성이 있으면 그 공통 제약을 검사한다.
+API schema·인증·오류·시간 형식·CORS는 별도 [연결 계약](../api-standards.md)과 실제 통합 검사 대상이다.
+선언 호환·앱 빌드/테스트·API 통합을 각각 기록하며 미실행을 통과로 표시하지 않는다.
 
-| 결과 | 의미와 동작 |
+## Spring·Thymeleaf 확인 결과
+
+2026-10-12 확인한 [State of Spring 2024](https://www.vmware.com/docs/vmw-the-state-of-spring)는 응답자1,464명 조사다.
+내부 API 제공80%·외부 API 제공70%를 보고한다. 복수 선택 결과이며 Thymeleaf의 점유율이나 감소율이 아니다.
+[현재 Spring Boot 문서](https://docs.spring.io/spring-boot/reference/web/servlet.html#web.servlet.spring-mvc.template-engines)는 Thymeleaf 자동 설정을 지원한다.
+확인한 자료로 Thymeleaf 사용률의 연도별 감소나 '더 이상 쓰지 않는다'를 확정하지 못했다.
+이 제품의 Spring 주 안내는 API+React·Next.js·Vue·Nuxt로 둔다. 이는 제품 설계 판단이다.
+Thymeleaf는 기존 서버 화면 프로젝트의 선택 사항으로 안내하고 강제 제거·자동 변환하지 않는다.
+이번에 Thymeleaf 전용 profile·CI 생성 기능을 추가하지 않는다.
+
+## 공식 안내·실무 패턴·문제 해결
+
+공식 설명은 실제 major의 주제·migration 링크로 연결한다. 버전별 문서가 없으면 릴리즈 자료와 한계를 표시한다.
+본문은 대상·선택 조건·필수 제약·실무 판단·문제 해결 순서로 짧게 쓴다. 공식 설치법·API를 복사하지 않는다.
+필수 가드·권한·실패 차단·검증 계약은 본문에 남긴다. LLM은 해당 공통 rule→전문 rule→필요한 공식 링크만 읽는다.
+
+| 주제 | 남길 판단과 조건 |
 |---|---|
-| 선언 호환 | 확인한 버전 제약에 충돌이 없음. 검사한 대상·근거를 표시한다. |
-| 충돌 | 요구 버전·실제 버전·공식 조건·사용자 조치를 표시하고 nonzero로 종료한다. |
-| 미확인 | 필수 버전·공식 조건·조회 결과 부족. 이유를 표시하고 nonzero로 종료한다. |
+| frontend | 기능 경계, 서버 데이터/화면 상태, hook/composable 책임·취소·캐시 무효화 |
+| 서버 화면·Inertia | 세션/CSRF, 요청별 상태, HTML escaping, props 공개 범위·폼 오류·navigation |
+| SSR·Nuxt | hydration 진단, 요청별 상태, 서버 비밀/공개 설정, SSR/정적 생성 비용 |
+| backend·운영 | 모듈형 모놀리스·트랜잭션, 필요한 CQRS/outbox/BFF, 멱등성·retry 예산·관측·복구 |
 
-충돌·미확인이면 파일 생성·기존 파일 수정·브랜치 보호 변경보다 먼저 중단한다.
-네트워크 실패를 오래된 추정값이나 PASS로 대체하지 않는다. 새 장기 캐시 계층은 만들지 않는다.
-오프라인에서는 정확한 버전과 확인 가능한 공식 근거가 있는 항목만 판정한다.
-선택 의존성은 사용하지 않으면 요구하지 않는다. module이 설치돼 있으면 그 제약을 검사한다.
-지원 범위를 벗어난 manifest·lockfile 형식은 미확인으로 표시한다. 새 package manager 지원을 암묵적으로 추가하지 않는다.
-생태계의 공식 해석·검사 수단을 우선 사용하고 언어를 가로지르는 자체 의존성 해결기를 만들지 않는다.
+각 패턴은 문제·쓸 조건·피할 조건·비용·단순 대안·검증을 함께 설명하고 최소 설정 예시를 제공한다.
+수치·계층·cloud·라이브러리를 모든 프로젝트에 강제하지 않는다. 회사 사례를 업계 표준으로 단정하지 않는다.
+문제 해결은 증상·영향 버전·재현 조건·진단 순서·해결·재발 검사·근거를 남긴다.
+공식에 있는 해결은 링크하고, 없는 내용은 확인한 복합 조건과 검증을 더한다. 추측을 기본값으로 쓰지 않는다.
+[Django Templates](https://docs.djangoproject.com/en/6.0/topics/templates/)·[django-htmx](https://django-htmx.readthedocs.io/en/latest/),
+[Flask Jinja](https://flask.palletsprojects.com/en/stable/quickstart/#rendering-templates)·[FastAPI 예시](https://fastapi.tiangolo.com/project-generation/),
+[Rails Hotwire](https://guides.rubyonrails.org/v8.1/working_with_javascript_in_rails.html)·[Inertia Rails](https://inertia-rails.dev/guide/client-side-setup)를 연결한다.
 
-정밀한 조건이 필요한 이유: 2026-10-12 확인한 [Nuxt 4.6.1 metadata](https://registry.npmjs.org/nuxt/4.6.1)의
-Node 조건은 `^22.22.3 || ^24.15.0 || >=26.0.0`다. 단순히 Node 22라고 적으면 충돌을 놓친다.
-이 값은 당시 특정 버전의 예시이며 앞으로의 고정 기본값으로 하드코딩하지 않는다.
-[Nuxt 설치 안내](https://nuxt.com/docs/4.x/getting-started/installation)와 정확한 버전의 metadata를 함께 확인한다.
+## 수용 기준·검사와 종료
 
-## 조합이 검증하는 경계
-
-서로 다른 프로세스의 Spring+React 등은 패키지 버전을 서로 같게 맞추지 않는다.
-각 스택의 선언 호환을 먼저 확인하고 API schema·인증·오류·시간 형식·CORS 등 연결 계약을 별도로 다룬다.
-같은 런타임·의존성을 공유하면 공유 제약도 검사한다. 프로세스별 런타임 지정은 독립적으로 유지한다.
-설정 20조합 생성 통과는 실제 제품 20개의 통합 성공을 뜻하지 않는다.
-선언 호환·앱 빌드와 테스트·실제 API 통합 결과를 각각 기록한다. 미실행은 통과로 표시하지 않는다.
-API 계약은 [API 표준](../api-standards.md)을 연결하고 실제 서비스 통합은 해당 프로젝트에서 검증한다.
-
-## 공식 안내와 실무 문서
-
-각 스택 안내는 대상·버전 선택·공식 주제 링크·필수 제약·조건부 실무 패턴·문제 해결 순서로 쓴다.
-공식 설치법·API 설명을 복사하지 않는다. 사용 중인 major의 문서와 필요한 절·migration guide로 연결한다.
-버전별 문서를 제공하지 않는 공식 사이트는 그 한계를 밝히고 릴리즈·migration 자료를 함께 연결한다.
-공식 문서에 이미 있는 문제 해결은 링크한다. Harness가 더하는 내용은 복합 조건·진단 순서·검증 방법이다.
-처음 읽는 사람에게 익숙한 문장을 쓰고 기술 용어는 필요한 곳에서 짧게 설명한다.
-필수 가드·실패 시 중단·권한·검증 계약은 본문에 남긴다. 긴 한 줄이나 링크로 숨기지 않는다.
-LLM의 읽기 경로도 해당 스택·버전의 공통 rule → 전문 rule → 필요한 공식 링크 순서로 한정한다.
-
-| 실무 판단 주제 | 다룰 조건과 비용 |
+| 요구 | 필수 정상·실패·경계 사례 |
 |---|---|
-| frontend 구성·상태 | 기능 단위 경계, 서버 데이터와 화면 상태 구분, custom hook·composable의 책임·취소·캐시 무효화 |
-| Nuxt·SSR | 요청별 상태 격리, hydration 차이 진단, 서버 비밀과 공개 설정 분리, SSR·정적 생성 선택 비용 |
-| backend 경계·일관성 | 모듈형 모놀리스, 트랜잭션 경계, 필요한 경우의 CQRS·outbox·멱등성; 운영 부담과 단순 대안 |
-| API·운영 | 필요한 경우의 BFF, 호환 API 변경, timeout·retry 예산, 관측 지표·담당자·복구 방법 |
+| 프로필/조합 | 기존6개·12조합, 새React/Nuxt, Django/FastAPI/Flask, Rails UI4가지; 잘못된 역할·경로 거부 |
+| 기존 프로젝트 | 다중 framework/UI 선택, 미설치 adapter, Hotwire의 Node 불필요 사례, 선택 의존성 부재 |
+| 버전 | 정확한 사용자 지정·latest·기존 버전, prerelease, runtime/peer 충돌, 선언/lock 상충, 조회 실패 |
+| 안전/재현 | 미리보기 무변경, 적용 전 차단, 기존 파일/링크 보호, 원자적 실패 정리, CI 지문 drift 거부 |
+| 문서 | 정본 발견·major 링크·조건부 패턴/진단, 특정 소비 프로젝트 내용 없음, 소유 Markdown199줄 이하 |
+| 회귀 | Spring/Vue checker, 기존 CI·가드·시크릿·권한·복구, 셋업/생성/repo-sync의 같은 선택·판정 |
 
-각 패턴은 해결할 문제·쓸 조건·피할 조건·비용·더 단순한 대안·검증 방법을 함께 설명한다.
-필요한 설정 예시는 최소 범위로 제공하고 수치·라이브러리·계층을 모든 프로젝트의 기본값으로 고정하지 않는다.
-한 회사의 사례를 업계 표준으로 단정하지 않는다. 공식·프로젝트 유지관리자 자료와 확인된 사례를 구분한다.
-[React hook 안내](https://react.dev/learn/reusing-logic-with-custom-hooks),
-[Nuxt 상태](https://nuxt.com/docs/4.x/getting-started/state-management)·[hydration](https://nuxt.com/docs/4.x/guide/best-practices/hydration),
-[패턴 선택과 trade-off](https://learn.microsoft.com/en-us/azure/architecture/patterns/) 등 원출처를 연결한다.
-특정 cloud·상태 라이브러리·DDD·CQRS·마이크로서비스를 모든 제품의 필수 설정으로 강제하지 않는다.
-문제 해결 항목에는 증상·영향 버전·재현 조건·확인 순서·해결·재발 검사·근거를 남긴다.
-공식에 없다는 이유만으로 검증되지 않은 해결법을 기본값으로 넣지 않는다.
-
-## 영향 문서와 검증 계약
-
-구현 시 `stack-guide`·온보딩·구조 안내·로컬 개발과 스택 rule·문제 해결 문서를 실제 명령에 맞춘다.
-카탈로그·생성기·셋업·repo-sync와 관련 fixture·검사도 함께 바꾼다. 전역 스킬은 수정하지 않는다.
-동작 변경 때 두 plugin manifest·README 배지·changelog의 버전 계약을 맞춘다. 명세 작성만으로 bump하지 않는다.
-
-| 수용 기준 | 정상·거부·경계 사례 |
-|---|---|
-| 개별 자산과 조합 | 8개 스택·20조합 생성, 기존 6개·12조합 보존, 잘못된 역할·경로·링크 거부 |
-| 버전 선택 | 명시 버전·명시 latest·기존 정확한 버전·미지정, stable/prerelease 구분, 구성요소별 지정 |
-| 호환·미확인 차단 | runtime·peer·plugin 충돌, 선택 peer 부재, 상충 선언, 조회 실패·근거 누락·미지원 형식 |
-| 적용·재현성 | 충돌 전후 파일 무변경, 사용자 파일 보존, 정확한 기록, 기존 lockfile 유지, CI의 재선택 방지 |
-| rule·안내 | 공통 rule 재사용, 실제 major의 공식 링크, 조건·비용·대안·검증이 있는 패턴과 문제 해결 |
-| 기존 검사 | Spring·Vue checker 호환, 기존 명령·필수 CI·권한·action pin·가드·시크릿·복구 계약 회귀 |
-
-구현 후 범위 검사와 현재 후보 quality 전체, 다른 실행 인스턴스의 읽기 전용 검토를 수행한다.
-fixture 판정과 실제 앱 실행을 구분하고, 실행하지 않은 소비 앱·원격 CI·설치를 완료로 보고하지 않는다.
-소유 Markdown은 빈 줄 포함 199줄 이하이며 참조·형식·실제 읽기 경로도 확인한다.
-현재 명세의 종료 조건은 위 합의가 문서에 반영되고 문서 검사를 통과하며 검토 가능한 파일로 전달되는 것이다.
-구현 종료 조건은 위 수용 기준 충족과 현재 안내·지도 일치다. 발행·설치를 자동으로 추가하지 않는다.
+구현 시 안내·카탈로그·reader·fixture·검사를 함께 갱신한다. 두 manifest·README·changelog도 동작 변경 때 맞춘다.
+문서만 수정하는 지금은 버전을 바꾸지 않는다. 구현 뒤 범위 검사·quality 전체·독립 읽기 전용 검토를 수행한다.
+실제 소비 앱·원격 CI·호스트 훅·설치는 실행 증거가 없으면 미확인이다. fixture 통과로 대신하지 않는다.
+이번 종료 조건은 명세 보완·계획 작성·문서 일치 검사·검토 가능한 전달이다. 구현 실행은 다음 승인 단계다.
+구현 종료 조건은 위 기준 충족과 현재 안내·지도 일치다. 발행·설치를 자동 추가하지 않는다.
 
 ```harness-doc-sync
 {
   "version": 1,
   "documents": [
-    {"path": "docs/specs/stack-profiles-version-contract.md", "reason": "승인한 설계와 구현 전 범위·검증 계약"}
+    {"path": "docs/specs/stack-profiles-version-contract.md", "reason": "프레임워크·화면 방식과 버전 검증 합의 수정"},
+    {"path": "docs/specs/stack-profiles-implementation-plan.md", "reason": "승인한 명세의 구현 순서·인터페이스·시험"}
   ],
   "items": []
 }
 ```
 
-현재 진행: 설계 대화 승인·명세 작성 완료, 작성 명세 검토 대기. 새 기능 구현과 실행 증거는 아직 없다.
-구현 시 이 선언에 실제로 바뀌는 영향 문서를 추가하며, 작성되지 않은 안내를 현행화 완료로 표시하지 않는다.
+현재 단계는 명세 수정·구현 계획 작성 완료와 실행 전 사용자 검토 대기다.
+계획의 checkbox는 미실행 작업이며 기능 완료 증거가 아니다.
