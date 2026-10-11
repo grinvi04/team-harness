@@ -45,8 +45,8 @@ Codex wrapper·라우터의 이름·17개 일대일 전달과 package 소속을 
 - [x] 기존 문제와 직접 소비자 확인, 격리 worktree fix/skill-contract-consolidation 생성.
 - [x] 통합 구현 및 repo 선언으로 전용 명령 이전.
 - [x] grill-me managed 설치·활성 pair·개별 비활성, fresh discovery 오류0 확인.
-- [ ] 영향 회귀·전체 quality·독립 검토와 문서 현행화.
-- [ ] 검증한 구현을 커밋하고 다음 전달 단계에 인계.
+- [x] 영향 회귀·전체 quality·독립 검토와 문서 현행화.
+- [x] 검증한 구현을 커밋하고 다음 전달 단계에 인계.
 
 중단 기준: 위 수용 기준을 충족한 검증 후보를 전달하면 이번 수정 작업을 종료한다.
 필수 미확인은 이유와 해제 조건을 보고하며 병합·태그·설치·배포 완료로 확대하지 않는다.
@@ -64,3 +64,28 @@ skills/list의 발견 오류0과 UI 경고는 별개다. 스킬 발견을 UI 호
 현재 열린 채팅 재로딩과 인터뷰 실제 실행은 검증하지 않았다. 설치 요청으로 인터뷰를 시작하지 않는다.
 비활성 path가 cache 버전에 결박돼 있으므로 향후 plugin 업데이트 뒤 활성 범위를 다시 확인해야 한다.
 현재 제작자 main1.3.1과 curated 설치1.2.3은 구분하며 cache를 임의 패치하지 않는다.
+
+## 검증 결과와 전달 상태
+
+- 구현 커밋8c1fe32, 변경 이력 커밋cafdadff3b4c8087399981a0c31e282ba2d699fe.
+  이 clean 후보에서 현재 CI quality의 **69개 단계 모두 exit0**이다.
+  로컬 macOS 재현이며 GitHub CI 실행은 아니다. PR 본문은 로컬 event로 전달했다.
+  Ubuntu apt 설치는 기존 rg 확인으로, pipx 설치는 같은 ruff0.15.15 확인으로 대체했다.
+- 새 구조 회귀8개, 대표 계약53개, loop30개, 문서·경로·정리45개가 통과했다.
+  새 구조7개와 필수 독립 보안 검토1개의 수정 전 실패를 확인하고 수정 후 통과했다.
+- 첫 독립 검토의 P2(보안 독립 검토의 조건부 전환)를 복원했다. 별도 read-only 재검토는
+  원본·직접 소비자·reader/package·7개 경계 시나리오에서 구체적 차단 결함을 찾지 못했다.
+  CLI 기록은 Astra/medium/read-only이며 macOS cache 쓰기 거부가 관찰됐다. 모델 identity를 따로 probe하지 않았다.
+  전체 textual diff·write-producing 검사·실제 LLM 준수는 독립 검토의 확인 범위가 아니다.
+- 검토 후 변경한 원문9개의 승인 checksum을 갱신하고 공통 계약·reader2개를 추가했다.
+  guard·hook·agent·기존 runtime의 관련 없는 checksum은 그대로 유지했다.
+- 위 후보의 package check와 검토용 bundle checksum 통과, workflow에 공통 계약 포함 확인.
+  처음 checksum 명령은 잘못된 cwd로 실패했고 생성된 bundle 위치에서 재실행해 통과했다.
+  산출물의 installable:false는 유지하며 독립 split 제품 공개로 보고하지 않는다.
+- 사용자 primary/d1f9의 branch·HEAD·추적 파일과 전역 config의 기존 prefix 바이트를 보존했다.
+- **이번 수정 범위 완료.** 원격 PR·병합·태그·Harness0.87 설치는 미실행이며 실제 설치는0.86.0이다.
+  정식 release-check의 live 외부 증거 확인도 이번 로컬 수정 검증으로 대체하지 않는다.
+
+명령별 종료 코드·로그·검토 원문·설치 발견 결과는 이번 작업 증거의
+work/skills-consolidation/quality-result.json, independent-review-followup.md,
+grill-installation.json, skills-after-disable.json에 보존한다.
