@@ -106,3 +106,10 @@ Claude 인증 갱신·실제 모델 호출도 보류한다. 기본 작업 폴더
   SQL·Alembic·ActiveRecord·Flyway 템플릿과 거부/경계 시험은 quality에 포함했다.
 - main PR·태그·GitHub 발행·Codex/Claude 공식 설치·develop 역병합은 이 체크포인트에서 미실행이다.
 - 사용자 branch·다른 worktree를 보존하고 Claude 인증·실제 모델 검증 및 소비 원격·배포·결제는 제외한다.
+
+## main CI 실패와 수정
+
+PR529 첫 후보7a3e0c3의 독립 문서 검토는 통과했지만, 병합 CI에서 CHANGELOG 재현이 실패했다.
+아키텍처 수정이 main과 develop에 별도 커밋으로 있어 병합 기록에는 같은 제목의 fix가 하나 더 들어간다.
+소유한 release 브랜치에 main을 병합하고 생성 명령으로 실제 기록을 반영했다.
+기능·가드·템플릿 tree는 그대로이며, 수정 후보의 독립 검토·필수 CI를 다시 확인한 뒤 발행한다.
