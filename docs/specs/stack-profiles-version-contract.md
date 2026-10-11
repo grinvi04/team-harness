@@ -164,16 +164,16 @@ Thymeleaf는 기존 서버 화면 프로젝트의 선택 사항으로 안내하�
 | 회귀 | Spring Boot/Vue checker, 기존 CI·가드·시크릿·권한·복구, 셋업/생성/repo-sync의 같은 선택·판정 |
 
 구현 시 안내·카탈로그·reader·fixture·검사를 함께 갱신한다. 두 manifest·README·changelog도 동작 변경 때 맞춘다.
-소스 후보는0.91.0이며 Task1~6의 구현과 범위 검사를 수행했다. 전체 quality와 독립 검토는 Task6에서 확인한다.
+Team Harness 소스 후보0.91.0의 승인한 Task1~6 구현·로컬 검증을 완료했다. 발행·설치 완료는 아니다.
 첫 quality 후보5acc8be는60/73, 수정 후보0b71c48은73/73 통과였다. 독립 검토는 네 Important 지적으로 FAIL이었다.
-Python marker·Nuxt module·Hotwire pin·npm lock 경계를 수정했다. 새 회귀7개와 핵심/셋업74개 통과; 수정 후보 전체 quality 재검사 중이다.
+Python marker·Nuxt module·Hotwire pin·npm lock 경계를 한 차례 수정했다. 새 회귀7개·핵심/셋업74개·c1e8381 전체 quality73단계 통과다.
 실제 소비 앱·원격 CI·호스트 훅·설치는 실행 증거가 없으면 미확인이다. fixture 통과로 대신하지 않는다.
-명세·계획 작성은 완료했다. 현재는 승인한 구현과 필수 검증·독립 검토·현재 안내/지도 일치까지 수행한다.
+현재 안내·체크리스트·지도를 결과에 맞춰 갱신했다. 독립 검토의 원래 FAIL과 최초 실패·재시험은 별도 보존한다.
 구현 종료 조건은 위 기준 충족과 현재 안내·지도 일치다. 발행·설치를 자동 추가하지 않는다.
 
 ```harness-doc-sync
 {"version":1,"record":"docs/specs/stack-profiles-document-sync.md"}
 ```
 
-현재 단계는 승인한 Native 구현 진행이다. Spring Boot 정식 이름 통일도 이번 범위에 포함한다.
-계획의 완료 표시는 단계별 실행·커밋에 대응한다. 전체 기능 완료는 Task6의 quality·독립 검토 후 판정한다.
+현재 단계는 승인한 로컬 구현·검증 완료다. Spring Boot 정식 이름 통일도 이번 범위에 포함했다.
+계획의 완료 표시는 단계별 실행·커밋에 대응한다. 실제 앱 호환·원격 상태·설치 완료로 확대하지 않는다.

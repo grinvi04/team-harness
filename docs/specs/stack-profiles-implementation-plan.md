@@ -165,15 +165,17 @@ React 상태·서버 경계, Nuxt hydration/요청 상태, Django/Flask escaping
 CQRS/outbox/BFF는 필요 조건이 있는 선택이다. 특정 소비자·고정 운영 수치·DB 제품을 강제하지 않는다.
 Spring Boot API 중심 안내와 Thymeleaf 지원/추세 한계를 유지한다. 공식 출처·199줄·필수 계약은 내용 검토로도 확인한다.
 Task1에서 올린 소스 후보0.91.0과 두 manifest·README를 대조한다. 커밋 후 changelog 생성/검사를 수행한다; 태그/발행은 하지 않는다.
-- [ ] 해당 시험·Markdown/참조 검사·`git diff --check` PASS 후, `.github/workflows/ci-gate.yml` quality의 현재 모든 명령을 그대로 실행한다.
+- [x] 해당 시험·Markdown/참조 검사·`git diff --check` PASS 후, `.github/workflows/ci-gate.yml` quality의 현재 모든 명령을 그대로 실행한다.
 각 명령·후보·최초 실패/수정·재시도·미실행을 보존한다. 테스트 fixture와 실제 앱/원격 CI/설치 증거는 구분한다.
 macOS 로컬 준비는 기존 rg·격리 ruff0.15.15·Python3.11을 사용한다. 실제 검사 명령은 CI와 같으며 remote CI 실행으로 보고하지 않는다.
 - [x] 커밋 `feat(stack): 공식 안내와 조건부 실무 기준 연결`; `node scripts/generate-changelog.mjs --release v0.91.0 --write` 후 별도 기록 커밋/`--check`.
-- [ ] 구현자와 다른 읽기 전용 인스턴스가 명세·현재 고정 후보·정상/거부 경계·harness-doc-sync 대상 누락을 검토한다. 필수 FAIL/미확인이면 종료 금지.
-- [ ] 실제 결과로 스펙·체크리스트·지도 갱신, 변경 범위·잔여 제약을 전달한다. 구현 수용 기준 충족 후 종료하며 delivery를 자동 추가하지 않는다.
+- [x] 구현자와 다른 읽기 전용 인스턴스가 명세·현재 고정 후보·정상/거부 경계·harness-doc-sync 대상 누락을 검토한다. 필수 FAIL/미확인이면 종료 금지.
+0b71c48의 독립 검토는 네 Important로 FAIL이었다. 구현자가 한 차례 수정했고 회귀7개 RED→GREEN, 핵심/셋업74개와 c1e8381 전체 quality73단계가 통과했다. 재검토 PASS로 바꿔 보고하지 않는다.
+- [x] 실제 결과로 스펙·체크리스트·지도 갱신, 변경 범위·잔여 제약을 전달한다. 구현 수용 기준 충족 후 종료하며 delivery를 자동 추가하지 않는다.
 
 ## 이번 계획의 자체 검토와 전달
 
 명세 요구→Task1~6, Review Focus→해당 시험, 인터페이스·단계 순서·legacy 호환·scope를 대조했다.
-현재는 사용자 승인에 따른 Native 구현 단계다. 각 시험·tooling 준비·동작 변경은 실행 증거로 확인한다.
-같은 구현자가6작업을 순서대로 수행하고 마지막에 독립 검토한다. 실제 앱/원격 CI/설치는 미확인 범위로 구분한다.
+승인한 Native6작업의 구현·로컬 검증을 완료했다. 품질 후보c1e8381의 파일1020개와 원문73개 로그 지문도 확인했다.
+이후 변경은 두 명세의 상태 안내뿐이며 형식·참조·선언 검사를 별도 확인한다. 원래 실패와 검토 결과는 보존한다.
+실제 앱/원격 CI/설치는 미확인이다. 작업 브랜치와 기본 develop·사용자 자료를 보존하며 PR·발행·설치를 추가하지 않는다.
