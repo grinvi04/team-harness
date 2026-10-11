@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {cpSync,mkdirSync,mkdtempSync,readFileSync,rmSync,writeFileSync,symlinkSync,existsSync} from 'node:fs';
+import {join,resolve} from 'node:path';
+import {spawnSync} from 'node:child_process';
+import {seedProject} from './fixtures/stack-profiles/seed-project.mjs';
+import {tmpdir} from 'node:os';
+import {selectStack} from '../scripts/stack-catalog.mjs';
+import {prepareStackSetup,applyStackSetup} from '../scripts/stack-versions/setup.mjs';
+const fixtures=resolve('tests/fixtures/stack-profiles');
+function fixture(t){const root=mkdtempSync(join(tmpdir(),'stack-setup-'));cpSync(join(fixtures,'react'),root,{recursive:true});const pkg=JSON.parse(readFileSync(join(root,'package.json'),'utf8'));pkg.scripts={...pkg.scripts,lint:'fixture-lint',typecheck:'fixture-types', 'test:unit':'fixture-test',build:'fixture-build'};writeFileSync(join(root,'package.json'),JSON.stringify(pkg));t.after(()=>rmSync(root,{recursive:true,force:true}));return root;}
+const lookup=async(component,request)=>({version:request,requirements:[],source:'https://registry.npmjs.org/fixture/'+request,checkedAt:'2026-10-12T00:00:00Z'});
+const prepared=root=>prepareStackSetup({projectRoot:root,selected:selectStack('7'),lookup});
+test('setup preflight is read-only, then applies record and allows exact CI reuse',async t=>{const root=fixture(t),p=await prepared(root);assert.equal(p.result.status,'compatible');assert.ok(!existsSync(join(root,'harness-stack.versions.json')));applyStackSetup(root,p);mkdirSync(join(root,'.github/workflows'),{recursive:true});writeFileSync(join(root,'.github/workflows/ci-gate.yml'),p.workflow);const before=readFileSync(join(root,'harness-stack.versions.json'),'utf8');applyStackSetup(root,await prepared(root));assert.equal(readFileSync(join(root,'harness-stack.versions.json'),'utf8'),before);});
+test('custom CI and missing required commands stop before record or file effects',async t=>{const root=fixture(t);mkdirSync(join(root,'.github/workflows'),{recursive:true});writeFileSync(join(root,'.github/workflows/ci-gate.yml'),'USER CI');await assert.rejects(prepared(root),/CI/);assert.ok(!existsSync(join(root,'harness-stack.versions.json')));rmSync(join(root,'.github'),{recursive:true});const pkg=JSON.parse(readFileSync(join(root,'package.json'),'utf8'));delete pkg.scripts['test:unit'];writeFileSync(join(root,'package.json'),JSON.stringify(pkg));await assert.rejects(prepared(root),/command/);});
+test('metadata failure, conflict and changed input cannot apply',async t=>{const root=fixture(t);await assert.rejects(prepareStackSetup({projectRoot:root,selected:selectStack('7'),lookup:async()=>{throw Error('network');}}),/unverified/);await assert.rejects(prepareStackSetup({projectRoot:root,selected:selectStack('7'),lookup,requests:{'project.react':'19.3.0'}}),/conflict/);const p=await prepared(root);writeFileSync(join(root,'.node-version'),'22.22.3');assert.throws(()=>applyStackSetup(root,p),/drift/);assert.ok(!existsSync(join(root,'harness-stack.versions.json')));});
+test('symlink destinations and preserved incompatible checker stop before effects',async t=>{const root=fixture(t),outside=mkdtempSync(join(tmpdir(),'kept-'));t.after(()=>rmSync(outside,{recursive:true,force:true}));symlinkSync(outside,join(root,'.github'));await assert.rejects(prepared(root),/destination/);assert.ok(!existsSync(join(root,'harness-stack.versions.json')));rmSync(join(root,'.github'));mkdirSync(join(root,'scripts'));writeFileSync(join(root,'scripts/check-stack-record.mjs'),'USER CHECKER');await assert.rejects(prepared(root),/checker/);});
+test('existing invalid record is preserved and never replaced',async t=>{const root=fixture(t);writeFileSync(join(root,'harness-stack.versions.json'),'USER RECORD');await assert.rejects(prepared(root),/record/);assert.equal(readFileSync(join(root,'harness-stack.versions.json'),'utf8'),'USER RECORD');});
+
+function shellFixture(t,id,framework='',ui='') {
+ const root=mkdtempSync(join(tmpdir(),'setup-shell-'));t.after(()=>rmSync(root,{recursive:true,force:true}));seedProject(root,id,'api','web',framework,ui);
+ const git=(...args)=>{const r=spawnSync('git',['-C',root,...args],{encoding:'utf8'});assert.equal(r.status,0,r.stderr);};git('init','-q');git('-c','user.name=test','-c','user.email=test@example.com','-c','core.hooksPath=/dev/null','commit','--allow-empty','-qm','docs: 초기 기준 추가');git('branch','-M','main');git('branch','develop');git('remote','add','origin',root);
+ const bin=join(root,'fake-bin');mkdirSync(bin);writeFileSync(join(bin,'gh'),'#!/bin/sh\nif [ "$1" = repo ]; then echo acme/test; else echo "$*" >> "$SETUP_GH_LOG"; echo true; fi\n',{mode:0o755});
+ const env={...process.env,PATH:bin+':'+process.env.PATH,NODE_OPTIONS:'--import='+join(fixtures,'metadata-fetch.mjs'),SETUP_GH_LOG:join(root,'gh-log')};
+ const input=[id,...(id==='3'?[framework,ui]:id==='4'?[ui]:[]),''].join('\n')+'\n';
+ return {root,run:(override={})=>spawnSync('bash',[resolve('scripts/new-repo.sh')],{cwd:root,input,env:{...env,...override},encoding:'utf8'})};
+}
+test('actual setup handles React/Nuxt, each Python framework and Rails UI without app execution',t=>{
+ for(const [id,framework,ui] of [['7','',''],['8','',''],['3','django','templates'],['3','fastapi','api'],['3','flask','api'],['4','','hotwire'],['4','','inertia-react'],['4','','inertia-vue'],['4','','api']]){const f=shellFixture(t,id,framework,ui),r=f.run();assert.equal(r.status,0,r.stdout+r.stderr);const record=JSON.parse(readFileSync(join(f.root,'harness-stack.versions.json'),'utf8'));assert.equal(record.selection.projects[0].framework,framework||null);assert.equal(record.selection.projects[0].ui,ui||null);assert.ok(!existsSync(join(f.root,'APP_EXECUTED')));assert.ok(!readFileSync(join(f.root,'gh-log'),'utf8').includes('-X PUT'));}
+});
+test('actual setup lookup failure and unsafe destination make no copies, hook config or remote protection calls',t=>{
+ for(const unsafe of [false,true]){const f=shellFixture(t,'7');if(unsafe)symlinkSync('missing',join(f.root,'.github'));const r=f.run(unsafe?{}:{STACK_FIXTURE_METADATA_FAILURE:'1'});assert.equal(r.status,1,r.stdout);assert.ok(!existsSync(join(f.root,'harness-stack.versions.json')));assert.ok(!existsSync(join(f.root,'AGENTS.md')));assert.ok(!existsSync(join(f.root,'gh-log')));const config=spawnSync('git',['-C',f.root,'config','--get','core.hooksPath'],{encoding:'utf8'});assert.equal(config.status,1);}
+});

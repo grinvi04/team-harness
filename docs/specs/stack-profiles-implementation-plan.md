@@ -136,21 +136,21 @@ assert.equal(checkStackRecord(changedProject, savedRecord).valid, false);
 **Files:** 수정 `scripts/new-repo.sh`, `plugins/harness-guard/scripts/check-repo-sync.mjs`, `tests/{new-repo,repo-sync}-test.sh`.
 **Interfaces:** 셋업은 Selection→Inspection→VersionResult→renderSelectedWorkflow 순서로 호출한다. 실패 판정은 복사/protection 전에 종료한다.
 repo-sync의 실제 구현은 plugin 안에 있다. 루트 `scripts/check-repo-sync.mjs`는 호환 wrapper로 유지한다.
-- [ ] `setup_profile_and_prewrite_refusal`·`sync_profile_and_drift` 시험을 기존 shell 시험에 추가한다.
+- [x] `setup_profile_and_prewrite_refusal`·`sync_profile_and_drift` 시험을 기존 shell 시험에 추가한다.
 ```js
 assert.equal(rejectedSetup.ghWrites, 0); assert.deepEqual(rejectedSetup.filesAfter, rejectedSetup.filesBefore);
-assert.ok(syncNuxt.rules.includes('vue')); assert.ok(syncDjango.rules.includes('django'));
+assert.ok(syncNuxt.rules.includes('vue')); assert.ok(syncDjango.rules.includes('python')); // Django guidance shares this canonical rule
 assert.equal(syncVersionDrift.versionStatus, 'unverified');
 ```
 프레임워크 선택·Hotwire/Inertia 같은 앱 처리·사용자 CI 보존·metadata timeout·루트 wrapper와 저장소 없는 plugin fixture의 동일 결과를 함께 검증한다.
-- [ ] `bash tests/new-repo-test.sh`, `bash tests/repo-sync-test.sh`: 새 필드/검사 부재로 RED; 기존 사례 보존.
-- [ ] 대화형 profile/UI/버전 입력을 연결한다. 버전 판정·기록 새 저장 가능성·CI 보존 충돌을 실제 쓰기 전에 확인한다.
+- [x] `bash tests/new-repo-test.sh`, `bash tests/repo-sync-test.sh`: 새 필드/검사 부재로 RED; 기존 사례 보존.
+- [x] 대화형 profile/UI/버전 입력을 연결한다. 버전 판정·기록 새 저장 가능성·CI 보존 충돌을 실제 쓰기 전에 확인한다.
 원자적 기록을 저장한 뒤 파일을 배치한다. 보존한 사용자 CI가 기록을 소비하지 않으면 적용 완료로 보고하거나 원격 보호를 변경하지 않는다.
 기존 명령·번호는 그대로 받되 셋업은 같은 버전 gate를 거친다. 범용 Python의 검사 범위도 표시하며 미확인은 쓰기 전에 nonzero다.
 rule 배치·repo-sync 탐지도 카탈로그와 plugin 안의 inspector/record checker를 재사용한다.
 설치된 plugin에 저장소 루트가 없어도 같은 디렉터리 정본을 읽는다. 카탈로그/기록 부재는 기존 탐지와 버전 미확인을 구분한다. 실제 소비 remote/gh mutation 시험은 하지 않는다.
-- [ ] 두 shell 시험·`node --test tests/local-setup-test.mjs`: PASS; 기존 Spring Boot/Vue·12조합과 거부 전 무변경 확인.
-- [ ] 커밋 `feat(stack): 셋업과 드리프트 검사에 프로필 연결`.
+- [x] 두 shell 시험·`node --test tests/local-setup-test.mjs`: PASS; 기존 Spring Boot/Vue·12조합과 거부 전 무변경 확인.
+- [x] 커밋 `feat(stack): 셋업과 드리프트 검사에 프로필 연결`.
 
 ### Task 6: 공식 링크·실무 안내·동작 버전과 최종 검증
 

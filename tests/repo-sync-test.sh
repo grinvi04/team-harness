@@ -376,5 +376,6 @@ else
 fi
 
 echo ""
+if node --test "$ROOT/tests/stack-sync-test.mjs"; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]
