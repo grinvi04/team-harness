@@ -52,6 +52,8 @@ node scripts/generate-stack-templates.mjs --compose 2+6 --backend-dir apps/api -
 ```
 
 이 명령은 YAML을 표준 출력으로 보낸다. 개별 템플릿과 CI 검사 이름은 바뀌지 않는다.
+Spring 보조 설정은 선택한 백엔드에, Prettier·디자인 토큰 검사기는 선택한 프론트엔드에 복사한다.
+Python 조합의 `alembic-heads`도 같은 백엔드 경로에서 실행한다. 기존 보조 파일·workflow는 덮어쓰지 않는다.
 이전 메뉴의 NestJS 풀스택2번은 `1+1`, Spring 풀스택4번은 `2+1`로 선택한다.
 Python·Rails·Next.js·Vue의 새 번호는 각각3·4·5·6이다. 기존 프로젝트의 CI를 자동 교체하지 않는다.
 이 선택이 앱이나 패키지 설정을 생성하지는 않는다. 이미 사용하는 검사 명령에 맞춰 소비 CI를 조정한다.

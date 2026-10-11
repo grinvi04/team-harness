@@ -164,6 +164,27 @@ if len(parts) == 2:
     assert '\n  backend:\n' in workflow and '\n  frontend:\n' in workflow
     assert 'working-directory: apps/api' in workflow and 'working-directory: apps/web' in workflow
     assert 'cache-dependency-path: apps/web/package-lock.json' in workflow
+    assert (target / 'apps/web/.prettierrc').read_bytes() == Path(os.environ['ROOT'] + '/templates/.prettierrc').read_bytes()
+    assert (target / 'apps/web/scripts/check-design-tokens.mjs').read_bytes() == Path(os.environ['ROOT'] + '/templates/frontend/check-design-tokens.mjs').read_bytes()
+    if parts[0] == 2:
+        assert (target / 'apps/api/.gitignore').read_bytes() == Path(os.environ['ROOT'] + '/templates/backend-gitignore.spring').read_bytes()
+        assert (target / 'apps/api/config/checkstyle/checkstyle.xml').read_bytes() == Path(os.environ['ROOT'] + '/templates/checkstyle.xml').read_bytes()
+    if parts[0] == 3:
+        import subprocess
+        config = target / 'apps/api/alembic.ini'
+        config.parent.mkdir(parents=True, exist_ok=True)
+        config.touch()
+        gate = target / '.github/workflows/alembic-heads.yml'
+        parsed = json.loads(subprocess.check_output(['ruby', '-ryaml', '-rjson', '-e', 'puts JSON.generate(YAML.safe_load(File.read(ARGV[0])))', str(gate)], text=True))
+        job = parsed['jobs']['alembic-heads']
+        directory = job.get('defaults', {}).get('run', {}).get('working-directory', '.')
+        fake = target / 'fake-alembic-bin'; fake.mkdir()
+        for name, body in {'pip': '#!/bin/sh\nexit 0\n', 'alembic': '#!/bin/sh\nprintf "first (head)\\nsecond (head)\\n"\n'}.items():
+            tool = fake / name; tool.write_text(body); tool.chmod(0o755)
+        step = next(s['run'] for s in job['steps'] if 'run' in s)
+        result = subprocess.run(['bash', '-eo', 'pipefail', '-c', step], cwd=target / directory,
+                                env={**os.environ, 'PATH': str(fake) + ':' + os.environ['PATH']}, capture_output=True, text=True)
+        assert result.returncode == 1 and 'head=2' in result.stdout, result.stdout
 else:
     template = ['node', 'spring', 'python', 'rails', 'nextjs', 'vue'][parts[0] - 1]
     assert workflow == Path(os.environ['ROOT'] + '/templates/ci/stacks/ci-gate-' + template + '.yml').read_text()
@@ -194,6 +215,11 @@ done
 target="$TMP/preserve"
 git clone -q "$TMP/source" "$target"
 mkdir -p "$target/.github/workflows" "$target/.claude/rules"
+mkdir -p "$target/backend/config/checkstyle" "$target/frontend/scripts"
+printf 'backend ignore sentinel\n' > "$target/backend/.gitignore"
+printf 'checkstyle sentinel\n' > "$target/backend/config/checkstyle/checkstyle.xml"
+printf 'formatter sentinel\n' > "$target/frontend/.prettierrc"
+printf 'design gate sentinel\n' > "$target/frontend/scripts/check-design-tokens.mjs"
 printf 'product CI sentinel\n' > "$target/.github/workflows/ci-gate.yml"
 printf '{"permissions":{"allow":["product-only"],"deny":["deny-sentinel"]}}\n' > "$target/.claude/settings.json"
 printf 'product rule sentinel\n' > "$target/.claude/rules/vue.md"
@@ -203,6 +229,10 @@ export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-prote
 if (cd "$target" && printf '2+6\nbackend\nfrontend\n' | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
   && cmp -s "$target/.claude/settings.json" "$TMP/preserved-settings" \
   && [ "$(cat "$target/.github/workflows/ci-gate.yml")" = 'product CI sentinel' ] \
+  && [ "$(cat "$target/backend/.gitignore")" = 'backend ignore sentinel' ] \
+  && [ "$(cat "$target/backend/config/checkstyle/checkstyle.xml")" = 'checkstyle sentinel' ] \
+  && [ "$(cat "$target/frontend/.prettierrc")" = 'formatter sentinel' ] \
+  && [ "$(cat "$target/frontend/scripts/check-design-tokens.mjs")" = 'design gate sentinel' ] \
   && [ "$(cat "$target/.claude/rules/vue.md")" = 'product rule sentinel' ]; then
   echo 'PASS: existing CI/settings/rules remain byte-identical'; PASS=$((PASS+1))
 else

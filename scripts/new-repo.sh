@@ -74,6 +74,19 @@ if [ "$(selection_value database.tool)" = alembic ]; then
   HAS_ALEMBIC=true
 fi
 
+# Alembic runs in the selected backend too; render before copying any files.
+if [ "$HAS_ALEMBIC" = true ] && [ "$(selection_value mode)" = composed ]; then
+  ALEMBIC_WORKFLOW=$(node - "$HARNESS_DIR/templates/ci/alembic-heads.yml" "$BACKEND_DIR" <<'NODE'
+const fs = require('node:fs');
+const source = fs.readFileSync(process.argv[2], 'utf8');
+const anchor = '    runs-on: ubuntu-latest\n';
+if (source.split(anchor).length !== 2) throw new Error('Unsupported Alembic job shape');
+process.stdout.write(source.replace(anchor,
+  anchor + '    defaults:\n      run:\n        working-directory: ' + JSON.stringify(process.argv[3]) + '\n'));
+NODE
+  )
+fi
+
 STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
 echo ""
 echo "선택: $(selection_value label)"
@@ -131,7 +144,12 @@ fi
 
 # Alembic 스택 — 다중 head 차단 게이트 워크플로(자기-스킵 — alembic.ini 없으면 통과)
 if [[ "$HAS_ALEMBIC" == true ]]; then
-  copy_once "$HARNESS_DIR/templates/ci/alembic-heads.yml" .github/workflows/alembic-heads.yml "alembic-heads.yml (다중 head 차단 게이트)"
+  if [ "$(selection_value mode)" = composed ] && [ ! -f .github/workflows/alembic-heads.yml ]; then
+    printf '%s\n' "$ALEMBIC_WORKFLOW" > .github/workflows/alembic-heads.yml
+    echo "  ✅  alembic-heads.yml (선택한 백엔드의 다중 head 차단)"
+  else
+    copy_once "$HARNESS_DIR/templates/ci/alembic-heads.yml" .github/workflows/alembic-heads.yml "alembic-heads.yml (다중 head 차단 게이트)"
+  fi
 fi
 
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
@@ -170,23 +188,24 @@ else
 fi
 
 # Spring 스택 전용 추가 파일
-if [[ "$STACK_TEMPLATE" == *spring* ]]; then
-  mkdir -p backend/config/checkstyle
-  copy_once "$HARNESS_DIR/templates/backend-gitignore.spring" "backend/.gitignore" \
-    "backend/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
-  copy_once "$HARNESS_DIR/templates/checkstyle.xml" "backend/config/checkstyle/checkstyle.xml" \
-    "backend/config/checkstyle/checkstyle.xml"
+if [ "$(selection_value backend.preset)" = spring ]; then
+  SPRING_DIR="${BACKEND_DIR:-backend}"
+  mkdir -p "$SPRING_DIR/config/checkstyle"
+  copy_once "$HARNESS_DIR/templates/backend-gitignore.spring" "$SPRING_DIR/.gitignore" \
+    "$SPRING_DIR/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
+  copy_once "$HARNESS_DIR/templates/checkstyle.xml" "$SPRING_DIR/config/checkstyle/checkstyle.xml" \
+    "$SPRING_DIR/config/checkstyle/checkstyle.xml"
 fi
 
 # 프론트엔드 분리 스택 전용 — Prettier 포맷 게이트 + 디자인 토큰 게이트 스크립트
 # (ci-gate frontend 잡의 `npm run lint:design`가 이 스크립트를 실행. package.json scripts에
 #  `"lint:design": "node scripts/check-design-tokens.mjs"` 추가는 수동.)
-if [[ "$STACK_TEMPLATE" == *frontend* ]]; then
-  mkdir -p frontend/scripts
-  copy_once "$HARNESS_DIR/templates/.prettierrc" "frontend/.prettierrc" \
-    "frontend/.prettierrc" "Prettier 포맷 게이트 — prettier --check를 CI에"
-  copy_once "$HARNESS_DIR/templates/frontend/check-design-tokens.mjs" "frontend/scripts/check-design-tokens.mjs" \
-    "frontend/scripts/check-design-tokens.mjs" "⚠️ package.json scripts에 lint:design 추가 필요"
+if [ "$(selection_value mode)" = composed ]; then
+  mkdir -p "$FRONTEND_DIR/scripts"
+  copy_once "$HARNESS_DIR/templates/.prettierrc" "$FRONTEND_DIR/.prettierrc" \
+    "$FRONTEND_DIR/.prettierrc" "Prettier 포맷 게이트 — prettier --check를 CI에"
+  copy_once "$HARNESS_DIR/templates/frontend/check-design-tokens.mjs" "$FRONTEND_DIR/scripts/check-design-tokens.mjs" \
+    "$FRONTEND_DIR/scripts/check-design-tokens.mjs" "⚠️ package.json scripts에 lint:design 추가 필요"
 fi
 
 echo ""
