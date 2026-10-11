@@ -10,7 +10,8 @@ Harness 정책·검증·복구를 유지하며 release/release-check의 확인�
 - **소유:** spec 진입, 테스트 무결성, 현재 후보 증거, PR·CI·승인·태그·역병합·복구.
 - grill-me는 Codex managed plugin으로 전환한다. 동일한 openai-curated-remote 공급 경로를 사용한다.
   Matt Pocock 묶음 1.2.3의 grill-me/grilling만 활성화하고 나머지 33개 신규 스킬은 비활성화한다.
-  기존 개별 설치는 삭제하지 않고 비활성화해 복구 가능하게 보존한다.
+  최초 수정 단계에서는 개별 설치를 비활성 보존했다. 이후 사용자의 명시적 삭제 요청으로
+  해당 폴더와 불필요한 설정 한 항목을 삭제했다. 최신 전달 결과는 아래 기록을 따른다.
 - 소비 프로젝트 원격·배포·결제와 Claude 인증·실제 모델 검증은 제외한다.
   이번 수정의 병합·발행·Harness 설치는 구현·검증 완료와 별도 단계다.
 
@@ -89,3 +90,8 @@ skills/list의 발견 오류0과 UI 경고는 별개다. 스킬 발견을 UI 호
 명령별 종료 코드·로그·검토 원문·설치 발견 결과는 이번 작업 증거의
 work/skills-consolidation/quality-result.json, independent-review-followup.md,
 grill-installation.json, skills-after-disable.json에 보존한다.
+
+## 후속 전달 승인
+
+2026-10-11 사용자가 누락 재확인·0.87.0 병합·발행·설치와 개별 grill-me 삭제를 승인했다.
+[0.87.0 전달 기록](harness087-delivery.md)이 새 범위의 정본이다. 위 구현 검사·미실행 기록은 당시 사실로 보존한다.
