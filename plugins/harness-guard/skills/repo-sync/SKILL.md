@@ -37,7 +37,9 @@ argument-hint: "\"[repo 경로 ...]\" (생략 시 현재 작업 repo)"
 
 - 대상별 한 줄 요약: 스택·OK/WEAK/WARN/MISSING 카운트 + 보호 검사 결과·UNVERIFIED 여부·실행 명령/종료 코드.
 - **MISSING이 있으면**: 어떤 자산이 빠졌는지 나열하고, team-harness `templates/`의 해당 자산에서 **백필 PR을 제안**한다(자동 백필하지 않는다 — 사용자 승인 후 각 repo에 PR).
-  - 자산 ↔ 표준 위치 매핑(주요): test-guard·commitlint·secret-scan·ci-gate → `templates/ci/*.yml`, migration-safety → `templates/ci/migration-safety.yml` + `scripts/check-migration-safety.mjs`, 스택 룰 → `templates/rules/stacks/<스택>.md`.
+  - 공통 CI는 `templates/ci/`, 완성 스택 CI는 `templates/ci/stacks/`에서 찾는다.
+  - migration-safety는 `templates/ci/migration-safety.yml`과 `scripts/check-migration-safety.mjs`다.
+  - 스택 rule의 정본은 `templates/stacks.json`의 `ruleSources` 경로를 따른다.
 - MISSING 0이어도 WEAK/WARN 카운트와 자산명, UNVERIFIED와 확인하지 못한 항목을 생략하지 않는다.
 - WEAK(sentinel 없음)/WARN(룰 없음)은 수동 확인이 필요한 약한 신호다. exit 0을 모든 검사의 PASS로 바꾸지 않는다.
 - 정적 검사에서 MISSING/WEAK/WARN 모두 0이면 **검사한 정적 자산 범위에서 불일치 미검출**로 보고한다.

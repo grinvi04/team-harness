@@ -43,10 +43,19 @@ function readTemplate(name) { return readFileSync(join(fixture, 'templates/ci/st
 function snapshot() { return Object.fromEntries(Object.keys(originalHashes).map(name => [name, readTemplate(name)])); }
 function protectedJobs(text) { return text.split('jobs:\n')[1].split('  secret-scan:\n')[0]; }
 try {
+  cpSync(join(root, 'templates'), join(fixture, 'templates'), { recursive: true });
   cpSync(join(root, 'templates/ci/stacks'), join(fixture, 'templates/ci/stacks'), { recursive: true });
   cpSync(join(root, 'templates/stacks.json'), join(fixture, 'templates/stacks.json'));
   cpSync(join(root, 'scripts/stack-catalog.mjs'), join(fixture, 'scripts/stack-catalog.mjs'));
   cpSync(join(root, 'scripts/generate-stack-templates.mjs'), join(fixture, 'scripts/generate-stack-templates.mjs'));
+  const initialCatalog = JSON.parse(readFileSync(join(fixture, 'templates/stacks.json'), 'utf8'));
+  for (const stack of initialCatalog.stacks) {
+    assert.equal(stack.sources.header, `templates/stacks/${stack.key}/ci/header.yml`);
+    assert.deepEqual(stack.sources.jobs, [`templates/stacks/${stack.key}/ci/quality.yml`]);
+    for (const rule of stack.rules) assert.ok(readFileSync(join(fixture, initialCatalog.ruleSources[rule]), 'utf8'));
+  }
+  assert.equal(initialCatalog.commonSources.workflow, 'templates/ci/common/workflow.yml');
+  pass('canonical stack and common paths resolve all direct sources and rules');
   cli('generate-stack-templates.mjs', ['--check']);
   assert.deepEqual(readdirSync(join(fixture, 'templates/ci/stacks')).filter(name => name.endsWith('.yml')).sort(), Object.keys(originalHashes).sort());
   const original = snapshot();
@@ -134,7 +143,7 @@ try {
     ['--select', '2', '--frontend', 'vue', 'extra']]) cli('stack-catalog.mjs', args, 1);
   for (const args of [[], ['--bogus'], ['--write', 'extra']]) cli('generate-stack-templates.mjs', args, 1);
   pass('unknown, unsupported, malformed and extra CLI selections fail closed');
-  const workflowPath = join(fixture, 'templates/ci/stacks/sources/common/workflow.yml');
+  const workflowPath = join(fixture, 'templates/ci/common/workflow.yml');
   writeFileSync(workflowPath, readFileSync(workflowPath, 'utf8').replace('name: ci-gate', 'name: fixture-ci-gate'));
   cli('generate-stack-templates.mjs', ['--check'], 1);
   cli('generate-stack-templates.mjs', ['--write']);
@@ -145,7 +154,7 @@ try {
     assert.equal(protectedJobs(workflowChanged[name]), protectedJobs(original[name]));
   }
   pass('common workflow change reaches all 6 outputs and preserves every job byte');
-  const secretPath = join(fixture, 'templates/ci/stacks/sources/common/secret-scan.yml');
+  const secretPath = join(fixture, 'templates/ci/common/secret-scan.yml');
   writeFileSync(secretPath, readFileSync(secretPath, 'utf8') + '          # common fixture marker\n');
   cli('generate-stack-templates.mjs', ['--check'], 1);
   cli('generate-stack-templates.mjs', ['--write']);

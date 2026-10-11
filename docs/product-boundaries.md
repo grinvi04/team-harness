@@ -26,7 +26,7 @@ doctor는 설치 source를 읽기 전용으로 검증한다. 이는 monolith ada
 `installable:false` 또는 marketplace 공개 판정을 바꾸지 않는다.
 v0.62.0 이후 exact commit `d580808`의 staged package는 Codex 0.144.6 공식 local marketplace loader에서 세
 profile의 독립 설치, 생성 artifact와 cache의 전체 tree digest 일치, 역의존 순서 제거와 사용자 상태 불변을
-통과했다. 원본은 [`pilots/codex-split-loader-v0.61.0.md`](pilots/codex-split-loader-v0.61.0.md)다. 이 증거는
+통과했다. 원본은 [`pilots/codex-split-loader-v0.61.0.md`](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/codex-split-loader-v0.61.0.md)다. 이 증거는
 loader·rollback 수명주기만 검증한다. Codex의 공식 plugin dependency/runtime binding 선언 surface와 분리된
 core+adapter의 model·hook session은 아직 없으므로 `installable:false`와 monolith를 유지한다.
 

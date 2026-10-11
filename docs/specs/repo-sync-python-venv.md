@@ -33,7 +33,7 @@ Python 환경 생성·interpreter 수명주기는 도구에 위임한다. 소비
 실행 환경은 macOS, Node v22.18.0이다. 로그는 작업 호스트의 임시 경로에 있으며 이 문서는 실행 요약이다.
 
 네 소비자 재실행의 원문 출력·명령·작업 디렉터리·checker digest·소비 HEAD/status는
-[정규화 결과](../pilots/consumer-repo-sync-2026-10-06.json)에 보존한다. 개인 경로는 `<USER_HOME>`이다.
+[정규화 결과](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/consumer-repo-sync-2026-10-06.json)에 보존한다. 개인 경로는 `<USER_HOME>`이다.
 checker digest는 해당 실행 당시 미커밋 수정 파일에 대응한다. 이후 동일 digest를 후보와 대조한다.
 
 | repo | OK | WARN | MISSING | 실행 / 의미 |
@@ -103,7 +103,7 @@ PATH-shadow 및 unsigned self-trust live 시험이 필수 `--approved-*`를 생�
 증명한 것은 아니다. venv 탐색 변경의 새 보안 결함은 해당 검토에서 발견하지 못했다.
 
 명령·종료 코드·품질 원문·workflow·runner·bundle 지문·비적용 항목은
-[사전검증 기록](../pilots/release-v0.81.0-check.json)에 보존한다. 개인 경로만 정규화했고 원본과 정규화본의
+[사전검증 기록](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/release-v0.81.0-check.json)에 보존한다. 개인 경로만 정규화했고 원본과 정규화본의
 지문을 구분한다. 품질 원문은 현재 실행 결과이며, snapshot runner의 `<USER_HOME>`은 재실행 시 호스트
 경로를 지정해야 한다. 로컬 임시 event는 기존 명세의 문서 선언을 연결했다. ruff bootstrap의 pipx 설치만
 준비된 동일 버전 임시 venv로 대체했다. 운영 env·live DB·실제 서명 바이너리 양성·live egress 검증이나
@@ -122,6 +122,8 @@ v0.81.0 태그·해당 원본 bundle checksum 73/73을 확인했다. develop 역
 원래 시험 결함을 구현에서 고쳤다는 뜻이 아니다. 기록 전달·병합 상태는 [PR #487](https://github.com/grinvi04/team-harness/pull/487) 원본에서 추적한다.
 
 ## 문서 동기화
+
+아래는 당시 PR 선언이다. 옮긴 증거의 [고정 원문·복구](../history-evidence.md)를 읽으며 현재 선언으로 재사용하지 않는다.
 
 ```harness-doc-sync
 {"version":1,"documents":[

@@ -170,10 +170,12 @@ ISO는 공개 초록만 확인했으며 유료 표준 전체 적합성은 조사
 - 현재 구조 검사: 신규 조건부 참조 누락으로 51 PASS/1 FAIL, 연결 후 52 PASS/0 FAIL.
   이는 문서·배포 연결 검사이며 행동 개선의 증거가 아니다.
 - A의 구체 과제/판정자 준비와 B의 지침 고정 이후 C/D 결과는 [실제 작업 평가](qa-practical-validation.md)와
-  [구조화 증거](qa-practical-evidence.json)에 연결한다. 환경·flaky 후속 턴은 실행 가능한 모의 결과의 정직한
+  [구조화 증거](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-practical-evidence.json)에 연결한다. 환경·flaky 후속 턴은 실행 가능한 모의 결과의 정직한
   분류 시험이며 실제 서비스 장애나 flaky 원인의 진단 실증과 구분한다.
 
 ## 문서 동기화 범위
+
+아래는 당시 PR 선언이다. 옮긴 증거의 [고정 원문·복구](../history-evidence.md)를 읽으며 현재 선언으로 재사용하지 않는다.
 
 ```harness-doc-sync
 {

@@ -2,7 +2,7 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.89.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.90.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
@@ -114,7 +114,7 @@ bash tests/profile-lifecycle-test.sh
 
 ```
 team-harness/
-├── .claude-plugin/marketplace.json    사내 마켓플레이스 카탈로그
+├── .claude-plugin/marketplace.json    공개 플러그인 카탈로그
 ├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
 ├── plugins/harness-guard/             플러그인 본체 (아래 상세)
 ├── experiments/split-packaging/      분리 패키지·profile 평가 (공개 설치 보류)
@@ -128,11 +128,12 @@ team-harness/
 │   ├── ci/migration-safety.yml        마이그레이션 정적 게이트 (out-of-order·forward-only)
 │   ├── ci/integration-e2e.yml         실 IdP·실 백엔드 통합 e2e (env-gated)
 │   ├── ci/test-guard.yml · commitlint.yml · repo-sync.yml  거버넌스 게이트 (스택 무관)
-│   ├── ci/stacks/sources/             공통·backend·frontend CI 정본 조각
+│   ├── stacks/<스택>/                CI·rule·로컬 검사·보조 설정 정본
+│   ├── ci/common/                    공통 CI 원문
 │   ├── ci/stacks/ci-gate-*.yml        스택별 완성 생성물 (new-repo.sh가 복사)
 │   ├── githooks/pre-commit            계층 0.5 git 훅
 │   └── PULL_REQUEST_TEMPLATE.md · gitignore.snippet
-└── docs/                              현재 표준·specs/명세·history/과거 증거
+└── docs/                              현재 표준·specs/명세 (과거 원문은 고정 Git 연결)
 ```
 
 수정할 정본·필수 배치 사본·생성 명령은 [저장소 유지보수 안내](docs/repository-structure.md)를 따른다.

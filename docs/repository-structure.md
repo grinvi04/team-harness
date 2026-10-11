@@ -10,8 +10,10 @@ Team Harness는 앱 코드가 아니라 개발 기준·설정·검사 연결을 
 | 소비 프로젝트 기본 설정 | `templates/settings.json` | 새 프로젝트의 `.claude/settings.json` |
 | 이 저장소의 도구 설정 | `.claude/settings.json` | Team Harness 소스 개발용; 설치 선언을 넣지 않음 |
 | Git/CI 공통 정책 | `templates/githooks/commit-msg`, `templates/ci/{commitlint,test-guard}.yml` | 소비 프로젝트와 이 저장소의 배치 사본 |
-| 스택 선택과 검사 이름 | `templates/stacks.json` | `new-repo.sh`와 CI 템플릿 생성기 |
-| 스택 CI 명령 | `templates/ci/stacks/sources/` | 개별 스택6개의 완성 CI와 선택한 조합 |
+| 스택 선택·경로·검사 이름 | `templates/stacks.json` | 셋업·CI 생성·로컬 검사·repo-sync |
+| 스택별 CI·rule·보조 설정 | `templates/stacks/<스택>/` | 선택한 스택의 생성물·배치 파일 |
+| 여러 스택이 함께 쓰는 원문 | `templates/ci/common/`, `templates/rules/typescript.md` | 공통 CI·TypeScript rule |
+| 로컬 검사 실행 틀 | `templates/local/check-harness.sh` | Spring·Vue 명령을 조합한 checker |
 | 분리 패키지 평가 | `experiments/split-packaging/` | 격리된 실험; 공개 설치 경로와 구분 |
 | 과거 후보의 실행 증거 | Git 고정 커밋과 해당 PR | 당시 결과·실패·보류를 확인할 때 |
 
@@ -31,9 +33,18 @@ Codex 스킬 wrapper는 공통 스킬을 연결하는 공식 진입점이다. �
 
 ## 스택 템플릿을 바꿀 때
 
-카탈로그는 Node·Spring·Python·Rails·Next.js·Vue6개의 CI·rule·필수 검사·DB 연결을 관리한다.
-공통 workflow와 시크릿 검사는 `sources/common/`, 작업 명령은 `sources/jobs/`에서 수정한다.
+카탈로그는 Node·Spring·Python·Rails·Next.js·Vue 여섯 개의 CI·rule·필수 검사·DB 연결을 관리한다.
+schema3의 `pathBase: repository-root`는 카탈로그의 원문 경로가 저장소 루트 기준임을 뜻한다.
+`sources`는 CI, `ruleSources`는 rule 이름과 원문, `assetSources`는 보조 파일,
+`localCheck`는 현재 지원하는 Spring·Vue 로컬 명령을 연결한다.
+공통 workflow와 시크릿 검사는 `templates/ci/common/`에서 수정한다.
 완성 `ci-gate-*.yml`은 복사 가능한 생성물이다. 직접 편집하면 CI가 불일치를 거부한다.
+
+예를 들어 Spring의 CI 명령은 `templates/stacks/spring/ci/quality.yml`,
+Java rule은 같은 스택의 `rules/java.md`, Checkstyle은 `checkstyle.xml`에서 고친다.
+CI 수정은 아래 생성 명령으로 반영한다. rule·보조 설정은 `new-repo.sh`가 카탈로그를 읽어 복사한다.
+`check-repo-sync.mjs`도 같은 rule 경로를 읽으므로 별도 경로 표를 고칠 필요가 없다.
+이전 `templates/ci/stacks/sources/`와 `templates/rules/stacks/` 원문은 이 정본으로 옮겼다.
 
 ```bash
 node scripts/generate-stack-templates.mjs --write
@@ -58,17 +69,43 @@ Python 조합의 `alembic-heads`도 같은 백엔드 경로에서 실행한다. 
 Python·Rails·Next.js·Vue의 새 번호는 각각3·4·5·6이다. 기존 프로젝트의 CI를 자동 교체하지 않는다.
 이 선택이 앱이나 패키지 설정을 생성하지는 않는다. 이미 사용하는 검사 명령에 맞춰 소비 CI를 조정한다.
 Prisma/Flyway/Alembic는 기존 프리셋 연결이며 DB 제품이나 운영 자격증명을 강제하지 않는다.
+`templates/stacks/nextjs/Dockerfile`은 Next.js standalone 예시다. 이전 이름은 `Dockerfile.node`였으며
+일반 Node 이미지 예시로 해석하지 않는다. Spring Dockerfile·Checkstyle 예시는 Gradle Groovy 전제다.
 
 셋업은 기존 CI·설정·rule을 덮어쓰지 않는다. 스택 선택이 실행기 자동 허용을 추가하지도 않는다.
 빈 권한 fragment는 제거했다. 별도 사용자 fragment가 필요한 경우에만
 `scripts/merge-permissions.mjs --fragments <dir>`를 명시하며, 승인 범위는 사용자 정책을 따른다.
 
-## 실험과 과거 기록
+## 로컬 검사를 바꿀 때
+
+Spring 명령은 `templates/stacks/spring/local-check.sh`, Vue 명령은 해당 스택의 같은 파일에 있다.
+공통 실행 틀과 이 원문에서 `setup-local.mjs`가 독립 실행 가능한 checker 하나를 만든다.
+옵션 없는 기존 Spring+Vue 순서와 기본 경로는 유지한다. 단독 검사나 조합 경로는 명시적으로 고른다.
+
+```bash
+node scripts/setup-local.mjs --project /path/to/app --stack spring
+node scripts/setup-local.mjs --project /path/to/app --stack vue
+node scripts/setup-local.mjs --project /path/to/app --stack spring+vue --backend-dir apps/api --frontend-dir apps/web
+```
+
+위 명령은 미리보기다. 준비 조건을 확인한 뒤 `--apply`를 붙이면 파일 하나를 추가한다.
+기존 파일은 덮어쓰지 않으며 다른 스택의 로컬 검사는 아직 제공하지 않는다.
+필수 앱 설정·검사 명령과 실패 조건은 [로컬 개발 안내](local-development.md)를 따른다.
+
+## 실험과 발행 준비
 
 분리 패키지의 staged 버전은 공개 플러그인 버전과 다르다.
 `installable: false`와 [#412](https://github.com/grinvi04/team-harness/issues/412)의 보류 조건을 유지한다.
 명령·격리 조건은 [실험 안내](../experiments/split-packaging/README.md)를 읽는다.
 이전 `scripts/build-packages.mjs` 등의 진입점은 같은 구현을 호출하는 호환 경로다.
+
+발행 검토용 source bundle은 `build-release-bundle.mjs --source-only`로 만든다.
+기록된 Git 후보의 archive·버전·checksum을 만들며 실험 catalog·builder를 실행하지 않는다.
+archive에는 그 후보의 전체 소스가 들어간다. manifest의 `packages`는 빈 배열이고 설치 가능 표시는 false다.
+옵션 없는 기존 명령은 네 staged package를 포함한다. 두 경로 모두 발행·태그·설치를 수행하지 않는다.
+명령과 결과 계약은 [유지보수 안내](harness-maintenance.md#분리-package-artifact-전환-단계)를 따른다.
+
+## 과거 기록을 찾을 때
 
 현재 checkout의 중복 역사 폴더는 삭제했다. 당시 후보 SHA·결과·실패 원문은
 [Git85338bd의 원래 경로](https://github.com/grinvi04/team-harness/tree/85338bdcb691727ebd098f4ee0ce5167faf36e24/docs/specs/harness-modernization)에 남는다.
@@ -81,7 +118,12 @@ git restore --source=85338bd -- docs/specs/harness-modernization/execution-progr
 ```
 
 현재 정책·결정·CHANGELOG·시험 fixture는 계속 사용하므로 유지한다.
-현재 작업의 범위·검증은 [구조 정리 스펙](specs/structure-maintenance.md)에서 확인한다.
+후속 정리한 QA·pilot·표준 검토 원문과 두 decisions 원문은 [역사 증거 목록](history-evidence.md)에
+전체 SHA·원래 경로·SHA-256·복구 명령으로 연결했다. 역사 검사는 고정 blob을 읽고 누락·digest 불일치에 실패한다.
+binary trust·external provenance manifest와 현재 검증이 읽는 외부 JSON 일곱 개는 checkout에 유지한다.
+현재 소비 인수의 실패·미전환·배포 보류도 유지한다. 과거 PASS를 현재 후보의 완료로 쓰지 않는다.
+이번 범위·검증은 [후속 정리 스펙](specs/structure-cleanup.md), 앞선 전달은
+[0.88.0 구조 스펙](specs/structure-maintenance.md)에서 확인한다.
 
 ## 검증과 전달
 

@@ -44,5 +44,7 @@ JDK 배포판과 컨테이너 레지스트리는 지원·라이선스·공급망
 
 [백엔드](stack-troubleshooting-backend.md), [프론트엔드](stack-troubleshooting-frontend.md),
 [DB·마이그레이션](stack-troubleshooting-database.md)에서 증상별 확인 경로를 찾는다.
-스택 규칙은 `templates/rules/stacks/`에 있다. 필요한 파일만 복사하고 경로·명령을 실제 프로젝트에 맞춘다.
+스택 규칙은 `templates/stacks/<스택>/rules/`, 공통 TypeScript 규칙은 `templates/rules/typescript.md`에 있다.
+선택과 원문 경로는 `templates/stacks.json`에 연결한다. [구조 안내](repository-structure.md)에 따라
+필요한 파일만 복사하고 경로·명령을 실제 프로젝트에 맞춘다.
 현재 예시는 소비 앱에서 모두 실행한 결과가 아니다. 프로젝트의 지원 버전으로 검증한 뒤 채택한다.

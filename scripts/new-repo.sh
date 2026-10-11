@@ -168,7 +168,7 @@ copy_once "$HARNESS_DIR/templates/PULL_REQUEST_TEMPLATE.md"  .github/PULL_REQUES
 if [[ ${#STACK_RULES[@]} -gt 0 ]]; then
   mkdir -p .claude/rules
   for rule in "${STACK_RULES[@]}"; do
-    copy_once "$HARNESS_DIR/templates/rules/stacks/$rule.md" ".claude/rules/$rule.md" "rules/$rule.md"
+    copy_once "$HARNESS_DIR/$(selection_value "ruleSources.$rule")" ".claude/rules/$rule.md" "rules/$rule.md"
   done
 fi
 
@@ -192,9 +192,9 @@ if [ "$(selection_value backend.preset)" = spring ]; then
   SPRING_DIR=backend
   if [ "$(selection_value mode)" = composed ]; then SPRING_DIR="$BACKEND_DIR"; fi
   mkdir -p "$SPRING_DIR/config/checkstyle"
-  copy_once "$HARNESS_DIR/templates/backend-gitignore.spring" "$SPRING_DIR/.gitignore" \
+  copy_once "$HARNESS_DIR/$(selection_value assetSources.gitignore)" "$SPRING_DIR/.gitignore" \
     "$SPRING_DIR/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
-  copy_once "$HARNESS_DIR/templates/checkstyle.xml" "$SPRING_DIR/config/checkstyle/checkstyle.xml" \
+  copy_once "$HARNESS_DIR/$(selection_value assetSources.checkstyle)" "$SPRING_DIR/config/checkstyle/checkstyle.xml" \
     "$SPRING_DIR/config/checkstyle/checkstyle.xml"
 fi
 

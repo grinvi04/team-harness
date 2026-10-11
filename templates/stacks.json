@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "commonChecks": [
     "test-guard",
     "commitlint-trusted",
@@ -7,8 +7,8 @@
     "destructive-ddl"
   ],
   "commonSources": {
-    "workflow": "common/workflow.yml",
-    "secretScan": "common/secret-scan.yml"
+    "workflow": "templates/ci/common/workflow.yml",
+    "secretScan": "templates/ci/common/secret-scan.yml"
   },
   "stacks": [
     {
@@ -34,16 +34,17 @@
         "checks": []
       },
       "sources": {
-        "header": "headers/node.yml",
+        "header": "templates/stacks/node/ci/header.yml",
         "jobs": [
-          "jobs/node.yml"
+          "templates/stacks/node/ci/quality.yml"
         ]
       },
       "key": "node",
       "roles": [
         "backend",
         "frontend"
-      ]
+      ],
+      "assetSources": {}
     },
     {
       "id": 2,
@@ -71,15 +72,21 @@
         ]
       },
       "sources": {
-        "header": "headers/spring.yml",
+        "header": "templates/stacks/spring/ci/header.yml",
         "jobs": [
-          "jobs/spring.yml"
+          "templates/stacks/spring/ci/quality.yml"
         ]
       },
       "key": "spring",
       "roles": [
         "backend"
-      ]
+      ],
+      "assetSources": {
+        "dockerfile": "templates/stacks/spring/Dockerfile",
+        "gitignore": "templates/stacks/spring/gitignore",
+        "checkstyle": "templates/stacks/spring/checkstyle.xml"
+      },
+      "localCheck": "templates/stacks/spring/local-check.sh"
     },
     {
       "id": 3,
@@ -107,15 +114,16 @@
         ]
       },
       "sources": {
-        "header": "headers/python.yml",
+        "header": "templates/stacks/python/ci/header.yml",
         "jobs": [
-          "jobs/python.yml"
+          "templates/stacks/python/ci/quality.yml"
         ]
       },
       "key": "python",
       "roles": [
         "backend"
-      ]
+      ],
+      "assetSources": {}
     },
     {
       "id": 4,
@@ -140,15 +148,16 @@
         "checks": []
       },
       "sources": {
-        "header": "headers/rails.yml",
+        "header": "templates/stacks/rails/ci/header.yml",
         "jobs": [
-          "jobs/rails.yml"
+          "templates/stacks/rails/ci/quality.yml"
         ]
       },
       "key": "rails",
       "roles": [
         "backend"
-      ]
+      ],
+      "assetSources": {}
     },
     {
       "id": 5,
@@ -174,15 +183,18 @@
         "checks": []
       },
       "sources": {
-        "header": "headers/nextjs.yml",
+        "header": "templates/stacks/nextjs/ci/header.yml",
         "jobs": [
-          "jobs/nextjs.yml"
+          "templates/stacks/nextjs/ci/quality.yml"
         ]
       },
       "key": "nextjs",
       "roles": [
         "frontend"
-      ]
+      ],
+      "assetSources": {
+        "dockerfile": "templates/stacks/nextjs/Dockerfile"
+      }
     },
     {
       "id": 6,
@@ -208,15 +220,29 @@
         "checks": []
       },
       "sources": {
-        "header": "headers/vue.yml",
+        "header": "templates/stacks/vue/ci/header.yml",
         "jobs": [
-          "jobs/vue.yml"
+          "templates/stacks/vue/ci/quality.yml"
         ]
       },
       "key": "vue",
       "roles": [
         "frontend"
-      ]
+      ],
+      "assetSources": {},
+      "localCheck": "templates/stacks/vue/local-check.sh"
     }
-  ]
+  ],
+  "pathBase": "repository-root",
+  "ruleSources": {
+    "typescript": "templates/rules/typescript.md",
+    "java": "templates/stacks/spring/rules/java.md",
+    "flyway": "templates/stacks/spring/rules/flyway.md",
+    "python": "templates/stacks/python/rules/python.md",
+    "alembic": "templates/stacks/python/rules/alembic.md",
+    "ruby": "templates/stacks/rails/rules/ruby.md",
+    "nextjs": "templates/stacks/nextjs/rules/nextjs.md",
+    "vue": "templates/stacks/vue/rules/vue.md",
+    "prisma": "templates/stacks/node/rules/prisma.md"
+  }
 }

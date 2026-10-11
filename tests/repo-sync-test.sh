@@ -42,6 +42,14 @@ check() { # desc, expected_exit, repo_path
 # 자산 완비(java+flyway) → sync 통과
 check "good(자산 완비) → 통과"              0 "$GOOD"
 
+# Catalog routing must reach the drift report rather than retain a private rule path.
+if OUT=$(node "$GATE" --repo "$GOOD" --harness "$ROOT" 2>&1) && \
+   echo "$OUT" | grep -q '표준: templates/stacks/spring/rules/java.md'; then
+  echo "PASS: catalog canonical Java source reaches drift reader"; PASS=$((PASS+1))
+else
+  echo "FAIL: catalog canonical Java source missing in drift reader"; FAIL=$((FAIL+1))
+fi
+
 # Python 생성 환경은 소스 스택이나 외부 interpreter 경계 판정에 섞지 않는다.
 VENV_REPO="$TMP/python-venv"
 cp -R "$GOOD/." "$VENV_REPO"
@@ -252,7 +260,7 @@ check "E1: alembic 완비(heads 有) → 통과"     0 "$GOOD_ALEMBIC"
 check "E1: alembic-heads 누락 → MISSING/FAIL" 1 "$FIX/alembic-missing-heads"
 
 # E2: nextjs·vue 감지 + 룰 점검(검증기 ruleMap 대칭) — 감지 스택·룰 자산이 출력에 나타나야 한다.
-cp "$ROOT/templates/rules/stacks/nextjs.md" "$GOOD_ALEMBIC/.claude/rules/nextjs.md"
+cp "$ROOT/templates/stacks/nextjs/rules/nextjs.md" "$GOOD_ALEMBIC/.claude/rules/nextjs.md"
 OUT=$(node "$GATE" --repo "$GOOD_ALEMBIC" --harness "$ROOT" 2>&1)
 if echo "$OUT" | grep -q "nextjs, vue, alembic\|nextjs" \
    && echo "$OUT" | grep -Eq '✓ OK +룰: nextjs\.md' \

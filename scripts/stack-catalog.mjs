@@ -9,11 +9,20 @@ export const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '
 export function loadCatalog(root = repositoryRoot) {
   const catalog = JSON.parse(readFileSync(resolve(root, 'templates/stacks.json'), 'utf8'));
   const keys = ['node', 'spring', 'python', 'rails', 'nextjs', 'vue'];
-  if (catalog.schemaVersion !== 2 || !Array.isArray(catalog.stacks)
+  if (catalog.schemaVersion !== 3 || catalog.pathBase !== 'repository-root' || !Array.isArray(catalog.stacks)
       || catalog.stacks.length !== 6 || catalog.stacks.some((stack, i) => stack.id !== i + 1
         || stack.key !== keys[i] || JSON.stringify(stack.roles) !== JSON.stringify(
           i === 0 ? ['backend', 'frontend'] : i < 4 ? ['backend'] : ['frontend']))) {
-    throw new Error('Invalid stack catalog: expected schema 2 and selections 1..6');
+    throw new Error('Invalid stack catalog: expected schema 3 with repository-root paths and selections 1..6');
+  }
+  for (const file of [...Object.values(catalog.commonSources), ...Object.values(catalog.ruleSources),
+    ...catalog.stacks.flatMap(stack => [stack.sources.header, ...stack.sources.jobs,
+      ...Object.values(stack.assetSources), ...(stack.localCheck ? [stack.localCheck] : [])])]) {
+    if (typeof file !== 'string' || !/^templates\/[A-Za-z0-9_.-]+(?:\/[A-Za-z0-9_.-]+)*$/.test(file)
+        || file.split('/').some(part => part === '.' || part === '..')) throw new Error('Invalid catalog path');
+  }
+  for (const stack of catalog.stacks) {
+    if (stack.rules.some(rule => !catalog.ruleSources[rule])) throw new Error('Missing catalog rule source');
   }
   return catalog;
 }
@@ -39,6 +48,7 @@ export function selectStack(selection, options = {}, catalog = loadCatalog()) {
     return {
       ...stack,
       mode: 'single',
+      ruleSources: catalog.ruleSources,
       checks: [...stack.checks, ...catalog.commonChecks, ...stack.database.checks],
     };
   }
@@ -60,6 +70,8 @@ export function selectStack(selection, options = {}, catalog = loadCatalog()) {
     checks: ['backend', 'frontend', 'secret-scan', ...catalog.commonChecks, ...backend.database.checks],
     rules: [...new Set([...backend.rules, ...frontend.rules])],
     database: backend.database,
+    ruleSources: catalog.ruleSources,
+    assetSources: backend.assetSources,
   };
 }
 

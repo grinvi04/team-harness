@@ -68,6 +68,8 @@ const REPO = resolve(optVal('--repo') || '.')
 // 이 스크립트는 plugins/harness-guard/scripts/ 에 있으므로 세 단계 위가 루트다.
 // (플러그인으로 설치돼 templates/ 가 없으면 standardHas=false 로 graceful — detail 힌트만 생략.)
 const HARNESS = resolve(optVal('--harness') || join(__dirname, '../../..'))
+const catalogPath = join(HARNESS, 'templates/stacks.json')
+const ruleSources = existsSync(catalogPath) ? JSON.parse(readFileSync(catalogPath, 'utf8')).ruleSources || {} : {}
 const IS_HARNESS_SELF = REPO === HARNESS
 const SELF_IGNORED_PREFIXES = ['templates', 'tests/fixtures', 'docs/goals']
 
@@ -502,14 +504,15 @@ const ruleMap = [
   ['ruby', stacks.rails],
 ]
 for (const [rule, applicable] of ruleMap) {
-  const standardHas = existsSync(join(HARNESS, 'templates/rules/stacks', `${rule}.md`))
+  const source = ruleSources[rule]
+  const standardHas = typeof source === 'string' && existsSync(join(HARNESS, source))
   checks.push({
     asset: `룰: ${rule}.md`,
     severity: 'warn',
     applicable,
     status: ruleStatus(rule),
     detail: standardHas
-      ? `.claude/rules/${rule}.md (표준: templates/rules/stacks/${rule}.md)`
+      ? `.claude/rules/${rule}.md (표준: ${source})`
       : `.claude/rules/${rule}.md`,
   })
 }

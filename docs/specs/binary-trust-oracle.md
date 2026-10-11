@@ -32,7 +32,7 @@ macOS에서 실제 unsigned signature 거부를 확인한다. Linux는 지원하
 검출 성공으로 세지 않는다. 물리 `/private/tmp` 경로로 재실행한 digest gate 제거 변이는 실제 서명 오류 뒤
 정확한 digest 오류 단언에서 exit 1, signature 항상 성공 변이는 PATH digest 정상 거부 후 self-trust
 거부 상태 단언에서 exit 1이었다. 진단용 stderr/exit 출력만 임시 사본 시험에 추가했고 production은 수정하지 않았다.
-원본·첫 실패·변이 및 제외 이유는 [실행 기록](../pilots/binary-trust-oracle-2026-10-07.json)에 보존한다.
+원본·첫 실패·변이 및 제외 이유는 [실행 기록](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/binary-trust-oracle-2026-10-07.json)에 보존한다.
 전체 quality 첫 실행은 doc-sync 선언의 필수 최상위 items 누락으로 exit 1이었다. 필드를 잘못된 깊이에
 추가한 재시도도 tool summary에서 1/63 exit 1을 관찰했으나 두 번째 전체 원문은 다음 실행으로
 덮여 미보존이다. 이를 최초 원문으로 대체하지 않는다. 최상위 배열로 고친 뒤 전체 gate는 63/63 exit 0이었다. macOS에서 현재 CI quality의 모든 run 스텝을
@@ -76,13 +76,15 @@ CI 5개 SUCCESS·독립 검토 finding 0·미해결 스레드 0·외부 commit s
 main merge `9838c2ef288b4566f81fae03acb56530ee165c06`의 tree는 release 후보와 동일하다.
 같은 SHA에 [v0.81.0 태그](https://github.com/grinvi04/team-harness/tree/v0.81.0)를 발행했고 remote tag target을 직접 대조했다.
 태그 뒤 CHANGELOG는 byte 동일, 해당 태그 원본 bundle checksum 73/73 PASS, split installable:false 유지다.
-[발행 실행 기록](../pilots/release-v0.81.0-publication.json)에 후보·CI·승인 예외·보호 원문·태그·checksum을 보존한다.
+[발행 실행 기록](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/release-v0.81.0-publication.json)에 후보·CI·승인 예외·보호 원문·태그·checksum을 보존한다.
 develop 역병합과 결과 문서 전달은 [PR #490](https://github.com/grinvi04/team-harness/pull/490)에서 추적한다.
 해당 PR의 현재 HEAD·CI·검토·병합 상태를 정본으로 삼으며, 이 태그 기록만으로 전역 설치 완료를 주장하지 않는다.
 소비 프로젝트 수정·배포와 전역 설치는 이번 정식 발행 범위에 포함하지 않는다.
-기존 [0.81.0 NO-GO](../pilots/release-v0.81.0-check.json)는 당시 후보의 기록으로 보존한다.
+기존 [0.81.0 NO-GO](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/release-v0.81.0-check.json)는 당시 후보의 기록으로 보존한다.
 
 ## 문서 동기화
+
+아래는 당시 PR 선언이다. 옮긴 증거의 [고정 원문·복구](../history-evidence.md)를 읽으며 현재 선언으로 재사용하지 않는다.
 
 ```harness-doc-sync
 {"version":1,"documents":[

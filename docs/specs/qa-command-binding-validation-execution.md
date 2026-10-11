@@ -61,5 +61,5 @@ QA 계약을 적용했고 보고와 실행은 일치했다. plugin 전체 미설
 최종 판정은 **이 후속의 명령별 보고·AGENTS 계약 연결 범위에서 VERIFIED**다. 과거 0.78.0의 충분성
 NOT VERIFIED를 소급 바꾸지 않는다. 소스 후보 구현·검증 완료와 릴리즈·설치 완료도 구분한다.
 상세 후보 해시·요청·응답·실제 명령·최초 실패·재시험·품질 검사·패키지 증거는
-[정제한 실행 기록](qa-command-binding-evidence.json)에 보존한다. 외부 설치 skill 본문은 명령·종료 코드·
+[정제한 실행 기록](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-command-binding-evidence.json)에 보존한다. 외부 설치 skill 본문은 명령·종료 코드·
 출력 digest만 남기고 재배포하지 않는다. 경로는 치환하며 사용량을 구독 과금으로 환산하지 않는다.

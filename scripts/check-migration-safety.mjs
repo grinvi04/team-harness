@@ -16,9 +16,9 @@
  *   - Prisma/Supabase: 타임스탬프 명명(`20240101…`)이라 구조적으로 단조 증가 → out-of-order 위험 없음(안전).
  *   - Alembic: down_revision 체인이 분기하면 **다중 head(분기 미머지)**가 위험인데, 이는 파일명이 아니라
  *     리비전 그래프 문제라 이 스크립트가 검출하지 못한다 — Alembic 스택은 별도 CI 점검(`alembic heads | wc -l`)
- *     으로 다중 head를 차단한다(templates/rules/stacks/alembic.md). 여기서 Flyway가 아니면 정직하게 skip한다.
+ *     으로 다중 head를 차단한다(templates/stacks/python/rules/alembic.md). 여기서 Flyway가 아니면 정직하게 skip한다.
  *
- * 단일 출처: docs/db-standards.md · templates/rules/stacks/flyway.md
+ * 단일 출처: docs/db-standards.md · templates/stacks/spring/rules/flyway.md
  */
 import { readFileSync, readdirSync, statSync, lstatSync, existsSync, realpathSync } from 'node:fs'
 import { join, basename, dirname, relative, isAbsolute, sep } from 'node:path'
@@ -411,7 +411,7 @@ if (failures.length > 0) {
     console.error('    • flyway.conf:   flyway.outOfOrder=true')
     console.error('  또는 모든 모듈을 단일 단조 증가 번호 체계로 통일하세요.')
   }
-  console.error('  단일 출처: docs/db-standards.md · templates/rules/stacks/flyway.md\n')
+  console.error('  단일 출처: docs/db-standards.md · templates/stacks/spring/rules/flyway.md\n')
   process.exit(1)
 }
 

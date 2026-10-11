@@ -36,7 +36,7 @@ if ROOT="$ROOT" node <<'NODE'
 const { readFileSync } = require('node:fs')
 const { join } = require('node:path')
 
-const rule = readFileSync(join(process.env.ROOT, 'templates/rules/stacks/nextjs.md'), 'utf8')
+const rule = readFileSync(join(process.env.ROOT, 'templates/stacks/nextjs/rules/nextjs.md'), 'utf8')
 const pathsLine = rule.split('\n').find((line) => line.startsWith('paths: '))
 const patterns = JSON.parse(pathsLine.slice('paths: '.length))
 const required = [
@@ -167,8 +167,8 @@ if len(parts) == 2:
     assert (target / 'apps/web/.prettierrc').read_bytes() == Path(os.environ['ROOT'] + '/templates/.prettierrc').read_bytes()
     assert (target / 'apps/web/scripts/check-design-tokens.mjs').read_bytes() == Path(os.environ['ROOT'] + '/templates/frontend/check-design-tokens.mjs').read_bytes()
     if parts[0] == 2:
-        assert (target / 'apps/api/.gitignore').read_bytes() == Path(os.environ['ROOT'] + '/templates/backend-gitignore.spring').read_bytes()
-        assert (target / 'apps/api/config/checkstyle/checkstyle.xml').read_bytes() == Path(os.environ['ROOT'] + '/templates/checkstyle.xml').read_bytes()
+        assert (target / 'apps/api/.gitignore').read_bytes() == Path(os.environ['ROOT'] + '/templates/stacks/spring/gitignore').read_bytes()
+        assert (target / 'apps/api/config/checkstyle/checkstyle.xml').read_bytes() == Path(os.environ['ROOT'] + '/templates/stacks/spring/checkstyle.xml').read_bytes()
     if parts[0] == 3:
         import subprocess
         config = target / 'apps/api/alembic.ini'
@@ -209,7 +209,7 @@ for kind in relative traversal absolute; do
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
   : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
   if (cd "$target" && printf '2\n' | BACKEND_DIR="$foreign" FRONTEND_DIR="$foreign" PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
-    && cmp -s "$ROOT/templates/checkstyle.xml" "$target/backend/config/checkstyle/checkstyle.xml" \
+    && cmp -s "$ROOT/templates/stacks/spring/checkstyle.xml" "$target/backend/config/checkstyle/checkstyle.xml" \
     && [ ! -e "$outside" ]; then
     echo "PASS: standalone Spring ignores inherited $kind directory variables"; PASS=$((PASS+1))
   else

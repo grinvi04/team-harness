@@ -2,19 +2,30 @@
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+HISTORY_DIR=$(mktemp -d)
+trap 'rm -rf -- "$HISTORY_DIR"' EXIT
+DECISIONS="$HISTORY_DIR/decisions-native-and-delivery.md"
+if ! node "$ROOT/tests/lib/read-history-blob.mjs" "$ROOT" \
+  54657b3ef79ab36c3e0877664964356badd3510b docs/decisions-native-and-delivery.md \
+  46e60e1c5f507e5b1d89c85c8906f840f81dd28c919a34f39b2542e50b654d5f > "$DECISIONS"; then
+  exit 1
+fi
 JSON="$ROOT/docs/pilots/drivertree-v0.60.0.json"
-REPORT="$ROOT/docs/pilots/drivertree-v0.60.0.md"
+REPORT="$HISTORY_DIR/drivertree-v0.60.0.md"
 BEFORE_V61="$ROOT/docs/pilots/drivertree-v0.61.0-before.json"
 AFTER_V61="$ROOT/docs/pilots/drivertree-v0.61.0-after.json"
 REMEDIATED_V61="$ROOT/docs/pilots/drivertree-v0.61.0-remediated.json"
-REPORT_V61="$ROOT/docs/pilots/drivertree-v0.61.0.md"
+REPORT_V61="$HISTORY_DIR/drivertree-v0.61.0.md"
 WEBHOOK_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.json"
 WEBHOOK_SIM_V61="$ROOT/docs/pilots/webhook-service-v0.61.0-simulation.json"
 WEBHOOK_REMEDIATED_V61="$ROOT/docs/pilots/webhook-service-v0.61.0-remediated.json"
-WEBHOOK_REPORT_V61="$ROOT/docs/pilots/webhook-service-v0.61.0.md"
+WEBHOOK_REPORT_V61="$HISTORY_DIR/webhook-service-v0.61.0.md"
 PRODUCT_DIRECTION="$ROOT/docs/product-direction-governance-history.md"
 PRODUCT_BOUNDARIES="$ROOT/docs/product-boundaries.md"
-DECISIONS="$ROOT/docs/decisions-native-and-delivery.md"
+
+if ! node "$ROOT/tests/lib/read-history-blob.mjs" "$ROOT" 54657b3ef79ab36c3e0877664964356badd3510b docs/pilots/drivertree-v0.60.0.md f16996f9e0e79c0804a5865e4428e2dcec5ccda6e8c1ce4c50dc38231eabc711 > "$REPORT"; then exit 1; fi
+if ! node "$ROOT/tests/lib/read-history-blob.mjs" "$ROOT" 54657b3ef79ab36c3e0877664964356badd3510b docs/pilots/drivertree-v0.61.0.md 0136a3310d7484df20611ec7538d5063feb63d8df7f7b1caefe013d55b58fc19 > "$REPORT_V61"; then exit 1; fi
+if ! node "$ROOT/tests/lib/read-history-blob.mjs" "$ROOT" 54657b3ef79ab36c3e0877664964356badd3510b docs/pilots/webhook-service-v0.61.0.md b2354655c283fa34557be55e3c02789483a87483f56751bf7e15cc43b64a7d58 > "$WEBHOOK_REPORT_V61"; then exit 1; fi
 PASS=0
 FAIL=0
 pass() { echo "PASS: $1"; PASS=$((PASS + 1)); }

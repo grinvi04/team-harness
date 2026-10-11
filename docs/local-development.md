@@ -1,54 +1,72 @@
-# 로컬 Spring Boot+Vue 검사 연결
+# 로컬 Spring Boot·Vue 검사 연결
 
-준비된 프로젝트에 공통 검사 진입점 하나를 추가한다. 프로젝트마다 검사 순서와 경로 처리를 다시 쓰는
-일을 줄이는 첫 구성이다. GitHub 계정·원격 저장소·회사 공통 기준은 필요하지 않다.
-앱 생성이나 검사 도구의 설정까지 자동화하지는 않는다.
+준비된 Spring Boot 또는 Vue 프로젝트에 공통 검사 진입점 하나를 추가한다.
+개별 검사를 선택하거나 기존 Spring+Vue 조합을 사용한다. GitHub 계정·원격 저장소는 필요하지 않다.
+앱 생성·검사 도구 초기 설정·package.json 변경·DB·인프라 준비는 포함하지 않는다.
 
-## 준비 조건
+## 준비 조건과 정본
 
 - Team Harness checkout과 Node.js 22+, Bash. 실제 검사에는 제품이 요구하는 JDK·npm과 의존성 다운로드가 필요하다.
-- `backend/gradlew` 실행 파일, `backend/build.gradle` 또는 `build.gradle.kts`가 있는 Spring Boot 앱.
-- `frontend/package.json`과 `package-lock.json`, Vue와 `@playwright/test` 의존성.
-- frontend scripts에 `type-check`, `lint`, `test:unit`, `build`, `test:e2e`가 모두 설정되어 있어야 한다.
+- Spring: 선택한 디렉터리에 실행 가능한 `gradlew`, `build.gradle` 또는 `build.gradle.kts`.
+- Vue: 선택한 디렉터리에 `package.json`·`package-lock.json`, Vue·`@playwright/test` 의존성.
+- Vue scripts에 `type-check`, `lint`, `test:unit`, `build`, `test:e2e`가 모두 설정되어 있어야 한다.
 
-새 프로젝트는 Spring Boot와 Vue 앱을 먼저 생성하고 위 검사를 연결한다. 기존 프로젝트도 같은 조건을
-확인한다. 부족한 항목은 도구가 오류로 알리며 빈 검사나 항상 성공하는 명령으로 채우지 않는다.
-Java 검사 연결은 [Java 기준](../templates/rules/stacks/java.md), Vue 타입·lint·단위 검사는
-[Vue 기준](../templates/rules/stacks/vue.md), 브라우저·접근성 범위는
-[프론트 검증 기준](frontend-design-standards.md#8-검증-pr-전-프레임워크-무관)을 재사용한다.
+부족한 항목은 오류로 알린다. 빈 검사나 항상 성공하는 명령으로 채우지 않는다.
+Java 검사 연결은 [Java 기준](../templates/stacks/spring/rules/java.md), Vue 타입·lint·단위 검사는
+[Vue 기준](../templates/stacks/vue/rules/vue.md), 브라우저·접근성 범위는
+[프론트 검증 기준](frontend-design-standards.md#8-검증-pr-전-프레임워크-무관)을 따른다.
 
-## 적용과 실행
+명령 정본은 `templates/stacks/spring/local-check.sh`·`templates/stacks/vue/local-check.sh`다.
+`templates/stacks.json`의 `localCheck`가 두 경로를 연결하고 `templates/local/check-harness.sh`가
+공통 실행 틀을 제공한다. 생성된 파일은 Harness checkout 없이 동작하며 이후 제품에서 관리한다.
+Spring 이미지 예시 `templates/stacks/spring/Dockerfile`은 기존 Gradle Groovy 프로젝트를 전제로 한다.
+`templates/stacks/nextjs/Dockerfile`은 Next.js standalone 출력용 예시다.
+
+## 선택·미리보기·적용
 
 ```bash
-# 기본은 미리보기: 파일 생성·제품 명령 실행·네트워크 호출 없음
+# 옵션 없는 기존 경로: backend Spring + frontend Vue, 미리보기만 수행
 node /path/to/team-harness/scripts/setup-local.mjs --project "/path/to/my-project"
 
-# 표시한 scripts/check-harness.sh 하나만 생성
+# 단독 선택은 지정한 프로젝트 루트에서 검사
+node /path/to/team-harness/scripts/setup-local.mjs --project "/path/to/spring-app" --stack spring
+node /path/to/team-harness/scripts/setup-local.mjs --project "/path/to/vue-app" --stack vue
+
+# 명시적 조합: 기본 backend/frontend 또는 조합에서만 상대 경로 지정
+node /path/to/team-harness/scripts/setup-local.mjs --project "/path/to/my-project" \
+  --stack spring+vue --backend-dir apps/api --frontend-dir apps/web
+
+# 같은 옵션에 --apply를 추가하면 scripts/check-harness.sh 하나만 생성
 node /path/to/team-harness/scripts/setup-local.mjs --project "/path/to/my-project" --apply
 
-# 내용을 확인한 뒤 실행. 어느 디렉터리에서 실행해도 제품 루트를 찾는다.
+# 생성 내용을 검토한 뒤 실행; 어느 작업 디렉터리에서도 제품 루트를 찾음
 bash "/path/to/my-project/scripts/check-harness.sh"
 ```
 
-실행 순서는 backend `./gradlew check bootJar` → frontend `npm ci` → 타입 검사 → lint → 단위 테스트 →
-빌드 → 프로젝트 Playwright로 Chromium 준비 → E2E다. 어느 단계든 실패하면 즉시 멈추고 성공을 표시하지 않는다.
-이 실행은 제품의 Gradle/npm 명령과 설치 스크립트를 실행하므로 자신이 검토·관리하는 프로젝트에서 사용한다.
-생성 파일은 하네스 checkout 없이도 사용할 수 있고 이후 제품에서 관리한다.
+기본은 미리보기이며 파일 쓰기·설치·검사를 수행하지 않는다. 지원 선택은 `spring`·`vue`·`spring+vue`다.
+다른 스택과 단독 선택의 경로 옵션, 경로 탈출·같은 조합 경로는 거부한다.
+조합 경로는 프로젝트 안의 상대 경로이며 각 구성 디렉터리·필수 파일은 심볼릭 링크를 허용하지 않는다.
 
-기존 목적 파일은 내용이 같아도 덮어쓰지 않는다. 재적용이나 업데이트는 생성 원본과 제품 파일을 검토해
-필요한 차이만 직접 반영한다. scripts가 링크이거나 목적 파일이 이미 있으면 중단한다.
+Spring은 `./gradlew check bootJar`를 실행한다. Vue는 `npm ci` → `npm run type-check` →
+`npm run lint` → `npm run test:unit` → `npm run build` → 프로젝트 Playwright로 Chromium 준비 →
+`npm run test:e2e` 순서다. 조합은 Spring 다음 Vue다. 어느 단계든 실패하면 멈추고 PASS를 표시하지 않는다.
+실제 실행은 제품의 Gradle/npm 명령과 설치 스크립트를 수행하므로 검토·관리하는 프로젝트에서 사용한다.
+
+기존 목적 파일은 내용이 같아도 덮어쓰지 않는다. scripts가 링크이거나 목적 파일이 있으면 중단한다.
 AGENTS.md·기존 check-local.sh·앱 설정·데이터·Git 설정은 적용 과정에서 수정하지 않는다.
+업데이트는 생성 정본과 제품 파일을 검토하여 필요한 차이만 직접 반영한다.
 
-## 제품에 남길 내용과 한계
+## 제품에 남길 검사와 한계
 
-제품 AGENTS.md의 검사 명령에 새 진입점을 연결하고 기존 제품 전용 검사도 유지한다. 이미 check-local.sh에
-동일한 공통 단계가 있으면 두 파일을 연이어 실행해 중복 검사하지 말고 기존 진입점을 유지하거나 내용을 검토해
-통합한다. 샘플의 DB 재시작 보존·E2E 이미지 복원처럼 앱에 필요한 처리는 이 공통 구성에 포함되지 않는다.
-제품 E2E가 파일을 갱신하거나 서버를 실행하는지는 해당 제품 설정에서 확인한다.
+제품 AGENTS.md에 진입점을 연결하고 제품 전용 검사도 유지한다. 기존 check-local.sh에 같은 공통 단계가
+있으면 중복 실행하지 말고 기존 진입점을 유지하거나 내용을 검토해 통합한다.
+DB 재시작 보존·E2E 이미지 복원 등 제품별 처리는 이 공통 구성에 포함되지 않는다.
+E2E의 파일 변경·서버 실행은 제품 설정에서 확인한다.
 
-준비 조건 검사는 파일·명령 선언의 존재를 확인한다. 검사 설정의 충실도·실제 통과·보안 격리를 증명하지 않는다.
-변경한 코드는 해당 검사를 다시 실행하고, 동일 후보·환경·범위의 증거만 재사용한다.
-이 구성의 회귀 검사는 Playwright Test를 유지한다. Stagehand v4는 AI 브라우저 작업용 별도 후보이며
-검사 도구를 자동 교체하지 않는다. [도구 선택 근거](decisions.md#브라우저-자동화-도구-선택-2026-09-22)를 따른다.
-다른 스택·패키지 관리자·폴더 구조·DB·인프라는 실제 요구가 생길 때 확장한다.
-진행과 검증 결과는 [명세](specs/local-spring-vue-setup.md), 제품 우선순위는 [로드맵](product-direction.md)을 따른다.
+준비 조건 검사는 파일·명령 선언의 존재를 확인한다. 설정의 충실도·실제 통과·보안 격리를 증명하지 않는다.
+회귀 검사는 제품 명령 실행 경계를 격리 대역으로 확인하며 실제 앱의 Gradle·브라우저 검사는 제품이 수행한다.
+변경한 코드는 해당 검사를 다시 실행하고 동일 후보·환경·범위의 증거만 재사용한다.
+Playwright Test를 유지하며 Stagehand v4로 자동 교체하지 않는다.
+[도구 선택 근거](decisions.md#브라우저-자동화-도구-선택-2026-09-22)를 따른다.
+기존 조합의 당시 결과는 [원래 명세](specs/local-spring-vue-setup.md), 이번 변경 범위는
+[후속 구조 정리](specs/structure-cleanup.md), 제품 우선순위는 [로드맵](product-direction.md)에서 확인한다.

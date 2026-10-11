@@ -1,5 +1,8 @@
 # rails-stack-completion — 스펙 & 플랜
 
+이 문서는 당시 구현의 범위·경로를 보존한다. 현재 원문 위치·명령은
+[구조 안내](../repository-structure.md)와 [후속 스펙](structure-cleanup.md)을 따른다.
+
 > `/plan` 산출물(승인 2026-07-08). `/feature-add`가 이 문서를 `docs/specs/`로 커밋(guard F5).
 > ⚠️ **L 규모(3 워크스트림)** — 한 세션 몰아치기 금지. 권장 청킹: ①T0~T2(spec·ruby.md·test-guard) → ②T3~T4(DDL 게이트, 최대) → ③T5~T6(배선·문서). 각 태스크=원자적 커밋.
 

@@ -61,12 +61,17 @@ node scripts/build-packages.mjs --check
 node scripts/build-packages.mjs --output /tmp/team-harness-packages
 ```
 
-정식 릴리즈 검토용 source·staged package bundle은 dirty worktree가 아닌 기록된 `HEAD`에서 만들고 checksum을
-검증한다. 이 명령은 태그·GitHub Release·marketplace publication을 수행하지 않는다.
+정식 릴리즈 검토용 source bundle은 `--source-only`로 만든다. 실험 catalog와 builder 없이 기록된 Git `HEAD`의
+버전·source archive·checksum을 사용하며 manifest는 `schemaVersion: 1`, `installable: false`, `packages: []`다.
+옵션 없는 기존 명령은 같은 후보의 네 staged package를 포함하는 실험 출력을 유지한다.
+두 경로 모두 dirty 작업 제외·기존 output 거부·미완성 output 정리를 유지한다. 태그·GitHub Release·marketplace
+publication은 수행하지 않으며 [#412](https://github.com/grinvi04/team-harness/issues/412)의 승격 조건도 그대로다.
 
 ```bash
-node scripts/build-release-bundle.mjs --output /tmp/team-harness-release
+node scripts/build-release-bundle.mjs --source-only --output /tmp/team-harness-release
 (cd /tmp/team-harness-release && shasum -a 256 -c SHA256SUMS)
+# 분리 패키지 실험 결과를 함께 만들 때
+node scripts/build-release-bundle.mjs --output /tmp/team-harness-experiment
 ```
 
 생성된 `harness-package.json`의 `installable`이 `false`인 동안에는 marketplace에 등록하거나 기존

@@ -54,6 +54,8 @@ Harness 제공 계약을 읽도록 연결하며, 미제공 때 최소 기준과 
 
 ## 문서 동기화
 
+아래는 당시 PR 선언이다. 옮긴 증거의 [고정 원문·복구](../history-evidence.md)를 읽으며 현재 선언으로 재사용하지 않는다.
+
 ```harness-doc-sync
 {"version":1,"documents":[
   {"path":"docs/specs/qa-command-binding-validation.md","reason":"후속 원인·수용 기준·결과·한계"},
@@ -158,7 +160,7 @@ upstream head의 908 PASS는 별도 parser 변경이 있는 후보여서 같은 
 조합 폭증은 미보장이다. 기존 앱 시험과 잠근 새 시험 원문은 유지했으며 명령 회귀만 새
 단계에 맞게 확장했다. 이미지/DB는 이전 검증 baseline과 동일하며 새 실행 전 snapshot으로
 주장하지 않는다. 최초 실패·재시도와 후보 지문은
-[bracesMitigationFollowup](qa-install-v0.81.0-evidence.json)과 제품 원문에 보존한다.
+[bracesMitigationFollowup](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-install-v0.81.0-evidence.json)과 제품 원문에 보존한다.
 
 전체 감사 exit 1/high 5와 전체 취약점 제거 FAIL/미완료는 유지한다. 운영 감사 exit 0/0건은
 별도 범위다. 정식 호환 수정 릴리즈를 검토해 보완을 제거한 뒤 전체 감사·동일 QA를 확인한다.
