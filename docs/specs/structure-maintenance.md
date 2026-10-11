@@ -126,9 +126,11 @@ main/tag SHA는95775650eb8b05efdbd77f3547f5ccf3c04b6d85다. 전체 브랜치 보
 - Claude 공식 CLI: 활성 버전0.88.0·캐시70파일이 발행 원본과 동일. 이미 열린 실행은 재시작이 필요하다.
 - 전역 공통 지침·Claude 설정과 다른 plugin은 동일하다. Codex 설정은 해당 marketplace의 태그와 위치만 바뀌었다.
   이전 위치/태그로 되돌린 내용의 전체 원본 checksum이 일치했다. 실제 설정을 되돌린 것은 아니다.
-- doctor: 설치·native 계약·managed requirements·브랜치 보호 통과, 종합은 exit1이다.
-  템플릿/시험 fixture의 스택 파일을 앱으로 감지해 소비용 migration-safety·alembic heads2개를 누락 보고했다.
-  Harness에는 실행 DB/앱이 없고 해당 두 checker는0.87.0과 byte 동일하다. 종합 healthy로 보고하지 않는다.
+- doctor 최초 실행: 설치 원본에서 별도 작업 clone을 검사해 종합 exit1이었다.
+  경로가 달라 Harness 자체 검사 예외가 적용되지 않고 fixture를 앱으로 감지해 소비용2검사를 누락 보고했다.
+  설치·native·managed·보호는 통과했지만 이 실행을 healthy로 보고하지 않는다. 두 checker는0.87과 byte 동일하다.
+- doctor 재확인: 공식 설치 원본을 자체 검사해 exit0/healthy, 자산13개 모두 정상·경고/누락0.
+  검사기·기준·설정을 바꾸지 않고 정상 자체 검사 경로를 사용했다. 실제 서버/DB 정상이나 모델 검증을 뜻하지 않는다.
 - 실제 hook 발화·기존 대화 재로딩·Claude 인증/실모델은 이번 설치 검증에서 미실행이다.
 - 이 체크포인트의 develop 역병합은 미실행이며 이후 결과는
   [역병합 PR](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Async%2Fbackmerge-v0.88.0)을 따른다.
