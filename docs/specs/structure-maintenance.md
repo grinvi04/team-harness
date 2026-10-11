@@ -58,7 +58,14 @@ Claude 인증 갱신·실제 모델 호출도 보류한다. 기본 작업 폴더
 - 첫 전체 quality: 커밋 132f81a에서 19번째 단계가 예전 Bash append 문구를 찾는 정적 단언으로 멈췄다.
   trusted workflow 자체의 62항목은 통과했다. 단언을 8개 선택의 실제 필수 검사 목록으로 이전했다.
   실제 셋업→보호 전달 28항목은 유지했고 셋업→repo-sync Vue/Next.js 4개 조합도 통과했다.
-- 전체 quality·고정 후보 독립 검토: 다음 단계다. PR은 준비 전이며 병합·발행·설치는 승인 범위에 포함하지 않는다.
+- 전체 quality: 커밋 d02cf38의 72개 단계를 통과했다. Ubuntu 설치 단계는 macOS의 기존 rg와
+  작업 전용 venv의 ruff 0.15.15로 대체하고 동일 lint·format 명령을 실행했다.
+  첫 재시도는 임시 도구의 외부 Python symlink를 repo-sync가 거부했다. 제품 검사는 유지하고
+  실제 가상환경을 기존 제외 경로 `venv`로 옮긴 뒤 27번째 단계부터 통과했다. 앞선 26단계의
+  성공 결과와 동일 커밋·명령을 대조해 재사용했고 최초 실패 로그도 보존했다.
+- 고정 후보 독립 검토와 현재 CI 결과는
+  [해당 브랜치 PR](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Afix%2Fstructure-maintenance)에 기록한다.
+  완료 판정에는 독립 검토 통과가 필요하다. 병합·발행·설치는 이번 승인 범위에 포함하지 않는다.
 
 ## 문서 동기화 범위
 

@@ -19,7 +19,6 @@ bash tests/package-build-test.sh
 node experiments/split-packaging/manage-profile.mjs install \
   --profile agent-governed --runtime codex --target /tmp/team-harness-profile
 node experiments/split-packaging/profile-doctor.mjs --target /tmp/team-harness-profile
-node experiments/split-packaging/manage-profile.mjs remove --target /tmp/team-harness-profile --all
 ```
 
 Profiles are `repository-only`, `agent-governed`, and `workflow-assisted`. The latter two require `claude` or
@@ -35,6 +34,12 @@ node scripts/check-plugin-coexistence.mjs \
 
 Each direct child of `--plugins` requires matching Claude and Codex manifests. Names are reported as
 `plugin:skill`; hook matcher order remains delegated to the platform.
+
+After the evaluation, remove the disposable profile:
+
+```bash
+node experiments/split-packaging/manage-profile.mjs remove --target /tmp/team-harness-profile --all
+```
 
 ## Loader pilots and provenance
 
