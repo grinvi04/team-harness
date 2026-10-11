@@ -8,4 +8,3 @@
   ./node_modules/.bin/playwright install chromium
   npm run test:e2e
 )
-

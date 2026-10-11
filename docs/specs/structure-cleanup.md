@@ -172,3 +172,25 @@ HEAD만으로 미커밋 파일을 검증했다고 말하지 않고 diff와 대�
   "items": []
 }
 ```
+
+## 구현·검증 현황
+
+스택 정본 27파일을 옮기고 카탈로그 schema3의 저장소 루트 경로로 셋업·생성·repo-sync를 연결했다.
+CI6개의 배너 외 원문과 12조합을 보존했다. 로컬 검사는 Spring·Vue 단독·조합·무옵션 호환을 제공한다.
+과거30파일은 고정 Git으로 옮겼고 decisions 원문2개는 현재 안내로 축약했다. 원문32개의 digest를
+대조했으며 현재 trust/provenance와 외부 JSON7개는 바이트 그대로다. 인수 실패·보류 조건을 유지했다.
+source-only를 추가하고 기존 네 staged package 출력을 유지했다. 빈 로컬 src 디렉터리4개만 rmdir했다.
+사용자 자료·지도·복구 백업은 보존했다. 소스0.90.0 준비이며 병합·발행·설치는 미실행이다.
+
+범위 검사: 로컬13, 스택12묶음, 신규 셋업39, repo-sync44와 역사 reader·기존 역사7검사가 통과했다.
+bundle32검사는 최초 구현 후보에서 통과했으나 커밋 뒤 전체 quality51단계에서 정적 marker를
+테스트 소스 자체가 포함해 오염으로 오판했다. 버전·SHA·digest는 정상이었다. archive의 실제 builder
+원문을 고정 Git과 대조하도록 판정자를 보완했다. 전체 byte·checksum·dirty 거부 단언과 bundle32검사가 통과했다.
+빈 줄 경고는 개별 명령의 구분자를 생성기로 옮겨 없앴고 기존 checker 바이트 동일·로컬13검사를 확인했다.
+첫 독립 검토는 진행 기록 누락과 quality31/73의 미확인 때문에 FAIL이었다. 중대 코드 지적은 없었다.
+최초 실패·교정·전체 실행 원문은 작업공간 `.runtime/structure-cleanup/`에 보존한다.
+
+최종 전체 quality와 교정 후 독립 검토는 진행 중이다. 통과 전 완료로 판정하지 않는다.
+quality는 macOS 로컬 재현이며 checkout·Ubuntu apt·pipx 설치만 현재 작업공간·rg·격리 ruff0.15.15로 대체한다.
+실제 소비 앱 Gradle/npm/browser·원격 CI·발행·설치·Claude 인증/실모델은 미실행이다.
+fixture 명령 경계·로컬 회귀와 실제 소비 실행·전달 결과를 구분한다.

@@ -76,7 +76,7 @@ function main(args) {
     const role = key === 'spring' ? 'backend' : 'frontend'
     const destination = directories[role] ? `$PROJECT_ROOT/${directories[role]}` : '$PROJECT_ROOT'
     return readFileSync(path.join(repositoryRoot, source), 'utf8').replace(`$PROJECT_ROOT/${role}`, destination)
-  }).join('')
+  }).join('\n') + '\n'
   const content = readFileSync(path.join(repositoryRoot, 'templates/local/check-harness.sh'), 'utf8').replace('{{CHECKS}}', checks)
   console.log(`${apply ? 'CREATE' : 'PREVIEW'}: ${target}`)
   if (stack !== 'vue') console.log(`${directories.backend || '.'}: ./gradlew check bootJar`)

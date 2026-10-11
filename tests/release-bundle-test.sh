@@ -178,7 +178,11 @@ const archive = fs.readFileSync(path.join(root, m.sourceArchive.path))
 if (m.schemaVersion !== 1 || m.installable !== false || m.sourceCommit !== revision || m.version !== version ||
     JSON.stringify(m.packages) !== '[]' || fs.existsSync(path.join(root, 'packages')) ||
     m.sourceArchive.sha256 !== createHash('sha256').update(archive).digest('hex') ||
-    archive.includes(Buffer.from(sentinel)) || archive.includes(Buffer.from('SOURCE_ONLY_MUST_NOT_CALL_BUILDER'))) process.exit(1)
+    archive.includes(Buffer.from(sentinel))) process.exit(1)
+const builderPath = 'scripts/build-packages.mjs'
+const archivedBuilder = execFileSync('tar', ['-xOf', path.join(root, m.sourceArchive.path), `team-harness-v${version}/${builderPath}`])
+const recordedBuilder = execFileSync('git', ['--no-replace-objects', 'show', `${revision}:${builderPath}`], { cwd: path.join(root, '..', 'repo') })
+if (!archivedBuilder.equals(recordedBuilder) || archivedBuilder.includes(Buffer.from('SOURCE_ONLY_MUST_NOT_CALL_BUILDER'))) process.exit(1)
 const expectedFile = path.join(root, '..', 'expected.tar')
 execFileSync('git', ['--no-replace-objects', 'archive', '--format=tar', `--prefix=team-harness-v${version}/`, '-o', expectedFile, revision], { cwd: path.join(root, '..', 'repo') })
 if (!archive.equals(fs.readFileSync(expectedFile))) process.exit(1)
