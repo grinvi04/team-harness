@@ -88,8 +88,9 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 
 ## 🏗️ 아키텍처
 
-![역사적 팀 모드 강제 계층 그림](docs/architecture.png)
-위 PNG는 사람 승인 1+를 표시한 과거 팀 모드 자료다. [현재 Mermaid·보호 범위와 보존 그림](docs/harness-architecture.md)을 읽는다.
+![Team Harness: 플랫폼 실행 → 로컬 가드·Git 훅 → PR 생성 → 현재 후보의 검증·CI·리뷰 → 병합 래퍼 → GitHub 브랜치 보호](docs/diagrams/team-harness.svg)
+Codex·Claude가 실행하고, Harness가 정책과 검증 증거를 연결하며, GitHub가 설정된 서버 보호를 집행한다.
+[훅 차이·병합 조건·상세 HTML·재생성 방법](docs/harness-architecture.md)을 읽는다.
 
 ## harness-guard 플러그인
 
