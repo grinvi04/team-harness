@@ -31,14 +31,14 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 `node scripts/generate-changelog.mjs --release vX.Y.Z --write`로 CHANGELOG index와 `docs/changelog/` 전체를 생성한다(태그 발행 아님).
 동작 변경을 머지하고 버전을 안 올리면 팀원에게 배포되지 않은 것과 같다.
 
-## 0.88.0 구조 정리 후보
+## 0.88.0 구조 정리
 
 스택 카탈로그와 YAML 조각이 정본이며 완성 CI와 공통 Git/CI 사본은 생성·일치 검사로 관리한다.
 빈 스택 권한 파일과 사용하지 않는 placeholder CI는 제거했다. 기존 프로젝트 파일과 자동 허용 범위를 보존한다.
 실험 catalog는 `experiments/split-packaging/`로 옮겼고 이전 script 명령은 같은 구현으로 연결한다.
 개별 스택6개를 유지하며 풀스택 CI는 선택한 두 스택에서 조합한다. 소개 HTML은 삭제했다.
 과거 실행 원문은 [Git 고정 커밋](https://github.com/grinvi04/team-harness/tree/85338bdcb691727ebd098f4ee0ce5167faf36e24/docs/specs/harness-modernization)에서 읽고 복구 방법은 [구조 안내](repository-structure.md)를 따른다.
-공개 플러그인은 하나다. 이 후보의 구현·검증과 실제 병합·발행·설치는 [스펙](specs/structure-maintenance.md)에서 구분한다.
+공개 플러그인은 하나다. 구현·검증과 실제 병합·발행·설치는 [스펙](specs/structure-maintenance.md)에서 구분한다.
 
 ## 진행 문서 검사 배포 경계
 
