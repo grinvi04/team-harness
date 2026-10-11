@@ -138,14 +138,19 @@ fi
 
 expected_assets="$(printf '%s\n' \
   'docs/architecture-gitflow.png' \
-  'docs/architecture.png')"
+  'docs/architecture.png' \
+  'docs/diagrams/team-harness.svg')"
 tracked_assets="$(printf '%s\n' "$tracked_paths" \
   | grep -Ei '\.(png|jpe?g|gif|webp|svg|pdf|zip|woff2?|ttf|otf)$' \
   | sort || true)"
 if [ "$tracked_assets" = "$expected_assets" ] \
   && contains "$REPORT" "docs/architecture.png" \
   && contains "$REPORT" "docs/architecture-gitflow.png" \
-  && contains "$REPORT" "a6164f1"; then
+  && contains "$REPORT" "a6164f1" \
+  && contains "$REPORT" "docs/diagrams/team-harness.svg" \
+  && contains "$REPORT" "58ab0b98d2d0def8e49dced705c7b566936723ec" \
+  && [ -f "$ROOT/docs/diagrams/ARCHIFY-LICENSE.txt" ] \
+  && [ -f "$ROOT/docs/diagrams/JetBrainsMono-OFL.txt" ]; then
   pass "tracked 배포 자산 목록과 provenance 근거"
 else
   printf 'expected assets:\n%s\nactual assets:\n%s\n' "$expected_assets" "$tracked_assets"
