@@ -198,43 +198,43 @@ svg {font-family: 'JetBrains Mono', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', s
 
         
         <g style="--step:0">
-          <path d="M 480 125 L 310 125" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 480 125 L 310 125" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 480 125 L 310 125" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)" />
         </g>
         <g style="--step:1">
-          <path d="M 185 170 L 185 300" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 185 170 L 185 300" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 185 170 L 185 300" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)" />
         </g>
         <g style="--step:2">
-          <path d="M 310 345 L 480 345" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 310 345 L 480 345" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 310 345 L 480 345" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)" />
         </g>
         <g style="--step:3">
-          <path d="M 730 345 L 900 345" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 730 345 L 900 345" fill="none" stroke="#ffffff" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 730 345 L 900 345" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)" />
         </g>
         <g style="--step:4">
-          <path d="M 1025 390 L 1025 590" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 1025 390 L 1025 590" fill="none" stroke="#ffffff" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 1025 390 L 1025 590" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)" />
         </g>
         <g style="--step:5">
-          <path d="M 605 390 L 605 590" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 605 390 L 605 590" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 605 390 L 605 590" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)" />
         </g>
         <g style="--step:6">
-          <path d="M 1025 680 L 1025 880" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 1025 680 L 1025 880" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 1025 680 L 1025 880" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)" />
         </g>
         <g style="--step:7">
-          <path d="M 605 680 L 605 880" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 605 680 L 605 880" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 605 680 L 605 880" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)" />
         </g>
         <g style="--step:8">
-          <path d="M 900 925 L 730 925" fill="none" stroke="var(--mask)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 900 925 L 730 925" fill="none" stroke="#ffffff" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 900 925 L 730 925" class="a-security" stroke-width="1.5" marker-end="url(#arrowhead-security)" />
         </g>
         <g style="--step:9">
-          <path d="M 605 970 L 605 1160" fill="none" stroke="var(--mask)" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
+          <path d="M 605 970 L 605 1160" fill="none" stroke="#ffffff" stroke-width="5.8" stroke-linecap="round" stroke-linejoin="round" pointer-events="none" />
           <path d="M 605 970 L 605 1160" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)" />
         </g>
 
@@ -329,7 +329,7 @@ svg {font-family: 'JetBrains Mono', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', s
         </g>
 
         <g id="node-checks" role="button" aria-label="Focus CI·리뷰 상태, 필수 검사·미해결 스레드, Architecture component" aria-pressed="false">
-          <title>CI·리뷰 상태 · 필수 검사·미해결 스레드 · Architecture component · 조회 실패도 병합 중단</title>
+          <title>CI·리뷰 상태 · 필수 검사·미해결 스레드 · Architecture component · 스레드 조회 실패는 중단</title>
           <rect x="900" y="880" width="250" height="90" rx="6" class="c-mask" />
           <rect x="900" y="880" width="250" height="90" rx="6" class="c-cloud" stroke-width="1.5" />
           <g aria-hidden="true" class="semantic-sigil s-cloud" transform="translate(906 886) scale(0.6875)">
@@ -337,7 +337,7 @@ svg {font-family: 'JetBrains Mono', 'Apple SD Gothic Neo', 'Noto Sans CJK KR', s
           </g>
           <text x="1025" y="923" class="t-primary" font-size="14" font-weight="600" text-anchor="middle">CI·리뷰 상태</text>
         <text x="1025" y="939" class="t-muted" font-size="11" text-anchor="middle">필수 검사·미해결 스레드</text>
-        <text x="1025" y="962" class="t-cloud" font-size="9" text-anchor="middle">조회 실패도 병합 중단</text>
+        <text x="1025" y="962" class="t-cloud" font-size="9" text-anchor="middle">스레드 조회 실패는 중단</text>
         </g>
 
         <g id="node-merge" role="button" aria-label="Focus PR 병합 래퍼, pr-merge.sh, Architecture component" aria-pressed="false">

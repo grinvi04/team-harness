@@ -35,8 +35,8 @@ def export(source, destination):
         for key in list(element.attrib):
             if key.startswith("data-") or key.startswith("on") or key == "tabindex":
                 del element.attrib[key]
-        if "style" in element.attrib:
-            element.set("style", re.sub(r"var\((--[\w-]+)\)", resolve, element.get("style")))
+        for key, value in list(element.attrib.items()):
+            element.set(key, re.sub(r"var\((--[\w-]+)\)", resolve, value))
     for text in svg.iter("text"):
         size = text.get("font-size")
         if text.get("class") == "t-primary" and size == "11":
