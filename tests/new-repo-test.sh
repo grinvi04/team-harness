@@ -197,6 +197,26 @@ CHECK
   fi
 done
 
+# Standalone destinations must not inherit shell variables used by compositions.
+for kind in relative traversal absolute; do
+  target="$TMP/env-$kind"
+  git clone -q "$TMP/source" "$target"
+  case "$kind" in
+    relative) foreign="foreign-env"; outside="$target/$foreign" ;;
+    traversal) foreign="../outside-env"; outside="$TMP/outside-env" ;;
+    absolute) foreign="$TMP/absolute-outside-env"; outside="$foreign" ;;
+  esac
+  export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
+  : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
+  if (cd "$target" && printf '2\n' | BACKEND_DIR="$foreign" FRONTEND_DIR="$foreign" PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
+    && cmp -s "$ROOT/templates/checkstyle.xml" "$target/backend/config/checkstyle/checkstyle.xml" \
+    && [ ! -e "$outside" ]; then
+    echo "PASS: standalone Spring ignores inherited $kind directory variables"; PASS=$((PASS+1))
+  else
+    echo "FAIL: standalone Spring inherited $kind destination"; FAIL=$((FAIL+1))
+  fi
+done
+
 for selection in 7 5+6 2+3 2+6:../outside; do
   target="$TMP/invalid-${selection//[^a-zA-Z0-9]/-}"
   git clone -q "$TMP/source" "$target"

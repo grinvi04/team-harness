@@ -189,7 +189,8 @@ fi
 
 # Spring 스택 전용 추가 파일
 if [ "$(selection_value backend.preset)" = spring ]; then
-  SPRING_DIR="${BACKEND_DIR:-backend}"
+  SPRING_DIR=backend
+  if [ "$(selection_value mode)" = composed ]; then SPRING_DIR="$BACKEND_DIR"; fi
   mkdir -p "$SPRING_DIR/config/checkstyle"
   copy_once "$HARNESS_DIR/templates/backend-gitignore.spring" "$SPRING_DIR/.gitignore" \
     "$SPRING_DIR/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
