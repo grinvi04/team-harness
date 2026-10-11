@@ -372,14 +372,14 @@ else
   fail 'checked-in manifest schema와 로컬 원본 digest 계약'
 fi
 
-if grep -Fxq \
+if grep -Fq \
   'node scripts/check-external-pilot-provenance.mjs --manifest docs/pilots/external-pilot-provenance.json' \
-  "$RELEASE_CHECK_SKILL" \
-  && grep -Eq 'provenance.*실패.*(NO-GO|중단)|실패.*provenance.*(NO-GO|중단)' \
-    "$RELEASE_CHECK_SKILL"; then
-  pass '공식 release-check가 live provenance 실패를 차단'
+  "$ROOT/AGENTS.md" \
+  && grep -Eq '\-\-offline.*금지' "$ROOT/AGENTS.md" \
+  && grep -Eq '필수 FAIL.*UNVERIFIED.*NO-GO' "$RELEASE_CHECK_SKILL"; then
+  pass 'repo의 필수 live provenance 선언과 공용 fail-closed 판정 연결'
 else
-  fail '공식 release-check가 live provenance 실패를 차단'
+  fail 'repo의 필수 live provenance 선언 또는 공용 fail-closed 판정 누락'
 fi
 
 echo

@@ -2,7 +2,7 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.86.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.87.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
@@ -10,7 +10,7 @@
 구성하지 않도록 돕는다. 실제 프로젝트에서 검증된 구성을 재사용하고, 유용한 부분부터 동료에게 공유한다.
 현재 스택별 기준·템플릿·검사 연결 안내와 개발 조정 절차를 제공하며, 새 앱 전체를 자동 생성하지는 않는다.
 
-일반 설계·TDD·디버깅은 선택한 방법론(설치된 Superpowers 등)에 맡기고, Harness는 프로젝트 기준·검사·인계·delivery 조건을 연결한다. 스킬 이름을 외우지 않고 목표를 자연어로 요청한다.
+[공통 프로젝트 계약](plugins/harness-guard/skills/ao-coordinate/project-contract.md)에 따라 일반 설계·TDD·디버깅은 선택한 방법론(설치된 Superpowers 등)에 맡기고, Harness는 프로젝트 기준·검사·인계·delivery 조건을 연결한다. 스킬 이름을 외우지 않고 목표를 자연어로 요청한다.
 
 로컬 프로젝트는 [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.
 준비된 Spring Boot+Vue 프로젝트에는 [로컬 검사 시작 구성](docs/local-development.md)으로 공통 검사 진입점을
@@ -73,7 +73,7 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 | 🔒 솔로 머지 | `/solo-merge` — 자기 PR 승인 불가 제약을 review 보호 일시 해제·복구로 처리 |
 | 📦 드리프트 점검 | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 감지 및 백필 PR 제안 |
 | 🩺 런타임 진단 | `harness-doctor.sh` — Codex 설정·플러그인·repo·branch protection 종합 점검 + 선택적 fresh-session probe |
-| 🏅 릴리즈 검증 | `/release-check` — 품질(A)·보안(B)·DB 마이그레이션(C) 병렬 검증 + 외부 파일럿 live provenance(D) |
+| 🏅 릴리즈 검증 | `/release-check` — repo가 선언한 품질·보안·DB·추가 검사와 현재 후보의 GO/NO-GO 판정 |
 
 ## 🧱 기술 스택
 

@@ -96,6 +96,19 @@
 - **플러그인 동작 변경**(스크립트·훅·스킬·`templates/`) 시 `plugins/harness-guard/.claude-plugin/plugin.json` + `plugins/harness-guard/.codex-plugin/plugin.json` + `README.md` 배지 **버전 bump** — `docs/harness-maintenance.md`.
 - 릴리즈: `develop`→`release/vX`→`main` PR + 태그(`/release`). 상세 `docs/harness-maintenance.md`.
 
+## 이 저장소의 릴리즈 명령
+
+공용 release/release-check는 아래 repo 선언을 읽는다. 이 명령을 모든 소비 repo에 강제하지 않는다.
+
+- 버전 준비: 두 plugin manifest와 README 배지를 함께 갱신하고 docs/intro.html의 현재 버전을 맞춘다.
+- 태그 전 변경 이력: `node scripts/generate-changelog.mjs --release v$VERSION --write`.
+  구현 커밋 후 생성하고 `node scripts/generate-changelog.mjs --release v$VERSION --check`로 확인한다.
+- 사전 품질: 위 quality 잡 전체와 현재 커밋의 package/bundle·checksum 검증.
+- 추가 필수 live 검사: `node scripts/check-external-pilot-provenance.mjs --manifest docs/pilots/external-pilot-provenance.json`.
+  정식 release-check에서 `--offline` 사용 금지. manifest·verifier 누락, network·rate limit·permission 실패는 NO-GO다.
+- 실제 DB·런타임 서버·스테이징·프로덕션이 없어 DB와 배포 헬스는 사유를 적어 SKIP한다.
+  test fixture는 운영 대상으로 세지 않는다. 태그 발행과 실제 plugin 설치 검증은 별개다.
+
 ## 금지 사항
 
 - guard/secret-scan 훅·가드를 **우회 목적으로 완화** 금지(정당한 개선은 테스트·decisions 동반).
