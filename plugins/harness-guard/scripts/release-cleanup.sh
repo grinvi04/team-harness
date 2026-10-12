@@ -29,6 +29,20 @@ else
     exit 1
   fi
 fi
+for legacy in remotes branches; do
+  if ! legacy_path=$(git rev-parse --git-path "$legacy/$cleanup_remote"); then
+    echo '⚠️ 정리 중단: 정리용 remote 경로 조회 실패' >&2
+    exit 1
+  fi
+  if [ -z "$legacy_path" ]; then
+    echo '⚠️ 정리 중단: 정리용 remote 경로 조회 실패(빈 경로)' >&2
+    exit 1
+  fi
+  if [ -e "$legacy_path" ] || [ -L "$legacy_path" ]; then
+    echo '⚠️ 정리 중단: 정리용 remote의 옛 정의 파일이 있습니다' >&2
+    exit 1
+  fi
+done
 for branch in "release/v$version" "sync/backmerge-v$version"; do
   if git show-ref --verify --quiet "refs/heads/$branch"; then
     state=0

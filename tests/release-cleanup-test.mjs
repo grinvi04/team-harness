@@ -199,3 +199,60 @@ test('configuration query failure rejects all deletion and preserves stored upst
   assert.equal(git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3'), remote)
   assert.equal(readFileSync(path.join(repo, '.git/config'), 'utf8'), config)
 }))
+
+for (const kind of ['remotes', 'branches']) {
+  for (const linked of [false, true]) {
+    test(`legacy ${kind} collision in ${linked ? 'linked' : 'primary'} checkout preserves every ref`, () => fixture(({ dir, repo, git }) => {
+      const legacy = path.join(repo, '.git', kind); mkdirSync(legacy)
+      const filename = path.join(legacy, 'harness-cleanup-unconfigured-remote')
+      const content = kind === 'remotes' ? `URL: ${repo}\nPull: refs/heads/release/v1.2.3:refs/remotes/origin/release/v1.2.3\n` : `${repo}#release/v1.2.3\n`
+      writeFileSync(filename, content)
+      let cwd = repo
+      if (linked) {
+        git('checkout', '-qb', 'other')
+        cwd = path.join(dir, 'linked'); git('worktree', 'add', '-q', cwd, 'develop')
+      }
+      const config = readFileSync(path.join(repo, '.git/config'), 'utf8')
+      const remote = git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3')
+      const result = run('bash', [helper, '1.2.3'], { cwd })
+      assert.notEqual(result.status, 0)
+      assert.match(result.stderr, /정리 중단.*정리용 remote/)
+      for (const branch of ['release/v1.2.3', 'sync/backmerge-v1.2.3']) git('show-ref', '--verify', `refs/heads/${branch}`)
+      assert.equal(git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3'), remote)
+      assert.equal(readFileSync(path.join(repo, '.git/config'), 'utf8'), config)
+      assert.equal(readFileSync(filename, 'utf8'), content)
+    }))
+  }
+}
+
+test('legacy remote must not restore upstream deletion during a local tip race', () => fixture(({ dir, repo, git, invoke }) => {
+  git('push', '-qu', 'origin', 'release/v1.2.3')
+  const legacy = path.join(repo, '.git/remotes'); mkdirSync(legacy)
+  writeFileSync(path.join(legacy, 'harness-cleanup-unconfigured-remote'), `URL: ${repo}\nPull: refs/heads/release/v1.2.3:refs/remotes/origin/release/v1.2.3\n`)
+  git('checkout', '-qb', 'other')
+  writeFileSync(path.join(repo, 'keep'), 'racing unmerged'); git('commit', '-qam', 'race')
+  const oid = git('rev-parse', 'HEAD').trim(); git('checkout', '-q', 'develop')
+  const original = git('rev-parse', 'release/v1.2.3').trim()
+  const bin = path.join(dir, 'bin'); mkdirSync(bin)
+  const gitBin = run('bash', ['-c', 'command -v git']).stdout.trim()
+  writeFileSync(path.join(bin, 'git'), `#!/bin/sh\nif [ "$1" = merge-base ] && [ "$3" = refs/heads/release/v1.2.3 ]; then\n '${gitBin}' "$@" || exit $?\n '${gitBin}' update-ref refs/heads/release/v1.2.3 ${oid} || exit $?\n '${gitBin}' update-ref refs/remotes/origin/release/v1.2.3 ${oid} || exit $?\n exit 0\nfi\nexec '${gitBin}' "$@"\n`, { mode: 0o755 })
+  const result = invoke({ ...process.env, PATH: bin + ':' + process.env.PATH })
+  assert.notEqual(result.status, 0)
+  assert.match(result.stderr, /정리 중단.*정리용 remote/)
+  assert.equal(git('rev-parse', 'release/v1.2.3').trim(), original)
+  assert.equal(git('config', '--get', 'branch.release/v1.2.3.remote').trim(), 'origin')
+}))
+
+test('legacy remote path query failure rejects every deletion', () => fixture(({ dir, repo, git, invoke }) => {
+  const config = readFileSync(path.join(repo, '.git/config'), 'utf8')
+  const remote = git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3')
+  const bin = path.join(dir, 'bin'); mkdirSync(bin)
+  const gitBin = run('bash', ['-c', 'command -v git']).stdout.trim()
+  writeFileSync(path.join(bin, 'git'), `#!/bin/sh\nif [ "$1" = rev-parse ] && [ "$2" = --git-path ]; then exit 128; fi\nexec '${gitBin}' "$@"\n`, { mode: 0o755 })
+  const result = invoke({ ...process.env, PATH: bin + ':' + process.env.PATH })
+  assert.notEqual(result.status, 0)
+  assert.match(result.stderr, /정리 중단.*경로 조회 실패/)
+  for (const branch of ['release/v1.2.3', 'sync/backmerge-v1.2.3']) git('show-ref', '--verify', `refs/heads/${branch}`)
+  assert.equal(git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3'), remote)
+  assert.equal(readFileSync(path.join(repo, '.git/config'), 'utf8'), config)
+}))
