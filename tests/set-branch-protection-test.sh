@@ -102,7 +102,7 @@ arg_case "값없는 --contexts → exit 2"   2  o/r --contexts
 arg_case "미지정 인자 → exit 2"         2  o/r --nope
 
 # --check --approvals 1 공개 CLI 계약: main은 승인≥1 + stale 승인 무효화,
-# develop은 자동머지를 위해 승인 정확히 0이어야 한다. gh는 fixture로 대체해 네트워크를 호출하지 않는다.
+# develop 승인 미지정은 회사 정책 보존을 위해 정보성이다. gh는 fixture로 대체해 네트워크를 호출하지 않는다.
 CLI_TMP=$(mktemp -d)
 FAKEBIN="$CLI_TMP/bin"
 mkdir -p "$FAKEBIN"
@@ -114,17 +114,42 @@ set -u
 shift
 method=GET
 endpoint=""
+input=""
 while [ $# -gt 0 ]; do
   case "$1" in
     -X) method="${2:-}"; shift 2;;
-    --input) cat >/dev/null; shift 2;;
+    --input) input="$2"; shift 2;;
     --jq) shift 2;;
     repos/*) endpoint="$1"; shift;;
     *) shift;;
   esac
 done
 printf '%s %s\n' "$method" "$endpoint" >>"${FAKE_GH_CALLS:-/dev/null}"
+if [ "$method" = PUT ]; then
+  case "$endpoint" in */main/protection) saved=main;; *) saved=develop;; esac
+  cp "$input" "${FAKE_GH_CALLS}.payload-$saved"
+  exit 0
+fi
+case "$endpoint" in */main/protection) saved=main;; */develop/protection) saved=develop;; *) saved="";; esac
+if [ -n "$saved" ] && [ -f "${FAKE_GH_CALLS}.payload-$saved" ]; then
+  python3 - "${FAKE_GH_CALLS}.payload-$saved" "${FAKE_GH_SCENARIO:-ok}" "$saved" <<'PYPOST'
+import json,sys
+d=json.load(open(sys.argv[1])); scenario=sys.argv[2]
+if sys.argv[3]=='main':
+    if scenario=='post-context-drift': d['required_status_checks']['contexts']=['quality']
+    if scenario=='post-strict-drift': d['required_status_checks']['strict']=False
+    if scenario=='post-admin-drift': d['enforce_admins']=False
+    if scenario=='post-review-drift': d['required_pull_request_reviews']=None
+    if scenario=='post-force-drift': d['allow_force_pushes']=True
+    if scenario=='post-delete-drift': d['allow_deletions']=True
+for key in list(d):
+    if isinstance(d[key],bool): d[key]={'enabled':d[key]}
+print(json.dumps(d))
+PYPOST
+  exit 0
+fi
 case "$endpoint" in
+  repos/o/r/rulesets*) printf '[]\n';;
   repos/o/r/branches/main|repos/o/r/branches/develop)
     [ "${FAKE_GH_SCENARIO:-ok}" = "missing-branch" ] && exit 1
     [ "${FAKE_GH_SCENARIO:-ok}" = "preflight-missing-develop" ] && [ "$endpoint" = repos/o/r/branches/develop ] && exit 1
@@ -193,7 +218,7 @@ cli_check_case() { # desc, fixture scenario, expected exit, [required contexts]
 }
 cli_check_case "CLI 팀1: main 승인2+dismiss, develop 승인0 → exit 0" ok 0
 cli_check_case "CLI 팀1: main dismiss_stale=false → exit nonzero" main-dismiss-false 1
-cli_check_case "CLI 팀1: develop 승인1 → exit nonzero" develop-approval-one 1
+cli_check_case "CLI 팀1: develop 미지정 승인1 → 정보성 exit0" develop-approval-one 0
 cli_check_case "CLI exact contexts 일치 → exit 0" ok 0 "quality,secret-scan,test-guard,commitlint,atomic-trust-macos"
 cli_check_case "CLI exact contexts 순서·중복 정규화 → exit 0" ok 0 "atomic-trust-macos,commitlint,quality,quality,test-guard,secret-scan"
 cli_check_case "CLI exact contexts 누락 → exit nonzero" missing-context 1 "quality,secret-scan,test-guard,commitlint,atomic-trust-macos"
@@ -220,11 +245,12 @@ apply_postcondition_case() { # desc, fixture scenario, expected exit
   rc=$?
   set -e
   local post_reads
-  post_reads=$(grep -Ec '^GET repos/o/r/branches/(main|develop)/protection$' "$calls" || true)
-  if [ "$rc" = "$wantrc" ] && [ "$post_reads" = 2 ]; then
+  post_reads=$(awk '/^PUT / { branch=$2; next } /^GET / && $2==branch { n++; branch="" } END { print n+0 }' "$calls")
+  local want_reads=1; [ "$wantrc" = 0 ] && want_reads=2
+  if [ "$rc" = "$wantrc" ] && [ "$post_reads" = "$want_reads" ]; then
     echo "PASS: $desc"; PASS=$((PASS+1))
   else
-    echo "FAIL: $desc — want rc$wantrc/post-read2 got rc$rc/post-read$post_reads ($out)"
+    echo "FAIL: $desc — want rc$wantrc/post-read$want_reads got rc$rc/post-read$post_reads ($out)"
     FAIL=$((FAIL+1))
   fi
 }
@@ -279,4 +305,6 @@ fi
 
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
+# Company preservation scenarios share this existing CI entrypoint.
+bash "$ROOT/tests/set-branch-protection-preservation-test.sh" || FAIL=$((FAIL+1))
 [ "$FAIL" -eq 0 ]

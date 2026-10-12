@@ -35,7 +35,10 @@
         "scripts/solo-merge.sh",
         "scripts/worktree-fingerprint.mjs",
         "runtime-path.md",
-        "scripts/resolve-skill-root.mjs"
+        "scripts/resolve-skill-root.mjs",
+        "scripts/branch-protection-policy.mjs",
+        "scripts/verify-required-checks.mjs",
+        "scripts/repo-policy.mjs"
       ]
     },
     {
