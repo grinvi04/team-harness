@@ -194,8 +194,6 @@ legacy security-guidance는 자동 패치 없이 삭제 보류하며 [현재 근
 
 ## 2026-10-12 — 이 개인 저장소의 solo 병합 선택
 
-사용자가 0.92.0 전달 중 solo-merge를 선택했다. 제품 방향은 기존 정책 연결이다.
-이 repo만 schema1의 `mode: solo`, 자동머지 opt-in 없음으로 선언한다.
-개인 소유·실제 협업자1명을 재확인하며 회사 기본값·회사 소비 repo는 변경하지 않는다.
-main 승인1을 영구 제거하지 않고 wrapper의 임시 예외·전체 보호 복원 검증을 사용한다.
+사용자가 0.92.0 전달 중 solo-merge를 선택했다. 기존 정책 연결로 이 repo만 schema1 `mode: solo`·자동머지 opt-in 없음으로 선언한다.
+개인 소유·실제 협업자1명을 재확인하며 회사 기본값·소비 repo는 유지한다. main 승인1은 wrapper의 임시 예외 뒤 전체 원값으로 복원·검증한다.
 required5·현재 head/base·독립 검토·스레드 게이트는 유지한다. [전달 상태](specs/company-adoption.md)를 따른다.
