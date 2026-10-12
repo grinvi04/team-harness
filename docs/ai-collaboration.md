@@ -143,8 +143,9 @@ Claude Code의 slash skill과 Codex의 skill 로딩은 UI가 다르다. Claude�
 지킨다. 기존 계획·승인과 현재 후보/환경/범위가 같은 검증 증거를 재사용한다. 필수 gate와 신선도 요구는
 유지한다. 구체적인 요청 예시는 [개발 안내](development-coordination.md#자연어-요청과-역할-분담)를 따른다.
 
-`route-intent`는 의미 분류기가 아니라 현재 Git/PR 상태를 보는 좁은 라우터다. “진행해”처럼 다음 Git 단계가
-필요한 요청에만 spec→개발, 커밋된 branch→PR, 열린 PR→review gate를 안내한다. 자동 선택은 편의 기능이며
+`route-intent`는 짧은 명시 구현·병합 요청에 Git/PR 상태를 연결해 후보만 안내한다.
+일반 요청과 “진행해”는 native agent가 기존 목표·승인과 현재 원본을 대조해 처리한다.
+후보가 없어도 작업을 막지 않는다. [현재 범위](specs/workflow-routing-scope.md)를 따른다.
 사용자가 허용하지 않은 commit·push·PR·merge·release 권한을 새로 만들지 않는다. 출력의 `상태 기반 후보`는 확정된 현재 단계가 아니다.
 과거 스펙이 남아 있거나 현재 요청과 다른 Git 단계가 관측될 수 있으므로, 실제 요청·기존 승인 범위·
 제품 원본을 대조한 뒤 적합한 skill을 선택한다. 라우터 안내만으로 새 작업을 시작하거나 재승인을 요구하지 않는다.

@@ -15,6 +15,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
+| **라우팅 후보를 짧은 명시 요청에 한정** — 일반·복합 요청의 의미와 이어가기는 native agent에 위임한다. 구현 요청을 열린 PR 때문에 병합 후보로 바꾸지 않으며 detached·작업 브랜치의 과거 spec으로 기능 추가를 제안하지 않는다. codex 작업 브랜치는 명시 병합 후보에 포함한다. 기존 후보 메시지·JSON·검증 재사용·보호 게이트는 유지한다. 제품 방향은 연결이다. 이전 상태만으로 이어가기 후보를 선택하던 부분을 대체한다. | 2026-10-11 | specs/workflow-routing-scope.md | developer-workflow.md, ai-collaboration.md, harness-plugin.md, README.md, route-intent.mjs |
 | **개별 스택 조합·Git 역사 연결** — 사용자가 고정 풀스택과 소개 HTML 제거를 승인했다. 개별6개 정본으로 백엔드4종×프론트3종을 조합하고 경로·rule·필수 검사를 함께 전달한다. Git85338bd에 있는 원문772개와 중복 안내1개를 checkout에서 삭제하며 현재 reader는 고정 커밋으로 연결한다. 정책·결정·CHANGELOG·fixture는 유지한다. 앞선8개 선택·역사 이동 결정의 해당 부분을 대체한다. 제품 방향은 소유다. | 2026-10-11 | repository-structure.md, specs/structure-maintenance.md | stacks.json, new-repo.sh, harness-plugin.md, onboarding.md, harness-maintenance.md |
 | **설정 정본·생성물·실험·역사 분리** — 기존 8개 CI와 보호 동작을 보존하며 카탈로그·공통/job 조각에서 완성 템플릿을 생성한다. Git/CI 필수 배치 사본은 정본 일치 검사로 관리한다. 빈 권한 fragment와 무효 병합을 제거하고 기존 제품 설정을 보존한다. 분리 패키지 구현과 과거 증거는 별도 경로로 옮기며 공개 플러그인 하나·미승격 경계·당시 증거 bytes를 유지한다. | 2026-10-11 | repository-structure.md, specs/structure-maintenance.md | templates/stacks.json, ci/stacks/sources, experiments/split-packaging, history/harness-modernization, onboarding.md, harness-maintenance.md |
 | **QA 보고는 명령별 원문에 결박, 프로젝트 계약은 AGENTS로 연결** — 같은 이름의 일반 검증 스킬을 Harness 계약 적용으로 간주하지 않는다. 제공된 Harness 계약을 실제 경로로 연결하고 미제공 시 최소 QA 기준과 미로딩을 밝힌다. native 선택/로딩은 복제하지 않으며 보고의 명령·디렉터리·후보·시도를 대조한다. | 2026-09-29 | verification-before-completion skill, qa-evidence-guide.md | AGENTS.md, templates/AGENTS.md, specs/qa-command-binding-validation.md |
@@ -24,10 +25,20 @@
 | **Codex 저위험 구현 위임과 문서 현행화** — 현재 agent가 모든 구현을 해야 한다는 native wrapper 제한을 수정한다. 승인된 모델·effort의 scoped worker를 허용하고, 테스트 계약 검수·Git 통합·최종 판정은 부모가, 독립 반증은 다른 인스턴스가 맡는다. 기술적 권한 제한·CI·리뷰는 완화하지 않는다. 로드맵·체크리스트·진행 문서의 상태 대조를 개발·인계·완료 기준에 연결한다. 전역 설정 변경이나 특정 모델 사용량 할당제는 도입하지 않는다. | 2026-09-22 | specs/personal-development-flow.md, model-tiering.md, ai-collaboration.md | codex/native-runtime.md, Codex feature-add·feature-modify·ao-coordinate wrapper, 공용 개발·검증 skill, templates/AGENTS.md |
 | **커밋 검사 신뢰 경계 분리** — 기본 브랜치의 metadata 전용 target workflow를 사용한다. 기존 필수 검사는 새 `commitlint-trusted`의 실제 PR 성공 확인 후 교체하며, PR 코드 실행·별도 App·수동 성공 상태 게시 없이 단계적으로 적용한다. | 2026-09-21 | specs/trusted-commitlint.md | code-review.md, specs/self-repo-common-gates.md |
 | **Agent Orchestration에서 필요한 인계·재개 원칙만 선택 통합** — 사용자 정정에 따라 초안의 별도 npm 패키지·선언 검사 4개·기록 생성 CLI·연구용 역할 체계를 제거한다. 현재 요구·담당 범위·후보별 검증·다음 행동만 짧은 ao-coordinate로 연결하고 기존 workflow와 core gate를 유지한다. 초기 전체 이관 초안과 과거 증거는 Git에 보존한다. 후보 0.69.0; 전역 변경·Jev·새 runtime 실험은 제외한다. | 2026-09-20 | development-coordination.md, specs/agent-orchestration-integration.md | product-direction.md, product-boundaries.md, ai-collaboration.md, onboarding.md, README.md |
-아래 후속 표는 원래 기록 순서를 유지한다. 과거 결정·대체 관계를 판단할 때 해당 표도 읽는다.
+아래 주제 안내는 현재 결정과 고정 Git 원문을 연결한다. 과거 결정·대체 관계는
+각 안내의 전체 SHA 원문에서 읽는다. [원문 목록과 복구](history-evidence.md)를 함께 따른다.
+과거 후보의 검증 결과를 현재 완료로 확대하지 않는다.
 
 - [초기 표준과 거버넌스 하드닝 결정](decisions-foundation-and-hardening.md)
 - [native 전환·제품 경계·소비 인수 결정](decisions-native-and-delivery.md)
+
+## 2026-10-12 구조 정리 후속 결정
+
+스택 자산은 `templates/stacks/<스택>/`에 모으고 카탈로그의 저장소 루트 기준 경로로 reader를 연결한다.
+Spring Boot·Vue 로컬 검사는 개별 원문에서 조합하며 기존 명령을 유지한다. 과거 원문은 고정 Git·digest로
+읽고 현재 정책·인수 실패·검증 필수 자료를 보존한다. 발행 검토에는 `--source-only`를 제공하고
+기존 네 staged package 출력도 유지한다. [후속 스펙](specs/structure-cleanup.md)의 승인 범위이며
+실제 병합·발행·설치나 분리 패키지 승격은 포함하지 않는다.
 
 ## 브라우저 자동화 도구 선택 (2026-09-22)
 

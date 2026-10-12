@@ -1,6 +1,6 @@
 ---
 name: feature-merge
-description: 완성된 feature/fix 브랜치를 develop에 머지할 때 사용. 품질·리뷰·승인·CI 게이트를 거치며 코드 구현·PR만 생성·main 릴리즈는 제외
+description: 완성된 feature/fix/codex 브랜치를 develop에 머지할 때 사용. 품질·리뷰·승인·CI 게이트를 거치며 코드 구현·PR만 생성·main 릴리즈는 제외
 ---
 
 # /feature-merge — feature 브랜치를 develop에 머지
@@ -8,7 +8,7 @@ description: 완성된 feature/fix 브랜치를 develop에 머지할 때 사용.
 스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
 
 **사용법**: `/feature-merge`
-현재 브랜치가 `feature/*` 또는 `fix/*`인 상태에서 실행한다.
+현재 브랜치가 `feature/*`, `fix/*` 또는 `codex/*`인 상태에서 실행한다.
 
 > 코드 확인 후 사용자가 직접 실행하는 커맨드.
 > 머지 전 품질 검증을 자동으로 수행한다.
@@ -19,7 +19,7 @@ description: 완성된 feature/fix 브랜치를 develop에 머지할 때 사용.
 
 | 상황 | 중단 사유 출력 |
 |---|---|
-| 현재 브랜치가 `feature/*` 또는 `fix/*`가 아님 | "feature/* 또는 fix/* 브랜치에서만 실행할 수 있습니다. 현재 브랜치: [브랜치명]" |
+| 현재 브랜치가 `feature/*`, `fix/*`, `codex/*` 중 어느 것도 아님 | "feature/*, fix/* 또는 codex/* 작업 브랜치에서만 실행할 수 있습니다. 현재 브랜치: [브랜치명]" |
 | 미커밋 변경사항 존재 | "미커밋 변경사항이 있습니다 — 커밋 또는 stash 후 재실행하세요." |
 
 ---

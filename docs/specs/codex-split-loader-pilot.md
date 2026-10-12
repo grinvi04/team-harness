@@ -100,7 +100,7 @@ CLI로 설치·제거하고, 각 installed cache가 생성 artifact와 byte-equi
 ### 실행 결과 연결
 
 2026-09-23에 [PR #411](https://github.com/grinvi04/team-harness/pull/411)의 병합·커밋·검사 기록과
-[당시 실행 보고서](../pilots/codex-split-loader-v0.61.0.md)를 대조해 남아 있던 체크 표시를 정정했다.
+[당시 실행 보고서](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/codex-split-loader-v0.61.0.md)를 대조해 남아 있던 체크 표시를 정정했다.
 아래는 확인 가능한 구현·검사 결과이며 과거 test-first 실행 순서 전체를 재구성한 기록은 아니다.
 당초 계획의 v0.62.0 source 이후 실제 시험 후보는 `d580808f48751adb598fc38dd307e51183a64583`,
 생성 split package의 manifest 버전은 0.61.0이었다. 당시 수치·후보는 보고서 그대로 보존한다.

@@ -1,0 +1,2 @@
+plugins { id "org.springframework.boot" version bootVersion }
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }

@@ -77,10 +77,10 @@
 독립 검토는 실제 세션의 model·effort·read-only·never 설정을 확인했다. 쓰기 시험·수정은 하지 않았다.
 PKCE 누락과 UI/한국어/응답 형식의 적용 모순 네 건을 고친 현재 원문을 별도 실행에서 다시 확인했다.
 
-명령별 결과·현재 원문 해시는 [실행 증거](standards-refresh/results.json),
-원문 로그는 [압축 로그](standards-refresh/quality.log.gz)에 있다.
-[최초 검토](standards-refresh/review-initial.md)와 [수정 후 검토](standards-refresh/review-followup.md)는 함께 보존한다.
-외부 응답은 [링크 증거](standards-refresh/links.json)에 있다. 응답 성공을 의미·안정성 보장으로 확대하지 않는다.
+명령별 결과·현재 원문 해시는 [실행 증거](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/standards-refresh/results.json),
+원문 로그는 [압축 로그](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/standards-refresh/quality.log.gz)에 있다.
+[최초 검토](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/standards-refresh/review-initial.md)와 [수정 후 검토](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/standards-refresh/review-followup.md)는 함께 보존한다.
+외부 응답은 [링크 증거](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/standards-refresh/links.json)에 있다. 응답 성공을 의미·안정성 보장으로 확대하지 않는다.
 
 최종 증거 커밋의 secret scan은 API·auth·secret 파일명 옆의 SHA-256 세 개를 의심값으로 차단했다.
 현재 파일에서 다시 계산해 모두 원문 해시임을 확인했다. 해시 42개를 표준 shasum manifest로 보존했다.
@@ -121,13 +121,13 @@ test-guard의 1302→1301 감소는 Ruby 문서의 Minitest 메서드 예시 한
 ## 머지 전 검토 (2026-10-10)
 
 사용자가 develop 머지 진행을 추가 승인했다. 후보 94b72e2의 필수 CI 5개 통과와 미해결 스레드 0건을 직접 재확인했다.
-[독립 검토](standards-refresh/merge-review-initial.md)에서 다중통화 화면 선택 강제와 일반 Minitest/Rails 문법 혼동 두 건을 발견했다.
+[독립 검토](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/standards-refresh/merge-review-initial.md)에서 다중통화 화면 선택 강제와 일반 Minitest/Rails 문법 혼동 두 건을 발견했다.
 제품이 환산 합계를 채택한 경우에만 해당 표시 예시를 적용하도록 바꾸고, 일반 Ruby와 Rails의 테스트 문법을 구분했다.
 공식 Rails 설명과 실제 Minitest 반례를 대조했다. 보완 후보의 구조·해시·내용을 재검사한다.
 브랜치 보호 조회는 호스트가 승인 필요·never 정책으로 거부했다. 다른 경로로 우회하지 않고 Draft와 브랜치를 보존한다.
 호스트에서 해당 조회를 허용하거나 승인 요청을 사용할 수 있게 된 뒤 현재 후보·보호·리뷰·CI를 재확인한다.
 머지·릴리즈·설치·배포는 실행하지 않았다. 독립 검토의 실행 설정과 관측 한계는 증거 JSON에 기록한다.
-[수정 후 독립 검토](standards-refresh/merge-review-followup.md)에서 두 P2 해결과 해당 범위의 남은 차단 발견 0건을 확인했다.
+[수정 후 독립 검토](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/standards-refresh/merge-review-followup.md)에서 두 P2 해결과 해당 범위의 남은 차단 발견 0건을 확인했다.
 
 ### 승인 정책 변경 후 재개
 
@@ -188,3 +188,11 @@ CLI 0.161.0의 독립 OpenAI 서명과 SHA-256을 확인해 지원 목록에 추
 완료 기준: 현재 signed binary의 신뢰 검사 통과, 기존 unsigned·PATH shadow·교체 거부 검사 유지, 독립 검토와 현재 CI 확인.
 그 뒤 공식 설치 동기화·전체 소스 일치·새 세션 가드 증거를 확인한다. 등록만으로 설치 완료를 보고하지 않는다.
 현재 PR·병합·설치 결과는 후속 PR과 프로젝트 지도에서 관리한다. 소비 원격·Claude 실제 모델 검증은 계속 제외한다.
+
+## 과거 실행 자료의 읽기 위치
+
+검토·로그·results·links·source digest는 위 고정 Git 링크의 당시 바이트로 보존한다.
+links.json은 현재 검사기가 읽는 자산이 아니며 당시 외부 응답 증거다.
+전체 Git 이력 checkout에서 `git --no-replace-objects show`에 위 링크의 전체 SHA와
+`docs/specs/standards-refresh/<파일명>`을 지정하면 별도 파일로 복구할 수 있다.
+현재 정책·후속 상태는 이 스펙과 표준 정본에서 읽는다.

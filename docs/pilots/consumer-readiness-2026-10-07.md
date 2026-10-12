@@ -13,7 +13,7 @@
 점검 기준은 v0.81.0 정식 소스 `9838c2ef288b4566f81fae03acb56530ee165c06`이다. 현재 Harness
 `6542462`와 해당 태그 사이 plugin/templates/scripts/workflow 변경은 없음을 확인했다.
 [구조화된 실행 근거](consumer-readiness-2026-10-07.json)는 명령·대상·종료 코드·원문·지문을 보존한다.
-이전 [10월 6일 점검](consumer-repo-sync-2026-10-06.json)은 당시 로컬 후보 결과로 유지한다.
+이전 [10월 6일 점검](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/consumer-repo-sync-2026-10-06.json)은 당시 로컬 후보 결과로 유지한다.
 
 | 이번 조사 수용 조건 | 관찰과 판정 |
 |---|---|

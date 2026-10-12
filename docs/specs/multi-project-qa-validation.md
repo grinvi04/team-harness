@@ -104,6 +104,8 @@ ERP의 기존 미추적 `.codex/`를 보존한다. 원본 HEAD와 상태를 시�
 
 ## 문서 동기화 대상
 
+아래는 당시 PR 선언이다. 옮긴 증거의 [고정 원문·복구](../history-evidence.md)를 읽으며 현재 선언으로 재사용하지 않는다.
+
 ```harness-doc-sync
 {
   "version": 1,

@@ -1,0 +1,2 @@
+      - name: Framework tests
+        run: pytest

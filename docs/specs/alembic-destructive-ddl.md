@@ -1,5 +1,8 @@
 # alembic-destructive-ddl 스펙
 
+이 문서는 당시 구현의 범위·경로를 보존한다. 현재 원문 위치·명령은
+[구조 안내](../repository-structure.md)와 [후속 스펙](structure-cleanup.md)을 따른다.
+
 > 근거 마일스톤: [GitHub #1 audit-followup](https://github.com/grinvi04/team-harness/milestone/1) 최우선 항목. 승인 2026-07-08.
 > **한 기능 = 한 브랜치 = 한 PR**: `feature/alembic-destructive-ddl`에서 태스크별 원자 커밋(0 스펙 → 1 RED → 2 GREEN → 3 배선 → 4 문서).
 

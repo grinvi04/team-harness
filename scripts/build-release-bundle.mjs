@@ -9,15 +9,28 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 
 function usage() {
-  console.error('usage: build-release-bundle.mjs --output <new-directory>')
+  console.error('usage: build-release-bundle.mjs [--source-only] --output <new-directory>')
 }
 
 function parseArgs(argv) {
-  if (argv.length !== 2 || argv[0] !== '--output') {
+  let output = null
+  let sourceOnly = false
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]
+    if (argument === '--source-only' && !sourceOnly) {
+      sourceOnly = true
+    } else if (argument === '--output' && output === null && argv[index + 1] && !argv[index + 1].startsWith('--')) {
+      output = path.resolve(argv[++index])
+    } else {
+      usage()
+      process.exit(2)
+    }
+  }
+  if (output === null) {
     usage()
     process.exit(2)
   }
-  return path.resolve(argv[1])
+  return { output, sourceOnly }
 }
 
 function digest(file) {
@@ -35,7 +48,7 @@ function filesBelow(directory, prefix = '') {
   return files
 }
 
-const output = parseArgs(process.argv.slice(2))
+const { output, sourceOnly } = parseArgs(process.argv.slice(2))
 if (existsSync(output)) throw new Error(`output already exists: ${output}`)
 const parent = path.dirname(output)
 mkdirSync(parent, { recursive: true })
@@ -52,26 +65,29 @@ try {
       encoding: 'utf8',
     }),
   ).version
-  const catalog = path.join(temporary, 'packages.json')
-  // Resolve the catalog inside the pinned revision, including pre-move releases.
-  const catalogPaths = ['experiments/split-packaging/packages.json', 'packaging/packages.json']
-  const recordedPaths = execFileSync('git', [
-    '--no-replace-objects', 'ls-tree', '--name-only', commit, '--', ...catalogPaths,
-  ], { cwd: root, encoding: 'utf8' }).trim().split('\n')
-  const catalogPath = catalogPaths.find((file) => recordedPaths.includes(file))
-  if (!catalogPath) throw new Error('package catalog missing from recorded revision')
-  writeFileSync(catalog, execFileSync('git', ['--no-replace-objects', 'show', `${commit}:${catalogPath}`], { cwd: root }))
   const archive = `team-harness-v${version}-source.tar`
   execFileSync('git', ['--no-replace-objects', 'archive', '--format=tar', `--prefix=team-harness-v${version}/`, '-o', path.join(temporary, archive), commit], { cwd: root })
-  execFileSync(process.execPath, [
-    path.join(root, 'scripts/build-packages.mjs'), '--catalog', catalog, '--revision', commit, '--output', path.join(temporary, 'packages'),
-  ], { cwd: root, stdio: 'pipe' })
-  rmSync(catalog)
+  let packageFiles = []
+  if (!sourceOnly) {
+    const catalog = path.join(temporary, 'packages.json')
+    // Resolve the catalog inside the pinned revision, including pre-move releases.
+    const catalogPaths = ['experiments/split-packaging/packages.json', 'packaging/packages.json']
+    const recordedPaths = execFileSync('git', [
+      '--no-replace-objects', 'ls-tree', '--name-only', commit, '--', ...catalogPaths,
+    ], { cwd: root, encoding: 'utf8' }).trim().split('\n')
+    const catalogPath = catalogPaths.find((file) => recordedPaths.includes(file))
+    if (!catalogPath) throw new Error('package catalog missing from recorded revision')
+    writeFileSync(catalog, execFileSync('git', ['--no-replace-objects', 'show', `${commit}:${catalogPath}`], { cwd: root }))
+    execFileSync(process.execPath, [
+      path.join(root, 'scripts/build-packages.mjs'), '--catalog', catalog, '--revision', commit, '--output', path.join(temporary, 'packages'),
+    ], { cwd: root, stdio: 'pipe' })
+    rmSync(catalog)
 
-  const packageFiles = filesBelow(path.join(temporary, 'packages')).map((file) => ({
-    path: `packages/${file}`,
-    sha256: digest(path.join(temporary, 'packages', file)),
-  }))
+    packageFiles = filesBelow(path.join(temporary, 'packages')).map((file) => ({
+      path: `packages/${file}`,
+      sha256: digest(path.join(temporary, 'packages', file)),
+    }))
+  }
   const manifest = {
     schemaVersion: 1,
     version,

@@ -33,7 +33,7 @@ main에 병합했고 [v0.80.0 태그](https://github.com/grinvi04/team-harness/t
 2026-10-07 사전검증 GO 후 [정식 릴리즈 준비](specs/binary-trust-oracle.md#0810-정식-릴리즈-진행)를 시작했다.
 main 승인·CI·병합은 [릴리즈 PR #489](https://github.com/grinvi04/team-harness/pull/489)에서 추적한다.
 PR #489 main 병합과 필수 승인 요건 1명·전체 보호 원상복구를 확인했고 동일 main SHA에 v0.81.0 태그를 발행했다.
-[태그 원본 발행 기록](pilots/release-v0.81.0-publication.json)의 checksum 73/73이 통과했다.
+[태그 원본 발행 기록](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/release-v0.81.0-publication.json)의 checksum 73/73이 통과했다.
 develop 역병합·최종 검토·CI·병합은 [PR #490](https://github.com/grinvi04/team-harness/pull/490) 원본으로 추적한다.
 전역 Codex 설치는 0.81.0으로 갱신했고 새 세션에서 스킬 17개 로딩을 확인했다.
 [설치·샘플 통합 기록](specs/qa-command-binding-validation.md#0810-전역-설치와-완료-경계-2026-10-07)의
@@ -43,7 +43,7 @@ develop 역병합·최종 검토·CI·병합은 [PR #490](https://github.com/gri
 전체 QA와 독립 검토는 부분 패치 PASS다. 사용자 선택 후 샘플 로컬 `431523d`에서 고정
 upstream PR #78의 깊이 보완을 설치 지문 검사와 연결했고, 제품 전체 QA와 동일 기반 독립 회귀
 778개가 통과했다. 공식 수정 버전은 없어 전체 감사 high 5건/전체 취약점 제거 FAIL은 유지한다.
-[후속 근거](specs/qa-install-v0.81.0-evidence.json)의 dependencySecurityFollowup·bracesMitigationFollowup과
+[후속 근거](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-install-v0.81.0-evidence.json)의 dependencySecurityFollowup·bracesMitigationFollowup과
 제품 docs/specs/dependency-security.md가 현재 상태·정식 수정판 확인 후 보완 제거 조건을 소유한다.
 후속 샘플 `e3f1f47`은 경로 별칭 설치 no-op·stdin import 회귀를 9개 보안 시험과 독립 검토로 보완했다. 기존 앱 QA 재사용과 전체 감사 high 5 잔여는 구분한다. 이는 샘플 전용 보완이며 Harness 공통 패치 기능을 추가하지 않는다. 소비 프로젝트의 최신 승인·적용 상태는 아래 후속 기록과 이슈 #496에서 구분한다.
 
@@ -81,4 +81,4 @@ FE 60+38·Docker·새 전용 DB Java 957개 실제 실행을 검증했다. 최�
 열린 [split runtime 이슈 #412](https://github.com/grinvi04/team-harness/issues/412)는 2026-10-06에
 CLI 0.156.1과 공식 manifest 문서를 재확인했으나 필요한 cross-plugin dependency/root binding 계약이
 확인되지 않아 WAIT를 유지한다. 새 root manifest 권장과 기존 호환 형식 지원을 구분하며,
-[최신 capability 기록](pilots/codex-split-runtime-v0.61.0.md#2026-10-06-capability-재확인)에 근거·미실행 범위를 연결한다.
+[최신 capability 기록](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/codex-split-runtime-v0.61.0.md#2026-10-06-capability-재확인)에 근거·미실행 범위를 연결한다.

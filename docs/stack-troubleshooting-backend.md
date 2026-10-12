@@ -3,7 +3,7 @@
 [적용 기준](standards-scope.md)을 따른다. 아래는 진단 경로다. 소비 앱에서 모두 재현한 결과는 아니다.
 환경·버전·실패 로그를 먼저 확인하고, 실제 해결 결과는 해당 프로젝트 이슈·PR에 남긴다.
 
-## Java·Spring·Hibernate
+## Java·Spring Boot·Hibernate
 
 | 증상 | 먼저 확인할 것 | 대응과 확인 |
 |---|---|---|
@@ -69,3 +69,11 @@ Testcontainers는 조건부 테스트 도구다. 컨테이너 실행 환경과 �
 - 스키마 호환 변경: [DB 안내](stack-troubleshooting-database.md)를 따른다.
 
 위 자료는 패턴과 도구의 근거다. 사용 빈도를 측정한 자료가 아니므로 업계 전체의 필수 표준으로 부르지 않는다.
+
+## Python 화면과 Rails UI의 진단
+
+Django/Flask의 HTML escaping과 세션 변경 요청의 CSRF를 별도로 확인한다. API 권한 검사도 유지한다.
+Flask가 CSRF를 자동 제공한다고 가정하지 않는다. [공식 보안 안내](https://flask.palletsprojects.com/en/stable/web-security/)를 따른다.
+Django HTMX helper 설치만으로 브라우저 JS 버전이 확인되는 것은 아니다.
+Inertia는 gem과 선택 JS adapter의 조건, Rails 권한·CSRF·실제 props를 확인한다.
+Hotwire gem 제공 파일·npm/CDN pin을 구분하고 navigation 시 이벤트 중복과 구독 정리를 확인한다.

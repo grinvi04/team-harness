@@ -61,7 +61,7 @@ QA 스킬의 판단 기준·참조 로딩·모델/실행 조건을 바꿀 때 �
 ## 결과
 
 최종 구현 후보는 `b0ec056ec52d1f1d83d042899a27d593d3398203`의 0.77.0 소스다.
-[실행·원문 응답·독립 채점](qa-behavior-evidence.json)을 보존했다. 공통 계약과 참조 파일의 digest는
+[실행·원문 응답·독립 채점](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-behavior-evidence.json)을 보존했다. 공통 계약과 참조 파일의 digest는
 같은 기록에 결박하며 이후 문서 전용 커밋은 이 동작 후보를 바꾸지 않는다. 정식 릴리즈·설치형 plugin
 갱신·소비 프로젝트 수정/배포는 하지 않았다.
 
@@ -101,6 +101,8 @@ bytes를 보존했다. 독립 검토자가 고정 rubric으로 원문 응답·fi
 5개 컨텍스트 안의 관련 사례이며 35개의 독립적인 일반화 시험이나 무결함 보장이 아니다.
 
 ## 문서 동기화
+
+아래는 당시 PR 선언이다. 옮긴 증거의 [고정 원문·복구](../history-evidence.md)를 읽으며 현재 선언으로 재사용하지 않는다.
 
 ```harness-doc-sync
 {

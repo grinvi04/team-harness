@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "commonChecks": [
     "test-guard",
     "commitlint-trusted",
@@ -7,8 +7,8 @@
     "destructive-ddl"
   ],
   "commonSources": {
-    "workflow": "common/workflow.yml",
-    "secretScan": "common/secret-scan.yml"
+    "workflow": "templates/ci/common/workflow.yml",
+    "secretScan": "templates/ci/common/secret-scan.yml"
   },
   "stacks": [
     {
@@ -34,21 +34,28 @@
         "checks": []
       },
       "sources": {
-        "header": "headers/node.yml",
+        "header": "templates/stacks/node/ci/header.yml",
         "jobs": [
-          "jobs/node.yml"
+          "templates/stacks/node/ci/quality.yml"
         ]
       },
       "key": "node",
       "roles": [
         "backend",
         "frontend"
-      ]
+      ],
+      "assetSources": {},
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        }
+      }
     },
     {
       "id": 2,
       "label": "Spring Boot       — Java / Kotlin Gradle 백엔드 단독",
-      "template": "ci-gate-spring.yml",
+      "template": "ci-gate-spring-boot.yml",
       "checks": [
         "quality",
         "secret-scan"
@@ -58,7 +65,7 @@
         "flyway"
       ],
       "backend": {
-        "preset": "spring"
+        "preset": "spring-boot"
       },
       "frontend": {
         "preset": null,
@@ -71,19 +78,39 @@
         ]
       },
       "sources": {
-        "header": "headers/spring.yml",
+        "header": "templates/stacks/spring-boot/ci/header.yml",
         "jobs": [
-          "jobs/spring.yml"
+          "templates/stacks/spring-boot/ci/quality.yml"
         ]
       },
-      "key": "spring",
+      "key": "spring-boot",
       "roles": [
         "backend"
-      ]
+      ],
+      "assetSources": {
+        "dockerfile": "templates/stacks/spring-boot/Dockerfile",
+        "gitignore": "templates/stacks/spring-boot/gitignore",
+        "checkstyle": "templates/stacks/spring-boot/checkstyle.xml"
+      },
+      "localCheck": "templates/stacks/spring-boot/local-check.sh",
+      "versionComponents": {
+        "java": {
+          "ecosystem": "java",
+          "required": false
+        },
+        "spring-boot": {
+          "ecosystem": "spring-boot",
+          "required": false
+        },
+        "gradle": {
+          "ecosystem": "gradle",
+          "required": false
+        }
+      }
     },
     {
       "id": 3,
-      "label": "Python            — FastAPI / Django (+ PostgreSQL + Redis)",
+      "label": "Python            — Django / FastAPI / Flask 개별 프로필",
       "template": "ci-gate-python.yml",
       "checks": [
         "quality",
@@ -107,19 +134,83 @@
         ]
       },
       "sources": {
-        "header": "headers/python.yml",
+        "header": "templates/stacks/python/ci/header.yml",
         "jobs": [
-          "jobs/python.yml"
+          "templates/stacks/python/ci/quality.yml"
         ]
       },
       "key": "python",
       "roles": [
         "backend"
-      ]
+      ],
+      "assetSources": {},
+      "profileQuality": "templates/stacks/python/ci/profile-quality.yml",
+      "frameworks": {
+        "django": {
+          "uiModes": [
+            "templates",
+            "htmx",
+            "api"
+          ],
+          "defaultUi": "templates",
+          "steps": "templates/stacks/python/frameworks/django/ci/steps.yml",
+          "rules": [
+            "django"
+          ],
+          "versionComponents": {
+            "django": {
+              "ecosystem": "pypi",
+              "packageName": "django",
+              "required": true
+            }
+          }
+        },
+        "fastapi": {
+          "uiModes": [
+            "api"
+          ],
+          "defaultUi": "api",
+          "steps": "templates/stacks/python/frameworks/fastapi/ci/steps.yml",
+          "rules": [
+            "fastapi"
+          ],
+          "versionComponents": {
+            "fastapi": {
+              "ecosystem": "pypi",
+              "packageName": "fastapi",
+              "required": true
+            }
+          }
+        },
+        "flask": {
+          "uiModes": [
+            "templates",
+            "api"
+          ],
+          "defaultUi": "templates",
+          "steps": "templates/stacks/python/frameworks/flask/ci/steps.yml",
+          "rules": [
+            "flask"
+          ],
+          "versionComponents": {
+            "flask": {
+              "ecosystem": "pypi",
+              "packageName": "flask",
+              "required": true
+            }
+          }
+        }
+      },
+      "versionComponents": {
+        "python": {
+          "ecosystem": "python",
+          "required": false
+        }
+      }
     },
     {
       "id": 4,
-      "label": "Rails 8           — 소팀 MVP · Hotwire 풀스택",
+      "label": "Rails             — Hotwire / Inertia / API 개별 선택",
       "template": "ci-gate-rails.yml",
       "checks": [
         "quality",
@@ -140,15 +231,118 @@
         "checks": []
       },
       "sources": {
-        "header": "headers/rails.yml",
+        "header": "templates/stacks/rails/ci/header.yml",
         "jobs": [
-          "jobs/rails.yml"
+          "templates/stacks/rails/ci/quality.yml"
         ]
       },
       "key": "rails",
       "roles": [
         "backend"
-      ]
+      ],
+      "assetSources": {},
+      "profileQuality": "templates/stacks/rails/ci/profile-quality.yml",
+      "uiProfiles": {
+        "hotwire": {
+          "steps": "templates/stacks/rails/ui/hotwire/ci/steps.yml",
+          "rules": [
+            "rails-hotwire"
+          ],
+          "versionComponents": {
+            "turbo-rails": {
+              "ecosystem": "gem",
+              "packageName": "turbo-rails",
+              "required": true
+            },
+            "stimulus-rails": {
+              "ecosystem": "gem",
+              "packageName": "stimulus-rails",
+              "required": true
+            }
+          }
+        },
+        "inertia-react": {
+          "steps": "templates/stacks/rails/ui/inertia-react/ci/steps.yml",
+          "rules": [
+            "typescript",
+            "react",
+            "rails-inertia-react"
+          ],
+          "versionComponents": {
+            "inertia-rails": {
+              "ecosystem": "gem",
+              "packageName": "inertia_rails",
+              "required": true
+            },
+            "inertia-react": {
+              "ecosystem": "npm",
+              "packageName": "@inertiajs/react",
+              "required": true
+            },
+            "react": {
+              "ecosystem": "npm",
+              "packageName": "react",
+              "required": true
+            },
+            "react-dom": {
+              "ecosystem": "npm",
+              "packageName": "react-dom",
+              "required": true
+            },
+            "node": {
+              "ecosystem": "node",
+              "required": false
+            }
+          }
+        },
+        "inertia-vue": {
+          "steps": "templates/stacks/rails/ui/inertia-vue/ci/steps.yml",
+          "rules": [
+            "typescript",
+            "vue",
+            "rails-inertia-vue"
+          ],
+          "versionComponents": {
+            "inertia-rails": {
+              "ecosystem": "gem",
+              "packageName": "inertia_rails",
+              "required": true
+            },
+            "inertia-vue": {
+              "ecosystem": "npm",
+              "packageName": "@inertiajs/vue3",
+              "required": true
+            },
+            "vue": {
+              "ecosystem": "npm",
+              "packageName": "vue",
+              "required": true
+            },
+            "node": {
+              "ecosystem": "node",
+              "required": false
+            }
+          }
+        },
+        "api": {
+          "steps": "templates/stacks/rails/ui/api/ci/steps.yml",
+          "rules": [
+            "rails-api"
+          ],
+          "versionComponents": {}
+        }
+      },
+      "versionComponents": {
+        "ruby": {
+          "ecosystem": "ruby",
+          "required": false
+        },
+        "rails": {
+          "ecosystem": "gem",
+          "packageName": "rails",
+          "required": true
+        }
+      }
     },
     {
       "id": 5,
@@ -160,6 +354,7 @@
       ],
       "rules": [
         "typescript",
+        "react",
         "nextjs"
       ],
       "backend": {
@@ -174,15 +369,39 @@
         "checks": []
       },
       "sources": {
-        "header": "headers/nextjs.yml",
+        "header": "templates/stacks/nextjs/ci/header.yml",
         "jobs": [
-          "jobs/nextjs.yml"
+          "templates/stacks/nextjs/ci/quality.yml"
         ]
       },
       "key": "nextjs",
       "roles": [
         "frontend"
-      ]
+      ],
+      "assetSources": {
+        "dockerfile": "templates/stacks/nextjs/Dockerfile"
+      },
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        },
+        "nextjs": {
+          "ecosystem": "npm",
+          "packageName": "next",
+          "required": true
+        },
+        "react": {
+          "ecosystem": "npm",
+          "packageName": "react",
+          "required": true
+        },
+        "react-dom": {
+          "ecosystem": "npm",
+          "packageName": "react-dom",
+          "required": true
+        }
+      }
     },
     {
       "id": 6,
@@ -208,15 +427,170 @@
         "checks": []
       },
       "sources": {
-        "header": "headers/vue.yml",
+        "header": "templates/stacks/vue/ci/header.yml",
         "jobs": [
-          "jobs/vue.yml"
+          "templates/stacks/vue/ci/quality.yml"
         ]
       },
       "key": "vue",
       "roles": [
         "frontend"
-      ]
+      ],
+      "assetSources": {},
+      "localCheck": "templates/stacks/vue/local-check.sh",
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        },
+        "vue": {
+          "ecosystem": "npm",
+          "packageName": "vue",
+          "required": true
+        },
+        "vite": {
+          "ecosystem": "npm",
+          "packageName": "vite",
+          "required": true
+        },
+        "vite-vue": {
+          "ecosystem": "npm",
+          "packageName": "@vitejs/plugin-vue",
+          "required": true
+        }
+      }
+    },
+    {
+      "id": 7,
+      "label": "React + Vite     — SPA 프론트엔드",
+      "template": "ci-gate-react.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "typescript",
+        "react"
+      ],
+      "backend": {
+        "preset": null
+      },
+      "frontend": {
+        "preset": "react"
+      },
+      "database": {
+        "tool": null,
+        "checks": []
+      },
+      "sources": {
+        "header": "templates/stacks/react/ci/header.yml",
+        "jobs": [
+          "templates/stacks/react/ci/quality.yml"
+        ]
+      },
+      "key": "react",
+      "roles": [
+        "frontend"
+      ],
+      "assetSources": {},
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        },
+        "react": {
+          "ecosystem": "npm",
+          "packageName": "react",
+          "required": true
+        },
+        "react-dom": {
+          "ecosystem": "npm",
+          "packageName": "react-dom",
+          "required": true
+        },
+        "vite": {
+          "ecosystem": "npm",
+          "packageName": "vite",
+          "required": true
+        },
+        "vite-react": {
+          "ecosystem": "npm",
+          "packageName": "@vitejs/plugin-react",
+          "required": true
+        }
+      }
+    },
+    {
+      "id": 8,
+      "label": "Nuxt             — Vue 프레임워크 프론트엔드",
+      "template": "ci-gate-nuxt.yml",
+      "checks": [
+        "quality",
+        "secret-scan"
+      ],
+      "rules": [
+        "typescript",
+        "vue",
+        "nuxt"
+      ],
+      "backend": {
+        "preset": null
+      },
+      "frontend": {
+        "preset": "nuxt"
+      },
+      "database": {
+        "tool": null,
+        "checks": []
+      },
+      "sources": {
+        "header": "templates/stacks/nuxt/ci/header.yml",
+        "jobs": [
+          "templates/stacks/nuxt/ci/quality.yml"
+        ]
+      },
+      "key": "nuxt",
+      "roles": [
+        "frontend"
+      ],
+      "assetSources": {},
+      "versionComponents": {
+        "node": {
+          "ecosystem": "node",
+          "required": false
+        },
+        "nuxt": {
+          "ecosystem": "npm",
+          "packageName": "nuxt",
+          "required": true
+        },
+        "vue": {
+          "ecosystem": "npm",
+          "packageName": "vue",
+          "required": true
+        }
+      }
     }
-  ]
+  ],
+  "pathBase": "repository-root",
+  "ruleSources": {
+    "typescript": "templates/rules/typescript.md",
+    "java": "templates/stacks/spring-boot/rules/java.md",
+    "flyway": "templates/stacks/spring-boot/rules/flyway.md",
+    "python": "templates/stacks/python/rules/python.md",
+    "alembic": "templates/stacks/python/rules/alembic.md",
+    "ruby": "templates/stacks/rails/rules/ruby.md",
+    "nextjs": "templates/stacks/nextjs/rules/nextjs.md",
+    "vue": "templates/stacks/vue/rules/vue.md",
+    "prisma": "templates/stacks/node/rules/prisma.md",
+    "react": "templates/stacks/react/rules/react.md",
+    "nuxt": "templates/stacks/nuxt/rules/nuxt.md",
+    "django": "templates/stacks/python/frameworks/django/rules/django.md",
+    "fastapi": "templates/stacks/python/frameworks/fastapi/rules/fastapi.md",
+    "flask": "templates/stacks/python/frameworks/flask/rules/flask.md",
+    "rails-hotwire": "templates/stacks/rails/ui/hotwire/rules/hotwire.md",
+    "rails-inertia-react": "templates/stacks/rails/ui/inertia-react/rules/inertia-react.md",
+    "rails-inertia-vue": "templates/stacks/rails/ui/inertia-vue/rules/inertia-vue.md",
+    "rails-api": "templates/stacks/rails/ui/api/rules/api.md"
+  }
 }

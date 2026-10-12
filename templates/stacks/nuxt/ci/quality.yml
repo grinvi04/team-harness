@@ -1,0 +1,15 @@
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22  # CUSTOMIZE: .nvmrc 있으면 node-version-file: .nvmrc 로 교체
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint                       # Use the project-owned eslint configuration
+      - run: npm run type-check     # Use the project-owned type checker
+      - run: npm run test:unit       # Use the project-owned unit tests
+      - run: npm run build                       # Use the project-owned framework build

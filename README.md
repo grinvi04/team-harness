@@ -2,7 +2,7 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.88.0-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.91.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
@@ -63,7 +63,7 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 | 기능 | 설명 |
 |---|---|
 | 🛡️ 가드 훅 | main/develop 직접 커밋·force push·맨손 `gh pr` 차단 — 차단 시 audit 로그 기록 |
-| 📋 의도 라우터 | 캐주얼 지시("진행해/해줘") → 현재 git 상태에서 다음 하네스 스킬 자동 안내 |
+| 📋 의도 라우터 | 짧은 명시 구현·병합 요청에 Git/PR 상태를 연결해 후보 안내. 일반 요청은 native agent가 판단 |
 | 🧠 맥락 기반 skill 선택 | 17개 description의 사용·제외 경계로 Claude Code·Codex implicit invocation 지원 |
 | ✍️ 커밋 메시지 계약 | Conventional Commits 호환 한국어 형식을 로컬 `commit-msg`와 CI에서 강제하고 merge 예외는 Git metadata로 확인 |
 | 🧭 체계적 디버깅 | `/systematic-debugging` — 선택한 진단 방법에 프로젝트 재현 증거·무수정 경계·수정 인계를 연결 |
@@ -86,6 +86,9 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 | 에이전트 | Claude 역할별 agent + Codex native agent 실행 위임 |
 | 테스트 | Bash 통합 테스트 (`tests/route-intent-test.sh`) |
 
+기존 앱의 React+Vite·Nuxt·Python 프레임워크·Rails UI와 [버전 확인·기록·CI 연결](docs/stack-versions.md)을 지원한다.
+최신 기본 제안은 호환 안정 버전이며 미확인·충돌에서는 적용을 중단한다. 실제 앱 검증은 별도다.
+
 ## 🏗️ 아키텍처
 
 ![Team Harness: 플랫폼 실행 → 로컬 가드·Git 훅 → PR 생성 → 현재 후보의 검증·CI·리뷰 → 병합 래퍼 → GitHub 브랜치 보호](docs/diagrams/team-harness.svg)
@@ -104,7 +107,7 @@ Codex·Claude가 실행하고, Harness가 정책과 검증 증거를 연결하�
 ## 🧪 테스트
 
 ```bash
-bash tests/route-intent-test.sh   # 의도 라우터 통합 테스트 (30 케이스)
+bash tests/route-intent-test.sh   # 의도 라우터 통합·범위 회귀 테스트
 bash tests/codex-fresh-session-smoke-test.sh
 bash tests/harness-doctor-test.sh
 bash tests/profile-lifecycle-test.sh
@@ -114,7 +117,7 @@ bash tests/profile-lifecycle-test.sh
 
 ```
 team-harness/
-├── .claude-plugin/marketplace.json    사내 마켓플레이스 카탈로그
+├── .claude-plugin/marketplace.json    공개 플러그인 카탈로그
 ├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
 ├── plugins/harness-guard/             플러그인 본체 (아래 상세)
 ├── experiments/split-packaging/      분리 패키지·profile 평가 (공개 설치 보류)
@@ -128,11 +131,12 @@ team-harness/
 │   ├── ci/migration-safety.yml        마이그레이션 정적 게이트 (out-of-order·forward-only)
 │   ├── ci/integration-e2e.yml         실 IdP·실 백엔드 통합 e2e (env-gated)
 │   ├── ci/test-guard.yml · commitlint.yml · repo-sync.yml  거버넌스 게이트 (스택 무관)
-│   ├── ci/stacks/sources/             공통·backend·frontend CI 정본 조각
+│   ├── stacks/<스택>/                CI·rule·로컬 검사·보조 설정 정본
+│   ├── ci/common/                    공통 CI 원문
 │   ├── ci/stacks/ci-gate-*.yml        스택별 완성 생성물 (new-repo.sh가 복사)
 │   ├── githooks/pre-commit            계층 0.5 git 훅
 │   └── PULL_REQUEST_TEMPLATE.md · gitignore.snippet
-└── docs/                              현재 표준·specs/명세·history/과거 증거
+└── docs/                              현재 표준·specs/명세 (과거 원문은 고정 Git 연결)
 ```
 
 수정할 정본·필수 배치 사본·생성 명령은 [저장소 유지보수 안내](docs/repository-structure.md)를 따른다.
@@ -151,7 +155,7 @@ team-harness/
 | [product-boundaries.md](docs/product-boundaries.md) | governance core · runtime adapter · 선택 workflow의 설치·운영 경계 |
 | [developer-workflow.md](docs/developer-workflow.md) | 개발자의 일상 작업 가이드 — 기능·수정·머지·hotfix·release 흐름과 막혔을 때의 다음 행동 |
 | [onboarding.md](docs/onboarding.md) | 신규 프로젝트 셋업 · 팀원 온보딩 · managed settings 로컬 시뮬레이션 |
-| [stack-guide.md](docs/stack-guide.md) | 기술 스택 선택 가이드 (SCM·ERP·업무 자동화 기준) |
+| [stack-guide.md](docs/stack-guide.md) | 기술 스택·프레임워크·화면 방식 선택과 조건부 실무 기준 |
 | [architecture-infra.md](docs/architecture-infra.md) | 레포 전략 · 모듈러 모놀리스→미니서비스 · GitOps · 인프라 |
 | [clean-architecture.md](docs/clean-architecture.md) | 1차 경계=도메인 모듈, 2차 경계=내부 계층 |
 | [api-standards.md](docs/api-standards.md) | 공통 Envelope · 에러코드 체계 · 페이지네이션 |

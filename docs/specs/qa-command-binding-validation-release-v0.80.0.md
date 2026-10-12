@@ -60,7 +60,7 @@ hook 실제 발화나 앱 재시작 완료를 자동 포함하지 않는다. 실
 
 
 **당시 설치본 검증 보고: 제한된 수용 범위 VERIFIED.** 구조화된 발췌·부분 시험 출력·최종 보고·발견 경로는
-[설치본 실행 근거](qa-install-v0.80.0-evidence.json)에 보존했다.
+[설치본 실행 근거](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-install-v0.80.0-evidence.json)에 보존했다.
 
 - 공식 설치: v0.80.0 enabled, 발행 source와 태그 SHA 일치, native 계약 검사 exit 0.
   실제 app-server가 읽은 0.80.0 cache도 `--root <cache>`와 발행 원본 `--trusted-root`로 따로 검사해
@@ -115,7 +115,7 @@ UNVERIFIED다. 접근성 fixture와 일부 오류 흐름은 mock 응답이며 �
 새 hook 차단 시험, 다른 소비 프로젝트 수정·배포와 원격 CI/게시도 포함하지 않는다.
 
 원문 전체 로그·명령/cwd·후보·최초 종료 코드·보고서 판정·전후 보존 결과는
-[설치본 실행 근거의 sampleFullQa](qa-install-v0.80.0-evidence.json)에 보존했다.
+[설치본 실행 근거의 sampleFullQa](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-install-v0.80.0-evidence.json)에 보존했다.
 보고서 추출은 최초 zip 표현 가정과 다음 attachment 타입 가정 때문에 각각 실패했으나 현재 HTML의
 실제 template와 상세 attachment 구조를 읽어 12개를 추출했다. 이는 증거 추출 진단이며 제품 시험을
 재실행하거나 성공 결과로 덮어쓰지 않았다. 이번 기록은 Harness 로컬 문서 브랜치에만 반영한다.
@@ -146,7 +146,7 @@ computed style에서 전경·가장 가까운 불투명 배경을 수집하고, 
 
 `node /tmp/harness-contrast-review.mjs` 최초 exit 0, 재실행 없음. 별도 strict-port Vite 5182와
 브라우저를 직접 생성/종료했고, 목록·오류 mock fixture만 사용해 실제 서버·개발 DB를 건드리지 않았다.
-스크립트·관찰 원문·axe 대상·출처·종료 코드·비율은 [실행 근거의 contrastFollowup](qa-install-v0.80.0-evidence.json)에 보존한다.
+스크립트·관찰 원문·axe 대상·출처·종료 코드·비율은 [실행 근거의 contrastFollowup](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-install-v0.80.0-evidence.json)에 보존한다.
 이전 임시 지문 파일 부재로 비교가 실패한 사실과 현재 Git 후보/변경 대조로 확인한 범위도 구분했다.
 
 **판정:** 기존 두 기호의 needs-review는 해소됐다. 전체 WCAG·스크린리더·모든 브라우저 검증이나

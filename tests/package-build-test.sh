@@ -128,6 +128,29 @@ else
   fail "artifact가 재현 가능하지 않음"
 fi
 
+if node --input-type=module - "$TMP/build-a/harness-governance-core" "$ROOT" <<'NODE'
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
+import {pathToFileURL} from 'node:url';
+import {execFileSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+const [core, root] = process.argv.slice(2);
+for (const name of ['check-stack-record.mjs', 'stack-project.mjs', 'read-stack-pyproject.py']) {
+  const source = `plugins/harness-guard/scripts/${name}`;
+  assert.deepEqual(readFileSync(join(core, 'scripts', name)),
+    execFileSync('git', ['show', `HEAD:${source}`], {cwd: root}));
+}
+const checker = await import(pathToFileURL(join(core, 'scripts/check-stack-record.mjs')));
+const inspector = await import(pathToFileURL(join(core, 'scripts/stack-project.mjs')));
+assert.equal(typeof checker.checkStackRecord, 'function');
+assert.equal(typeof inspector.inspectStackProjects, 'function');
+NODE
+then
+  pass "governance core가 버전 판독기·Python helper·기록 검사기를 함께 포함"
+else
+  fail "분할 package의 버전 판독 경계 누락"
+fi
+
 python3 - "$TMP/build-a" <<'PY'
 import json
 from pathlib import Path

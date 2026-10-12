@@ -1,0 +1,22 @@
+  quality:
+    runs-on: ubuntu-latest
+
+    env:
+      RAILS_ENV: test
+      SECRET_KEY_BASE: ci_secret_key_base_for_tests_only
+
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      - uses: ruby/setup-ruby@003a5c4d8d6321bd302e38f6f0ec593f77f06600 # v1
+        with:
+          ruby-version: .ruby-version  # CUSTOMIZE: 없으면 ruby-version: '3.4'
+          bundler-cache: true           # Gemfile.lock 기반 bundle install + 캐시 자동화
+
+      - name: Lint (RuboCop)
+        run: bundle exec rubocop --parallel  # CUSTOMIZE: rubocop 미사용 시 제거
+
+      - name: 테스트
+        run: bin/rails test  # CUSTOMIZE: RSpec이면 bundle exec rspec
+
+{{PROFILE_STEPS}}

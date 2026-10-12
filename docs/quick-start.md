@@ -33,7 +33,7 @@ of the current monolith release.
 ## Build a release candidate bundle
 
 ```bash
-node scripts/build-release-bundle.mjs --output /tmp/team-harness-release
+node scripts/build-release-bundle.mjs --source-only --output /tmp/team-harness-release
 (cd /tmp/team-harness-release && shasum -a 256 -c SHA256SUMS)
 ```
 

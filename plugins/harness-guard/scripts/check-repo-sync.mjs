@@ -16,8 +16,8 @@
  *     계약이 없으면 파일이 있어도 로드되지 않으므로 WARN한다(내용 강제는 아님).
  *
  * 종료 코드:
- *   0  표준과 sync (또는 WEAK/룰 경고만 — 머지를 막지 않는 약한 신호)
- *   1  필수 자산 MISSING — 드리프트(머지 차단 수준)
+ *   0  기존 자산 점검 통과; 기록 없는 repo의 버전은 미확인
+ *   1  필수 자산 MISSING 또는 기록/--versions 범위의 버전 미확인
  *
  * 단일 출처: docs/harness-maintenance.md · scripts/new-repo.sh(신규=대칭)
  */
@@ -25,6 +25,8 @@ import { readFileSync, readdirSync, statSync, lstatSync, existsSync, realpathSyn
 import { createHash } from 'node:crypto'
 import { join, basename, dirname, resolve, relative, isAbsolute, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { checkStackRecord } from './check-stack-record.mjs'
+import { inspectStackProjects } from './stack-project.mjs'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -39,6 +41,8 @@ if (args.includes('--help') || args.includes('-h')) {
 옵션:
   --repo <경로>      점검할 대상 repo 루트 (기본: 현재 디렉터리)
   --harness <경로>   표준 출처 team-harness 루트 (기본: 이 스크립트의 repo 루트)
+  --versions        기록이 없거나 버전 미확인이면 실패 (기록이 있는 repo는 항상 적용)
+  --json            자산·프로필·버전 상태를 JSON으로 출력
   --help, -h         이 도움말
 
 동작:
@@ -53,8 +57,8 @@ if (args.includes('--help') || args.includes('-h')) {
   MISSING  필수 게이트/자산 없음 — 드리프트(exit 1)
 
 종료 코드:
-  0  sync (또는 WEAK/WARN만)
-  1  필수 자산 MISSING
+  0  자산 점검 통과 (또는 WEAK/WARN만); 기록 없는 기존 repo의 버전은 미확인
+  1  필수 자산 MISSING 또는 버전 관리 범위 미확인
 `)
   process.exit(0)
 }
@@ -68,8 +72,12 @@ const REPO = resolve(optVal('--repo') || '.')
 // 이 스크립트는 plugins/harness-guard/scripts/ 에 있으므로 세 단계 위가 루트다.
 // (플러그인으로 설치돼 templates/ 가 없으면 standardHas=false 로 graceful — detail 힌트만 생략.)
 const HARNESS = resolve(optVal('--harness') || join(__dirname, '../../..'))
+const catalogPath = join(HARNESS, 'templates/stacks.json')
+const catalog = existsSync(catalogPath) ? JSON.parse(readFileSync(catalogPath, 'utf8')) : null
+const ruleSources = catalog?.ruleSources || {}
+const strictVersions = args.includes('--versions'), jsonOutput = args.includes('--json')
 const IS_HARNESS_SELF = REPO === HARNESS
-const SELF_IGNORED_PREFIXES = ['templates', 'tests/fixtures', 'docs/goals']
+const SELF_IGNORED_PREFIXES = ['templates', 'tests/fixtures', 'docs/goals', 'scripts/stack-versions']
 
 if (!existsSync(REPO)) {
   console.error(`✖ --repo 경로가 없습니다: ${REPO}`)
@@ -165,7 +173,7 @@ const hasSupabase = hasDir(/(^|\/)supabase$/)
 const hasRails = hasFile(/^Gemfile$/)
 
 // 의존성 신호: nestjs=@nestjs/*, nextjs=next, vue=vue (한 번 순회로 세 스택 동시 감지)
-let isNest = false, isNext = false, isVue = false
+let isNest = false, isNext = false, isVue = false, isReact = false, isNuxt = false
 for (const pj of packageJsons) {
   try {
     const j = JSON.parse(readFileSync(pj, 'utf8'))
@@ -173,6 +181,8 @@ for (const pj of packageJsons) {
     if (Object.keys(deps).some((d) => d.startsWith('@nestjs/'))) isNest = true
     if ('next' in deps) isNext = true
     if ('vue' in deps) isVue = true
+    if ('react' in deps) isReact = true
+    if ('nuxt' in deps) isNuxt = true
   } catch { /* ignore */ }
 }
 // 파일 신호 병용 — next.config.* / vue.config.* / *.vue (의존성 없이도 감지)
@@ -197,6 +207,29 @@ const stacks = {
   rails: hasRails,
 }
 const detected = Object.entries(stacks).filter(([, v]) => v).map(([k]) => k)
+
+// Recorded version evidence is separate from the legacy asset-presence contract.
+const recordPath=join(REPO,'harness-stack.versions.json');
+let versionStatus='unverified', versionIssues=[{code:'MISSING_VERSION_RECORD',action:'Run check-stack-versions preview for an explicit selection; legacy asset checks do not verify versions.'}], profiles=[], recordPresent=false, recordSelection;
+try {
+  const st=lstatSync(recordPath);recordPresent=true;
+  if(!st.isFile() || st.isSymbolicLink() || st.size>8*1024*1024)throw Error('unsafe record');
+  const record=JSON.parse(readFileSync(recordPath,'utf8')), validation=checkStackRecord(REPO,record);
+  versionIssues=validation.issues;recordSelection=record.selection;
+  if(validation.valid){
+    const inspection=inspectStackProjects(REPO,record.selection);versionIssues=[...inspection.issues];
+    for(const [key,value] of Object.entries(inspection.observed))if(value.state!==record.observed[key]?.state || value.version!==record.observed[key]?.version)versionIssues.push({code:'OBSERVATION_DRIFT',target:key});
+    if(!versionIssues.length)versionStatus='compatible';
+  }
+  profiles=(record.selection?.projects || []).map(p=>p.framework ? `${p.framework}:${p.ui}` : p.ui ? `${p.stackKey}:${p.ui}` : p.stackKey);
+} catch(e){if(e.code!=='ENOENT'){recordPresent=true;versionIssues=[{code:'INVALID_VERSION_RECORD',action:'Preserve the existing record; resolve input/schema/tooling failures before applying.'}];}}
+if(!profiles.length){if(isNuxt)profiles.push('nuxt');else if(isReact && !hasNext)profiles.push('react');if(hasNext)profiles.push('nextjs');if(hasVue && !isNuxt)profiles.push('vue');}
+const selectedRules=[...(recordSelection?.rules || [])];
+for(const project of recordSelection?.projects || []){
+  const stack=catalog?.stacks?.find(s=>s.key===project.stackKey), profile=project.framework?stack?.frameworks?.[project.framework]:project.ui?stack?.uiProfiles?.[project.ui]:null;
+  for(const rule of [...(stack?.rules || []),...(profile?.rules || [])])if(rule!=='alembic' || !profile)selectedRules.push(rule);
+}
+
 
 // ── 워크플로 내용 수집 (sentinel 매칭용) ──────────────────
 const wfFiles = files.filter((f) => /^\.github\/workflows\/[^/]+\.ya?ml$/.test(f.rel))
@@ -495,55 +528,48 @@ const ruleMap = [
   ['flyway', stacks.flyway],
   ['typescript', stacks.typescript],
   ['nextjs', stacks.nextjs],
-  ['vue', stacks.vue],
+  ['vue', stacks.vue || isNuxt],
+  ['react', isReact],
+  ['nuxt', isNuxt],
   ['python', stacks.python],
   ['prisma', stacks.prisma],
   ['alembic', stacks.alembic],
   ['ruby', stacks.rails],
 ]
+for(const rule of selectedRules)if(!ruleMap.some(([key])=>key===rule))ruleMap.push([rule,true]);
 for (const [rule, applicable] of ruleMap) {
-  const standardHas = existsSync(join(HARNESS, 'templates/rules/stacks', `${rule}.md`))
+  const source = ruleSources[rule]
+  const standardHas = typeof source === 'string' && existsSync(join(HARNESS, source))
   checks.push({
     asset: `룰: ${rule}.md`,
     severity: 'warn',
     applicable,
     status: ruleStatus(rule),
     detail: standardHas
-      ? `.claude/rules/${rule}.md (표준: templates/rules/stacks/${rule}.md)`
+      ? `.claude/rules/${rule}.md (표준: ${source})`
       : `.claude/rules/${rule}.md`,
   })
 }
 
 // ── 출력 ──────────────────────────────────────────────────
-console.log(`\n기존 repo 드리프트 점검 — ${REPO}`)
-console.log(`감지된 스택: ${detected.length ? detected.join(', ') : '(없음)'}\n`)
-
-const active = checks.filter((c) => c.applicable)
-const pad = Math.max(...active.map((c) => c.asset.length), 8)
-console.log(`  ${'STATUS'.padEnd(8)} ${'ASSET'.padEnd(pad)}  DETAIL`)
-console.log(`  ${'-'.repeat(8)} ${'-'.repeat(pad)}  ${'-'.repeat(6)}`)
-for (const c of active) {
-  const mark = c.status === 'OK' ? '✓' : c.status === 'MISSING' ? '✗' : c.status === 'WEAK' ? '~' : '!'
-  console.log(`  ${(mark + ' ' + c.status).padEnd(8)} ${c.asset.padEnd(pad)}  ${c.detail}`)
+const active=checks.filter(c=>c.applicable), missing=active.filter(c=>c.severity==='error' && c.status==='MISSING'), weak=active.filter(c=>c.status==='WEAK'), warn=active.filter(c=>c.status==='WARN');
+const assetStatus=missing.length?'missing':weak.length || warn.length?'warning':'present';
+const versionRequired=strictVersions || recordPresent;
+const exitCode=missing.length || versionRequired && versionStatus!=='compatible'?1:0;
+const report={assetStatus,versionStatus,catalogStatus:catalog?'available':'unavailable',profiles,rules:ruleMap.filter(([,applicable])=>applicable).map(([rule])=>rule),versionIssues,checks:active,status:missing.length?'missing':versionStatus!=='compatible'?'unverified':assetStatus==='warning'?'warning':'compatible'};
+if(jsonOutput)console.log(JSON.stringify(report,null,2));
+else {
+  console.log(`\n기존 repo 드리프트 점검 — ${REPO}`);
+  console.log(`감지된 스택: ${detected.length?detected.join(', '):'(없음)'}`);
+  console.log(`프로필: ${profiles.join(', ') || '(명시 기록 없음)'} · 버전: ${versionStatus} · 카탈로그: ${report.catalogStatus}\n`);
+  const pad=Math.max(...active.map(c=>c.asset.length),8);
+  console.log(`  ${'STATUS'.padEnd(8)} ${'ASSET'.padEnd(pad)}  DETAIL`);
+  for(const c of active){const mark=c.status==='OK'?'✓':c.status==='MISSING'?'✗':c.status==='WEAK'?'~':'!';console.log(`  ${(mark+' '+c.status).padEnd(8)} ${c.asset.padEnd(pad)}  ${c.detail}`);}
+  console.log(`\n요약: 대상 ${active.length}개 · OK ${active.filter(c=>c.status==='OK').length} · WEAK ${weak.length} · WARN ${warn.length} · MISSING ${missing.length}`);
+  if(missing.length)console.error(`\n✗ 드리프트 — 필수 자산 ${missing.length}개 누락: ${missing.map(c=>c.asset).join(', ')}`);
+  else if(weak.length || warn.length)console.log('\n~ 경고만 — 필수 게이트는 존재. WEAK/WARN은 수동 확인 권장.');
+  else console.log('\n✓ 필수 자산 존재 — 선언한 자산 경계에서 누락 없음.');
+  if(versionStatus!=='compatible')console.log(`버전 미확인: ${versionIssues.map(i=>i.code).join(', ')}. ${versionRequired?'버전 관리 범위는 실패 처리합니다.':'기존 자산 점검의 exit 0은 버전 통과를 뜻하지 않습니다. --versions로 차단 검사하세요.'}`);
+  else console.log('버전 기록과 현재 입력 지문 일치. 앱 빌드·API 조합·원격 CI는 별도 검증입니다.');
 }
-
-const missing = active.filter((c) => c.severity === 'error' && c.status === 'MISSING')
-const weak = active.filter((c) => c.status === 'WEAK')
-const warn = active.filter((c) => c.status === 'WARN')
-
-console.log('')
-console.log(`요약: 대상 ${active.length}개 · OK ${active.filter((c) => c.status === 'OK').length} · WEAK ${weak.length} · WARN ${warn.length} · MISSING ${missing.length}`)
-
-if (missing.length > 0) {
-  console.error(`\n✗ 드리프트 — 필수 자산 ${missing.length}개 누락: ${missing.map((c) => c.asset).join(', ')}`)
-  console.error('  표준을 반영하세요: 해당 워크플로/스크립트를 team-harness templates/에서 가져와 PR.')
-  console.error('  단일 출처: docs/harness-maintenance.md (기존 repo 드리프트 점검 절)\n')
-  process.exit(1)
-}
-
-if (weak.length > 0 || warn.length > 0) {
-  console.log(`\n~ 경고만 — 필수 게이트는 모두 존재. WEAK(sentinel 없음)/WARN(룰 없음)은 수동 확인 권장.\n`)
-} else {
-  console.log('\n✓ 표준과 sync — 드리프트 없음.\n')
-}
-process.exit(0)
+process.exit(exitCode);

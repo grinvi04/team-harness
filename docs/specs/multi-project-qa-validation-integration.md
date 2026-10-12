@@ -6,7 +6,7 @@
 
 사용자의 이어 진행 요청에 따라 동일 제품 후보의 Git archive 사본에서 전용 DB·인증·큐를 준비했다.
 제품 원본·기존 `.env`·운영 데이터는 사용하거나 변경하지 않았다. 임시 시험 구성과 진단 시험만 추가했다.
-[2차 실행 증거](multi-project-integration-evidence.json)에 명령·결과·원본 로그 SHA-256·안전한 출력과
+[2차 실행 증거](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/multi-project-integration-evidence.json)에 명령·결과·원본 로그 SHA-256·안전한 출력과
 추가 시험 원문을 보존했다. 1차 증거와 샘플 시험을 다시 실행한 결과로 세지 않는다.
 
 | 대상 | 실제 관찰·결과 | 판정과 한계 |
