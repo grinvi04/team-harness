@@ -117,7 +117,12 @@ package4/files74와 source-only bundle/checksum PASS; bundle은 installable=fals
 
 2026-10-12 사용자가 PR 생성, develop·main 병합, 태그 발행·설치를 승인했다.
 기존 검증·보호는 유지하고 실제 회사 인수3개는 별도 UNVERIFIED로 남긴다.
-현재 단계는 PR 준비다. main 사람 승인1·strict required5·admins 보호를 원격에서 확인했다.
+현재 단계는 릴리즈 후보 검증이다. [PR544](https://github.com/grinvi04/team-harness/pull/544)는
+독립 검토·required5 통과 후 develop `492842f1103678ddb89890ee083c734e925ee9ce`에 병합됐다.
+검토 head82f2840과 병합 tree는 동일하며 main/develop 전체 보호 API 원문이 원값과 일치했다.
+main 사람 승인1·strict required5·admins는 유지한다.
 회사 기본 경로이며 리뷰어 부재로 보호를 바꾸거나 solo로 전환하지 않는다.
 전달 결과는 연결 PR·[v0.92.0](https://github.com/grinvi04/team-harness/releases/tag/v0.92.0)의
-현재 원본으로 확인한다. 아직 develop/main 병합·태그·설치 완료를 뜻하지 않는다.
+현재 원본으로 확인한다. main 병합·태그·설치는 아직 미실행이다.
+릴리즈 필수 live provenance·보안·bundle/checksum·현재 main PR CI는 후보별로 대조한다.
+실제 DB·런타임 서버가 없어 DB·배포 health만 SKIP하며 회사 인수3개는 계속 UNVERIFIED다.
