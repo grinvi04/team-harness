@@ -48,7 +48,23 @@ UI·DB·배포는 이 저장소에 비적용이다. DriveTree 수정·회사 거
 PR·병합·태그·설치·배포는 이번 단계에서 수행하지 않는다.
 실제 회사 인수 1 FAIL, 2·3 UNVERIFIED는 이 수정으로 완료하지 않는다.
 
-현재 상태: 검사 계약 고정, 구현·검증 진행 중. 최종 후보·증거는 완료 후 연결한다.
+## 현재 결과 (2026-10-13)
+
+선정 판독·보존 범위는 **PASS_SCOPED**다. 구현 commit `3bedf616d999eb6906fe9d6d85005ebe99fb7d8f`.
+전체 quality 후보 `1fc5f40d7bfd13952b704d1b80e12341c01cf40c`: 실행 블록74개 exit0.
+checkout·Python 준비2개 action은 로컬 준비로 대체했다. macOS의 기존 rg·격리 ruff0.15.15를
+사용했고 원래 검사 명령은 유지했다. 문서만 바뀐 이전 후보의 영향 없는 결과는 명시적으로 재사용했다.
+회귀18/18, 기존 보존32/32, 실제 GitHub main/develop check exit0·전체 보호 전후 동일.
+원격 PUT·PR·병합·발행·설치는 실행하지 않았다. null binding의 실제 PUT 호환은 미확인이다.
+별도 read-only 검토 후보 `3b5ad05931a308d3131fdec211fca2e6a2ac7662`는 PASS_SCOPED였다.
+시험 파일 쓰기가 실제 거부됐고 구현·현재 GET 원문을 독립 대조했다. sandbox의 mkdtemp 거부로
+그 실행의 회귀 suite는 미실행이며 주 실행의 결과를 대신 재실행했다고 보고하지 않는다.
+최초 RED와 quality 공개 안전성 실패(개인 경로8건), 수정 후 재시험은 로컬 원문으로 보존했다.
+공개 문서는 이식 가능한 식별자를 쓰며 원본 위치는 소유 checkout의 `.project-map/`에서 연결한다.
+원문 묶음은 `.runtime/company-policy-api-20261013/`의 `red.json`, `quality-first.json`,
+`quality.json`, `actual-check.json`, `review-result.md`다. 로그를 공개 배포 자산으로 포함하지 않는다.
+이후 기록만 갱신한 최종 후보의 문서·패키지·보안·읽기 전용 대조는 같은 묶음의
+`final-checks.json`과 `final-review.md`로 확인한다. 실제 회사 인수 FAIL1/UNVERIFIED2는 유지한다.
 
 ```harness-doc-sync
 {

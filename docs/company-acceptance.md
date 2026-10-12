@@ -51,4 +51,4 @@ fixture 성공, 파일 복사, 로컬 doctor PASS를 이 표의 실제 결과로
 필수 기준에 FAIL/UNVERIFIED가 남으면 회사 인수 완료가 아니다.
 충족하면 그 업무·환경의 도입 결과만 보고하고 새 기능 백로그를 임의로 추가하지 않는다.
 
-현재 기술 후속은 [정책 API 호환 수정](specs/company-policy-api-compatibility.md)이다. 실제 회사 인수와 별도로 판정한다.
+로컬 검증을 마친 기술 후속은 [정책 API 호환 수정](specs/company-policy-api-compatibility.md)이다. 실제 회사 인수와 별도로 판정한다.

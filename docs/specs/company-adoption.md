@@ -143,4 +143,4 @@ Codex·Claude 공식 CLI로0.92.0을 설치·활성화하고 양쪽 설치76개 
 기존 열린 대화는 이전 catalog를 유지할 수 있으며 Claude 실제 모델·인증 갱신은 실행하지 않았다.
 develop 포함은 연결된 역병합 PR의 MERGED와 Git ancestry로 판정한다. 실제 회사 인수3개는 UNVERIFIED다.
 
-현재 기술 후속은 [정책 API 호환 수정](company-policy-api-compatibility.md)이다. 실제 회사 인수와 별도로 판정한다.
+로컬 검증을 마친 기술 후속은 [정책 API 호환 수정](company-policy-api-compatibility.md)이다. 실제 회사 인수와 별도로 판정한다.

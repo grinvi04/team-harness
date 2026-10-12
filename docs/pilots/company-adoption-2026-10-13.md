@@ -1,6 +1,7 @@
 # 0.92.0 회사 도입 판정과 다음 인수 순서
 
-후속 현재 기술 작업은 [정책 API 호환 수정](../specs/company-policy-api-compatibility.md)이다.
+후속 [0.92.1 로컬 호환 수정](../specs/company-policy-api-compatibility.md)은 선정 판독·보존 검증을 통과했다.
+실제 개인 GitHub GET/check exit0·보호 전후 동일이며 원격 적용·새 발행·설치는 미실행이다.
 아래 0.92.0 실패·시험 결과는 당시 후보로 보존한다. 회사 인수 3개의 판정은 그대로다.
 로컬 로그의 절대경로는 공개 문서에 넣지 않고 소유 checkout의 `.project-map/`에서 보존한다.
 

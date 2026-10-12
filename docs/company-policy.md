@@ -30,7 +30,7 @@ bash set-branch-protection.sh org/repo --branches main,develop --preview \
 - apply의 `--contexts`는 기존 검사에 추가한다. 기존 검사와 app ID를 제거·재결박하지 않는다.
   미지정 시 현재 check-run 이름을 감지하고 비어 있지 않은 목록이어야 한다.
 - 기존 `CODEOWNERS` 리뷰 요건, last-push 승인, dismissal/bypass 주체, push restrictions,
-  linear history, branch lock, fork syncing은 보존한다. 서명 요건은 별도 API 설정이므로
+  linear history, block_creations, branch lock, fork syncing은 보존한다. 서명 요건은 별도 API 설정이므로
   PUT에서 건드리지 않고 사후 GET에서 원값과 대조한다.
 - 기존 기본 불변식(strict checks, 관리자 강제, 대화 해결, force-push·삭제 차단)은 보강한다.
 
@@ -50,7 +50,7 @@ bash set-branch-protection.sh org/repo --branches main,develop --preview \
 null을 정수/-1/생략으로 바꿔 앱 결박을 추측하지 않는다. 잘못된 app 표현도 차단한다.
 이 경우 회사 정책 담당자가 GitHub 원본과 공식 관리 수단에서 필요한 변경을 검토한다.
 새 검사 binding은 REST 자동 선택을 사용한다. 서버가 새 app ID를 정규화해 반환하면 엄격한
-사후 비교가 실패할 수 있다. null binding·새 binding의 실제 API 호환성은 **미확인**이다.
+사후 비교가 실패할 수 있다. null binding·새 binding의 실제 PUT 왕복 호환성은 **미확인**이다.
 
 쓰기 직전에 전체 선택 브랜치 정책을 다시 읽고 사전 원본과 다른 응답이면 중단한다.
 각 PUT 뒤에는 전체 지원 정책과 서명 요건을 다시 조회하여 계획·원값과 대조한다.
@@ -84,4 +84,5 @@ bash -n plugins/harness-guard/scripts/set-branch-protection.sh
 강한 검사 유지, 미지원 필드·rulesets, 승인 하향 거부, preview 쓰기0, 사후 정책 손실을 검사한다.
 
 공식 필드 계약은 [GitHub branch protection REST 문서](https://docs.github.com/en/rest/branches/branch-protection#update-branch-protection)를 따른다.
-전체 품질·독립 검토·버전·배포 묶음 확인과 관련 소비 안내 동기화는 통합 담당자가 완료해야 한다.
+0.92.1 로컬 후보의 회귀·기존 보존·전체 품질·독립 검토와 실제 개인 GitHub GET이 통과했다.
+위 수정 명세의 후보·원문을 따른다. 실제 PUT·회사 집행·새 발행·설치는 별도 미실행이다.
