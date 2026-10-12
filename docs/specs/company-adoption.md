@@ -117,7 +117,26 @@ package4/files74와 source-only bundle/checksum PASS; bundle은 installable=fals
 
 2026-10-12 사용자가 PR 생성, develop·main 병합, 태그 발행·설치를 승인했다.
 기존 검증·보호는 유지하고 실제 회사 인수3개는 별도 UNVERIFIED로 남긴다.
-현재 단계는 PR 준비다. main 사람 승인1·strict required5·admins 보호를 원격에서 확인했다.
-회사 기본 경로이며 리뷰어 부재로 보호를 바꾸거나 solo로 전환하지 않는다.
+태그 전 릴리즈 후보 검증 기록: [PR544](https://github.com/grinvi04/team-harness/pull/544)는
+독립 검토·required5 통과 후 develop `492842f1103678ddb89890ee083c734e925ee9ce`에 병합됐다.
+검토 head82f2840과 병합 tree는 동일하며 main/develop 전체 보호 API 원문이 원값과 일치했다.
+main 사람 승인1·strict required5·admins는 유지한다.
+최초 전달 승인에는 solo 선택이 없어 회사 기본 경로로 main 승인1에서 대기했다.
+후속 사용자의 solo-merge 선택으로 **이 개인 저장소만** 명시 solo를 선언한다.
+원격 개인 소유·협업자1명을 확인한 뒤 main PR의 승인요건만 일시 해제·복구한다.
+strict required5·독립 리뷰·스레드·현재 후보 결박과 전체 보호 원값 복구 검증은 유지한다.
 전달 결과는 연결 PR·[v0.92.0](https://github.com/grinvi04/team-harness/releases/tag/v0.92.0)의
-현재 원본으로 확인한다. 아직 develop/main 병합·태그·설치 완료를 뜻하지 않는다.
+현재 원본으로 확인한다. 이 절의 main 병합·태그·설치 전 검증 기록은 아래 발행 결과로 연결한다.
+릴리즈 필수 live provenance·보안·bundle/checksum·현재 main PR CI는 후보별로 대조한다.
+실제 DB·런타임 서버가 없어 DB·배포 health만 SKIP하며 회사 인수3개는 계속 UNVERIFIED다.
+
+## 0.92.0 발행·설치 결과
+
+[PR545](https://github.com/grinvi04/team-harness/pull/545)의 reviewed head2ec8889·required5/5·별도 read-only 보안 검토를 확인했다.
+main 병합과 원격 v0.92.0은 `16150b474e353ab8132cf24b72ec51d26eb4e837`이다.
+solo wrapper는 main 승인요건만 일시 해제했고 main·develop 전체 보호 API 원값 일치를 확인했다.
+공식 Release3개 asset의 다운로드 bytes·checksum과 해당 SHA의 bundle을 대조했다.
+Codex·Claude 공식 CLI로0.92.0을 설치·활성화하고 양쪽 설치76개 파일을 발행 원본과 대조했다.
+새 app-server의 native skill17개·loading error0을 확인했다. 타 plugin·모델·권한·전역 지침은 불변이다.
+기존 열린 대화는 이전 catalog를 유지할 수 있으며 Claude 실제 모델·인증 갱신은 실행하지 않았다.
+develop 포함은 연결된 역병합 PR의 MERGED와 Git ancestry로 판정한다. 실제 회사 인수3개는 UNVERIFIED다.
