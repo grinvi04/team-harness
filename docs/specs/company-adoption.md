@@ -121,7 +121,10 @@ package4/files74와 source-only bundle/checksum PASS; bundle은 installable=fals
 독립 검토·required5 통과 후 develop `492842f1103678ddb89890ee083c734e925ee9ce`에 병합됐다.
 검토 head82f2840과 병합 tree는 동일하며 main/develop 전체 보호 API 원문이 원값과 일치했다.
 main 사람 승인1·strict required5·admins는 유지한다.
-회사 기본 경로이며 리뷰어 부재로 보호를 바꾸거나 solo로 전환하지 않는다.
+최초 전달 승인에는 solo 선택이 없어 회사 기본 경로로 main 승인1에서 대기했다.
+후속 사용자의 solo-merge 선택으로 **이 개인 저장소만** 명시 solo를 선언한다.
+원격 개인 소유·협업자1명을 확인한 뒤 main PR의 승인요건만 일시 해제·복구한다.
+strict required5·독립 리뷰·스레드·현재 후보 결박과 전체 보호 원값 복구 검증은 유지한다.
 전달 결과는 연결 PR·[v0.92.0](https://github.com/grinvi04/team-harness/releases/tag/v0.92.0)의
 현재 원본으로 확인한다. main 병합·태그·설치는 아직 미실행이다.
 릴리즈 필수 live provenance·보안·bundle/checksum·현재 main PR CI는 후보별로 대조한다.
