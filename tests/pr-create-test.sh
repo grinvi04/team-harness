@@ -51,7 +51,7 @@ const save = () => fs.writeFileSync(p, JSON.stringify(s));
 const emit = x => { save(); console.log(JSON.stringify(x)); };
 const value = flag => a[a.indexOf(flag) + 1];
 if (a[0] === 'repo' && a[1] === 'view') { save(); console.log('test/repo');
-} else if (a[0] === 'pr' && a[1] === 'checks') { save(); console.log('quality\tpass\t1s\thttp://fake');
+} else if (a[0] === 'pr' && a[1] === 'checks') { emit([{name:'quality',bucket:'pass'}]);
 } else if (a[0] === 'pr' && a[1] === 'merge') { s.merges = [...(s.merges || []), a]; save(); console.log('fake merge');
 } else if (a[0] === 'pr' && a[1] === 'view') {
  if (s.metadataFail) { save(); process.exit(1); }
@@ -61,6 +61,10 @@ if (a[0] === 'repo' && a[1] === 'view') { save(); console.log('test/repo');
  else if (field.includes(',')) emit(s.candidate);
  else { save(); console.log(s.candidate[field] || ''); }
 } else if (a[0] === 'api' && a[1] !== 'graphql') {
+ const endpoint = a[a.length - 1];
+ if (endpoint.endsWith('/required_status_checks')) { emit({strict:true,contexts:['quality'],checks:[{context:'quality',app_id:1}]}); process.exit(0); }
+ if (endpoint.endsWith('/check-runs')) { emit([{check_runs:[{id:10,name:'quality',head_sha:s.candidate.headRefOid,status:'completed',conclusion:'success',app:{id:1}}]}]); process.exit(0); }
+ if (endpoint.endsWith('/statuses')) { emit([[]]); process.exit(0); }
  const comment = Number(a[1].match(/comments\/(\d+)\/replies$/)?.[1]);
  if (!comment) { save(); process.exit(9); }
  s.replies.push({ comment, body: a.find(x => x.startsWith('body='))?.slice(5) });
@@ -196,7 +200,7 @@ NODEFILL`;
  const bootstrap = [...runtime.matchAll(/```bash\n([\s\S]*?)\n```/g)][0][1]
   .replace("'<현재 읽은 SKILL.md의 절대 경로>'", shellQuote(path.join(pluginRoot, 'skills/pr-review-gate/SKILL.md')))
   .replace("'<그 SKILL.md가 속한 플러그인의 절대 경로>'", shellQuote(pluginRoot));
- const workflow = [bootstrap, initial, template, processing, resolving, merging, 'rm -rf "$REVIEW_DIR"'].join('\n');
+ const workflow = ['set -e', bootstrap, initial, template, processing, resolving, merging, 'rm -rf "$REVIEW_DIR"'].join('\n');
  const workflowFile = path.join(workflowDir, 'workflow.sh'); fs.writeFileSync(workflowFile, workflow + '\n');
  const workflowResult = spawnSync('bash', [workflowFile], { env: { ...process.env, PATH: bin + path.delimiter + process.env.PATH, Q2A_STATE: workflowState, PR: '42', CLAUDE_PLUGIN_ROOT: path.join(root, 'plugins/harness-guard') }, encoding: 'utf8' });
  assert.equal(workflowResult.status, 0, workflowResult.stdout + workflowResult.stderr);
