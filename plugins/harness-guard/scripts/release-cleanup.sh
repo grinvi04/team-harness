@@ -15,6 +15,34 @@ if ! git rev-parse --verify 'refs/heads/develop^{commit}' >/dev/null; then
   echo '⚠️ 정리 중단: 병합 대상 develop 조회 실패' >&2
   exit 1
 fi
+# A nonempty, unconfigured remote makes Git fall back to HEAD for branch -d.
+# Empty remote overrides crash Apple Git 2.54; '.' can select a stored merge ref.
+# Refuse collisions (including fetch-only remotes) without exposing config values.
+cleanup_remote=harness-cleanup-unconfigured-remote
+if git config --get-regexp "^remote\.$cleanup_remote\." >/dev/null; then
+  echo '⚠️ 정리 중단: 정리용 remote 이름이 이미 설정되어 있습니다' >&2
+  exit 1
+else
+  state=$?
+  if [ "$state" -ne 1 ]; then
+    echo "⚠️ 정리 중단: 정리용 remote 설정 조회 실패($state)" >&2
+    exit 1
+  fi
+fi
+for legacy in remotes branches; do
+  if ! legacy_path=$(git rev-parse --git-path "$legacy/$cleanup_remote"); then
+    echo '⚠️ 정리 중단: 정리용 remote 경로 조회 실패' >&2
+    exit 1
+  fi
+  if [ -z "$legacy_path" ]; then
+    echo '⚠️ 정리 중단: 정리용 remote 경로 조회 실패(빈 경로)' >&2
+    exit 1
+  fi
+  if [ -e "$legacy_path" ] || [ -L "$legacy_path" ]; then
+    echo '⚠️ 정리 중단: 정리용 remote의 옛 정의 파일이 있습니다' >&2
+    exit 1
+  fi
+done
 for branch in "release/v$version" "sync/backmerge-v$version"; do
   if git show-ref --verify --quiet "refs/heads/$branch"; then
     state=0
@@ -32,7 +60,7 @@ for branch in "release/v$version" "sync/backmerge-v$version"; do
   # Recheck against develop inside Git's normal deletion path, even if a
   # tracking upstream or local tip changed after our explicit ancestry query.
   # Command-scoped configuration preserves the stored upstream and worktree guard.
-  elif git -c "branch.$branch.remote=" branch -d "$branch"; then
+  elif git -c "branch.$branch.remote=$cleanup_remote" branch -d "$branch"; then
     if git show-ref --verify --quiet "refs/heads/$branch"; then
       state=0
     else
