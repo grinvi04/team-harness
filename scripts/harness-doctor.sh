@@ -170,10 +170,22 @@ try:
             for binding in bindings:
                 if not isinstance(binding,dict) or not context(binding.get('context')): raise ValueError('malformed check context')
                 if 'app_id' in binding and (type(binding['app_id']) is not int or binding['app_id'] < -1): raise ValueError('malformed check app binding')
+    def actors(value):
+        if not isinstance(value,dict): raise ValueError('actor restrictions must be an object')
+        for collection,name in [('users','login'),('teams','slug'),('apps','slug')]:
+            entries=value.get(collection)
+            if not isinstance(entries,list): raise ValueError('actor collection must be an array')
+            for entry in entries:
+                if not isinstance(entry,dict) or not context(entry.get(name)):
+                    raise ValueError('actor must contain a nonempty name')
+    if 'restrictions' in data and data['restrictions'] is not None:
+        actors(data['restrictions'])
     reviews=data['required_pull_request_reviews']
     if reviews is not None:
         if not isinstance(reviews,dict) or type(reviews.get('required_approving_review_count')) is not int or not 0 <= reviews['required_approving_review_count'] <= 6:
             raise ValueError('malformed review policy')
+        for field in ['dismissal_restrictions','bypass_pull_request_allowances']:
+            if field in reviews: actors(reviews[field])
         for flag in ['dismiss_stale_reviews','require_code_owner_reviews','require_last_push_approval']:
             if flag in reviews and type(reviews[flag]) is not bool: raise ValueError('malformed review boolean')
     for flag in ['required_linear_history','allow_force_pushes','allow_deletions','required_conversation_resolution','lock_branch','allow_fork_syncing','required_signatures']:

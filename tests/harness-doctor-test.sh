@@ -247,4 +247,30 @@ if DOCTOR_FAIL=native bash "$DOCTOR" --repo "$ROOT" >"$TMP/native.out" 2>&1; the
 fi
 grep -Fq 'FAIL  Codex native plugin contract' "$TMP/native.out"
 
+actor_failures=0
+for malformed in restrictions-type dismissal-list bypass-list users-name teams-name apps-name missing-name; do
+  node - "$TMP/actors.json" "$malformed" <<'NODE'
+const fs = require('node:fs')
+const data = {enforce_admins:{enabled:true},required_status_checks:{strict:true,contexts:['quality'],checks:[]},required_pull_request_reviews:{required_approving_review_count:1}}
+const actors = {users:[],teams:[],apps:[]}
+switch(process.argv[3]) {
+  case 'restrictions-type': data.restrictions = 'invalid'; break
+  case 'dismissal-list': data.required_pull_request_reviews.dismissal_restrictions = {...actors,users:42}; break
+  case 'bypass-list': data.required_pull_request_reviews.bypass_pull_request_allowances = {...actors,apps:'invalid'}; break
+  case 'users-name': data.restrictions = {...actors,users:[{login:42}]}; break
+  case 'teams-name': data.restrictions = {...actors,teams:[{slug:null}]}; break
+  case 'apps-name': data.restrictions = {...actors,apps:[{slug:''}]}; break
+  case 'missing-name': data.restrictions = {...actors,users:[{id:1}]}; break
+}
+fs.writeFileSync(process.argv[2],JSON.stringify(data))
+NODE
+  if DOCTOR_PROTECTION_JSON="$TMP/actors.json" bash "$DOCTOR" --repo "$ROOT" --components github --branches main >"$TMP/actor-$malformed.out" 2>&1; then
+    echo "FAIL: malformed actor $malformed accepted"
+    actor_failures=$((actor_failures + 1))
+  else grep -Fq 'FAIL  branch protection' "$TMP/actor-$malformed.out"; fi
+done
+[ "$actor_failures" -eq 0 ] || exit 1
+printf '%s\n' '{"enforce_admins":{"enabled":true},"required_status_checks":null,"required_pull_request_reviews":{"required_approving_review_count":0,"dismissal_restrictions":{"users":[{"login":"company-user","id":1}],"teams":[{"slug":"company-team"}],"apps":[{"slug":"company-app"}]},"bypass_pull_request_allowances":{"users":[],"teams":[],"apps":[]}},"restrictions":{"users":[],"teams":[],"apps":[]}}' >"$TMP/actors.json"
+out=$(DOCTOR_PROTECTION_JSON="$TMP/actors.json" bash "$DOCTOR" --repo "$ROOT" --components github --branches main)
+printf '%s\n' "$out" | grep -Fq 'PASS  branch protection'
 echo 'PASS: selected tech/github/codex checks, semantic managed policy, installed identity, refusal cases and fake probe dispatch'
