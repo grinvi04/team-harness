@@ -29,16 +29,33 @@
 
 `candidate-frontend-11`의 출력 파일과 JSONL 최종 agent_message는 같은 94자다.
 exit 0·48.13초·turn.completed이며 계약 전문 읽기와 도구 명령 성공을 확인했다.
-따라서 출력 파일만 잘림·timeout·계약 로딩 실패는 배제한다.
-실패 표본에만 sandbox 경고가 있으나 경로·operation이 unknown이고 응답 누락과의 인과는 없다.
+따라서 출력 파일만 잘림·외부 timeout·계약 bytes 읽기 누락은 배제한다. 이해·적용은 미확인이다.
+stderr sandbox 경고의 경로는 unknown이다. 도구 출력에는 Python 임시 cache 생성 거부가 있다.
+같은 종류의 거부는 정상 no-daemon 표본에도 나타나며, 응답 누락의 원인으로 확정할 수 없다.
 해당 시각 OS sandbox 로그는 revisiond 기록만 반환했고 Codex 거부의 추가 근거는 없었다.
 원래 thread 조회도 durable 호스트 오류로 확인하지 못했다. 부재나 원인 확정으로 처리하지 않았다.
 당시 실제 model/effort·서버 finish reason·stream delta·daemon 요청 매핑은 확보하지 못했다.
 
-기존 `--no-daemon` 성공 1회로 원인을 확정하지 않는다. 새 근거 없는 모델 호출은 추가하지 않았다.
+기존 `--no-daemon` 성공 1회로 원인을 확정하지 않는다. 성공 횟수만 늘리는 재시험은 하지 않는다.
 실행 플랫폼 내부·cache·보호·출력 강제 workflow를 추측으로 바꾸지 않는다.
 계속 진단하려면 해당 실패의 서버 종료/stream 또는 거부 경로 원문 같은 새로운 원인 증거가 필요하다.
 이 조건은 실제 회사 인수나 소비 저장소 지정을 기다리는 조건이 아니다.
+
+## 2026-10-13 진단 재개
+
+사용자의 재개 요청으로 기존 로그 조회와 공식 process-local 관찰 준비를 수행했다.
+실패 thread ID의 로컬 state/log 조회는 0행이다. 조회 범위의 부재이며 요청 자체의 부재 증명은 아니다.
+로컬 HTTP 수집기·설정 파싱을 확인하고, 같은 합성 prompt로 관찰 목적의 모델 실행을 1회 했다.
+[공식 OTLP 설정](https://learn.chatgpt.com/docs/config-file/config-advanced)과
+[0.161.0 agent-response 옵션](https://github.com/openai/codex/blob/979011409de0a60b52f179721948e65531d26144/codex-rs/otel/src/agent_response.rs#L44)을 사용했다.
+실제 CLI0.161.0·Sol6.1/high·read-only·approval never와 완료 메시지 관찰을 확인했다.
+최종 2,894 UTF-8 bytes는 core 완료 ResponseItem·CLI JSONL·답변 파일이 같고 truncation=false다.
+이 표본의 core 이후 출력 손실은 관찰되지 않았다. wire raw payload나 과거 실패의 인과는 확인하지 못했다.
+원래 동시 실행2와 이번 단독 실행1도 구분한다. 원래 실패는 보존하며 F1 재수용 표본으로 세지 않는다.
+loopback 수신 후 파일 저장 전에 account/email 속성을 가리고 prompt는 redacted로 유지했다.
+collector 종료와 설정·fixture·HEAD 불변을 확인했다.
+관찰 준비는 완료했지만 원인에 맞는 Harness 수정 근거는 없다. F1 FAIL·전체 NO-GO를 유지한다.
+실행과 비교 증거는 기존 `.runtime/frontend-resume-20261013/f1-observation-1/`에 보존한다.
 
 ## 기존 증거의 정확한 재사용 경계
 
