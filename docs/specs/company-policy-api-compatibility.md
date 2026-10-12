@@ -66,6 +66,18 @@ checkout·Python 준비2개 action은 로컬 준비로 대체했다. macOS의 �
 이후 기록만 갱신한 최종 후보의 문서·패키지·보안·읽기 전용 대조는 같은 묶음의
 `final-checks.json`과 `final-review.md`로 확인한다. 실제 회사 인수 FAIL1/UNVERIFIED2는 유지한다.
 
+## 0.92.1 전달 승인 (2026-10-13)
+
+사용자가 이 후보의 PR 생성·develop/main 병합·태그 발행·설치를 승인했다.
+기존 로컬 단계의 범위·미실행 기록은 당시 상태로 보존한다. 회사 인수 FAIL1/UNVERIFIED2는 별도다.
+기존 CI·독립 리뷰·필수 live provenance·후보 결박과 전체 보호 보존을 유지한다.
+개인 solo 정책의 main 자기승인 예외는 기존 원자 wrapper로만 실행·복구·대조한다.
+프론트엔드 기준 통합 대화와 공유 Git·설치를 직렬 조율한다. 그 0.93.0 후보의
+미해결 실제 Codex 검증 실패는 이번 검증된 0.92.1 수정에 포함하지 않는다.
+완료 기준은 실제 PR MERGED, main/tag 정확한 SHA 일치, develop 포함,
+공개 산출물 checksum과 설치 버전·원본 일치·새 native 실행 확인이다.
+현재 상태: 전달 준비 진행 중. 원격 변경·0.92.1 설치는 아직 미실행이다.
+
 ```harness-doc-sync
 {
   "version": 1,
