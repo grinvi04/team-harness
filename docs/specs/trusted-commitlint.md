@@ -13,6 +13,11 @@ validator를 실행한다. PR은 base 저장소의 `refs/pull/<number>/head`에�
 토큰을 fetch 프로세스에만 전달하며 Git 설정에 저장하거나 validator에 전달하지 않는다.
 조회 실패·잘못된 입력·head 변경은 실패로 처리한다. fork URL·PR 제목·본문을 명령에 삽입하지 않는다.
 
+필수 job은 항상 실행한다. GitHub payload의 state·merged·action을 확인해 `closed/true/edited`만
+병합 후 기록 갱신으로 비적용 처리하며 PR 객체 fetch와 validator 실행을 하지 않는다.
+열린 PR의 네 이벤트는 기존 검사와 빈 범위 거부를 유지하고 누락·모순·다른 상태 조합은 거부한다.
+[수정 계약과 적용 단계](commitlint-post-merge.md)를 따른다. develop 병합만으로 main의 실제 workflow가 바뀌지는 않는다.
+
 ## 전환 순서
 
 1. 기존 필수 `commitlint`를 유지하고 이름이 다른 `commitlint-trusted` workflow를 기본 브랜치에 추가한다.
