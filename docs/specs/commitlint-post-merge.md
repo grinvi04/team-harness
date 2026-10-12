@@ -4,7 +4,7 @@
 
 2026-10-12, [#539](https://github.com/grinvi04/team-harness/issues/539).
 사용자는 수정·정상/거부 검증·main 적용·develop 동기화를 승인했다.
-태그·발행·설치, 소비 원격·배포·결제와 Claude 인증·실제 모델 검증은 제외한다.
+수정 작업 당시 태그·발행·설치는 제외했다. 소비 원격·배포·결제와 Claude 인증·실제 모델 검증은 보류한다.
 별도 회사 도입 후보와 사용자 지도 편집은 보존한다.
 제품 방향 판정은 소유다. 기존 GitHub 커밋 게이트의 적용 경계를 복구한다.
 
@@ -22,7 +22,7 @@ PR537은 병합 전 required5/5를 통과하고 main·develop에 반영됐다.
 - open/false의 기존 네 이벤트는 원래 검사를 실행한다. 상태 누락·모순·다른 조합은 거부한다.
 - job 전체를 조건으로 끄거나 continue-on-error·validator·보호 설정을 완화하지 않는다.
 - consumer 정본과 repository 배치 사본, 설치형 repo-sync digest를 함께 갱신한다.
-  기존 소비 저장소를 자동 수정하지 않는다. 소스 버전은 PATCH0.91.2, 발행·설치는 미실행이다.
+  기존 소비 저장소를 자동 수정하지 않는다. 소스 버전은 PATCH0.91.2다. 발행·설치는 별도 단계다.
 
 ## 필수 QA 범위
 
@@ -47,7 +47,7 @@ PR537은 병합 전 required5/5를 통과하고 main·develop에 반영됐다.
 기존8개 검사 통과 후 원래 merged edited의 빈 범위 실패를 RED로 재현했다.
 잠근31개 정상·거부 시험은 수정 후 모두 통과했고 validator·메시지 시험 원문은 유지했다.
 이 기록은 2026-10-12 소스0.91.2의 로컬 수정 준비 시점이다. 당시 전체 quality·독립 검토·CI,
-main/develop 병합과 실제 edited 검증은 후속 단계였다. 현재0.91.1 발행·설치는 변경하지 않는다.
+main/develop 병합과 실제 edited 검증은 후속 단계였다. 당시 발행·설치0.91.1은 보존했다.
 후속 검증 결과와 현재 전달 상태의 원본은 [이슈](https://github.com/grinvi04/team-harness/issues/539)와
 연결 PR이다. 준비 기록을 병합·발행·설치 완료로 읽지 않는다.
 진행 안내는 [신뢰 커밋 검사](trusted-commitlint.md), 정책 이유는 [decisions](../decisions.md)에 연결한다.
@@ -55,3 +55,11 @@ main/develop 병합과 실제 edited 검증은 후속 단계였다. 현재0.91.1
 
 근거: [target 이벤트](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target),
 [PR payload](https://docs.github.com/en/webhooks/webhook-events-and-payloads#pull_request).
+
+## 0.91.2 발행·설치 인계
+
+2026-10-12, 수정·검증·main/develop 반영 이후 사용자가 태그·발행·설치를 추가 승인했다.
+정식 release-check의 전체 품질·독립 보안 검토·live provenance·bundle/checksum을 먼저 확인한다.
+이 준비 기록은 발행·설치 완료를 뜻하지 않는다. 현재 전달 결과는
+[v0.91.2 Release](https://github.com/grinvi04/team-harness/releases/tag/v0.91.2)와 연결 PR에서 확인한다.
+Claude 인증·실제 모델 검증과 소비 원격·배포·결제 보류는 유지한다.
