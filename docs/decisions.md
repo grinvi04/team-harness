@@ -177,5 +177,5 @@ legacy security-guidance는 자동 패치 없이 삭제 보류하며 [현재 근
 
 [#535](https://github.com/grinvi04/team-harness/issues/535)의 빈 remote override 충돌을 수정한다.
 제품 방향 판정은 **연결**이다. Git의 기본 삭제·worktree 보호를 사용하고 Harness의 develop 병합·원격 OID 검증을 유지한다.
-명령에만 미등록 remote 이름을 지정하며 이름 충돌·설정 조회 실패는 삭제 전에 거부한다. 저장된 upstream은 고치지 않는다.
+명령에만 미등록 remote 이름을 지정하며 config와 옛 remote 정의 충돌·조회 실패는 삭제 전에 거부한다. 저장된 upstream은 고치지 않는다.
 기존 안전 계약을 복구하는 PATCH 0.91.1이며 [범위·검증·전달 상태](specs/release-cleanup-apple-git.md)를 따른다.
