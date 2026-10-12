@@ -112,3 +112,12 @@ package4/files74와 source-only bundle/checksum PASS; bundle은 installable=fals
 현재74개 첫 전체 실행은 재시험 없이 모두 통과했다. macOS bootstrap 대체 범위는 이전과 같다.
 이후 변경은 이 문서의 상태 기록뿐이다. 회사 실제 인수·원격 CI·delivery 완료와 구분한다.
 실제 제품·원격 집행·독립 팀 3개는 UNVERIFIED이며 기존 제외 권한은 유지한다.
+
+## 0.92.0 전달 승인
+
+2026-10-12 사용자가 PR 생성, develop·main 병합, 태그 발행·설치를 승인했다.
+기존 검증·보호는 유지하고 실제 회사 인수3개는 별도 UNVERIFIED로 남긴다.
+현재 단계는 PR 준비다. main 사람 승인1·strict required5·admins 보호를 원격에서 확인했다.
+회사 기본 경로이며 리뷰어 부재로 보호를 바꾸거나 solo로 전환하지 않는다.
+전달 결과는 연결 PR·[v0.92.0](https://github.com/grinvi04/team-harness/releases/tag/v0.92.0)의
+현재 원본으로 확인한다. 아직 develop/main 병합·태그·설치 완료를 뜻하지 않는다.
