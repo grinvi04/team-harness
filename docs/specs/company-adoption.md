@@ -1,6 +1,8 @@
 # 회사 개발팀 선택형 도입 개선
 
 사용자 승인: 이 대화의 여섯 묶음을 선행 작업의 main·새 버전 발행 뒤 구현한다.
+현재는 아래 **선행 0.91.2 발행 후 재개** 절의 통합 결과를 따른다.
+이전 0.91.1 기반·#539 미해결·ddb1dcd 검증은 당시 기록으로 보존한다.
 2026-10-12 확인: 선행 대화 완료, PR537 main=f8734af6,
 원격 v0.91.1 같은 SHA, 두 manifest·README 0.91.1. 기반 develop=bfc57bf.
 선행 전달 후 CI 빈 범위 오류 #539는 미해결이며 이번 범위에 자동 편입하지 않는다.
@@ -100,5 +102,13 @@ PR·병합·릴리즈 사전검사·태그·설치·배포는 이번 작업에�
 #539는 선행 작업에서 수정·검증·병합·발행됐다. 위 0.91.1/#539 미해결은 당시 기록이다.
 보존한 로컬 후보187cc6d에 발행된 develop을 병합한다. 기존 도입 기능·0.92.0 후보는 유지한다.
 버전 배지·manifest와 생성 변경 이력의 충돌만 조정하고 양쪽 결정·CI·검사를 보존한다.
-기존74/74는 ddb1dcd 당시 결과다. 통합 후보의 품질·검사·독립 검토는 아직 PENDING이다.
+기존74/74는 ddb1dcd 당시 결과다. 통합 후보
+`f6b8500689e87425b7a3b1e142ed10a43e257e6a`의 현재 품질은 **74/74 PASS**,
+별도 Astra/medium read-only 통합 검토는 **PASS_SCOPED**다. 추적 bytes와 원문 log SHA를 대조했다.
+회사 코드·시험22개는 이전 후보와 동일하고 incoming CI/template/digest/시험은 선행 develop과 동일하다.
+package4/files74와 source-only bundle/checksum PASS; bundle은 installable=false다.
+새 결과는 `.runtime/company-adoption/resume-quality/`와 `resume-integration.json`,
+`resume-review-result.txt`에 기록했다. 준비 Python/PATH 오류는 실제 시험 미실행으로 구분해 보존했다.
+현재74개 첫 전체 실행은 재시험 없이 모두 통과했다. macOS bootstrap 대체 범위는 이전과 같다.
+이후 변경은 이 문서의 상태 기록뿐이다. 회사 실제 인수·원격 CI·delivery 완료와 구분한다.
 실제 제품·원격 집행·독립 팀 3개는 UNVERIFIED이며 기존 제외 권한은 유지한다.
