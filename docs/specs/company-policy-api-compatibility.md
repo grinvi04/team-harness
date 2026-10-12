@@ -48,7 +48,7 @@ UI·DB·배포는 이 저장소에 비적용이다. DriveTree 수정·회사 거
 PR·병합·태그·설치·배포는 이번 단계에서 수행하지 않는다.
 실제 회사 인수 1 FAIL, 2·3 UNVERIFIED는 이 수정으로 완료하지 않는다.
 
-## 현재 결과 (2026-10-13)
+## 로컬 수정 단계의 결과 (2026-10-13)
 
 선정 판독·보존 범위는 **PASS_SCOPED**다. 구현 commit `3bedf616d999eb6906fe9d6d85005ebe99fb7d8f`.
 전체 quality 후보 `1fc5f40d7bfd13952b704d1b80e12341c01cf40c`: 실행 블록74개 exit0.
@@ -76,9 +76,20 @@ checkout·Python 준비2개 action은 로컬 준비로 대체했다. macOS의 �
 미해결 실제 Codex 검증 실패는 이번 검증된 0.92.1 수정에 포함하지 않는다.
 완료 기준은 실제 PR MERGED, main/tag 정확한 SHA 일치, develop 포함,
 공개 산출물 checksum과 설치 버전·원본 일치·새 native 실행 확인이다.
-현재 상태: [PR #547](https://github.com/grinvi04/team-harness/pull/547)이 develop에 병합됐다.
+릴리즈 준비 시점: [PR #547](https://github.com/grinvi04/team-harness/pull/547)이 develop에 병합됐다.
 병합 SHA `be55e21bb73e938cde7dfb90822ee67fbc0deb0d`는 검증한 head와 같은 소스다.
 release/v0.92.1 후보를 준비했다. main 병합·태그 발행·설치는 아직 미실행이다.
+
+## 0.92.1 발행·설치 결과 (2026-10-13)
+
+[main PR548](https://github.com/grinvi04/team-harness/pull/548)의 head e52bb27·required5·독립 read-only 검토를 확인했다.
+main/tag [v0.92.1](https://github.com/grinvi04/team-harness/releases/tag/v0.92.1)은 `4e0d66b9fa34d273bb1ee7383846601d3fa2fd99`다.
+solo 원자 래퍼의 승인요건 복구 후 main/develop 전체 보호 응답은 실행 전 원문과 동일했다.
+공개 자산3개 다운로드·checksum, Codex/Claude0.92.1 활성화·양쪽 설치76파일의 원본 일치를 확인했다.
+새 Codex native에서 스킬17·로딩 오류0, 설치된 판독기의 실제 main/develop --check exit0이었다.
+다른 플러그인·전역 설정은 유지했다. Claude 실제 모델 호출은 인증 미갱신으로 HELD다.
+develop 포함·역병합 완료는 위 전달 PR의 연결 결과와 Git ancestry로 판정한다.
+실제 회사 인수 FAIL1/UNVERIFIED2와 null binding의 실제 PUT 미확인은 유지한다. DriveTree 수정은 제외한다.
 
 ```harness-doc-sync
 {
