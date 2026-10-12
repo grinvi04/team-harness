@@ -22,6 +22,7 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 | 변경 | 버전 |
 |---|---|
 | 가드·커맨드·스킬·에이전트의 **동작 변경/추가** | MINOR (0.x.0) |
+| 기존 계약을 복구하는 호환성·버그 수정 | PATCH (0.0.x) |
 | 오타·문구·주석 수정 | PATCH (0.0.x) |
 | 호환이 깨지는 변경 (커맨드 제거·settings 키 변경 등) | MAJOR + 마이그레이션 안내 |
 
@@ -30,6 +31,9 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 자체 CI는 두 manifest·README의 버전 일치와 `CHANGELOG.md` 재현도 검사한다. 구현 커밋 뒤
 `node scripts/generate-changelog.mjs --release vX.Y.Z --write`로 CHANGELOG index와 `docs/changelog/` 전체를 생성한다(태그 발행 아님).
 동작 변경을 머지하고 버전을 안 올리면 팀원에게 배포되지 않은 것과 같다.
+
+릴리즈 정리는 develop에서 `release-cleanup.sh <버전>`으로 수행한다. Apple Git 호환성과
+설정 충돌·조회 실패·미병합·사용 중 브랜치의 거부 조건은 [정리 계약](specs/release-cleanup-apple-git.md)을 따른다.
 
 ## 0.88.0 구조 정리
 

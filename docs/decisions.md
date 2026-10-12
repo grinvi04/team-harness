@@ -172,3 +172,10 @@ legacy security-guidance는 자동 패치 없이 삭제 보류하며 [현재 근
 소비 repo 전용 생성물·provenance·changelog 경로는 공용 스킬에서 제거하고 제품 AGENTS 선언으로 연결한다.
 운영 health·설치·배포는 실제 결과에 따라 별도로 보고하며 고정 성공 문구를 제거한다.
 현재 [수용 기준·검증 기록](specs/skill-contract-consolidation.md)을 따르고 기존 0.86.0 발행·설치는 별개로 보존한다.
+
+## 2026-10-12 — Apple Git 릴리즈 정리 호환성
+
+[#535](https://github.com/grinvi04/team-harness/issues/535)의 빈 remote override 충돌을 수정한다.
+제품 방향 판정은 **연결**이다. Git의 기본 삭제·worktree 보호를 사용하고 Harness의 develop 병합·원격 OID 검증을 유지한다.
+명령에만 미등록 remote 이름을 지정하며 config와 옛 remote 정의 충돌·조회 실패는 삭제 전에 거부한다. 저장된 upstream은 고치지 않는다.
+기존 안전 계약을 복구하는 PATCH 0.91.1이며 [범위·검증·전달 상태](specs/release-cleanup-apple-git.md)를 따른다.
