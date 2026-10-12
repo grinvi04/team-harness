@@ -54,8 +54,40 @@ docs/repository-structure.md, docs/local-development.md, docs/development-coordi
 
 ## 검증·현재 상태
 
-계약 고정 후 P0·P1 로컬 구현 진행, P2 인수 계약 준비. 전체 품질·독립 검토 전이므로 완료 아님; API fake·임시 Git repo만 로컬 시험한다.
-필수 normal/refusal/boundary·기존 유지 시험, 전체 quality, 독립 보안/기능 검토가 구현 인수 조건이다.
-최초 RED와 후속 GREEN/실패 원문은 `.runtime/company-adoption/`에 보존한다.
-제품 환경과 독립 참여자 인수는 UNVERIFIED이며 전체 회사 도입 완료 주장을 막는다.
-PR·병합·릴리즈·설치·배포 미실행. 이번 소스 버전 후보는 0.92.0으로 준비한다.
+2026-10-12 로컬 구현 인수는 **PASS_SCOPED**다. 검사 후보는
+`ddb1dcdec6447056052d1911181423648ca05288`이며 소스 버전 후보는 0.92.0이다.
+검사 이후 변경은 이 절의 결과 기록뿐이다. 제품·팀 인수 완료와 구분한다.
+
+| 범위 | 현재 결과·원본 |
+|---|---|
+| P0-policy / P0-merge | 정책 보존·명시 solo·현재 head required CI의 정상/거부/경계 시험 PASS |
+| P1-lifecycle / P1-options | 임시 실제 Git repo의 수명주기·충돌/복구, hook 보존·선택 doctor 시험 PASS |
+| P1-product | 기존 Spring Boot·Vue 독립 checker 연결 시험 PASS; 실제 제품 실행 UNVERIFIED |
+| P2-team | 업무·기준선·정책·비용 인수 계약 작성; 실제 독립 작성자/리뷰어 참여 UNVERIFIED |
+| 전체 품질 | 현재 quality의 run 명령 74/74 PASS, 후보·추적 바이트·로그 SHA 대조 PASS |
+| 독립 검토 | 읽기 전용 기능/정책 검토와 수정 재검토 PASS_SCOPED; actor 메모리 경계 202개 불일치0 |
+| 조립 | 후보의 package4/files74, source-only bundle·checksum PASS; installable=false |
+
+로컬 품질은 macOS에서 실행했다. Linux apt bootstrap 대신 기존 rg,
+host pipx bootstrap 대신 격리 ruff0.15.15를 사용했다. 원격 CI 성공 주장이 아니다.
+독립 검토는 별도 read-only 실행이며 parent가 CLI 시작 출력의 Astra/medium을 관찰했다.
+실제 회사 제품·서버 집행·설치/native 실측·독립 팀 인수는 검토로 대체하지 않았다.
+
+최초 실패와 재시도를 `.runtime/company-adoption/`에 보존한다.
+독립 검토의 경로 별칭·solo 미지원 필드·doctor malformed 응답/actor 결함을 RED→GREEN으로 수정했다.
+첫 전체 실행 중 actor 수정으로 중단한 27개 결과는 `quality-attempt1/`에 있다.
+후속 72/74 실행은 PR 인계 fixture와 공용 source pin의 FAIL을 보존한 `quality-attempt2/`다.
+이 실행 중 시험 교정이 진행됐으므로 고정 후보의 인수 증거로 재사용하지 않았다.
+최종 고정 후보 실행은 73/74였고, 검증용 staged package 출력이 소스 Markdown으로 발견된 실패였다.
+생성 출력을 checkout 밖으로 옮겨 같은 후보·동일한 문서 검사 전체 명령만 재실행해 74/74가 됐다.
+검사나 단언을 완화하지 않았다. 이전 실패 로그·원문 보고서와 재시도는 `quality/`에 함께 남겼다.
+보조 진단의 임시 ROOT 오류와 읽기 전용 검토의 무효 실행도 성공 증거로 세지 않았다.
+최종 검토는 `actor-review-result.txt`, `fixture-review-result.txt`와 이전 전체 검토를 연결한다.
+후속 source pin 갱신은 이미 검토한 공용 파일3개만이며 원문 바이트는 동일하다.
+
+**남은 실제 인수:** 제품 repo·고정 후보·허용된 비운영 명령/데이터 범위,
+원격 정책 집행 관찰 권한, 도구 작성자와 다른 개발자·리뷰어가 필요하다.
+[제품·팀 인수 계약](../company-acceptance.md)의 기준을 실제 제품 기록에서 확인한다.
+필수 FAIL/UNVERIFIED가 남아 회사 도입 완료는 아니다. 소비 원격·운영 변경과 연락은 실행하지 않았다.
+PR·병합·릴리즈 사전검사·태그·설치·배포는 이번 작업에서 미실행이다.
+로컬 구현 인수 뒤에는 대상과 권한/참여자 결정을 기다리며 자동 실행을 중지한다.
