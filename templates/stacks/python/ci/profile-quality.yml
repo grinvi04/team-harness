@@ -13,9 +13,11 @@
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then
             python -m pip install -r requirements.txt
-          elif [ -f pyproject.toml ]; then
+          fi
+          if [ -f pyproject.toml ]; then
             python -m pip install .
-          else
+          fi
+          if [ ! -f requirements.txt ] && [ ! -f pyproject.toml ]; then
             echo 'A supported dependency manifest is required' >&2
             exit 1
           fi

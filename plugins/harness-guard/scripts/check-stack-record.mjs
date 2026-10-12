@@ -16,7 +16,7 @@ export function expectedStackInputs(project, observed) {
   if (key === 'nuxt') paths.push(...nuxtInputs);
   if (key === 'python' && project.ui === 'htmx') paths.push(...nodeInputs);
   if (key === 'rails') {
-    if (Object.entries(observed).some(([target,o])=>target.startsWith(`${project.role}.`) && o.ecosystem === 'npm')) paths.push(...nodeInputs);
+    if (Object.entries(observed).some(([target,o])=>target.startsWith(`${project.role}.`) && o.ecosystem === 'npm' && o.requiresNode !== false)) paths.push(...nodeInputs);
     else if (project.ui === 'hotwire') paths.push('package.json');
   }
   return [...new Set(paths)].map(path=>project.directory === '.' ? path : `${project.directory}/${path}`);

@@ -82,21 +82,8 @@ fi
 # Alembic 스택 — 다중 head(분기 마이그레이션) 차단 게이트(별도 CI 점검, decisions "정적 게이트 Flyway 전용").
 # 검증기(check-repo-sync.mjs)가 alembic 감지 시 이 게이트를 required로 기대 → 프로비저너가 대칭 제공.
 HAS_ALEMBIC=false
-if [ "$(selection_value database.tool)" = alembic ]; then
+if [[ " ${STACK_CHECKS[*]} " == *" alembic-heads "* ]]; then
   HAS_ALEMBIC=true
-fi
-
-# Alembic runs in the selected backend too; render before copying any files.
-if [ "$HAS_ALEMBIC" = true ] && [ "$(selection_value mode)" = composed ]; then
-  ALEMBIC_WORKFLOW=$(node - "$HARNESS_DIR/templates/ci/alembic-heads.yml" "$BACKEND_DIR" <<'NODE'
-const fs = require('node:fs');
-const source = fs.readFileSync(process.argv[2], 'utf8');
-const anchor = '    runs-on: ubuntu-latest\n';
-if (source.split(anchor).length !== 2) throw new Error('Unsupported Alembic job shape');
-process.stdout.write(source.replace(anchor,
-  anchor + '    defaults:\n      run:\n        working-directory: ' + JSON.stringify(process.argv[3]) + '\n'));
-NODE
-  )
 fi
 
 VERSION_ARGS=(--project "$(pwd)" --stack "$STACK_CHOICE" "${SELECT_ARGS[@]:2}")
@@ -106,6 +93,7 @@ read -r -a REQUESTS <<< "$VERSION_REQUESTS"
 for request in "${REQUESTS[@]+"${REQUESTS[@]}"}"; do [ -z "$request" ] || VERSION_ARGS+=(--version "$request"); done
 STACK_PREPARED=$(node "$HARNESS_DIR/scripts/stack-versions/setup.mjs" prepare "${VERSION_ARGS[@]}")
 COMPOSED_WORKFLOW=$(printf '%s' "$STACK_PREPARED" | node -e 'console.log(JSON.parse(require("fs").readFileSync(0,"utf8")).workflow)')
+ALEMBIC_WORKFLOW=$(printf '%s' "$STACK_PREPARED" | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0,"utf8")).alembicWorkflow ?? "")')
 # Recheck input fingerprints, preserved CI and every destination before the first write.
 printf '%s' "$STACK_PREPARED" | node "$HARNESS_DIR/scripts/stack-versions/setup.mjs" apply "$(pwd)"
 echo "선택: $(selection_value label) — 버전 기록 적용/재사용"
@@ -160,7 +148,7 @@ fi
 
 # Alembic 스택 — 다중 head 차단 게이트 워크플로(자기-스킵 — alembic.ini 없으면 통과)
 if [[ "$HAS_ALEMBIC" == true ]]; then
-  if [ "$(selection_value mode)" = composed ] && [ ! -f .github/workflows/alembic-heads.yml ]; then
+  if [ ! -f .github/workflows/alembic-heads.yml ]; then
     printf '%s\n' "$ALEMBIC_WORKFLOW" > .github/workflows/alembic-heads.yml
     echo "  ✅  alembic-heads.yml (선택한 백엔드의 다중 head 차단)"
   else

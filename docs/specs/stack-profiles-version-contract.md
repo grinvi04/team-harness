@@ -177,3 +177,5 @@ Python marker·Nuxt module·Hotwire pin·npm lock 경계를 한 차례 수정했
 
 현재 단계는 승인한 로컬 구현·검증 완료다. Spring Boot 정식 이름 통일도 이번 범위에 포함했다.
 계획의 완료 표시는 단계별 실행·커밋에 대응한다. 실제 앱 호환·원격 상태·설치 완료로 확대하지 않는다.
+
+2026-10-12 별도 승인된0.91.0 전달·최종 검토 보완과 최신 단계는 [현재 전달 기록](stack-profiles-document-sync.md#0910-전달) 및 PR 원본을 따른다.

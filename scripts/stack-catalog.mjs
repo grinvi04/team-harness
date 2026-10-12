@@ -51,8 +51,8 @@ function withProfile(stack, options) {
   }
   return { ...stack, framework, ui, legacy: stack.id <= 6 && !profile,
     versionComponents: { ...stack.versionComponents, ...profile?.versionComponents },
-    ...(profile ? { profile, rules: [...new Set([...stack.rules.filter(rule => rule !== 'alembic'), ...profile.rules])],
-      database: { tool: null, checks: [] } } : {}) };
+    ...(profile ? { profile, rules: [...new Set([...stack.rules, ...profile.rules])],
+      database: stack.key === 'python' ? { tool: null, checks: stack.database.checks, optional: true } : { tool: null, checks: [] } } : {}) };
 }
 
 function project(stack, role, directory) {

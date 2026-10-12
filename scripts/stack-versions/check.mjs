@@ -14,7 +14,7 @@ export async function checkStackVersions({ inspection, requests = {}, lookup = l
     if (observation.state === 'absent' && observation.required) { issue('MISSING_COMPONENT',target,'Declare and resolve the selected component outside this read-only checker.'); continue; }
     // Node is irrelevant to importmap-only Hotwire. Do not propose an unused runtime.
     if (observation.state === 'absent' && componentOf(target) === 'node' && inspection.selection.projects.some(p=>p.role === roleOf(target) && p.stackKey === 'rails' && p.ui === 'hotwire')
-        && !Object.entries(result.observed).some(([key,o])=>roleOf(key) === roleOf(target) && o.ecosystem === 'npm')) continue;
+        && !Object.entries(result.observed).some(([key,o])=>roleOf(key) === roleOf(target) && o.ecosystem === 'npm' && o.requiresNode !== false)) continue;
     pending.push(target);
   }
   function findPackage(role,name) {

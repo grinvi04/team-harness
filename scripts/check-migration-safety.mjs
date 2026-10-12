@@ -125,7 +125,13 @@ function walk(root, onFile, isRelevant) {
         try { targetIdentity = realpathSync(p) } catch { failSymlink(p, 'target resolution failed') }
         if (!isWithinRoot(rootIdentity, targetIdentity)) failSymlink(p, 'target escapes scan root')
         onFile(p, name)
-      } else if (s.isDirectory()) visit(p)
+      } else if (s.isDirectory()) {
+        // Match the existing generated-environment boundary; a name or symlink alone is insufficient.
+        if (name === 'venv') {
+          try { if (lstatSync(join(p, 'pyvenv.cfg')).isFile()) continue } catch { /* source directory */ }
+        }
+        visit(p)
+      }
       else if (s.isFile() && isRelevant(p, name)) onFile(p, name)
     }
   }

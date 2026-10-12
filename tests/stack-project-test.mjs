@@ -232,3 +232,24 @@ test('npm lock v2/v3 missing resolved entries cannot fall back to manifest exact
     assert.equal(r.observed['project.react'].version,null);assert.notEqual((await checkInspected(r)).status,'compatible');
   }
 });
+
+test('Nuxt getters and environment module overrides remain unverified', async t => {
+  for (const config of [
+    'export default defineNuxtConfig({get modules(){return ["example-module"];}});',
+    'export default defineNuxtConfig({$production:{modules:["example-module"]}});',
+    'export default defineNuxtConfig({$env:{preview:{modules:["example-module"]}}});'
+  ]) {
+    const inspection=inspectStackProjects(nuxtFixture(t,config),selectStack('8'));
+    assert.ok(codes(inspection).includes('DYNAMIC_DECLARATION'),config);
+    const checked=await checkStackVersions({inspection,lookup:async(_,version)=>({version,requirements:[]})});
+    assert.equal(checked.status,'unverified');
+  }
+});
+test('Gemfile Ruby requirement is checked against the declared runtime', async t => {
+  const root=editableFixture(t,'rails-hotwire'),file=join(root,'Gemfile'),original=readFileSync(file,'utf8');
+  const selected=selectStack('4',{ui:'hotwire'});
+  const check=()=>checkStackVersions({inspection:inspectStackProjects(root,selected),lookup:async(_,version)=>({version,requirements:[],source:'https://rubygems.org/api/fixture',checkedAt:'2026-10-12T00:00:00Z'})});
+  writeFileSync(file,original+'\nruby "~> 3.3.0"\n');assert.equal((await check()).status,'conflict');
+  writeFileSync(file,original+'\nruby ">= 3.3", "< 3.5"\n');assert.equal((await check()).status,'compatible');
+  writeFileSync(file,original+'\nruby file: ".ruby-version"\n');assert.ok(codes(inspectStackProjects(root,selected)).includes('DYNAMIC_DECLARATION'));
+});

@@ -29,7 +29,7 @@ function literalNuxtModules(config) {
   const modules=[];let seen=false;
   for(const p of properties.filter(p=>p.length)) {
     const key=p[0].replace(/^['"]|['"]$/g,'');
-    if(p[0]==='...' || key==='extends' || p[0]==='[')return null;
+    if(p[0]==='...' || key==='extends' || p[0]==='[' || key.startsWith('$') || (['get','set'].includes(key) && p[1]==='modules'))return null;
     if(key!=='modules')continue;
     if(seen || p[1]!==':' || p[2]!=='[' || p.at(-1)!==']')return null;seen=true;
     const entries=p.slice(3,-1);let expectValue=true;
@@ -264,6 +264,13 @@ export function inspectStackProjects(projectRoot, selected) {
     }
     for (const line of gemfile?.split('\n') ?? []) {
       const text = line.trim();
+      if (/^ruby\b/.test(text)) {
+        const declaration=text.replace(/\s+#.*$/, '').replace(/^ruby\s+/, '');
+        const ranges=[...declaration.matchAll(/(['"])([^'"\\]+)\1/g)];
+        if(!ranges.length || declaration.replace(/(['"])([^'"\\]+)\1/g,'').replace(/[\s,]/g,'')) issue('DYNAMIC_DECLARATION',`${project.role}.ruby`,'Use literal Ruby requirements; file/engine/dynamic declarations require separate review.');
+        else for(const match of ranges) result.requirements.push({target:`${project.role}.ruby`,ecosystem:'ruby',range:match[2],origin:'Gemfile ruby'});
+        continue;
+      }
       if (!/^gem\b/.test(text)) continue;
       const match = text.match(/^gem\s+['"]([A-Za-z0-9_-]+)['"](?:\s*,\s*['"]([^'"]+)['"])?\s*(?:#.*)?$/);
       if (!match) issue('DYNAMIC_DECLARATION', project.role, 'Only literal Gemfile names/ranges are inspected; Ruby is never evaluated.');
@@ -298,7 +305,7 @@ export function inspectStackProjects(projectRoot, selected) {
         if (!to) { issue('UNRESOLVED_IMPORTMAP', `${project.role}.${component}`, 'Provide a literal gem-local file or exact external version pin.'); continue; }
         if (/^https?:/.test(to)) {
           const version = to.match(/@(\d+\.\d+\.\d+)(?:[/?]|$)/)?.[1];
-          const descriptor = { ecosystem: 'npm', packageName: component === 'turbo' ? '@hotwired/turbo' : name, required: true };
+          const descriptor = { ecosystem: 'npm', packageName: component === 'turbo' ? '@hotwired/turbo' : name, required: true, requiresNode: false };
           observe(project, component, descriptor, [version ?? 'unresolved external pin']);
           if (!version) issue('UNRESOLVED_IMPORTMAP', `${project.role}.${component}`, 'Pin an exact browser package version; the gem version does not prove an external CDN version.');
         } else if (!new RegExp(`^${component}(?:\\.min)?\\.js$`).test(to) || !gems.has(gem)) issue('UNRESOLVED_IMPORTMAP', `${project.role}.${component}`, 'Only known gem-bundled turbo/stimulus(.min).js assets are supported; verify custom JS separately.');

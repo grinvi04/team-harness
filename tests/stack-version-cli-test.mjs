@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { cpSync, existsSync, linkSync, lstatSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
+import { cpSync, mkdirSync, existsSync, linkSync, lstatSync, mkdtempSync, readFileSync, readdirSync, rmSync, symlinkSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -131,4 +131,28 @@ test('reusable version modules import from stdin without running their CLI',()=>
   `;
   const result=spawnSync(process.execPath,['--input-type=module','-'],{input:code,encoding:'utf8'});
   assert.equal(result.status,0,result.stderr);assert.equal(result.stdout,'');
+});
+
+test('exact CDN importmap Hotwire stays browser-only through record and CI', async t => {
+ const root=mkdtempSync(join(tmpdir(),'stack-importmap-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+ cpSync(join(fixtures,'rails-hotwire'),root,{recursive:true});
+ writeFileSync(join(root,'config/importmap.rb'),'pin "@hotwired/turbo-rails", to: "https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.19/+esm"\npin "@hotwired/stimulus", to: "stimulus.min.js"\n');
+ const selection=selectStack('4',{ui:'hotwire'}),inspection=inspectStackProjects(root,selection);
+ const record=await checkStackVersions({inspection,lookup:async(_,version)=>({version:version==='latest'?'22.22.3':version,requirements:[],source:'https://registry.npmjs.org/fixture',checkedAt:'2026-10-12T00:00:00Z'})});
+ assert.equal(record.status,'compatible');assert.ok(!Object.hasOwn(record.targets,'project.node'));
+ assert.equal(record.targets['project.turbo'],'8.0.19');assert.equal(checkStackRecord(root,record).valid,true);
+ const workflow=renderSelectedWorkflow(selection,record);assert.ok(!workflow.includes('run: npm ci'));assert.ok(!workflow.includes('actions/setup-node@'));
+ writeVersionRecord(root,record);assert.equal(checkStackRecord(root,JSON.parse(readFileSync(join(root,'harness-stack.versions.json'),'utf8'))).valid,true);
+});
+test('Python generated CI installs every inspected static dependency manifest', t => {
+ const root=mkdtempSync(join(tmpdir(),'stack-python-install-'));t.after(()=>rmSync(root,{recursive:true,force:true}));
+ writeFileSync(join(root,'requirements.txt'),'ruff==0.15.15\nmypy==1.18.2\n');
+ writeFileSync(join(root,'pyproject.toml'),'[project]\nname="app"\nversion="1.0.0"\ndependencies=["Django==5.2.7"]\n');
+ writeFileSync(join(root,'requirements-dev.txt'),'pytest==8.4.2\n');
+ mkdirSync(join(root,'bin'));writeFileSync(join(root,'bin/python'),'#!/bin/sh\nprintf "%s\\n" "$*" >> "$INSTALL_LOG"\n',{mode:0o755});
+ const workflow=renderSelectedWorkflow(selectStack('3',{framework:'django',ui:'templates'}));
+ const block=workflow.match(/      - name: Install dependencies\n        run: \|\n([\s\S]*?)(?=\n      - )/)[1].replace(/^          /gm,'');
+ const run=spawnSync('bash',['-e','-c',block],{cwd:root,env:{...process.env,PATH:join(root,'bin')+':'+process.env.PATH,INSTALL_LOG:join(root,'installed')},encoding:'utf8'});
+ assert.equal(run.status,0,run.stderr);const commands=readFileSync(join(root,'installed'),'utf8').trim().split('\n');
+ assert.ok(commands.includes('-m pip install -r requirements.txt'));assert.ok(commands.includes('-m pip install .'));assert.ok(commands.includes('-m pip install -r requirements-dev.txt'));
 });

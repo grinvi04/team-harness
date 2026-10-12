@@ -191,7 +191,7 @@ if len(parts) == 2:
         fake = target / 'fake-alembic-bin'; fake.mkdir()
         for name, body in {'pip': '#!/bin/sh\nexit 0\n', 'alembic': '#!/bin/sh\nprintf "first (head)\\nsecond (head)\\n"\n'}.items():
             tool = fake / name; tool.write_text(body); tool.chmod(0o755)
-        step = next(s['run'] for s in job['steps'] if 'run' in s)
+        step = next(s['run'] for s in job['steps'] if s.get('name') == 'Alembic 다중 head 차단 (자기-스킵)')
         result = subprocess.run(['bash', '-eo', 'pipefail', '-c', step], cwd=target / directory,
                                 env={**os.environ, 'PATH': str(fake) + ':' + os.environ['PATH']}, capture_output=True, text=True)
         assert result.returncode == 1 and 'head=2' in result.stdout, result.stdout

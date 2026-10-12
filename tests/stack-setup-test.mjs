@@ -34,3 +34,19 @@ test('actual setup lookup failure and unsafe destination make no copies, hook co
 test('specialist profiles require declared check tools and Inertia frontend scripts before setup',async t=>{
  for(const [id,framework,ui] of [['3','flask','api'],['4','','inertia-react']]){const root=mkdtempSync(join(tmpdir(),'setup-tools-'));t.after(()=>rmSync(root,{recursive:true,force:true}));seedProject(root,id,'api','web',framework,ui);if(id==='3')writeFileSync(join(root,'requirements-dev.txt'),'');else{const pkg=JSON.parse(readFileSync(join(root,'package.json'),'utf8'));delete pkg.scripts.typecheck;writeFileSync(join(root,'package.json'),JSON.stringify(pkg));}await assert.rejects(prepareStackSetup({projectRoot:root,selected:selectStack(id,{...(framework?{framework}:{}),ui}),lookup}),/command|tool/);assert.ok(!existsSync(join(root,'harness-stack.versions.json')));}
 });
+
+test('Python specialist setup keeps Alembic validation for existing migrations', t => {
+ for(const framework of ['fastapi','flask']) {
+  const f=shellFixture(t,'3',framework,'api');writeFileSync(join(f.root,'alembic.ini'),'[alembic]\nscript_location = migrations\n');
+  const run=f.run();assert.equal(run.status,0,run.stdout+run.stderr);
+  const selection=selectStack('3',{framework,ui:'api'});assert.ok(selection.checks.includes('alembic-heads'));
+  assert.ok(existsSync(join(f.root,'.github/workflows/alembic-heads.yml')));assert.ok(existsSync(join(f.root,'.claude/rules/alembic.md')));assert.equal(selection.database.tool,null);
+  const workflow=readFileSync(join(f.root,'.github/workflows/alembic-heads.yml'),'utf8');assert.match(workflow,/python-version: '3\.13\.7'/);assert.match(workflow,/node scripts\/check-stack-record.mjs --project \./);
+ }
+});
+
+test('custom Alembic CI is preserved and refuses setup before the record is written', t => {
+ const f=shellFixture(t,'3','fastapi','api');mkdirSync(join(f.root,'.github/workflows'),{recursive:true});
+ const file=join(f.root,'.github/workflows/alembic-heads.yml');writeFileSync(file,'USER CI');const run=f.run();
+ assert.equal(run.status,1);assert.equal(readFileSync(file,'utf8'),'USER CI');assert.ok(!existsSync(join(f.root,'harness-stack.versions.json')));assert.ok(!existsSync(join(f.root,'AGENTS.md')));
+});

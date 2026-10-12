@@ -78,6 +78,9 @@ new-repo.sh는 준비된 GitHub 프로젝트 루트에서 실행한다. profile/
 CI는 최신 metadata를 다시 조회하지 않는다. 앱의 기존 lock 기반 설치·검사를 수행한다.
 React/Nuxt와 Rails Inertia의 lint·typecheck·test:unit·build는 앱이 정의해야 한다.
 Python 전문 프로필의 Ruff/mypy(Flask/FastAPI는 pytest도), Rails UI의 RuboCop 선언을 확인한다.
+Python CI는 requirements.txt·pyproject.toml·requirements-dev.txt 중 존재하는 정적 입력을 모두 설치한다.
+Python 프로필도 alembic-heads를 필수로 연결한다. DB를 선택·설치하지 않으며 alembic.ini가 없으면 해당 job만 self-skip한다.
+Alembic job도 정확한 Python pin·기록 검사를 소비하며, 기존 사용자 job이 다르면 첫 쓰기 전에 보존·중단한다.
 이 선언 확인은 도구 실행·설치 성공의 증거가 아니다. 실제 CI 검사로 확인한다. 빈 명령으로 대체하지 않는다.
 
 기존 CI는 자동 적용 시 생성 결과와 정확히 같아야 재사용한다. 사용자 CI가 다르면 보존하고 적용을 중단한다.
@@ -96,4 +99,6 @@ assetStatus·versionStatus·profiles·rules·catalogStatus를 따로 출력한�
 기록 없는 기존 repo는 자산 검사의 exit 관례를 유지하지만 versionStatus는 unverified다.
 --versions는 기록 부재도 exit1이며, 기록이 있는 repo의 누락/변경/오류는 항상 실패한다.
 설치된 plugin은 동봉 inspector/checker와 선택 기록을 읽는다. 카탈로그 부재를 저장소 경로로 우회하지 않는다.
+Hotwire의 exact CDN pin은 브라우저 의존성이다. npm 프로젝트가 없으면 Node/npm을 요구하지 않는다.
+Nuxt getter·환경별 module 설정과 Gemfile의 동적 Ruby 조건은 미확인이며 literal Ruby 조건은 runtime과 대조한다.
 Python parser 부재도 미확인이다. 자산 존재·기록 일치와 실제 앱 검사·원격 보호·설치는 각각 따로 보고한다.
