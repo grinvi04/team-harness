@@ -91,11 +91,11 @@ ac() { # desc, verdict, auto, want_rc
   if [ "$rc" = "$want" ]; then echo "PASS: $desc"; PASS=$((PASS+1)); else echo "FAIL: $desc — want $want got $rc"; FAIL=$((FAIL+1)); fi
 }
 ac "none + --auto → 거부(fail-closed)"   none  1  1
-ac "none + 수동(auto=0) → 허용"          none  0  0
+ac "none + 수동(auto=0) → 거부"          none  0  1
 ac "green + --auto → 허용"               green 1  0
 ac "fail + --auto → 허용(정상 fail 경로)" fail  1  0
 ac "fallback + --auto → 거부(fail-closed)" fallback 1 1
-ac "fallback + 수동(auto=0) → 허용"      fallback 0 0
+ac "fallback + 수동(auto=0) → 거부"      fallback 0 1
 
 # 머지 후 로컬 정리 checkout 결정: 현재가 삭제될 head면 base로 이동(빈 base=develop), 아니면 이동 불필요("")
 mcc() { # desc, head, base, current, want
@@ -137,8 +137,20 @@ elif args[:2]==['pr','checks']:
  if scenario in ['ci-none','ci-none-manual']: print('no required checks'); sys.exit(1)
  if scenario=='ci-pending': print('quality\tpending\t\thttp://fake'); sys.exit(1)
  if scenario in ['fallback','fallback-manual']: print('Resource not accessible by integration'); sys.exit(1)
- print('quality\tpass\t1s\thttp://fake')
+ if '--json' in args:
+  rows=[{'name':'quality','bucket':'pass'}]
+  if scenario=='required-missing': rows=[{'name':'unrelated','bucket':'pass'}]
+  if scenario=='required-empty': rows=[]
+  if scenario=='required-skipped': rows=[{'name':'quality','bucket':'skipping'}]
+  emit(rows)
+ else: print('quality\tpass\t1s\thttp://fake')
 elif args[:2]==['run','list']: emit([{'headSha':'a'*40,'status':'completed','conclusion':'success','name':'unrelated informational workflow'}])
+elif args[0]=='api' and args[-1].endswith('/check-runs'):
+ emit([{'total_count':1,'check_runs':[{'id':10,'name':'quality','head_sha':'c'*40 if scenario=='required-wrong-head' else 'a'*40,'status':'completed','conclusion':'success','app':{'id':2 if scenario=='required-wrong-app' else 1}}]}])
+elif args[0]=='api' and args[-1].endswith('/statuses'): emit([[]])
+elif args[0]=='api' and args[1].endswith('/required_status_checks'):
+ if scenario=='required-unreadable': sys.exit(1)
+ emit({'strict':scenario!='required-stale','contexts':['quality'],'checks':[{'context':'quality','app_id':1}]})
 elif args[:2]==['api','graphql']:
  emit({'data':{'repository':{'pullRequest':{'reviewThreads':{'nodes':[{'isResolved':False}] if scenario=='unresolved' else [],'pageInfo':{'hasNextPage':False,'endCursor':None}}}}}})
 elif args[:2]==['pr','view']:
@@ -163,7 +175,8 @@ else: print('unexpected fake gh arguments',args,file=sys.stderr); sys.exit(9)
 PYGH
 cat > "$WRAPPER_TMP/bin/git" <<'SHGIT'
 #!/bin/sh
-# No real Git operation (including cleanup) is allowed in this wrapper test.
+# No real Git writes in this fixture.
+[ "$*" = 'rev-parse --show-toplevel' ] && { printf '%s\n' "$Q2A_CASE_DIR"; exit 0; }
 exit 1
 SHGIT
 chmod +x "$WRAPPER_TMP/bin/gh" "$WRAPPER_TMP/bin/git"
@@ -178,6 +191,7 @@ wrapper_case() { # scenario expected exit expected merge count
   esac
   mkdir -p "$case_dir"
   : > "$case_dir/calls.jsonl"
+  printf '%s' '{"schemaVersion":1,"mode":"company","autoMergeTargets":["develop"]}' > "$case_dir/.harness-policy.json"
   PATH="$WRAPPER_TMP/bin:$PATH" Q2A_SCENARIO="$scenario" Q2A_CASE_DIR="$case_dir" \
     bash "$GATE" "${args[@]}" > "$case_dir/output.log" 2>&1 || rc=$?
   if [ -n "${Q2A_EVIDENCE_DIR:-}" ]; then
@@ -192,10 +206,8 @@ assert actual==want, f'{scenario}: expected exit {want}, got {actual}'
 calls=[json.loads(s) for s in (Path(root)/'calls.jsonl').read_text().splitlines()]
 merge=[c for c in calls if c[:2]==['pr','merge']]
 assert len(merge)==int(merges), f'{scenario}: merge writes {len(merge)}, expected {merges}'
-if scenario in ['fallback','ci-none']:
+if scenario in ['fallback','ci-none','fallback-manual','ci-none-manual']:
  assert not any(c[:2]==['run','list'] for c in calls), f'{scenario}: auto used unverified Actions fallback'
-if scenario=='fallback-manual':
- assert sum(c[:2]==['run','list'] for c in calls)==1, 'manual fallback did not inspect head Actions runs'
 if merge:
  args=merge[0]
  assert '--match-head-commit' in args, f'{scenario}: merge did not bind reviewed head'
@@ -213,7 +225,7 @@ wrapper_case reviewed-head-mismatch 1 0
 wrapper_case reviewed-base-mismatch 1 0
 wrapper_case normal 0 1
 wrapper_case fallback 1 0
-wrapper_case fallback-manual 0 1
+wrapper_case fallback-manual 1 0
 wrapper_case head-drift 1 0
 wrapper_case base-oid-drift 1 0
 wrapper_case base-name-drift 1 0
@@ -225,8 +237,15 @@ wrapper_case oid-type 1 0
 wrapper_case oid-malformed 1 0
 wrapper_case auto-main 3 0
 wrapper_case ci-none 1 0
-wrapper_case ci-none-manual 0 1
+wrapper_case ci-none-manual 1 0
 wrapper_case ci-pending 1 0
+wrapper_case required-missing 1 0
+wrapper_case required-empty 1 0
+wrapper_case required-skipped 1 0
+wrapper_case required-unreadable 1 0
+wrapper_case required-stale 1 0
+wrapper_case required-wrong-head 1 0
+wrapper_case required-wrong-app 1 0
 wrapper_case unresolved 1 0
 wrapper_case conflicting 1 0
 

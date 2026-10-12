@@ -63,6 +63,22 @@ _json_field() {
 # An inaccessible endpoint must never be interpreted as "no review protection".
 branch_review_config() {
   local cfg; cfg=$(cat)
+  # Only round-trip policies the restore adapter understands, before opening an exception.
+  printf '%s' "$cfg" | node -e '
+const d=JSON.parse(require("node:fs").readFileSync(0,"utf8")), r=d.required_pull_request_reviews;
+if(!d||Array.isArray(d)||!("required_pull_request_reviews" in d))process.exit(1);
+if(r===null)process.exit(0);
+const allowed=["url","required_approving_review_count","dismiss_stale_reviews","require_code_owner_reviews","require_last_push_approval","dismissal_restrictions","bypass_pull_request_allowances"];
+if(!r||typeof r!=="object"||Array.isArray(r)||Object.keys(r).some(k=>!allowed.includes(k))||!Number.isInteger(r.required_approving_review_count)||r.required_approving_review_count<0||r.required_approving_review_count>6)process.exit(1);
+for(const k of ["dismiss_stale_reviews","require_code_owner_reviews","require_last_push_approval"])if(k in r&&typeof r[k]!=="boolean")process.exit(1);
+for(const k of ["dismissal_restrictions","bypass_pull_request_allowances"]){
+ if(!(k in r))continue; const a=r[k];
+ if(!a||typeof a!=="object"||Array.isArray(a)||Object.keys(a).some(x=>!["url","users_url","teams_url","apps_url","users","teams","apps"].includes(x)))process.exit(1);
+ for(const t of ["users","teams","apps"]){
+  if(!Array.isArray(a[t]))process.exit(1);
+  for(const v of a[t]){const n=typeof v==="string"?v:v?.[t==="users"?"login":"slug"];if(typeof n!=="string"||!n.trim())process.exit(1);}
+ }
+}' 2>/dev/null || return 1
   if command -v python3 >/dev/null 2>&1; then
     printf '%s' "$cfg" | python3 -c 'import json,sys
 c=json.load(sys.stdin); r=c["required_pull_request_reviews"]
@@ -131,6 +147,16 @@ for oid in "$EXPECTED_HEAD" "$EXPECTED_BASE_OID"; do
   [ -z "$oid" ] || [[ "$oid" =~ ^[0-9a-fA-F]{40}$ ]] || exit 2
 done
 OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+# Company is the default; a solo declaration is an opt-in, not authorization.
+POLICY_ROOT=$(git rev-parse --show-toplevel) || exit 1
+node "$(dirname "${BASH_SOURCE[0]}")/repo-policy.mjs" "$POLICY_ROOT" solo || exit 1
+REPO_META=$(gh api "repos/$OWNER_REPO") || exit 1
+COLLABORATORS=$(gh api --paginate --slurp "repos/$OWNER_REPO/collaborators") || exit 1
+node - "$REPO_META" "$COLLABORATORS" "${OWNER_REPO%/*}" <<'SOLOIDENTITY'
+const [meta,pages,owner]=process.argv.slice(2); const d=JSON.parse(meta), p=JSON.parse(pages);
+if(d.owner?.type!=='User'||d.owner?.login!==owner||!Array.isArray(p)||!p.length||p.some(x=>!Array.isArray(x)))process.exit(1);
+const users=p.flat();if(users.length!==1||users[0]?.login!==owner)process.exit(1);
+SOLOIDENTITY
 BASE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName --jq .baseRefName)
 # 머지는 형제 pr-merge.sh(게이트 재검증 후 머지)로 위임 — 테스트가 SOLO_MERGE_MERGE_CMD로 주입.
 MERGE_CMD="${SOLO_MERGE_MERGE_CMD:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/pr-merge.sh}"
@@ -140,18 +166,16 @@ PROTECTION_PATH="${RPR_PATH%/required_pull_request_reviews}"
 
 # pre-gate (보호 건드리기 *전*) — CI required·미해결 스레드 0·mergeable. 미달이면 DELETE 이전에 중단해
 #   break-glass 창을 아예 열지 않는다(AC-6). pr-merge가 머지 시 재검증하지만, 여기서 먼저 막는 게 최소 노출.
-if gh pr checks "$PR" --repo "$OWNER_REPO" --required >/dev/null 2>&1; then CI_RC=0; else CI_RC=1; fi
 PRMERGE_SOURCE_ONLY=1 source "$GATE_LIB"
 unset PRMERGE_SOURCE_ONLY
-MERGE_ARGS=("$PR")
-if [ -n "$EXPECTED_BASE$EXPECTED_HEAD$EXPECTED_BASE_OID" ]; then
-  CANDIDATE=$(read_pr_candidate) || exit 1
-  IFS='|' read -r ACTUAL_BASE ACTUAL_BASE_OID ACTUAL_HEAD ACTUAL_HEAD_OID <<< "$CANDIDATE"
-  [ -z "$EXPECTED_BASE" ] || [ "$EXPECTED_BASE" = "$ACTUAL_BASE" ] || exit 1
-  [ -z "$EXPECTED_HEAD" ] || [ "$EXPECTED_HEAD" = "$ACTUAL_HEAD_OID" ] || exit 1
-  [ -z "$EXPECTED_BASE_OID" ] || [ "$EXPECTED_BASE_OID" = "$ACTUAL_BASE_OID" ] || exit 1
-  MERGE_ARGS+=(--base "$ACTUAL_BASE" --expected-head "$ACTUAL_HEAD_OID" --expected-base-oid "$ACTUAL_BASE_OID")
-fi
+CANDIDATE=$(read_pr_candidate) || exit 1
+IFS='|' read -r ACTUAL_BASE ACTUAL_BASE_OID ACTUAL_HEAD ACTUAL_HEAD_OID <<< "$CANDIDATE"
+[ "$BASE" = "$ACTUAL_BASE" ] || exit 1
+[ -z "$EXPECTED_BASE" ] || [ "$EXPECTED_BASE" = "$ACTUAL_BASE" ] || exit 1
+[ -z "$EXPECTED_HEAD" ] || [ "$EXPECTED_HEAD" = "$ACTUAL_HEAD_OID" ] || exit 1
+[ -z "$EXPECTED_BASE_OID" ] || [ "$EXPECTED_BASE_OID" = "$ACTUAL_BASE_OID" ] || exit 1
+MERGE_ARGS=("$PR" --base "$ACTUAL_BASE" --expected-head "$ACTUAL_HEAD_OID" --expected-base-oid "$ACTUAL_BASE_OID")
+if verify_required_ci "$ACTUAL_BASE" "$ACTUAL_HEAD_OID"; then CI_RC=0; else CI_RC=1; fi
 UNRESOLVED=$(count_unresolved_threads "${OWNER_REPO%/*}" "${OWNER_REPO#*/}" "$PR" 2>/dev/null || echo "?")
 MERGEABLE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable 2>/dev/null || echo "?")
 if ! REASON=$(solo_gate_decide "$CI_RC" "$UNRESOLVED" "$MERGEABLE"); then

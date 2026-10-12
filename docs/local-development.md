@@ -73,3 +73,5 @@ Playwright Test를 유지하며 Stagehand v4로 자동 교체하지 않는다.
 
 스택 버전 미리보기·기록과 GitHub 셋업은 [별도 버전 안내](stack-versions.md)를 따른다.
 이 로컬 실행 연결과 버전 metadata 검사를 같은 검증 결과로 합치지 않는다. `spring` 입력은 호환 별칭이다.
+
+회사 제품의 실제 lock/build/통합 실행과 독립 팀 인수는 [회사 인수 계약](company-acceptance.md)에서 구분한다.

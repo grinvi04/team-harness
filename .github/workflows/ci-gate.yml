@@ -275,6 +275,9 @@ jobs:
       - name: set-branch-protection --check 판정 테스트
         run: bash tests/set-branch-protection-test.sh
 
+      - name: 회사 병합 경계·선택 자산 수명주기
+        run: node --test tests/company-merge-test.mjs tests/repo-assets-test.mjs
+
       - name: solo-merge break-glass 원자성 테스트
         run: bash tests/solo-merge-test.sh
 

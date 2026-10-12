@@ -220,8 +220,24 @@ echo ""
 
 # ── 2. git hooks 경로 설정 ────────────────────────────────────────────────
 
-git config core.hooksPath .githooks
-echo "⚙️   git config core.hooksPath → .githooks"
+if EXISTING_HOOKS=$(git config --get core.hooksPath); then
+  echo "기존 core.hooksPath 보존: $EXISTING_HOOKS — 새 hook 연결은 제품에서 검토하세요."
+else
+  CONFIG_RC=$?
+  [ "$CONFIG_RC" = 1 ] || { echo "Git hook 설정 조회 실패" >&2; exit 1; }
+  NATIVE_HOOK_DIR=$(git rev-parse --git-path hooks) || exit 1
+  ACTIVE_HOOK=0
+  for hook in "$NATIVE_HOOK_DIR"/*; do
+    case "$hook" in *.sample) continue;; esac
+    [ ! -f "$hook" ] || [ ! -x "$hook" ] || ACTIVE_HOOK=1
+  done
+  if [ "$ACTIVE_HOOK" = 1 ]; then
+    echo "기존 활성 Git hook 보존 — .githooks 연결은 제품에서 검토하세요."
+  else
+    git config core.hooksPath .githooks
+    echo "⚙️   git config core.hooksPath → .githooks"
+  fi
+fi
 echo ""
 
 # ── 3. Branch protection ─────────────────────────────────────────────────

@@ -6,6 +6,9 @@
 
 ## 커밋 메시지 — Conventional Commits + team-harness 규칙
 
+아래는 개인 기본 규약이다. 회사는 기존 validator와 언어를 유지하고 필요한 기술 자산만
+[선택형 온보딩](company-onboarding.md)으로 연결한다. 한국어 규칙 채택은 필수가 아니다.
+
 ```text
 feat(order): 월 주문 한도 검증 추가
 
@@ -50,12 +53,14 @@ develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, �
 - 템플릿(`templates/PULL_REQUEST_TEMPLATE.md`) 필수 작성, 미완성 공유는 **Draft**로
 - 진행 문서 검사 채택 repo는 PR 본문에 [동기화 선언](ai-collaboration.md#선언한-문서의-기계적-검사)을 연결한다. team-harness 자체 quality는 이를 필수 검사한다. 선언의 대상 누락·근거 의미·비적용 이유는 리뷰어가 diff와 대조한다.
 - **셀프 리뷰 먼저**: 본인이 diff를 한 번 훑고 나서 리뷰 요청 (AI 생성 코드는 특히 — `ai-collaboration.md`)
-- CI 통과 + 리뷰 스레드 전부 resolve = 공통 머지 조건 (branch protection 강제). **승인**은 조건부 — **팀 모드**(리뷰어 有)는 사람 승인 1명 이상, **솔로 표준**은 승인요건 0이라 CI-gate·enforce_admins=on이 대신한다(아래 "솔로/리뷰어 부재" 참조)
-- **솔로/리뷰어 부재**: 자기 PR 자기승인이 불가하므로 승인요건 충족이 구조적으로 막힌다. 두 운용을 **자유롭게 선택**한다(품질 게이트=CI·스레드 resolve는 항상 유지):
-  - (a) **승인요건 유지 + `/solo-merge`**: 머지할 때만 승인요건을 일시 우회·즉시 복구. 리뷰 흐름을 언제든 다시 쓸 수 있게 보존. 반복 마찰을 줄이려면 한 줄 별칭(`sm <PR>`) 권장 — 보호 변경은 현재 플랫폼 권한과 사용자 승인 범위 안에서 실행한다.
-  - (b) **승인요건 제거 + CI 게이트만**: `required_pull_request_reviews` 삭제 → 그 뒤 **`pr-merge.sh`(게이트 래퍼)로 머지**(AI도 가능 — 맨손 `gh pr merge`는 guard가 차단하므로 래퍼가 CI·스레드·mergeable 검증 후 머지). 리뷰어 합류 시 `required_approving_review_count`로 복구 — 이 복구/설정은 `set-branch-protection.sh <repo> --approvals N`(main에만 승인 N + `dismiss_stale_reviews`, develop은 0 유지)으로 한다.
-  - **main(릴리즈)은 보호 유지 권장** — 머지가 드물고 운영 배포 대상이라 게이트 한 겹이 안전.
-  - **develop 자동머지(개선2)**: develop CI-green PR은 `bash pr-merge.sh --auto <PR>`로 현재 플랫폼 정책이 허용하면 추가 프롬프트 없이 머지를 실행할 수 있다(settings의 allow-rule만으로 호스트 승인·sandbox 정책이 사라지지는 않는다). `--auto`는 **base=develop만** 허용하고 main base는 거부(exit 3)하므로 자동승인돼도 main은 못 뚫는다 — **안전 1차 보증은 스크립트의 base 강제**(allow-rule은 마찰을 줄이는 설정이며 거부 시 같은 요청이 실행되지 않을 수 있다). enforce_admins=true로 CI가 서버 강제라 현재 후보의 리뷰·CI·복구 가능성과 사용자 승인 범위도 확인해야 한다. **main/release는 --auto 대상 아님** — /release·/hotfix로 확인 유지. 단일 출처: `docs/specs/develop-auto-merge.md`.
+- 현재 head의 비어 있지 않은 required 검사 집합 성공 + 리뷰 스레드 resolve + 회사의 사람 승인·CODEOWNERS를 모두 확인한다.
+- 회사 경로가 기본이다. 리뷰어 부재는 승인 삭제·solo 전환의 근거가 아니다. 기존 승인 수·제한을 보존한다.
+- 개인 소유·협업자 1명인 repo만 `.harness-policy.json`의 `mode: "solo"`로 명시 선택하고,
+  승인된 보호 예외를 `/solo-merge`로 실행할 수 있다. 선언·실제 소유/협업자·CI를 보호 변경 전에 확인한다.
+  SIGKILL·전원 손실의 복구를 보장하지 않으며 회사 repo에는 적용하지 않는다.
+- `pr-merge.sh --auto`는 `autoMergeTargets: ["develop"]`를 명시한 repo의 develop만 허용한다.
+  회사의 승인·CI·플랫폼 권한을 대신하지 않는다. main/release는 자동머지 대상이 아니다.
+- 선택과 보호 보존의 JSON·preview·현재 한계는 [회사 정책 안내](company-policy.md)를 따른다.
 - 리뷰 SLA: **1영업일** — 지연 시 리뷰어 재지정
 
 ## 리뷰 관점 체크리스트 (리뷰어용)
@@ -114,7 +119,7 @@ develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, �
 
 ## 검토 후보·보호 복원·태그 연결
 
-`pr-merge.sh --auto`는 required 검사 없음·조회 실패 시 병합하지 않는다. 수동 Actions fallback은 기존 계약이며,
+`pr-merge.sh`는 수동·자동 모두 required 검사 없음·조회 실패·현재 head 미확인 시 병합하지 않는다.
 같은 head의 성공 run만으로 현재 서버 필수 검사 전체를 확인했다고 보고하지 않는다.
 
 리뷰 snapshot의 head/base OID를 `pr-merge.sh` 또는 `solo-merge.sh`의 `--expected-head`·
