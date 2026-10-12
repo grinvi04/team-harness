@@ -2,6 +2,7 @@
 
 후속 현재 기술 작업은 [정책 API 호환 수정](../specs/company-policy-api-compatibility.md)이다.
 아래 0.92.0 실패·시험 결과는 당시 후보로 보존한다. 회사 인수 3개의 판정은 그대로다.
+로컬 로그의 절대경로는 공개 문서에 넣지 않고 소유 checkout의 `.project-map/`에서 보존한다.
 
 2026-10-13 사용자 범위 확정: **DriveTree 수정은 제외**한다. 이번 작업은
 Team Harness의 도입 판정·진행 문서 갱신과 안전한 로컬 검증이다.
@@ -15,7 +16,7 @@ Team Harness의 도입 판정·진행 문서 갱신과 안전한 로컬 검증�
 
 **선택형 로컬 도입의 제한된 증거는 확보했다. 회사 개발팀 도입 완료는 아니다.**
 0.92.0 구현·병합·태그·설치 완료 기록과 아래 실제 인수 상태를 구분한다.
-전달 기록은 [보존 원본](/Users/grinvi04/team-harness/.runtime/preserved-v0.92.0/delivery-complete.json)이다.
+전달 기록은 보존 원본 `preserved-v0.92.0/delivery-complete.json`이다.
 이번에는 전달·설치를 재실행하지 않았다. 이전 solo 전달은 회사 동료 승인 증거가 아니다.
 
 | 실제 인수 | 현재 판정 | 근거와 남은 경계 |
@@ -46,8 +47,8 @@ Team Harness의 도입 판정·진행 문서 갱신과 안전한 로컬 검증�
 - 새 시험 DB·계정·프로세스·다운로드·임시 시험 파일 정리, 이전 .next 복원 확인.
   원본 .env·기존 DB·운영·원격 보호는 건드리지 않았다.
 
-[실API 시험 보고](/Users/grinvi04/project/DriveTree-pilot-092/docs/specs/harness092-browser-real-pilot.md)와
-[실행 판정 원본](/Users/grinvi04/project/DriveTree-pilot-092/.runtime/harness092-browser-real/assessment-final.json)을 연결한다.
+실API 시험 보고 `DriveTree-pilot-092/docs/specs/harness092-browser-real-pilot.md`와
+실행 판정 원본 `DriveTree-pilot-092/.runtime/harness092-browser-real/assessment-final.json`을 연결한다.
 원문 browser-real-flow.log SHA256:
 `dadc7cdb907cb5440ce9fd539c105da29ded0a5cc51d3b22407b9765dc476972`.
 
@@ -70,7 +71,7 @@ Harness가 자동으로 그 실패를 차단했다거나, Harness 덕분에 결�
 | `bash tests/set-branch-protection-preservation-test.sh` | exit0, 32개: 승인·CODEOWNERS·앱 등 보존, 오류/미지원 거부, preview writes0 |
 | `bash tests/pr-merge-auto-test.sh` | exit0, 65개: 수동/자동 래퍼의 누락·조회 오류·잘못된 앱·후보 변경 등 거부 |
 
-[명령·후보·exit·로그 SHA 원본](/Users/grinvi04/team-harness/.runtime/company-adoption-assessment-20261013/local-checks.json).
+명령·후보·exit·로그 SHA 원본 `company-adoption-assessment-20261013/local-checks.json`.
 이는 **로컬 PASS_SCOPED**다. GitHub 실제 집행·API 왕복 호환성의 인수 증거가 아니다.
 
 | 다음 실제 검증 | 필요한 대상·참여자·권한 | 완료 기준 |
@@ -134,10 +135,10 @@ main=`16150b474e353ab8132cf24b72ec51d26eb4e837`, develop=`9a1be6d7867cbb847579f4
 | 회사 solo 경로 | 실제 solo 래퍼가 회사 정책에서 exit1로 거부. repo 메타 조회1·API 변경0·병합0 |
 | 실제 보호 재조회 | main/develop 전체 정책 전후 동일. PR 생성·push·merge·태그·설치·소비 제품 수정 미실행 |
 
-[원격 GET 기록](/Users/grinvi04/team-harness/.runtime/company-assumption-20261013/remote-read.json),
-[실제 진단 실패](/Users/grinvi04/team-harness/.runtime/company-assumption-20261013/actual-check.json),
-[가정 시험 5개](/Users/grinvi04/team-harness/.runtime/company-assumption-20261013/company-cases.json),
-[보호 전후 대조](/Users/grinvi04/team-harness/.runtime/company-assumption-20261013/policy-preservation.json).
+원격 GET 기록 `company-assumption-20261013/remote-read.json`,
+실제 진단 실패 `company-assumption-20261013/actual-check.json`,
+가정 시험 5개 `company-assumption-20261013/company-cases.json`,
+보호 전후 대조 `company-assumption-20261013/policy-preservation.json`.
 기존 6/32/65 시험은 동일한 발행 후보의 원문 증거로 재사용했다. 이번 5개와 중복 합산하지 않는다.
 첫 solo 시험은 정책 거부가 정상인데 판정자가 모든 gh 조회0을 잘못 요구해 FAIL이었다.
 첫 원문을 보존하고 정확히 repo 조회1만 허용·거부 문구와 API/병합0을 확인해 재시험했다.
