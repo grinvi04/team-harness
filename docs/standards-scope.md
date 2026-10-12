@@ -35,7 +35,7 @@
 
 | 안내 | 적용 대상 |
 |---|---|
-| [백엔드 문제 해결](stack-troubleshooting-backend.md) | Spring, NestJS, FastAPI, Django, Rails |
+| [백엔드 문제 해결](stack-troubleshooting-backend.md) | Spring Boot, NestJS, FastAPI, Django, Rails |
 | [프론트엔드 문제 해결](stack-troubleshooting-frontend.md) | TypeScript, React/Next.js, Vue/Nuxt |
 | [DB·마이그레이션 문제 해결](stack-troubleshooting-database.md) | PostgreSQL, Flyway, Prisma, Alembic, ActiveRecord |
 | [하네스 문제 해결](troubleshooting.md) | 하네스 가드·훅·PR 래퍼 |

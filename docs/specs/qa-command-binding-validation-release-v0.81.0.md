@@ -49,7 +49,7 @@ ruff 0.15.15는 임시 venv에 미리 설치해 같은 실제 ruff 명령을 실
 | 샘플 전체 gate / 제품 통합 및 격리·종료·저장 경계 | 같은 제품 후보의 check-local.sh 모든 단계 exit 0, 제품 Git 변경 없음 | FAIL |
 | 기록 대조 / 과거 결과와 현재 상태 구분 | 최초 실패와 미실행·설치 완료·통합 미완료 및 검토 상태 연결 | 실행 근거와 전달 PR 참조 |
 
-[실행 근거](qa-install-v0.81.0-evidence.json)에 공식 CLI 출력·원본 digest·새 skills/list 발췌를 보존했다.
+[실행 근거](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-install-v0.81.0-evidence.json)에 공식 CLI 출력·원본 digest·새 skills/list 발췌를 보존했다.
 공식 절차는 [OpenAI plugin 안내](https://developers.openai.com/plugins/build/plugins)의 marketplace 명령과
 [Native Refresh Runbook](codex-guard-compatibility.md#codex-native-refresh-runbook)을 따른다.
 0.80.0의 당시 기록은 보존한다. 현재 설치는 0.81.0이며 새 app-server에서만 로딩을 검증했다.
@@ -88,7 +88,7 @@ cleanup 밖으로 전파돼 관리자를 조기 종료하는 경로를 확인하
 조회 권한을 우회하거나 오류를 그룹 소멸로 간주하지 않는다. 실제 부재가 확인될 때까지 소유권을 유지한다.
 제품 전용 실행기는 샘플에 두며 공용 Harness 런타임·스킬·버전은 바꾸지 않았다.
 
-[현재 근거의 completionFollowup](qa-install-v0.81.0-evidence.json)에 최초 실패와 후속 해결을 분리한다.
+[현재 근거의 completionFollowup](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-install-v0.81.0-evidence.json)에 최초 실패와 후속 해결을 분리한다.
 기존 `overall`과 `limitations`는 첫 설치/샘플 검사 시점의 역사적 snapshot이다. 현재 결과는 이 후속
 객체·제품 커밋과 제품 docs/specs/local-dev-lifecycle.md, docs/verification.md가 소유한다.
 
@@ -122,7 +122,7 @@ source-map-js 잠금 한 노드만 1.2.1→1.2.2로 갱신했다. 제품의 실�
 전체 최초 QA exit 0(18 lifecycle·76 unit·49 Chromium·실제 격리 DB 재시작/등록 재요청),
 기존 시험·이미지·사용자 DB 보존, 독립 보안 검토와 커밋 결박 문서 검사를 확인했다.
 backend UP-TO-DATE는 재사용이다. 원문/한계는 제품 docs/specs/dependency-security.md와
-[dependencySecurityFollowup](qa-install-v0.81.0-evidence.json)에 연결한다.
+[dependencySecurityFollowup](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-install-v0.81.0-evidence.json)에 연결한다.
 
 이전 high 6건은 당시 감사 결과로 유지한다. 현재 전체 감사는 exit 1/high 5, 운영 의존성만
 exit 0/0건이다. [braces 공지](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm)는 수정 버전 없음이며

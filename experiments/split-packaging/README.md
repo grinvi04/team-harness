@@ -52,6 +52,19 @@ bash tests/codex-native-loader-pilot-test.sh
 bash tests/codex-split-loader-pilot-test.sh
 ```
 
-The release bundle reads the catalog from its pinned Git revision: this directory in current candidates or
+The default release bundle command reads the catalog from its pinned Git revision: this directory in current candidates or
 `packaging/packages.json` in older revisions. Split pilots use the same distinction in the archived exact source.
 No duplicate compatibility catalog is retained. Historical hashes identify the original bytes and paths.
+
+For release source preparation without this experiment's catalog or builder:
+
+```bash
+node scripts/build-release-bundle.mjs --source-only --output /tmp/team-harness-release
+(cd /tmp/team-harness-release && shasum -a 256 -c SHA256SUMS)
+```
+
+The source-only manifest retains schema 1 and `installable: false`, with `packages: []`. The default command
+without `--source-only` still includes four staged packages. Both paths pin one Git revision, exclude dirty
+worktree changes, refuse existing output and remove partial output. Actual release review still requires the
+[live external provenance gate](../../docs/harness-maintenance.md); neither path satisfies
+[#412 promotion conditions](https://github.com/grinvi04/team-harness/issues/412) or publishes artifacts.

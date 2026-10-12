@@ -25,6 +25,19 @@ jobs:
           sudo apt-get install --yes ripgrep
           rg --version
 
+      - name: 격리된 스택 버전 검사 도구 준비
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.11'
+
+      - name: 스택 버전 도구 설치와 판독·충돌 검사
+        run: |
+          npm ci --ignore-scripts --prefix scripts/stack-versions
+          python3 -m venv .runtime/stack-versions/venv
+          .runtime/stack-versions/venv/bin/python -m pip install --require-hashes -r scripts/stack-versions/requirements.txt
+          echo "STACK_VERSION_PYTHON=$PWD/.runtime/stack-versions/venv/bin/python" >> "$GITHUB_ENV"
+          STACK_VERSION_PYTHON="$PWD/.runtime/stack-versions/venv/bin/python" node --test tests/stack-project-test.mjs tests/stack-version-check-test.mjs tests/stack-version-cli-test.mjs
+
       - name: 진행 문서 동기화 선언 검사
         run: |
           node plugins/harness-guard/scripts/check-document-sync.mjs --repo . --event "$GITHUB_EVENT_PATH"
@@ -50,8 +63,11 @@ jobs:
           node scripts/generate-stack-templates.mjs --check
           bash tests/stack-templates-test.sh
 
-      - name: 로컬 Spring Boot+Vue 시작 구성
+      - name: 개별 Spring Boot·Vue 로컬 검사와 조합
         run: node --test tests/local-setup-test.mjs
+
+      - name: 고정 Git 역사 읽기·누락·다이제스트 계약
+        run: bash tests/history-blob-test.sh
 
       - name: 쉘 구문 검사
         run: |
@@ -65,6 +81,10 @@ jobs:
           bash -n templates/githooks/commit-msg
           bash -n .githooks/pre-commit
           bash -n .githooks/commit-msg
+          bash -n templates/local/check-harness.sh
+          for file in templates/stacks/*/local-check.sh; do bash -n "$file"; done
+          bash -n tests/history-blob-test.sh
+          node --check tests/lib/read-history-blob.mjs
           bash -n tests/architecture-generator-test.sh
           bash -n tests/test-guard-test.sh
           bash -n tests/guard-test.sh
@@ -162,6 +182,7 @@ jobs:
         run: |
           python3 - <<'EOF'
           import json
+          import subprocess
           paths = [
               "plugins/harness-guard/.claude-plugin/plugin.json",
               "plugins/harness-guard/.codex-plugin/plugin.json",
@@ -172,12 +193,19 @@ jobs:
               "experiments/split-packaging/packages.json",
               "templates/stacks.json",
               "docs/pilots/external-pilot-provenance.json",
-              "docs/pilots/codex-split-loader-v0.61.0.json",
-              "docs/pilots/codex-split-runtime-v0.61.0.json",
           ]
           for p in paths:
               json.load(open(p))
               print("OK", p)
+          revision = "54657b3ef79ab36c3e0877664964356badd3510b"
+          history = [
+              ("docs/pilots/codex-split-loader-v0.61.0.json", "4a28fe68d0860f85dc3c356ca0b36d098a3caa498cc0407b2374f26e5c711719"),
+              ("docs/pilots/codex-split-runtime-v0.61.0.json", "2db6f9ee87df527ce4ff1e27623a1fafbfb5e473b4e19c0b138c9d354b933e75"),
+          ]
+          for p, digest in history:
+              data = subprocess.check_output(["node", "tests/lib/read-history-blob.mjs", ".", revision, p, digest])
+              json.loads(data)
+              print("OK", p, "fixed Git blob")
           EOF
 
       - name: 파이썬 구문 검사 (호환 경로·실행기)

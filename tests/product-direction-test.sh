@@ -5,7 +5,14 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 DIRECTION="$ROOT/docs/product-direction.md"
 README="$ROOT/README.md"
 AGENTS="$ROOT/AGENTS.md"
-DECISIONS="$ROOT/docs/decisions-native-and-delivery.md"
+HISTORY_DIR=$(mktemp -d)
+trap 'rm -rf -- "$HISTORY_DIR"' EXIT
+DECISIONS="$HISTORY_DIR/decisions-native-and-delivery.md"
+if ! node "$ROOT/tests/lib/read-history-blob.mjs" "$ROOT" \
+  54657b3ef79ab36c3e0877664964356badd3510b docs/decisions-native-and-delivery.md \
+  46e60e1c5f507e5b1d89c85c8906f840f81dd28c919a34f39b2542e50b654d5f > "$DECISIONS"; then
+  exit 1
+fi
 PASS=0
 FAIL=0
 

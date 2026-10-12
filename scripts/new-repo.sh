@@ -38,9 +38,21 @@ echo ""
 
 node "$HARNESS_DIR/scripts/stack-catalog.mjs" --menu
 echo ""
-read -rp "번호 한 개 또는 백엔드+프론트엔드 (예: 2+6=Spring+Vue): " STACK_CHOICE
+read -rp "번호 한 개 또는 백엔드+프론트엔드 (예: 2+6=Spring Boot+Vue): " STACK_CHOICE
 
-STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE")
+SELECT_ARGS=(--select "$STACK_CHOICE")
+PROFILE_FRAMEWORK=""; PROFILE_UI=""
+case "${STACK_CHOICE%%+*}" in
+  3)
+    read -rp "Python 프레임워크 (django/fastapi/flask, 빈 값=기존 범용): " PROFILE_FRAMEWORK || true
+    if [ -n "$PROFILE_FRAMEWORK" ]; then
+      SELECT_ARGS+=(--framework "$PROFILE_FRAMEWORK")
+      read -rp "화면 구성 (templates/htmx/api, 빈 값=프레임워크 기본): " PROFILE_UI || true
+    fi ;;
+  4) read -rp "Rails 화면 구성 (hotwire/inertia-react/inertia-vue/api, 빈 값=기존 범용): " PROFILE_UI || true ;;
+esac
+[ -z "$PROFILE_UI" ] || SELECT_ARGS+=(--ui "$PROFILE_UI")
+STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" "${SELECT_ARGS[@]}")
 # Read catalog data as JSON; never evaluate generated shell text.
 selection_value() {
   printf '%s' "$STACK_SELECTION" | node -e '
@@ -53,9 +65,9 @@ if [ "$(selection_value mode)" = composed ]; then
   read -rp "프론트엔드 디렉터리 (기본 frontend): " FRONTEND_DIR || FRONTEND_DIR=""
   BACKEND_DIR="${BACKEND_DIR:-backend}"
   FRONTEND_DIR="${FRONTEND_DIR:-frontend}"
-  STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "$STACK_CHOICE" --backend-dir "$BACKEND_DIR" --frontend-dir "$FRONTEND_DIR")
-  # Render before filesystem/protection effects so invalid inputs fail closed.
-  COMPOSED_WORKFLOW=$(node "$HARNESS_DIR/scripts/generate-stack-templates.mjs" --compose "$STACK_CHOICE" --backend-dir "$BACKEND_DIR" --frontend-dir "$FRONTEND_DIR")
+  SELECT_ARGS+=(--backend-dir "$BACKEND_DIR" --frontend-dir "$FRONTEND_DIR")
+  STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" "${SELECT_ARGS[@]}")
+
 fi
 STACK_TEMPLATE=$(selection_value template)
 read -r -a STACK_CHECKS <<< "$(selection_value checks)"
@@ -70,26 +82,21 @@ fi
 # Alembic 스택 — 다중 head(분기 마이그레이션) 차단 게이트(별도 CI 점검, decisions "정적 게이트 Flyway 전용").
 # 검증기(check-repo-sync.mjs)가 alembic 감지 시 이 게이트를 required로 기대 → 프로비저너가 대칭 제공.
 HAS_ALEMBIC=false
-if [ "$(selection_value database.tool)" = alembic ]; then
+if [[ " ${STACK_CHECKS[*]} " == *" alembic-heads "* ]]; then
   HAS_ALEMBIC=true
 fi
 
-# Alembic runs in the selected backend too; render before copying any files.
-if [ "$HAS_ALEMBIC" = true ] && [ "$(selection_value mode)" = composed ]; then
-  ALEMBIC_WORKFLOW=$(node - "$HARNESS_DIR/templates/ci/alembic-heads.yml" "$BACKEND_DIR" <<'NODE'
-const fs = require('node:fs');
-const source = fs.readFileSync(process.argv[2], 'utf8');
-const anchor = '    runs-on: ubuntu-latest\n';
-if (source.split(anchor).length !== 2) throw new Error('Unsupported Alembic job shape');
-process.stdout.write(source.replace(anchor,
-  anchor + '    defaults:\n      run:\n        working-directory: ' + JSON.stringify(process.argv[3]) + '\n'));
-NODE
-  )
-fi
-
-STACK_TEMPLATE_PATH="$HARNESS_DIR/templates/ci/stacks/$STACK_TEMPLATE"
-echo ""
-echo "선택: $(selection_value label)"
+VERSION_ARGS=(--project "$(pwd)" --stack "$STACK_CHOICE" "${SELECT_ARGS[@]:2}")
+echo "버전은 기존 확정 값을 우선합니다. 변경 요청은 role.component=버전 또는 latest로 입력하세요."
+read -rp "버전 요청 (공백으로 구분, 빈 값=기존 버전): " VERSION_REQUESTS || VERSION_REQUESTS=""
+read -r -a REQUESTS <<< "$VERSION_REQUESTS"
+for request in "${REQUESTS[@]+"${REQUESTS[@]}"}"; do [ -z "$request" ] || VERSION_ARGS+=(--version "$request"); done
+STACK_PREPARED=$(node "$HARNESS_DIR/scripts/stack-versions/setup.mjs" prepare "${VERSION_ARGS[@]}")
+COMPOSED_WORKFLOW=$(printf '%s' "$STACK_PREPARED" | node -e 'console.log(JSON.parse(require("fs").readFileSync(0,"utf8")).workflow)')
+ALEMBIC_WORKFLOW=$(printf '%s' "$STACK_PREPARED" | node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(0,"utf8")).alembicWorkflow ?? "")')
+# Recheck input fingerprints, preserved CI and every destination before the first write.
+printf '%s' "$STACK_PREPARED" | node "$HARNESS_DIR/scripts/stack-versions/setup.mjs" apply "$(pwd)"
+echo "선택: $(selection_value label) — 버전 기록 적용/재사용"
 echo ""
 
 # ── 1. 템플릿 파일 복사 (기존 파일 덮어쓰지 않음) ────────────────────────
@@ -99,7 +106,7 @@ mkdir -p .githooks .github/workflows .claude
 
 copy_once() {
   local src="$1" dst="$2" label="$3" note="${4:-}"
-  if [[ -f "$dst" ]]; then
+  if [[ -e "$dst" || -L "$dst" ]]; then
     echo "  ⏭  $label (이미 있음)"
   else
     cp "$src" "$dst"
@@ -111,11 +118,7 @@ copy_once() {
 if [[ -f ".github/workflows/ci-gate.yml" ]]; then
   echo "  ⏭  ci-gate.yml (이미 있음)"
 else
-  if [ "$(selection_value mode)" = composed ]; then
-    printf '%s\n' "$COMPOSED_WORKFLOW" > .github/workflows/ci-gate.yml
-  else
-    cp "$STACK_TEMPLATE_PATH" .github/workflows/ci-gate.yml
-  fi
+  printf '%s\n' "$COMPOSED_WORKFLOW" > .github/workflows/ci-gate.yml
   echo "  ✅  ci-gate.yml  ← ⚠️ CUSTOMIZE 주석 부분 프로젝트에 맞게 수정"
 fi
 
@@ -124,6 +127,7 @@ copy_once "$HARNESS_DIR/templates/ci/commitlint.yml"        .github/workflows/co
 copy_once "$HARNESS_DIR/templates/ci/integration-e2e.yml"   .github/workflows/integration-e2e.yml "integration-e2e.yml (실 IdP+실데이터 e2e 스캐폴드)" "⚠️ CUSTOMIZE + Settings→Variables에 E2E_ENABLED=true"
 copy_once "$HARNESS_DIR/templates/commitlint.config.cjs"    commitlint.config.cjs      "commitlint.config.cjs (Conventional Commits 규약)"
 mkdir -p scripts
+copy_once "$HARNESS_DIR/plugins/harness-guard/scripts/check-stack-record.mjs" scripts/check-stack-record.mjs "버전 기록 지문 검사"
 copy_once "$HARNESS_DIR/scripts/check-commit-message.cjs"   scripts/check-commit-message.cjs "scripts/check-commit-message.cjs (로컬·CI 공통 커밋 규칙)"
 
 # 파괴적 DDL 게이트 — stack-agnostic(Flyway·Prisma·Supabase 공통, 마이그레이션 없으면 self-skip)이라 무조건 배선.
@@ -144,7 +148,7 @@ fi
 
 # Alembic 스택 — 다중 head 차단 게이트 워크플로(자기-스킵 — alembic.ini 없으면 통과)
 if [[ "$HAS_ALEMBIC" == true ]]; then
-  if [ "$(selection_value mode)" = composed ] && [ ! -f .github/workflows/alembic-heads.yml ]; then
+  if [ ! -f .github/workflows/alembic-heads.yml ]; then
     printf '%s\n' "$ALEMBIC_WORKFLOW" > .github/workflows/alembic-heads.yml
     echo "  ✅  alembic-heads.yml (선택한 백엔드의 다중 head 차단)"
   else
@@ -152,10 +156,13 @@ if [[ "$HAS_ALEMBIC" == true ]]; then
   fi
 fi
 
+NEW_PRECOMMIT=false; NEW_COMMITMSG=false
+[ -e .githooks/pre-commit ] || NEW_PRECOMMIT=true
+[ -e .githooks/commit-msg ] || NEW_COMMITMSG=true
 copy_once "$HARNESS_DIR/templates/githooks/pre-commit"       .githooks/pre-commit       "pre-commit 훅"
 copy_once "$HARNESS_DIR/templates/githooks/commit-msg"       .githooks/commit-msg       "commit-msg 훅 (커밋 메시지 즉시 검증)"
-chmod +x .githooks/pre-commit
-chmod +x .githooks/commit-msg
+[ "$NEW_PRECOMMIT" = false ] || chmod +x .githooks/pre-commit
+[ "$NEW_COMMITMSG" = false ] || chmod +x .githooks/commit-msg
 
 copy_once "$HARNESS_DIR/templates/AGENTS.md"                 AGENTS.md                  "AGENTS.md"      "⚠️ 프로젝트 내용 채우기 (빌드·테스트 명령 섹션 필수)"
 copy_once "$HARNESS_DIR/templates/CLAUDE.md"                 CLAUDE.md                  "CLAUDE.md"
@@ -168,7 +175,7 @@ copy_once "$HARNESS_DIR/templates/PULL_REQUEST_TEMPLATE.md"  .github/PULL_REQUES
 if [[ ${#STACK_RULES[@]} -gt 0 ]]; then
   mkdir -p .claude/rules
   for rule in "${STACK_RULES[@]}"; do
-    copy_once "$HARNESS_DIR/templates/rules/stacks/$rule.md" ".claude/rules/$rule.md" "rules/$rule.md"
+    copy_once "$HARNESS_DIR/$(selection_value "ruleSources.$rule")" ".claude/rules/$rule.md" "rules/$rule.md"
   done
 fi
 
@@ -187,15 +194,15 @@ else
   echo "  ✅  .gitignore (harness snippet 추가)"
 fi
 
-# Spring 스택 전용 추가 파일
-if [ "$(selection_value backend.preset)" = spring ]; then
-  SPRING_DIR=backend
-  if [ "$(selection_value mode)" = composed ]; then SPRING_DIR="$BACKEND_DIR"; fi
-  mkdir -p "$SPRING_DIR/config/checkstyle"
-  copy_once "$HARNESS_DIR/templates/backend-gitignore.spring" "$SPRING_DIR/.gitignore" \
-    "$SPRING_DIR/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
-  copy_once "$HARNESS_DIR/templates/checkstyle.xml" "$SPRING_DIR/config/checkstyle/checkstyle.xml" \
-    "$SPRING_DIR/config/checkstyle/checkstyle.xml"
+# Spring Boot 스택 전용 추가 파일
+if [ "$(selection_value backend.preset)" = spring-boot ]; then
+  SPRING_BOOT_DIR=.
+  if [ "$(selection_value mode)" = composed ]; then SPRING_BOOT_DIR="$BACKEND_DIR"; fi
+  mkdir -p "$SPRING_BOOT_DIR/config/checkstyle"
+  copy_once "$HARNESS_DIR/$(selection_value assetSources.gitignore)" "$SPRING_BOOT_DIR/.gitignore" \
+    "$SPRING_BOOT_DIR/.gitignore" "gradle-wrapper.jar 포함, Gradle/IDE 제외"
+  copy_once "$HARNESS_DIR/$(selection_value assetSources.checkstyle)" "$SPRING_BOOT_DIR/config/checkstyle/checkstyle.xml" \
+    "$SPRING_BOOT_DIR/config/checkstyle/checkstyle.xml"
 fi
 
 # 프론트엔드 분리 스택 전용 — Prettier 포맷 게이트 + 디자인 토큰 게이트 스크립트
@@ -300,7 +307,7 @@ echo ""
 # 신규=여기, 기존 repo=언제든 `node check-repo-sync.mjs --repo <경로>`로 대칭 점검.
 if command -v node > /dev/null 2>&1; then
   echo "🔎  드리프트 self-check (check-repo-sync.mjs)..."
-  node "$HARNESS_DIR/scripts/check-repo-sync.mjs" --repo "$(pwd)" --harness "$HARNESS_DIR" \
+  node "$HARNESS_DIR/scripts/check-repo-sync.mjs" --repo "$(pwd)" --harness "$HARNESS_DIR" --versions \
     || echo "  ⚠️  위 표에서 MISSING 항목 확인 — 누락 자산을 채우세요(셋업 직후라면 보통 통과)."
   echo ""
 else
@@ -311,7 +318,7 @@ fi
 # ── 완료 요약 ───────────────────────────────────────────────────────────────
 
 echo "────────────────────────────────────────────────"
-echo "✅  기계 셋업 완료. 남은 수동 작업:"
+echo "✅  파일 셋업 완료. 앱 시험·원격 CI 통과는 별도 확인이 필요합니다:"
 echo ""
 echo "  1. ci-gate.yml 수정: CUSTOMIZE 주석 부분을 프로젝트에 맞게 교체"
 echo "       (credentials, env 변수, 디렉터리 경로 등)"

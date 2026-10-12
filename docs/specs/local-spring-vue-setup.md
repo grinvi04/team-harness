@@ -1,5 +1,10 @@
 # 로컬 Spring Boot+Vue 검사 시작 구성
 
+이 문서는 당시 설계를 보존한다. 현재 Spring Boot 명칭·경로와 개별/조합 명령은 [현재 안내](../local-development.md)를 따른다.
+
+이 문서는 당시 구현의 범위·경로를 보존한다. 현재 원문 위치·명령은
+[구조 안내](../repository-structure.md)와 [후속 스펙](structure-cleanup.md)을 따른다.
+
 상태: 소스 0.72.0 구현·검증 완료. 제품 순서는 [제품 방향](../product-direction.md), 병합 상태는
 [이슈 #462의 연결 PR](https://github.com/grinvi04/team-harness/issues/462), 정식 발행은
 [버전 태그](https://github.com/grinvi04/team-harness/tags)가 정본이다. 소스 완료는 설치 갱신을 뜻하지 않는다.

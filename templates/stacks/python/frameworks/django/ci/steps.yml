@@ -1,0 +1,5 @@
+      - name: Django system check
+        run: python manage.py check
+
+      - name: Django native tests
+        run: python manage.py test

@@ -1,5 +1,8 @@
 # migration-declarative-scheme 스펙 ([B]/#219 밴드 감지 재설계)
 
+이 문서는 당시 구현의 범위·경로를 보존한다. 현재 원문 위치·명령은
+[구조 안내](../repository-structure.md)와 [후속 스펙](structure-cleanup.md)을 따른다.
+
 > 근거: GitHub 이슈 #219 · `docs/specs/guard-gate-redesign-roadmap.md` Phase 2 [B]. `/plan` 승인 산출물.
 
 ## 1. 목표 & Why

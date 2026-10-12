@@ -52,7 +52,7 @@
 
 ## 증거와 검증 상태
 
-[구조화 증거](qa-practical-evidence.json)에 후보 digest, 요청·실행 명령, 원문 응답, 완료된 도구 기록,
+[구조화 증거](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/qa-practical-evidence.json)에 후보 digest, 요청·실행 명령, 원문 응답, 완료된 도구 기록,
 최종 시험/파일, 자동 판정, 최초 실패·재시도, 실행 시간·도구 제공 토큰 사용량을 저장한다.
 외부 설치 skill의 본문은 재배포하지 않고 읽은 명령·종료 코드·본문 digest만 남긴다.
 호스트 경로는 `$WORKSPACE`, `$EVAL`, `$HOME`으로 치환했다. 원본 로그 digest는 치환 전 파일 기준이다.

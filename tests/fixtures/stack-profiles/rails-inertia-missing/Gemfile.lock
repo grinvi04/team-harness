@@ -1,0 +1,8 @@
+GEM
+  specs:
+    inertia_rails (3.11.0)
+    rails (8.0.3)
+
+DEPENDENCIES
+  inertia_rails
+  rails

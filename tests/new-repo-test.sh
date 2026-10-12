@@ -36,7 +36,7 @@ if ROOT="$ROOT" node <<'NODE'
 const { readFileSync } = require('node:fs')
 const { join } = require('node:path')
 
-const rule = readFileSync(join(process.env.ROOT, 'templates/rules/stacks/nextjs.md'), 'utf8')
+const rule = readFileSync(join(process.env.ROOT, 'templates/stacks/nextjs/rules/nextjs.md'), 'utf8')
 const pathsLine = rule.split('\n').find((line) => line.startsWith('paths: '))
 const patterns = JSON.parse(pathsLine.slice('paths: '.length))
 const required = [
@@ -106,6 +106,14 @@ case "$endpoint" in
 esac
 MOCK
 chmod +x "$TMP/bin/gh"
+export NODE_OPTIONS="--import=$ROOT/tests/fixtures/stack-profiles/metadata-fetch.mjs"
+seed_project() { node "$ROOT/tests/fixtures/stack-profiles/seed-project.mjs" "$@"; }
+selection_input() {
+  local choice="$1"; printf '%s\n' "$choice"
+  case "${choice%%+*}" in 3|4) printf '\n' ;; esac
+  [[ "$choice" != *+* ]] || printf 'apps/api\napps/web\n'
+  printf '\n'
+}
 git init -q "$TMP/source"
 git -C "$TMP/source" -c user.name=test -c user.email=test@example.com -c core.hooksPath=/dev/null \
   commit --allow-empty -qm 'docs: 초기 기준 추가'
@@ -116,6 +124,7 @@ WORKFLOW_BLOB=$(git hash-object "$ROOT/templates/ci/commitlint.yml")
 VALIDATOR_BLOB=$(git hash-object "$ROOT/scripts/check-commit-message.cjs")
 for scenario in protected missing legacy validator-missing api-error ready; do
   git clone -q "$TMP/source" "$TMP/$scenario"
+  seed_project "$TMP/$scenario" 1
   export SETUP_CASE="$scenario" WRITE_LOG="$TMP/$scenario-writes"
   : > "$WRITE_LOG"
   rc=0
@@ -137,17 +146,18 @@ done
 for selection in 1 2 3 4 5 6 1+1 1+5 1+6 2+1 2+5 2+6 3+1 3+5 3+6 4+1 4+5 4+6; do
   target="$TMP/stack-${selection/+/-}"
   git clone -q "$TMP/source" "$target"
+  seed_project "$target" "$selection"
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
   : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
   rc=0
-  (cd "$target" && printf '%s\napps/api\napps/web\n' "$selection" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
+  (cd "$target" && selection_input "$selection" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
   if [ "$rc" = 0 ] && TARGET="$target" SELECTION="$selection" PROTECTION_LOG="$PROTECTION_LOG" python3 <<'CHECK'
 import json, os
 from pathlib import Path
 target = Path(os.environ['TARGET'])
 parts = [int(p) for p in os.environ['SELECTION'].split('+')]
 rule_sets = {1: {'typescript'}, 2: {'java', 'flyway'}, 3: {'python', 'alembic'},
-             4: {'ruby'}, 5: {'typescript', 'nextjs'}, 6: {'typescript', 'vue'}}
+             4: {'ruby'}, 5: {'typescript', 'react', 'nextjs'}, 6: {'typescript', 'vue'}}
 rules = set().union(*(rule_sets[p] for p in parts))
 assert rules == {p.stem for p in (target / '.claude/rules').glob('*.md') if p.stem != 'korean-ux'}
 settings = json.loads((target / '.claude/settings.json').read_text())
@@ -167,8 +177,8 @@ if len(parts) == 2:
     assert (target / 'apps/web/.prettierrc').read_bytes() == Path(os.environ['ROOT'] + '/templates/.prettierrc').read_bytes()
     assert (target / 'apps/web/scripts/check-design-tokens.mjs').read_bytes() == Path(os.environ['ROOT'] + '/templates/frontend/check-design-tokens.mjs').read_bytes()
     if parts[0] == 2:
-        assert (target / 'apps/api/.gitignore').read_bytes() == Path(os.environ['ROOT'] + '/templates/backend-gitignore.spring').read_bytes()
-        assert (target / 'apps/api/config/checkstyle/checkstyle.xml').read_bytes() == Path(os.environ['ROOT'] + '/templates/checkstyle.xml').read_bytes()
+        assert (target / 'apps/api/.gitignore').read_bytes() == Path(os.environ['ROOT'] + '/templates/stacks/spring-boot/gitignore').read_bytes()
+        assert (target / 'apps/api/config/checkstyle/checkstyle.xml').read_bytes() == Path(os.environ['ROOT'] + '/templates/stacks/spring-boot/checkstyle.xml').read_bytes()
     if parts[0] == 3:
         import subprocess
         config = target / 'apps/api/alembic.ini'
@@ -181,13 +191,16 @@ if len(parts) == 2:
         fake = target / 'fake-alembic-bin'; fake.mkdir()
         for name, body in {'pip': '#!/bin/sh\nexit 0\n', 'alembic': '#!/bin/sh\nprintf "first (head)\\nsecond (head)\\n"\n'}.items():
             tool = fake / name; tool.write_text(body); tool.chmod(0o755)
-        step = next(s['run'] for s in job['steps'] if 'run' in s)
+        step = next(s['run'] for s in job['steps'] if s.get('name') == 'Alembic 다중 head 차단 (자기-스킵)')
         result = subprocess.run(['bash', '-eo', 'pipefail', '-c', step], cwd=target / directory,
                                 env={**os.environ, 'PATH': str(fake) + ':' + os.environ['PATH']}, capture_output=True, text=True)
         assert result.returncode == 1 and 'head=2' in result.stdout, result.stdout
 else:
-    template = ['node', 'spring', 'python', 'rails', 'nextjs', 'vue'][parts[0] - 1]
-    assert workflow == Path(os.environ['ROOT'] + '/templates/ci/stacks/ci-gate-' + template + '.yml').read_text()
+    assert '\n  quality:\n' in workflow
+assert 'check-stack-record.mjs' in workflow
+record = json.loads((target / 'harness-stack.versions.json').read_text())
+assert record['status'] == 'compatible'
+assert not (target / 'APP_EXECUTED').exists()
 CHECK
   then
     echo "PASS: setup stack $selection → actual workflow, rules, unchanged permissions and required checks"; PASS=$((PASS+1))
@@ -206,18 +219,19 @@ for kind in relative traversal absolute; do
     traversal) foreign="../outside-env"; outside="$TMP/outside-env" ;;
     absolute) foreign="$TMP/absolute-outside-env"; outside="$foreign" ;;
   esac
+  seed_project "$target" 2
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
   : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
-  if (cd "$target" && printf '2\n' | BACKEND_DIR="$foreign" FRONTEND_DIR="$foreign" PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
-    && cmp -s "$ROOT/templates/checkstyle.xml" "$target/backend/config/checkstyle/checkstyle.xml" \
+  if (cd "$target" && printf '2\n\n' | BACKEND_DIR="$foreign" FRONTEND_DIR="$foreign" PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
+    && cmp -s "$ROOT/templates/stacks/spring-boot/checkstyle.xml" "$target/config/checkstyle/checkstyle.xml" \
     && [ ! -e "$outside" ]; then
-    echo "PASS: standalone Spring ignores inherited $kind directory variables"; PASS=$((PASS+1))
+    echo "PASS: standalone Spring Boot ignores inherited $kind directory variables"; PASS=$((PASS+1))
   else
-    echo "FAIL: standalone Spring inherited $kind destination"; FAIL=$((FAIL+1))
+    echo "FAIL: standalone Spring Boot inherited $kind destination"; FAIL=$((FAIL+1))
   fi
 done
 
-for selection in 7 5+6 2+3 2+6:../outside; do
+for selection in 9 5+6 2+3 2+6:../outside; do
   target="$TMP/invalid-${selection//[^a-zA-Z0-9]/-}"
   git clone -q "$TMP/source" "$target"
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
@@ -234,6 +248,7 @@ done
 # Existing product-specific files must survive, including permissions and rules.
 target="$TMP/preserve"
 git clone -q "$TMP/source" "$target"
+seed_project "$target" 2+6 backend frontend
 mkdir -p "$target/.github/workflows" "$target/.claude/rules"
 mkdir -p "$target/backend/config/checkstyle" "$target/frontend/scripts"
 printf 'backend ignore sentinel\n' > "$target/backend/.gitignore"
@@ -246,7 +261,9 @@ printf 'product rule sentinel\n' > "$target/.claude/rules/vue.md"
 cp "$target/.claude/settings.json" "$TMP/preserved-settings"
 export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
 : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
-if (cd "$target" && printf '2+6\nbackend\nfrontend\n' | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
+rc=0
+(cd "$target" && printf '2+6\nbackend\nfrontend\n\n' | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
+if [ "$rc" != 0 ] && [ ! -s "$WRITE_LOG" ] && [ ! -e "$target/harness-stack.versions.json" ] \
   && cmp -s "$target/.claude/settings.json" "$TMP/preserved-settings" \
   && [ "$(cat "$target/.github/workflows/ci-gate.yml")" = 'product CI sentinel' ] \
   && [ "$(cat "$target/backend/.gitignore")" = 'backend ignore sentinel' ] \
@@ -254,12 +271,13 @@ if (cd "$target" && printf '2+6\nbackend\nfrontend\n' | PATH="$TMP/bin:$PATH" ba
   && [ "$(cat "$target/frontend/.prettierrc")" = 'formatter sentinel' ] \
   && [ "$(cat "$target/frontend/scripts/check-design-tokens.mjs")" = 'design gate sentinel' ] \
   && [ "$(cat "$target/.claude/rules/vue.md")" = 'product rule sentinel' ]; then
-  echo 'PASS: existing CI/settings/rules remain byte-identical'; PASS=$((PASS+1))
+  echo 'PASS: custom CI refusal preserves files and makes no record/protection writes'; PASS=$((PASS+1))
 else
   cat "$target.log"
   echo 'FAIL: existing product configuration was changed'; FAIL=$((FAIL+1))
 fi
 
+if node --test "$ROOT/tests/stack-setup-test.mjs"; then PASS=$((PASS+1)); else FAIL=$((FAIL+1)); fi
 echo ""
 echo "결과: PASS=$PASS FAIL=$FAIL"
 [ "$FAIL" -eq 0 ]

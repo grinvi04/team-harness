@@ -9,7 +9,9 @@
 
 - **로컬 개발:** 제품의 실제 루트·스택·검사 명령을 AGENTS.md에 기록하고 [개발 흐름](development-coordination.md)과
   [스택별 검사 연결](#스택별-검사를-연결하는-방법)을 사용한다. 기존 검사·설정을 먼저 재사용한다.
-  준비된 Spring Boot+Vue 앱은 [로컬 검사 시작 구성](local-development.md)으로 검사 진입점을 추가할 수 있다.
+  준비된 Spring Boot 또는 Vue 앱은 [로컬 검사 시작 구성](local-development.md)으로 검사 진입점을
+  추가할 수 있다. 개별 스택을 선택하거나 두 스택의 경로를 지정해 조합한다.
+  [스택 버전 안내](stack-versions.md)에서 React·Nuxt·Python framework·Rails UI를 선택한다.
   `new-repo.sh`는 GitHub 전용이며 새 로컬 경로도 앱·검사 도구 설정 자체를 생성하지 않는다.
 - **GitHub 연결:** 접근·공개 범위와 회사 정책을 확인한 뒤 A절을 적용한다. 기존 원격의 CI·승인 기준은 유지한다.
   아래 개인 저장소의 가시성·라이선스 기본값을 회사 코드 공개나 라이선스 변경 승인으로 사용하지 않는다.
@@ -27,7 +29,7 @@
 ### 1. 기계 셋업 — 스크립트 1회 실행
 
 > ⛔ **AI 도구 주의**: `.claude/`, `.github/`, `.githooks/` 파일을 직접 만들지 말 것.
-> new-repo.sh가 없으면 온보딩이 안 된 것이다 — 스크립트 먼저, 코드 나중.
+기존 앱 선언·lock·검사 명령을 먼저 준비한다. [버전 안내](stack-versions.md)의 tooling·미리보기를 확인한다.
 
 ```bash
 cd <새 repo 루트>
@@ -48,7 +50,7 @@ bash /path/to/team-harness/scripts/new-repo.sh
 > 3. 초기 커밋 — pre-commit 훅이 main 직접 커밋을 막으니 이 1회만 `git commit --no-verify` → `git push origin main`
 >    (보호가 아직 없어 push 성공).
 > 4. `git checkout -b develop && git push -u origin develop`.
-> 5. `new-repo.sh` **재실행** — 이제 워크플로가 원격에 있어 main·develop 보호가 적용된다.
+> 5. 기록을 소비하는 생성 CI가 그대로면 `new-repo.sh` **재실행** — 이제 워크플로가 원격에 있어 main·develop 보호가 적용된다.
 >
 > ⚠️ `git commit --no-verify`는 **로컬 pre-commit 훅만** 우회한다 — **서버 branch protection은 못 뚫는다**.
 > 그래서 --no-verify로도 보호된 브랜치엔 push가 거부되므로, "보호를 push 뒤(5단계)에 거는" 순서가 해법이다.
@@ -60,10 +62,13 @@ bash /path/to/team-harness/scripts/new-repo.sh
 > 시작한다. 상호 리뷰할 멤버가 정해지면 main만 `--approvals 1`로 올린다. 즉 기존 사내
 > 브랜치 규칙이 선행 조건이 아니라, 이 기본선이 초기 규칙이다.
 
+사용자 CI를 CUSTOMIZE하면 자동 셋업 재실행은 보존·중단한다. 수동으로 기록/핀/checker를 검토하고
+실제 CI 통과 후 보호 설정 명령을 별도로 사용한다. 자동 덮어쓰기나 완료 추정은 하지 않는다.
+
 ### 2. 수동 3단계 (스크립트 출력이 안내)
 
 - [ ] **ci-gate.yml 확인**: 선택한 스택의 `CUSTOMIZE`와 lint·test·build 명령을 실제 프로젝트에 맞춘다.
-      개별 스택 번호1–6을 고르거나 `2+6`처럼 백엔드·프론트엔드를 조합한다.
+      개별 스택 번호1–8을 고르거나 `2+6`처럼 백엔드·프론트엔드를 조합한다.
       조합에서는 두 작업 경로(기본값 `backend`·`frontend`)를 지정한다. 규칙도 함께 설치되며 기존 파일은 덮어쓰지 않는다.
 - [ ] **AGENTS.md 작성**: 프로젝트 개요·디렉터리·빌드·테스트 명령 채우기
       (빌드·테스트 명령 섹션은 하네스 커맨드가 필수로 읽음)

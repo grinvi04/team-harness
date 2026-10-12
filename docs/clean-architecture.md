@@ -3,7 +3,7 @@
 [표준 적용 기준](standards-scope.md)을 따른다. 복잡한 업무 규칙과 외부 기술의 변경을 분리할 때 선택한다.
 모든 프로젝트에 동일한 디렉터리나 계층 수를 강제하지 않는다.
 
-## 1. 구조 (Java/Spring 기준)
+## 1. 구조 (Java/Spring Boot 기준)
 
 계층을 채택한 모듈의 예시다. 이름과 모듈 경계는 제품에서 정한다.
 
@@ -55,6 +55,6 @@ DB 저장과 메시지 발행의 불일치에는 [Transactional Outbox](https://
 
 ## 6. 스택별 변형
 
-Spring·NestJS는 선택한 계층 경계를 검사에 연결한다.
+Spring Boot·NestJS는 선택한 계층 경계를 검사에 연결한다.
 Rails·Django는 프레임워크 기본 구조를 활용하고 복잡해진 부분만 분리한다.
 세부 문제 해결은 [백엔드 안내](stack-troubleshooting-backend.md)를 따른다.

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-workflow_files() { find "$ROOT/.github" "$ROOT/templates/ci" -type f \( -name '*.yml' -o -name '*.yaml' \); }
+workflow_files() { find "$ROOT/.github" "$ROOT/templates" -type f \( -name '*.yml' -o -name '*.yaml' \); }
 
 ruby -ryaml -e '
 def refs(value, path = [], found = [])

@@ -4,7 +4,7 @@
 
 ## 1차 결과 — 대표 검사와 검출력 대조
 
-2026-09-29에 아래 검사를 새로 실행했다. [실행 증거](multi-project-qa-evidence.json)에 실제 명령·종료 코드·
+2026-09-29에 아래 검사를 새로 실행했다. [실행 증거](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/specs/multi-project-qa-evidence.json)에 실제 명령·종료 코드·
 출력·원본 로그 digest·후보와 원본 보존 대조를 남겼다. 기존 61단계 Harness 검사는 이 제품 실행에 합산하지 않는다.
 
 | 대상 | 실제 확인한 경계 | 결과 | 미확인 필수 경계 |
