@@ -1,7 +1,7 @@
 # 회사 개발팀 선택형 도입 개선
 
 사용자 승인: 이 대화의 여섯 묶음을 선행 작업의 main·새 버전 발행 뒤 구현한다.
-현재 판정은 [0.92.0 도입 판정과 인수 순서](../pilots/company-adoption-2026-10-13.md)를 따른다.
+현재 판정은 [도입 판정과 인수 순서](../pilots/company-adoption-2026-10-13.md)를 따른다.
 구현·전달 완료 기록과 실제 인수 FAIL1/UNVERIFIED2를 구분한다. DriveTree 수정은 제외한다.
 아래 구현·재개·전달 승인 단계는 당시 후보의 역사이며 현재 대기/실행 지시가 아니다.
 이전 0.91.1 기반·#539 미해결·ddb1dcd 검증은 당시 기록으로 보존한다.
@@ -144,3 +144,8 @@ Codex·Claude 공식 CLI로0.92.0을 설치·활성화하고 양쪽 설치76개 
 develop 포함은 연결된 역병합 PR의 MERGED와 Git ancestry로 판정한다. 실제 회사 인수3개는 UNVERIFIED다.
 
 로컬 검증을 마친 기술 후속은 [정책 API 호환 수정](company-policy-api-compatibility.md)이다. 실제 회사 인수와 별도로 판정한다.
+
+## 후속 0.92.1 호환 수정·전달
+
+[정책 API 수정과 전달 결과](company-policy-api-compatibility.md)는 실제 판독 실패 복구·발행·설치를 기록한다.
+기존0.92.0 실제 제품 시험·미해결 인수 기준은 유지한다. 회사 인수 FAIL1/UNVERIFIED2는 별도다.
