@@ -25,6 +25,9 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_STATE: ${{ github.event.pull_request.state }}
+          PR_MERGED: ${{ github.event.pull_request.merged }}
+          EVENT_ACTION: ${{ github.event.action }}
           READ_TOKEN: ${{ github.token }}
         run: |
           if ! [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ && "$BASE_SHA" =~ ^[0-9a-f]{40}$ && "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]] \
@@ -32,6 +35,18 @@ jobs:
             echo "잘못된 PR metadata입니다." >&2
             exit 1
           fi
+          # The required job always runs; only a merged PR's edited record is non-applicable.
+          case "$PR_STATE:$PR_MERGED:$EVENT_ACTION" in
+            closed:true:edited)
+              echo "병합된 PR의 기록 변경: 새 커밋 검사는 비적용입니다."
+              exit 0
+              ;;
+            open:false:opened|open:false:synchronize|open:false:reopened|open:false:edited) ;;
+            *)
+              echo "잘못된 PR 상태·이벤트 metadata입니다." >&2
+              exit 1
+              ;;
+          esac
           # Authentication exists only in each read-only fetch process, not Git config or Node.
           FETCH_AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$READ_TOKEN" | base64 | tr -d '\n')"
           unset READ_TOKEN

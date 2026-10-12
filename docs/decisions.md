@@ -34,6 +34,12 @@
 
 ## 2026-10-12 구조 정리 후속 결정
 
+### 병합 후 커밋 검사와 기록 갱신
+
+필수 target job은 항상 실행하고 GitHub의 closed/merged/edited 조합만 새 머지 검사 비적용으로 처리한다.
+열린 PR·빈 범위·head·fetch·메시지 거부와 기존 보호를 유지한다. 제품 방향은 소유다.
+[#539 수정 계약](specs/commitlint-post-merge.md)은 main 적용과 develop 동기화까지이며 태그·발행·설치는 제외한다.
+
 스택 자산은 `templates/stacks/<스택>/`에 모으고 카탈로그의 저장소 루트 기준 경로로 reader를 연결한다.
 Spring Boot·Vue 로컬 검사는 개별 원문에서 조합하며 기존 명령을 유지한다. 과거 원문은 고정 Git·digest로
 읽고 현재 정책·인수 실패·검증 필수 자료를 보존한다. 발행 검토에는 `--source-only`를 제공하고

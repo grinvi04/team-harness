@@ -4,6 +4,22 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
+# Observe PR fetch/validator calls without recording auth values or running PR code.
+REAL_GIT="$(command -v git)"
+REAL_NODE="$(command -v node)"
+mkdir -p "$TMP/trace-bin"
+cat > "$TMP/trace-bin/git" <<'TRACE'
+#!/usr/bin/env bash
+[ "${1:-}" != fetch ] || printf 'fetch\n' >> "$TRUSTED_CALL_LOG"
+exec "$REAL_GIT" "$@"
+TRACE
+cat > "$TMP/trace-bin/node" <<'TRACE'
+#!/usr/bin/env bash
+[ "${1:-}" != scripts/check-commit-message.cjs ] || printf 'validator\n' >> "$TRUSTED_CALL_LOG"
+exec "$REAL_NODE" "$@"
+TRACE
+chmod +x "$TMP/trace-bin/git" "$TMP/trace-bin/node"
+
 # Final deployment has one trusted source and a matching consumer template.
 if [ -e "$ROOT/.github/workflows/commitlint.yml" ]; then
   echo 'FAIL: legacy workflow must be retired after the required-check handoff'
@@ -65,13 +81,21 @@ git -C "$TMP/runner" checkout -q "$BASE_SHA"
 
 run_case() {
   local label="$1" expected="$2" base_ref="$3" head_ref="$4" head_sha="$5" pr_number="${6:-1}" code=0
+  local pr_state="${7-open}" pr_merged="${8-false}" event_action="${9-synchronize}"
+  : > "$TMP/calls.log"
   (cd "$TMP/runner" && BASE_REF="$base_ref" HEAD_REF="$head_ref" BASE_SHA="$BASE_SHA" \
     HEAD_SHA="$head_sha" PR_NUMBER="$pr_number" READ_TOKEN=local-test \
+    PR_STATE="$pr_state" PR_MERGED="$pr_merged" EVENT_ACTION="$event_action" \
+    REAL_GIT="$REAL_GIT" REAL_NODE="$REAL_NODE" TRUSTED_CALL_LOG="$TMP/calls.log" PATH="$TMP/trace-bin:$PATH" \
     bash -eo pipefail "$TMP/run.sh") > "$TMP/result" 2>&1 || code=$?
   if [ "$code" -ne "$expected" ]; then
     cat "$TMP/result"
     echo "FAIL: $label expected=$expected got=$code"
     exit 1
+  fi
+  if [ "${10:-}" = no-inspection ]; then
+    test ! -s "$TMP/calls.log"
+    rg -q "병합된 PR의 기록 변경: 새 커밋 검사는 비적용입니다" "$TMP/result"
   fi
   test "$(git -C "$TMP/runner" rev-parse HEAD)" = "$BASE_SHA"
   test ! -e "$TMP/runner/candidate-only.txt"
@@ -95,3 +119,48 @@ git -C "$TMP/source" -c core.hooksPath=/dev/null commit --allow-empty -qm 'inval
 HEAD_SHA="$(git -C "$TMP/source" rev-parse HEAD)"
 git -C "$TMP/source" update-ref refs/pull/1/head "$HEAD_SHA"
 run_case 'backmerge unique violation rejected' 1 develop sync/backmerge-v1.0.0 "$HEAD_SHA"
+
+
+# Reset the fixture to a valid release already included in develop: PR537's symptom.
+git -C "$TMP/source" switch -qc final-record "$BASE_SHA"
+git -C "$TMP/source" -c core.hooksPath=/dev/null commit --allow-empty -qm 'docs: 전달 기록 추가'
+HEAD_SHA="$(git -C "$TMP/source" rev-parse HEAD)"
+git -C "$TMP/source" update-ref refs/pull/1/head "$HEAD_SHA"
+git -C "$TMP/source" update-ref refs/heads/develop "$HEAD_SHA"
+run_case 'merged main edited after backmerge is non-applicable' 0 main release/v1.0.0 "$HEAD_SHA" 1 closed true edited no-inspection
+run_case 'merged develop edited is non-applicable' 0 develop candidate "$HEAD_SHA" 1 closed true edited no-inspection
+run_case 'merged backmerge edited is non-applicable' 0 develop sync/backmerge-v1.0.0 "$HEAD_SHA" 1 closed true edited no-inspection
+run_case 'merged edited needs no archived PR objects' 0 main release/v1.0.0 "$HEAD_SHA" 2 closed true edited no-inspection
+run_case 'open main edited empty range still rejected' 1 main release/v1.0.0 "$HEAD_SHA" 1 open false edited
+
+git -C "$TMP/source" update-ref refs/heads/develop "$BASE_SHA"
+run_case 'open main edited still inspected' 0 main release/v1.0.0 "$HEAD_SHA" 1 open false edited
+run_case 'open develop edited still inspected' 0 develop candidate "$HEAD_SHA" 1 open false edited
+run_case 'open develop reopened still inspected' 0 develop candidate "$HEAD_SHA" 1 open false reopened
+run_case 'open develop opened still inspected' 0 develop candidate "$HEAD_SHA" 1 open false opened
+run_case 'closed unmerged edited rejected' 1 develop candidate "$HEAD_SHA" 1 closed false edited
+run_case 'open merged state contradiction rejected' 1 develop candidate "$HEAD_SHA" 1 open true edited
+run_case 'merged synchronize contradiction rejected' 1 main release/v1.0.0 "$HEAD_SHA" 1 closed true synchronize
+run_case 'unknown state rejected' 1 develop candidate "$HEAD_SHA" 1 unknown false edited
+run_case 'missing state rejected' 1 develop candidate "$HEAD_SHA" 1 '' false edited
+run_case 'missing merged flag rejected' 1 develop candidate "$HEAD_SHA" 1 open '' edited
+run_case 'invalid merged flag rejected' 1 develop candidate "$HEAD_SHA" 1 open TRUE edited
+run_case 'unknown open event rejected' 1 develop candidate "$HEAD_SHA" 1 open false unknown
+run_case 'missing open event rejected' 1 develop candidate "$HEAD_SHA" 1 open false ''
+run_case 'merged edited invalid PR number rejected' 1 main release/v1.0.0 "$HEAD_SHA" invalid closed true edited
+run_case 'merged edited invalid head SHA rejected' 1 main release/v1.0.0 invalid 1 closed true edited
+run_case 'open edited stale event head still rejected' 1 develop candidate "$BASE_SHA" 1 open false edited
+run_case 'open edited missing PR objects still rejected' 128 develop candidate "$HEAD_SHA" 2 open false edited
+
+git -C "$TMP/source" -c core.hooksPath=/dev/null commit --allow-empty -qm 'invalid edited message'
+HEAD_SHA="$(git -C "$TMP/source" rev-parse HEAD)"
+git -C "$TMP/source" update-ref refs/pull/1/head "$HEAD_SHA"
+run_case 'open edited invalid commit still rejected' 1 develop candidate "$HEAD_SHA" 1 open false edited
+
+# Lifecycle signals must be bound to GitHub event metadata, never PR prose.
+ruby -ryaml -e '
+  doc = YAML.safe_load(File.read(ARGV[0]))
+  env = doc.fetch("jobs").fetch("commitlint-trusted").fetch("steps").fetch(1).fetch("env")
+  expected = {"PR_STATE" => "${{ github.event.pull_request.state }}", "PR_MERGED" => "${{ github.event.pull_request.merged }}", "EVENT_ACTION" => "${{ github.event.action }}"}
+  abort "FAIL: lifecycle metadata binding" unless expected.all? { |k,v| env[k] == v }
+' "$ROOT/.github/workflows/commitlint-trusted.yml"
