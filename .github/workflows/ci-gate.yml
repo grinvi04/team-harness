@@ -417,6 +417,7 @@ jobs:
         run: bash tests/codex-hardened-launcher-test.sh
       - name: Release cleanup on Apple Git
         run: |
+          export PATH="/usr/bin:$PATH"
           git --version
           node --version
           node --test tests/release-cleanup-test.mjs
