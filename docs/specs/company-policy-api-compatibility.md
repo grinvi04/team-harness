@@ -76,7 +76,9 @@ checkout·Python 준비2개 action은 로컬 준비로 대체했다. macOS의 �
 미해결 실제 Codex 검증 실패는 이번 검증된 0.92.1 수정에 포함하지 않는다.
 완료 기준은 실제 PR MERGED, main/tag 정확한 SHA 일치, develop 포함,
 공개 산출물 checksum과 설치 버전·원본 일치·새 native 실행 확인이다.
-현재 상태: 전달 준비 진행 중. 원격 변경·0.92.1 설치는 아직 미실행이다.
+현재 상태: [PR #547](https://github.com/grinvi04/team-harness/pull/547)이 develop에 병합됐다.
+병합 SHA `be55e21bb73e938cde7dfb90822ee67fbc0deb0d`는 검증한 head와 같은 소스다.
+release/v0.92.1 후보를 준비했다. main 병합·태그 발행·설치는 아직 미실행이다.
 
 ```harness-doc-sync
 {
