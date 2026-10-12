@@ -415,6 +415,11 @@ jobs:
 
       - name: Codex hardened launcher atomic trust
         run: bash tests/codex-hardened-launcher-test.sh
+      - name: Release cleanup on Apple Git
+        run: |
+          git --version
+          node --version
+          node --test tests/release-cleanup-test.mjs
 
   secret-scan:
     runs-on: ubuntu-latest

@@ -155,3 +155,47 @@ test('wrong checkout rejects cleanup before any branch deletion', () => fixture(
   git('show-ref', '--verify', 'refs/heads/sync/backmerge-v1.2.3')
   assert.match(git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3'), /refs\/heads\/release/)
 }))
+
+test('merged tracking branches with multiple merge entries are deleted using develop', () => fixture(({ repo, git, invoke }) => {
+  for (const branch of ['release/v1.2.3', 'sync/backmerge-v1.2.3']) {
+    git('push', '-qu', 'origin', branch)
+    git('config', '--add', `branch.${branch}.merge`, 'refs/heads/develop')
+  }
+  git('config', 'branch.develop.description', 'preserve unrelated configuration')
+  const result = invoke()
+  assert.equal(result.status, 0, result.stderr)
+  for (const branch of ['release/v1.2.3', 'sync/backmerge-v1.2.3']) {
+    assert.equal(run('git', ['show-ref', '--verify', '--quiet', `refs/heads/${branch}`], { cwd: repo }).status, 1)
+  }
+  assert.equal(git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3'), '')
+  assert.equal(git('config', '--get', 'branch.develop.description').trim(), 'preserve unrelated configuration')
+}))
+
+for (const key of ['url', 'fetch']) {
+  test(`configured cleanup remote (${key}) rejects all deletion and preserves configuration`, () => fixture(({ repo, git, invoke }) => {
+    git('config', `remote.harness-cleanup-unconfigured-remote.${key}`, key === 'url' ? repo : '+refs/heads/*:refs/remotes/collision/*')
+    const config = readFileSync(path.join(repo, '.git/config'), 'utf8')
+    const remote = git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3')
+    const result = invoke()
+    assert.notEqual(result.status, 0)
+    assert.match(result.stderr, /정리 중단.*정리용 remote/)
+    for (const branch of ['release/v1.2.3', 'sync/backmerge-v1.2.3']) git('show-ref', '--verify', `refs/heads/${branch}`)
+    assert.equal(git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3'), remote)
+    assert.equal(readFileSync(path.join(repo, '.git/config'), 'utf8'), config)
+  }))
+}
+
+test('configuration query failure rejects all deletion and preserves stored upstream', () => fixture(({ dir, repo, git, invoke }) => {
+  git('push', '-qu', 'origin', 'release/v1.2.3')
+  const config = readFileSync(path.join(repo, '.git/config'), 'utf8')
+  const remote = git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3')
+  const bin = path.join(dir, 'bin'); mkdirSync(bin)
+  const gitBin = run('bash', ['-c', 'command -v git']).stdout.trim()
+  writeFileSync(path.join(bin, 'git'), `#!/bin/sh\nif [ "$1" = config ] && [ "$2" = --get-regexp ]; then exit 128; fi\nexec '${gitBin}' "$@"\n`, { mode: 0o755 })
+  const result = invoke({ ...process.env, PATH: bin + ':' + process.env.PATH })
+  assert.notEqual(result.status, 0)
+  assert.match(result.stderr, /정리 중단.*설정 조회 실패/)
+  for (const branch of ['release/v1.2.3', 'sync/backmerge-v1.2.3']) git('show-ref', '--verify', `refs/heads/${branch}`)
+  assert.equal(git('ls-remote', '--heads', 'origin', 'refs/heads/release/v1.2.3'), remote)
+  assert.equal(readFileSync(path.join(repo, '.git/config'), 'utf8'), config)
+}))
