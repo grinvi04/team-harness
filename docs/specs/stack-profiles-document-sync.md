@@ -184,3 +184,10 @@ Python은 DB 제품을 정하지 않는다. Alembic job은 설정 부재만 self
 08d2d2c 보완 검토는 보안 PASS_SCOPED, 기능 FAIL이었다. Nuxt 따옴표 getter/setter 반례를 추가로 거부한다.
 현재 후보의 독립 보완 검토·required CI·live provenance·bundle/checksum을 통과한 뒤 Git 단계와 설치를 수행한다.
 실제 서버·DB가 없는 저장소의 health/DB만 비적용이다. 소비 앱·원격 작업·배포·결제와 Claude 인증/실모델 검증은 제외·보류한다.
+
+### 릴리즈 준비 확인
+
+PR532는 develop에 병합됐다. f9a7f44에서 새quality73/73·독립 보안 PASS_SCOPED·live7/7·bundle/checksum을 확인해 GO로 판정했다.
+[main PR533](https://github.com/grinvi04/team-harness/pull/533)의 처음 커밋 검사는 develop 제외 후 빈 범위를 거부했다. 이 준비 기록 커밋을 별도로 검사한다.
+현재 지도는 주 작업폴더의 `.project-map/index.html`과 `state.json`에 있으며 로컬 자료라 GitHub 파일로 공개하지 않는다.
+최종 PR head의 CI·리뷰 게이트를 다시 대조한 뒤 main 병합·태그·역병합·실제 설치를 확인한다. 위 GO는 그 단계들의 완료가 아니다.
