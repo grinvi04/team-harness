@@ -28,7 +28,7 @@ require_develop_base() {
 # CI 게이트 판정: `gh pr checks --required`의 (rc, out)만 받아 판정 문자열을 echo.
 #   green    = required 통과            (rc 0)
 #   none     = required check 없음→통과 (rc 0)
-#   fallback = checks API 접근 불가(토큰 제한) → Actions run 폴백 필요(호출부가 처리, rc 0)
+#   fallback = checks API 접근 불가(토큰 제한) → 미확인(실행 경로는 거부)
 #   fail     = 그 외 미통과 → 머지 중단 (rc 1)
 classify_ci_gate() {
   local rc="$1" out="$2"
@@ -113,11 +113,9 @@ read_pr_candidate() {
 
 # --auto 안전 계약: 무인 자동머지는 CI가 **서버-강제**(required status check 존재)여야 성립한다.
 # required가 없거나 조회 불가(none/fallback)이면 서버 필수 CI를 확인할 수 없어 자동머지는 거부.
-# 수동 머지(auto=0)는 기존 none/Actions fallback 계약을 유지한다.
-auto_ci_ok() { # verdict, auto → rc0 기존 게이트 계속 / rc1 자동머지 거부
-  if [ "$2" = "1" ]; then
-    case "$1" in none|fallback) return 1;; esac
-  fi
+# 수동 머지도 같은 required 미확인 차단 계약을 따른다.
+auto_ci_ok() {
+  case "$1" in none|fallback) return 1;; esac
   return 0
 }
 
@@ -126,6 +124,16 @@ auto_ci_ok() { # verdict, auto → rc0 기존 게이트 계속 / rc1 자동머�
 merge_cleanup_checkout() { # head base current → echo checkout 대상("" = 이동 불필요)
   [ "$3" = "$1" ] && printf '%s' "${2:-develop}"
   return 0
+}
+
+# 같은 증거 계약을 solo의 보호 변경 전 검사에서도 사용한다.
+verify_required_ci() { # base head; PR와 OWNER_REPO는 현재 후보의 조회 대상
+  local policy checks runs statuses
+  policy=$(gh api "repos/$OWNER_REPO/branches/$1/protection/required_status_checks") || return 1
+  checks=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required --json name,bucket) || return 1
+  runs=$(gh api --paginate --slurp "repos/$OWNER_REPO/commits/$2/check-runs") || return 1
+  statuses=$(gh api --paginate --slurp "repos/$OWNER_REPO/commits/$2/statuses") || return 1
+  node "$(dirname "${BASH_SOURCE[0]}")/verify-required-checks.mjs" "$2" "$policy" "$checks" "$runs" "$statuses"
 }
 
 # 테스트 훅: 함수만 로드하고 종료(main 로직·gh 호출 없이 순수 판정 함수만 검증).
@@ -164,40 +172,17 @@ EOF
 # --auto: 이 PR의 실제 base가 develop인지 강제(아니면 거부). 게이트 검증 전 선차단.
 if [ "$AUTO" = "1" ]; then
   require_develop_base "$PR_BASE" || exit 3
+  POLICY_ROOT=$(git rev-parse --show-toplevel) || exit 1
+  node "$(dirname "${BASH_SOURCE[0]}")/repo-policy.mjs" "$POLICY_ROOT" auto "$PR_BASE" || exit 1
   echo "  --auto: base=develop 확인"
 fi
 
-# 1) CI 검증 — 1차: gh pr checks(외부 CI 포함). 토큰이 checks API를 못 읽으면(GraphQL 403)
-#    수동 머지만 2차 Actions run(gh run list)으로 이 커밋의 워크플로 결과를 폴백 검증.
-# 주의: set -e라 `VAR=$(실패명령)`는 RC 캡처 전에 스크립트를 죽인다 → `|| CHECKS_RC=$?`로 흡수.
-CHECKS_RC=0
-CHECKS_OUT=$(gh pr checks "$PR" --repo "$OWNER_REPO" --required 2>&1) || CHECKS_RC=$?
-CI_VERDICT=$(classify_ci_gate "$CHECKS_RC" "$CHECKS_OUT") || true
-# --auto는 required 없음/조회 불가를 거부 — unrelated Actions 성공은 서버 필수 CI의 증거가 아니다.
-if ! auto_ci_ok "$CI_VERDICT" "$AUTO"; then
-  echo "  ⛔ --auto 거부: required status check 확인 불가($CI_VERDICT) — 자동머지는 서버 필수 CI 확인이 전제." >&2
-  echo "     required check 등록·조회 권한을 확인 후 재시도, 또는 --auto 없이 명시 수동 머지." >&2
-  exit 1
-fi
-if [ "$CI_VERDICT" = "green" ]; then
-  echo "  CI: required green"
-elif [ "$CI_VERDICT" = "none" ]; then
-  echo "  CI: required check 없음 → 통과"
-elif [ "$CI_VERDICT" = "fallback" ]; then
-  # 토큰이 checks API 접근 불가 → Actions run으로 폴백(이 커밋 한정)
-  # S3: gh run list를 1회만 호출하고 결과를 재사용(동일 쿼리 2회 중복 제거).
-  RUNS_JSON=$(gh run list --repo "$OWNER_REPO" --branch "$HBRANCH" --limit 30 --json headSha,status,conclusion 2>/dev/null || echo '[]')
-  RUNCOUNT=$(printf '%s' "$RUNS_JSON" | python3 -c "import sys,json; r=json.load(sys.stdin); print(len([x for x in r if x['headSha']=='$HEAD_SHA']))" 2>/dev/null || echo 0)
-  BADCOUNT=$(printf '%s' "$RUNS_JSON" | python3 -c "import sys,json; r=json.load(sys.stdin); print(len([x for x in r if x['headSha']=='$HEAD_SHA' and (x['status']!='completed' or x['conclusion']!='success')]))" 2>/dev/null || echo ERR)
-  if [ "$RUNCOUNT" = "0" ]; then
-    echo "  ⛔ CI: checks API 접근 불가 + 이 커밋의 Actions run 없음 — 검증 불가, 머지 중단" >&2; exit 1
-  elif [ "$BADCOUNT" != "0" ]; then
-    echo "  ⛔ CI: 미완료/실패 Actions run 있음(또는 조회 실패=$BADCOUNT) — 머지 중단" >&2; exit 1
-  fi
-  echo "  CI: Actions run 폴백 검증 통과 (checks API 토큰 제한)"
-else
-  echo "  ⛔ CI required check 미통과 — 머지 중단" >&2; echo "$CHECKS_OUT" | head -3 >&2; exit 1
-fi
+# 1) Required CI: 수동/자동 모두 서버 집합과 현재 PR 결과를 확인한다.
+# Actions run의 일반 성공은 required 집합·외부 CI 증거를 대체하지 않는다.
+verify_required_ci "$PR_BASE" "$HEAD_SHA" || {
+  echo "  ⛔ 필수 검사 집합/현재 head 성공 미확인 — 머지 중단" >&2; exit 1;
+}
+echo "  CI: required 집합·현재 head 성공 확인"
 
 # 2) 미해결 리뷰 스레드 0 — fail-CLOSED(쿼리 실패=검증 불가 → 중단). CI·mergeable 게이트와 일관.
 UNRESOLVED=$(count_unresolved_threads "$OWNER" "$NAME" "$PR") || UNRESOLVED="ERR"

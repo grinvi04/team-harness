@@ -96,7 +96,7 @@ resolve 뒤 **미해결 0건을 직접 재조회**한다(위임 금지). helper�
 branch protection이 승인을 요구하는 팀 모드에서만 적용된다 — AI 리뷰·CI 통과는 사람 승인을 대체하지 않는다.
 
 > **솔로 표준(승인요건 0)**: 브랜치 보호가 CI-게이트만이고 승인요건 0이면(decisions "브랜치 보호 표준" — 솔로는 자기승인 불가라 승인요건을 안 건다) **이 4단계는 해당 없음** — CI·스레드 resolve 통과 후 소유자가 바로 `pr-merge.sh`로 머지한다. `/solo-merge`도 불필요.
-> **팀 모드(승인 1+ 재활성)**: 리뷰어 부재로 REVIEW_REQUIRED 고착 시 품질 게이트 통과 후 **`/solo-merge`** 로 승인요건만 안전 우회(전체 보호설정 저장→삭제→머지→복구). (enforce_admins 토글 폐기 — solo-merge/SKILL.md.)
+> **회사/팀 모드**: REVIEW_REQUIRED면 실제 리뷰어 승인을 기다린다. 부재를 이유로 승인 정책을 바꾸지 않는다. `/solo-merge`는 명시 solo 정책·개인 소유·실제 협업자1명·별도 권한을 확인한 경로에만 적용한다.
 
 ```bash
 gh pr view "$PR" --json reviewDecision --jq .reviewDecision

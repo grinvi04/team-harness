@@ -125,6 +125,8 @@ VALIDATOR_BLOB=$(git hash-object "$ROOT/scripts/check-commit-message.cjs")
 for scenario in protected missing legacy validator-missing api-error ready; do
   git clone -q "$TMP/source" "$TMP/$scenario"
   seed_project "$TMP/$scenario" 1
+  if [ "$scenario" = protected ]; then git -C "$TMP/$scenario" config core.hooksPath company-hooks; fi
+  if [ "$scenario" = missing ]; then printf '#!/bin/sh\nexit 0\n' > "$TMP/$scenario/.git/hooks/pre-commit"; chmod +x "$TMP/$scenario/.git/hooks/pre-commit"; fi
   export SETUP_CASE="$scenario" WRITE_LOG="$TMP/$scenario-writes"
   : > "$WRITE_LOG"
   rc=0
@@ -138,6 +140,12 @@ for scenario in protected missing legacy validator-missing api-error ready; do
   else
     cat "$TMP/$scenario.log"
     echo "FAIL: setup $scenario → writes=$writes/$expected exit=$rc/$expected_rc"; FAIL=$((FAIL+1))
+  fi
+  if [ "$scenario" = protected ]; then
+    if [ "$(git -C "$TMP/$scenario" config --get core.hooksPath)" = company-hooks ]; then echo 'PASS: existing hooksPath preserved'; PASS=$((PASS+1)); else echo 'FAIL: existing hooksPath replaced'; FAIL=$((FAIL+1)); fi
+  fi
+  if [ "$scenario" = missing ]; then
+    if ! git -C "$TMP/$scenario" config --get core.hooksPath >/dev/null && [ -x "$TMP/$scenario/.git/hooks/pre-commit" ]; then echo 'PASS: active native hook preserved'; PASS=$((PASS+1)); else echo 'FAIL: active native hook disabled'; FAIL=$((FAIL+1)); fi
   fi
 done
 

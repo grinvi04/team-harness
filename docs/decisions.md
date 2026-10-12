@@ -185,3 +185,9 @@ legacy security-guidance는 자동 패치 없이 삭제 보류하며 [현재 근
 제품 방향 판정은 **연결**이다. Git의 기본 삭제·worktree 보호를 사용하고 Harness의 develop 병합·원격 OID 검증을 유지한다.
 명령에만 미등록 remote 이름을 지정하며 config와 옛 remote 정의 충돌·조회 실패는 삭제 전에 거부한다. 저장된 upstream은 고치지 않는다.
 기존 안전 계약을 복구하는 PATCH 0.91.1이며 [범위·검증·전달 상태](specs/release-cleanup-apple-git.md)를 따른다.
+
+## 회사 선택형 도입 (0.92.0 후보)
+
+기존 회사 정책·규약·자산을 보존하고 solo 예외는 명시한 개인 경로로 제한한다.
+수동/자동 모두 required 집합·현재 head 성공 미확인을 차단하며 일반 Actions 성공으로 대체하지 않는다.
+기술 자산은 고정 원본·소유 hash로 선택 적용하고 실제 제품·독립 팀 인수는 [별도 계약](company-acceptance.md)으로 확인한다.

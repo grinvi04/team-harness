@@ -51,7 +51,11 @@ E2E_DIR=$(mktemp -d); trap 'rm -rf "$E2E_DIR"' EXIT
 #   복구 안 된 상태의 count GET은 404(→wrapper "?")로 응답 → verify가 실데이터처럼 sentinel을 본다(반증 충실도).
 cat > "$E2E_DIR/gh" <<'GHEOF'
 #!/bin/sh
-args="$*"; S="$GH_STATE"
+args="$*"
+case "$args" in
+ 'api repos/owner/repo') printf '%s' '{"owner":{"login":"owner","type":"User"}}'; exit 0;;
+ *'/collaborators'*) [ "${FAKE_COLLAB_FAIL:-0}" = 0 ] || exit 1; if [ -n "${FAKE_COLLABORATORS:-}" ]; then printf '%s' "$FAKE_COLLABORATORS"; else printf '%s' '[[{"login":"owner"}]]'; fi; exit 0;;
+esac; S="$GH_STATE"
 case "$args" in
   *"repo view"*) echo "owner/repo"; exit 0 ;;
   *"pr view"*"--json number"*) echo 42; exit 0 ;;
@@ -60,7 +64,10 @@ case "$args" in
   *"pr view"*"--json baseRefName"*) echo main; exit 0 ;;
   *"pr view"*"--json state"*) echo MERGED; exit 0 ;;
   *"pr view"*"--json mergeable"*) echo "${FAKE_MERGEABLE:-MERGEABLE}"; exit 0 ;;
-  *"pr checks"*) exit "${FAKE_CI_RC:-0}" ;;
+  *"pr checks"*) [ "${FAKE_CI_RC:-0}" = 0 ] || exit 1; if [ -n "${FAKE_REQUIRED_ROLLUP:-}" ]; then printf '%s' "$FAKE_REQUIRED_ROLLUP"; else printf '%s' '[{"name":"quality","bucket":"pass"}]'; fi; exit 0 ;;
+  */protection/required_status_checks*) printf '%s' '{"strict":true,"contexts":["quality"],"checks":[]}'; exit 0;;
+  */check-runs*) printf '%s' '[{"total_count":1,"check_runs":[{"id":10,"name":"quality","head_sha":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","status":"completed","conclusion":"success","app":{"id":1}}]}]'; exit 0;;
+  */statuses*) printf '%s' '[[]]'; exit 0;;
   *"api graphql"*reviewThreads*)
     if [ "${FAKE_UNRESOLVED:-0}" = 0 ]; then nodes='[]'; else nodes='[{"isResolved":false}]'; fi
     printf '{"data":{"repository":{"pullRequest":{"reviewThreads":{"nodes":%s,"pageInfo":{"hasNextPage":false,"endCursor":null}}}}}}' "$nodes"; exit 0 ;;
@@ -97,6 +104,17 @@ esac
 exit 0
 GHEOF
 chmod +x "$E2E_DIR/gh"
+mkdir -p "$E2E_DIR/solo" "$E2E_DIR/company"
+printf '%s' '{"schemaVersion":1,"mode":"solo","autoMergeTargets":[]}' > "$E2E_DIR/solo/.harness-policy.json"
+printf '%s' '{"schemaVersion":1,"mode":"company","autoMergeTargets":[]}' > "$E2E_DIR/company/.harness-policy.json"
+cat > "$E2E_DIR/git" <<'GITEOF'
+#!/bin/sh
+if [ "$*" = 'rev-parse --show-toplevel' ]; then
+ if [ "${FAKE_COMPANY_MODE:-0}" = 1 ]; then printf '%s/company\n' "$E2E_POLICY_ROOT"; else printf '%s/solo\n' "$E2E_POLICY_ROOT"; fi
+else exit 1; fi
+GITEOF
+chmod +x "$E2E_DIR/git"
+export E2E_POLICY_ROOT="$E2E_DIR"
 # 파서 stub 디렉터리: python3만 깨뜨림 / python3·jq 둘 다 깨뜨림 (앞에 붙여 PATH 셰도)
 PYSTUB="$E2E_DIR/pystub"; mkdir -p "$PYSTUB"; printf '#!/bin/sh\nexit 1\n' > "$PYSTUB/python3"; chmod +x "$PYSTUB/python3"
 NOPARSE="$E2E_DIR/noparse"; mkdir -p "$NOPARSE"; for b in python3 jq; do printf '#!/bin/sh\nexit 1\n' > "$NOPARSE/$b"; chmod +x "$NOPARSE/$b"; done
@@ -113,7 +131,21 @@ run_e2e() { # merge_body, fake_config, [path_prefix] → 전역 L(로그경로)�
 }
 ok() { [ "$1" = "$2" ] && { echo "PASS: $3"; PASS=$((PASS+1)); } || { echo "FAIL: $3 — want '$2' got '$1'"; FAIL=$((FAIL+1)); }; }
 
+# 회사 기본/명시 선택은 보호 예외를 열기 전에 차단한다.
+FAKE_COMPANY_MODE=1 run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^DELETE' "$L")" 0 "회사 경로 DELETE0"
+ok "$(grep -c '^PATCH' "$L")" 0 "회사 경로 PATCH0"
+[ "$RC" -ne 0 ] && { echo "PASS: 회사 경로 거부"; PASS=$((PASS+1)); } || { echo "FAIL: 회사 경로 허용"; FAIL=$((FAIL+1)); }
+
 # AC-1 정상: DELETE 1·PATCH 1(4필드)·RC0
+FAKE_REQUIRED_ROLLUP='[]' run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^DELETE' "$L")" 0 'empty required evidence never opens solo exception'
+[ "$RC" -ne 0 ] && { echo 'PASS: empty required evidence rejected'; PASS=$((PASS+1)); } || { echo 'FAIL: empty required evidence accepted'; FAIL=$((FAIL+1)); }
+FAKE_COLLABORATORS='[[{"login":"owner"},{"login":"colleague"}]]' run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^DELETE' "$L")" 0 'actual collaborator prevents solo exception'
+[ "$RC" -ne 0 ] && { echo 'PASS: collaborator blocks solo'; PASS=$((PASS+1)); } || { echo 'FAIL: collaborator passed solo'; FAIL=$((FAIL+1)); }
+FAKE_COLLAB_FAIL=1 run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^DELETE' "$L")" 0 'unreadable collaborators prevents solo exception'
 run_e2e 'exit 0' "$FULL"
 ok "$(grep -c '^DELETE' "$L")" 1 "AC-1 정상 — DELETE 1회"
 ok "$(grep -c '^PATCH'  "$L")" 1 "AC-1 정상 — PATCH(복구) 1회(멱등)"
@@ -215,10 +247,14 @@ if [ "$RC" -ne 0 ] && ! grep -Eq '^(DELETE|PATCH|MERGE)' "$L"; then
   echo 'PASS: stale reviewed head stops before protection write'; PASS=$((PASS+1))
 else echo 'FAIL: stale solo candidate opened exception'; FAIL=$((FAIL+1)); fi
 
+FAKE_REQUIRED_ROLLUP='[{"name":"quality","bucket":"pass"}]' run_e2e 'exit 0' '{"required_approving_review_count":1,"unknown_rule":true}'
+ok "$(grep -c '^DELETE' "$L")" 0 'unsupported review policy stops before DELETE'
+[ "$RC" -ne 0 ] && { echo 'PASS: unsupported review policy refused'; PASS=$((PASS+1)); } || { echo 'FAIL: unsupported review policy allowed'; FAIL=$((FAIL+1)); }
+
 # Explicit nullable policy is the only absence case; malformed schemas stop in both parsers.
 for parser in python jq; do
   prefix=""; [ "$parser" = jq ] && prefix="$PYSTUB:"
-  for cfg in '{}' '[]' 'bad' '{"required_pull_request_reviews":{}}' '{"required_pull_request_reviews":{"required_approving_review_count":-1}}' '{"required_pull_request_reviews":{"required_approving_review_count":1.5}}' '{"required_pull_request_reviews":{"required_approving_review_count":true}}'; do
+  for cfg in '{"required_pull_request_reviews":{"required_approving_review_count":1,"unknown_rule":true}}' '{}' '[]' 'bad' '{"required_pull_request_reviews":{}}' '{"required_pull_request_reviews":{"required_approving_review_count":-1}}' '{"required_pull_request_reviews":{"required_approving_review_count":1.5}}' '{"required_pull_request_reviews":{"required_approving_review_count":true}}'; do
     PATH="$prefix$PATH" SOLO_MERGE_SOURCE_ONLY=1 bash -c 'source "$1"; printf "%s" "$2" | branch_review_config' _ "$SM" "$cfg" >/dev/null 2>&1
     policy_status=$?
     if [ "$policy_status" -ne 0 ]; then echo "PASS: $parser rejects malformed review policy"; PASS=$((PASS+1))

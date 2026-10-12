@@ -1,29 +1,11 @@
 #!/usr/bin/env bash
-# set-branch-protection.sh — 기존 repo에 **표준 솔로 브랜치 보호**를 적용/검증한다.
-# 플러그인과 함께 배포(check-repo-sync.mjs와 동일 위치) — /repo-sync 스킬이 참조.
-# new-repo.sh는 신규 repo(생성 시 STACK_CHECKS 명시 등록)를, 이 스크립트는 **기존 repo**를 다룬다
-# (실제 보고되는 check context를 자동 감지 → 이름 불일치 데드락 회피).
-#
-# 사용:
-#   bash set-branch-protection.sh <repo>                    # main·develop에 표준 보호 적용(check 자동감지)
-#   bash set-branch-protection.sh <repo> --check            # 적용 안 하고 현재 상태만 검증(드리프트 리포트)
-#   bash set-branch-protection.sh <repo> --contexts a,b,c   # required check를 적용하거나(--check 시) exact-set 검증
-#   bash set-branch-protection.sh <repo> --approvals N      # 팀 모드: main에 리뷰 승인 N 요구(develop은 0 유지)
-#   <repo> = owner/name 또는 name(=$(gh api user)/name)
-#   ※ --contexts: base 브랜치 머지커밋엔 check-run이 없어 자동감지가 빈 목록이 될 때(기존 repo 첫 적용) 쓴다.
-#     new-repo.sh(신규)는 STACK_CHECKS로 자동 등록하므로 불필요.
-#   ※ --approvals: 멤버 합류 후 팀 모드로 올릴 때. main에만 승인 N(+ dismiss_stale_reviews)을 걸고
-#     develop은 승인0 유지(pr-merge.sh --auto 무프롬프트 머지 보존). --check와 함께 주면 그 N을 baseline으로
-#     검증(main 미지정 시 승인 개수는 정보성, develop은 항상 승인0 엄격 검증 — 아래 classify_protection).
-#     new-repo.sh(신규)는 항상 솔로(승인0):
-#     day-1 소유자 1명이 승인1이면 self-approve 불가로 데드락이라, 팀 승인은 이 스크립트로 나중에 올린다.
-#
-# 표준 config(솔로 기본, decisions "브랜치 보호 표준"):
-#   required status checks(자동감지·strict) · 대화 resolve · force-push/삭제 차단,
-#   **승인요건 0 · enforce_admins=true** (승인0이라 데드락 없음 · enforce_admins=true라야
-#   required status check(CI)가 소유자·관리자에게도 강제되는 **우회불가 계약** — false면 관리자가
-#   CI red/pending도 머지 가능). 팀 모드는 `--approvals N`으로 main에 승인 N을 추가(develop은 0 유지).
-#   ※ 긴급 break-glass(드묾: CI 인프라 자체 장애)는 required_status_checks를 일시 완화 — 통상은 CI를 고쳐 머지.
+# Existing GitHub protection: preserve company reviews, actors, checks and app bindings.
+# --branches main|main,develop (default both); --preview performs zero writes.
+# --approvals N targets main, --develop-approvals N targets develop. Omitted counts
+# are informational in --check and preserved in apply. Reductions are rejected.
+# --contexts adds checks during apply; --check retains exact-set diagnostics.
+# Unknown policy/rulesets, missing protection, or query errors fail before mutation.
+# See docs/company-policy.md. GitHub owns and enforces server policy.
 set -uo pipefail
 
 # ── 드리프트 판정(순수) — 승인·admin·status checks·strict·force/delete·conversation·stale-review를
@@ -108,57 +90,76 @@ print(json.dumps(sorted(set(d))))'
 # 테스트 훅: 함수만 로드하고 종료(REPO 인자 파싱·gh 없이 순수 함수만 검증).
 [ -n "${SBP_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
-REPO="${1:?사용: set-branch-protection.sh <repo> [--check] [--contexts a,b,c] [--approvals N]}"; shift
-CHECK=false; CONTEXTS=""; CONTEXTS_SET=false; APPROVALS=""
+REPO="${1:?사용: set-branch-protection.sh <repo> [--check|--preview] [--branches main|main,develop] [--contexts a,b] [--approvals N] [--develop-approvals N]}"; shift
+CHECK=false; PREVIEW=false; CONTEXTS=""; CONTEXTS_SET=false; APPROVALS=""; DEVELOP_APPROVALS=""; BRANCHES="main,develop"
 while [ $# -gt 0 ]; do
   case "$1" in
-    --check)     CHECK=true; shift;;
-    # 값 필수(마지막 인자로 값 없이 오면 shift 2가 no-op → 무한루프): $#>=2 확인 후 소비.
-    --contexts)  [ $# -ge 2 ] || { echo "set-branch-protection.sh: --contexts는 값이 필요합니다 (a,b,c)" >&2; exit 2; }; CONTEXTS="$2"; CONTEXTS_SET=true; shift 2;;
-    --approvals) [ $# -ge 2 ] || { echo "set-branch-protection.sh: --approvals는 값이 필요합니다 (0 이상 정수)" >&2; exit 2; }; APPROVALS="$2"; shift 2;;   # 팀 모드 — main에 리뷰 승인 N(develop은 0 유지)
+    --check) CHECK=true; shift;;
+    --preview) PREVIEW=true; shift;;
+    --contexts|--approvals|--develop-approvals|--branches)
+      option="$1"; [ $# -ge 2 ] || { echo "$option requires a value" >&2; exit 2; }
+      case "$option" in
+        --contexts) CONTEXTS="$2"; CONTEXTS_SET=true;;
+        --approvals) APPROVALS="$2";;
+        --develop-approvals) DEVELOP_APPROVALS="$2";;
+        --branches) BRANCHES="$2";;
+      esac
+      shift 2;;
     *) echo "set-branch-protection.sh: 알 수 없는 인자 '$1'" >&2; exit 2;;
   esac
 done
-[ -n "$APPROVALS" ] && ! [[ "$APPROVALS" =~ ^[0-9]+$ ]] && { echo "set-branch-protection.sh: --approvals는 0 이상 정수여야 합니다 ('$APPROVALS')" >&2; exit 2; }
-[[ "$REPO" == */* ]] || REPO="$(gh api user --jq .login 2>/dev/null)/$REPO"
-
-EXPLICIT_CONTEXTS=""; MAIN_CONTEXTS=""; DEVELOP_CONTEXTS=""
+for n in "$APPROVALS" "$DEVELOP_APPROVALS"; do
+  [ -z "$n" ] || [[ "$n" =~ ^[0-6]$ ]] || { echo 'approvals must be an integer 0..6' >&2; exit 2; }
+done
+case "$BRANCHES" in main) branches=(main);; main,develop) branches=(main develop);; *) echo 'branches must be main or main,develop' >&2; exit 2;; esac
+if $CHECK && $PREVIEW; then echo '--check and --preview are mutually exclusive' >&2; exit 2; fi
+if [ "$BRANCHES" = main ] && [ -n "$DEVELOP_APPROVALS" ]; then echo '--develop-approvals requires develop' >&2; exit 2; fi
+[[ "$REPO" == */* ]] || { owner=$(gh api user --jq .login) || exit 1; [ -n "$owner" ] || exit 1; REPO="$owner/$REPO"; }
+HELPER="$(cd "$(dirname "$0")" && pwd)/branch-protection-policy.mjs"
+TMP=$(mktemp -d) || exit 1
+trap 'rm -rf "$TMP"' EXIT
+EXPLICIT_CONTEXTS=""
 if $CONTEXTS_SET; then
-  EXPLICIT_CONTEXTS=$(contexts_json "$CONTEXTS" | validated_contexts) || {
-    echo "set-branch-protection.sh: --contexts는 비어 있지 않은 검사 목록이어야 합니다" >&2; exit 2;
-  }
+  EXPLICIT_CONTEXTS=$(contexts_json "$CONTEXTS" | validated_contexts) || { echo 'invalid contexts' >&2; exit 2; }
 fi
-# 두 브랜치의 사전 조회를 모두 통과한 뒤에만 첫 PUT을 보낸다.
+# All selected originals and unsupported server policies must pass before any write.
 if ! $CHECK; then
-  for branch in main develop; do
-    gh api "repos/$REPO/branches/$branch" >/dev/null 2>&1 || {
-      echo "✗ $REPO:$branch — 사전 브랜치 조회 실패; 보호 변경 없음" >&2; exit 1;
-    }
-    if $CONTEXTS_SET; then
-      ctx="$EXPLICIT_CONTEXTS"
+  gh api "repos/$REPO/rulesets?includes_parents=true&per_page=100" >"$TMP/rules" || { echo 'ruleset query failed; no changes' >&2; exit 1; }
+  node "$HELPER" rules "$TMP/rules" || exit 1
+  for branch in "${branches[@]}"; do
+    gh api "repos/$REPO/branches/$branch" >/dev/null || { echo "$branch branch query failed; no changes" >&2; exit 1; }
+    gh api "repos/$REPO/branches/$branch/protection" >"$TMP/$branch.original" || { echo "$branch original protection query failed; no changes" >&2; exit 1; }
+    if $CONTEXTS_SET; then ctx="$EXPLICIT_CONTEXTS"
     else
-      detected=$(gh api "repos/$REPO/commits/$branch/check-runs" --jq '[.check_runs[].name]|unique' 2>/dev/null) || {
-        echo "✗ $REPO:$branch — 검사 조회 실패; 보호 변경 없음" >&2; exit 1;
-      }
-      ctx=$(printf '%s' "$detected" | validated_contexts) || {
-        echo "✗ $REPO:$branch — 유효한 필수 검사 없음; 첫 CI 또는 --contexts 확인 후 재실행; 보호 변경 없음" >&2; exit 1;
-      }
+      detected=$(gh api "repos/$REPO/commits/$branch/check-runs" --jq '[.check_runs[].name]|unique') || { echo "$branch check query failed; no changes" >&2; exit 1; }
+      ctx=$(printf '%s' "$detected" | validated_contexts) || exit 1
     fi
-    case "$branch" in main) MAIN_CONTEXTS="$ctx";; develop) DEVELOP_CONTEXTS="$ctx";; esac
+    printf '%s' "$ctx" >"$TMP/$branch.contexts"
+    exp="$APPROVALS"; [ "$branch" = develop ] && exp="$DEVELOP_APPROVALS"
+    node "$HELPER" plan "$TMP/$branch.original" "$TMP/$branch.contexts" "$exp" "$TMP/$branch.plan" || exit 1
+  done
+  if $PREVIEW; then
+    for branch in "${branches[@]}"; do echo "$REPO:$branch preview (no writes)"; cat "$TMP/$branch.plan"; echo; done
+    exit 0
+  fi
+  # Detect policy drift after preflight as well. REST PUT has no atomic policy CAS.
+  for branch in "${branches[@]}"; do
+    gh api "repos/$REPO/branches/$branch/protection" >"$TMP/$branch.current" || exit 1
+    cmp -s "$TMP/$branch.original" "$TMP/$branch.current" || { echo "$branch changed during preflight; no changes" >&2; exit 1; }
   done
 fi
-
 rc=0
-for branch in main develop; do
+for branch in "${branches[@]}"; do
   if ! gh api "repos/$REPO/branches/$branch" >/dev/null 2>&1; then
-    echo "✗ $REPO:$branch — 브랜치 조회 실패(누락·권한·repo 오타)"
-    rc=1
-    continue
+    echo "✗ $REPO:$branch — 브랜치 조회 실패"; rc=1; continue
   fi
-
   if $CHECK; then
     prot=$(gh api "repos/$REPO/branches/$branch/protection" 2>/dev/null || true)
     if [ -z "$prot" ]; then echo "✗ $REPO:$branch — 보호 미적용"; rc=1; continue; fi
+    printf '%s' "$prot" >"$TMP/$branch.check"
+    if ! node "$HELPER" validate "$TMP/$branch.check"; then
+      echo "✗ $REPO:$branch — 정책 응답 미지원·잘못된 형식"; rc=1; continue
+    fi
     appr=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_pull_request_reviews'); print(r.get('required_approving_review_count') if r else 0)" 2>/dev/null || echo "?")
     adm=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('enforce_admins',{}).get('enabled'))" 2>/dev/null || echo "?")
     # B1: required_status_checks 개수 — -1=null(없음), 0=빈 목록(약한 보호), >0=정상.
@@ -171,8 +172,8 @@ for branch in main develop; do
     del=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_deletions',{}).get('enabled'))" 2>/dev/null || echo "?")
     conv=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('required_conversation_resolution',{}).get('enabled'))" 2>/dev/null || echo "?")
     dismiss=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_pull_request_reviews'); print(r.get('dismiss_stale_reviews') if r else '')" 2>/dev/null || echo "?")
-    # 승인 baseline: main은 --approvals 미지정 시 정보성, develop은 팀/솔로 모두 정확히 0.
-    exp="$APPROVALS"; [ "$branch" = "develop" ] && exp=0
+    # 승인 baseline: 각 브랜치의 미지정 승인 개수는 정보성이다.
+    exp="$APPROVALS"; [ "$branch" = "develop" ] && exp="$DEVELOP_APPROVALS"
     verdict=$(classify_protection "$appr" "$adm" "$chk" "$exp" "$strict" "$fpush" "$del" "$conv" "$dismiss") || true
     context_drift=""
     if [ -n "$CONTEXTS" ]; then
@@ -188,41 +189,12 @@ for branch in main develop; do
     continue
   fi
 
-  # 적용: --contexts 지정 시 그 이름을 required로(기존 repo 리메디에이션 — base 머지커밋엔 check-run이 없어
-  #       자동감지 불가한 경우). 미지정 시 실제 보고되는 check 이름을 자동감지(없으면 생략 → 데드락 방지).
-  case "$branch" in main) ctx="$MAIN_CONTEXTS";; develop) ctx="$DEVELOP_CONTEXTS";; esac
-  rsc="{\"strict\":true,\"contexts\":$ctx}"
-  # 승인요건: main만 --approvals N(팀 모드) — develop은 0 유지(pr-merge.sh --auto 무프롬프트 머지 보존).
-  bappr=0; [ "$branch" = "main" ] && bappr="${APPROVALS:-0}"
-  rpr=$(reviews_json "$bappr")
-  if ! gh api -X PUT "repos/$REPO/branches/$branch/protection" --input - >/dev/null 2>&1 <<JSON
-{"required_status_checks":$rsc,"enforce_admins":true,"required_pull_request_reviews":$rpr,"restrictions":null,"required_conversation_resolution":true,"allow_force_pushes":false,"allow_deletions":false}
-JSON
-  then
-    echo "✗ $REPO:$branch — 적용 실패(private+Free? 권한?)"; rc=1; continue
+  if ! gh api -X PUT "repos/$REPO/branches/$branch/protection" --input "$TMP/$branch.plan" >/dev/null; then
+    echo "✗ $REPO:$branch — 적용 실패; 일부 변경 가능" >&2; exit 1
   fi
-
-  # GitHub가 PUT을 성공으로 받아도 실제 정책이 정규화·부분 적용될 수 있으므로 postcondition을 다시 읽는다.
-  prot=$(gh api "repos/$REPO/branches/$branch/protection" 2>/dev/null || true)
-  if [ -z "$prot" ]; then
-    echo "✗ $REPO:$branch — 적용 후 보호정책 재조회 실패"; rc=1; continue
+  if ! gh api "repos/$REPO/branches/$branch/protection" >"$TMP/$branch.after" || ! node "$HELPER" verify "$TMP/$branch.original" "$TMP/$branch.after" "$TMP/$branch.plan"; then
+    echo "✗ $REPO:$branch — 적용 후 정책 불일치; 실제 정책 확인 필요" >&2; exit 1
   fi
-  appr=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_pull_request_reviews'); print(r.get('required_approving_review_count') if r else 0)" 2>/dev/null || echo "?")
-  adm=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('enforce_admins',{}).get('enabled'))" 2>/dev/null || echo "?")
-  chk=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(len(r.get('contexts') or [c.get('context') for c in (r.get('checks') or [])]) if r else -1)" 2>/dev/null || echo "?")
-  actual_contexts=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks') or {}; names=list(r.get('contexts') or []) + [c.get('context') for c in (r.get('checks') or [])]; print(','.join(sorted(set(x for x in names if x))))" 2>/dev/null || echo "?")
-  strict=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_status_checks'); print(r.get('strict') if r else '')" 2>/dev/null || echo "?")
-  fpush=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_force_pushes',{}).get('enabled'))" 2>/dev/null || echo "?")
-  del=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('allow_deletions',{}).get('enabled'))" 2>/dev/null || echo "?")
-  conv=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('required_conversation_resolution',{}).get('enabled'))" 2>/dev/null || echo "?")
-  dismiss=$(printf '%s' "$prot" | python3 -c "import sys,json; d=json.load(sys.stdin); r=d.get('required_pull_request_reviews'); print(r.get('dismiss_stale_reviews') if r else '')" 2>/dev/null || echo "?")
-  expected_contexts=$(printf '%s' "$ctx" | python3 -c "import sys,json; print(','.join(sorted(set(json.load(sys.stdin)))))" 2>/dev/null || echo "?")
-  verdict=$(classify_protection "$appr" "$adm" "$chk" "$bappr" "$strict" "$fpush" "$del" "$conv" "$dismiss") || true
-  if [ "$verdict" = "ok" ] && [ "$appr" = "$bappr" ] && [ "$actual_contexts" = "$expected_contexts" ]; then
-    echo "✓ $REPO:$branch — 보호 적용·재검증(승인$bappr · enforce_admins=on · checks=$ctx)"
-  else
-    echo "✗ $REPO:$branch — 적용 후 정책 드리프트(verdict=$verdict approvals=$appr/$bappr contexts=$actual_contexts/$expected_contexts)"
-    rc=1
-  fi
+  echo "✓ $REPO:$branch — 보호 보존·재검증"
 done
-exit $rc
+exit "$rc"

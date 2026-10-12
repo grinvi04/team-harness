@@ -13,9 +13,12 @@ Team Harness는 앱 코드가 아니라 개발 기준·설정·검사 연결을 
 | 스택 선택·경로·검사 이름 | `templates/stacks.json` | 셋업·CI 생성·로컬 검사·repo-sync |
 | 스택별 CI·rule·보조 설정 | `templates/stacks/<스택>/` | 선택한 스택의 생성물·배치 파일 |
 | 여러 스택이 함께 쓰는 원문 | `templates/ci/common/`, `templates/rules/typescript.md` | 공통 CI·TypeScript rule |
+| 회사 선택형 적용 | `scripts/manage-repo-assets.mjs`, `templates/company/AGENTS.md` | 기존 회사 파일·규약을 보존한 명시 plan |
 | 로컬 검사 실행 틀 | `templates/local/check-harness.sh` | Spring Boot·Vue 명령을 조합한 checker |
 | 분리 패키지 평가 | `experiments/split-packaging/` | 격리된 실험; 공개 설치 경로와 구분 |
 | 과거 후보의 실행 증거 | Git 고정 커밋과 해당 PR | 당시 결과·실패·보류를 확인할 때 |
+
+회사 기존 repo는 [선택형 온보딩](company-onboarding.md)과 [자산 갱신·제거](repo-assets.md)를 먼저 읽는다.
 
 ## 정본과 배치 파일
 

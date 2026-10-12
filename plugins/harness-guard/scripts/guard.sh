@@ -231,8 +231,8 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git[[:space:]]+(checkout[[:
     FEAT_NAME=$(echo "$COMMAND" | grep -oE "feature/[^[:space:];&|)]+" | head -1 | sed 's#^feature/##')
     SPEC_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
     if [[ -n "$FEAT_NAME" && -n "$SPEC_ROOT" && ! -f "$SPEC_ROOT/docs/specs/$FEAT_NAME.md" ]]; then
-      deny "신규 feature 브랜치는 승인된 plan 아티팩트(docs/specs/$FEAT_NAME.md) 필요 — 계획-먼저 강제" \
-           "먼저 /plan 으로 스펙을 작성·승인 후 재시도. trivial 변경이면 'HARNESS_TRIVIAL=1 git checkout -b feature/$FEAT_NAME' 로 명시 면제."
+      deny "신규 feature 브랜치는 plan 연결 파일(docs/specs/$FEAT_NAME.md) 필요 — 파일 존재와 승인은 별도" \
+           "기존 승인 기록에 연결한 스펙을 준비하고 재시도. 파일 검사 자체는 승인 증명이 아닙니다. trivial 변경이면 'HARNESS_TRIVIAL=1 git checkout -b feature/$FEAT_NAME' 로 명시 면제."
     fi
   fi
 fi
