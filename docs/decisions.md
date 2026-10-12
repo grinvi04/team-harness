@@ -15,6 +15,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
+| **프론트 설계 기준 연결** — 설치된 공통 계약에 핵심 판단을 두고 기존 설계·QA 기록을 재사용한다. 상세 안내와 제품 결정을 구분한다. | 2026-10-13 | frontend-engineering.md, specs/frontend-engineering-contract.md | project-contract.md, frontend-design-standards.md, templates/AGENTS.md |
 | **라우팅 후보를 짧은 명시 요청에 한정** — 일반·복합 요청의 의미와 이어가기는 native agent에 위임한다. 구현 요청을 열린 PR 때문에 병합 후보로 바꾸지 않으며 detached·작업 브랜치의 과거 spec으로 기능 추가를 제안하지 않는다. codex 작업 브랜치는 명시 병합 후보에 포함한다. 기존 후보 메시지·JSON·검증 재사용·보호 게이트는 유지한다. 제품 방향은 연결이다. 이전 상태만으로 이어가기 후보를 선택하던 부분을 대체한다. | 2026-10-11 | specs/workflow-routing-scope.md | developer-workflow.md, ai-collaboration.md, harness-plugin.md, README.md, route-intent.mjs |
 | **개별 스택 조합·Git 역사 연결** — 사용자가 고정 풀스택과 소개 HTML 제거를 승인했다. 개별6개 정본으로 백엔드4종×프론트3종을 조합하고 경로·rule·필수 검사를 함께 전달한다. Git85338bd에 있는 원문772개와 중복 안내1개를 checkout에서 삭제하며 현재 reader는 고정 커밋으로 연결한다. 정책·결정·CHANGELOG·fixture는 유지한다. 앞선8개 선택·역사 이동 결정의 해당 부분을 대체한다. 제품 방향은 소유다. | 2026-10-11 | repository-structure.md, specs/structure-maintenance.md | stacks.json, new-repo.sh, harness-plugin.md, onboarding.md, harness-maintenance.md |
 | **설정 정본·생성물·실험·역사 분리** — 기존 8개 CI와 보호 동작을 보존하며 카탈로그·공통/job 조각에서 완성 템플릿을 생성한다. Git/CI 필수 배치 사본은 정본 일치 검사로 관리한다. 빈 권한 fragment와 무효 병합을 제거하고 기존 제품 설정을 보존한다. 분리 패키지 구현과 과거 증거는 별도 경로로 옮기며 공개 플러그인 하나·미승격 경계·당시 증거 bytes를 유지한다. | 2026-10-11 | repository-structure.md, specs/structure-maintenance.md | templates/stacks.json, ci/stacks/sources, experiments/split-packaging, history/harness-modernization, onboarding.md, harness-maintenance.md |

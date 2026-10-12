@@ -108,6 +108,7 @@
 | 운영·로깅 | operations.md | 장애 대응의 권한·호환성, 로그·추적·현재 배포 후보 확인 |
 | README | readme-standards.md | 루트 README 양식(섹션 순서·뱃지·mermaid·시작하기), `templates/README.template.md` |
 | 프론트 디자인 | frontend-design-standards.md | 필요한 디자인 토큰·컴포넌트, 접근성·실제 상태 표시·스택별 확인 경로 |
+| 프론트 설계 | frontend-engineering.md | 업무·상태 소유·책임 경계·재사용 판단을 기존 설계·QA 기록에 연결 |
 | 한국 UI/UX | korean-ux.md | 제품 용어·톤·지원 사용자·표시 형식, 실제 동작과 일치하는 안내 |
 
 ## 코딩 컨벤션

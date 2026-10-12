@@ -1,0 +1,21 @@
+{
+  "version": "0.93.0",
+  "baseDevelop": "4d62011de13cebadc43eef70abe1e62605fa2e1b",
+  "preservedAdoptionDocumentation": "d82b43daf49b2ecfb246bca556a19c8b9a56a400",
+  "originalFrontendCandidate": "b8d2c79da97c7f1029332479ebf77a8122e3c7b4",
+  "integrationStatus": "IN_PROGRESS",
+  "acceptance": "FAIL",
+  "criteria": {
+    "F1": "FAIL: prior generated final response incomplete; root cause UNVERIFIED",
+    "F2": "PASS_SCOPED: original approved synthetic plan proposal",
+    "F3": "PASS_SCOPED: original button-copy proposal",
+    "F4": "PASS_SCOPED: original explicitly non-frontend proposal",
+    "F5": "PASS_SCOPED: original source-identical local wrapper reads; global install excluded",
+    "F6": "UNVERIFIED: current integration quality/package/review pending"
+  },
+  "newModelReruns": 0,
+  "causeBasedRuntimeFix": false,
+  "remoteDelivery": "NOT_EXECUTED",
+  "installation": "0.92.1 unchanged",
+  "actualCompanyAcceptance": "SEPARATE: product FAIL, remote and independent-user UNVERIFIED"
+}

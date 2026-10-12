@@ -12,6 +12,25 @@ function check(label, run) {
   catch (error) { failures++; console.error(`FAIL: ${label}: ${error.message.split("\n")[0]}`) }
 }
 const read = (file) => readFileSync(path.join(root, file), 'utf8')
+check('installed project contract carries frontend criteria without repository docs', () => {
+  const text = read('plugins/harness-guard/skills/ao-coordinate/project-contract.md')
+  const section = text.split('## 프론트엔드 설계 연결\n')[1]?.split('\n## ')[0]
+  assert.ok(section, 'frontend contract must be reachable from existing shared readers')
+  assert.equal((section.match(/^\d\. /gm) || []).length, 6)
+  for (const term of ['업무', '기존', '상태', '경계', '재사용', '검증']) assert.ok(section.includes(term), term)
+  const prose = section.replace(/\s+/g, ' ')
+  assert.match(prose, /작은.*영향/)
+  assert.match(prose, /기존 (?:계획·스펙·이슈|기록)/)
+  assert.doesNotMatch(section, /\]\([^)]*\.\.\/\.\.\/\.\.\/docs\//)
+})
+check('consumer can find frontend detail and existing visual standards without a new workflow', () => {
+  const guide = read('docs/frontend-engineering.md')
+  assert.ok(read('templates/AGENTS.md').includes('frontend-engineering.md'))
+  assert.ok(read('docs/frontend-design-standards.md').includes('frontend-engineering.md'))
+  assert.match(guide, /기존.*검증/)
+  assert.ok(guide.includes('frontend-design-standards.md'))
+  assert.ok(guide.includes('standards-scope.md'))
+})
 for (const name of ['plan', 'feature-add', 'feature-modify', 'systematic-debugging']) {
   check(`${name} loads the shared project contract`, () => {
     const file = `plugins/harness-guard/skills/${name}/SKILL.md`
