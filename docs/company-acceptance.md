@@ -6,6 +6,39 @@
 DriveTree 실제 제품 인수는 필수 UI 실패로 **FAIL**, 회사 원격 집행·독립 팀은 **UNVERIFIED**다.
 DriveTree 수정은 이번 범위에서 제외하며 아래 인수 기준은 유지한다.
 
+## 원래 요구와 현재 Harness 판정
+
+목표는 회사 개발팀의 실제 제품 업무에 필요한 Harness 자체를 개선하는 것이다.
+기술 구현·검증, 실제 제품 적용, 회사 서버 집행, 독립 사용자 효용을 나눠 판정한다.
+소비 저장소·회사·참여자 지정은 아래 실제 인수의 조건이며 Harness 수정의 선행 조건이 아니다.
+기준은 [승인된 여섯 묶음](specs/company-adoption.md#승인된-여섯-묶음과-검사-계약)이다.
+
+2026-10-13 원격 develop `4d62011de13cebadc43eef70abe1e62605fa2e1b`와
+main/v0.92.1 `4e0d66b9fa34d273bb1ee7383846601d3fa2fd99`를 대조했다.
+관련 코드·호출부·시험은 검증 후보 `3b5ad05931a308d3131fdec211fca2e6a2ac7662`와
+품질 후보 `1fc5f40d7bfd13952b704d1b80e12341c01cf40c`의 입력과 동일하다.
+후속 원문 로그의 SHA-256을 확인하여 아래 검사를 재사용했다. 이번에 다시 실행한 결과가 아니다.
+
+| 원래 묶음 | 현재 구현·유지 경로 | 현재 증거·판정 |
+|---|---|---|
+| P0-policy | `branch-protection-policy.mjs`·`set-branch-protection.sh`·`repo-policy.mjs`: 기존 승인/CODEOWNERS/제한 보존, 선택 preview, 회사 solo 차단 | 보존32·회귀18 PASS, 개인 실제 GET/check PASS_SCOPED; 회사 집행 별도 |
+| P0-merge | `pr-merge.sh`·`verify-required-checks.mjs`: 수동/자동의 nonempty required·최신 head/app 성공과 drift 차단 | wrapper65·회사 경계 포함 합동58 PASS_SCOPED; 실제 회사 거부/승인 별도 |
+| P1-lifecycle | `manage-repo-assets.mjs`: 선택 적용/갱신/제거·출처/소유 hash·충돌 거부·포착한 실패 복구 | 합동58의 자산 수명주기 정상/거부/복구 PASS_SCOPED |
+| P1-options | plan 선택·회사 AGENTS·`harness-doctor.sh`: 기존 규약 유지, tech-only, 설치 버전·구성/실행 분리 | doctor 원문 PASS_SCOPED; 미실행 fresh-session은 UNVERIFIED |
+| P1-product | `setup-local.mjs`·`check-harness.sh`: 기존 stack 판독 재사용, Spring/Vue 검사 연결·중간 실패 후속0 | checker14·stack 판독 원문 PASS_SCOPED; 제품 lock/build/통합 별도 |
+| P2-team | 이 계약·온보딩·자산 안내: 독립 역할·업무·비용·인계 관찰 기준 | 준비 자료 확인; 실제 독립 수행·비용은 UNVERIFIED이며 P2 전체 PASS가 아님 |
+
+원문 식별자는 `company-policy-api-20261013/quality-04.log`, `quality-10.log`,
+`quality-31.log`, `quality-34.log`, `quality-75.log`, `preservation-after.log`, `green.log`다.
+`quality.json`·`targeted.json`의 명령·cwd·후보·exit와 로그 hash를 함께 대조한다.
+원래 `company-adoption/` 원문 위치는 현재 기본 checkout에 없어 그 원문 전체를 재확인하지 못했다.
+재사용 판단은 위에 실제 존재하는 후속 원문과 현재 Git 입력의 일치에 근거한다.
+
+유지할 것은 기존 품질·보안·검토·보호 gate다. 개인 규약 강제·기존 정책 덮어쓰기·회사 solo는
+선택형 경로에서 분리하거나 거부한다. 새 runtime·추가 stack·범용 회사 정책 엔진은 추가하지 않는다.
+이번 대조에서 원래 범위 안의 새 코드 결함은 입증되지 않았다. 진행 기록의 잘못된 대기 연결을
+정정하며, 실제 인수 FAIL1/UNVERIFIED2를 코드 미완료나 기술 PASS로 바꾸지 않는다.
+
 ## 제품 검사를 연결할 때
 
 선행 0.91.1의 stack 판독·버전 미리보기·충돌 경계를 재사용한다.
@@ -29,6 +62,10 @@ DriveTree 수정은 이번 범위에서 제외하며 아래 인수 기준은 유
 fixture 성공, 파일 복사, 로컬 doctor PASS를 이 표의 실제 결과로 채우지 않는다.
 
 ## 독립 팀의 업무 인수
+
+향후 실제 인수를 실행할 때 [독립 사용자 양식](pilots/independent-user-0921.md)에
+대상·역할·실제 업무와 관찰표를 고정한다. 이 선택은 현재 Harness 수정의 선행 조건이 아니다.
+자료 준비와 참여자 존재 확인은 실제 수행·비용 인수의 통과가 아니다.
 
 도구 작성자가 아닌 개발자와 리뷰어가 시니어 개발 업무 전반에서 대표적인 실제 사례를 수행한다.
 요구·설계·변경·진단·검증·리뷰·릴리즈·유지·인계를 대상으로 하며 단순 기능 개발로 한정하지 않는다.
