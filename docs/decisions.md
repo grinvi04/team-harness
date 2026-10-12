@@ -186,14 +186,8 @@ legacy security-guidance는 자동 패치 없이 삭제 보류하며 [현재 근
 명령에만 미등록 remote 이름을 지정하며 config와 옛 remote 정의 충돌·조회 실패는 삭제 전에 거부한다. 저장된 upstream은 고치지 않는다.
 기존 안전 계약을 복구하는 PATCH 0.91.1이며 [범위·검증·전달 상태](specs/release-cleanup-apple-git.md)를 따른다.
 
-## 회사 선택형 도입 (0.92.0 후보)
+## 회사 도입·정책 호환 결정
 
-기존 회사 정책·규약·자산을 보존하고 solo 예외는 명시한 개인 경로로 제한한다.
-수동/자동 모두 required 집합·현재 head 성공 미확인을 차단하며 일반 Actions 성공으로 대체하지 않는다.
-기술 자산은 고정 원본·소유 hash로 선택 적용하고 실제 제품·독립 팀 인수는 [별도 계약](company-acceptance.md)으로 확인한다.
-
-## 2026-10-12 — 이 개인 저장소의 solo 병합 선택
-
-사용자가 0.92.0 전달 중 solo-merge를 선택했다. 기존 정책 연결로 이 repo만 schema1 `mode: solo`·자동머지 opt-in 없음으로 선언한다.
-개인 소유·실제 협업자1명을 재확인하며 회사 기본값·소비 repo는 유지한다. main 승인1은 wrapper의 임시 예외 뒤 전체 원값으로 복원·검증한다.
-required5·현재 head/base·독립 검토·스레드 게이트는 유지한다. [전달 상태](specs/company-adoption.md)를 따른다.
+회사 정책·개인 solo 경로 분리, required 현재 head·회사 보호 보존을 유지한다.
+GET null 판독을 허용하되 모호한 PUT 계획은 거부하며 block_creations 원값을 보존한다.
+이 영역 판단 전 [시점별 결정 본문](decisions-company-adoption.md)을 함께 읽는다.

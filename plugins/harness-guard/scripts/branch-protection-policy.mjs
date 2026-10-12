@@ -26,7 +26,7 @@ const actors = (v, label) => {
   if (Object.values(out).flat().length > 100) fail(`${label}: actor limit exceeded`);
   return out;
 };
-const flags = ['enforce_admins','required_linear_history','allow_force_pushes','allow_deletions','required_conversation_resolution','lock_branch','allow_fork_syncing'];
+const flags = ['enforce_admins','required_linear_history','allow_force_pushes','allow_deletions','block_creations','required_conversation_resolution','lock_branch','allow_fork_syncing'];
 function policy(d) {
   known(d, ['url','required_status_checks','required_pull_request_reviews','restrictions','required_signatures',...flags], 'protection');
   const p = {};
@@ -40,7 +40,7 @@ function policy(d) {
     signatures = bool(d.required_signatures.enabled, 'required_signatures');
   }
   const r = d.required_pull_request_reviews;
-  if (r === null) p.required_pull_request_reviews = null;
+  if (r === null || !('required_pull_request_reviews' in d)) p.required_pull_request_reviews = null;
   else {
     known(r, ['url','dismiss_stale_reviews','require_code_owner_reviews','required_approving_review_count','require_last_push_approval','dismissal_restrictions','bypass_pull_request_allowances'], 'reviews');
     const count = r.required_approving_review_count;
@@ -61,7 +61,8 @@ function policy(d) {
       if (!Array.isArray(c.checks)) fail('checks: expected list');
       out.checks = c.checks.map(x => {
         known(x,['context','app_id'],'check'); names([x.context]);
-        if ('app_id' in x && (!Number.isInteger(x.app_id) || x.app_id < -1)) fail('unsupported check app binding');
+        // GET permits null; it does not establish a safe integer/omitted PUT binding.
+        if ('app_id' in x && x.app_id !== null && (!Number.isInteger(x.app_id) || x.app_id < -1)) fail('unsupported check app binding');
         return {...x};
       }).sort((a,b) => a.context.localeCompare(b.context) || (a.app_id ?? 0)-(b.app_id ?? 0));
       // A context without a matching check could make an app binding ambiguous.
@@ -81,6 +82,9 @@ try {
     policy(read(original));
   } else if (mode === 'plan') {
     const before = policy(read(original));
+    if (before.payload.required_status_checks?.checks?.some(x => x.app_id === null)) {
+      fail('null check app binding: read supported, write plan refused; GitHub policy owner must handle');
+    }
     const p = structuredClone(before.payload);
     const add = names(read(arg)); if (!add.length) fail('no required checks');
     const checks = p.required_status_checks ?? {strict:true,contexts:[]};
