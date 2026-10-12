@@ -44,7 +44,10 @@ bash set-branch-protection.sh org/repo --branches main,develop --preview \
 이 도구는 **ruleset이 하나라도 있는 저장소에서 apply·preview를 차단**한다.
 조건·우회 주체·조직 상속을 해석하는 일반 ruleset 엔진은 제공하지 않는다.
 보호 미적용·404·권한 오류도 동일하게 차단한다. 오류를 보호 없음으로 추정하지 않는다.
-`checks.app_id`가 null이거나 REST로 보존 가능한 정수 표현이 아니면 차단한다.
+`--check`는 공식 GET의 `block_creations`와 null app binding, 생략된 리뷰 설정을 판독한다.
+생략된 리뷰 설정은 리뷰 조건 없음이며 회사 승인 충족을 뜻하지 않는다.
+`checks.app_id:null`은 조회만 지원한다. plan·preview·apply는 PUT 전에 차단한다.
+null을 정수/-1/생략으로 바꿔 앱 결박을 추측하지 않는다. 잘못된 app 표현도 차단한다.
 이 경우 회사 정책 담당자가 GitHub 원본과 공식 관리 수단에서 필요한 변경을 검토한다.
 새 검사 binding은 REST 자동 선택을 사용한다. 서버가 새 app ID를 정규화해 반환하면 엄격한
 사후 비교가 실패할 수 있다. null binding·새 binding의 실제 API 호환성은 **미확인**이다.
@@ -61,12 +64,16 @@ REST PUT에는 원자적 정책 비교 조건이 없어 마지막 조회와 쓰�
 ## 구현 및 검증 범위
 
 변환 helper는 `plugins/harness-guard/scripts/branch-protection-policy.mjs`이며
-스크립트와 같은 package에 포함해야 한다. 현재 후보는 로컬 fake `gh` 응답·쓰기 로그로만
-검증한다. 실제 회사 저장소 변경, 원격 권한, 설치·릴리즈·회사 채택은 검증하지 않았다.
+스크립트와 같은 package에 포함해야 한다. 정책 변경 경로는 로컬 fake `gh`로 검증했다.
+[0.92.0 후속 조회](pilots/company-adoption-2026-10-13.md)의 실패는 당시 후보의 기록이다.
+[0.92.1 호환 수정](specs/company-policy-api-compatibility.md)은 block_creations 원값을 보존하고
+조회/쓰기 가능한 표현을 구분한다. 정수 앱 결박·사후 손실 거부는 유지한다.
+회사 가정 시험과 실제 회사 집행을 구분한다. 실제 회사 저장소 변경·회사 채택은 검증하지 않았다.
 
 ```bash
 bash tests/set-branch-protection-test.sh
 bash tests/set-branch-protection-preservation-test.sh
+node --test tests/branch-protection-policy-test.mjs
 node --check plugins/harness-guard/scripts/branch-protection-policy.mjs
 bash -n plugins/harness-guard/scripts/set-branch-protection.sh
 ```
