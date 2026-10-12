@@ -17,11 +17,12 @@
 | 순서 | 작업 | 판정 기준·현재 상태 |
 |---|---|---|
 | 1 | F1 원문·실행 환경 진단 | 조사 완료, 생성된 최종 답변의 누락 확인; 원인 UNVERIFIED·F1 FAIL |
-| 2 | 최신 기반 통합 | 기존 정책·보호·d82b43d 문서 보존, 승인 delta와 reader bytes 대조 |
-| 3 | 현재 후보 검증 | F1–F6·영향 회귀·전체 quality·package·독립 읽기 전용 검토 |
-| 4 | 문서·전달 준비 | 현재 후보·증거·사용 안내 동기화, 수용 미완료와 원격 미실행 표시 |
+| 2 | 최신 기반 통합 | 로컬 완료: 정책·보호·d82b43d 문서와 reader bytes 보존 |
+| 3 | 현재 후보 검증 | quality 74/74·package·소스 독립 검토 통과; F1 FAIL로 전체 수용 불가 |
+| 4 | 문서·전달 준비 | 로컬 검토 후보와 미완료 인계 준비; 릴리즈 GO 판정 없음 |
 
-현재 2–4번의 검증·최종 기록은 진행 중이다. 필수 FAIL/UNVERIFIED가 남으면 전체 완료 금지다.
+2번 통합과 3번 기술 검증·4번 미완료 인계 기록을 수행했다. F1 FAIL로 전체 수용은 미완료다.
+최종 검증은 아래 기록의 후보·범위와 raw 증거를 함께 대조한다. 새 원격 delivery는 실행하지 않았다.
 전체 quality 성공·package 생성·별도 검토 수행은 F1의 의미 FAIL을 해소하지 않는다.
 
 ## F1 진단과 중단 기준
@@ -31,6 +32,7 @@ exit 0·48.13초·turn.completed이며 계약 전문 읽기와 도구 명령 성
 따라서 출력 파일만 잘림·timeout·계약 로딩 실패는 배제한다.
 실패 표본에만 sandbox 경고가 있으나 경로·operation이 unknown이고 응답 누락과의 인과는 없다.
 해당 시각 OS sandbox 로그는 revisiond 기록만 반환했고 Codex 거부의 추가 근거는 없었다.
+원래 thread 조회도 durable 호스트 오류로 확인하지 못했다. 부재나 원인 확정으로 처리하지 않았다.
 당시 실제 model/effort·서버 finish reason·stream delta·daemon 요청 매핑은 확보하지 못했다.
 
 기존 `--no-daemon` 성공 1회로 원인을 확정하지 않는다. 새 근거 없는 모델 호출은 추가하지 않았다.
@@ -54,6 +56,14 @@ F5는 repo-local symlink·AGENTS 안내로 wrapper→공용 skill→공통 계�
 
 실행 원문·명령/cwd/exit·파일 SHA-256은 담당 작업의 `.runtime/frontend-resume-20261013/`에 보존한다.
 공개 요약은 [현재 후보 검증](../pilots/frontend-integration-v0.93.0.json)에 연결한다.
+코드·전체 quality·별도 소스 검토의 후보는 `de0fe7c391b3ed9e3bcb86a27790fd1744bb6dbc`다.
+macOS 로컬 실행이며 Linux apt는 기존 rg, PR event는 실제 스펙, Python은 bundled 3.12,
+Ruff는 동일 고정 버전의 외부 격리 venv를 사용했다. 명령·환경·최초 시도 기록을 보존했다.
+현재 native source의 manifest/hook/17개 skill과 package 4개·소스 bundle checksum을 확인했다.
+분리 package의 catalog 버전 0.69.0·installable=false는 기존 실험 계약이며 plugin 0.93.0과 구분한다.
+별도 Astra/medium·실제 read-only 검토는 새 소스 결함 없음, F1 FAIL로 판정했다.
+최종 문서 기록만 달라진 후보의 runtime/test/CI 동일성을 대조하고 해당 문서 검사를 수행한다.
+최종 source bundle의 정확한 후보는 RELEASE-MANIFEST.json과 Git HEAD에서 확인한다.
 공통 계약·frontend 안내·디자인 표준·소비 AGENTS·README·decisions·harness-maintenance와
 두 manifest·CHANGELOG를 함께 대조한다. 회사 인수의 원래 기준·미확인 상태는 변경하지 않는다.
 
