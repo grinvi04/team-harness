@@ -29,7 +29,7 @@ function literalNuxtModules(config) {
   const modules=[];let seen=false;
   for(const p of properties.filter(p=>p.length)) {
     const key=p[0].replace(/^['"]|['"]$/g,'');
-    if(p[0]==='...' || key==='extends' || p[0]==='[' || key.startsWith('$') || (['get','set'].includes(key) && p[1]==='modules'))return null;
+    if(p[0]==='...' || key==='extends' || p[0]==='[' || key.startsWith('$') || (['get','set'].includes(key) && p[1]!==':'))return null;
     if(key!=='modules')continue;
     if(seen || p[1]!==':' || p[2]!=='[' || p.at(-1)!==']')return null;seen=true;
     const entries=p.slice(3,-1);let expectValue=true;

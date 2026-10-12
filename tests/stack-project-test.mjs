@@ -236,6 +236,10 @@ test('npm lock v2/v3 missing resolved entries cannot fall back to manifest exact
 test('Nuxt getters and environment module overrides remain unverified', async t => {
   for (const config of [
     'export default defineNuxtConfig({get modules(){return ["example-module"];}});',
+    'export default defineNuxtConfig({get "modules"(){return ["example-module"];}});',
+    "export default defineNuxtConfig({get 'modules'(){return ['example-module'];}});",
+    'export default defineNuxtConfig({set "modules"(value){}});',
+    "export default defineNuxtConfig({set 'modules'(value){}});",
     'export default defineNuxtConfig({$production:{modules:["example-module"]}});',
     'export default defineNuxtConfig({$env:{preview:{modules:["example-module"]}}});'
   ]) {

@@ -50,3 +50,14 @@ test('custom Alembic CI is preserved and refuses setup before the record is writ
  const file=join(f.root,'.github/workflows/alembic-heads.yml');writeFileSync(file,'USER CI');const run=f.run();
  assert.equal(run.status,1);assert.equal(readFileSync(file,'utf8'),'USER CI');assert.ok(!existsSync(join(f.root,'harness-stack.versions.json')));assert.ok(!existsSync(join(f.root,'AGENTS.md')));
 });
+
+test('quoted Nuxt accessors refuse actual setup before user files or hook/remote effects', t => {
+ for(const property of ['get "modules"(){return ["example-module"];}','set "modules"(value){}',"get 'modules'(){return ['example-module'];}","set 'modules'(value){}"]){
+  const f=shellFixture(t,'8'),config='export default defineNuxtConfig({'+property+'});';
+  writeFileSync(join(f.root,'nuxt.config.ts'),config);
+  const run=f.run();assert.equal(run.status,1,run.stdout+run.stderr);assert.match(run.stderr,/DYNAMIC_DECLARATION/);
+  assert.equal(readFileSync(join(f.root,'nuxt.config.ts'),'utf8'),config);
+  for(const name of ['harness-stack.versions.json','AGENTS.md','gh-log'])assert.ok(!existsSync(join(f.root,name)),name);
+  assert.equal(spawnSync('git',['-C',f.root,'config','--get','core.hooksPath']).status,1);
+ }
+});

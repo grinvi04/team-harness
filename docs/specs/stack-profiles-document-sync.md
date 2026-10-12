@@ -181,5 +181,6 @@ Nuxt getter/환경 module, Gemfile Ruby 조건, Python 설치 입력, Hotwire CD
 생성 venv/정규 pyvenv.cfg만 Flyway 탐색에서 제외하며 소스·링크 거부는 유지한다. 최초 실행·지적·RED 원문을 보존한다.
 Python은 DB 제품을 정하지 않는다. Alembic job은 설정 부재만 self-skip하며 사용 중이면 필수·exact runtime·기록 검사다.
 사용자 Alembic CI가 다르면 첫 쓰기 전에 보존·중단한다. 두 manifest·README는 계속0.91.0이다.
+08d2d2c 보완 검토는 보안 PASS_SCOPED, 기능 FAIL이었다. Nuxt 따옴표 getter/setter 반례를 추가로 거부한다.
 현재 후보의 독립 보완 검토·required CI·live provenance·bundle/checksum을 통과한 뒤 Git 단계와 설치를 수행한다.
 실제 서버·DB가 없는 저장소의 health/DB만 비적용이다. 소비 앱·원격 작업·배포·결제와 Claude 인증/실모델 검증은 제외·보류한다.
