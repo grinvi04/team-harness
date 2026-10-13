@@ -6,8 +6,13 @@
 아래 로컬 통합·F1–F6는 완료된 범위의 기록이며 재개 조건을 새로 만들지 않는다.
 준비 결과와 향후 실제 인수의 구분은 [현재 도입 순서](../pilots/company-adoption-2026-10-13.md)를 따른다.
 실제 인수 FAIL/UNVERIFIED를 준비 PASS로 대체하지 않는다. 후보 전달의 품질·리뷰·CI·릴리즈 gate는 유지한다.
-준비의 최종 고정 변경분은 quality74/74·독립 보안/계약 검토를 통과했다. 현재 PR 리뷰는 별도 미실행이다.
-Claude `/code-review`의 인증·command 준비 후 현재 PR head/base에 리뷰·CI를 연결해야 병합할 수 있다.
+준비의 고정 변경분957dcf4는 quality74/74·독립 보안/계약 검토를 통과했다.
+후속 후보·현재 리뷰/CI·병합 여부는 [PR550](https://github.com/grinvi04/team-harness/pull/550)의 원본에서 확인한다.
+2026-10-13 사용자가 도구 공통 리뷰 계약·Codex 우선을 승인했다. Claude 설치/로그인은 대기조건이 아니다.
+제품 방향은 **연결**이다. 공식 리뷰에 후보·범위·증거를 연결하며 새 리뷰 엔진·전역 설정을 만들지 않는다.
+수정 후 현재 PR head/base의 독립 Codex 리뷰·CI를 확인한다. 실행 오류/후보 변경은 UNVERIFIED다.
+기존 지적 처리·스레드0·사람 승인·required CI·commit-status·보호·래퍼·F1–F6 기준은 유지한다.
+완료 기준은 현재 안내의 Claude 필수 의존 제거, 직접 reader/패키지 반영, 정상·거부 계약의 독립 검토다.
 
 ## 승인·범위
 
@@ -138,7 +143,13 @@ Ruff는 동일 고정 버전의 외부 격리 venv를 사용했다. 명령·환�
     {"path":"README.md","reason":"프론트 안내와 후보 버전 배지"},
     {"path":"CHANGELOG.md","reason":"0.92.1 이력 보존과 0.93.0 후보 생성"},
     {"path":"docs/changelog/releases.md","reason":"현재 생성된 이력 index"},
-    {"path":"docs/changelog/2026/v0.93.0.md","reason":"현재 후보의 실제 커밋 이력"}
+    {"path":"docs/changelog/2026/v0.93.0.md","reason":"현재 후보의 실제 커밋 이력"},
+    {"path":"docs/code-review.md","reason":"현재 후보·독립 리뷰·사람 승인 기준을 도구 공통 계약으로 연결"},
+    {"path":"docs/harness-setup.md","reason":"Claude 전용 PR 리뷰 설치 의존 제거"},
+    {"path":"docs/onboarding.md","reason":"신규 도입의 Codex 우선·공통 리뷰 안내"},
+    {"path":"plugins/harness-guard/skills/pr-review-gate/SKILL.md","reason":"Codex 우선 실행과 실패·후보 변경 차단 계약"},
+    {"path":"plugins/harness-guard/skills/solo-merge/SKILL.md","reason":"같은 AI 리뷰 처리 전제와 승인 예외 보존"},
+    {"path":"plugins/harness-guard/codex/skills/pr-review-gate/SKILL.md","reason":"공용 계약을 읽는 native 우선 reader와 독립성"}
   ],
   "items": []
 }

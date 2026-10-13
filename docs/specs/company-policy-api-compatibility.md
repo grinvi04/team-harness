@@ -142,5 +142,6 @@ develop 포함·역병합 완료는 위 전달 PR의 연결 결과와 Git ancest
 회귀·실제 GET 모두 RED exit1 → GREEN exit0. 정책 시험18/18·전체 보호 원문 동일을 확인했다.
 고정 변경분의 전체 quality74/74와 독립 read-only Astra/medium 보안·계약 검토(추가 지적0)를 확인했다.
 원문은 `company-readiness-20261013/quality/results.json`·`repair-review.meta.json`으로 연결한다.
-PR의 필수 Claude `/code-review`는 미실행이다. 현재 미로그인·command 미설치 상태는 전달 전 해소해야 한다.
-병합·태그·설치는 아직 미실행이며 0.92.1 당시 전달·검증 기록은 위에 보존한다.
+당시 Claude `/code-review`는 미로그인·command 미설치로 미실행이었다. 후속 승인으로
+[도구 공통 계약·Codex 우선](frontend-contract-integration.md#현재-다음-단계)에 연결한다.
+후속 리뷰·병합·전달 상태는 연결된 PR 원본에서 확인한다. 0.92.1 당시 전달·검증 기록은 위에 보존한다.
