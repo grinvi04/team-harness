@@ -23,7 +23,9 @@ try {
   if (runs.some(r => !Number.isSafeInteger(r.id) || r.id <= 0) || statuses.some(s => !Number.isSafeInteger(s.id) || s.id <= 0)) throw Error('evidence identity unavailable')
   const rollup = new Map()
   for (const c of checks) {
-    if (!c || typeof c.name !== 'string' || c.bucket !== 'pass' || rollup.has(c.name)) throw Error('required not passed or ambiguous')
+    // push and pull_request may legitimately produce duplicate successful rows.
+    // Every row must pass; exact head/app/latest REST evidence remains mandatory.
+    if (!c || typeof c.name !== 'string' || c.bucket !== 'pass') throw Error('required not passed or ambiguous')
     rollup.set(c.name, c.bucket)
   }
   for (const [name, app] of required) {

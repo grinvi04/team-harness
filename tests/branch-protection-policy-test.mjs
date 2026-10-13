@@ -37,6 +37,7 @@ function readback(plan) {
     if (typeof response[key] === 'boolean') response[key] = { enabled: response[key] };
   }
   response.required_signatures = { enabled: true };
+  if (response.required_status_checks?.checks) response.required_status_checks.contexts = [...new Set(response.required_status_checks.checks.map(x => x.context))].sort();
   return response;
 }
 for (const enabled of [true, false]) {
@@ -48,7 +49,8 @@ for (const enabled of [true, false]) {
     assert.equal(result.status, 0, result.stderr);
     const planned = JSON.parse(fs.readFileSync(f.output));
     assert.equal(planned.block_creations, enabled);
-    assert.deepEqual(planned.required_status_checks, value.required_status_checks);
+    assert.deepEqual(planned.required_status_checks, {strict:true,checks:value.required_status_checks.checks});
+    assert.equal('contexts' in planned.required_status_checks, false);
     assert.deepEqual(planned.required_pull_request_reviews, value.required_pull_request_reviews);
     assert.equal(planned.required_linear_history, true);
     assert.equal(planned.enforce_admins, true);
@@ -148,3 +150,11 @@ else: print('{}')
     assert.ok(methods.length > 0); assert.ok(methods.every(method => method === 'GET'));
   });
 }
+
+test('legacy contexts-only policy produces one PUT representation', t => {
+  const value=original(); delete value.required_status_checks.checks;
+  const f=fixture(t,value); assert.equal(f.run('plan',f.contexts,'',f.output).status,0);
+  const planned=JSON.parse(fs.readFileSync(f.output));
+  assert.deepEqual(planned.required_status_checks,{strict:true,contexts:['quality','security']});
+  assert.equal('checks' in planned.required_status_checks,false);
+})

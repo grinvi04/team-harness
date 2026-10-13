@@ -1,199 +1,103 @@
-# 회사 도입 판정과 0.93.0 도입·인수 순서
+# 회사 사용 예상: 실제 원격 기술 검증과 도입 판정
 
-## 현재 실행: 회사 사용을 예상한 검증·준비
+2026-10-13. **승인된 대표 원격 기술 검증 완료**: 15항목 PASS_SCOPED. 아래는 시험 종료 당시 후보·결과다.
+후속0.93.1 PR·병합·태그·설치는 사용자 승인으로 진행하며 [전달 계약](../specs/acceptance-policy-wire.md#0931-전달-승인과-단계-판정)의 원격 원본에서 판정한다.
+원래 목표는 회사에서 제품 개발에 쓸 Team Harness 자체의 개선이다.
+실제 회사에 재직하지 않아도 대표 환경의 기술 검증은 지금 수행한다.
+회사·참여자 지정과 소비 제품 수정은 현재 작업의 선행조건으로 요구하지 않는다.
 
-2026-10-13 최종 답변: 실제 회사·독립 참여자는 없으며 회사에서 사용할 것을 예상해 미리 만든다.
-로컬 구현·F1–F6 검증은 완료한 후보 `c6f519770d2740d1dc36971799dae7e126bc57cc`를 기준으로 재사용한다.
-c6f5197 당시0.93.0은 미발행 로컬 소스였다. 후속 발행·설치는 [현재 전달 원본](../specs/frontend-contract-integration.md#현재-다음-단계)을 따른다.
-실제 회사·참여자 지정 대기는 해제한다. 앞선 실제 인수 우선 해석을 현재 준비 작업의 gate로 쓰지 않는다.
-회사 가정 시험·읽기/실행 계약·제품 실패 보존은 준비 근거다. 실제 사람의 이해·비용은 미측정이다.
-DriveTree 후속 결과는 로컬 refs·원격 두 브랜치·최근 PR/이슈에서 찾지 못했다. 소유 잔재만 보존 후 정리했다.
-실제 인수 FAIL1/UNVERIFIED2는 향후 실증으로 남긴다. 발행·설치는 기존 품질·리뷰·CI·릴리즈 gate를 따른다.
-운영·기존 데이터·원본 환경 파일·원격 보호 변경·연락·초대 권한은 자동 확대하지 않는다.
+## 대상과 권한
 
-## 선행 판정과 시험 기록
+- 사용자 승인: 새 공개 합성 저장소 `grinvi04/team-harness-acceptance-lab`의 정책·PR·CI·병합·태그·폐기 배포.
+- 제외: 기존 저장소/보호 변경, 운영·DB/Auth/Storage·원본 env·결제·전역 설정·사람 연락.
+- 발행 기준선: Harness0.93.0 `207251185a6e828a86106d171c16a4d1b71d152a`.
+- 시험 종료 당시 수정0.93.1은 별도 격리 작업공간의 **로컬 후보**였다. 이후 전달은 시험 결과와 별도로 판정한다.
+- 시험 제품 v0.2.0/v0.2.1은 Harness 버전과 다르며, 폐기 배포는 Actions runner의 실제 HTTP 서버다.
 
-후속 [0.92.1 호환 수정과 전달](../specs/company-policy-api-compatibility.md)은 선정 판독·보존 검증과 발행·설치를 마쳤다.
-main/tag4e0d66b·공개 자산3개·Codex/Claude0.92.1 원본 일치·새 native17개를 확인했다.
-실제 개인 GitHub GET/check exit0·보호 원문 동일이며 회사 정책 PUT·회사 인수는 별도 미확인이다.
-아래 0.92.0 실패·시험 결과는 당시 후보로 보존한다. 회사 인수 3개의 판정은 그대로다.
-로컬 로그의 절대경로는 공개 문서에 넣지 않고 소유 checkout의 `.project-map/`에서 보존한다.
+실행 원문·명령·cwd·후보·exit·정책·run ID는 프로젝트의
+`.runtime/company-acceptance-lab-20261013/`에 보존한다(로컬 ignored 기록).
+[15항목 판정과 원문 hash](company-acceptance-lab-2026-10-13.json)와
+[공개 시험 저장소](https://github.com/grinvi04/team-harness-acceptance-lab)를 함께 대조한다.
+hash나 결과의 PASS 문자열만으로 실행을 증명하지 않는다.
+[이전 제품/가정 시험 기록](company-adoption-before-remote-lab-2026-10-13.md)은 당시 실패·한계를 보존한다.
 
-2026-10-13 사용자 범위 확정: **DriveTree 수정은 제외**한다. 이번 작업은
-Team Harness의 도입 판정·진행 문서 갱신과 안전한 로컬 검증이다.
-제품 결함 수정·제품 PR/CI·회사 원격 변경·참여자 연락을 자동 실행하지 않는다.
-후속 사용자 정정: 실제 회사는 없으며 **GitHub 회사 환경을 가정한 인수 2 검증**을 진행한다.
-인수 3의 업무 범위는 단순 기능 개발이 아니라 시니어의 개발 업무 전반이다.
-후속 [원래 요구·현재 코드 대조](../company-acceptance.md#원래-요구와-현재-harness-판정)는
-충족한 기술 검사를 재사용하고 실제 회사·소비 제품 인수를 현재 Harness 작업에서 분리한다.
-판정 계약은 [회사 인수](../company-acceptance.md),
-[회사 정책](../company-policy.md), [선택형 적용](../company-onboarding.md)이다.
+## 실제로 찾은 Harness 결함과 최소 수정
 
-## 현재 판정
-
-**선택형 로컬 도입의 제한된 증거는 확보했다. 회사 개발팀 도입 완료는 아니다.**
-0.92.0 구현·병합·태그·설치 완료 기록과 아래 실제 인수 상태를 구분한다.
-전달 기록은 보존 원본 `preserved-v0.92.0/delivery-complete.json`이다.
-아래 도입 평가 시점에는 전달·설치를 재실행하지 않았다. 후속0.92.1 결과는 위 연결을 따른다.
-개인 solo 전달은 회사 동료 승인 증거가 아니다.
-
-| 실제 인수 | 현재 판정 | 근거와 남은 경계 |
+| 원래 요구 | 실제 반례 | 수정과 재검증 |
 |---|---|---|
-| 1. 실제 제품 적용 | **FAIL / 인수 미완료** | DriveTree 실API UI 목록 2개 필수 기준 실패. 채택 후보 원격 CI 미실행 |
-| 2. 회사 원격 정책 집행 | **UNVERIFIED** | 로컬 정상/거부 시험 통과. 실제 회사 승인·CODEOWNERS·required 앱/head의 거부 미관찰 |
-| 3. 독립 팀 업무·효용 | **UNVERIFIED** | 인계 계약 준비. 독립 개발자·리뷰어, 실제 업무·기준선 비용 미측정 |
+| P0 회사 정책 보존 | GET/preview 성공 뒤 PUT HTTP422: contexts/checks 동시 표현 | 요청은 하나의 표현만 사용하고 GET projection을 정규화. 새 repo 실제 PUT/readback 원값 일치 |
+| P0 필수 CI 연결 | 같은 head의 push/PR 검사 전부 성공인데 중복 rollup으로 병합 거부 | 모든 중복 행 성공과 최신 head/app REST 성공을 함께 요구. 실제 정상 수동/자동 병합 |
+| P0 검토 후보 결박 | 열린 PR baseRefOid가2dbd인데 실제 develop ref는18111 | snapshot과 래퍼 모두 실제 원격 base ref 조회. 실제 RED→GREEN·낡은 base 거부 |
 
-남은 실제 인수는 **3개(FAIL 1 / UNVERIFIED 2)**다. 미실행을 SKIP으로 바꾸지 않는다.
-인수 2·3의 준비는 병행할 수 있으나, 둘이 통과해도 인수 1 실패를 해소하지 않는다.
+소유 판정은 정책·검사·증거 연결이다. GitHub의 서버 보호와 native 실행 기능은 그대로 사용한다.
+새 정책 엔진·추가 스택·플랫폼 복제나 소비 제품 기능은 만들지 않았다.
+코드와 검사 계약: [승인 스펙](../specs/acceptance-policy-wire.md).
 
-## 인수 1의 증거와 범위 밖 의존성
+## 실제 원격 결과
 
-제품 후보 `6ccb2e3799d2f08c51dd95408f91374e85dad3ce`, Harness v0.92.0 source
-`16150b474e353ab8132cf24b72ec51d26eb4e837`을 사용했다.
-선택 자산은 회사 규약·정책 판독기 2개다. 기존 코드·lock·hooks·CI를 바꾸지 않았고,
-실제 소비 실행·병합 경로에 가드를 활성화한 검증은 아니다.
-자산 적용/충돌 거부/복구/제거와 제품 로컬 검사는 PASS_SCOPED였다.
-후속 새 폐기 전용 DB·합성 관리자 시험은 실제 Nest/Auth/Prisma와 연결했다.
-최종 브라우저는 API 대역 없이 Next → Nest → PostgreSQL/pgvector로 실행했다.
+각 PASS는 선언한 합성 환경의 해당 기술 범위다. 회사 전체 채택·사람 효용의 PASS가 아니다.
 
-- 실로그인·인증 새로고침·UI 쓰기의 DB 정확 1행·공개 상세/새로고침·로그아웃/401 거부 관찰 통과.
-- 생성 201/목록 200·DB 1행인데 화면 0행, dashboard 새로고침도 0행: **필수 2개 FAIL**.
-  65초 후 1행은 캐시 TTL 진단이다. 즉시 갱신 성공으로 대체하지 않는다.
-- sitemap의 limit200/API 상한100 불일치로 실제 HTTP400. 빌드는 exit0이었다.
-  최종 sitemap XML의 콘텐츠 URL은 미확인이다.
-- 최종 브라우저 exit1, 관찰 PASS10/FAIL2. 이전 실패·재시도 원문을 보존했다.
-- 새 시험 DB·계정·프로세스·다운로드·임시 시험 파일 정리, 이전 .next 복원 확인.
-  원본 .env·기존 DB·운영·원격 보호는 건드리지 않았다.
+| ID | 확인한 것 | 판정·직접 증거 |
+|---|---|---|
+| R1 | 보호 판독·preview·실제 적용 보존 | PASS_SCOPED, 실제 API 원문 일치; 최초422 보존 |
+| R2 | 필수 CI 실패의 수동/자동 거부 | PASS_SCOPED, 수정 후보 PR10 실제 수동/자동 거부·head/base/보호 불변 |
+| R3 | 필수집합 없음·현재 검사 없음 | PASS_SCOPED, PR4 HTTP404/집합 미확인 거부·PR2 새 head 검사0 |
+| R4 | 필수 CI pending 거부 | PASS_SCOPED, 수정 후보 PR10 실제 in_progress 수동/자동 거부·보호 불변 |
+| R5 | 이전 head 성공 재사용 거부 | PASS_SCOPED, PR2 이전4개 성공/새 head 검사0·자동 거부 |
+| R6 | 검토 head/base 이동·조회 실패 | PASS_SCOPED, 실제 낡은 base 거부·head 거부, ref 실패/형식/게이트 후 경계 회귀 |
+| R7 | 사람/CODEOWNER 승인 누락 | PASS_SCOPED, PR3 CI 성공인데 서버 병합 거부; 승인1 정책 유지 |
+| R8 | 회사 mode에서 solo 예외 | PASS_SCOPED, PR3 회사 선언 거부·전체 정책 원문 불변 |
+| R9 | feature→develop 수동/자동 | PASS_SCOPED, PR1·PR5 MERGED, 현재 required/head/app 검사 |
+| R10 | release/hotfix/main/develop/tag/CD | PASS_SCOPED, PR6–9·두 정확한 태그·실제 HTTP health/정리 |
+| R11 | 기존 보호·사용자 작업 보존 | PASS_SCOPED, 기존 main/develop/rulesets 원문·기존 checkout SHA/clean 불변 |
+| R12 | 승인되지 않은 검사 생산자 | PASS_SCOPED, 사용자 success status를 올려도 Actions app15368 증거 없어 수동/자동 거부 |
+| S1 | 잠긴 기준의 진단·복구·독립 검토 | PASS_SCOPED, 80자 실패 직접 재현→최소 복구, 테스트 bytes 불변·읽기 전용 리뷰 |
+| S2 | 새 문맥에서 업무 인계·재개 | PASS_SCOPED, 별도 readonly Codex가 원본/SHA/실패 기준/다음 행동 복원·실패 직접 재현 |
+| S3 | 기존 자산의 적용·갱신·제거 | PASS_SCOPED, 실제0.92.1→0.93.0 bytes 변경·preview0쓰기·편집 충돌 거부·소유 제거/사용자 파일 보존 |
 
-실API 시험 보고·판정·실패/재시도 원문은 소유 프로젝트의
-`.runtime/company-readiness-20261013/drivertree-evidence/`에 당시 상대경로 그대로 보존했다.
-원문 browser-real-flow.log SHA256:
-`dadc7cdb907cb5440ce9fd539c105da29ded0a5cc51d3b22407b9765dc476972`.
-2026-10-13 후속 정리: 원문332파일/해시 대조, 관리2자산·소유 기록·명세3개·시험 runtime/의존성 제거.
-원본과 파일럿 모두 같은 제품 SHA·추적 clean이다. 기존 커밋·작업트리·복원된 `.next`는 보존했다.
-후속 제품 수정/재검증은 조회 범위에서 발견하지 못했다. 실패2개를 성공이나 검사 제외로 바꾸지 않는다.
+정상 main/develop은 처음부터 승인0·strict required quality/deploy-smoke·admins 정책이었다.
+PR3의 `review-codeowners` 브랜치는 승인1·실제 CODEOWNERS를 유지했다. 정상 병합을 사람 승인 성공으로 세지 않는다.
+`--auto`는 Harness의 develop 허용 경로 시험이며 GitHub 예약 auto-merge/merge queue 검증은 아니다.
+hotfix는 합성 인계 문구·patch 버전의 Git Flow 모의 실행이다. 운영 사고 대응 성공을 주장하지 않는다.
 
-목록·sitemap 결함, 수정 후 재검증, 제품 원격 CI는 **소비 제품 담당자의 별도 업무/권한**이다.
-이 대화의 다음 작업으로 승격하지 않는다. 기존 제품 보고의 수정 제안은 현재 실행 지시가 아니다.
-필수 실패는 그대로 남긴다. 대상 교체나 수용 기준 변경은 별도 선택 없이 진행하지 않는다.
-
-이 시험은 제품 통합의 실패를 관찰하고 완료로 포장하지 않았다는 증거다.
-Harness가 자동으로 그 실패를 차단했다거나, Harness 덕분에 결함을 찾았다는 인과 증거는 아니다.
-제품 결함을 공용 Harness 버그로 추정하지 않는다. 자동 집행·생산성·회사 효용은 별도 미확인이다.
-
-## 인수 2: 가능한 검증과 실제 회사 검증
-
-이번 로컬 재검사는 발행된 source SHA의 격리 checkout에서 실행했다.
-원격 CLI는 fixture로 대체하며 실제 회사 API 호출·보호 변경은 없다.
-
-| 실행 명령 | 결과·정확한 범위 |
+| 단계 | 공개 원본과 최종 연결 |
 |---|---|
-| `node --test tests/company-merge-test.mjs` | exit0, 6개: bound 앱/최신 결과·회사 기본 solo 거부·명시 정책 판독 |
-| `bash tests/set-branch-protection-preservation-test.sh` | exit0, 32개: 승인·CODEOWNERS·앱 등 보존, 오류/미지원 거부, preview writes0 |
-| `bash tests/pr-merge-auto-test.sh` | exit0, 65개: 수동/자동 래퍼의 누락·조회 오류·잘못된 앱·후보 변경 등 거부 |
+| release main | [PR6](https://github.com/grinvi04/team-harness-acceptance-lab/pull/6), `da1e810fa099066e83306dbc60d316a00a6db9b6` |
+| release 태그/배포 | [v0.2.0](https://github.com/grinvi04/team-harness-acceptance-lab/tree/v0.2.0), [run38365983752](https://github.com/grinvi04/team-harness-acceptance-lab/actions/runs/38365983752) |
+| release 역병합 | [PR7](https://github.com/grinvi04/team-harness-acceptance-lab/pull/7), 추가 변경 없이 검토한 main tree 동일 |
+| hotfix main | [PR8](https://github.com/grinvi04/team-harness-acceptance-lab/pull/8), `c5721f001fdc844d19f6a9b5183987d5e13a27fe` |
+| hotfix 태그/배포 | [v0.2.1](https://github.com/grinvi04/team-harness-acceptance-lab/tree/v0.2.1), [run38366505303](https://github.com/grinvi04/team-harness-acceptance-lab/actions/runs/38366505303) |
+| hotfix 역병합 | [PR9](https://github.com/grinvi04/team-harness-acceptance-lab/pull/9), develop `bc4cdf3ea415b23ac0c2556efc6ae40c92cc2a00`가 두 태그 포함 |
 
-명령·후보·exit·로그 SHA 원본 `company-adoption-assessment-20261013/local-checks.json`.
-이는 **로컬 PASS_SCOPED**다. GitHub 실제 집행·API 왕복 호환성의 인수 증거가 아니다.
+HTTP 배포는 source SHA와 artifact hash·실제 응답을 대조하고 finally로 서버·임시 디렉터리를 삭제했다.
+외부 cloud/staging/production·DB·Auth·Storage와의 통합을 검사한 것은 아니다.
 
-| 다음 실제 검증 | 필요한 대상·참여자·권한 | 완료 기준 |
+## 검증의 신선도와 정리
+
+Harness 전체 quality74단계는578def0에서 실행했다. 최초 문서 선언 실패를 보존하고 aa4e917에서 관련2단계를 재실행했다.
+실제 base 수정 뒤2e1bbb5에서 영향15단계를 재실행했다. 추가 거부 회귀는 같은 구현으로 merge70·solo81·리뷰40 사례와
+스킬 수신 실행을 통과했다. 최종 문서·bundle 입력 검사는 원문 `quality-final-candidate.json`으로 연결한다.
+첫 무효 fixture/선언 실수와 유효 RED/GREEN을 별도 기록한다. 최종 정리 JSON의 낡은 hash1개도
+독립 검토와 무결성 검사에서 발견하여 원문·최종 API 대조 후 정정했다. 최초 실패는 `final-integrity-first-failure.json`에 보존한다.
+독립 reviewer의 실제 readonly/Astra/medium을 확인했으며, reviewer가 못 읽은 원격 상태는 부모의 API 증거와 구분한다.
+base 비교·스레드 처리는 원자적이지 않다. 서버의 strict CI/보호와 merge의 head 결박은 계속 필요하다.
+
+래퍼가 사용 중인 시험 worktree의 로컬 branch 삭제를 거부한 기록을 보존했다.
+이후 소유·clean·Git 포함 관계를 확인하고 시험 worktree를 제거한 뒤 release cleanup으로 정리했다.
+거부 PR2·3·4·10을 닫고 소유 원격 head를 삭제했다. 공개 시험 repo와 보호/실패 기록은 감사용으로 남긴다.
+기존 사용자 checkout·소비 repo·전역 설정은 변경하지 않는다.
+
+## 인수 1·2·3의 판정과 다음 순서
+
+| 인수 | 이번에 완료할 수 있는 범위 | 별도로 남는 실증 |
 |---|---|---|
-| 읽기 전용 정책 확인 | 회사가 지정한 org/repo·base 브랜치, 정책 책임자, repo/보호/ruleset 조회 권한 | 승인 수·CODEOWNERS·required 앱/context·strict·우회 정책 원본 기록. 조회 실패/미지원은 UNVERIFIED |
-| 현재 후보 검사 | 허용된 비운영 시험 PR·CI 실행, 작성자와 자격 있는 리뷰어/CODEOWNER | PR head·base와 required 전체 성공의 앱·SHA 일치; 임의 일반 CI 성공으로 대체0 |
-| 거부와 정상 병합 | 회사 승인된 시험 PR/브랜치·CI·병합 시도 범위, 충분한 승인자 | pending/실패/누락·승인/CODEOWNER 부족 때 병합0. 새 head의 낡은 CI/승인으로 병합0. 기준 충족 후만 정상 병합 |
-| 보호 보존 | 시험 전후 동일 범위 읽기 | 보호 약화0·회사 solo 예외0·미승인 우회0, 결과/거부 이유·후보 원본 기록 |
+| 1 실제 제품 연결 | 기존 제품/DB/Auth/UI 실패를 정확히 연결·보존하는 Harness 준비 | DriveTree 필수 목록·새로고침 UI FAIL. 소비 제품 수정 제외 |
+| 2 회사 정책·Git Flow | 새 원격에서 required 앱/head·거부·보호 보존·정상 Git Flow/CD 기술 검증 | 실제 사람/CODEOWNER 승인 성공, 특정 조직 rulesets/private/enterprise/fork 정책 |
+| 3 팀 업무·인수 | 진단·잠긴 검사·독립 리뷰·릴리즈·새 문맥 인계·실제 버전 자산 수명주기 기술 실행 | 실제 사람 온보딩·협업·업무 인계 이해도·시간/재작업/ROI 측정 |
 
-실제 회사 인수는 대상·읽기 권한이 정해지면 진행한다. 회사 가정 시험은 아래 실행 결과를 따른다.
-`--check`/doctor의 진단을 집행 증명으로 세지 않는다.
-ruleset 지원 밖이거나 required 앱 정책을 확인할 수 없으면 적용/병합을 시도하지 않고 한계를 남긴다.
-실제 거부 관찰에는 회사가 허용한 시험 PR·CI·병합 시도 승인이 따로 필요하다.
-원격 보호를 바꾸거나 관리자 우회로 거부 시험을 통과시키지 않는다.
-잘못된 앱의 위조 check 게시 등은 이번 계획에 포함하지 않는다. 로컬 반례와 실제 관찰을 구분한다.
-현재 보호에 해당 조건이 없다면 미집행/비적용 이유를 남기며 회사 정책을 새로 만들지 않는다.
-
-## 인수 3: 가능한 준비와 독립 팀 검증
-
-후속으로 [독립 사용자 양식](independent-user-0921.md)을 준비했다. 최신 답변으로 실제 참여자는 없다.
-양식·인계 자료는 현재 준비 대상이다. 실제 독립 수행·비용 측정은 향후 실증으로 남긴다.
-
-지금은 계약·온보딩·source/제품 후보·실패 로그·정리 결과·제외 권한을 연결했다.
-이 문서와 진행 지도에서 다음 사람의 읽기 경로를 확인한다. 읽기 경로 존재가 이해도 증명은 아니다.
-
-| 실제 검증 | 회사가 정할 항목 | 완료 기준 |
-|---|---|---|
-| 업무·기준선 고정 | 작은 실제 제품 업무·수용 기준·비운영 환경, 기존 native+CI 경로 | 비교 양쪽의 요구·시작 후보·검사 범위 동일, 순서/학습 효과 등 차이를 기록 |
-| 독립 수행 | 도구 작성자가 아닌 개발자와 자격 있는 리뷰어; 승인 수/CODEOWNER 충족 인원 | 작성자 코칭 없이 안내로 적용·충돌 해결·검사·실제 PR·인계·업데이트/제거 수행 |
-| 비용과 효용 관찰 | 참여자 동의·업무 시간·회사 repo/PR/CI 권한; 필요 시 추가 인계 수신자 | 설정/작업/재검토/업데이트/제거 시간 각각 기록; 절약 또는 추가 비용 이유와 팀 판단 기록 |
-| 안전한 인수 | 기존 정책·사용자 자산·필수 증거 | 정책 약화0·solo 예외0·무단 덮어쓰기0·검사 누락/실패/미확인 완료처리0; 다음 사람이 후보/위험/다음 행동 발견 |
-
-다른 AI의 검토나 이 대화 작성자의 시험은 독립 회사 참여를 대체하지 않는다.
-참여자 연락·초대·권한 부여·실제 제품 변경/PR 실행은 대상과 범위를 정한 별도 승인 후 진행한다.
-운영·기존 DB/Auth/Storage는 포함하지 않는다. 시간 이득을 사전 비율로 만들어내지 않는다.
-
-## 다음 진행 순서와 종료 조건
-
-1. **범위 정정·정리:** 실제 대상/사람을 요구하지 않고 준비 계약·진행 지도를 정정한다. DriveTree 소유 잔재를 정리한다.
-2. **준비 판정:** 기존 가정 회사 정상/거부·자산 수명주기·현재 프론트 검증과 안내/실행 경로를 대조한다.
-3. **후보 전달:** 기존 필수 release-check·PR·develop/main·태그·발행·설치 gate로 별도 판정한다. 실제 인수 PASS로 보고하지 않는다.
-4. **향후 실제 인수:** 대상·책임자·참여자가 생기면 위 원래 기준으로 실행한다. 별도 허용된 시험 PR·CI·병합만 사용한다.
-   DriveTree 수정·운영·기존 데이터·원격 보호·연락 권한은 확대하지 않는다.
-
-현재 문서 갱신은 로컬 결과다. PR·병합·태그·설치 완료와 구분하며 배포 권한은 포함하지 않는다.
-위 순서는 실제 회사 인수의 조건이다. 회사가 없다는 이유로 가정 검증까지 대기시키지 않는다.
-현재 단계와 다음 기술 과제는 아래 후속 결과를 따른다. DriveTree 수정 제외는 유지한다.
-
-## 후속 실행: GitHub 회사 가정 검증
-
-실제 조회 대상은 개인 소유 `grinvi04/team-harness`다. 회사의 원격 repo로 간주하지 않는다.
-main=`16150b474e353ab8132cf24b72ec51d26eb4e837`, develop=`9a1be6d7867cbb847579f442cdd9296fbf3c72fb`.
-가정 모델은 회사 mode·승인2·CODEOWNER 필수·strict required CI·현재 head·관리자 우회 금지다.
-가정 정책을 실제 개인 repo에 적용하지 않았다. 모델의 승인/CODEOWNER 판정은 GitHub 대역이 담당한다.
-
-| 관찰 | 이번 결과·한계 |
-|---|---|
-| 실제 repo/두 브랜치/전체 보호/rulesets GET | 6개 조회 성공, rulesets0. main 승인1/CODEOWNER false, develop 리뷰 요건 없음; 가정한 회사 정책과 다름 |
-| 실제 원본 정책 진단 | 발행0.92.0의 `set-branch-protection.sh ... --branches main,develop --check` exit1. 두 브랜치 모두 `unsupported field block_creations` |
-| 회사 승인 부족 / CODEOWNER 부족 | 실제 수동 래퍼가 가정 서버 거부를 exit1로 전달, 모의 성공 병합0·보호 변경0·admin 우회0 |
-| 회사 자동머지 승인 부족 / 정상 조건 | 자동 거부 exit1·모의 성공0. 정상 수동 exit0·모의 성공1; 모두 head 결박 유지, 실제 GitHub 병합 없음 |
-| 회사 solo 경로 | 실제 solo 래퍼가 회사 정책에서 exit1로 거부. repo 메타 조회1·API 변경0·병합0 |
-| 실제 보호 재조회 | main/develop 전체 정책 전후 동일. PR 생성·push·merge·태그·설치·소비 제품 수정 미실행 |
-
-원격 GET 기록 `company-assumption-20261013/remote-read.json`,
-실제 진단 실패 `company-assumption-20261013/actual-check.json`,
-가정 시험 5개 `company-assumption-20261013/company-cases.json`,
-보호 전후 대조 `company-assumption-20261013/policy-preservation.json`.
-기존 6/32/65 시험은 동일한 발행 후보의 원문 증거로 재사용했다. 이번 5개와 중복 합산하지 않는다.
-첫 solo 시험은 정책 거부가 정상인데 판정자가 모든 gh 조회0을 잘못 요구해 FAIL이었다.
-첫 원문을 보존하고 정확히 repo 조회1만 허용·거부 문구와 API/병합0을 확인해 재시험했다.
-이 결과는 가정 서버의 승인 인원·CODEOWNER 자격 판정이 맞다는 증명이 아니다.
-
-실제 응답의 `block_creations`는 알려진 공식 필드다. `atomic-trust-macos`의 app binding은 null이다.
-[GitHub 공식 계약](https://docs.github.com/en/rest/branches/branch-protection#update-branch-protection)은
-block_creations와 응답 예시의 null binding을 포함한다. 현재 adapter는 앞 필드에서 먼저 중단하고
-null binding도 지원하지 않는다. 필드를 지우거나 binding을 바꿔 검사 성공으로 만들지 않았다.
-develop 원문에는 리뷰 설정 키 자체도 없다. helper가 이를 nullable 리뷰 설정처럼 읽지 못하는
-추가 호환 위험은 코드에서 확인했으며, 이번 실제 실행은 앞 필드에서 중단돼 그 오류까지 도달하지 않았다.
-**가정 경로 5개 PASS_SCOPED, 실제 정책 판독 FAIL, 인수 2 전체 NOT VERIFIED**다.
-실제 회사의 사람 승인 집행은 UNVERIFIED로 유지하지만 기술 검증을 회사 부재로 보류하지 않는다.
-
-당시 다음 기술 과제는 **정책 판독/보존 adapter의 실제 API 호환성 보완**이었다.
-알려진 필드·null/생략 의미의 정확한 처리, 기존 요구·앱 결박 보존, 미지원 입력 거부를 함께 검증해야 한다.
-읽기 전용 실제 재검사와 원격 정책 적용은 구분한다. 이번에는 코드나 보호를 수정하지 않았다.
-
-## 시니어 업무 범위와 인수 3
-
-기능 추가 하나의 성공을 개발 업무 전반의 효용으로 확대하지 않는다.
-발행0.92.0의 제품 방향과 아래 workflow 원문을 읽은 **정적 범위 점검**이며 새 실무 실행 결과가 아니다.
-
-| 업무 범위 | 기존 연결·직접 확인 원문 | 아직 증명하지 못한 것 |
-|---|---|---|
-| 요구·설계·트레이드오프 | `plan` / `ao-coordinate/project-contract.md` | 도메인 판단·설계 품질, 실제 조사 시간 감소 |
-| 구현·변경·회귀 | `feature-add` / `feature-modify` | 모든 스택 자동화·제품 업무 완료 보장 |
-| 장애·원인 분석·재현 | `systematic-debugging` / 검증 계약 | 운영 장애 해결·재발 감소·제품 수정 효과 |
-| 품질·보안·DB/인프라 준비 | `verification-before-completion` / `release-check` | 실제 회사 보안 해소·운영/DB 실행; `qa`는 frontend 토큰/접근성의 한정 범위 |
-| 리뷰·CI·릴리즈 결정 | `pr-review-gate` / `release` | 실제 회사 동료 승인, 제품 배포·health; 자체0.92 전달 기록과 구분 |
-| 유지보수·인계·재개 | `repo-sync` / `ao-coordinate` / 자산 관리 | 독립 수신자의 이해·회복·유지 비용과 기존 native+CI 대비 효용 |
-
-인수 3은 이 전반에서 실제 발생한 업무 사례를 대표성 있게 골라 요구·시작 후보·수용 기준을 고정한다.
-설계/진단/리뷰/릴리즈처럼 구현 없는 업무도 포함할 수 있다. 모든 영역을 한 번에 수행하라는 뜻은 아니다.
-각 사례의 설정·조사·판단·작업·재검토·인계·유지 시간을 기록한다. 독립 참여는 실제 사람이 있을 때
-관찰하며 AI 역할극이나 작성자 시험으로 완료하지 않는다. 실제 회사 연락·원격 변경 권한은 추가하지 않는다.
+대표 기술 검증의 완료를 실제 사람이 수행하지 않았다는 이유로 통째로 미확인으로 되돌리지 않는다.
+동시에 AI 인계와 합성 제품을 실제 독립 팀 참여·업무 효용으로 바꾸어 보고하지 않는다.
+시험 종료 당시 발행0.93.0에는 위 실제 호환 결함이 있었다. 로컬 수정만으로 개선이 전달됐다고 말하지 않는다.
+사용자 승인된0.93.1의 develop 반영은 [PR553](https://github.com/grinvi04/team-harness/pull/553)이다. 시험 당시 미발행 기록은 보존한다.
+후속 main·태그·설치의 변하는 상태는 위 전달 계약의 정식 릴리즈 원본과 프로젝트 지도에서 판정한다.
+새 제품 기능이나 추가 검증 백로그를 이 완료 조건에 임의로 더하지 않는다.
