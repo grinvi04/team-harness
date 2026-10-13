@@ -39,6 +39,8 @@ PR 자체가 검사 코드를 바꾸는 경계는 [신뢰 원본 커밋 검사 �
 보완한다. 새 `commitlint-trusted`는 기본 브랜치 코드를 사용하고 PR의 Git metadata만 읽는다.
 기존 필수 검사 교체 여부는 해당 저장소의 실제 branch protection과 연결 PR에서 확인한다.
 main 대상 release PR은 보호된 develop에서 이미 도달 가능한 이력을 제외하고 PR 고유 커밋만 검사한다.
+실제 main 범위가 있으나 고유 커밋이 없는 `release/*`의 순수 전달은 상위 검사 이력으로 판정한다.
+진짜 빈 범위·조회 실패·다른 브랜치·새 규약 위반은 거부하며 [수정 계약](specs/commitlint-gitflow-forward.md)을 따른다.
 develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, 충돌 해결처럼 main 밖에서 새로 생긴
 고유 커밋은 같은 규칙으로 검사한다. 고유 커밋이 없는 순수 역병합은 재검사 없이 통과한다.
 
@@ -62,6 +64,25 @@ develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, �
   회사의 승인·CI·플랫폼 권한을 대신하지 않는다. main/release는 자동머지 대상이 아니다.
 - 선택과 보호 보존의 JSON·preview·현재 한계는 [회사 정책 안내](company-policy.md)를 따른다.
 - 리뷰 SLA: **1영업일** — 지연 시 리뷰어 재지정
+
+## Git Flow 순서 검사 — team-harness 자체 전달
+
+이 repo는 문서만 바뀌어도 **작업 PR → develop 병합 → release 전달 → main 병합 → develop 역병합**을 따른다.
+작업 PR과 그 결과를 전달하는 main PR을 동시에 열지 않는다. 생성·병합 전에 다음 근거를 원본에서 검사하고
+기존 PR/실행 기록에 연결한다. 조회·명령 실패나 관계 불일치는 다음 단계 중단이며 자체 면제할 수 없다.
+
+- **develop:** 작업 브랜치의 PR base가 develop인지 확인하고 기존 품질·독립 리뷰·보호 게이트를 통과한다.
+- **main PR 생성:** 선행 develop PR의 `state=MERGED`·실제 `mergeCommit.oid`를 GitHub에서 읽는다.
+  원격 develop을 fetch하고 `git merge-base --is-ancestor <병합SHA> origin/develop` 성공을 확인한다.
+  그 확인된 병합 SHA에서 `release/` 브랜치를 만든다. 태그 없는 문서 전달은 `release/docs-<식별자>`를 쓴다.
+- **main 병합:** PR head가 위 develop 병합 SHA를 포함하는지 같은 ancestry 검사로 확인한다.
+  PR base=main·head=`release/`와 현재 head/base의 리뷰·CI를 확인한다. 오래된 동시 PR의 검증을 재사용하지 않는다.
+- **develop 역병합:** main PR의 실제 MERGED SHA가 원격 main에 포함됨을 확인한 뒤 그 SHA에서
+  `sync/backmerge-*` PR을 만든다. develop 병합 후 main 병합 SHA의 포함 관계를 다시 확인한다.
+
+일반 래퍼의 CI·리뷰·후보 결박은 이 선행 단계 검사를 대신하지 않는다. 이 절은 실행자의 필수 검사 계약이며
+새 서버 보호의 자동 강제를 주장하지 않는다. 정식 버전 릴리즈의 사전 검사·태그·역병합은 기존 release 계약을 따른다.
+긴급 장애의 hotfix는 기존 별도 경로다. 절차 변경은 이유·영향·검사와 사용자 승인을 먼저 기록해야 한다.
 
 ## 리뷰 관점 체크리스트 (리뷰어용)
 
