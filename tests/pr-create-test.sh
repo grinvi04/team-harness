@@ -61,6 +61,12 @@ if (a[0] === 'repo' && a[1] === 'view') { save(); console.log('test/repo');
  else if (field.includes(',')) emit(s.candidate);
  else { save(); console.log(s.candidate[field] || ''); }
 } else if (a[0] === 'api' && a[1] !== 'graphql') {
+ if (a[1].includes('/git/ref/heads/')) {
+  if (s.liveBaseFail) { save(); process.exit(1); }
+  const sha = s.liveBaseMalformed ? 'not-a-commit' : (s.liveBaseOid || s.candidate.baseRefOid);
+  if (a.includes('--jq')) { save(); console.log(sha); } else emit({object:{sha}});
+  process.exit(0);
+ }
  const endpoint = a[a.length - 1];
  if (endpoint.endsWith('/required_status_checks')) { emit({strict:true,contexts:['quality'],checks:[{context:'quality',app_id:1}]}); process.exit(0); }
  if (endpoint.endsWith('/check-runs')) { emit([{check_runs:[{id:10,name:'quality',head_sha:s.candidate.headRefOid,status:'completed',conclusion:'success',app:{id:1}}]}]); process.exit(0); }
@@ -86,7 +92,7 @@ if (a[0] === 'repo' && a[1] === 'view') { save(); console.log('test/repo');
   const after = a.find(x => x.startsWith('after='));
   const hasNextPage = !!s.paged && !after;
   if (s.paged) threads = after ? threads.slice(1) : threads.slice(0, 1);
-  if (s.driftDuringSnapshot) s.candidate.baseRefOid = 'e'.repeat(40);
+  if (s.driftDuringSnapshot) s.liveBaseOid = 'e'.repeat(40);
   emit(s.threadMalformed ? { data: null } : { data: { repository: { pullRequest: { reviewThreads: { nodes: threads, pageInfo: { hasNextPage: s.missingCursor || hasNextPage, endCursor: s.missingCursor ? null : hasNextPage ? 'page-2' : null } } } } } });
  }
 } else { save(); process.exit(9); }
@@ -94,10 +100,11 @@ if (a[0] === 'repo' && a[1] === 'view') { save(); console.log('test/repo');
 const candidate = { baseRefName: 'develop', baseRefOid: 'b'.repeat(40), headRefName: 'fix/candidate', headRefOid: 'a'.repeat(40) };
 let tested = 0;
 try {
- for (const scenario of ['normal', 'new-thread', 'empty-processed', 'out-of-snapshot', 'duplicate-processed', 'duplicate-snapshot', 'wrong-root', 'wrong-repo', 'wrong-pr', 'processed-candidate', 'head-drift', 'base-drift', 'metadata-fail', 'metadata-malformed', 'thread-fail', 'thread-malformed', 'duplicate-live', 'missing-reply', 'missing-evidence', 'reply-fail', 'resolve-fail', 'resolve-false', 'drift-after-reply', 'already-resolved', 'new-thread-second-page', 'duplicate-live-second-page', 'invalid-thread-id', 'invalid-comment-id', 'invalid-candidate-oid', 'missing-cursor', 'reply-wrong-root', 'final-thread-fail']) {
+ for (const scenario of ['normal', 'stale-pr-base', 'live-base-fail', 'live-base-malformed', 'new-thread', 'empty-processed', 'out-of-snapshot', 'duplicate-processed', 'duplicate-snapshot', 'wrong-root', 'wrong-repo', 'wrong-pr', 'processed-candidate', 'head-drift', 'base-drift', 'metadata-fail', 'metadata-malformed', 'thread-fail', 'thread-malformed', 'duplicate-live', 'missing-reply', 'missing-evidence', 'reply-fail', 'resolve-fail', 'resolve-false', 'drift-after-reply', 'already-resolved', 'new-thread-second-page', 'duplicate-live-second-page', 'invalid-thread-id', 'invalid-comment-id', 'invalid-candidate-oid', 'missing-cursor', 'reply-wrong-root', 'final-thread-fail']) {
   const dir = path.join(tmp, scenario); fs.mkdirSync(dir);
   const statePath = path.join(dir, 'state.json');
   let state = { candidate: { ...candidate }, threads: [{ id: 'PRRT_reviewed', commentId: 101, isResolved: false }], replies: [], resolves: [], calls: [] };
+  if (scenario === 'stale-pr-base') { state.candidate.baseRefOid = 'd'.repeat(40); state.liveBaseOid = 'b'.repeat(40); }
   fs.writeFileSync(statePath, JSON.stringify(state));
   const env = { ...process.env, PATH: bin + path.delimiter + process.env.PATH, Q2A_STATE: statePath };
   const snapshotPath = path.join(dir, 'snapshot.json');
@@ -119,7 +126,9 @@ try {
   if (scenario === 'wrong-pr') processed.pr = 43;
   if (scenario === 'processed-candidate') processed.candidate.headRefOid = 'c'.repeat(40);
   if (scenario === 'head-drift') state.candidate.headRefOid = 'c'.repeat(40);
-  if (scenario === 'base-drift') state.candidate.baseRefOid = 'd'.repeat(40);
+  if (scenario === 'base-drift') state.liveBaseOid = 'd'.repeat(40);
+  if (scenario === 'live-base-fail') state.liveBaseFail = true;
+  if (scenario === 'live-base-malformed') state.liveBaseMalformed = true;
   if (scenario === 'metadata-fail') state.metadataFail = true;
   if (scenario === 'metadata-malformed') state.metadataMalformed = true;
   if (scenario === 'thread-fail') state.threadFail = true;
@@ -145,10 +154,10 @@ try {
   const processedPath = path.join(dir, 'processed.json'); fs.writeFileSync(processedPath, JSON.stringify(processed));
   result = run(['resolve', '--snapshot', snapshotPath, '--processed', processedPath]);
   state = JSON.parse(fs.readFileSync(statePath, 'utf8'));
-  const success = ['normal', 'already-resolved'].includes(scenario);
+  const success = ['normal', 'stale-pr-base', 'already-resolved'].includes(scenario);
   assert.equal(result.status, success ? 0 : 1, scenario + ': ' + result.stdout + result.stderr);
-  const replied = ['normal', 'new-thread', 'reply-fail', 'resolve-fail', 'resolve-false', 'drift-after-reply', 'reply-wrong-root', 'new-thread-second-page', 'final-thread-fail'].includes(scenario);
-  const resolved = ['normal', 'new-thread', 'resolve-fail', 'resolve-false', 'new-thread-second-page', 'final-thread-fail'].includes(scenario);
+  const replied = ['normal', 'stale-pr-base', 'new-thread', 'reply-fail', 'resolve-fail', 'resolve-false', 'drift-after-reply', 'reply-wrong-root', 'new-thread-second-page', 'final-thread-fail'].includes(scenario);
+  const resolved = ['normal', 'stale-pr-base', 'new-thread', 'resolve-fail', 'resolve-false', 'new-thread-second-page', 'final-thread-fail'].includes(scenario);
   assert.deepEqual(state.replies.map(x => x.comment), replied ? [101] : [], scenario + ' reply scope');
   assert.deepEqual(state.resolves, resolved ? ['PRRT_reviewed'] : [], scenario + ' resolve scope');
   if (replied) assert.equal(state.replies[0].body, processed.threads[0].reply, scenario + ' exact message');

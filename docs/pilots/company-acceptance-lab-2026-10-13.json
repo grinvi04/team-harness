@@ -1,0 +1,384 @@
+{
+  "observedAt": "2026-10-13T08:13:09.776594+00:00",
+  "scope": "real public synthetic GitHub anticipated-company technical acceptance; no human adoption claim",
+  "baseline": "0.93.0/207251185a6e828a86106d171c16a4d1b71d152a",
+  "candidateVersion": "0.93.1 local; unpublished/uninstalled",
+  "behaviorReviewCandidate": "2e1bbb52df6ac6dd35db9e56291d83690980cd35",
+  "cases": [
+    {
+      "id": "R1",
+      "criterion": "actual policy read/preview/apply preservation",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "policy-preserve-apply.stderr",
+          "sha256": "864d73b3c04d08ec4a2a1ae74a03aa4fa877613bd0a82e39bd237000b8d1a8f7"
+        },
+        {
+          "file": "fixed-policy-live-outcome.json",
+          "sha256": "71b913ef9799b73c71b2d6ad3445a5e427a154468ffceb1d3182eee6bf608376"
+        }
+      ]
+    },
+    {
+      "id": "R2",
+      "criterion": "failed required CI denies merge",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "failed-ci-denial-outcome.json",
+          "sha256": "0117fabc0d5f51db4f03414b7eb1c5d8b6cfb14e0cb43e6c83849cfa9f546057"
+        },
+        {
+          "file": "fixed-current-failed-manual-outcome.json",
+          "sha256": "3bd4e0a8d6d5c59346e35b3a6e2f1937275e47186129407c673de48584613407"
+        },
+        {
+          "file": "fixed-current-failed-manual-before-runs.stdout",
+          "sha256": "cafe6e8a5429a003f14e5119d28aefefd1cfcb7cea630c191f0f495b8aec9d44"
+        },
+        {
+          "file": "fixed-current-failed-manual.stderr",
+          "sha256": "fe376831bf44e3d1d1dfb317b777e5fba3c623d237e55173182533fb5764285e"
+        },
+        {
+          "file": "fixed-current-failed-auto-outcome.json",
+          "sha256": "3bd4e0a8d6d5c59346e35b3a6e2f1937275e47186129407c673de48584613407"
+        },
+        {
+          "file": "fixed-current-failed-auto-before-runs.stdout",
+          "sha256": "cafe6e8a5429a003f14e5119d28aefefd1cfcb7cea630c191f0f495b8aec9d44"
+        },
+        {
+          "file": "fixed-current-failed-auto.stderr",
+          "sha256": "fe376831bf44e3d1d1dfb317b777e5fba3c623d237e55173182533fb5764285e"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "criterion": "missing required CI denies merge",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "empty-required-denial-before-snapshot.json",
+          "sha256": "c7bdc47319654f10b36b5e78fb11e2bc01e7cd0d53fb94b4ff401e95c59d75e0"
+        },
+        {
+          "file": "empty-required-denial.stderr",
+          "sha256": "2ab129015c3e48f7d12767f61d76b8ceeed515727eceb3eee6e093fd37663f8d"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "criterion": "pending required CI denies merge",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "in-progress-denial-outcome.json",
+          "sha256": "0117fabc0d5f51db4f03414b7eb1c5d8b6cfb14e0cb43e6c83849cfa9f546057"
+        },
+        {
+          "file": "fixed-current-pending-manual-outcome.json",
+          "sha256": "3bd4e0a8d6d5c59346e35b3a6e2f1937275e47186129407c673de48584613407"
+        },
+        {
+          "file": "fixed-current-pending-manual-before-runs.stdout",
+          "sha256": "8608e08d3ea3d3e46afbdcdd0584db8a3b86e8d833a01137b25c27f8328879f4"
+        },
+        {
+          "file": "fixed-current-pending-manual.stderr",
+          "sha256": "fe376831bf44e3d1d1dfb317b777e5fba3c623d237e55173182533fb5764285e"
+        },
+        {
+          "file": "fixed-current-pending-auto-outcome.json",
+          "sha256": "3bd4e0a8d6d5c59346e35b3a6e2f1937275e47186129407c673de48584613407"
+        },
+        {
+          "file": "fixed-current-pending-auto-before-runs.stdout",
+          "sha256": "8608e08d3ea3d3e46afbdcdd0584db8a3b86e8d833a01137b25c27f8328879f4"
+        },
+        {
+          "file": "fixed-current-pending-auto.stderr",
+          "sha256": "fe376831bf44e3d1d1dfb317b777e5fba3c623d237e55173182533fb5764285e"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "criterion": "new head cannot reuse old green CI",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "stale-green-before-new-head-runs.stdout",
+          "sha256": "2d0263e47f068d472eb0e14f58f6ad1d2f767b5e5373c441fcbffe5c18ce2f72"
+        },
+        {
+          "file": "new-head-no-ci.stdout",
+          "sha256": "e83cfac35507982a40cfeb776ce85aa0367e7646f81fe857df4a6c841ea8a170"
+        },
+        {
+          "file": "old-green-new-head-auto.stderr",
+          "sha256": "731e4feb4f70d843d81e4c4d0f0199eed9094b434bfd996961838c760e6062ad"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "criterion": "expected head/base drift denies merge",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "actual-base-ref-discrepancy.json",
+          "sha256": "0cc116734eaa9fd8c40d859a5196705c9844f1f62d0e68a851c08e081d691ade"
+        },
+        {
+          "file": "actual-base-ref-valid-red.stdout",
+          "sha256": "502f890149eb93efdb4a1c81c6ec60a4b1c0861bc8347f47142f3ccfe9b12992"
+        },
+        {
+          "file": "actual-base-ref-green.stdout",
+          "sha256": "4471dbbd91423a449e3ee47bed23fba572f1dc6956ff6122482d960caf5643d1"
+        },
+        {
+          "file": "live-base-old-snapshot-denial.stderr",
+          "sha256": "86e40da6989999079fabc7763cc5f94efa38c560f5b0318da2d979dd7d657f24"
+        },
+        {
+          "file": "expected-head-drift-denial.stderr",
+          "sha256": "27434b4b5393e57bdf48c25bea0bb35fca25812fcd77ae7552cfecb241e3bfdc"
+        }
+      ]
+    },
+    {
+      "id": "R12",
+      "criterion": "unauthorized user-produced successful statuses cannot replace bound Actions checks",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "synthetic-user-statuses-readback.stdout",
+          "sha256": "1866f5c80df816f4b02dbc28a030ce4db96f557dc587a429b60b928997b1b3ff"
+        },
+        {
+          "file": "wrong-producer-manual.stderr",
+          "sha256": "40e85b853233111661bd5459397355ce28b8ea57c9b104978f6f3361723e1b78"
+        },
+        {
+          "file": "wrong-producer-auto.stderr",
+          "sha256": "40e85b853233111661bd5459397355ce28b8ea57c9b104978f6f3361723e1b78"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "criterion": "missing human/CODEOWNER approval denied by GitHub",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "missing-review-denial-before-policy.stdout",
+          "sha256": "4b27fb02e86ce62d41da88012172bd68b85ec6ddded9d16c6cadb2f5d7ce2097"
+        },
+        {
+          "file": "missing-review-denial-before-runs.stdout",
+          "sha256": "a3d5a9a2ce92a4bd648e5a3cf89f87d43692d279ddea77cfea17da00ff5ea2bb"
+        },
+        {
+          "file": "missing-review-denial.stderr",
+          "sha256": "11079e8c56d58e1f45c7785515c4ad535b3266cb0cc5e11f2e2998bcd3fa67e1"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "criterion": "company solo denied without policy mutation",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "company-solo-denial.stderr",
+          "sha256": "7f65fda876970d4a694039808f0a71d8136f4b0b25a549adb381ec6bbfbab85e"
+        },
+        {
+          "file": "company-solo-denial-before-policy.stdout",
+          "sha256": "4b27fb02e86ce62d41da88012172bd68b85ec6ddded9d16c6cadb2f5d7ce2097"
+        },
+        {
+          "file": "company-solo-denial-after-policy.stdout",
+          "sha256": "4b27fb02e86ce62d41da88012172bd68b85ec6ddded9d16c6cadb2f5d7ce2097"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "criterion": "feature manual and develop auto merge",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "feature-manual-success-outcome.json",
+          "sha256": "22ed37555e82dc0b2b63b261ce6bf9e776302ce94c77b8a0fd09368f5d8daddb"
+        },
+        {
+          "file": "auto-feature-success-outcome.json",
+          "sha256": "470758ea02997596e69345214c59cac84eaa845009c40f480e3cbd50cf307e08"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "criterion": "release/hotfix/main/develop/tag/ephemeral CD",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "release-main-success-outcome.json",
+          "sha256": "968aea1778d849af39d42db1153c9070108001ad7fa144b680d5f873a61ef6b2"
+        },
+        {
+          "file": "release-backmerge-success-outcome.json",
+          "sha256": "4f96b5d2d00beb2bc78b137a4bddcc294ff0b0cd9cbe37fbd28c5ca72154f0ab"
+        },
+        {
+          "file": "hotfix-main-success-outcome.json",
+          "sha256": "8367e4862e529a259ed805788c8d6b5c57b8e7e13573eb721a37dab20bafbf8a"
+        },
+        {
+          "file": "hotfix-backmerge-success-outcome.json",
+          "sha256": "92338305ca8a89bc6d0c81b94c228582955a3b10e6e71720bd9096960d9eca5a"
+        },
+        {
+          "file": "release-tag-main-ci-outcome.json",
+          "sha256": "5dc74fa9bd2b309565c79ac7d968d6566119493d9105f13158995b189c3bcbfe"
+        },
+        {
+          "file": "hotfix-tag-main-ci-outcome.json",
+          "sha256": "dfcbb3589827b543c0078af4935e3fe15d638af1721176e4e0293009e7a72ad6"
+        },
+        {
+          "file": "remote-final-outcome.json",
+          "sha256": "6fbad3f901799dc9d24c3e319533dea7df76bb7899c09a5a6c8aa5ca983ea3d8"
+        }
+      ]
+    },
+    {
+      "id": "R11",
+      "criterion": "existing protections and source preserved",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "existing-preservation-outcome.json",
+          "sha256": "c72db06b965026d09d7da5ab02388181ad023b847341db0a7500f155e0dd579f"
+        }
+      ]
+    },
+    {
+      "id": "S1",
+      "criterion": "locked diagnosis/regression and independent review",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "locked-test-digest.json",
+          "sha256": "cd4e7e30aab88c42153a993adbc5c911c12e2ff6fc38810a54dd08dee6829921"
+        },
+        {
+          "file": "feature-final-review.answer.md",
+          "sha256": "ffdaea70a4cb26e0c27e72b0feec61bcb3826df02cfd36492985f285984f4888"
+        },
+        {
+          "file": "live-base-independent-review.answer.md",
+          "sha256": "41016731e2a2dc2dd0a0b535fb6460965552e6166c595ec843f3524541e80297"
+        },
+        {
+          "file": "live-base-final-boundary-merge.log",
+          "sha256": "2787da3d833cf5a7bd8bfb8b60dd588da4b38ddbd872919bb3480cf438c0c5d4"
+        },
+        {
+          "file": "live-base-final-boundary-solo.log",
+          "sha256": "f84ca1a2aa5d158f48d51e9442ee45e861806fbfc6290e1a1bc53f119f36441f"
+        }
+      ]
+    },
+    {
+      "id": "S2",
+      "criterion": "fresh-context handoff/resume",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "handoff-recipient.answer.md",
+          "sha256": "c5d81761b303198adb149fba2133208b876bb020c47d4dd9e2c161981b5c89ed"
+        }
+      ]
+    },
+    {
+      "id": "S3",
+      "criterion": "actual version-changing asset lifecycle and conflicts",
+      "result": "PASS_SCOPED",
+      "rawEvidence": [
+        {
+          "file": "asset-lifecycle-outcome.json",
+          "sha256": "cc98bb6cd26e92078e7d4da5560d2fb4db960ad188a5e231fed928db626b761e"
+        }
+      ]
+    }
+  ],
+  "remote": {
+    "repo": "grinvi04/team-harness-acceptance-lab",
+    "main": "c5721f001fdc844d19f6a9b5183987d5e13a27fe",
+    "develop": "bc4cdf3ea415b23ac0c2556efc6ae40c92cc2a00",
+    "tags": [
+      {
+        "pr": 6,
+        "mergeSha": "da1e810fa099066e83306dbc60d316a00a6db9b6",
+        "remoteMain": "da1e810fa099066e83306dbc60d316a00a6db9b6",
+        "tag": "v0.2.0",
+        "remoteTagSha": "da1e810fa099066e83306dbc60d316a00a6db9b6",
+        "syncTreeEqualsReviewedMain": true,
+        "syncPath": "$E/sync-0.2.0"
+      },
+      {
+        "pr": 8,
+        "mergeSha": "c5721f001fdc844d19f6a9b5183987d5e13a27fe",
+        "remoteMain": "c5721f001fdc844d19f6a9b5183987d5e13a27fe",
+        "tag": "v0.2.1",
+        "remoteTagSha": "c5721f001fdc844d19f6a9b5183987d5e13a27fe",
+        "syncTreeEqualsReviewedMain": true,
+        "syncPath": "$E/sync-0.2.1"
+      }
+    ],
+    "mergedPrs": [
+      1,
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "rejectedClosedPrs": [
+      2,
+      3,
+      4,
+      10
+    ],
+    "openPrs": 0,
+    "policyPreserved": true,
+    "reviewApprovalStillOne": true,
+    "lockedTestsUnchanged": true,
+    "ownedDeliveryWorktreesRemoved": true,
+    "remoteLabRetainedForAudit": true,
+    "allFiveFullPoliciesPreserved": true,
+    "currentFixedFailedPendingLive": "PASS manual/auto, protected base and policy preserved"
+  },
+  "rawEvidenceRoot": ".runtime/company-acceptance-lab-20261013/ (local, ignored; file hashes below are integrity identifiers, not standalone execution proof)",
+  "corrections": "evidence-corrections.md",
+  "historicalProduct": "DriveTree mandatory UI FAIL preserved; excluded from modifications",
+  "remainingBoundaries": [
+    "actual human/CODEOWNER approval success",
+    "specific org rulesets/private/enterprise/fork policies",
+    "human onboarding/real collaboration/time and ROI",
+    "cloud staging/production/auth/database/storage behavior"
+  ],
+  "qaOriginal": "quality/results.json:74 steps, first document step failed",
+  "qaRetest": "quality-final-impact.json corrected declaration; quality-live-base-impact.json15 steps; final boundary70/81 and review40 cases",
+  "finalBoundaryCandidate": "a3d0d5f7752dd10eb341bed8d92ab051b5dba3ab",
+  "qaFinalRecord": "quality-final-candidate.json (current document/package inputs; first failures preserved separately)",
+  "finalIndependentReviewRecord": "acceptance-final-review.answer.md (first digest blocker) and acceptance-followup-review.answer.md (current correction review)",
+  "firstFinalIntegrityFailure": "final-integrity-first-failure.json: bd630ee stale digest before final PR10/five-policy report additions; preserved, corrected after raw/API comparison"
+}

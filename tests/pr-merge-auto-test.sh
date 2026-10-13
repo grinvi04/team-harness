@@ -145,6 +145,10 @@ elif args[:2]==['pr','checks']:
   emit(rows)
  else: print('quality\tpass\t1s\thttp://fake')
 elif args[:2]==['run','list']: emit([{'headSha':'a'*40,'status':'completed','conclusion':'success','name':'unrelated informational workflow'}])
+elif args[0]=='api' and '/git/ref/heads/' in args[1]:
+ if scenario=='live-base-query-fail' or scenario=='live-base-final-query-fail' and (root/'gate-passed').exists(): sys.exit(1)
+ if scenario=='live-base-malformed' or scenario=='live-base-final-malformed' and (root/'gate-passed').exists(): print('not-a-commit')
+ else: print('d'*40 if (root/'gate-passed').exists() and scenario=='base-oid-drift' else 'b'*40)
 elif args[0]=='api' and args[-1].endswith('/check-runs'):
  emit([{'total_count':1,'check_runs':[{'id':10,'name':'quality','head_sha':'c'*40 if scenario=='required-wrong-head' else 'a'*40,'status':'completed','conclusion':'success','app':{'id':2 if scenario=='required-wrong-app' else 1}}]}])
 elif args[0]=='api' and args[-1].endswith('/statuses'): emit([[]])
@@ -159,6 +163,7 @@ elif args[:2]==['pr','view']:
  done=(root/'gate-passed').exists()
  if done and scenario=='head-drift': candidate['headRefOid']='c'*40
  if done and scenario=='base-oid-drift': candidate['baseRefOid']='d'*40
+ if scenario=='stale-pr-base-accepted': candidate['baseRefOid']='d'*40
  if done and scenario=='base-name-drift': candidate['baseRefName']='main'
  if field=='mergeable':
   (root/'gate-passed').touch(); print('CONFLICTING' if scenario=='conflicting' else 'MERGEABLE')
@@ -185,7 +190,7 @@ wrapper_case() { # scenario expected exit expected merge count
   local args=(42 --auto)
   case "$scenario" in
     fallback-manual|ci-none-manual) args=(42);;
-    reviewed-normal) args+=(--expected-head "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" --expected-base-oid "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");;
+    reviewed-normal|stale-pr-base-accepted) args+=(--expected-head "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" --expected-base-oid "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");;
     reviewed-head-mismatch) args+=(--expected-head "cccccccccccccccccccccccccccccccccccccccc");;
     reviewed-base-mismatch) args+=(--expected-base-oid "dddddddddddddddddddddddddddddddddddddddd");;
   esac
@@ -221,6 +226,11 @@ PYASSERT
   else echo "FAIL: Q2A real wrapper $scenario"; cat "$case_dir/output.log"; FAIL=$((FAIL+1)); fi
 }
 wrapper_case reviewed-normal 0 1
+wrapper_case stale-pr-base-accepted 0 1
+wrapper_case live-base-query-fail 1 0
+wrapper_case live-base-malformed 1 0
+wrapper_case live-base-final-query-fail 1 0
+wrapper_case live-base-final-malformed 1 0
 wrapper_case reviewed-head-mismatch 1 0
 wrapper_case reviewed-base-mismatch 1 0
 wrapper_case normal 0 1

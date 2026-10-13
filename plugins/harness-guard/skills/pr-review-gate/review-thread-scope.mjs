@@ -34,7 +34,10 @@ function gh(args) {
   return value
 }
 function readCandidate(repo, pr) {
-  return candidate(gh(['pr', 'view', String(pr), '--repo', repo, '--json', fields.join(',')]))
+  const value = candidate(gh(['pr', 'view', String(pr), '--repo', repo, '--json', fields.join(',')]))
+  // PR metadata can retain the original base OID while the live branch moves.
+  const ref = gh(['api', `repos/${repo}/git/ref/heads/${value.baseRefName}`])
+  return candidate({ ...value, baseRefOid: ref?.object?.sha })
 }
 function assertCandidate(snapshot) {
   if (!sameCandidate(snapshot.candidate, readCandidate(snapshot.repo, snapshot.pr))) fail('PR head/base changed; review current candidate again')
