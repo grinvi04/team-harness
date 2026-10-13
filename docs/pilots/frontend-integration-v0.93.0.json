@@ -1,0 +1,396 @@
+{
+  "version": "0.93.0",
+  "baseDevelop": "4d62011de13cebadc43eef70abe1e62605fa2e1b",
+  "preservedAdoptionDocumentation": "d82b43daf49b2ecfb246bca556a19c8b9a56a400",
+  "originalFrontendCandidate": "b8d2c79da97c7f1029332479ebf77a8122e3c7b4",
+  "integrationStatus": "LOCAL_IMPLEMENTATION_ACCEPTED_SCOPED",
+  "acceptance": "PASS_SCOPED_CURRENT_SAMPLE",
+  "criteria": {
+    "F1": "PASS_SCOPED_CURRENT_SAMPLE: same prompt baseline5/candidate5; all substantive code-backed proposals manually and independently reviewed. Historical94-character FAIL retained.",
+    "F2": "PASS_SCOPED_CURRENT_SAMPLE: existing approval and QA reused; no new approval loop or false executed-test claims",
+    "F3": "PASS_SCOPED_CURRENT_SAMPLE: baseline1/candidate1 button-copy proposal only",
+    "F4": "PASS_SCOPED_CURRENT_SAMPLE: baseline1/candidate1 exact empty-string backend proposal; frontend not applied",
+    "F5": "PASS_SCOPED_LOCAL_READER: successful allowed plan/feature-modify wrapper/common/native/core reads and application; global install/hooks excluded",
+    "F6": "PASS_SCOPED_SOURCE: quality74 at3fd67cf, source packages/checksums, preserved policy/readers/version and independent source/sample review. Final reporting-only HEAD docs/archive are verified in local final-verification.json before handoff"
+  },
+  "causeBasedRuntimeFix": false,
+  "remoteDelivery": "NOT_EXECUTED",
+  "installation": "0.92.1 unchanged",
+  "actualCompanyAcceptance": "SEPARATE: product FAIL, remote and independent-user UNVERIFIED",
+  "codeVerificationCandidate": "3fd67cfbff56ea06112473c16dd775efbd9b1571",
+  "quality": {
+    "result": "PASS_SCOPED",
+    "runSteps": 74,
+    "failures": 0,
+    "candidate": "3fd67cfbff56ea06112473c16dd775efbd9b1571",
+    "rawResultsSha256": "cab55d26929b2e944c45b1919fff78ab47bf02bf806740f2acbc24f1f7499227",
+    "workflowSha256": "d7fddbffc0894d8eb6d6919eec536847152e0929c790978f53ec5b4a93611ef5",
+    "platform": "macOS local run commands; GitHub-hosted CI NOT_EXECUTED",
+    "environmentAdaptations": [
+      "existing rg instead of Linux apt",
+      "bundled Python3.12 and task-owned locked stack tool venv",
+      "actual local spec --record instead of absent PR event",
+      "same Ruff0.15.15 in task-owned external venv"
+    ]
+  },
+  "policyPreservation": {
+    "result": "PASS",
+    "unchangedTrackedFilesOutsideFrontendDelta": 1035,
+    "companyDocumentationFiles": 4,
+    "coreAndReaderInputsIdentical": 10,
+    "evidenceSha256": "b216bd008ae2d948f1c9dcaa4d4b162874f5bd0173080754dfbb298ba7a7cae7"
+  },
+  "packages": {
+    "result": "PASS",
+    "splitUnits": 4,
+    "catalogVersion": "0.69.0",
+    "installable": false,
+    "verificationCandidate": "3fd67cfbff56ea06112473c16dd775efbd9b1571",
+    "sourceBundleVersion": "0.93.0",
+    "checksums": "PASS",
+    "evidenceSha256": "fd8a5bcb7b45e97e9b4a28f55605f278b21c9e67a7b5b9c77c2754461fa2a6ad",
+    "finalArchiveCandidate": "Final reporting-only Git HEAD, exact RELEASE-MANIFEST.json and local final-verification.json; no release/install performed"
+  },
+  "releaseReadiness": "NOT_ASSESSED: formal release-check live gate and remote delivery/installation are outside current authorized local scope",
+  "independentCurrentReview": {
+    "candidate": "3fd67cfbff56ea06112473c16dd775efbd9b1571",
+    "model": "gpt-6-astra",
+    "effort": "medium",
+    "actualRuntime": "CLI0.161.0; read-only sandbox; approval never (stderr header)",
+    "exitCode": 0,
+    "seconds": 187.12,
+    "F1toF5": "PASS_SCOPED_CURRENT_SAMPLE",
+    "F6AtReview": "PENDING: final reporting documents and final HEAD archive; source/quality already PASS_SCOPED",
+    "newSourceOrSampleBlockers": 0,
+    "answerSha256": "6385c2de4873df44d3aceea722b47677f60ad52fcfe8e6a63a7166261b768b83",
+    "nonBlockingLimits": [
+      "Malformed baseline-frontend4 approved-document link; relative candidate-frontend5 links preserved",
+      "Reviewer could not find b8d2c79 object in integration repo; root subsequently verified13 approved frontend inputs directly in original object repository"
+    ],
+    "finalization": "Final document and archive checks recorded separately; independent doc-delta review required before local completion"
+  },
+  "modelExecutionClassification": "14 fixed fresh acceptance runs; instrumentation3 excluded with exit UNVERIFIED; prior diagnostic3 not acceptance samples",
+  "currentAcceptance": {
+    "status": "PASS_SCOPED_F1_TO_F5_SOURCE_F6",
+    "sourceCandidate": "3fd67cfbff56ea06112473c16dd775efbd9b1571",
+    "counts": {
+      "baselineFrontend": 5,
+      "candidateFrontend": 5,
+      "baselineSmall": 1,
+      "candidateSmall": 1,
+      "baselineBackend": 1,
+      "candidateBackend": 1
+    },
+    "totalAcceptedExecutions": 14,
+    "instrumentationExcludedExecutions": 3,
+    "actualRuntime": {
+      "app.version": "0.161.0",
+      "model": "gpt-6.1-sol",
+      "reasoning_effort": "high",
+      "sandbox_policy": "read-only",
+      "approval_policy": "never"
+    },
+    "concurrency": 2,
+    "daemon": "default unchanged",
+    "timeoutSeconds": 300,
+    "distinctConversations": 14,
+    "coreEqualsCliAndAnswer": true,
+    "truncation": false,
+    "collectorClosed": true,
+    "finalInvariants": {
+      "configUnchanged": true,
+      "fixtureUnchanged": true,
+      "sourceHeadUnchanged": true,
+      "sourcePluginUnchanged": true,
+      "originalFailureUnchanged": true
+    },
+    "preserveHistoricalFailure": true,
+    "causeRecoveryPrerequisite": false,
+    "comparison": "Both baseline and candidate meet this fixed semantic rubric; no causal quality improvement or universal reliability claim",
+    "sourcePackageEvidenceSha256": "fd8a5bcb7b45e97e9b4a28f55605f278b21c9e67a7b5b9c77c2754461fa2a6ad",
+    "mechanicalEvidenceSha256": "bae033a0fba96861044c560b2362c932b080e4f69d205e5424ee81984bccecaa",
+    "manualEvidenceSha256": "ccdcde81322473736f400f3c5ccf8289a916f4c9d5ea97339aecad48e59b19dd",
+    "originalFrontend13InputsSha256": "3041b819823285ebdadb3dd2b7fe64360d2a8e0ae160f4010a9d3e45ab7f6f46",
+    "runs": [
+      {
+        "run": "baseline-backend-1",
+        "answerSha256": "121c6e431b993eafba459df1374db1f0e115c3dbe6a3ec847d9d40904c2ff0cb",
+        "criteria": [
+          "F4",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Exact empty string ValueError; trim/uppercase and whitespace-only prior behavior preserved, no frontend work or unexecuted-test PASS.",
+        "caveats": []
+      },
+      {
+        "run": "baseline-frontend-1",
+        "answerSha256": "be300d3a7a3d3d02373205a9b457524e08f8e4c4114fff45849dea354e2a9b1c",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": []
+      },
+      {
+        "run": "baseline-frontend-2",
+        "answerSha256": "98e5d3484fdcb1cc4f9c2b7308e52cc697272a2d896c9a44dc0ec996dd9f90e5",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": []
+      },
+      {
+        "run": "baseline-frontend-3",
+        "answerSha256": "2ad183d25de1bba055dcea68999f993fb984634b08c6054640089a52f4ee0935",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": []
+      },
+      {
+        "run": "baseline-frontend-4",
+        "answerSha256": "ac57cbc5eb44d2af4a6e8d2f119b737db02c5a7f2e5204333103fc4803c61279",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": [
+          "Generated approved-document link is malformed; source/code/QA content remains identifiable. Independent judge must decide relevance to F1; no universal response-quality claim."
+        ]
+      },
+      {
+        "run": "baseline-frontend-5",
+        "answerSha256": "d15b5a98de63d06bb3abf2ffe9ea501a3ca53e67957b192f6328bcb14ecc1eb5",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": []
+      },
+      {
+        "run": "baseline-small-1",
+        "answerSha256": "1a4cbb6173a3a3b610f3246e8664f4c7209839ec58193b03b67747dcd9b4c9cc",
+        "criteria": [
+          "F3",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Only save-button copy changes; accessible name and unchanged saveOrder(order) click contract; no broad design or new dependency, no unexecuted-test PASS.",
+        "caveats": []
+      },
+      {
+        "run": "candidate-backend-1",
+        "answerSha256": "35fd24d07ef25e30a906f9e0015e2cc89ded84a19d948f5c7fb2e11cb2e33f1b",
+        "criteria": [
+          "F4",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Exact empty string ValueError; trim/uppercase and whitespace-only prior behavior preserved, no frontend work or unexecuted-test PASS.",
+        "caveats": []
+      },
+      {
+        "run": "candidate-frontend-1",
+        "answerSha256": "3ec60933bbc54e6b01cd814eeb2ebee70cb8c7cdf1b913c9d3476ac1bb7d7ac8",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": []
+      },
+      {
+        "run": "candidate-frontend-2",
+        "answerSha256": "075624a34a28b7fc608f19eca4e7a9fe6625fad46b6090aa21d921cbe7d09c12",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": []
+      },
+      {
+        "run": "candidate-frontend-3",
+        "answerSha256": "5061e5a7c6a4923f3d292088b6501a879f3413e2b559c61c7d71024999efce75",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": []
+      },
+      {
+        "run": "candidate-frontend-4",
+        "answerSha256": "3d569d53fdd311945e3bc897789f925499dd28aaf649725d1635e8790b2c8971",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": []
+      },
+      {
+        "run": "candidate-frontend-5",
+        "answerSha256": "56b9946de53022a0dbc94e14ef9b7fb3e2df00985ca2d9816a6359ab7933b241",
+        "criteria": [
+          "F1",
+          "F2",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Code-backed proposal covers confirmed/draft ownership, no-request cancel, server response and revision adoption, 409/error draft preservation, approvedTotal history, CompanyGrid reuse and responsibility boundary, existing QA and unverified API/search/selection limits.",
+        "caveats": [
+          "Uses relative file links; not a claim of desktop clickable-path compliance."
+        ]
+      },
+      {
+        "run": "candidate-small-1",
+        "answerSha256": "c07840ac218b14a5d8571253b293ad0020f7735482198ed8fca3e4b82556b99c",
+        "criteria": [
+          "F3",
+          "F5"
+        ],
+        "verdict": "PASS_SCOPED",
+        "reason": "Only save-button copy changes; accessible name and unchanged saveOrder(order) click contract; no broad design or new dependency, no unexecuted-test PASS.",
+        "caveats": []
+      }
+    ],
+    "attempts": "Preparation and plugin-list errors before calls retained. First3 model responses retained but exit metadata missing after immediate bind Errno48; specific TIME_WAIT cause unproven. Fixed runner persists exit before cleanup; selftest3 model-free. Initial comparator path assumptions corrected to original allowed plan OR modify, with prior reports preserved. No cherry-picking or additional acceptance repeats.",
+    "limits": "Read-only synthetic proposals, local readers and macOS quality; no actual UI/API behavior, automatic skill selection, historical causal fix, company adoption or relative quality superiority"
+  },
+  "localEvidenceRoot": ".runtime/frontend-current-acceptance-20261013 (primary Team Harness checkout, not integration worktree)",
+  "finalizationEvidence": "final-verification.json and artifacts/final/bundle/RELEASE-MANIFEST.json in localEvidenceRoot: exact final reporting-only HEAD, checksums/document checks/independent doc delta/map before completion",
+  "historicalAcceptance": {
+    "snapshotCandidate": "3fd67cfbff56ea06112473c16dd775efbd9b1571",
+    "snapshotSha256": "ff42b433ec8b113e5da09f429e819c6ee26146ca7456172478cfecc759fb3315",
+    "supersededCurrentVeto": "Past causal-log recovery was a diagnostic stop condition, not original mandatory F1 acceptance. User requested current original tests without ignoring history.",
+    "snapshot": {
+      "version": "0.93.0",
+      "baseDevelop": "4d62011de13cebadc43eef70abe1e62605fa2e1b",
+      "preservedAdoptionDocumentation": "d82b43daf49b2ecfb246bca556a19c8b9a56a400",
+      "originalFrontendCandidate": "b8d2c79da97c7f1029332479ebf77a8122e3c7b4",
+      "integrationStatus": "IMPLEMENTED_VERIFIED_SCOPED_NOT_ACCEPTED",
+      "acceptance": "FAIL",
+      "criteria": {
+        "F1": "FAIL: prior generated final response incomplete; root cause UNVERIFIED",
+        "F2": "PASS_SCOPED: original approved synthetic plan proposal",
+        "F3": "PASS_SCOPED: original button-copy proposal",
+        "F4": "PASS_SCOPED: original explicitly non-frontend proposal",
+        "F5": "PASS_SCOPED: original source-identical local wrapper reads; global install excluded",
+        "F6": "PASS_SCOPED: local quality74, source/package checks and independent source review; F1 still blocks total acceptance"
+      },
+      "newModelReruns": 3,
+      "causeBasedRuntimeFix": false,
+      "remoteDelivery": "NOT_EXECUTED",
+      "installation": "0.92.1 unchanged",
+      "actualCompanyAcceptance": "SEPARATE: product FAIL, remote and independent-user UNVERIFIED",
+      "codeVerificationCandidate": "de0fe7c391b3ed9e3bcb86a27790fd1744bb6dbc",
+      "quality": {
+        "result": "PASS_SCOPED",
+        "runSteps": 74,
+        "failures": 0,
+        "candidate": "de0fe7c391b3ed9e3bcb86a27790fd1744bb6dbc",
+        "rawResultsSha256": "12b48213cfacda0b209ceca45d086b060128ba73d00b490001b4a1689944c80a",
+        "workflowSha256": "d7fddbffc0894d8eb6d6919eec536847152e0929c790978f53ec5b4a93611ef5",
+        "platform": "macOS local run commands; GitHub-hosted CI NOT_EXECUTED",
+        "environmentAdaptations": [
+          "existing rg instead of Linux apt",
+          "bundled Python3.12 and task-owned locked stack tool venv",
+          "actual local spec --record instead of absent PR event",
+          "same Ruff0.15.15 in task-owned external venv"
+        ]
+      },
+      "policyPreservation": {
+        "result": "PASS",
+        "unchangedTrackedFilesOutsideFrontendDelta": 1035,
+        "companyDocumentationFiles": 4,
+        "coreAndReaderInputsIdentical": 10,
+        "evidenceSha256": "b216bd008ae2d948f1c9dcaa4d4b162874f5bd0173080754dfbb298ba7a7cae7"
+      },
+      "packages": {
+        "result": "PASS",
+        "splitUnits": 4,
+        "catalogVersion": "0.69.0",
+        "installable": false,
+        "verificationCandidate": "de0fe7c391b3ed9e3bcb86a27790fd1744bb6dbc",
+        "sourceBundleVersion": "0.93.0",
+        "checksums": "PASS",
+        "evidenceSha256": "140858e7db73a7d23949dadd23f62d428732ad46499536828803a800dd9980f5",
+        "finalArchiveCandidate": "exact Git HEAD recorded by final RELEASE-MANIFEST.json; no release/install performed"
+      },
+      "independentSourceReview": {
+        "candidate": "de0fe7c391b3ed9e3bcb86a27790fd1744bb6dbc",
+        "model": "gpt-6-astra",
+        "effort": "medium",
+        "sandbox": "read-only (actual runtime header)",
+        "newSourceFindings": 0,
+        "overallVerdict": "FAIL: F1 preserved",
+        "answerSha256": "b2de4ac6c5bff118f4f73e6c8e9ebde35f744fdad6608dd94ea94e99cb7e38bf"
+      },
+      "resumeCondition": "New original request finish/stream or relevant sandbox-denial evidence that supports a cause-based correction; identical-input successes do not erase failure",
+      "releaseReadiness": "NO_GO: mandatory F1 FAIL",
+      "modelExecutionClassification": "three bounded observation diagnostics (one coverage call plus one concurrency2 pair);0 new F1 acceptance reruns",
+      "diagnosticResumption": {
+        "checkedAt": "2026-10-12T23:57:39.823467+00:00",
+        "preparation": "PASS_SCOPED: loopback collector and installed config parsing",
+        "historicalLookup": "target thread not found in queried local state/log stores; not proof of nonexistent request",
+        "actualRuntime": {
+          "app.version": "0.161.0",
+          "model": "gpt-6.1-sol",
+          "reasoning_effort": "high",
+          "sandbox_policy": "read-only",
+          "approval_policy": "never"
+        },
+        "observation": "core completed ResponseItem to CLI boundary; not raw wire payload",
+        "coreResponseBytes": [
+          2894,
+          2832,
+          3371
+        ],
+        "coreResponseTruncated": false,
+        "coreEqualsJsonlAndAnswer": true,
+        "originalConcurrency": 2,
+        "diagnosticConcurrency": [
+          1,
+          2,
+          2
+        ],
+        "originalFailureCause": "UNVERIFIED",
+        "newF1AcceptanceExecutions": 0,
+        "globalConfigFixtureAndHeadUnchanged": true,
+        "collectorClosed": true,
+        "causeBasedHarnessFixJustified": false,
+        "diagnosticExecutions": 3,
+        "conversationsIndividuallyMappedAndDistinct": true,
+        "concurrencyComparison": "No relevant completion/output anomaly observed in one pair; not proof of no concurrency defect",
+        "stopCondition": "One coverage call and one pair; no success-only repeats"
+      }
+    }
+  }
+}

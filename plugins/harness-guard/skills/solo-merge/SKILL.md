@@ -30,7 +30,7 @@ argument-hint: "\"[PR번호]\" (생략 시 현재 브랜치의 PR)"
 
 ## Phase 0 — 전제
 
-**전제: `pr-review-gate` 1~3단계(/code-review·이슈 처리·스레드 reply+resolve)가 이미 끝났을 것.**
+**전제: `pr-review-gate` 1~3단계(AI 리뷰·이슈 처리·스레드 reply+resolve)가 이미 끝났을 것.**
 래퍼가 머지 직전 CI·미해결 스레드·mergeable을 **다시** 검증하지만(이중 게이트), 리뷰 처리 자체는 선행돼야 한다.
 
 ## Phase 1 — 원자 실행 (오케스트레이터 직접 실행)

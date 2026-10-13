@@ -27,7 +27,7 @@ bash /path/to/team-harness/scripts/new-repo.sh
 
 스크립트가 자동으로 처리: 템플릿 파일 복사 · `core.hooksPath` 설정 · main·develop branch protection.
 이후 수동 3가지: **ci-gate.yml 스택 커스터마이징** · **AGENTS.md 작성** · **스택별 검사 연결**.
-AI 리뷰는 PR마다 `/code-review` 스킬(구독 포함, API 과금 없음)이 수행 — 외부 봇·시크릿 불필요.
+PR AI 리뷰는 Codex native 리뷰를 우선하며 다른 도구에도 같은 [리뷰·승인 계약](code-review.md)을 적용한다.
 전체 절차: [`docs/onboarding.md`](onboarding.md)
 
 ### Claude Code 로컬 테스트 (플랜 불필요)
