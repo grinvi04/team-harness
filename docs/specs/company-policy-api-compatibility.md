@@ -144,4 +144,4 @@ develop 포함·역병합 완료는 위 전달 PR의 연결 결과와 Git ancest
 원문은 `company-readiness-20261013/quality/results.json`·`repair-review.meta.json`으로 연결한다.
 당시 Claude `/code-review`는 미로그인·command 미설치로 미실행이었다. 후속 승인으로
 [도구 공통 계약·Codex 우선](frontend-contract-integration.md#현재-다음-단계)에 연결한다.
-후속 리뷰·병합·전달 상태는 연결된 PR 원본에서 확인한다. 0.92.1 당시 전달·검증 기록은 위에 보존한다.
+후속 리뷰·develop/main·태그·설치 상태는 [PR550 전달 결과](https://github.com/grinvi04/team-harness/pull/550)를 확인한다. 0.92.1 기록은 위에 보존한다.

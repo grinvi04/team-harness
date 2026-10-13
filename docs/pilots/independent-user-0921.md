@@ -26,7 +26,7 @@
 | 원격 행동 | 미승인: 제품 PR·CI·병합·초대·권한 부여는 대상 확정 후 별도 범위 확인 |
 
 기준선은 발행 v0.92.1/source SHA `4e0d66b9fa34d273bb1ee7383846601d3fa2fd99`다.
-검증한 로컬 소스 후보는 0.93.0/`c6f519770d2740d1dc36971799dae7e126bc57cc`이며 미발행이다.
+당시 로컬 소스는0.93.0/`c6f519770d2740d1dc36971799dae7e126bc57cc`였다. 후속 [전달 상태](../specs/frontend-contract-integration.md#현재-다음-단계)와 구분한다.
 실행 전에 사용할 후보 SHA·자산 plan을 고정한다. 미커밋 자료나 로컬 버전 배지를 발행 태그로 취급하지 않는다.
 기존 회사 보호·hook·AGENTS·검사·lockfile을 보존하며 회사 경로의 solo 예외는 0이다.
 DriveTree 수정·운영·기존 DB/Auth/Storage·원본 환경 파일·원격 보호 변경은 제외한다.
@@ -74,8 +74,8 @@ node "$SOURCE/scripts/manage-repo-assets.mjs" apply \
   --plan "$PLAN"
 ```
 
-위 명령은 미발행 SHA의 preview이며 소유 기록은 `unreleased:<SHA>`다. 0.93.0 태그를 먼저 만들지 않는다.
-발행된 기준선에는 동일 SHA의 `--version v0.92.1`을 붙일 수 있다. 태그 없는 후보에 붙이면 거부된다.
+태그 없는 SHA의 preview 소유 기록은 `unreleased:<SHA>`다. 파일럿 시험을 위해 태그를 새로 발행하지 않는다.
+발행 원본은 실제 태그 SHA에 고정하고 동일 버전의 `--version v0.92.1` 또는 `--version v0.93.0`을 붙인다. 태그·SHA 불일치는 거부된다.
 경로·diff를 검토한 동일 명령에만 `--apply`를 붙인다. 사전 제품 인수와 발행·전역 설치 인수는 구분한다.
 실제 적용 후 `bash "$SOURCE/scripts/harness-doctor.sh" --repo "$TARGET" --components tech`로
 관리 자산을 진단하고 제품의 기존 명령을 별도로 실행한다. doctor PASS를 앱 검사 성공으로 세지 않는다.
@@ -83,7 +83,7 @@ node "$SOURCE/scripts/manage-repo-assets.mjs" apply \
 
 충돌 시험은 폐기 사본에서 관리 파일 하나를 변경한 뒤 remove preview가 exit2로 거부하며
 변경 파일을 보존하는지 확인한다. 정상 remove와 update도 먼저 preview하고 승인된 사본만 변경한다.
-update에는 실제로 다른 고정 원본이 필요하다. 0.92.1에서 미발행 후보로 갱신할 때도 SHA와 실제 diff를 기록한다.
+update에는 실제로 다른 고정 원본이 필요하다. 0.92.1에서 후속 발행 또는 미발행 원본으로 갱신할 때도 SHA와 실제 diff를 기록한다.
 없는 태그나 같은 원본의 no-op을 갱신 인수로 세지 않는다. 기준선과 후보는 별도 깨끗한 checkout을 사용한다.
 새 원본이 없으면 갱신 항목은 UNVERIFIED로 남긴다. 시험용 수정 Harness를 발행 원본으로 위장하지 않는다.
 
