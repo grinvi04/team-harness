@@ -1,5 +1,12 @@
 # 프론트 설계 연결 · 최신 기반 통합
 
+## 현재 다음 단계
+
+2026-10-13 후속 요청으로 실제 회사 인수 1·2·3을 모두 완료한 뒤 0.93.0 후보를 발행·설치한다.
+아래 로컬 통합·F1–F6는 완료된 범위의 기록이며 재개 조건을 새로 만들지 않는다.
+실제 인수의 대상·참여자·결과와 발행 대기는 [현재 도입 순서](../pilots/company-adoption-2026-10-13.md)를 따른다.
+필수 FAIL/UNVERIFIED가 남으면 발행·설치를 시작하지 않는다. 기존 소비 수정 제외·보호·운영 경계를 유지한다.
+
 ## 승인·범위
 
 2026-10-13 사용자가 이 대화에서 작업 순서와 완료 기준에 따른 끝까지의 로컬 실행을 승인했다.
@@ -9,7 +16,7 @@
 `d82b43daf49b2ecfb246bca556a19c8b9a56a400`을 기반으로 승인된 frontend delta만 통합한다.
 원래 구현 후보는 `b8d2c79da97c7f1029332479ebf77a8122e3c7b4`다.
 
-소비 저장소 수정·실제 회사 인수·전역 설정·PR/push/병합/태그/설치/배포는 제외한다.
+당시 로컬 통합 범위에서는 소비 저장소 수정·실제 회사 인수·전역 설정·PR/push/병합/태그/설치/배포를 제외했다.
 현재 발행·설치 0.92.1과 새 로컬 0.93.0 후보를 구분한다.
 
 ## 작업 순서·완료 기준
@@ -112,6 +119,9 @@ Ruff는 동일 고정 버전의 외부 격리 venv를 사용했다. 명령·환�
 {
   "version": 1,
   "documents": [
+    {"path":"docs/company-acceptance.md","reason":"실제 인수 완료를 발행·설치의 선행 조건으로 연결"},
+    {"path":"docs/pilots/company-adoption-2026-10-13.md","reason":"사용자 변경 순서와 실제 대상·참여자 대기 조건"},
+    {"path":"docs/pilots/independent-user-0921.md","reason":"미발행 후보 SHA로 수행할 실제 독립 인수 절차"},
     {"path":"docs/specs/frontend-contract-integration.md","reason":"승인 범위와 현재 후보의 수용·전달 상태"},
     {"path":"docs/specs/frontend-engineering-contract.md","reason":"최초 F1–F6 기준 보존과 현재 reader 연결"},
     {"path":"docs/specs/frontend-engineering-verification.md","reason":"과거 후보 당시 결과 보존과 현재 상태 연결"},
