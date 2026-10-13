@@ -195,5 +195,5 @@ PR 병합 성공과 branch 정리는 별도 결과다. 정리 실패·조회 실
 release/release-check는 대상 repo AGENTS.md의 버전·changelog·생성물·추가 필수 검사·health 선언을 읽는다.
 이 저장소의 필수 live provenance와 changelog는 AGENTS.md에 명시돼 있으며 실패 기준은 유지한다.
 [현재 구현·검증](specs/skill-contract-consolidation.md)과 실제 발행 태그·설치 버전을 구분한다.
-0.93.0 로컬 후보는 설치된 공통 계약에 프론트 설계 기준을 연결한다. F1 FAIL로 전체 수용·릴리즈 준비는 미완료다.
+0.93.0은 프론트 기준을 연결한 로컬 후보다. 현재 F1–F5 표본 PASS·quality74, 과거 FAIL은 보존하며 정식 릴리즈 검사는 별도다.
 [현재 통합·검증](specs/frontend-contract-integration.md)에서 기존 증거와 최신 후보·발행/설치를 구분한다.

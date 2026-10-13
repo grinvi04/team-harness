@@ -16,14 +16,14 @@
 
 | 순서 | 작업 | 판정 기준·현재 상태 |
 |---|---|---|
-| 1 | F1 원문·실행 환경 진단 | 조사 완료, 생성된 최종 답변의 누락 확인; 원인 UNVERIFIED·F1 FAIL |
+| 1 | F1 원문·실행 환경 진단 | 완료: 과거 누락·원인 미확인 보존; 현재 표본 수용과 구분 |
 | 2 | 최신 기반 통합 | 로컬 완료: 정책·보호·d82b43d 문서와 reader bytes 보존 |
-| 3 | 현재 후보 검증 | quality 74/74·package·소스 독립 검토 통과; F1 FAIL로 전체 수용 불가 |
-| 4 | 문서·전달 준비 | 로컬 검토 후보와 미완료 인계 준비; 릴리즈 GO 판정 없음 |
+| 3 | 현재 후보 검증 | 현재 F1–F5 표본 PASS·quality74/74·package/checksum·독립 검토 |
+| 4 | 문서·전달 준비 | 최종 문서·HEAD archive를 대조한 로컬 인계; 원격 delivery 제외 |
 
-2번 통합과 3번 기술 검증·4번 미완료 인계 기록을 수행했다. F1 FAIL로 전체 수용은 미완료다.
-최종 검증은 아래 기록의 후보·범위와 raw 증거를 함께 대조한다. 새 원격 delivery는 실행하지 않았다.
-전체 quality 성공·package 생성·별도 검토 수행은 F1의 의미 FAIL을 해소하지 않는다.
+현재 표본은 원래 F1–F5를 충족했다. 과거 F1 FAIL을 지우거나 원인 해결로 승격하지 않는다.
+전체 quality와 source package는 통과했다. 최종 보고-only HEAD의 문서·archive 확인을 인계 증거로 연결한다.
+새 원격 delivery는 실행하지 않았다. 현재 수용은 지정 표본·로컬 구현 검증 범위다.
 
 ## F1 진단과 중단 기준
 
@@ -38,8 +38,8 @@ stderr sandbox 경고의 경로는 unknown이다. 도구 출력에는 Python 임
 
 기존 `--no-daemon` 성공 1회로 원인을 확정하지 않는다. 성공 횟수만 늘리는 재시험은 하지 않는다.
 실행 플랫폼 내부·cache·보호·출력 강제 workflow를 추측으로 바꾸지 않는다.
-계속 진단하려면 해당 실패의 서버 종료/stream 또는 거부 경로 원문 같은 새로운 원인 증거가 필요하다.
-이 조건은 실제 회사 인수나 소비 저장소 지정을 기다리는 조건이 아니다.
+위 조건은 당시 원인 진단의 중단 기준이다. 원래 F1의 현재 후보 수용 시험을 금지하는 조건은 아니다.
+과거 원인 복구·회사 대상 지정은 현재 후보 재검증의 선행조건이 아니다.
 
 ## 2026-10-13 진단 재개
 
@@ -56,9 +56,26 @@ wire raw payload나 과거 인과는 미확인이다. 원래 model/effort도 미
 관찰한 세 답변은 변경안을 포함하지만 원래 실패는 보존하며 F1 재수용 표본으로 세지 않는다.
 loopback 수신 후 파일 저장 전에 account/email 속성을 가리고 prompt는 redacted로 유지했다.
 collector 종료와 설정·fixture·HEAD 불변을 확인했다.
-관찰 준비는 완료했지만 원인에 맞는 Harness 수정 근거는 없다. F1 FAIL·전체 NO-GO를 유지한다.
+당시 관찰 준비는 완료했지만 원인에 맞는 Harness 수정 근거는 없었다. 당시 F1 FAIL·NO-GO는 보존한다.
 실행 원문은 기존 `.runtime/frontend-resume-20261013/f1-observation-1/`부터 `-3/`까지 보존한다.
 종합 비교는 같은 디렉터리의 `f1-observation-comparison.json`이다. 정한 한 쌍 뒤 추가 성공 반복은 하지 않는다.
+
+## 현재 후보 수용 재검증
+
+2026-10-13 사용자가 과거 기록의 무시·기준 완화 대신 원래 시험과 검증을 계속하도록 정정했다.
+현재 후보 `3fd67cf`와 0.92.1 기반의 fresh 합성 fixture에서 동일 prompt·F1 기준을 유지한다.
+F1은 변경 전/후 각각5회, 작은 문구/백엔드는 각각1회로 총14회다. F2/F5는 같은 실행을 대조한다.
+Sol6.1/high·read-only·동시2·default daemon·300초를 유지하고 core/JSONL/file을 관찰한다.
+exit0이나 출력 일치만으로 의미 PASS를 만들지 않으며 모든 시도를 보존한다.
+과거94자 FAIL·원인 미확인은 당시 기록으로 유지한다. 현재 판정은 새 원문·독립 검토로 결정한다.
+고정14회 모두 온전한 실행·응답을 수집했다. F1은 baseline5/candidate5 모두 업무·상태·구조·QA를 설명했다.
+F2/F3/F4의 승인 재사용·작은 변경·백엔드 비적용과 F5의 실제 읽기·적용도 표본 PASS다.
+실제 read-only Astra/medium 독립 검토가 원문14개와 제외3개를 읽고 F1–F5 PASS로 판정했다.
+전체 quality74/74와 source package/checksum은 통과했다. F6 최종 문서·HEAD archive는 아래 인계 증거로 대조한다.
+baseline도 통과했으므로 이번 연결의 인과적 품질 향상·재발 방지·회사 효용은 입증하지 않는다.
+최초 계측3회는 bind 오류로 exit 미보존하여 모두 제외했다. 원문을 보존하고 runner를 고쳐 fixed14만 실행했다.
+준비·preflight·비교기 가정 오류와 무모델 selftest도 보존했다. TIME_WAIT이라는 구체적 원인은 추정이다.
+원문과 프로토콜은 `.runtime/frontend-current-acceptance-20261013/`에 보존한다.
 
 ## 기존 증거의 정확한 재사용 경계
 
@@ -74,16 +91,20 @@ F5는 repo-local symlink·AGENTS 안내로 wrapper→공용 skill→공통 계�
 
 ## 현재 검증 기록과 영향 문서
 
-실행 원문·명령/cwd/exit·파일 SHA-256은 담당 작업의 `.runtime/frontend-resume-20261013/`에 보존한다.
+과거 진단은 `.runtime/frontend-resume-20261013/`, 현재 원문·실행·해시는
+primary 프로젝트의 `.runtime/frontend-current-acceptance-20261013/`에 보존한다.
 공개 요약은 [현재 후보 검증](../pilots/frontend-integration-v0.93.0.json)에 연결한다.
-코드·전체 quality·별도 소스 검토의 후보는 `de0fe7c391b3ed9e3bcb86a27790fd1744bb6dbc`다.
+현재 코드·quality·원문 독립 검토·source package 후보는 `3fd67cfbff56ea06112473c16dd775efbd9b1571`다.
 macOS 로컬 실행이며 Linux apt는 기존 rg, PR event는 실제 스펙, Python은 bundled 3.12,
 Ruff는 동일 고정 버전의 외부 격리 venv를 사용했다. 명령·환경·최초 시도 기록을 보존했다.
 현재 native source의 manifest/hook/17개 skill과 package 4개·소스 bundle checksum을 확인했다.
 분리 package의 catalog 버전 0.69.0·installable=false는 기존 실험 계약이며 plugin 0.93.0과 구분한다.
-별도 Astra/medium·실제 read-only 검토는 새 소스 결함 없음, F1 FAIL로 판정했다.
+이전 독립 검토의 F1 FAIL은 과거 snapshot에 보존한다. 현재 독립 검토는 F1–F5 PASS, F6 최종화 PENDING이었다.
+표현 링크 결함은 비차단 한계로 보존한다. 원래 b8d2c79 객체의 reader/guide/test13개를 원본 checkout에서 직접 대조했다.
 최종 문서 기록만 달라진 후보의 runtime/test/CI 동일성을 대조하고 해당 문서 검사를 수행한다.
-최종 source bundle의 정확한 후보는 RELEASE-MANIFEST.json과 Git HEAD에서 확인한다.
+최종 source bundle의 정확한 후보는 `artifacts/final/bundle/RELEASE-MANIFEST.json`과 Git HEAD에서 확인한다.
+같은 현재 증거 루트의 `final-verification.json`에서 문서·archive·독립 문서 대조·지도 결과를 확인한다.
+최종 인계 전 이 확인이 필수다. 정식 release-check·PR·태그·설치는 실행하지 않았으며 릴리즈 GO로 해석하지 않는다.
 공통 계약·frontend 안내·디자인 표준·소비 AGENTS·README·decisions·harness-maintenance와
 두 manifest·CHANGELOG를 함께 대조한다. 회사 인수의 원래 기준·미확인 상태는 변경하지 않는다.
 

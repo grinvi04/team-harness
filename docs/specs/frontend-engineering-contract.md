@@ -46,7 +46,7 @@ templates/AGENTS.md, decisions.md, harness-maintenance.md, README·두 plugin ma
 
 - [x] 변경 전 실제 Codex 실행과 계약 누락 기록
 - [x] 공통 계약·상세 안내·읽기 경로·버전 반영
-- [ ] 변경 후 적용·비적용·중복 방지 검증
+- [x] 변경 후 적용·비적용·중복 방지 검증
 - [x] 전체 quality·후보 package·독립 의미 검토
 - [x] 결과·사용 안내 현행화 및 로컬 커밋
 
@@ -55,9 +55,10 @@ templates/AGENTS.md, decisions.md, harness-maintenance.md, README·두 plugin ma
 필수 수용 기준 PASS, 현재 후보와 증거 일치, 관련 안내 현행화 시 로컬 구현·검증 완료다.
 실제 제품의 사용성·미학·유지보수성·회사 채택은 이 과제에서 증명하지 않는다.
 원격 전달·발행·사용자 설치를 로컬 검증 결과로 완료 처리하지 않는다.
-현재 F1은 불완전 응답 1회 때문에 FAIL이며 전체 수용 완료는 보류한다. F2–F4는 표본 PASS, F5는 읽기·적용 확인이다.
-F6의 로컬 quality 74단계·기록된 후보 package/bundle·checksum·문서 검사는 통과했다.
-독립 검토의 F1 FAIL을 유지하며 전체 완료·발행·설치로 승격하지 않는다.
+최초 후보의 불완전 응답94자·F1 FAIL·원인 미확인을 과거 기록에 보존한다.
+[현재 통합 수용](frontend-contract-integration.md)은 원래 fixed14회와 원문 독립 검토에서 F1–F5 표본 PASS다.
+quality74와 source package는 통과했다. 최종 보고-only HEAD의 문서·archive·인계 증거를 함께 확인한다.
+과거 원인 규명·재발 방지·baseline 대비 우월성·실제 회사 인수·발행·설치는 이번 수용에서 증명하지 않는다.
 
 ## 진행 문서 선언
 
@@ -116,6 +117,10 @@ F6의 로컬 quality 74단계·기록된 후보 package/bundle·checksum·문서
     {
       "path": "docs/changelog/2026/v0.93.0.md",
       "reason": "최초 실패와 최종 검증·후보 변경 이력 대조"
+    },
+    {
+      "path": "docs/pilots/frontend-integration-v0.93.0.json",
+      "reason": "최초 역사와 현재 고정 표본 수용·후보·인계 분리"
     }
   ],
   "items": [
@@ -140,16 +145,19 @@ F6의 로컬 quality 74단계·기록된 후보 package/bundle·checksum·문서
     {
       "document": "docs/specs/frontend-engineering-contract.md",
       "item": "변경 후 적용·비적용·중복 방지 검증",
-      "state": "pending",
-      "resume": "현재 담당자 후속 진단: candidate-frontend-11 불완전 답변 원문과 실제 원인 증거를 대조; 기준 완화·무근거 반복 금지"
+      "state": "done",
+      "evidence": {
+        "path": "docs/pilots/frontend-integration-v0.93.0.json",
+        "sha256": "1cbf4cf29437fff64386b0010b6761e18035f568e47e8ec01af21ff1bd55388f"
+      }
     },
     {
       "document": "docs/specs/frontend-engineering-contract.md",
       "item": "전체 quality·후보 package·독립 의미 검토",
       "state": "done",
       "evidence": {
-        "path": "docs/specs/frontend-engineering-verification.md",
-        "sha256": "0bd0f5bd982209aad5d221e1c56ef9b1e340f8de69d73f858b41551a14f45298"
+        "path": "docs/pilots/frontend-integration-v0.93.0.json",
+        "sha256": "1cbf4cf29437fff64386b0010b6761e18035f568e47e8ec01af21ff1bd55388f"
       }
     },
     {
@@ -157,8 +165,8 @@ F6의 로컬 quality 74단계·기록된 후보 package/bundle·checksum·문서
       "item": "결과·사용 안내 현행화 및 로컬 커밋",
       "state": "done",
       "evidence": {
-        "path": "docs/specs/frontend-engineering-verification.md",
-        "sha256": "0bd0f5bd982209aad5d221e1c56ef9b1e340f8de69d73f858b41551a14f45298"
+        "path": "docs/pilots/frontend-integration-v0.93.0.json",
+        "sha256": "1cbf4cf29437fff64386b0010b6761e18035f568e47e8ec01af21ff1bd55388f"
       }
     }
   ]
