@@ -48,7 +48,7 @@ UI·DB·배포는 이 저장소에 비적용이다. DriveTree 수정·회사 거
 PR·병합·태그·설치·배포는 이번 단계에서 수행하지 않는다.
 실제 회사 인수 1 FAIL, 2·3 UNVERIFIED는 이 수정으로 완료하지 않는다.
 
-## 현재 결과 (2026-10-13)
+## 로컬 수정 단계의 결과 (2026-10-13)
 
 선정 판독·보존 범위는 **PASS_SCOPED**다. 구현 commit `3bedf616d999eb6906fe9d6d85005ebe99fb7d8f`.
 전체 quality 후보 `1fc5f40d7bfd13952b704d1b80e12341c01cf40c`: 실행 블록74개 exit0.
@@ -76,9 +76,20 @@ checkout·Python 준비2개 action은 로컬 준비로 대체했다. macOS의 �
 미해결 실제 Codex 검증 실패는 이번 검증된 0.92.1 수정에 포함하지 않는다.
 완료 기준은 실제 PR MERGED, main/tag 정확한 SHA 일치, develop 포함,
 공개 산출물 checksum과 설치 버전·원본 일치·새 native 실행 확인이다.
-현재 상태: [PR #547](https://github.com/grinvi04/team-harness/pull/547)이 develop에 병합됐다.
+릴리즈 준비 시점: [PR #547](https://github.com/grinvi04/team-harness/pull/547)이 develop에 병합됐다.
 병합 SHA `be55e21bb73e938cde7dfb90822ee67fbc0deb0d`는 검증한 head와 같은 소스다.
 release/v0.92.1 후보를 준비했다. main 병합·태그 발행·설치는 아직 미실행이다.
+
+## 0.92.1 발행·설치 결과 (2026-10-13)
+
+[main PR548](https://github.com/grinvi04/team-harness/pull/548)의 head e52bb27·required5·독립 read-only 검토를 확인했다.
+main/tag [v0.92.1](https://github.com/grinvi04/team-harness/releases/tag/v0.92.1)은 `4e0d66b9fa34d273bb1ee7383846601d3fa2fd99`다.
+solo 원자 래퍼의 승인요건 복구 후 main/develop 전체 보호 응답은 실행 전 원문과 동일했다.
+공개 자산3개 다운로드·checksum, Codex/Claude0.92.1 활성화·양쪽 설치76파일의 원본 일치를 확인했다.
+새 Codex native에서 스킬17·로딩 오류0, 설치된 판독기의 실제 main/develop --check exit0이었다.
+다른 플러그인·전역 설정은 유지했다. Claude 실제 모델 호출은 인증 미갱신으로 HELD다.
+develop 포함·역병합 완료는 위 전달 PR의 연결 결과와 Git ancestry로 판정한다.
+실제 회사 인수 FAIL1/UNVERIFIED2와 null binding의 실제 PUT 미확인은 유지한다. DriveTree 수정은 제외한다.
 
 ```harness-doc-sync
 {
@@ -120,3 +131,17 @@ release/v0.92.1 후보를 준비했다. main 병합·태그 발행·설치는 �
   "items": []
 }
 ```
+
+## 0.93.0 후보: 선택형 doctor의 GET 호환성 연결
+
+2026-10-13 회사 사용 예상 준비의 독립 검토에서 진단기의 정상 응답 오판을 확인했다.
+정책 helper는 0.92.1에서 null 앱 결박·생략 리뷰를 읽지만 `--components github` doctor는 거부했다.
+변경 범위는 진단기와 직접 시험·온보딩 안내다. 제품 방향은 기존 **소유** 범위의 계약 복구다.
+정상 GET 3조건(null/생략/동시)을 허용하고 조회 외 명령0을 확인한다.
+잘못된 타입·조회 실패·필수 checks 부재는 거부한다. null 결박의 정책 쓰기·병합 gate는 그대로다.
+회귀·실제 GET 모두 RED exit1 → GREEN exit0. 정책 시험18/18·전체 보호 원문 동일을 확인했다.
+고정 변경분의 전체 quality74/74와 독립 read-only Astra/medium 보안·계약 검토(추가 지적0)를 확인했다.
+원문은 `company-readiness-20261013/quality/results.json`·`repair-review.meta.json`으로 연결한다.
+당시 Claude `/code-review`는 미로그인·command 미설치로 미실행이었다. 후속 승인으로
+[도구 공통 계약·Codex 우선](frontend-contract-integration.md#현재-다음-단계)에 연결한다.
+후속 리뷰·develop/main·태그·설치 상태는 [PR550 전달 결과](https://github.com/grinvi04/team-harness/pull/550)를 확인한다. 0.92.1 기록은 위에 보존한다.

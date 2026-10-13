@@ -2,7 +2,7 @@
 
 > **"여러 기술 영역의 개발·설정·검사 경험을 프로젝트마다 재사용한다."**
 
-![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.92.1-blue)
+![plugin](https://img.shields.io/badge/plugin-harness--guard_v0.93.0-blue)
 ![tool](https://img.shields.io/badge/Claude_Code_·_Codex-supported-orange)
 ![scope](https://img.shields.io/badge/scope-개인부터_작은_팀까지-green)
 
@@ -89,6 +89,7 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 
 기존 앱의 React+Vite·Nuxt·Python 프레임워크·Rails UI와 [버전 확인·기록·CI 연결](docs/stack-versions.md)을 지원한다.
 최신 기본 제안은 호환 안정 버전이며 미확인·충돌에서는 적용을 중단한다. 실제 앱 검증은 별도다.
+프론트 업무·상태·구조의 판단은 [설계 안내](docs/frontend-engineering.md)를 기존 계획·QA에 연결한다.
 
 ## 🏗️ 아키텍처
 

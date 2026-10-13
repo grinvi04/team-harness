@@ -9,4 +9,5 @@ description: 열린 PR의 AI 리뷰·사람 승인·CI·외부 배포 상태를 
 
 ## Codex 실행
 
-현재 agent가 Codex review와 GitHub gate 판정을 소유하며 필요한 읽기 전용 독립 반증만 추가한다.
+공용 계약에 따라 Codex native 리뷰를 우선 사용한다. 구현자와 다른 읽기 전용 인스턴스의 현재
+head/base 리뷰를 연결하고, 현재 agent가 지적 처리·증거 대조와 GitHub gate 최종 판정을 소유한다.

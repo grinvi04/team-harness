@@ -157,7 +157,7 @@ try:
     if not isinstance(data,dict): raise ValueError('protection response must be an object')
     admins=data.get('enforce_admins')
     if not isinstance(admins,dict) or not isinstance(admins.get('enabled'),bool): raise ValueError('protection response lacks admin enforcement state')
-    if 'required_status_checks' not in data or 'required_pull_request_reviews' not in data: raise ValueError('protection response lacks checks/reviews state')
+    if 'required_status_checks' not in data: raise ValueError('protection response lacks checks state')
     checks=data['required_status_checks']
     def context(value):
         return isinstance(value,str) and bool(value.strip())
@@ -169,7 +169,7 @@ try:
             if not isinstance(bindings,list): raise ValueError('checks must be an array')
             for binding in bindings:
                 if not isinstance(binding,dict) or not context(binding.get('context')): raise ValueError('malformed check context')
-                if 'app_id' in binding and (type(binding['app_id']) is not int or binding['app_id'] < -1): raise ValueError('malformed check app binding')
+                if 'app_id' in binding and binding['app_id'] is not None and (type(binding['app_id']) is not int or binding['app_id'] < -1): raise ValueError('malformed check app binding')
     def actors(value):
         if not isinstance(value,dict): raise ValueError('actor restrictions must be an object')
         for collection,name in [('users','login'),('teams','slug'),('apps','slug')]:
@@ -180,7 +180,7 @@ try:
                     raise ValueError('actor must contain a nonempty name')
     if 'restrictions' in data and data['restrictions'] is not None:
         actors(data['restrictions'])
-    reviews=data['required_pull_request_reviews']
+    reviews=data.get('required_pull_request_reviews')
     if reviews is not None:
         if not isinstance(reviews,dict) or type(reviews.get('required_approving_review_count')) is not int or not 0 <= reviews['required_approving_review_count'] <= 6:
             raise ValueError('malformed review policy')

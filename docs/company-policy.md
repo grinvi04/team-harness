@@ -84,5 +84,6 @@ bash -n plugins/harness-guard/scripts/set-branch-protection.sh
 강한 검사 유지, 미지원 필드·rulesets, 승인 하향 거부, preview 쓰기0, 사후 정책 손실을 검사한다.
 
 공식 필드 계약은 [GitHub branch protection REST 문서](https://docs.github.com/en/rest/branches/branch-protection#update-branch-protection)를 따른다.
-0.92.1 로컬 후보의 회귀·기존 보존·전체 품질·독립 검토와 실제 개인 GitHub GET이 통과했다.
-위 수정 명세의 후보·원문을 따른다. 실제 PUT·회사 집행·새 발행·설치는 별도 미실행이다.
+0.92.1의 회귀·기존 보존·전체 품질·독립 검토와 실제 개인 GitHub GET이 통과했다.
+발행·Codex/Claude 설치·보호 원문 보존은 위 수정 명세의 전달 결과를 따른다.
+일반 정책 PUT·회사 집행은 미확인이다. 개인 solo 자기승인 예외의 복구는 회사 승인 증거가 아니다.

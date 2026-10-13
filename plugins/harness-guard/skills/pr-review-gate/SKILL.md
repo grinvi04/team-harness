@@ -23,16 +23,38 @@ node "$REVIEW_SCOPE" snapshot --repo "$OWNER_REPO" --pr "$PR" --output "$REVIEW_
 snapshot 생성 실패·후보 변경은 미확인이므로 중단한다. snapshot은 정확한 head/base OID와 당시 미해결 thread·원래 root comment ID를 저장한다.
 리뷰 중 수정·push로 후보가 바뀌면 새 snapshot에서 현재 후보를 다시 검토한다. 이전에 처리한 ID를 자동 승인하지 않고, 새 thread도 처리 목록에 자동 추가하지 않는다.
 
-AI 리뷰는 PR 단계에서 Claude Code `/code-review`로 수행한다 (구독 포함, PR별 API 과금 없음 — 외부 AI 리뷰봇에 의존하지 않는다).
-사람 리뷰어의 인라인 코멘트도 같은 기준으로 처리한다.
+AI 리뷰는 PR 단계에서 아래 도구 공통 계약으로 수행하며 **Codex native 리뷰를 우선**한다.
+리뷰 제공자는 사람 승인·CI·보호를 대체하지 않는다. 사람의 인라인 코멘트도 같은 기준으로 처리한다.
 
 ---
 
-## 1. AI 코드 리뷰 (`/code-review`)
+## 1. AI 코드 리뷰 — 도구 공통 계약
 
-PR 생성 후 Claude Code `/code-review`로 변경분(현재 브랜치/PR diff)을 리뷰하고,
-지적사항을 2단계 기준으로 처리한다 — 옳으면 수정 → 테스트 통과 → 재푸시, 틀리면 근거 기록.
-(구독 포함, PR별 API 과금 없음 — 외부 AI 리뷰봇에 의존하지 않는다.)
+PR 생성 후 구현자와 다른 인스턴스가 snapshot의 현재 head/base 변경분을 읽기 전용으로 검토한다.
+원래 요구·제외 범위·repo의 리뷰 기준·직접 소비 계약과 실제 검사 증거를 함께 확인한다.
+지적사항은 2단계 기준으로 처리한다 — 옳으면 수정 → 테스트 통과 → 재푸시, 틀리면 근거 기록.
+
+- **Codex 우선:** 공식 `codex review` 또는 `codex exec review`를 사용한다. 현재 CLI의 `--help`로
+  지원 옵션을 확인하고 실행 model/effort·sandbox를 프로젝트 운영 지침과 대조한다.
+- **다른 도구:** 사용자가 Claude 경로를 선택하면 준비된 Claude Code `/code-review` 등 해당 도구의
+  공식 리뷰 기능에 같은 계약을 연결한다. 준비 부족을 이유로 새 설치·인증·과금을 자동 실행하지 않는다.
+- **실행 실패:** 도구·인증·권한·사용 한도 오류나 결과 누락은 UNVERIFIED다. 다른 제공자로 조용히
+  전환하거나 이전 리뷰·CI 성공으로 채우지 않는다. 대체 경로 선택은 사용자와 현재 승인 범위를 확인한다.
+- **증거:** 명령·작업 디렉터리·실제 head/base OID·리뷰 범위·실행 결과·지적 처리 근거를 기존
+  PR/검증 기록에 연결한다. exit 0이나 지적 0건만으로 검토 범위 충족·머지 준비를 판정하지 않는다.
+
+Codex 예시(리뷰 checkout은 snapshot head와 같고 추적/미추적 변경이 없는지 먼저 확인):
+```bash
+REVIEW_HEAD=$(node -e 'console.log(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).candidate.headRefOid)' "$REVIEW_SNAPSHOT") || exit 1
+REVIEW_BASE_OID=$(node -e 'console.log(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).candidate.baseRefOid)' "$REVIEW_SNAPSHOT") || exit 1
+REVIEW_CHECKOUT_HEAD=$(git rev-parse HEAD) || exit 1
+REVIEW_CHECKOUT_STATUS=$(git status --porcelain --untracked-files=all) || exit 1
+test "$REVIEW_CHECKOUT_HEAD" = "$REVIEW_HEAD" && test -z "$REVIEW_CHECKOUT_STATUS" || exit 1
+codex -s read-only -a never review --base "$REVIEW_BASE_OID"
+```
+`--base`는 merge-base 이후 변경분을 검토한다. 별도/전체 PR 검토의 요구·범위는 결과와 직접 대조한다.
+종료 후 checkout과 PR head/base를 다시 확인한다. 변경·조회 실패가 있으면 새 snapshot으로 재검토한다.
+로컬 리뷰 결과는 GitHub 사람 승인이나 원격 check를 게시한 증거가 아니다.
 
 **설계 검토 차원**도 함께 본다(규모에 맞게):
 - **의존성 규칙 / 도메인 경계**: 변경이 비즈니스·도메인 로직을 IO·프레임워크·UI에 결합시키지 않는가. repo가 AGENTS.md(또는 team-harness `clean-architecture.md`)에 선언한 경계·계층을 위반하지 않는가.
