@@ -42,6 +42,10 @@
 - **feature 브랜치는 `docs/specs/<name>.md`(=`/plan` 산출) 선행 필수**(guard.sh F5 게이트). trivial은 `HARNESS_TRIVIAL=1` 명시 면제.
 - 맨손 `gh pr create`/`gh pr merge` **금지** → 래퍼 `plugins/harness-guard/scripts/pr-create.sh`·`plugins/harness-guard/scripts/pr-merge.sh` 경유(내부 gh는 자식 프로세스라 훅 무관).
 - PR·머지·솔로/브랜치보호 정책의 **정본 = `docs/code-review.md`**. develop CI-green 자동머지는 `pr-merge.sh --auto`(같은 문서).
+- 이 repo의 Git Flow 순서는 문서 변경에도 필수다. 작업 PR → 원격 develop 병합 확인 → 그 병합 SHA에서
+  `release/` 전달 브랜치·main PR → 원격 main 병합 확인 → develop 역병합 순서를 임의로 생략·병렬화하지 않는다.
+  각 PR 생성·병합 전에 `docs/code-review.md`의 **Git Flow 순서 검사**를 실행·기록한다. 선행 병합 미확인·
+  SHA 미포함·조회 실패면 다음 단계 중단. 사용자 승인 없는 절차 예외나 문서 변경이라는 자체 면제는 금지한다.
 - 커밋: **Conventional Commits + team-harness 한국어 형식** — `docs/code-review.md`.
   코드 의미 변경(`feat|fix|refactor|perf`)은 `이유:` 본문 필수이며 `commit-msg`와 CI가 동일 validator로 강제한다.
 
