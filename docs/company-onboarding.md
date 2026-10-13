@@ -107,5 +107,7 @@ PYTHON_BIN=python3.11 bash /path/to/team-harness/scripts/harness-doctor.sh \
 잘못된 옵션·구성 집합은 exit2다.
 
 로컬 시험은 격리 자산과 fake CLI/API로 선택·거부·probe dispatch를 확인한다.
-실제 회사 제품의 앱 명령·원격 집행·독립 팀 인수·설치 반영·운영 적용은 아직 미확인이다.
-현재 구현을 회사 채택 완료로 판정하지 않는다.
+보편적인 GitHub·PR·CI 환경의 Harness 자체 개선과0.93.1 발행·설치는 완료했다.
+제품 앱·회사 고유 정책·실제 사람 효용·운영 적용은 이 기술 완료와 구분한다. 회사 고유 정책 인수는 현재 잔여가 아니다.
+Claude 실제 hook은 UNVERIFIED·보류이며 자동 재개하지 않는다.
+현재 범위·증거·종료 조건은 [완료 판정](company-acceptance.md#보편적인-개발-환경-기준의-현재-완료-판정)을 따른다.

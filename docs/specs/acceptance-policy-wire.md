@@ -3,6 +3,10 @@
 사용자 승인: 새 공개 합성 시험 저장소에서 실제 Git Flow/Actions/PR/병합/태그/폐기 배포.
 원래 목표는 회사 사용을 예상한 Harness 자체 개선이다. 기존 저장소·보호·운영·DB/Auth/Storage 변경 제외.
 
+2026-10-14 현재 판정: 보편적인 GitHub·PR·CI 환경의 개선·검증과0.93.1 전달 완료.
+회사 고유 정책 인수는 현재 잔여에서 제외한다. Claude 실제 hook은 UNVERIFIED·보류이며 자동 재개하지 않는다.
+[완료 판정 정본](../company-acceptance.md#보편적인-개발-환경-기준의-현재-완료-판정)을 따른다. 아래 원문은 당시 실행 계약이다.
+
 ## 실제 재현과 최소 변경
 
 v0.93.0/2072511에서 보호 GET/preview 성공, PUT HTTP422: contexts/checks 동시 표현 oneOf 충돌.
@@ -57,6 +61,10 @@ develop 변경은 [PR553](https://github.com/grinvi04/team-harness/pull/553)에 
     {
       "path": "docs/code-review.md",
       "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "docs/company-onboarding.md",
+      "reason": "보편 환경 완료 판정과 Claude 보류를 직접 사용 안내에 연결"
     },
     {
       "path": "docs/company-acceptance.md",
