@@ -106,9 +106,15 @@ print("|".join(d[key] for key in keys))' 2>/dev/null) && [ -n "$out" ] && { prin
 }
 
 read_pr_candidate() {
-  local metadata
+  local metadata candidate base old_base head head_oid live_base
   metadata=$(gh pr view "$PR" --repo "$OWNER_REPO" --json baseRefName,baseRefOid,headRefName,headRefOid) || return 1
-  printf '%s' "$metadata" | pr_candidate_state
+  candidate=$(printf '%s' "$metadata" | pr_candidate_state) || return 1
+  IFS='|' read -r base old_base head head_oid <<< "$candidate"
+  # PR baseRefOid can retain an earlier snapshot after the actual branch moves.
+  # Bind review and both gate snapshots to the live ref; a missing ref fails closed.
+  live_base=$(gh api "repos/$OWNER_REPO/git/ref/heads/$base" --jq .object.sha) || return 1
+  [[ "$live_base" =~ ^[0-9a-fA-F]{40}$ ]] || return 1
+  printf '%s|%s|%s|%s\n' "$base" "$live_base" "$head" "$head_oid"
 }
 
 # --auto 안전 계약: 무인 자동머지는 CI가 **서버-강제**(required status check 존재)여야 성립한다.

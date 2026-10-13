@@ -7,12 +7,14 @@
 
 v0.93.0/2072511에서 보호 GET/preview 성공, PUT HTTP422: contexts/checks 동시 표현 oneOf 충돌.
 같은 PR head의 push·PR quality/deploy-smoke 모두 SUCCESS인데 rollup 중복으로 merge 거부.
+열린 PR의 baseRefOid가 원격 develop ref 이동을 따라가지 않는 실제 GraphQL/REST 불일치도 확인했다.
 원문 증거는 회사 예상 시험 진행 문서에 연결한다. 첫 실패를 PASS로 덮어쓰지 않는다.
 
 - 요청 payload는 app-bound checks 또는 legacy contexts 하나만 사용한다.
 - GET의 두 projection을 검증하고 정규화하여 원래 앱·승인·CODEOWNERS·엄격 보호를 보존한다.
 - 중복 rollup 행 모두 pass일 때만 최신 head/app REST 성공과 함께 인정한다.
 - pending/실패/낡은head/잘못된app/조회 실패/필수집합 없음은 계속 거부한다.
+- 검토·게이트 전후 base는 PR 메타데이터가 아닌 실제 원격 ref로 결박한다. ref 조회 실패·형식 오류도 거부한다.
 - 신규 범용 정책 엔진·앱 설치·조직 정책 지원은 추가하지 않는다.
 
 ## 완료 기준
@@ -22,7 +24,7 @@ v0.93.0/2072511에서 보호 GET/preview 성공, PUT HTTP422: contexts/checks �
 검증 후보와 발행0.93.0을 구분한다. Harness 후속 후보 발행·설치는 이 시험 완료와 별도다.
 실제 회사 사람승인·조직 정책·효용은 대표 기술 실행과 구분하며 DriveTree 기존 FAIL을 유지한다.
 
-영향: branch-protection-policy.mjs/verify-required-checks.mjs 및 직접 회귀·회사 정책·인수 안내.
+영향: branch-protection-policy.mjs/verify-required-checks.mjs/pr-merge.sh 및 solo 호출·직접 회귀·정책·인수 안내.
 
 ```harness-doc-sync
 {
@@ -31,6 +33,10 @@ v0.93.0/2072511에서 보호 GET/preview 성공, PUT HTTP422: contexts/checks �
     {
       "path": "docs/specs/acceptance-policy-wire.md",
       "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "plugins/harness-guard/skills/pr-review-gate/SKILL.md",
+      "reason": "live remote base snapshot contract"
     },
     {
       "path": "docs/company-policy.md",

@@ -59,6 +59,7 @@ esac; S="$GH_STATE"
 case "$args" in
   *"repo view"*) echo "owner/repo"; exit 0 ;;
   *"pr view"*"--json number"*) echo 42; exit 0 ;;
+  *"api repos/owner/repo/git/ref/heads/"*) printf '%s\n' 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'; exit 0 ;;
   *"pr view"*"--json baseRefName,baseRefOid,headRefName,headRefOid"*)
     printf '{"baseRefName":"main","baseRefOid":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","headRefName":"hotfix/example","headRefOid":"%s"}' "${FAKE_HEAD_OID:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"; exit 0 ;;
   *"pr view"*"--json baseRefName"*) echo main; exit 0 ;;

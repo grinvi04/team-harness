@@ -126,6 +126,7 @@ push/PR의 같은 이름 중복은 모든 rollup 행 성공과 최신 REST head/
 
 리뷰 snapshot의 head/base OID를 `pr-merge.sh` 또는 `solo-merge.sh`의 `--expected-head`·
 `--expected-base-oid`로 전달한다. wrapper 시작 전후 변경과 조회 실패는 재검토 대상이다.
+snapshot helper와 wrapper는 실제 원격 base ref를 읽는다. PR의 `baseRefOid`는 낡은 값일 수 있다.
 merge의 공식 `--match-head-commit`은 검증 head를 결박한다. base 재조회는 서버의 원자적 비교가 아니므로
 strict required CI와 protected base 정책이 계속 필요하다. 처리한 snapshot thread만 원래 코멘트에 답변·해결한다.
 

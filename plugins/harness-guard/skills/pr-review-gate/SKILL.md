@@ -20,7 +20,7 @@ PROCESSED_REVIEW="$REVIEW_DIR/processed.json"
 node "$REVIEW_SCOPE" snapshot --repo "$OWNER_REPO" --pr "$PR" --output "$REVIEW_SNAPSHOT"
 ```
 
-snapshot 생성 실패·후보 변경은 미확인이므로 중단한다. snapshot은 정확한 head/base OID와 당시 미해결 thread·원래 root comment ID를 저장한다.
+snapshot 생성 실패·후보 변경은 미확인이므로 중단한다. head OID·실제 원격 base ref OID(낡을 수 있는 PR 메타데이터와 구분)·당시 미해결 thread·원래 root comment ID를 저장한다.
 리뷰 중 수정·push로 후보가 바뀌면 새 snapshot에서 현재 후보를 다시 검토한다. 이전에 처리한 ID를 자동 승인하지 않고, 새 thread도 처리 목록에 자동 추가하지 않는다.
 
 AI 리뷰는 PR 단계에서 아래 도구 공통 계약으로 수행하며 **Codex native 리뷰를 우선**한다.
