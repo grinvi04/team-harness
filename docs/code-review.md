@@ -39,6 +39,8 @@ PR 자체가 검사 코드를 바꾸는 경계는 [신뢰 원본 커밋 검사 �
 보완한다. 새 `commitlint-trusted`는 기본 브랜치 코드를 사용하고 PR의 Git metadata만 읽는다.
 기존 필수 검사 교체 여부는 해당 저장소의 실제 branch protection과 연결 PR에서 확인한다.
 main 대상 release PR은 보호된 develop에서 이미 도달 가능한 이력을 제외하고 PR 고유 커밋만 검사한다.
+실제 main 범위가 있으나 고유 커밋이 없는 `release/*`의 순수 전달은 상위 검사 이력으로 판정한다.
+진짜 빈 범위·조회 실패·다른 브랜치·새 규약 위반은 거부하며 [수정 계약](specs/commitlint-gitflow-forward.md)을 따른다.
 develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, 충돌 해결처럼 main 밖에서 새로 생긴
 고유 커밋은 같은 규칙으로 검사한다. 고유 커밋이 없는 순수 역병합은 재검사 없이 통과한다.
 

@@ -64,7 +64,20 @@ jobs:
             fetch_objects develop
             DEVELOP_SHA="$(git rev-parse FETCH_HEAD)"
             unset FETCH_AUTH
-            node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA" --exclude "$DEVELOP_SHA"
+            # A genuinely empty range is still invalid. Protected exclusions are distinct.
+            FORWARD_COMMITS="$(git rev-list "$BASE_SHA..$HEAD_SHA" --)"
+            if [ -z "$FORWARD_COMMITS" ]; then
+              echo "빈 main PR commit 범위는 허용하지 않습니다." >&2
+              exit 1
+            fi
+            RELEASE_COMMITS="$(git rev-list "$BASE_SHA..$HEAD_SHA" "^$DEVELOP_SHA" --)"
+            if [ -z "$RELEASE_COMMITS" ]; then
+              [[ "$HEAD_REF" == release/* ]] || { echo "순수 develop 전달은 release 브랜치만 허용합니다." >&2; exit 1; }
+              git merge-base --is-ancestor "$HEAD_SHA" "$DEVELOP_SHA"
+              echo "보호된 develop에서 이미 검사한 release 이력만 있어 새 커밋 검사는 비적용입니다."
+            else
+              node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA" --exclude "$DEVELOP_SHA"
+            fi
           elif [[ "$HEAD_REF" == sync/backmerge-* ]]; then
             fetch_objects main
             MAIN_SHA="$(git rev-parse FETCH_HEAD)"
