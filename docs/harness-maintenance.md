@@ -196,4 +196,4 @@ release/release-check는 대상 repo AGENTS.md의 버전·changelog·생성물·
 이 저장소의 필수 live provenance와 changelog는 AGENTS.md에 명시돼 있으며 실패 기준은 유지한다.
 [현재 구현·검증](specs/skill-contract-consolidation.md)과 실제 발행 태그·설치 버전을 구분한다.
 0.93.0은 프론트 기준을 연결한 로컬 후보다. 현재 F1–F5 표본 PASS·quality74, 과거 FAIL은 보존하며 정식 릴리즈 검사는 별도다.
-[현재 통합·검증](specs/frontend-contract-integration.md)의 후속 순서에 따라 실제 회사 인수 3개 PASS 뒤 정식 발행·설치를 진행한다.
+[현재 통합·검증](specs/frontend-contract-integration.md)의 회사 사용 예상 준비와 실제 인수를 구분하고 기존 gate로 정식 발행·설치를 판정한다.

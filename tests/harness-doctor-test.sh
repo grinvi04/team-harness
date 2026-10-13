@@ -200,15 +200,15 @@ for failure in unreadable-protection malformed-protection; do
   if DOCTOR_FAIL=$failure bash "$DOCTOR" --repo "$ROOT" --components github --branches main >"$TMP/$failure.out" 2>&1; then echo "FAIL: $failure accepted"; exit 1; fi
 done
 # Malformed response values must fail even when JSON and the endpoint are readable.
-for malformed in contexts-values checks-type check-context app-null app-bool app-negative approval-negative approval-high approval-bool review-boolean flag-boolean; do
+for malformed in contexts-values checks-missing checks-type check-context app-bool app-negative approval-negative approval-high approval-bool review-boolean flag-boolean; do
   node - "$TMP/protection.json" "$malformed" <<'NODE'
 const fs = require('node:fs')
 const data = {enforce_admins:{enabled:true},required_status_checks:{strict:true,contexts:['company/quality'],checks:[{context:'company/quality',app_id:9}]},required_pull_request_reviews:{required_approving_review_count:2,dismiss_stale_reviews:true}}
 switch (process.argv[3]) {
   case 'contexts-values': data.required_status_checks.contexts = [42,null]; break
+  case 'checks-missing': delete data.required_status_checks; break
   case 'checks-type': data.required_status_checks.checks = 'invalid'; break
   case 'check-context': data.required_status_checks.checks[0].context = 42; break
-  case 'app-null': data.required_status_checks.checks[0].app_id = null; break
   case 'app-bool': data.required_status_checks.checks[0].app_id = true; break
   case 'app-negative': data.required_status_checks.checks[0].app_id = -2; break
   case 'approval-negative': data.required_pull_request_reviews.required_approving_review_count = -1; break
@@ -221,6 +221,27 @@ fs.writeFileSync(process.argv[2], JSON.stringify(data))
 NODE
   if DOCTOR_PROTECTION_JSON="$TMP/protection.json" bash "$DOCTOR" --repo "$ROOT" --components github --branches main >"$TMP/malformed-$malformed.out" 2>&1; then echo "FAIL: malformed $malformed protection accepted"; exit 1; fi
   grep -Fq 'FAIL  branch protection' "$TMP/malformed-$malformed.out"
+done
+# GET null app bindings and omitted reviews are readable, not permission to PUT/merge.
+for readable in app-null reviews-omitted both; do
+  node - "$TMP/protection.json" "$readable" <<'NODE'
+const fs = require('node:fs')
+const data = {enforce_admins:{enabled:true},required_status_checks:{strict:true,contexts:['company/quality'],checks:[{context:'company/quality',app_id:9}]},required_pull_request_reviews:{required_approving_review_count:2}}
+if (process.argv[3] !== 'reviews-omitted') data.required_status_checks.checks[0].app_id = null
+if (process.argv[3] !== 'app-null') delete data.required_pull_request_reviews
+fs.writeFileSync(process.argv[2], JSON.stringify(data))
+NODE
+  : >"$DOCTOR_TOOL_CALLS"
+  if ! out=$(DOCTOR_PROTECTION_JSON="$TMP/protection.json" CODEX_BIN="$TMP/unavailable-codex" bash "$DOCTOR" --repo "$TECH_REPO" --components github --branches main); then
+    printf '%s\n' "$out"
+    echo "FAIL: readable $readable protection rejected"
+    exit 1
+  fi
+  printf '%s\n' "$out" | grep -Fq 'PASS  branch protection (main readable; policy enforcement not evaluated)'
+  printf '%s\n' "$out" | grep -Fq 'RESULT healthy (selected configuration checks only; see probe status for native execution)'
+  [ "$(wc -l <"$DOCTOR_TOOL_CALLS" | tr -d ' ')" -eq 2 ]
+  grep -Fxq 'gh repo view --json nameWithOwner --jq .nameWithOwner' "$DOCTOR_TOOL_CALLS"
+  grep -Fxq 'gh api repos/owner/repo/branches/main/protection' "$DOCTOR_TOOL_CALLS"
 done
 printf '%s\n' '{"enforce_admins":{"enabled":false},"required_status_checks":{"strict":false,"contexts":[],"checks":[{"context":"company/quality","app_id":-1}]},"required_pull_request_reviews":{"required_approving_review_count":0,"dismiss_stale_reviews":false}}' >"$TMP/protection.json"
 out=$(DOCTOR_PROTECTION_JSON="$TMP/protection.json" bash "$DOCTOR" --repo "$ROOT" --components github --branches main)

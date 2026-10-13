@@ -2,10 +2,12 @@
 
 ## 현재 다음 단계
 
-2026-10-13 후속 요청으로 실제 회사 인수 1·2·3을 모두 완료한 뒤 0.93.0 후보를 발행·설치한다.
+2026-10-13 최신 답변: 실제 회사·참여자는 없다. 회사 사용을 예상한 검증·준비 뒤 후보 전달을 판정한다.
 아래 로컬 통합·F1–F6는 완료된 범위의 기록이며 재개 조건을 새로 만들지 않는다.
-실제 인수의 대상·참여자·결과와 발행 대기는 [현재 도입 순서](../pilots/company-adoption-2026-10-13.md)를 따른다.
-필수 FAIL/UNVERIFIED가 남으면 발행·설치를 시작하지 않는다. 기존 소비 수정 제외·보호·운영 경계를 유지한다.
+준비 결과와 향후 실제 인수의 구분은 [현재 도입 순서](../pilots/company-adoption-2026-10-13.md)를 따른다.
+실제 인수 FAIL/UNVERIFIED를 준비 PASS로 대체하지 않는다. 후보 전달의 품질·리뷰·CI·릴리즈 gate는 유지한다.
+준비의 최종 고정 변경분은 quality74/74·독립 보안/계약 검토를 통과했다. 현재 PR 리뷰는 별도 미실행이다.
+Claude `/code-review`의 인증·command 준비 후 현재 PR head/base에 리뷰·CI를 연결해야 병합할 수 있다.
 
 ## 승인·범위
 
@@ -119,8 +121,10 @@ Ruff는 동일 고정 버전의 외부 격리 venv를 사용했다. 명령·환�
 {
   "version": 1,
   "documents": [
-    {"path":"docs/company-acceptance.md","reason":"실제 인수 완료를 발행·설치의 선행 조건으로 연결"},
-    {"path":"docs/pilots/company-adoption-2026-10-13.md","reason":"사용자 변경 순서와 실제 대상·참여자 대기 조건"},
+    {"path":"docs/company-acceptance.md","reason":"회사 사용 예상 준비와 향후 실제 인수의 경계 정정"},
+    {"path":"docs/pilots/company-adoption-2026-10-13.md","reason":"최신 사용자 범위·제품 잔재 정리·후보 전달 순서"},
+    {"path":"docs/company-onboarding.md","reason":"선택형 doctor 정상 GET 지원과 읽기/쓰기 경계"},
+    {"path":"docs/specs/company-policy-api-compatibility.md","reason":"진단기 후속 결함·변경/유지 검사·진행 상태"},
     {"path":"docs/pilots/independent-user-0921.md","reason":"미발행 후보 SHA로 수행할 실제 독립 인수 절차"},
     {"path":"docs/specs/frontend-contract-integration.md","reason":"승인 범위와 현재 후보의 수용·전달 상태"},
     {"path":"docs/specs/frontend-engineering-contract.md","reason":"최초 F1–F6 기준 보존과 현재 reader 연결"},

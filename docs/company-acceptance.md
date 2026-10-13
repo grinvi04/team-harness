@@ -1,20 +1,20 @@
 # 실제 제품과 독립 팀의 인수
 
 이 문서는 회사 도입을 판정할 관찰 계약이다. 수행 결과나 연락 승인이 아니다.
-2026-10-13 사용자는 실제 회사 인수 1·2·3을 완료한 뒤 0.93.0 후보를 발행·설치하도록 순서를 바꿨다.
-현재는 인수 실행 준비 단계다. 제품 담당자가 대상·참여자·허용 환경을 정해야 실제 실행할 수 있다.
+2026-10-13 최종 답변: 실제 회사·독립 참여자는 없으며, 회사에서 쓸 것을 예상해 미리 만드는 작업이다.
+현재 범위는 회사 환경을 가정한 Harness 검증·도입 준비다. 실제 회사나 사람을 지정하도록 요구하지 않는다.
 현재 결과는 [도입 판정과 인수 순서](pilots/company-adoption-2026-10-13.md)를 따른다.
 DriveTree 실제 제품 인수는 필수 UI 실패로 **FAIL**, 회사 원격 집행·독립 팀은 **UNVERIFIED**다.
-DriveTree 수정은 이번 범위에서 제외하며 아래 인수 기준은 유지한다.
-세 인수의 필수 기준이 모두 PASS이기 전에는 후보 발행·설치를 시작하지 않는다.
+DriveTree 수정은 제외한다. 후속 결과 탐색 후 파일럿 소유 변경을 정리하고 실패 원문을 보존했다.
+실제 인수는 향후 실증 항목이다. 현재 후보 발행·설치는 기존 품질·리뷰·CI·릴리즈 gate로 판정한다.
 현재 후보의 준비·로컬 품질 PASS를 실제 제품·회사 서버·독립 참여자의 결과로 대체하지 않는다.
 
 ## 원래 요구와 현재 Harness 판정
 
 목표는 회사 개발팀의 실제 제품 업무에 필요한 Harness 자체를 개선하는 것이다.
 기술 구현·검증, 실제 제품 적용, 회사 서버 집행, 독립 사용자 효용을 나눠 판정한다.
-소비 저장소·회사·참여자 지정은 실제 인수의 조건이다. 이미 완료한 Harness 로컬 개선을 취소하지 않는다.
-새 순서에서는 실제 인수 완료가 발행·설치의 선행 조건이며, 대상 미정은 그 단계의 대기 조건이다.
+소비 저장소·회사·참여자 지정은 향후 실제 인수의 조건이며 현재 준비 작업의 선행조건이 아니다.
+앞선 실제 인수 우선 해석은 이번 정정으로 대체한다. 이미 충족한 검사와 실제 실패 기록은 유지한다.
 기준은 [승인된 여섯 묶음](specs/company-adoption.md#승인된-여섯-묶음과-검사-계약)이다.
 
 2026-10-13 원격 develop `4d62011de13cebadc43eef70abe1e62605fa2e1b`와
@@ -28,7 +28,7 @@ main/v0.92.1 `4e0d66b9fa34d273bb1ee7383846601d3fa2fd99`를 대조했다.
 | P0-policy | `branch-protection-policy.mjs`·`set-branch-protection.sh`·`repo-policy.mjs`: 기존 승인/CODEOWNERS/제한 보존, 선택 preview, 회사 solo 차단 | 보존32·회귀18 PASS, 개인 실제 GET/check PASS_SCOPED; 회사 집행 별도 |
 | P0-merge | `pr-merge.sh`·`verify-required-checks.mjs`: 수동/자동의 nonempty required·최신 head/app 성공과 drift 차단 | wrapper65·회사 경계 포함 합동58 PASS_SCOPED; 실제 회사 거부/승인 별도 |
 | P1-lifecycle | `manage-repo-assets.mjs`: 선택 적용/갱신/제거·출처/소유 hash·충돌 거부·포착한 실패 복구 | 합동58의 자산 수명주기 정상/거부/복구 PASS_SCOPED |
-| P1-options | plan 선택·회사 AGENTS·`harness-doctor.sh`: 기존 규약 유지, tech-only, 설치 버전·구성/실행 분리 | doctor 원문 PASS_SCOPED; 미실행 fresh-session은 UNVERIFIED |
+| P1-options | plan 선택·회사 AGENTS·`harness-doctor.sh`: 기존 규약 유지, tech-only, 설치 버전·구성/실행 분리 | 당시 doctor PASS_SCOPED; 후속 정상 GET 오판은 아래 연결. 미실행 fresh-session은 UNVERIFIED |
 | P1-product | `setup-local.mjs`·`check-harness.sh`: 기존 stack 판독 재사용, Spring/Vue 검사 연결·중간 실패 후속0 | checker14·stack 판독 원문 PASS_SCOPED; 제품 lock/build/통합 별도 |
 | P2-team | 이 계약·온보딩·자산 안내: 독립 역할·업무·비용·인계 관찰 기준 | 준비 자료 확인; 실제 독립 수행·비용은 UNVERIFIED이며 P2 전체 PASS가 아님 |
 
@@ -40,8 +40,19 @@ main/v0.92.1 `4e0d66b9fa34d273bb1ee7383846601d3fa2fd99`를 대조했다.
 
 유지할 것은 기존 품질·보안·검토·보호 gate다. 개인 규약 강제·기존 정책 덮어쓰기·회사 solo는
 선택형 경로에서 분리하거나 거부한다. 새 runtime·추가 stack·범용 회사 정책 엔진은 추가하지 않는다.
-이번 대조에서 원래 범위 안의 새 코드 결함은 입증되지 않았다. 진행 기록의 잘못된 대기 연결을
+초기 코드 대조 뒤 독립 준비 검토에서 [doctor 정상 GET 오판](specs/company-policy-api-compatibility.md#0930-후보-선택형-doctor의-get-호환성-연결)을 찾았다. 잘못된 대기 연결도
 정정하며, 실제 인수 FAIL1/UNVERIFIED2를 코드 미완료나 기술 PASS로 바꾸지 않는다.
+
+## 회사 사용을 예상한 준비의 완료 기준
+
+| 준비 항목 | 현재 근거와 완료 경계 |
+|---|---|
+| 정책·병합 안전성 | 정상/거부·API 판독·보존 증거, doctor 회귀/실제 GET RED→GREEN. 회사 승인·CODEOWNER는 서버 대역 범위 |
+| 기존 저장소 수명주기 | 적용·충돌 거부·복구·갱신·제거 원문과 소유·출처 계약. 실제 제품 수정은 별도 |
+| 제품 검사·프론트 판단 연결 | DriveTree 통합의 실패 보존, 현재 F1–F6 검증. 실패 제품을 고치거나 성공으로 대체하지 않음 |
+| 시니어 업무·인계 준비 | 아래 실제 인수 계약과 온보딩·양식의 읽기/실행 경로를 독립 대조. 사람 이해·시간 이득은 미측정 |
+
+현재 준비는 선언한 기술·자료 범위에서 quality74/74·독립 보안/계약 검토를 통과했다. 회사 채택·실제 집행·사람 효용은 별도다.
 
 ## 제품 검사를 연결할 때
 

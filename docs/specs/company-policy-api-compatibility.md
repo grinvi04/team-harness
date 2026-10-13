@@ -131,3 +131,16 @@ develop 포함·역병합 완료는 위 전달 PR의 연결 결과와 Git ancest
   "items": []
 }
 ```
+
+## 0.93.0 후보: 선택형 doctor의 GET 호환성 연결
+
+2026-10-13 회사 사용 예상 준비의 독립 검토에서 진단기의 정상 응답 오판을 확인했다.
+정책 helper는 0.92.1에서 null 앱 결박·생략 리뷰를 읽지만 `--components github` doctor는 거부했다.
+변경 범위는 진단기와 직접 시험·온보딩 안내다. 제품 방향은 기존 **소유** 범위의 계약 복구다.
+정상 GET 3조건(null/생략/동시)을 허용하고 조회 외 명령0을 확인한다.
+잘못된 타입·조회 실패·필수 checks 부재는 거부한다. null 결박의 정책 쓰기·병합 gate는 그대로다.
+회귀·실제 GET 모두 RED exit1 → GREEN exit0. 정책 시험18/18·전체 보호 원문 동일을 확인했다.
+고정 변경분의 전체 quality74/74와 독립 read-only Astra/medium 보안·계약 검토(추가 지적0)를 확인했다.
+원문은 `company-readiness-20261013/quality/results.json`·`repair-review.meta.json`으로 연결한다.
+PR의 필수 Claude `/code-review`는 미실행이다. 현재 미로그인·command 미설치 상태는 전달 전 해소해야 한다.
+병합·태그·설치는 아직 미실행이며 0.92.1 당시 전달·검증 기록은 위에 보존한다.

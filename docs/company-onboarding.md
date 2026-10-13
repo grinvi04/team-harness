@@ -42,6 +42,8 @@ PASS는 기록과 로컬 파일의 일치이며, 파일이 지시하는 앱 명�
 회사 정책 보존·변경 경계는 [회사 GitHub 정책 안내](company-policy.md)를 따른다.
 doctor의 `github` 선택은 인증 가능한 `gh`로 repo와 선택 브랜치의 protection 응답을 조회한다.
 조회 실패·브랜치 부재·잘못된 응답은 FAIL이다. 기존 회사 정책을 변경하지 않는다.
+0.93.0 후보는 GET의 null 앱 결박·리뷰 설정 생략을 정상 조회로 처리한다.
+null 결박의 정책 쓰기·변경 계획은 계속 차단한다. doctor PASS는 쓰기나 병합 허가가 아니다.
 
 ```bash
 bash /path/to/team-harness/scripts/harness-doctor.sh \
