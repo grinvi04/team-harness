@@ -20,13 +20,18 @@ if '/rulesets' in endpoint:
     print(json.dumps([{'id':1}] if scenario=='ruleset' else [])); sys.exit()
 if endpoint.endswith('/protection'):
     if method=='PUT':
-        value=json.loads(Path(args[args.index('--input')+1]).read_text()); (p/(branch+'.put')).write_text(json.dumps(value)); sys.exit()
+        value=json.loads(Path(args[args.index('--input')+1]).read_text());
+        checks=value['required_status_checks']
+        if 'checks' in checks and 'contexts' in checks: print('HTTP422: contexts/checks oneOf overlap',file=sys.stderr); sys.exit(1)
+        (p/(branch+'.put')).write_text(json.dumps(value)); sys.exit()
     if scenario=='query-error' or (scenario=='develop-query-error' and branch=='develop'): sys.exit(1)
     if scenario=='malformed': print('{bad'); sys.exit()
     if scenario=='error-body': print('{"message":"API error"}'); sys.exit()
     value=json.loads((p/(branch+'.json')).read_text())
     if (p/(branch+'.put')).exists():
         value=json.loads((p/(branch+'.put')).read_text()); value['required_signatures']={'enabled':True}
+        checks=value['required_status_checks']
+        if 'checks' in checks: checks['contexts']=sorted(set(x['context'] for x in checks['checks']))
         for key in list(value):
             if isinstance(value[key],bool): value[key]={'enabled':value[key]}
         if scenario=='post-drift': value['restrictions']=None

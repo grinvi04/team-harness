@@ -73,6 +73,13 @@ function policy(d) {
   return {payload:p, signatures};
 }
 const read = path => JSON.parse(fs.readFileSync(path,'utf8'));
+// GET exposes both projections; PUT accepts one representation. Keep app bindings.
+function writePolicy(payload) {
+  const p = structuredClone(payload), c = p.required_status_checks;
+  if (c?.checks?.length) delete c.contexts;
+  else if (c) delete c.checks;
+  return p;
+}
 try {
   const [mode, original, arg, approval, destination] = process.argv.slice(2);
   if (mode === 'rules') {
@@ -102,9 +109,9 @@ try {
       p.required_pull_request_reviews.required_approving_review_count = n;
       if (n > 0) p.required_pull_request_reviews.dismiss_stale_reviews = true;
     }
-    fs.writeFileSync(destination, JSON.stringify(p));
+    fs.writeFileSync(destination, JSON.stringify(writePolicy(p)));
   } else if (mode === 'verify') {
     const before = policy(read(original)), after = policy(read(arg));
-    if (!isDeepStrictEqual(after.payload, read(approval)) || before.signatures !== after.signatures) fail('postcondition policy mismatch');
+    if (!isDeepStrictEqual(writePolicy(after.payload), read(approval)) || before.signatures !== after.signatures) fail('postcondition policy mismatch');
   } else fail('unknown adapter mode');
 } catch (error) { console.error(`branch-protection-policy: ${error.message}`); process.exitCode = 1; }

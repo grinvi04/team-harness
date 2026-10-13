@@ -86,4 +86,6 @@ bash -n plugins/harness-guard/scripts/set-branch-protection.sh
 공식 필드 계약은 [GitHub branch protection REST 문서](https://docs.github.com/en/rest/branches/branch-protection#update-branch-protection)를 따른다.
 0.92.1의 회귀·기존 보존·전체 품질·독립 검토와 실제 개인 GitHub GET이 통과했다.
 발행·Codex/Claude 설치·보호 원문 보존은 위 수정 명세의 전달 결과를 따른다.
-일반 정책 PUT·회사 집행은 미확인이다. 개인 solo 자기승인 예외의 복구는 회사 승인 증거가 아니다.
+0.93.0의 신규 시험 repo PUT은 HTTP422였다. [현재 호환 수정](specs/acceptance-policy-wire.md)을 따른다.
+PUT은 앱 결박을 유지하는 checks 또는 legacy contexts 중 하나만 보내고 GET의 projection을 검증한다.
+회사 고유 정책·집행은 별도 미확인이다. 개인 solo 자기승인 예외의 복구는 회사 승인 증거가 아니다.

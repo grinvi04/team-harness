@@ -1,6 +1,7 @@
 # 회사 개발팀 선택형 도입 개선
 
 사용자 승인: 이 대화의 여섯 묶음을 선행 작업의 main·새 버전 발행 뒤 구현한다.
+추가 승인된 [실제 원격 기술 검증](acceptance-policy-wire.md)은 회사 고유 인수와 구분한다.
 현재 판정은 [도입 판정과 인수 순서](../pilots/company-adoption-2026-10-13.md)를 따른다.
 2026-10-13 [현재 코드·검증의 요구 대조](../company-acceptance.md#원래-요구와-현재-harness-판정)를 확인한다.
 구현·전달 완료 기록과 실제 인수 FAIL1/UNVERIFIED2를 구분한다. DriveTree 수정은 제외한다.
