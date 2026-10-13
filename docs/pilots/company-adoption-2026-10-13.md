@@ -6,6 +6,26 @@
 실제 회사에 재직하지 않아도 대표 환경의 기술 검증은 지금 수행한다.
 회사·참여자 지정과 소비 제품 수정은 현재 작업의 선행조건으로 요구하지 않는다.
 
+## 현재 완료 판정과 전달 결과
+
+2026-10-14 사용자 확정 기준은 혼자 또는 작은 팀의 보편적인 GitHub·PR·프로젝트 검사·CI 환경이다.
+main 중심 또는 develop 기반 Git Flow를 선택하고 기존 품질·보호를 유지한다.
+사람 승인은 채택한 저장소의 요건에 따르며 새 승인 요건을 일률적으로 강제하지 않는다.
+**Team Harness 자체 개선·대표 환경 검증·0.93.1 전달은 완료, 현재 필수 잔여 0개다.**
+
+- 구현·검증: 아래 대표 기술 15항목 PASS_SCOPED와 현재 후보 품질·독립 코드/보안 검토.
+- develop 반영: [PR553](https://github.com/grinvi04/team-harness/pull/553), 릴리즈 역병합 [PR555](https://github.com/grinvi04/team-harness/pull/555), `e00c150b9757692eaa2ab57665e423a1e6b54fba`.
+- main·태그·발행: [PR554](https://github.com/grinvi04/team-harness/pull/554), [v0.93.1 Release](https://github.com/grinvi04/team-harness/releases/tag/v0.93.1), `d785d1db1b1905b273a88ffbce8ddd6961475769`.
+- 설치: Codex·Claude0.93.1 활성, 각 설치 원본76파일 일치. 설치 성공과 실제 hook 실행은 구분한다.
+- 실제 호스트·정리: Codex 정상 명령/자동 차단·UserPromptSubmit 실행 확인, 로컬 최신화·소유 잔여 브랜치 정리 완료.
+- Claude 실제 hook: OAuth 만료로 **UNVERIFIED·보류**, 자동 재개 없음. 새 명시 요청과 유효한 인증 시에만 재개.
+
+회사 고유 정책·실제 사람 참여/효용은 현재 잔여·대기·출시 조건에서 제외한다. 별도 실증을 PASS로 주장하지 않는다.
+DriveTree UI FAIL은 과거 제품 결과로 보존하며 소비 저장소 수정은 하지 않는다.
+전달·호스트 원문은 로컬 `.runtime/delivery0931-20261013/final-receipt.json`과
+`.runtime/host0931-20261013/result.json`·`user-disposition-20261014.json`이다.
+아래는 당시 시험 후보·실패·한계를 보존한 기록이며 현재 판정은 이 절과 [요구 정본](../company-acceptance.md#보편적인-개발-환경-기준의-현재-완료-판정)을 따른다.
+
 ## 대상과 권한
 
 - 사용자 승인: 새 공개 합성 저장소 `grinvi04/team-harness-acceptance-lab`의 정책·PR·CI·병합·태그·폐기 배포.
@@ -87,9 +107,9 @@ base 비교·스레드 처리는 원자적이지 않다. 서버의 strict CI/보
 거부 PR2·3·4·10을 닫고 소유 원격 head를 삭제했다. 공개 시험 repo와 보호/실패 기록은 감사용으로 남긴다.
 기존 사용자 checkout·소비 repo·전역 설정은 변경하지 않는다.
 
-## 인수 1·2·3의 판정과 다음 순서
+## 과거 인수 1·2·3의 판정과 별도 실증
 
-| 인수 | 이번에 완료할 수 있는 범위 | 별도로 남는 실증 |
+| 과거 인수 구분 | 완료한 기술 범위 | 현재 잔여에서 제외한 별도 실증 |
 |---|---|---|
 | 1 실제 제품 연결 | 기존 제품/DB/Auth/UI 실패를 정확히 연결·보존하는 Harness 준비 | DriveTree 필수 목록·새로고침 UI FAIL. 소비 제품 수정 제외 |
 | 2 회사 정책·Git Flow | 새 원격에서 required 앱/head·거부·보호 보존·정상 Git Flow/CD 기술 검증 | 실제 사람/CODEOWNER 승인 성공, 특정 조직 rulesets/private/enterprise/fork 정책 |
