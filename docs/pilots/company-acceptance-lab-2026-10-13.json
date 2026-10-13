@@ -331,7 +331,7 @@
         "tag": "v0.2.0",
         "remoteTagSha": "da1e810fa099066e83306dbc60d316a00a6db9b6",
         "syncTreeEqualsReviewedMain": true,
-        "syncPath": "/Users/grinvi04/team-harness/.runtime/company-acceptance-lab-20261013/sync-0.2.0"
+        "syncPath": "$E/sync-0.2.0"
       },
       {
         "pr": 8,
@@ -340,7 +340,7 @@
         "tag": "v0.2.1",
         "remoteTagSha": "c5721f001fdc844d19f6a9b5183987d5e13a27fe",
         "syncTreeEqualsReviewedMain": true,
-        "syncPath": "/Users/grinvi04/team-harness/.runtime/company-acceptance-lab-20261013/sync-0.2.1"
+        "syncPath": "$E/sync-0.2.1"
       }
     ],
     "mergedPrs": [
