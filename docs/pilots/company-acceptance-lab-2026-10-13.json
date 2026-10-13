@@ -254,7 +254,7 @@
         },
         {
           "file": "remote-final-outcome.json",
-          "sha256": "012622b3785c15c268914db83b9f2885cf95498dbd9988d29d8b82007552f48e"
+          "sha256": "6fbad3f901799dc9d24c3e319533dea7df76bb7899c09a5a6c8aa5ca983ea3d8"
         }
       ]
     },
@@ -379,5 +379,6 @@
   "qaRetest": "quality-final-impact.json corrected declaration; quality-live-base-impact.json15 steps; final boundary70/81 and review40 cases",
   "finalBoundaryCandidate": "a3d0d5f7752dd10eb341bed8d92ab051b5dba3ab",
   "qaFinalRecord": "quality-final-candidate.json (current document/package inputs; first failures preserved separately)",
-  "finalIndependentReviewRecord": "acceptance-final-review.answer.md and acceptance-final-review.execution.json"
+  "finalIndependentReviewRecord": "acceptance-final-review.answer.md (first digest blocker) and acceptance-followup-review.answer.md (current correction review)",
+  "firstFinalIntegrityFailure": "final-integrity-first-failure.json: bd630ee stale digest before final PR10/five-policy report additions; preserved, corrected after raw/API comparison"
 }

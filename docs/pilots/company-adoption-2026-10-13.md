@@ -76,7 +76,8 @@ HTTP 배포는 source SHA와 artifact hash·실제 응답을 대조하고 finall
 Harness 전체 quality74단계는578def0에서 실행했다. 최초 문서 선언 실패를 보존하고 aa4e917에서 관련2단계를 재실행했다.
 실제 base 수정 뒤2e1bbb5에서 영향15단계를 재실행했다. 추가 거부 회귀는 같은 구현으로 merge70·solo81·리뷰40 사례와
 스킬 수신 실행을 통과했다. 최종 문서·bundle 입력 검사는 원문 `quality-final-candidate.json`으로 연결한다.
-첫 무효 fixture/선언 실수와 유효 RED/GREEN을 별도 기록한다.
+첫 무효 fixture/선언 실수와 유효 RED/GREEN을 별도 기록한다. 최종 정리 JSON의 낡은 hash1개도
+독립 검토와 무결성 검사에서 발견하여 원문·최종 API 대조 후 정정했다. 최초 실패는 `final-integrity-first-failure.json`에 보존한다.
 독립 reviewer의 실제 readonly/Astra/medium을 확인했으며, reviewer가 못 읽은 원격 상태는 부모의 API 증거와 구분한다.
 base 비교·스레드 처리는 원자적이지 않다. 서버의 strict CI/보호와 merge의 head 결박은 계속 필요하다.
 
