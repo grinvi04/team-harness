@@ -72,6 +72,7 @@ v0.93.0/2072511에서 보호 GET/preview 성공, PUT HTTP422: contexts/checks �
       "path": "docs/changelog/2026/v0.93.1.md",
       "reason": "current compatibility, acceptance evidence and reader preservation"
     }
-  ]
+  ],
+  "items": []
 }
 ```
