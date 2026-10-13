@@ -23,3 +23,55 @@ v0.93.0/2072511에서 보호 GET/preview 성공, PUT HTTP422: contexts/checks �
 실제 회사 사람승인·조직 정책·효용은 대표 기술 실행과 구분하며 DriveTree 기존 FAIL을 유지한다.
 
 영향: branch-protection-policy.mjs/verify-required-checks.mjs 및 직접 회귀·회사 정책·인수 안내.
+
+```harness-doc-sync
+{
+  "version": 1,
+  "documents": [
+    {
+      "path": "docs/specs/acceptance-policy-wire.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "docs/company-policy.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "docs/code-review.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "docs/company-acceptance.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "docs/pilots/company-adoption-2026-10-13.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "docs/pilots/company-adoption-before-remote-lab-2026-10-13.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "docs/specs/company-adoption.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "README.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "docs/changelog/releases.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    },
+    {
+      "path": "docs/changelog/2026/v0.93.1.md",
+      "reason": "current compatibility, acceptance evidence and reader preservation"
+    }
+  ]
+}
+```
