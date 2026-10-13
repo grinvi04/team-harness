@@ -59,7 +59,9 @@ esac; S="$GH_STATE"
 case "$args" in
   *"repo view"*) echo "owner/repo"; exit 0 ;;
   *"pr view"*"--json number"*) echo 42; exit 0 ;;
-  *"api repos/owner/repo/git/ref/heads/"*) printf '%s\n' 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'; exit 0 ;;
+  *"api repos/owner/repo/git/ref/heads/"*)
+    [ "${FAKE_BASE_FAIL:-0}" = 0 ] || exit 1
+    printf '%s\n' "${FAKE_BASE_OID:-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb}"; exit 0 ;;
   *"pr view"*"--json baseRefName,baseRefOid,headRefName,headRefOid"*)
     printf '{"baseRefName":"main","baseRefOid":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","headRefName":"hotfix/example","headRefOid":"%s"}' "${FAKE_HEAD_OID:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"; exit 0 ;;
   *"pr view"*"--json baseRefName"*) echo main; exit 0 ;;
@@ -251,6 +253,14 @@ else echo 'FAIL: stale solo candidate opened exception'; FAIL=$((FAIL+1)); fi
 FAKE_REQUIRED_ROLLUP='[{"name":"quality","bucket":"pass"}]' run_e2e 'exit 0' '{"required_approving_review_count":1,"unknown_rule":true}'
 ok "$(grep -c '^DELETE' "$L")" 0 'unsupported review policy stops before DELETE'
 [ "$RC" -ne 0 ] && { echo 'PASS: unsupported review policy refused'; PASS=$((PASS+1)); } || { echo 'FAIL: unsupported review policy allowed'; FAIL=$((FAIL+1)); }
+
+# A live-ref failure cannot open the protection exception window.
+FAKE_BASE_FAIL=1 run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^DELETE' "$L")" 0 'live base lookup failure stops before DELETE'
+[ "$RC" -ne 0 ] && { echo 'PASS: live base query failure refused'; PASS=$((PASS+1)); } || { echo 'FAIL: live base query failure allowed'; FAIL=$((FAIL+1)); }
+FAKE_BASE_OID=not-a-commit run_e2e 'exit 0' "$FULL"
+ok "$(grep -c '^DELETE' "$L")" 0 'malformed live base stops before DELETE'
+[ "$RC" -ne 0 ] && { echo 'PASS: malformed live base refused'; PASS=$((PASS+1)); } || { echo 'FAIL: malformed live base allowed'; FAIL=$((FAIL+1)); }
 
 # Explicit nullable policy is the only absence case; malformed schemas stop in both parsers.
 for parser in python jq; do
