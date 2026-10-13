@@ -5,6 +5,7 @@
 판정은 **소유**다. PR이 수정한 workflow·validator로 자기 커밋을 검사하는 경계를 보완한다.
 기존 메시지 문법, 실제 parent metadata에 따른 merge 허용, main의 develop 이력 제외,
 develop 전체 검사, 순수 main 역병합 제외와 충돌 해결 커밋 검사를 유지한다.
+순차 release의 고유 커밋 0개와 진짜 빈 main 범위는 [현재 구분 계약](commitlint-gitflow-forward.md)을 따른다.
 별도 서버·GitHub App·실행 엔진은 추가하지 않는다.
 
 `commitlint-trusted`는 `pull_request_target`으로 기본 브랜치의 workflow와 `github.sha`에 고정한

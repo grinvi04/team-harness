@@ -11,6 +11,7 @@ mkdir -p "$TMP/trace-bin"
 cat > "$TMP/trace-bin/git" <<'TRACE'
 #!/usr/bin/env bash
 [ "${1:-}" != fetch ] || printf 'fetch\n' >> "$TRUSTED_CALL_LOG"
+[ "${1:-}:${TRUSTED_REV_LIST_FAIL:-0}" != rev-list:1 ] || exit 128
 exec "$REAL_GIT" "$@"
 TRACE
 cat > "$TMP/trace-bin/node" <<'TRACE'
@@ -131,7 +132,25 @@ run_case 'merged main edited after backmerge is non-applicable' 0 main release/v
 run_case 'merged develop edited is non-applicable' 0 develop candidate "$HEAD_SHA" 1 closed true edited no-inspection
 run_case 'merged backmerge edited is non-applicable' 0 develop sync/backmerge-v1.0.0 "$HEAD_SHA" 1 closed true edited no-inspection
 run_case 'merged edited needs no archived PR objects' 0 main release/v1.0.0 "$HEAD_SHA" 2 closed true edited no-inspection
-run_case 'open main edited empty range still rejected' 1 main release/v1.0.0 "$HEAD_SHA" 1 open false edited
+# A nonempty release already checked on protected develop is Git Flow's forward path.
+run_case 'pure develop forward opened accepted' 0 main release/docs-guide "$HEAD_SHA" 1 open false opened
+run_case 'pure develop forward edited accepted' 0 main release/v1.0.0 "$HEAD_SHA" 1 open false edited
+run_case 'pure develop forward reopened accepted' 0 main release/v1.0.0 "$HEAD_SHA" 1 open false reopened
+test -s "$TMP/calls.log"
+test "$(grep -c '^fetch$' "$TMP/calls.log")" -eq 3
+test "$(grep -c '^validator$' "$TMP/calls.log" || true)" -eq 0
+run_case 'non-release pure develop forward rejected' 1 main codex/premature "$HEAD_SHA"
+export TRUSTED_REV_LIST_FAIL=1
+run_case 'pure forward Git range read failure rejected' 128 main release/docs-guide "$HEAD_SHA"
+unset TRUSTED_REV_LIST_FAIL
+
+# Keep the genuinely empty range refusal; do not confuse protected exclusions with it.
+git -C "$TMP/source" update-ref refs/pull/1/head "$BASE_SHA"
+run_case 'open main edited genuinely empty range rejected' 1 main release/v1.0.0 "$BASE_SHA" 1 open false edited
+git -C "$TMP/source" update-ref refs/pull/1/head "$HEAD_SHA"
+git -C "$TMP/source" update-ref -d refs/heads/develop
+run_case 'pure forward missing develop rejected' 128 main release/docs-guide "$HEAD_SHA"
+git -C "$TMP/source" update-ref refs/heads/develop "$HEAD_SHA"
 
 git -C "$TMP/source" update-ref refs/heads/develop "$BASE_SHA"
 run_case 'open main edited still inspected' 0 main release/v1.0.0 "$HEAD_SHA" 1 open false edited
@@ -156,6 +175,7 @@ git -C "$TMP/source" -c core.hooksPath=/dev/null commit --allow-empty -qm 'inval
 HEAD_SHA="$(git -C "$TMP/source" rev-parse HEAD)"
 git -C "$TMP/source" update-ref refs/pull/1/head "$HEAD_SHA"
 run_case 'open edited invalid commit still rejected' 1 develop candidate "$HEAD_SHA" 1 open false edited
+run_case 'main release unique invalid commit rejected' 1 main release/docs-guide "$HEAD_SHA" 1 open false edited
 
 # Lifecycle signals must be bound to GitHub event metadata, never PR prose.
 ruby -ryaml -e '

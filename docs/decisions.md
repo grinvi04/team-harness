@@ -15,6 +15,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
+| **순차 Git Flow·순수 develop 전달** — 문서도 선행 병합 SHA에서 release 전달·main 이후 역병합을 확인한다. 이미 검사한 develop 이력만 있는 release는 진짜 빈 범위와 구분하며 trusted 경계·고유 커밋·조회 실패 차단을 유지한다. 제품 방향은 소유다. | 2026-10-14 | code-review.md, specs/commitlint-gitflow-forward.md | AGENTS.md, commitlint workflow·template·repo-sync digest |
 | **도구 공통 PR 리뷰·Codex 우선** — 공식 native 리뷰에 현재 head/base·원래 요구·직접 소비 계약·독립 읽기 전용 검토·증거를 연결한다. Claude 전용 의존·과금 단정을 제거하고 실행 미확인·후보 변경은 차단한다. 사람 승인·CI·보호·래퍼는 유지한다. 제품 방향은 연결이다. | 2026-10-13 | code-review.md, pr-review-gate skill | solo-merge skill, Codex wrapper, harness-setup.md, onboarding.md, new-repo.sh |
 | **프론트 설계 기준 연결** — 설치된 공통 계약에 핵심 판단을 두고 기존 설계·QA 기록을 재사용한다. 상세 안내와 제품 결정을 구분한다. | 2026-10-13 | frontend-engineering.md, specs/frontend-engineering-contract.md | project-contract.md, frontend-design-standards.md, templates/AGENTS.md |
 | **라우팅 후보를 짧은 명시 요청에 한정** — 일반·복합 요청의 의미와 이어가기는 native agent에 위임한다. 구현 요청을 열린 PR 때문에 병합 후보로 바꾸지 않으며 detached·작업 브랜치의 과거 spec으로 기능 추가를 제안하지 않는다. codex 작업 브랜치는 명시 병합 후보에 포함한다. 기존 후보 메시지·JSON·검증 재사용·보호 게이트는 유지한다. 제품 방향은 연결이다. 이전 상태만으로 이어가기 후보를 선택하던 부분을 대체한다. | 2026-10-11 | specs/workflow-routing-scope.md | developer-workflow.md, ai-collaboration.md, harness-plugin.md, README.md, route-intent.mjs |
