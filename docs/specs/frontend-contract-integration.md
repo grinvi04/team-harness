@@ -7,7 +7,7 @@
 준비 결과와 향후 실제 인수의 구분은 [현재 도입 순서](../pilots/company-adoption-2026-10-13.md)를 따른다.
 실제 인수 FAIL/UNVERIFIED를 준비 PASS로 대체하지 않는다. 후보 전달의 품질·리뷰·CI·릴리즈 gate는 유지한다.
 준비의 고정 변경분957dcf4는 quality74/74·독립 보안/계약 검토를 통과했다.
-후속 후보·현재 리뷰/CI·병합 여부는 [PR550](https://github.com/grinvi04/team-harness/pull/550)의 원본에서 확인한다.
+후속 후보·현재 리뷰/CI·develop/main 병합·태그·설치 상태는 [PR550 전달 결과](https://github.com/grinvi04/team-harness/pull/550)의 원본에서 확인한다.
 2026-10-13 사용자가 도구 공통 리뷰 계약·Codex 우선을 승인했다. Claude 설치/로그인은 대기조건이 아니다.
 제품 방향은 **연결**이다. 공식 리뷰에 후보·범위·증거를 연결하며 새 리뷰 엔진·전역 설정을 만들지 않는다.
 수정 후 현재 PR head/base의 독립 Codex 리뷰·CI를 확인한다. 실행 오류/후보 변경은 UNVERIFIED다.
@@ -24,7 +24,7 @@
 원래 구현 후보는 `b8d2c79da97c7f1029332479ebf77a8122e3c7b4`다.
 
 당시 로컬 통합 범위에서는 소비 저장소 수정·실제 회사 인수·전역 설정·PR/push/병합/태그/설치/배포를 제외했다.
-현재 발행·설치 0.92.1과 새 로컬 0.93.0 후보를 구분한다.
+당시 발행·설치0.92.1과 로컬0.93.0 후보를 구분했다. 후속 전달 상태는 위 PR 원본을 따른다.
 
 ## 작업 순서·완료 기준
 
@@ -37,7 +37,7 @@
 
 현재 표본은 원래 F1–F5를 충족했다. 과거 F1 FAIL을 지우거나 원인 해결로 승격하지 않는다.
 전체 quality와 source package는 통과했다. 최종 보고-only HEAD의 문서·archive 확인을 인계 증거로 연결한다.
-새 원격 delivery는 실행하지 않았다. 현재 수용은 지정 표본·로컬 구현 검증 범위다.
+당시 로컬 단계에서는 원격 delivery를 실행하지 않았다. 아래 수용은 지정 표본·로컬 구현 검증 범위다.
 
 ## F1 진단과 중단 기준
 
@@ -118,7 +118,7 @@ Ruff는 동일 고정 버전의 외부 격리 venv를 사용했다. 명령·환�
 최종 문서 기록만 달라진 후보의 runtime/test/CI 동일성을 대조하고 해당 문서 검사를 수행한다.
 최종 source bundle의 정확한 후보는 `artifacts/final/bundle/RELEASE-MANIFEST.json`과 Git HEAD에서 확인한다.
 같은 현재 증거 루트의 `final-verification.json`에서 문서·archive·독립 문서 대조·지도 결과를 확인한다.
-최종 인계 전 이 확인이 필수다. 정식 release-check·PR·태그·설치는 실행하지 않았으며 릴리즈 GO로 해석하지 않는다.
+당시 인계 전 이 확인은 필수였다. 로컬 기록의 release-check·PR·태그·설치 미실행은 후속 전달 결과와 구분한다.
 공통 계약·frontend 안내·디자인 표준·소비 AGENTS·README·decisions·harness-maintenance와
 두 manifest·CHANGELOG를 함께 대조한다. 회사 인수의 원래 기준·미확인 상태는 변경하지 않는다.
 
