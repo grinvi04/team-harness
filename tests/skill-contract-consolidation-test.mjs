@@ -1,7 +1,7 @@
 // Reader integrity, known unsafe instructions and the published shell preflight example.
 // Real agent behavior and semantic completeness need independent scenario review.
 import assert from 'node:assert/strict'
-import { readFileSync, existsSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs'
+import { readFileSync, existsSync, mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -93,6 +93,28 @@ check('Codex review example refuses failed candidate reads before invoking revie
       assert.equal(result.status, status, `${scenario}: ${result.stderr}`)
       assert.equal(result.stdout.includes('REVIEW_INVOKED'), called, scenario)
     }
+    // Real Git must expose untracked source even when local configuration hides it.
+    const checkout = path.join(dir, 'checkout')
+    mkdirSync(checkout)
+    const env = { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1', REVIEW_SNAPSHOT: snapshot }
+    const git = (args) => {
+      const result = spawnSync('git', ['-C', checkout, ...args], { env, encoding: 'utf8' })
+      assert.equal(result.status, 0, result.stderr)
+      return result.stdout.trim()
+    }
+    git(['init', '--quiet'])
+    git(['-c', 'user.name=Harness Fixture', '-c', 'user.email=harness@example.invalid',
+      '-c', 'core.hooksPath=/dev/null', 'commit', '--allow-empty', '--quiet', '-m', 'fixture'])
+    const head = git(['rev-parse', 'HEAD'])
+    writeFileSync(snapshot, JSON.stringify({ candidate: { headRefOid: head, baseRefOid: head } }))
+    git(['config', 'status.showUntrackedFiles', 'no'])
+    writeFileSync(path.join(checkout, 'untracked-source.txt'), 'uncommitted source\n')
+    assert.equal(git(['status', '--porcelain']), '', 'fixture must reproduce the hidden untracked file')
+    const hidden = spawnSync('bash', ['-c', `codex() { printf '%s\\n' REVIEW_INVOKED; }\n${example}`], {
+      cwd: checkout, env, encoding: 'utf8',
+    })
+    assert.equal(hidden.status, 1, `hidden untracked source: ${hidden.stderr}`)
+    assert.equal(hidden.stdout.includes('REVIEW_INVOKED'), false)
   } finally { rmSync(dir, { recursive: true, force: true }) }
 })
 assert.equal(failures, 0, `${failures} structural contract regressions`)

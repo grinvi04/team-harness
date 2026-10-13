@@ -48,7 +48,7 @@ Codex 예시(리뷰 checkout은 snapshot head와 같고 추적/미추적 변경�
 REVIEW_HEAD=$(node -e 'console.log(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).candidate.headRefOid)' "$REVIEW_SNAPSHOT") || exit 1
 REVIEW_BASE_OID=$(node -e 'console.log(JSON.parse(require("node:fs").readFileSync(process.argv[1], "utf8")).candidate.baseRefOid)' "$REVIEW_SNAPSHOT") || exit 1
 REVIEW_CHECKOUT_HEAD=$(git rev-parse HEAD) || exit 1
-REVIEW_CHECKOUT_STATUS=$(git status --porcelain) || exit 1
+REVIEW_CHECKOUT_STATUS=$(git status --porcelain --untracked-files=all) || exit 1
 test "$REVIEW_CHECKOUT_HEAD" = "$REVIEW_HEAD" && test -z "$REVIEW_CHECKOUT_STATUS" || exit 1
 codex -s read-only -a never review --base "$REVIEW_BASE_OID"
 ```
