@@ -45,17 +45,20 @@ stderr sandbox 경고의 경로는 unknown이다. 도구 출력에는 Python 임
 
 사용자의 재개 요청으로 기존 로그 조회와 공식 process-local 관찰 준비를 수행했다.
 실패 thread ID의 로컬 state/log 조회는 0행이다. 조회 범위의 부재이며 요청 자체의 부재 증명은 아니다.
-로컬 HTTP 수집기·설정 파싱을 확인하고, 같은 합성 prompt로 관찰 목적의 모델 실행을 1회 했다.
+로컬 HTTP 수집기·설정 파싱과 단독 1회로 관찰 경로를 확인했다.
+이 새 관찰 근거를 바탕으로 원래 동시 실행2 조건을 한 쌍만 비교했다. 진단은 총3회, 새 F1 수용 시험은0회다.
 [공식 OTLP 설정](https://learn.chatgpt.com/docs/config-file/config-advanced)과
 [0.161.0 agent-response 옵션](https://github.com/openai/codex/blob/979011409de0a60b52f179721948e65531d26144/codex-rs/otel/src/agent_response.rs#L44)을 사용했다.
 실제 CLI0.161.0·Sol6.1/high·read-only·approval never와 완료 메시지 관찰을 확인했다.
-최종 2,894 UTF-8 bytes는 core 완료 ResponseItem·CLI JSONL·답변 파일이 같고 truncation=false다.
-이 표본의 core 이후 출력 손실은 관찰되지 않았다. wire raw payload나 과거 실패의 인과는 확인하지 못했다.
-원래 동시 실행2와 이번 단독 실행1도 구분한다. 원래 실패는 보존하며 F1 재수용 표본으로 세지 않는다.
+최종 2,894/2,832/3,371 UTF-8 bytes는 각각 core 완료 ResponseItem·CLI JSONL·파일이 같고 truncation=false다.
+각 실행의 conversation 연결과 서로 다른 ID를 확인했다. core 이후 손실·완료 오류는 관찰되지 않았다.
+wire raw payload나 과거 인과는 미확인이다. 원래 model/effort도 미확인이므로 동시성 결함의 부재 증명은 아니다.
+관찰한 세 답변은 변경안을 포함하지만 원래 실패는 보존하며 F1 재수용 표본으로 세지 않는다.
 loopback 수신 후 파일 저장 전에 account/email 속성을 가리고 prompt는 redacted로 유지했다.
 collector 종료와 설정·fixture·HEAD 불변을 확인했다.
 관찰 준비는 완료했지만 원인에 맞는 Harness 수정 근거는 없다. F1 FAIL·전체 NO-GO를 유지한다.
-실행과 비교 증거는 기존 `.runtime/frontend-resume-20261013/f1-observation-1/`에 보존한다.
+실행 원문은 기존 `.runtime/frontend-resume-20261013/f1-observation-1/`부터 `-3/`까지 보존한다.
+종합 비교는 같은 디렉터리의 `f1-observation-comparison.json`이다. 정한 한 쌍 뒤 추가 성공 반복은 하지 않는다.
 
 ## 기존 증거의 정확한 재사용 경계
 

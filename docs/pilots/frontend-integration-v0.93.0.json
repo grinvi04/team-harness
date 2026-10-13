@@ -13,7 +13,7 @@
     "F5": "PASS_SCOPED: original source-identical local wrapper reads; global install excluded",
     "F6": "PASS_SCOPED: local quality74, source/package checks and independent source review; F1 still blocks total acceptance"
   },
-  "newModelReruns": 1,
+  "newModelReruns": 3,
   "causeBasedRuntimeFix": false,
   "remoteDelivery": "NOT_EXECUTED",
   "installation": "0.92.1 unchanged",
@@ -63,9 +63,9 @@
   },
   "resumeCondition": "New original request finish/stream or relevant sandbox-denial evidence that supports a cause-based correction; identical-input successes do not erase failure",
   "releaseReadiness": "NO_GO: mandatory F1 FAIL",
-  "modelExecutionClassification": "one observation diagnostic;0 new F1 acceptance reruns",
+  "modelExecutionClassification": "three bounded observation diagnostics (one coverage call plus one concurrency2 pair);0 new F1 acceptance reruns",
   "diagnosticResumption": {
-    "checkedAt": "2026-10-12T23:48:08.855268+00:00",
+    "checkedAt": "2026-10-12T23:57:39.823467+00:00",
     "preparation": "PASS_SCOPED: loopback collector and installed config parsing",
     "historicalLookup": "target thread not found in queried local state/log stores; not proof of nonexistent request",
     "actualRuntime": {
@@ -76,15 +76,27 @@
       "approval_policy": "never"
     },
     "observation": "core completed ResponseItem to CLI boundary; not raw wire payload",
-    "coreResponseBytes": 2894,
+    "coreResponseBytes": [
+      2894,
+      2832,
+      3371
+    ],
     "coreResponseTruncated": false,
     "coreEqualsJsonlAndAnswer": true,
     "originalConcurrency": 2,
-    "diagnosticConcurrency": 1,
+    "diagnosticConcurrency": [
+      1,
+      2,
+      2
+    ],
     "originalFailureCause": "UNVERIFIED",
     "newF1AcceptanceExecutions": 0,
     "globalConfigFixtureAndHeadUnchanged": true,
     "collectorClosed": true,
-    "causeBasedHarnessFixJustified": false
+    "causeBasedHarnessFixJustified": false,
+    "diagnosticExecutions": 3,
+    "conversationsIndividuallyMappedAndDistinct": true,
+    "concurrencyComparison": "No relevant completion/output anomaly observed in one pair; not proof of no concurrency defect",
+    "stopCondition": "One coverage call and one pair; no success-only repeats"
   }
 }
