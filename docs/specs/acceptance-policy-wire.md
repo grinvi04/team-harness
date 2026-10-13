@@ -26,6 +26,14 @@ v0.93.0/2072511에서 보호 GET/preview 성공, PUT HTTP422: contexts/checks �
 
 영향: branch-protection-policy.mjs/verify-required-checks.mjs/pr-merge.sh 및 solo 호출·직접 회귀·정책·인수 안내.
 
+## 0.93.1 전달 승인과 단계 판정
+
+사용자가 PR→develop/main→태그 발행·설치를 승인했다. 시험 당시 로컬 후보04f0f89와 이후 전달 효과는 구분한다.
+전체 품질·현재 PR head/live base 독립 리뷰·필수CI·live 외부 provenance를 유지한다.
+개인 solo는 자격 확인 뒤 main 승인요건만 래퍼로 일시 해제·전체 보호 복구한다. 회사 경로는 변경하지 않는다.
+실제 사람·회사 고유 정책 인수와 DriveTree UI FAIL은 별도다. 이번 전달로 성공으로 바꾸지 않는다.
+전달의 최신 효과는 관련 PR·v0.93.1 원격 태그/Release·프로젝트 .project-map의 현재 증거를 따른다.
+
 ```harness-doc-sync
 {
   "version": 1,
