@@ -32,7 +32,9 @@ v0.93.0/2072511에서 보호 GET/preview 성공, PUT HTTP422: contexts/checks �
 전체 품질·현재 PR head/live base 독립 리뷰·필수CI·live 외부 provenance를 유지한다.
 개인 solo는 자격 확인 뒤 main 승인요건만 래퍼로 일시 해제·전체 보호 복구한다. 회사 경로는 변경하지 않는다.
 실제 사람·회사 고유 정책 인수와 DriveTree UI FAIL은 별도다. 이번 전달로 성공으로 바꾸지 않는다.
-전달의 최신 효과는 관련 PR·v0.93.1 원격 태그/Release·프로젝트 .project-map의 현재 증거를 따른다.
+develop 변경은 [PR553](https://github.com/grinvi04/team-harness/pull/553)에 병합됐다. main·태그·설치의 최신 효과는
+정식 릴리즈 PR·[v0.93.1 원격 원본](https://github.com/grinvi04/team-harness/tree/v0.93.1)·Release·프로젝트 지도에서 판정한다.
+시험 종료 당시 로컬 후보와 이후 전달을 구분하며, 미실행 단계의 완료를 이 스펙에서 미리 단언하지 않는다.
 전달 사전검사368926a에서 공개 증거 경로2곳과 공통 리뷰 스킬의 낡은 hash를 발견했다. 원문 실패를 보존하며
 공개 경로는 `$E`로 표기하고 승인된 공통 스킬 한 행의 checksum만 현행화한다. 검사·차단 기준은 변경하지 않는다.
 
