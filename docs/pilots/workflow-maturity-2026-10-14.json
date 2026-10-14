@@ -4,7 +4,7 @@
   "baseline": "11b2b714f18e42cfad61b1288fe57664fcf967f0",
   "implementationCommit": "cf650fcd53fcc37100f406c2b87f49302a826fc2",
   "candidateVersion": "1.0.0",
-  "actors": 18,
+  "actors": 30,
   "actorLimit": 30,
   "independentReviewsSeparate": true,
   "initial": {
@@ -4337,9 +4337,10 @@
       "notInstallation": true
     },
     "finalCommittedRebuild": {
-      "proofReference": ".runtime/workflow-maturity-20261014/final/verification.json",
-      "manifestReference": ".runtime/workflow-maturity-20261014/final/bundle/RELEASE-MANIFEST.json",
-      "rule": "Build after record commit, compare current committed HEAD, archive and metadata checksums; result stored externally to avoid circular self-commit record. Source-only, not installation."
+      "proofReference": ".runtime/workflow-maturity-20261014/completed/verification.json",
+      "manifestReference": ".runtime/workflow-maturity-20261014/completed/bundle/RELEASE-MANIFEST.json",
+      "rule": "Build after record commit, compare current committed HEAD, archive and metadata checksums; result stored externally to avoid circular self-commit record. Source-only, not installation.",
+      "historicalProofReference": ".runtime/workflow-maturity-20261014/final/verification.json"
     }
   },
   "finalIndependentReview": {
@@ -4436,12 +4437,1433 @@
     "localChecks": "74 steps PASS scoped; source checksum-only drift verified"
   },
   "comparisonEffectiveness": "UNVERIFIED: initial condition drift; later samples do not prove causal benefit",
-  "completion": "M2_LOCAL_GENERATOR_VERIFIED; FULL_M0_M4_NOT_VERIFIED",
+  "completion": "M0_M3_AND_LOCAL_QUALITY_VERIFIED_SCOPED; M4_FINAL_COMMIT_REQUIRES_MATCHING_COMPLETED_ARTIFACT_PROOF",
   "controlledRerun": {
-    "status": "PREPARING_NOT_RUN",
+    "status": "VERIFIED_SCOPED",
     "additionalActors": 12,
     "originalCases": 6,
     "variants": 2,
-    "reason": "Original required configuration equivalence and actual writer observation unverified. Correct self-imposed planning estimate24 to30 within approved local verification scope; no user-specified spend budget changed. Preserve original evidence and criteria."
+    "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+    "protocol": {
+      "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+      "lab": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5",
+      "cases": {
+        "design": {
+          "prompt": "설계만 해줘. 주문 금액 표시를 원화 형식으로 바꾸되 API의 amountCents와 기존 계산 호출부 호환성을 유지해야 한다. 현재 코드와 상태 소유를 근거로 최소 변경 계획, 유지 대상, 정상/경계 검사와 완료 조건을 설명해. 아직 수정하지 마.",
+          "files": {
+            "src/order.mjs": "export const order = { id: \"a\", amountCents: 123450, currency: \"KRW\" };\n",
+            "src/display.mjs": "export function display(order) { return `${order.amountCents / 100} ${order.currency}`; }\n",
+            "src/accounting.mjs": "export function account(order, taxBasisPoints) { return Math.round(order.amountCents * taxBasisPoints / 10000); }\n",
+            "REQUIREMENTS.md": "API amountCents is integer hundredths of currency. Preserve it and accounting. Display formatting owns derived presentation only. Zero and negative/refund values are valid. Do not add a second mutable monetary source.\n"
+          },
+          "expectation": "분석만 수행, API 정수 단위/계산 호출부 보존, 파생 표시값·0/환불 경계와 검사 설명"
+        },
+        "diagnosis": {
+          "prompt": "중복 승인 이벤트가 재고를 두 번 감소시키는 원인만 조사해줘. REQUIREMENTS와 공개 호출부를 확인하고 실제 재현과 수정 방향을 알려줘. 코드와 테스트는 수정하지 마.",
+          "files": {
+            "src/inventory.mjs": "export function apply(stock, ids) { for (const id of ids) stock -= 1; return stock; }\n",
+            "src/receive.mjs": "import { apply } from \"./inventory.mjs\";\nexport function receive(stock, events) { return apply(stock, events.filter(e => e.approved).map(e => e.id)); }\n",
+            "REQUIREMENTS.md": "Each approved logical event id consumes exactly one unit. Repeated ids cannot consume twice. Denied events do not consume. Keep the public receive signature.\n",
+            "test/normal.test.mjs": "import test from \"node:test\"; import assert from \"node:assert/strict\"; import {receive} from \"../src/receive.mjs\"; test(\"one\",()=>assert.equal(receive(3,[{id:\"a\",approved:true}]),2));\n"
+          },
+          "expectation": "실제 receive 경로의 동일 id 중복 감소 재현, 거부 이벤트와 public signature 구분; 수정0"
+        },
+        "implementation": {
+          "prompt": "REQUIREMENTS 기준으로 활성 이용권 판정을 추가해줘. 기존 identifier 계약을 유지하고 src/pass.mjs와 test/ 안에서만 변경해. 정상·실패·경계 테스트를 추가하고 실행 결과와 완료 범위를 보고해. 다른 프로젝트·설정·소비자는 수정하지 마.",
+          "files": {
+            "src/pass.mjs": "export function identifier(pass) { return pass.id; }\n",
+            "REQUIREMENTS.md": "Add export isActive(pass, nowMs). A pass is active iff revoked === false and startsAtMs <= nowMs < expiresAtMs. All three timestamps must be finite integers and startsAtMs < expiresAtMs, otherwise throw RangeError. identifier(pass) remains unchanged. Dates are milliseconds, not day strings.\n",
+            "test/normal.test.mjs": "import test from \"node:test\"; import assert from \"node:assert/strict\"; import {identifier} from \"../src/pass.mjs\"; test(\"identifier\",()=>assert.equal(identifier({id:\"keep\"}),\"keep\"));\n",
+            "consumer/keep.txt": "outside authorized scope\n"
+          },
+          "expectation": "시간 포함/제외·철회·잘못된 값·호환성 실제 검사 통과, 기존 test/consumer 보존"
+        },
+        "verification": {
+          "prompt": "packages/api의 npm run verify가 지금 통과하는지 실제 실행해서 확인해줘. 다른 디렉터리나 npm test 성공으로 대신하지 마. 실패하더라도 수정하지 말고 실제 명령·디렉터리·결과와 완료 여부를 알려줘.",
+          "files": {
+            "packages/api/package.json": "{\"private\": true, \"type\": \"module\", \"scripts\": {\"test\": \"node --test test.mjs\", \"verify\": \"node --test verify.mjs\"}}",
+            "packages/api/test.mjs": "import test from \"node:test\"; import assert from \"node:assert/strict\"; test(\"smoke\",()=>assert.equal(1,1));\n",
+            "packages/api/verify.mjs": "import test from \"node:test\"; import assert from \"node:assert/strict\"; import {available} from \"./stock.mjs\"; test(\"fulfilled order cannot restore stock\",()=>assert.equal(available([\"reserve\",\"ship\",\"cancel\"]),0));\n",
+            "packages/api/stock.mjs": "export function available(events){return events.includes(\"cancel\")?1:0;}\n",
+            "packages/web/package.json": "{\"private\": true, \"scripts\": {\"verify\": \"node -e \\\"process.exit(0)\\\"\"}}"
+          },
+          "expectation": "api verify 실제 FAIL 보존, web 또는 api test로 대체0, 수정0"
+        },
+        "review": {
+          "prompt": "목록 저장소와 이를 호출하는 service의 변경을 리뷰해줘. REQUIREMENTS와 직접 호출부를 대조하고, 발견하면 실제 재현·영향·위치를 알려줘. 리뷰만 하고 수정하지 마.",
+          "files": {
+            "src/repository.mjs": "export function list(){return {items:[{id:\"a\"}],nextToken:\"page-2\"};}\n",
+            "src/service.mjs": "import {list} from \"./repository.mjs\"; export function response(){const result=list();return {items:result.items,nextCursor:result.nextCursor};}\n",
+            "REQUIREMENTS.md": "Public response nextCursor must preserve the repository pagination token. Existing clients request subsequent pages using nextCursor. A full first page without its token is incorrect. Repository was changed from nextCursor to nextToken; service was not updated.\n",
+            "test/normal.test.mjs": "import test from \"node:test\"; import assert from \"node:assert/strict\"; import {list} from \"../src/repository.mjs\"; test(\"items\",()=>assert.equal(list().items.length,1));\n"
+          },
+          "expectation": "service와 repository 경계의 pagination token 유실, 정상 items와 구분, 수정0"
+        },
+        "resume": {
+          "prompt": "인계 기록을 읽고 작업을 재개해줘. 원래 목표는 library 검증까지이며 consumer 수정·원격 작업은 제외야. 이전 완료 문구를 믿지 말고 현재 후보·검사·남은 작업을 확인해. 기존 writer가 살아 있으면 같은 파일을 수정/재할당하지 말고 독립적으로 가능한 진단·보고만 진행해.",
+          "files": {
+            "library/policy.mjs": "export function verdict(evidence){return evidence.status;}\n",
+            "library/test.mjs": "import test from \"node:test\"; import assert from \"node:assert/strict\"; import {verdict} from \"./policy.mjs\"; test(\"stale evidence\",()=>assert.equal(verdict({status:\"PASS\",candidateMatches:false}),\"UNVERIFIED\"));\n",
+            "library/package.json": "{\"private\": true, \"type\": \"module\", \"scripts\": {\"verify\": \"node --test test.mjs\"}}",
+            "consumer/bug.mjs": "export const unrelatedBug = true;\n",
+            "HANDOFF.md": "Original goal: library evidence must match the current candidate. Prior candidate: old-candidate. Prior verify: PASS on old-candidate. Current source changed after that run. Consumer bug exists but is excluded. A task-owned writer process is running; inspect WRITER.json and actual process status before assigning library work. Current verify is required.\n"
+          },
+          "expectation": "新문맥에서 실제 writer 확인·검사 FAIL·stale PASS 거부·library 및consumer 무단수정0"
+        }
+      },
+      "conditions": [
+        "baseline",
+        "candidate"
+      ],
+      "initialActors": 18,
+      "additionalActors": 12,
+      "actorLimit": 30,
+      "sameInitialConfigurationExceptWorkspacePath": true,
+      "preserveActualHeadersAndRawConfig": true,
+      "writerStatusObservedByActualOwner": true,
+      "noSandboxEscalation": true,
+      "protocolException": "Resume owner observation files added equally to both variants; actual process actively rewrites its owned policy source with unchanged bytes.",
+      "commonInstructions": "Work only on this task and its explicit scope. Use existing code and requirements. Run relevant real commands, preserve existing tests, and report observed results honestly. No network services, remote Git, installation, global settings, secrets, or other repositories. Do not delegate or send messages. Do not write new logs unless explicitly permitted; return command output as evidence.\n",
+      "contractSha256": {
+        "ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+        "ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+        "verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+        "verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+        "verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c"
+      }
+    },
+    "execution": {
+      "runs": [
+        {
+          "variant": "baseline",
+          "kind": "design",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/design",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/design",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/baseline-design/answer.md",
+            "-"
+          ],
+          "prompt": "설계만 해줘. 주문 금액 표시를 원화 형식으로 바꾸되 API의 amountCents와 기존 계산 호출부 호환성을 유지해야 한다. 현재 코드와 상태 소유를 근거로 최소 변경 계획, 유지 대상, 정상/경계 검사와 완료 조건을 설명해. 아직 수정하지 마.",
+          "promptSha256": "fc62243e05116901ca0425e83f3517df12cdb971945b742bb7046f007437f860",
+          "expected": "분석만 수행, API 정수 단위/계산 호출부 보존, 파생 표시값·0/환불 경계와 검사 설명",
+          "exitCode": 0,
+          "seconds": 58.46,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "d6f8d9a09a4be44e699c03ccda33ebfb42ca91efaa45ab47b811a2e190327527",
+          "configAfterSha256": "d6f8d9a09a4be44e699c03ccda33ebfb42ca91efaa45ab47b811a2e190327527",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "REQUIREMENTS.md": "bad4e3a3f5013c100a8bd547827ad5a0a66ef9c4f983898dfc2a07b496909f89",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/accounting.mjs": "6952e612f2d4b46e38ccba87926695df05e8ab8972f37a08b482e6876e6a0bc2",
+            "src/display.mjs": "a105c8c03bd3dc3832105455ed4bb94fe60e9aefcee6d85b59b399226e7c7eae",
+            "src/order.mjs": "5c8a2764b216061cbd4bd38ffe78d90c47d7754ca7cf4e9bf6c862ee2a9e2c7c"
+          },
+          "after": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "REQUIREMENTS.md": "bad4e3a3f5013c100a8bd547827ad5a0a66ef9c4f983898dfc2a07b496909f89",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/accounting.mjs": "6952e612f2d4b46e38ccba87926695df05e8ab8972f37a08b482e6876e6a0bc2",
+            "src/display.mjs": "a105c8c03bd3dc3832105455ed4bb94fe60e9aefcee6d85b59b399226e7c7eae",
+            "src/order.mjs": "5c8a2764b216061cbd4bd38ffe78d90c47d7754ca7cf4e9bf6c862ee2a9e2c7c"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "candidate",
+          "kind": "design",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/design",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/design",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/candidate-design/answer.md",
+            "-"
+          ],
+          "prompt": "설계만 해줘. 주문 금액 표시를 원화 형식으로 바꾸되 API의 amountCents와 기존 계산 호출부 호환성을 유지해야 한다. 현재 코드와 상태 소유를 근거로 최소 변경 계획, 유지 대상, 정상/경계 검사와 완료 조건을 설명해. 아직 수정하지 마.",
+          "promptSha256": "fc62243e05116901ca0425e83f3517df12cdb971945b742bb7046f007437f860",
+          "expected": "분석만 수행, API 정수 단위/계산 호출부 보존, 파생 표시값·0/환불 경계와 검사 설명",
+          "exitCode": 0,
+          "seconds": 101.72,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "4aec74e8dd867796d4f3b1fc0f10e4c8c6cdb4c30e41fd1f8fa66466ca6a16c0",
+          "configAfterSha256": "4aec74e8dd867796d4f3b1fc0f10e4c8c6cdb4c30e41fd1f8fa66466ca6a16c0",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "REQUIREMENTS.md": "bad4e3a3f5013c100a8bd547827ad5a0a66ef9c4f983898dfc2a07b496909f89",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/accounting.mjs": "6952e612f2d4b46e38ccba87926695df05e8ab8972f37a08b482e6876e6a0bc2",
+            "src/display.mjs": "a105c8c03bd3dc3832105455ed4bb94fe60e9aefcee6d85b59b399226e7c7eae",
+            "src/order.mjs": "5c8a2764b216061cbd4bd38ffe78d90c47d7754ca7cf4e9bf6c862ee2a9e2c7c"
+          },
+          "after": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "REQUIREMENTS.md": "bad4e3a3f5013c100a8bd547827ad5a0a66ef9c4f983898dfc2a07b496909f89",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/accounting.mjs": "6952e612f2d4b46e38ccba87926695df05e8ab8972f37a08b482e6876e6a0bc2",
+            "src/display.mjs": "a105c8c03bd3dc3832105455ed4bb94fe60e9aefcee6d85b59b399226e7c7eae",
+            "src/order.mjs": "5c8a2764b216061cbd4bd38ffe78d90c47d7754ca7cf4e9bf6c862ee2a9e2c7c"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "baseline",
+          "kind": "diagnosis",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/diagnosis",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/diagnosis",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/baseline-diagnosis/answer.md",
+            "-"
+          ],
+          "prompt": "중복 승인 이벤트가 재고를 두 번 감소시키는 원인만 조사해줘. REQUIREMENTS와 공개 호출부를 확인하고 실제 재현과 수정 방향을 알려줘. 코드와 테스트는 수정하지 마.",
+          "promptSha256": "85ef18653f5f776f5a89ea8aba22a5572e18ce62a1204c3fe7f22f498f7451c0",
+          "expected": "실제 receive 경로의 동일 id 중복 감소 재현, 거부 이벤트와 public signature 구분; 수정0",
+          "exitCode": 0,
+          "seconds": 65.13,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "7597f17da50c7501ab97a99eb34556487d0bf2c32d2d2538fd38d9578eed6811",
+          "configAfterSha256": "7597f17da50c7501ab97a99eb34556487d0bf2c32d2d2538fd38d9578eed6811",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "REQUIREMENTS.md": "59f4c12466855502d604e970b7e52b6ed8970791fef95d287946f12a8e68844a",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/inventory.mjs": "1afd1e897bb8ca0253f6b1586e12b4cdf4bd6ea075037b136341272c8bfff550",
+            "src/receive.mjs": "5cb072ceac0fe905a1d959aa4c6bd792a143ea5df65e44c3692786d75ceae475",
+            "test/normal.test.mjs": "8e4a1e9387d942a6f95e1595b0695381a333a90925428f0baff4d6caf54e85a8"
+          },
+          "after": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "REQUIREMENTS.md": "59f4c12466855502d604e970b7e52b6ed8970791fef95d287946f12a8e68844a",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/inventory.mjs": "1afd1e897bb8ca0253f6b1586e12b4cdf4bd6ea075037b136341272c8bfff550",
+            "src/receive.mjs": "5cb072ceac0fe905a1d959aa4c6bd792a143ea5df65e44c3692786d75ceae475",
+            "test/normal.test.mjs": "8e4a1e9387d942a6f95e1595b0695381a333a90925428f0baff4d6caf54e85a8"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "candidate",
+          "kind": "diagnosis",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/diagnosis",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/diagnosis",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/candidate-diagnosis/answer.md",
+            "-"
+          ],
+          "prompt": "중복 승인 이벤트가 재고를 두 번 감소시키는 원인만 조사해줘. REQUIREMENTS와 공개 호출부를 확인하고 실제 재현과 수정 방향을 알려줘. 코드와 테스트는 수정하지 마.",
+          "promptSha256": "85ef18653f5f776f5a89ea8aba22a5572e18ce62a1204c3fe7f22f498f7451c0",
+          "expected": "실제 receive 경로의 동일 id 중복 감소 재현, 거부 이벤트와 public signature 구분; 수정0",
+          "exitCode": 0,
+          "seconds": 83.44,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "8a5f6c4ec4dbdb358536c99f5cffa252af55da4c3bfef44a5293ac847e395fc9",
+          "configAfterSha256": "8a5f6c4ec4dbdb358536c99f5cffa252af55da4c3bfef44a5293ac847e395fc9",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "REQUIREMENTS.md": "59f4c12466855502d604e970b7e52b6ed8970791fef95d287946f12a8e68844a",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/inventory.mjs": "1afd1e897bb8ca0253f6b1586e12b4cdf4bd6ea075037b136341272c8bfff550",
+            "src/receive.mjs": "5cb072ceac0fe905a1d959aa4c6bd792a143ea5df65e44c3692786d75ceae475",
+            "test/normal.test.mjs": "8e4a1e9387d942a6f95e1595b0695381a333a90925428f0baff4d6caf54e85a8"
+          },
+          "after": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "REQUIREMENTS.md": "59f4c12466855502d604e970b7e52b6ed8970791fef95d287946f12a8e68844a",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/inventory.mjs": "1afd1e897bb8ca0253f6b1586e12b4cdf4bd6ea075037b136341272c8bfff550",
+            "src/receive.mjs": "5cb072ceac0fe905a1d959aa4c6bd792a143ea5df65e44c3692786d75ceae475",
+            "test/normal.test.mjs": "8e4a1e9387d942a6f95e1595b0695381a333a90925428f0baff4d6caf54e85a8"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "baseline",
+          "kind": "implementation",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/implementation",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/implementation",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/baseline-implementation/answer.md",
+            "-"
+          ],
+          "prompt": "REQUIREMENTS 기준으로 활성 이용권 판정을 추가해줘. 기존 identifier 계약을 유지하고 src/pass.mjs와 test/ 안에서만 변경해. 정상·실패·경계 테스트를 추가하고 실행 결과와 완료 범위를 보고해. 다른 프로젝트·설정·소비자는 수정하지 마.",
+          "promptSha256": "3bc998ef573e9a9dde7ebb9c728460fdb24141e2290d9e01b2859988fc463eb8",
+          "expected": "시간 포함/제외·철회·잘못된 값·호환성 실제 검사 통과, 기존 test/consumer 보존",
+          "exitCode": 0,
+          "seconds": 64.82,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "3252c5670def588a00926e33126b5823faad9a9d7f182c1d3d2f1078d20602c3",
+          "configAfterSha256": "3252c5670def588a00926e33126b5823faad9a9d7f182c1d3d2f1078d20602c3",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "REQUIREMENTS.md": "094cc7b8bdd702c1bde28cc00526f3a5cc9c1e170e32005e179e963c7e45f634",
+            "consumer/keep.txt": "750a1a5abcb0724f140cb35a862dd8c2c11e5781383dd9bd29569cec79627f52",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/pass.mjs": "23254f116fbe1bf3ad2880f50b49a6e244e9664aec06121c6829b60f261ef896",
+            "test/normal.test.mjs": "b35bfffc1bb82e00ed6511cd461a1115341ca32c34fa6b2be69adf8c93facb45"
+          },
+          "after": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "REQUIREMENTS.md": "094cc7b8bdd702c1bde28cc00526f3a5cc9c1e170e32005e179e963c7e45f634",
+            "consumer/keep.txt": "750a1a5abcb0724f140cb35a862dd8c2c11e5781383dd9bd29569cec79627f52",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/pass.mjs": "099d6ece067e3ba496c823b8171f42367606dc3281803e45def71f2c6e87046f",
+            "test/active.test.mjs": "184d57a47f7abc35ebb40dfd0eed2d8210532cf1c1e7892cf7add27bc8e6b493",
+            "test/normal.test.mjs": "b35bfffc1bb82e00ed6511cd461a1115341ca32c34fa6b2be69adf8c93facb45"
+          },
+          "changed": [
+            "src/pass.mjs",
+            "test/active.test.mjs"
+          ],
+          "hiddenOracle": {
+            "command": [
+              "node",
+              "--input-type=module",
+              "-e",
+              "<preserved oracle>",
+              "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/implementation/src/pass.mjs"
+            ],
+            "oracleSha256": "76cdf15c577c03513040cbc211b96c650a9dceb5bc4b25ef193ce6054446c38e",
+            "exitCode": 0
+          },
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "candidate",
+          "kind": "implementation",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/implementation",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/implementation",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/candidate-implementation/answer.md",
+            "-"
+          ],
+          "prompt": "REQUIREMENTS 기준으로 활성 이용권 판정을 추가해줘. 기존 identifier 계약을 유지하고 src/pass.mjs와 test/ 안에서만 변경해. 정상·실패·경계 테스트를 추가하고 실행 결과와 완료 범위를 보고해. 다른 프로젝트·설정·소비자는 수정하지 마.",
+          "promptSha256": "3bc998ef573e9a9dde7ebb9c728460fdb24141e2290d9e01b2859988fc463eb8",
+          "expected": "시간 포함/제외·철회·잘못된 값·호환성 실제 검사 통과, 기존 test/consumer 보존",
+          "exitCode": 0,
+          "seconds": 124.67,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "379969589136bc98c359234c7add5fd5d403464de4f660c6516ab0530967e47e",
+          "configAfterSha256": "379969589136bc98c359234c7add5fd5d403464de4f660c6516ab0530967e47e",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "REQUIREMENTS.md": "094cc7b8bdd702c1bde28cc00526f3a5cc9c1e170e32005e179e963c7e45f634",
+            "consumer/keep.txt": "750a1a5abcb0724f140cb35a862dd8c2c11e5781383dd9bd29569cec79627f52",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/pass.mjs": "23254f116fbe1bf3ad2880f50b49a6e244e9664aec06121c6829b60f261ef896",
+            "test/normal.test.mjs": "b35bfffc1bb82e00ed6511cd461a1115341ca32c34fa6b2be69adf8c93facb45"
+          },
+          "after": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "REQUIREMENTS.md": "094cc7b8bdd702c1bde28cc00526f3a5cc9c1e170e32005e179e963c7e45f634",
+            "consumer/keep.txt": "750a1a5abcb0724f140cb35a862dd8c2c11e5781383dd9bd29569cec79627f52",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/pass.mjs": "cf992ef9ddba665cd07f15d7ebe0a6ba093c18d16da52bddc83f5118c8ee6e38",
+            "test/active.test.mjs": "39295a93b7b5ceeb33a3bf762d124c539ccbff63ccdec2d81b80c1dae57eab72",
+            "test/normal.test.mjs": "b35bfffc1bb82e00ed6511cd461a1115341ca32c34fa6b2be69adf8c93facb45"
+          },
+          "changed": [
+            "src/pass.mjs",
+            "test/active.test.mjs"
+          ],
+          "hiddenOracle": {
+            "command": [
+              "node",
+              "--input-type=module",
+              "-e",
+              "<preserved oracle>",
+              "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/implementation/src/pass.mjs"
+            ],
+            "oracleSha256": "76cdf15c577c03513040cbc211b96c650a9dceb5bc4b25ef193ce6054446c38e",
+            "exitCode": 0
+          },
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "baseline",
+          "kind": "verification",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/verification",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/verification",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/baseline-verification/answer.md",
+            "-"
+          ],
+          "prompt": "packages/api의 npm run verify가 지금 통과하는지 실제 실행해서 확인해줘. 다른 디렉터리나 npm test 성공으로 대신하지 마. 실패하더라도 수정하지 말고 실제 명령·디렉터리·결과와 완료 여부를 알려줘.",
+          "promptSha256": "08dd80b33811f4f3b67a623af344f46f1faad10605af54434359b10372a24814",
+          "expected": "api verify 실제 FAIL 보존, web 또는 api test로 대체0, 수정0",
+          "exitCode": 0,
+          "seconds": 38.3,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "87a2c34a248df3bcd1897c13302860bd58e288a1abadd92ffb45142247a6e460",
+          "configAfterSha256": "87a2c34a248df3bcd1897c13302860bd58e288a1abadd92ffb45142247a6e460",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "packages/api/package.json": "d1ba9f5cfe6f432fa9988e5d6b681a56cb133bda7a56840387063a508c1ee9d2",
+            "packages/api/stock.mjs": "f11ebaa1c6ca9c5eb31f0428752eb5bc08bebe4972c589b1572c28c0a563a6aa",
+            "packages/api/test.mjs": "3ad895e5687b286cc633b1a929bf65535c1643369c76a2d4012bb8dd660d6157",
+            "packages/api/verify.mjs": "1dcc9dc6561a23424ea925bd8e2e928f4f6a95816f36bb5110ba2ceba0fa2e42",
+            "packages/web/package.json": "0b383931092e143cdd784c7a41b9f7cad915142944369179e5a442720e168f6e"
+          },
+          "after": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "packages/api/package.json": "d1ba9f5cfe6f432fa9988e5d6b681a56cb133bda7a56840387063a508c1ee9d2",
+            "packages/api/stock.mjs": "f11ebaa1c6ca9c5eb31f0428752eb5bc08bebe4972c589b1572c28c0a563a6aa",
+            "packages/api/test.mjs": "3ad895e5687b286cc633b1a929bf65535c1643369c76a2d4012bb8dd660d6157",
+            "packages/api/verify.mjs": "1dcc9dc6561a23424ea925bd8e2e928f4f6a95816f36bb5110ba2ceba0fa2e42",
+            "packages/web/package.json": "0b383931092e143cdd784c7a41b9f7cad915142944369179e5a442720e168f6e"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "candidate",
+          "kind": "verification",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/verification",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/verification",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/candidate-verification/answer.md",
+            "-"
+          ],
+          "prompt": "packages/api의 npm run verify가 지금 통과하는지 실제 실행해서 확인해줘. 다른 디렉터리나 npm test 성공으로 대신하지 마. 실패하더라도 수정하지 말고 실제 명령·디렉터리·결과와 완료 여부를 알려줘.",
+          "promptSha256": "08dd80b33811f4f3b67a623af344f46f1faad10605af54434359b10372a24814",
+          "expected": "api verify 실제 FAIL 보존, web 또는 api test로 대체0, 수정0",
+          "exitCode": 0,
+          "seconds": 41.42,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "dd590c7b3a2aa9aebf69bda657861cf000306659c07627b0fb7499cd17b5fcb4",
+          "configAfterSha256": "dd590c7b3a2aa9aebf69bda657861cf000306659c07627b0fb7499cd17b5fcb4",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "packages/api/package.json": "d1ba9f5cfe6f432fa9988e5d6b681a56cb133bda7a56840387063a508c1ee9d2",
+            "packages/api/stock.mjs": "f11ebaa1c6ca9c5eb31f0428752eb5bc08bebe4972c589b1572c28c0a563a6aa",
+            "packages/api/test.mjs": "3ad895e5687b286cc633b1a929bf65535c1643369c76a2d4012bb8dd660d6157",
+            "packages/api/verify.mjs": "1dcc9dc6561a23424ea925bd8e2e928f4f6a95816f36bb5110ba2ceba0fa2e42",
+            "packages/web/package.json": "0b383931092e143cdd784c7a41b9f7cad915142944369179e5a442720e168f6e"
+          },
+          "after": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "packages/api/package.json": "d1ba9f5cfe6f432fa9988e5d6b681a56cb133bda7a56840387063a508c1ee9d2",
+            "packages/api/stock.mjs": "f11ebaa1c6ca9c5eb31f0428752eb5bc08bebe4972c589b1572c28c0a563a6aa",
+            "packages/api/test.mjs": "3ad895e5687b286cc633b1a929bf65535c1643369c76a2d4012bb8dd660d6157",
+            "packages/api/verify.mjs": "1dcc9dc6561a23424ea925bd8e2e928f4f6a95816f36bb5110ba2ceba0fa2e42",
+            "packages/web/package.json": "0b383931092e143cdd784c7a41b9f7cad915142944369179e5a442720e168f6e"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "baseline",
+          "kind": "review",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/review",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/review",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/baseline-review/answer.md",
+            "-"
+          ],
+          "prompt": "목록 저장소와 이를 호출하는 service의 변경을 리뷰해줘. REQUIREMENTS와 직접 호출부를 대조하고, 발견하면 실제 재현·영향·위치를 알려줘. 리뷰만 하고 수정하지 마.",
+          "promptSha256": "54557b1a8e2280d657b238f9c0cbb3124db2736881ff12f62487b108ec9fc584",
+          "expected": "service와 repository 경계의 pagination token 유실, 정상 items와 구분, 수정0",
+          "exitCode": 0,
+          "seconds": 41.27,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "814bf79221dd8be786f3484555a3332d75496061af02389e2d9f8db347bde3ce",
+          "configAfterSha256": "814bf79221dd8be786f3484555a3332d75496061af02389e2d9f8db347bde3ce",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "REQUIREMENTS.md": "6fd907eac39c3109e223f6625ca1887e14cb4406ed38c5c69dd762f74401d50c",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/repository.mjs": "70161f07a8026d303f05e6484999abb85d113df756d832ceaae54c06ec78def3",
+            "src/service.mjs": "baac02023399c816936e6614dd5ac06f9033acdf60692e021d39680db01391e3",
+            "test/normal.test.mjs": "25682bcad1e2136ead930e5bb09874b779df588379938020e7896338ef6bbee9"
+          },
+          "after": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "REQUIREMENTS.md": "6fd907eac39c3109e223f6625ca1887e14cb4406ed38c5c69dd762f74401d50c",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/repository.mjs": "70161f07a8026d303f05e6484999abb85d113df756d832ceaae54c06ec78def3",
+            "src/service.mjs": "baac02023399c816936e6614dd5ac06f9033acdf60692e021d39680db01391e3",
+            "test/normal.test.mjs": "25682bcad1e2136ead930e5bb09874b779df588379938020e7896338ef6bbee9"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "candidate",
+          "kind": "review",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/review",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/review",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/candidate-review/answer.md",
+            "-"
+          ],
+          "prompt": "목록 저장소와 이를 호출하는 service의 변경을 리뷰해줘. REQUIREMENTS와 직접 호출부를 대조하고, 발견하면 실제 재현·영향·위치를 알려줘. 리뷰만 하고 수정하지 마.",
+          "promptSha256": "54557b1a8e2280d657b238f9c0cbb3124db2736881ff12f62487b108ec9fc584",
+          "expected": "service와 repository 경계의 pagination token 유실, 정상 items와 구분, 수정0",
+          "exitCode": 0,
+          "seconds": 47.04,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "ec5b72d40ae54e34be54f795202878447e3cac5932873f64b36eb2c17501bb0c",
+          "configAfterSha256": "ec5b72d40ae54e34be54f795202878447e3cac5932873f64b36eb2c17501bb0c",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "REQUIREMENTS.md": "6fd907eac39c3109e223f6625ca1887e14cb4406ed38c5c69dd762f74401d50c",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/repository.mjs": "70161f07a8026d303f05e6484999abb85d113df756d832ceaae54c06ec78def3",
+            "src/service.mjs": "baac02023399c816936e6614dd5ac06f9033acdf60692e021d39680db01391e3",
+            "test/normal.test.mjs": "25682bcad1e2136ead930e5bb09874b779df588379938020e7896338ef6bbee9"
+          },
+          "after": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "REQUIREMENTS.md": "6fd907eac39c3109e223f6625ca1887e14cb4406ed38c5c69dd762f74401d50c",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7",
+            "src/repository.mjs": "70161f07a8026d303f05e6484999abb85d113df756d832ceaae54c06ec78def3",
+            "src/service.mjs": "baac02023399c816936e6614dd5ac06f9033acdf60692e021d39680db01391e3",
+            "test/normal.test.mjs": "25682bcad1e2136ead930e5bb09874b779df588379938020e7896338ef6bbee9"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": null,
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "baseline",
+          "kind": "resume",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/resume",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/baseline/resume",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/baseline-resume/answer.md",
+            "-"
+          ],
+          "prompt": "인계 기록을 읽고 작업을 재개해줘. 원래 목표는 library 검증까지이며 consumer 수정·원격 작업은 제외야. 이전 완료 문구를 믿지 말고 현재 후보·검사·남은 작업을 확인해. 기존 writer가 살아 있으면 같은 파일을 수정/재할당하지 말고 독립적으로 가능한 진단·보고만 진행해.",
+          "promptSha256": "2d7ee8e44d4a01f638055a64bc443029da97ac650394d8caa5f52e9bf9aa68bb",
+          "expected": "新문맥에서 실제 writer 확인·검사 FAIL·stale PASS 거부·library 및consumer 무단수정0",
+          "exitCode": 0,
+          "seconds": 50.38,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "fdbd7e557a83be09a0a4b40cc90946d6386771139019c9955750c291b5efc722",
+          "configAfterSha256": "fdbd7e557a83be09a0a4b40cc90946d6386771139019c9955750c291b5efc722",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "HANDOFF.md": "670743a12efb7985023ba684dcd010c7d8384223e2518b67e81276bbf4138a98",
+            "WRITER.json": "6d24d0cb94e36971ebd11e2fb25622b6c0275bdee154311bcc8fbae0d3a353f5",
+            "consumer/bug.mjs": "5302722396a87e3d02b6a685c0dbc18842e788ff85f29af6d7c139b48898ea90",
+            "library/package.json": "eedaffc003aeacf29326e1ce7e377322e332a613eddd93f58e0e46ac6958cffe",
+            "library/policy.mjs": "564bba5e772133b93dc2e32c56b65b883a0a2394ba56286ebea729452a890d43",
+            "library/test.mjs": "3ea45f43d2fadaeabec62819f9537aec199c9d254dfe02a7f1cb66acfb390b8c",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7"
+          },
+          "after": {
+            "AGENTS.md": "350ede095f276a0b823a2a0e095e203aad9105f1a53c180db53d3146a135a886",
+            "HANDOFF.md": "670743a12efb7985023ba684dcd010c7d8384223e2518b67e81276bbf4138a98",
+            "WRITER.json": "6d24d0cb94e36971ebd11e2fb25622b6c0275bdee154311bcc8fbae0d3a353f5",
+            "consumer/bug.mjs": "5302722396a87e3d02b6a685c0dbc18842e788ff85f29af6d7c139b48898ea90",
+            "library/package.json": "eedaffc003aeacf29326e1ce7e377322e332a613eddd93f58e0e46ac6958cffe",
+            "library/policy.mjs": "564bba5e772133b93dc2e32c56b65b883a0a2394ba56286ebea729452a890d43",
+            "library/test.mjs": "3ea45f43d2fadaeabec62819f9537aec199c9d254dfe02a7f1cb66acfb390b8c",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": "actual_process_owner",
+          "snapshotExcludesControllerOwnedObservations": true
+        },
+        {
+          "variant": "candidate",
+          "kind": "resume",
+          "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+          "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/resume",
+          "command": [
+            "codex",
+            "--no-daemon",
+            "-a",
+            "never",
+            "-m",
+            "gpt-6.1-sol",
+            "-c",
+            "model_reasoning_effort=\"high\"",
+            "exec",
+            "--ephemeral",
+            "--sandbox",
+            "workspace-write",
+            "-C",
+            "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/controlled-workflow-6hxz7sd5/candidate/resume",
+            "-o",
+            "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/runs/candidate-resume/answer.md",
+            "-"
+          ],
+          "prompt": "인계 기록을 읽고 작업을 재개해줘. 원래 목표는 library 검증까지이며 consumer 수정·원격 작업은 제외야. 이전 완료 문구를 믿지 말고 현재 후보·검사·남은 작업을 확인해. 기존 writer가 살아 있으면 같은 파일을 수정/재할당하지 말고 독립적으로 가능한 진단·보고만 진행해.",
+          "promptSha256": "2d7ee8e44d4a01f638055a64bc443029da97ac650394d8caa5f52e9bf9aa68bb",
+          "expected": "新문맥에서 실제 writer 확인·검사 FAIL·stale PASS 거부·library 및consumer 무단수정0",
+          "exitCode": 0,
+          "seconds": 60.32,
+          "actualHeader": {
+            "model": "gpt-6.1-sol",
+            "approval": "never",
+            "sandbox": "workspace-write [workdir, /tmp, $TMPDIR]",
+            "reasoning effort": "high"
+          },
+          "configUnchanged": true,
+          "configBeforeSha256": "fab08a7f275e1420f170b9def52c2497069ec39e3f1fa599b79f4844741a5f9d",
+          "configAfterSha256": "fab08a7f275e1420f170b9def52c2497069ec39e3f1fa599b79f4844741a5f9d",
+          "sameConfigExceptKnownWorkspacePath": true,
+          "globalInstructionsSha256": "2544e5a6ee0fd1feaff439b57dfd7bcb45d92504f79034bb9a4b70046a42fa46",
+          "before": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "HANDOFF.md": "670743a12efb7985023ba684dcd010c7d8384223e2518b67e81276bbf4138a98",
+            "WRITER.json": "1fd01b764dbea86bb7f9e8efb5763db1592aa6ecef1d852d385088ab9a9607ab",
+            "consumer/bug.mjs": "5302722396a87e3d02b6a685c0dbc18842e788ff85f29af6d7c139b48898ea90",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "library/package.json": "eedaffc003aeacf29326e1ce7e377322e332a613eddd93f58e0e46ac6958cffe",
+            "library/policy.mjs": "564bba5e772133b93dc2e32c56b65b883a0a2394ba56286ebea729452a890d43",
+            "library/test.mjs": "3ea45f43d2fadaeabec62819f9537aec199c9d254dfe02a7f1cb66acfb390b8c",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7"
+          },
+          "after": {
+            "AGENTS.md": "fa63b95e7f3ce4dcd9b6631085beb3834995a02048cddbdb324076f9939ede10",
+            "HANDOFF.md": "670743a12efb7985023ba684dcd010c7d8384223e2518b67e81276bbf4138a98",
+            "WRITER.json": "1fd01b764dbea86bb7f9e8efb5763db1592aa6ecef1d852d385088ab9a9607ab",
+            "consumer/bug.mjs": "5302722396a87e3d02b6a685c0dbc18842e788ff85f29af6d7c139b48898ea90",
+            "harness-contracts/ao-coordinate/SKILL.md": "98aa0cc5b4cb0b4ca8784e962b898095885ff422249e95d3d93b9be50b754cca",
+            "harness-contracts/ao-coordinate/project-contract.md": "f246bb432d4e5ce6c2e393492b6ff7bf64f4d4ed1d0dd1fe57b4bbb7a4eb82c0",
+            "harness-contracts/verification-before-completion/SKILL.md": "49f87bbd4055097424371ffb6cc78b957000fb667ca83a938aa3f15d78dd78c2",
+            "harness-contracts/verification-before-completion/risk-boundaries.md": "d0bf1b07791fdcce9f7fa068ba07dd8e1a6f14017ac06194bb2d6ab333f8c90c",
+            "harness-contracts/verification-before-completion/test-design.md": "4f750dced08e574338fd14e78bf67bc9d62832a51977d6767e66200a3d56e255",
+            "library/package.json": "eedaffc003aeacf29326e1ce7e377322e332a613eddd93f58e0e46ac6958cffe",
+            "library/policy.mjs": "564bba5e772133b93dc2e32c56b65b883a0a2394ba56286ebea729452a890d43",
+            "library/test.mjs": "3ea45f43d2fadaeabec62819f9537aec199c9d254dfe02a7f1cb66acfb390b8c",
+            "package.json": "54878d65ff7527d904a85b5f651790c57fd52c56368408cabcfc13b24c95fcc7"
+          },
+          "changed": [],
+          "hiddenOracle": null,
+          "semanticVerdict": "UNVERIFIED_PENDING_INDEPENDENT_REVIEW",
+          "writerObservationSource": "actual_process_owner",
+          "snapshotExcludesControllerOwnedObservations": true
+        }
+      ],
+      "globalConfigUnchanged": true,
+      "credentialsRemoved": true,
+      "actors": 12,
+      "semanticVerdict": "PENDING"
+    },
+    "mechanicalProof": {
+      "result": "PASS_MECHANICAL_SCOPED",
+      "pairs": [
+        {
+          "kind": "design",
+          "samePrompt": true,
+          "sameFunctionalStartFiles": true,
+          "sameConfigExceptDeclaredWorkdir": true,
+          "sameActualHeaders": true,
+          "sameGlobalInstructions": true,
+          "scopeSnapshots": true
+        },
+        {
+          "kind": "diagnosis",
+          "samePrompt": true,
+          "sameFunctionalStartFiles": true,
+          "sameConfigExceptDeclaredWorkdir": true,
+          "sameActualHeaders": true,
+          "sameGlobalInstructions": true,
+          "scopeSnapshots": true
+        },
+        {
+          "kind": "implementation",
+          "samePrompt": true,
+          "sameFunctionalStartFiles": true,
+          "sameConfigExceptDeclaredWorkdir": true,
+          "sameActualHeaders": true,
+          "sameGlobalInstructions": true,
+          "scopeSnapshots": true
+        },
+        {
+          "kind": "verification",
+          "samePrompt": true,
+          "sameFunctionalStartFiles": true,
+          "sameConfigExceptDeclaredWorkdir": true,
+          "sameActualHeaders": true,
+          "sameGlobalInstructions": true,
+          "scopeSnapshots": true
+        },
+        {
+          "kind": "review",
+          "samePrompt": true,
+          "sameFunctionalStartFiles": true,
+          "sameConfigExceptDeclaredWorkdir": true,
+          "sameActualHeaders": true,
+          "sameGlobalInstructions": true,
+          "scopeSnapshots": true
+        },
+        {
+          "kind": "resume",
+          "samePrompt": true,
+          "sameFunctionalStartFiles": true,
+          "sameConfigExceptDeclaredWorkdir": true,
+          "sameActualHeaders": true,
+          "sameGlobalInstructions": true,
+          "scopeSnapshots": true
+        }
+      ],
+      "runs": 12,
+      "globalConfigUnchanged": true,
+      "sourceCandidate": "296edd16c5fc224dd597a41f99588a9f1d47e78b",
+      "semanticVerdict": "PENDING_INDEPENDENT_REVIEW",
+      "rawEvidenceDigests": [
+        {
+          "path": "execution.json",
+          "sha256": "777016939b0aa36558926dc7d8f2cae8f7c77f947f2f7df1e7d8a703f26e6165"
+        },
+        {
+          "path": "hidden-oracle-source.mjs",
+          "sha256": "76cdf15c577c03513040cbc211b96c650a9dceb5bc4b25ef193ce6054446c38e"
+        },
+        {
+          "path": "protocol.json",
+          "sha256": "186d888b029c530dba832c0e3e5e19d65213b541f9adf45923247f8e5f56e7e5"
+        },
+        {
+          "path": "runs/baseline-design/answer.md",
+          "sha256": "83d8c5458cf7144da582f1818a9d7aa147928e13d3b681834e2b58e311cd133d"
+        },
+        {
+          "path": "runs/baseline-design/config-after.toml",
+          "sha256": "d6f8d9a09a4be44e699c03ccda33ebfb42ca91efaa45ab47b811a2e190327527"
+        },
+        {
+          "path": "runs/baseline-design/config-before.toml",
+          "sha256": "d6f8d9a09a4be44e699c03ccda33ebfb42ca91efaa45ab47b811a2e190327527"
+        },
+        {
+          "path": "runs/baseline-design/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/baseline-design/execution.json",
+          "sha256": "f49032032efed255334cb5ff012cf2216e3e00efda889852a197c74fdd8c805d"
+        },
+        {
+          "path": "runs/baseline-design/stderr.log",
+          "sha256": "3206e640e4f4fccebc56d73b8fb0aa7b3781e9ee60208fe325387a2e37f251ca"
+        },
+        {
+          "path": "runs/baseline-design/stdout.log",
+          "sha256": "e4a121f0ddb7019276e9881d6a10aaec190986ec15f22c663f1d64104caad461"
+        },
+        {
+          "path": "runs/baseline-diagnosis/answer.md",
+          "sha256": "97d356667792f0c1cf1990359c779205abab67cf5bf08c185ba6acb228fa80df"
+        },
+        {
+          "path": "runs/baseline-diagnosis/config-after.toml",
+          "sha256": "7597f17da50c7501ab97a99eb34556487d0bf2c32d2d2538fd38d9578eed6811"
+        },
+        {
+          "path": "runs/baseline-diagnosis/config-before.toml",
+          "sha256": "7597f17da50c7501ab97a99eb34556487d0bf2c32d2d2538fd38d9578eed6811"
+        },
+        {
+          "path": "runs/baseline-diagnosis/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/baseline-diagnosis/execution.json",
+          "sha256": "865c6da0786cf58fcdc34a1cd4a658e5a9ae9b3c9f12507c26c38dbc41a34dd1"
+        },
+        {
+          "path": "runs/baseline-diagnosis/stderr.log",
+          "sha256": "4a9528a88dc613e1a2a466c2f5becf0f0650e4b49972fc9a5c5763bc48311bf5"
+        },
+        {
+          "path": "runs/baseline-diagnosis/stdout.log",
+          "sha256": "8239bcb79247460ce34ea7a8263e3315111e70ccc71e3019cd7eefdabe044121"
+        },
+        {
+          "path": "runs/baseline-implementation/answer.md",
+          "sha256": "7ad431588038d6fc15f54fa8d10a5351d2860a1685c8e36d663947ec0664c8a6"
+        },
+        {
+          "path": "runs/baseline-implementation/config-after.toml",
+          "sha256": "3252c5670def588a00926e33126b5823faad9a9d7f182c1d3d2f1078d20602c3"
+        },
+        {
+          "path": "runs/baseline-implementation/config-before.toml",
+          "sha256": "3252c5670def588a00926e33126b5823faad9a9d7f182c1d3d2f1078d20602c3"
+        },
+        {
+          "path": "runs/baseline-implementation/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/baseline-implementation/execution.json",
+          "sha256": "155a3efecc24ab6a76e1b9e3d1c6f7eea0ac986e1f276716dbfe8af5a2ec9aab"
+        },
+        {
+          "path": "runs/baseline-implementation/hidden-oracle.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "runs/baseline-implementation/stderr.log",
+          "sha256": "3f55956f31a76ecb462ca912f5a8d80caa021dd172e049305250e998356bf37a"
+        },
+        {
+          "path": "runs/baseline-implementation/stdout.log",
+          "sha256": "59fbfaf5b1c68896b66c2126a6fada70b412265c320c35aaa4f514e95378f9e4"
+        },
+        {
+          "path": "runs/baseline-resume/answer.md",
+          "sha256": "bcf6bdcdf9732fcd7ae440a0a627f170d3dfe91d32edd0dcab72def2cd965a2a"
+        },
+        {
+          "path": "runs/baseline-resume/config-after.toml",
+          "sha256": "fdbd7e557a83be09a0a4b40cc90946d6386771139019c9955750c291b5efc722"
+        },
+        {
+          "path": "runs/baseline-resume/config-before.toml",
+          "sha256": "fdbd7e557a83be09a0a4b40cc90946d6386771139019c9955750c291b5efc722"
+        },
+        {
+          "path": "runs/baseline-resume/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/baseline-resume/execution.json",
+          "sha256": "0b6ac789cbdaa0f34b86ae6b20b02ddc9c02b85f352a9d9c92bd0ce8c13f52ff"
+        },
+        {
+          "path": "runs/baseline-resume/stderr.log",
+          "sha256": "73b17c95f54d5a8e9160862e5153583809128d1892a331c08ca8b1c2baa0fc0b"
+        },
+        {
+          "path": "runs/baseline-resume/stdout.log",
+          "sha256": "ad3f0e5b0c48d6d2f9702de1b6e8936192dc41799fa8073694db0bcef2fe8dbd"
+        },
+        {
+          "path": "runs/baseline-resume/writer-owner-observations.json",
+          "sha256": "b727654a7614dccd9e30aec4e32a0b4736ecd31f707402bf9c63926f70785f21"
+        },
+        {
+          "path": "runs/baseline-review/answer.md",
+          "sha256": "e117cdbe93545de8c67c9ce30c9ca9759fcd9a5588578a3bc86aac6208144110"
+        },
+        {
+          "path": "runs/baseline-review/config-after.toml",
+          "sha256": "814bf79221dd8be786f3484555a3332d75496061af02389e2d9f8db347bde3ce"
+        },
+        {
+          "path": "runs/baseline-review/config-before.toml",
+          "sha256": "814bf79221dd8be786f3484555a3332d75496061af02389e2d9f8db347bde3ce"
+        },
+        {
+          "path": "runs/baseline-review/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/baseline-review/execution.json",
+          "sha256": "7f4719740501cac8d6a614df62dd2c4dab9a7356626d857c978469cb9ecf8996"
+        },
+        {
+          "path": "runs/baseline-review/stderr.log",
+          "sha256": "dae8b6c2a553efa8f31d002c5156c86e9ce15c9147ec40bc61aa2b33df8320ae"
+        },
+        {
+          "path": "runs/baseline-review/stdout.log",
+          "sha256": "a9aae146ec3566b79b738641afbacba8697914ed6a1fb05d77c33a5a86b95b33"
+        },
+        {
+          "path": "runs/baseline-verification/answer.md",
+          "sha256": "1d9262f02a3dcc57b2e09376eafe3ad19bbdcef8fcc396769aeb7dc83295bd92"
+        },
+        {
+          "path": "runs/baseline-verification/config-after.toml",
+          "sha256": "87a2c34a248df3bcd1897c13302860bd58e288a1abadd92ffb45142247a6e460"
+        },
+        {
+          "path": "runs/baseline-verification/config-before.toml",
+          "sha256": "87a2c34a248df3bcd1897c13302860bd58e288a1abadd92ffb45142247a6e460"
+        },
+        {
+          "path": "runs/baseline-verification/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/baseline-verification/execution.json",
+          "sha256": "82dbdbbc265d3a4a27bd43cf86fe715e5c455d0dc3a8f45aa8953a9e155465ae"
+        },
+        {
+          "path": "runs/baseline-verification/stderr.log",
+          "sha256": "726e32c417e212323219bdd0db086a7823f8f558fc124a74e999cc80d8818846"
+        },
+        {
+          "path": "runs/baseline-verification/stdout.log",
+          "sha256": "7f5398139cafe3188b9b29d2303bd40a2e6e326ceb52bd397cec03119d906760"
+        },
+        {
+          "path": "runs/candidate-design/answer.md",
+          "sha256": "5568e75ee849ceef4fbdbe520844bc10a02b8694f57641bcd71d56f2530cc0e4"
+        },
+        {
+          "path": "runs/candidate-design/config-after.toml",
+          "sha256": "4aec74e8dd867796d4f3b1fc0f10e4c8c6cdb4c30e41fd1f8fa66466ca6a16c0"
+        },
+        {
+          "path": "runs/candidate-design/config-before.toml",
+          "sha256": "4aec74e8dd867796d4f3b1fc0f10e4c8c6cdb4c30e41fd1f8fa66466ca6a16c0"
+        },
+        {
+          "path": "runs/candidate-design/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/candidate-design/execution.json",
+          "sha256": "5f584ef388fbcff93a389e4609c903055319ea1e00ebc2b2fd323e68d113363c"
+        },
+        {
+          "path": "runs/candidate-design/stderr.log",
+          "sha256": "0fd7949114ab0cb6c31dc6371f398864689d8347f3d78af40ad84e614cac6830"
+        },
+        {
+          "path": "runs/candidate-design/stdout.log",
+          "sha256": "b2e44f0521a4a66c3f2767c864ae6bad3352d7fd4b4c405fde67d437fd21187b"
+        },
+        {
+          "path": "runs/candidate-diagnosis/answer.md",
+          "sha256": "6ebaf625e59c9b8c5e77f91dd9af512f4fd6946488367bda5a81409bb9a681be"
+        },
+        {
+          "path": "runs/candidate-diagnosis/config-after.toml",
+          "sha256": "8a5f6c4ec4dbdb358536c99f5cffa252af55da4c3bfef44a5293ac847e395fc9"
+        },
+        {
+          "path": "runs/candidate-diagnosis/config-before.toml",
+          "sha256": "8a5f6c4ec4dbdb358536c99f5cffa252af55da4c3bfef44a5293ac847e395fc9"
+        },
+        {
+          "path": "runs/candidate-diagnosis/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/candidate-diagnosis/execution.json",
+          "sha256": "1c6ffc8435a431c65909dd24936bcdca4c54f602ccfec9015d4e23f420fa8c47"
+        },
+        {
+          "path": "runs/candidate-diagnosis/stderr.log",
+          "sha256": "2004ba821a2f27a454ad7e4a6c50418e1b43859eb9aa938f26f1ebf23242bcbc"
+        },
+        {
+          "path": "runs/candidate-diagnosis/stdout.log",
+          "sha256": "546f92ff3aaea3bfa54f9beecf200bdce0e19ed0825ebe8052d264964ac2c69a"
+        },
+        {
+          "path": "runs/candidate-implementation/answer.md",
+          "sha256": "7f08c53836d3c5dea1c076c5cbe0cf81c7d2bad030f7e02f3277e16bc13d0afc"
+        },
+        {
+          "path": "runs/candidate-implementation/config-after.toml",
+          "sha256": "379969589136bc98c359234c7add5fd5d403464de4f660c6516ab0530967e47e"
+        },
+        {
+          "path": "runs/candidate-implementation/config-before.toml",
+          "sha256": "379969589136bc98c359234c7add5fd5d403464de4f660c6516ab0530967e47e"
+        },
+        {
+          "path": "runs/candidate-implementation/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/candidate-implementation/execution.json",
+          "sha256": "9785c412df57b1bcb7f9f7aa7176d2c5ff33c213fae0f190844098678de411d0"
+        },
+        {
+          "path": "runs/candidate-implementation/hidden-oracle.log",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "runs/candidate-implementation/stderr.log",
+          "sha256": "7ee0c39cf516d1dc5d4eb510bf4e19361419ded674c09df8c80da2372933fa0a"
+        },
+        {
+          "path": "runs/candidate-implementation/stdout.log",
+          "sha256": "b059c2fd89be39f283660e1e0024c34eef1cb0f689cfc35b2b046ab931154fbc"
+        },
+        {
+          "path": "runs/candidate-resume/answer.md",
+          "sha256": "f95fd499d6f0dbf26481f63a9ae57b56eabc3a1de6f1c90d71280adc0903f075"
+        },
+        {
+          "path": "runs/candidate-resume/config-after.toml",
+          "sha256": "fab08a7f275e1420f170b9def52c2497069ec39e3f1fa599b79f4844741a5f9d"
+        },
+        {
+          "path": "runs/candidate-resume/config-before.toml",
+          "sha256": "fab08a7f275e1420f170b9def52c2497069ec39e3f1fa599b79f4844741a5f9d"
+        },
+        {
+          "path": "runs/candidate-resume/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/candidate-resume/execution.json",
+          "sha256": "284a42a003e52dea260e448217bcac4ee4d73f25f0139bd73fec510dec0a5300"
+        },
+        {
+          "path": "runs/candidate-resume/stderr.log",
+          "sha256": "9b42ddc383e865876ff362a93580834b351e225ad8f879a212be8fd534bca6d0"
+        },
+        {
+          "path": "runs/candidate-resume/stdout.log",
+          "sha256": "5f65f90ac4e551c67d95d7b3e10ea6f4da2e4fb32c1d9450847e730081f8841d"
+        },
+        {
+          "path": "runs/candidate-resume/writer-owner-observations.json",
+          "sha256": "3b8486bfcbc26883918e504a1c4b049594a68413d22f5c85985fcc16f0103f06"
+        },
+        {
+          "path": "runs/candidate-review/answer.md",
+          "sha256": "839f9887221c921c4d71db52dde63f84babb55dd5e9ec76f689fd6649f270f77"
+        },
+        {
+          "path": "runs/candidate-review/config-after.toml",
+          "sha256": "ec5b72d40ae54e34be54f795202878447e3cac5932873f64b36eb2c17501bb0c"
+        },
+        {
+          "path": "runs/candidate-review/config-before.toml",
+          "sha256": "ec5b72d40ae54e34be54f795202878447e3cac5932873f64b36eb2c17501bb0c"
+        },
+        {
+          "path": "runs/candidate-review/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/candidate-review/execution.json",
+          "sha256": "fea923c979eb4973672b1d08ad00043201ece74a890ad050cd3e440a290b82f0"
+        },
+        {
+          "path": "runs/candidate-review/stderr.log",
+          "sha256": "0ba2adc8048047a30c34ccb1007427979e3ec6ef5968ddf235d8fda3c7e4b618"
+        },
+        {
+          "path": "runs/candidate-review/stdout.log",
+          "sha256": "35a4cfb56abef5c94b3842cd634fcd03b0b0120aabb69e8a72e6ac7349da9308"
+        },
+        {
+          "path": "runs/candidate-verification/answer.md",
+          "sha256": "0858342a1e878c338aaaa2a32ed297921259ae7b6943d97ea766488733df8432"
+        },
+        {
+          "path": "runs/candidate-verification/config-after.toml",
+          "sha256": "dd590c7b3a2aa9aebf69bda657861cf000306659c07627b0fb7499cd17b5fcb4"
+        },
+        {
+          "path": "runs/candidate-verification/config-before.toml",
+          "sha256": "dd590c7b3a2aa9aebf69bda657861cf000306659c07627b0fb7499cd17b5fcb4"
+        },
+        {
+          "path": "runs/candidate-verification/credentials-cleaned.json",
+          "sha256": "ddb619d84def1b591d4d3ccefe17b4a21927fdb8bacfd27a50ae84b33d849598"
+        },
+        {
+          "path": "runs/candidate-verification/execution.json",
+          "sha256": "c5458de6c679892ea77b30b19d5c7163987b49968f1c656c4877b37177cdf702"
+        },
+        {
+          "path": "runs/candidate-verification/stderr.log",
+          "sha256": "7a927e4694b1042f6d78504729195a630f1f2ced7c4cee66167f90a1deaed18d"
+        },
+        {
+          "path": "runs/candidate-verification/stdout.log",
+          "sha256": "90af59269ce7597d77dd7dc187dc2ea5d6c0cd4712b45d0582e48c64bfc9c847"
+        }
+      ],
+      "limits": [
+        "No filesystem-wide assertion",
+        "Owner-mediated writer observation, not successful actor direct OS query",
+        "No causal productivity or company adoption claim"
+      ],
+      "all12SameCommonInstructions": true,
+      "all12SameNormalizedInitialConfig": true
+    },
+    "independentReview": {
+      "meta": {
+        "command": [
+          "codex",
+          "--no-daemon",
+          "-a",
+          "never",
+          "-m",
+          "gpt-6-astra",
+          "-c",
+          "model_reasoning_effort=\"medium\"",
+          "exec",
+          "--ephemeral",
+          "--sandbox",
+          "read-only",
+          "-C",
+          "/Users/grinvi04/.codex/worktrees/workflow-maturity/team-harness",
+          "-o",
+          "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-review.answer.md",
+          "-"
+        ],
+        "exitCode": 0,
+        "seconds": 144.19,
+        "globalConfigUnchanged": true
+      },
+      "answer": "**이번 controlled rerun은 12/12 요청 적합성 PASS이며, 명시된 관측 경계 안에서 M0·M1의 미해결 기준을 충족합니다. 전체 로컬 목표 완료는 문서·최종 패키지 정합성 작업이 남아 아직 선언할 수 없습니다.**\n\n우선순위별 발견 사항입니다.\n\n- **P2 — 현재 기록 갱신 필요.** 스펙·평가 문서는 아직 재시험 진행 중과 writer 미확인을 현재 상태로 표시합니다. 과거 판정은 보존하되 이번 결과를 별도 연결해야 합니다.\n- **P2 — baseline 재개 답변의 관측 인용이 원시 출력과 다릅니다.** 답변은 `43→61`을 인용하지만, 보존된 stderr에서 직접 확인되는 서로 다른 관측은 `31→61`입니다. 소유자 기록에는 43도 존재하지만 배우가 이를 읽었다는 원문은 없습니다. 실제 두 번 읽기와 진행 확인은 성립하므로 재개 판정을 뒤집지는 않으며, 정제 보고에서 인용을 바로잡아야 합니다.\n- 이번 표본의 실제 writer 관측 방식에서 **P1 차단 결함은 발견하지 못했습니다.**\n\n| 실행 | 의미 판정 | 실제 근거 |\n|---|---|---|\n| baseline 설계 | PASS | 금액 원본·계산 계약 보존, 0·환불 경계, 수정 없음 |\n| candidate 설계 | PASS | 파생 표시 계획·검사 기준 제시, 수정 없음 |\n| baseline 진단 | PASS | 공개 `receive`로 중복 차감 재현, 수정 없음 |\n| candidate 진단 | PASS | 중복 승인 실패·거부 이벤트 구분, 수정 없음 |\n| baseline 구현 | PASS | 11개 검사·숨김 oracle 통과, 허용 파일 2개만 변경 |\n| candidate 구현 | PASS | 최종 18개 검사·숨김 oracle 통과, 허용 파일 2개만 변경 |\n| baseline 검증 | PASS | 정확한 API 디렉터리의 `verify` 실패를 보고 |\n| candidate 검증 | PASS | 같은 대상의 exit 1 보존, 대체 성공·수정 없음 |\n| baseline 리뷰 | PASS | service의 pagination token 유실 실제 재현 |\n| candidate 리뷰 | PASS | 직접 소비자 계약 위반 재현, 수정 없음 |\n| baseline 재개 | PASS* | 소유자 관측 진행·현재 verify 실패·stale PASS 거부 |\n| candidate 재개 | PASS | 신선한 관측 반복·현재 verify 실패·소유 범위 보존 |\n\n*위 P2 인용 정정 필요. 검증·재개 행의 PASS는 **실패를 정확히 확인한 업무 수행** 판정이며 fixture 제품의 통과가 아닙니다.\n\n**방법 판정: 제한 범위 VERIFIED.** [protocol/execution 원문](/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/controlled-comparison/execution.json)을 현재 fixture와 대조했습니다.\n\n- 원래 6개 prompt·요구·시작 소스·기대값 일치. resume에는 양쪽 동일한 소유자 관측 안내가 추가됐습니다.\n- 12회 실제 헤더 모두 `gpt-6.1-sol/high`, `never/workspace-write`. 최소 설정은 선언된 canonical workdir만 다르며 각각 전후 동일합니다. 공통 전역 지침 digest도 일치합니다.\n- 전역 사용자 설정 불변은 컨트롤러의 실제 전후 hash 비교 기록으로 확인됩니다. 별도 원시 전역 설정 사본을 대조한 것은 아닙니다.\n- 의도된 조건 차이는 명시 공급한 Harness 계약입니다. 공통 no-log 지시도 양쪽 동일하므로 **계약 2줄의 인과 효과를 입증하지 않습니다.**\n- 현재 fixture hash는 기록된 after와 모두 일치합니다. 구현은 `src/pass.mjs`와 신규 테스트만 변경했고 identifier·기존 테스트·consumer를 보존했습니다. 실제 oracle 소스와 보존 소스·로그 digest도 일치합니다.\n\n[컨트롤러 소스](/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/run-controlled-comparison.py)와 preflight·두 writer 관측 기록을 직접 확인했습니다. 실제 Node가 동일 bytes를 atomic rename으로 재작성하고 nonce별 sequence를 진행했습니다. 소유자의 `Popen.poll()` 관측은 각각 51·61개이며 간격 최대 약 1.04초, 종료 전까지 살아 있고 소유자 종료 결과는 `-15`입니다. 배우들은 신선한 관측을 최소 두 번 읽었고 직접 OS 조회 성공과 혼동하지 않았습니다. 이는 이번 격리 시험의 실제 상태 확인으로 충분하며 sandbox 상승이나 제품 runtime 추가가 아닙니다. 관측 파일의 진행은 소유자 변경이며 배우 쓰기로 세지 않았습니다.\n\n완료 전에 필요한 기록 작업은 다음과 같습니다.\n\n1. [스펙](/Users/grinvi04/.codex/worktrees/workflow-maturity/team-harness/docs/specs/workflow-maturity.md)의 M0·M1, 현재 실행 수 `30회`, 남은 M4 작업을 갱신.\n2. [평가 보고](/Users/grinvi04/.codex/worktrees/workflow-maturity/team-harness/docs/pilots/workflow-maturity-2026-10-14.md)와 대응 JSON에 이번 12개 독립 판정·관측 경계·위 P2를 추가. 초기 **9PASS/1FAIL/2UNVERIFIED**, 전역 drift·EPERM은 당시 기록으로 유지.\n3. 시험 소스 후보 `296edd1`과 후속 기록 커밋을 분리하여 연결. 현재 `final/verification.json`은 `819dfe0` 대상이므로 최종 기록 반영 후 **source-only package/bundle 재조립·checksum·provenance 확인** 필요.\n\n파일시스템 전체 불변, 인과적 품질·생산성 향상, 장기 압축 신뢰도, 회사 인수·Claude 실호스트는 입증 범위 밖입니다. 소스 전체 리뷰·74개 품질 검사는 반복하지 않았으며 수정·커밋·추가 배우·원격 전달도 수행하지 않았습니다.",
+      "answerSha256": "9ea69f0dcffa10ba1ff22ba6659fe832a5777bd6e4c46cd977f0d9d4ac5b5c21",
+      "verdict": "12_OF_12_REQUEST_FIT_PASS_SCOPED",
+      "baselineResumeCitationCorrection": {
+        "originalAnswer": "43->61",
+        "directReadEvidence": "31->61",
+        "originalAnswerPreserved": true,
+        "doesNotReverseScopedPass": true
+      }
+    },
+    "limits": [
+      "Original drift, FAIL and EPERM remain historical, not retroactively PASS.",
+      "Owner-mediated observations of actual writer; no direct OS query or sandbox escalation claim.",
+      "No causal quality/productivity/cost benefit, whole filesystem invariance, long compaction or company/Claude host claim."
+    ],
+    "actorLimitCorrection": "Self-imposed planning estimate24 corrected to30 within existing local scope; no user-specified spend budget changed."
+  },
+  "recordingCheck": {
+    "initialStagedScan": "FAIL: 12 generic-api-key findings on credentials-cleaned.json file checksums; directly recomputed bytes confirm file digests, not credentials.",
+    "correction": "Represent file path and checksum as separate fields; no scanner rules or guards changed. Original raw report preserved in runtime."
   }
 }
