@@ -1,8 +1,8 @@
 # Team Harness 전체 재설계
 
-상태: **M1–M5 구현·고정 범위 검증 완료, M6 정식 전달 별도**. 2026-10-15 사용자가 재설계안대로 M1부터 순서대로 구현·검증을 승인했다.
+상태: **M1–M5 구현·고정 범위 검증 완료, M6 정식 전달 승인**. 2026-10-15 사용자가 재설계안대로 M1부터 순서대로 구현·검증을 승인했다.
 기존 작업·보호·Git Flow와 R1–R7을 유지한다. 전역 설정·소비 제품·원격 발행 권한은 자동 확대하지 않는다.
-실행·판정은 [구현 기록](team-harness-redesign/execution.md)에 연결한다. 미발행1.0.0 후보를 이어가며 발행하지 않는다.
+실행·판정은 [구현 기록](team-harness-redesign/execution.md)에 연결한다. [M6 전달 계약](team-harness-redesign/delivery.md)에 따라 1.0.0의 PR·태그·설치를 순서대로 진행한다.
 
 ## 1. 해결할 문제
 
@@ -128,7 +128,7 @@ flowchart TD
 원격 전달 승인 후에는 이 저장소의 작업→develop 확인→release→main→태그→develop 역병합 순서를 지킨다.
 
 현재 진행: M1–M5의 R1–R7을 정해진 범위에서 충족했다. 구현 후보 `71a1d63`의 실제 CLI·데스크톱과 독립 검토를 확인했다.
-정식 전달 M6은 별도다. 현재 설치는 시험 후 `v0.93.2`로 복구했으며 `1.0.0`을 발행·영구 설치하지 않았다.
+M1–M5 종료 당시 설치는 `v0.93.2`로 복구했다. 이후 승인된 M6의 실제 병합·발행·설치는 전달 계약의 원본에서 확인한다.
 새 설계의 필수 범위와 공개 지원 경계를 확정한 뒤, 실패는 영향 부분만 고치고 관련 증거만 다시 모은다.
 필수 기준과 전달 범위를 충족하면 종료한다. 가능한 모든 개선을 현재 목표에 추가하지 않는다.
 
@@ -154,6 +154,7 @@ flowchart TD
     {"path": "docs/specs/team-harness-redesign/migration.md", "reason": "단계별 작업·시험·전달 경계"},
     {"path": "docs/product-direction.md", "reason": "승인된 재설계 구현·검증 완료 연결; 기존 역사 체크리스트 보존"},
     {"path": "docs/specs/team-harness-redesign/execution.md", "reason": "현재 후보와 단계별 실제 실행·한계 정본"},
+    {"path": "docs/specs/team-harness-redesign/delivery.md", "reason": "승인된 M6 순서·현재 원격과 설치 증거 연결"},
     {"path": "docs/pilots/redesign-2026-10-15.json", "reason": "고정 후보·품질·CLI/데스크톱·독립 판정 원문 지문 연결"},
     {"path": "README.md", "reason": "단일 시작 경로와 native 선택"},
     {"path": "AGENTS.md", "reason": "현재 hook 및 작업 계약"},
