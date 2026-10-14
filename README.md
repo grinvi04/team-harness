@@ -65,7 +65,7 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 | 기능 | 설명 |
 |---|---|
 | 🛡️ 가드 훅 | main/develop 직접 커밋·force push·맨손 `gh pr` 차단 — 차단 시 audit 로그 기록 |
-| 📋 의도 라우터 | 짧은 명시 구현·병합 요청에 Git/PR 상태를 연결해 후보 안내. 일반 요청은 native agent가 판단 |
+| 🧭 작업 계약 | 현재 요구·범위·완료 기준을 기존 제품 기록에 연결하고, 실패·미확인을 구분 |
 | 🧠 맥락 기반 skill 선택 | 17개 description의 사용·제외 경계로 Claude Code·Codex implicit invocation 지원 |
 | ✍️ 커밋 메시지 계약 | Conventional Commits 호환 한국어 형식을 로컬 `commit-msg`와 CI에서 강제하고 merge 예외는 Git metadata로 확인 |
 | 🧭 체계적 디버깅 | `/systematic-debugging` — 선택한 진단 방법에 프로젝트 재현 증거·무수정 경계·수정 인계를 연결 |
@@ -82,11 +82,11 @@ Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `
 | 영역 | 스택 |
 |---|---|
 | 플러그인 배포 | Claude Code marketplace + Codex native plugin loader |
-| 가드·훅 | Bash (PreToolUse, UserPromptSubmit 훅) |
-| 의도 라우터 | Node.js (ES modules, `route-intent.mjs`) |
+| 가드·훅 | Bash (PreToolUse: 실행 전 보호) |
+| 연결·검증 | Node.js (스택 카탈로그·선택 자산·후보 증거 검사) |
 | CI 게이트 | GitHub Actions (`templates/ci/`) |
 | 에이전트 | Claude 역할별 agent + Codex native agent 실행 위임 |
-| 테스트 | Bash 통합 테스트 (`tests/route-intent-test.sh`) |
+| 테스트 | Bash 통합·Node 회귀·실제 호스트 실행 검증 |
 
 기존 앱의 React+Vite·Nuxt·Python 프레임워크·Rails UI와 [버전 확인·기록·CI 연결](docs/stack-versions.md)을 지원한다.
 최신 기본 제안은 호환 안정 버전이며 미확인·충돌에서는 적용을 중단한다. 실제 앱 검증은 별도다.
@@ -123,7 +123,7 @@ Codex·Claude가 실행하고, Harness가 정책과 검증 증거를 연결하�
 ## 🧪 테스트
 
 ```bash
-bash tests/route-intent-test.sh   # 의도 라우터 통합·범위 회귀 테스트
+bash tests/route-intent-test.sh   # 기본 연결에서 제외된 기존 라우터의 호환 회귀
 bash tests/codex-fresh-session-smoke-test.sh
 bash tests/harness-doctor-test.sh
 bash tests/profile-lifecycle-test.sh
@@ -137,7 +137,7 @@ team-harness/
 ├── .githooks/pre-commit               계층 0.5 가드 — 이 repo 자체에도 적용 (dogfooding)
 ├── plugins/harness-guard/             플러그인 본체 (아래 상세)
 ├── experiments/split-packaging/      분리 패키지·profile 평가 (공개 설치 보류)
-├── scripts/new-repo.sh                신규 repo 셋업 자동화 (템플릿 복사 + branch protection)
+├── scripts/new-repo.sh                신규 repo 로컬 자산 연결 (원격 보호는 명시 선택)
 ├── scripts/harness-doctor.sh          Codex·repo·GitHub 상태 종합 점검 (`--probe`로 실세션 검증)
 ├── scripts/codex-fresh-session-smoke.sh  실제 ephemeral Codex hook 발화 검증
 ├── templates/                         신규 프로젝트에 복사하는 파일들
@@ -168,7 +168,7 @@ team-harness/
 | [product-direction.md](docs/product-direction.md) | 제품 정체성 · 소유/위임 경계 · 신규 기능 판단 게이트 · 우선순위 로드맵 |
 | [public-safety-audit.md](docs/public-safety-audit.md) | Git 히스토리 시크릿 · 공개 식별정보 · 라이선스/provenance 공개 안전성 감사 |
 | [platform-overlap-audit.md](docs/platform-overlap-audit.md) | skill · hook · agent · Codex 호환 계층의 소유/연결/위임 전수 분류 |
-| [product-boundaries.md](docs/product-boundaries.md) | governance core · runtime adapter · 선택 workflow의 설치·운영 경계 |
+| [product-boundaries.md](docs/product-boundaries.md) | 프로젝트 연결·작업 계약·검증·GitHub 전달과 실제 설치 범위 |
 | [developer-workflow.md](docs/developer-workflow.md) | 개발자의 일상 작업 가이드 — 기능·수정·머지·hotfix·release 흐름과 막혔을 때의 다음 행동 |
 | [onboarding.md](docs/onboarding.md) | 신규 프로젝트 셋업 · 팀원 온보딩 · managed settings 로컬 시뮬레이션 |
 | [stack-guide.md](docs/stack-guide.md) | 기술 스택·프레임워크·화면 방식 선택과 조건부 실무 기준 |

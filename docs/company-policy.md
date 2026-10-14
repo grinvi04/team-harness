@@ -7,6 +7,20 @@
 저장소의 `.harness-policy.json` 선언은 원격 관리 권한이나 정책 변경 승인을 부여하지 않는다.
 솔로 예외의 별도 opt-in과 소유자·협업자 사전 조건은 [코드리뷰 정책](code-review.md)을 따른다.
 
+## PR 대상 브랜치 선언
+
+기존 `.harness-policy.json`에 선택 필드 `branchFlow`를 추가할 수 있다. 선언은 기존 제품 흐름을 기록할 뿐이다.
+
+```json
+{"schemaVersion":1,"mode":"company","autoMergeTargets":[],"branchFlow":"main"}
+```
+
+`main`은 작업→main, `git-flow`는 작업→develop→release→main→develop 역병합이다.
+`pr-create.sh --base`가 있으면 선언과 일치해야 한다. GitFlow release/hotfix는 `--base main`을 반드시 명시한다.
+그 외 base 충돌·선언/입력 부재·원격 조회 실패는 push 전에 거부한다. 오래된 develop 존재나 로컬 추적 ref로 추정하지 않는다.
+다른 브랜치 체계는 `branchFlow`를 선언하지 않고 해당 PR의 `--base`를 명시한다.
+기존 mode·autoMergeTargets 의미는 그대로다. main 중심 선언이 자동머지나 보호 완화를 허용하지 않는다.
+
 ## 실행 범위와 미리보기
 
 플러그인의 `scripts/set-branch-protection.sh`를 현재 설치 경로에서 실행한다.

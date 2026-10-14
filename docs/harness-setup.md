@@ -62,7 +62,7 @@ git clone --branch v0.93.2 https://github.com/grinvi04/team-harness.git team-har
 **제품 저장소 루트**에서 시작한다. Team Harness 자체 저장소를 제품 업무의 작업 디렉터리로 사용하지 않는다.
 기존 저장소는 [선택 적용](company-onboarding.md), 새 프로젝트는 [온보딩의 범위 선택](onboarding.md#먼저-사용할-범위-선택)을 따른다.
 이미 구성된 프로젝트의 팀원은 기존 `core.hooksPath`와 `.githooks` 내용을 확인하고 [팀원 온보딩](onboarding.md#b-신규-팀원-온보딩-각자-1회)을 적용한다.
-기존 hook을 덮어쓰거나 로컬 전용 프로젝트에 `new-repo.sh`를 실행하지 않는다.
+기존 hook을 덮어쓰지 않는다. `new-repo.sh`는 신규 자산 일괄 연결용이며 기존 제품에는 선택 적용을 우선한다.
 
 혼자는 [첫 확인 요청 → 실제 업무 요청](development-coordination.md#처음-연결할-때),
 작은 팀은 [각자 첫 확인 → 공유 업무·담당자 요청](team-development-guide.md#처음-함께-사용할-때)을 사용한다.

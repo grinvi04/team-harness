@@ -48,6 +48,18 @@ try {
   cpSync(join(root, 'templates/stacks.json'), join(fixture, 'templates/stacks.json'));
   cpSync(join(root, 'scripts/stack-catalog.mjs'), join(fixture, 'scripts/stack-catalog.mjs'));
   cpSync(join(root, 'scripts/generate-stack-templates.mjs'), join(fixture, 'scripts/generate-stack-templates.mjs'));
+  const reorderedCatalogPath = join(fixture, 'templates/stacks.json');
+  const catalogOriginal = readFileSync(reorderedCatalogPath, 'utf8');
+  const reordered = JSON.parse(catalogOriginal);
+  reordered.stacks.reverse();
+  writeFileSync(reorderedCatalogPath, JSON.stringify(reordered));
+  assert.equal(JSON.parse(cli('stack-catalog.mjs', ['--select', '2'])).key, 'spring-boot');
+  assert.equal(JSON.parse(cli('stack-catalog.mjs', ['--select', '2+6'])).frontend.key, 'vue');
+  reordered.stacks[0].id = reordered.stacks[1].id;
+  writeFileSync(reorderedCatalogPath, JSON.stringify(reordered));
+  cli('stack-catalog.mjs', ['--menu'], 1);
+  writeFileSync(reorderedCatalogPath, catalogOriginal);
+  pass('catalog selection follows declared ids and roles, rejects duplicate ids');
   const selectedBoot = JSON.parse(cli('stack-catalog.mjs', ['--select', '2']));
   assert.equal(selectedBoot.key, 'spring-boot');
   assert.equal(selectedBoot.template, 'ci-gate-spring-boot.yml');

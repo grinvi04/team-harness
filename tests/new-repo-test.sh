@@ -122,6 +122,21 @@ git -C "$TMP/source" branch develop
 export WORKFLOW_BLOB VALIDATOR_BLOB
 WORKFLOW_BLOB=$(git hash-object "$ROOT/templates/ci/commitlint.yml")
 VALIDATOR_BLOB=$(git hash-object "$ROOT/scripts/check-commit-message.cjs")
+# Default local setup works without a remote and never invokes GitHub.
+git init -q "$TMP/local-only"
+seed_project "$TMP/local-only" 1
+mkdir -p "$TMP/no-network"
+printf '#!/bin/sh\nprintf invoked >> "$GH_CALL_LOG"\nexit 71\n' > "$TMP/no-network/gh"
+chmod +x "$TMP/no-network/gh"
+export GH_CALL_LOG="$TMP/gh-calls"
+rc=0
+(cd "$TMP/local-only" && printf '1\n' | PATH="$TMP/no-network:$PATH" bash "$NR") > "$TMP/local-only.log" 2>&1 || rc=$?
+if [ "$rc" = 0 ] && [ ! -e "$GH_CALL_LOG" ] && [ -f "$TMP/local-only/AGENTS.md" ]; then
+  echo 'PASS: default local setup needs no remote and invokes no GitHub'; PASS=$((PASS+1))
+else
+  echo "FAIL: local setup reached GitHub or failed (rc=$rc)"; FAIL=$((FAIL+1))
+fi
+
 for scenario in protected missing legacy validator-missing api-error ready; do
   git clone -q "$TMP/source" "$TMP/$scenario"
   seed_project "$TMP/$scenario" 1
@@ -130,7 +145,7 @@ for scenario in protected missing legacy validator-missing api-error ready; do
   export SETUP_CASE="$scenario" WRITE_LOG="$TMP/$scenario-writes"
   : > "$WRITE_LOG"
   rc=0
-  (cd "$TMP/$scenario" && printf '1\n' | PATH="$TMP/bin:$PATH" bash "$NR") > "$TMP/$scenario.log" 2>&1 || rc=$?
+  (cd "$TMP/$scenario" && printf '1\n' | PATH="$TMP/bin:$PATH" bash "$NR" --with-protection) > "$TMP/$scenario.log" 2>&1 || rc=$?
   writes=$(wc -l < "$WRITE_LOG" | tr -d ' ')
   expected=0; expected_rc=1
   [ "$scenario" = protected ] && expected_rc=0
@@ -158,7 +173,7 @@ for selection in 1 2 3 4 5 6 1+1 1+5 1+6 2+1 2+5 2+6 3+1 3+5 3+6 4+1 4+5 4+6; do
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
   : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
   rc=0
-  (cd "$target" && selection_input "$selection" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
+  (cd "$target" && selection_input "$selection" | PATH="$TMP/bin:$PATH" bash "$NR" --with-protection) > "$target.log" 2>&1 || rc=$?
   if [ "$rc" = 0 ] && TARGET="$target" SELECTION="$selection" PROTECTION_LOG="$PROTECTION_LOG" python3 <<'CHECK'
 import json, os
 from pathlib import Path
@@ -230,7 +245,7 @@ for kind in relative traversal absolute; do
   seed_project "$target" 2
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
   : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
-  if (cd "$target" && printf '2\n\n' | BACKEND_DIR="$foreign" FRONTEND_DIR="$foreign" PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 \
+  if (cd "$target" && printf '2\n\n' | BACKEND_DIR="$foreign" FRONTEND_DIR="$foreign" PATH="$TMP/bin:$PATH" bash "$NR" --with-protection) > "$target.log" 2>&1 \
     && cmp -s "$ROOT/templates/stacks/spring-boot/checkstyle.xml" "$target/config/checkstyle/checkstyle.xml" \
     && [ ! -e "$outside" ]; then
     echo "PASS: standalone Spring Boot ignores inherited $kind directory variables"; PASS=$((PASS+1))
@@ -245,7 +260,7 @@ for selection in 9 5+6 2+3 2+6:../outside; do
   export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
   : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
   rc=0
-  (cd "$target" && printf '%s\n%s\napps/web\n' "${selection%%:*}" "${selection#*:}" | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
+  (cd "$target" && printf '%s\n%s\napps/web\n' "${selection%%:*}" "${selection#*:}" | PATH="$TMP/bin:$PATH" bash "$NR" --with-protection) > "$target.log" 2>&1 || rc=$?
   if [ "$rc" != 0 ] && [ ! -s "$WRITE_LOG" ] && [ ! -d "$target/.github" ]; then
     echo "PASS: invalid selection $selection → no files or protection writes"; PASS=$((PASS+1))
   else
@@ -270,7 +285,7 @@ cp "$target/.claude/settings.json" "$TMP/preserved-settings"
 export SETUP_CASE=ready WRITE_LOG="$target-writes" PROTECTION_LOG="$target-protection"
 : > "$WRITE_LOG"; : > "$PROTECTION_LOG"
 rc=0
-(cd "$target" && printf '2+6\nbackend\nfrontend\n\n' | PATH="$TMP/bin:$PATH" bash "$NR") > "$target.log" 2>&1 || rc=$?
+(cd "$target" && printf '2+6\nbackend\nfrontend\n\n' | PATH="$TMP/bin:$PATH" bash "$NR" --with-protection) > "$target.log" 2>&1 || rc=$?
 if [ "$rc" != 0 ] && [ ! -s "$WRITE_LOG" ] && [ ! -e "$target/harness-stack.versions.json" ] \
   && cmp -s "$target/.claude/settings.json" "$TMP/preserved-settings" \
   && [ "$(cat "$target/.github/workflows/ci-gate.yml")" = 'product CI sentinel' ] \

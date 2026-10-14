@@ -4,6 +4,8 @@
 기준선은0.93.2/develop `11b2b714`, 구현은 `codex/workflow-maturity`의 미발행1.0.0 후보다.
 실제 제품·운영·회사 인수·사람 효용·Claude 실호스트 검증은 이번 결과에 포함하지 않는다.
 원문은 로컬 `.runtime/workflow-maturity-20261014/`, 정제 기록은 [실행 데이터](workflow-maturity-2026-10-14.json)다.
+후속 비교 기준은 [현재 설정 기반 계획](../specs/workflow-maturity-current-evaluation.md)으로 새로 정했다.
+이 보고의 당시 결과는 보존한다. 후속 실행·최초 실패·보완 후 인수는 [10월15일 결과](current-evaluation-2026-10-15.md)로 분리한다.
 
 ## 업무 결과와 판정 경계
 

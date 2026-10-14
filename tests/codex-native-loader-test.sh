@@ -35,23 +35,22 @@ if (codex.name !== claude.name || codex.version !== claude.version) fail('Claude
 if (codex.skills !== './codex/skills/') fail('Codex manifest does not select native skill wrappers')
 if (codex.hooks !== './codex/hooks/hooks.json') fail('Codex manifest does not select native hooks')
 
+for (const file of ['codex/hooks/hooks.json', 'hooks/hooks.json']) {
+  const events = Object.keys(readJson(path.join(plugin, file)).hooks || {}).sort()
+  if (JSON.stringify(events) !== JSON.stringify(['PreToolUse'])) {
+    fail(`${file}: only PreToolUse may be connected by default`)
+  }
+}
 const preTool = hooks.hooks?.PreToolUse
-const prompt = hooks.hooks?.UserPromptSubmit
 if (!Array.isArray(preTool) || preTool.length !== 1 || preTool[0].matcher !== 'Bash') {
   fail('PreToolUse Bash matcher contract mismatch')
 }
-if (!Array.isArray(prompt) || prompt.length !== 1 || 'matcher' in prompt[0]) {
-  fail('UserPromptSubmit matcher contract mismatch')
+const handlers = preTool[0].hooks
+if (handlers.length !== 1 || handlers[0].type !== 'command') {
+  fail('Codex hooks must contain exactly one command handler')
 }
-const handlers = [...preTool[0].hooks, ...prompt[0].hooks]
-if (handlers.length !== 2 || handlers.some((handler) => handler.type !== 'command')) {
-  fail('Codex hooks must contain exactly two command handlers')
-}
-if (preTool[0].hooks[0].command !== 'node "${PLUGIN_ROOT}/scripts/codex-pretool-guard.mjs"') {
-  fail('PreToolUse command is not the exact native guard invocation')
-}
-if (prompt[0].hooks[0].command !== 'node "${PLUGIN_ROOT}/scripts/route-intent.mjs"') {
-  fail('UserPromptSubmit command is not the exact route-intent invocation')
+if (handlers[0].command !== 'node "${PLUGIN_ROOT}/scripts/codex-pretool-guard.mjs"' || handlers[0].timeout !== 10) {
+  fail('PreToolUse command or timeout is not the exact native guard invocation')
 }
 
 const sharedRoot = path.join(plugin, 'skills')
@@ -84,7 +83,7 @@ node - "$EXTRA_EVENT_PLUGIN/codex/hooks/hooks.json" <<'NODE'
 const fs = require('node:fs')
 const file = process.argv[2]
 const value = JSON.parse(fs.readFileSync(file, 'utf8'))
-value.hooks.SessionStart = [{ hooks: [{ type: 'command', command: 'echo injected' }] }]
+value.hooks.UserPromptSubmit = [{ hooks: [{ type: 'command', command: 'echo injected' }] }]
 fs.writeFileSync(file, `${JSON.stringify(value, null, 2)}\n`)
 NODE
 if node "$CHECKER" --root "$EXTRA_EVENT_PLUGIN" >"$TMP/extra-event.out" 2>"$TMP/extra-event.err"; then
@@ -116,7 +115,6 @@ hook_command() {
 }
 
 PRETOOL_COMMAND=$(hook_command PreToolUse)
-PROMPT_COMMAND=$(hook_command UserPromptSubmit)
 
 run_pretool() {
   local payload=$1 output=$2
@@ -152,28 +150,5 @@ audit_lines_after=$(wc -l <"$TMP/plugin-data/guard-block.log")
 grep -Fq 'DENY 시크릿 외부 전송 차단' "$TMP/plugin-data/guard-block.log" || fail 'secret-egress audit category missing'
 grep -Fq 'API_KEY' "$TMP/plugin-data/guard-block.log" && fail 'secret-egress audit leaked command credential'
 echo 'PASS: native PreToolUse preserves benign commands and blocks destructive/egress probes'
-
-(
-  cd "$TMP/repo"
-  printf '%s' '{"session_id":"native-route","cwd":"'"$TMP/repo"'","prompt":"구현해줘"}' \
-    | PLUGIN_ROOT="$PLUGIN" PLUGIN_DATA="$TMP/plugin-data" bash -c "$PROMPT_COMMAND"
-) >"$TMP/route.json"
-node - "$TMP/route.json" <<'NODE'
-const result = require(process.argv[2])
-const context = result.hookSpecificOutput?.additionalContext || ''
-if (!context.includes('상태 기반 후보=feature-add') || !context.includes('승인 범위')
-  || context.includes('[하네스] 현재=') || !context.includes('적용 skill과 현재 phase')) {
-  throw new Error('native routing context must expose a scoped candidate, not an asserted phase')
-}
-NODE
-echo 'PASS: native UserPromptSubmit exposes the feature-add routing context'
-
-(
-  cd "$TMP/repo"
-  printf '%s' '{"session_id":"native-route-generic","cwd":"'"$TMP/repo"'","prompt":"진행해"}' \
-    | PLUGIN_ROOT="$PLUGIN" PLUGIN_DATA="$TMP/plugin-data" bash -c "$PROMPT_COMMAND"
-) >"$TMP/route-generic.out"
-[[ ! -s "$TMP/route-generic.out" ]] || fail 'generic continuation must not infer a phase from old specs'
-echo 'PASS: native UserPromptSubmit leaves generic continuation to the current agent'
 
 bash "$ROOT/tests/claude-surface-isolation-test.sh"

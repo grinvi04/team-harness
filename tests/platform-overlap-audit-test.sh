@@ -95,12 +95,12 @@ if len([item for item in expected if item.startswith("skill:")]) != 17:
     errors.append("source skill count is not 17")
 if len([item for item in expected if item.startswith("agent:")]) != 2:
     errors.append("source agent count is not 2")
-if len([item for item in expected if item.startswith("hook:")]) != 3:
-    errors.append("source hook count is not 3 after native Agent selection migration")
+if len([item for item in expected if item.startswith("hook:")]) != 2:
+    errors.append("source hook count is not 2 after default routing removal")
 if any(group.get("matcher") == "Agent" for group in hooks.get("PreToolUse", [])):
     errors.append("retired Agent model-forcing hook is still registered")
-if len([item for item in expected if item.startswith("codex-file:")]) != 13:
-    errors.append("source Codex compatibility file count is not 13")
+if len([item for item in expected if item.startswith("codex-file:")]) != 14:
+    errors.append("source Codex compatibility file count is not 14")
 if expected_counts != counts:
     errors.append(
         f"missing={sorted((expected_counts - counts).elements())} "
@@ -141,7 +141,7 @@ else
   fail "공식 surface→동등성→전환→제거 순서 누락"
 fi
 
-route_line="$(grep -F 'hook:UserPromptSubmit:1:*:1:command' "$REPORT" 2>/dev/null || true)"
+route_line="$(grep -F 'legacy-hook:UserPromptSubmit:1:*:1:command' "$REPORT" 2>/dev/null || true)"
 if printf '%s' "$route_line" | grep -Fq "상태 기반" \
   && printf '%s' "$route_line" | grep -Fq "의미 분류기"; then
   pass "route-intent 상태 기반 경계 고정"

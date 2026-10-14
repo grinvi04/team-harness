@@ -9,7 +9,7 @@
 
 이 repo는 **개인 개발에서 시작해 공유하는 AI 개발 기반 자체**다 — 제품 앱이 아니다(런타임 서버·DB·프론트 없음).
 
-- **harness-guard 플러그인**(`plugins/harness-guard/`): `guard.sh`(PreToolUse 가드), `route-intent.mjs`(UserPromptSubmit), PR 래퍼(`pr-create.sh`·`pr-merge.sh`), 스킬(`skills/`), 에이전트.
+- **harness-guard 플러그인**(`plugins/harness-guard/`): `guard.sh`(PreToolUse 가드), PR 래퍼(`pr-create.sh`·`pr-merge.sh`), 스킬(`skills/`), 에이전트.
 - **팀 표준 문서**(`docs/`): 전 소비 repo가 상속하는 표준의 **단일 출처**. 설계 결정 = `docs/decisions.md`.
 - **신규 repo 셋업 도구**(`templates/`, `scripts/new-repo.sh`, `plugins/harness-guard/scripts/set-branch-protection.sh`).
 - 소비 repo(erp·siku·webhook-service·drivertree)가 이 repo의 표준·플러그인을 상속한다.
@@ -81,7 +81,7 @@
 - 일반 방법론 하나에 Harness의 프로젝트 기준·검사·인계·delivery 계약을 연결한다. 같은 계획·승인·
   테스트를 별도 workflow로 반복하지 않는다. 이미 승인된 범위와 현재 후보에 유효한 증거를 재사용한다.
 - 현재 요청·원본 상태에 맞는 선택과 단계를 짧게 알린다. 질문·진단은 수정·Git·배포 권한을 만들지 않으며,
-  route-intent의 안내도 실행 승인이나 올바른 스킬 선택의 증명이 아니다.
+  native 스킬 선택과 과거 route-intent 안내도 실행 승인이나 올바른 선택의 증명이 아니다.
 
 - harness skill을 적용할 때 첫 작업 업데이트에 **적용 skill과 현재 phase**를 표시한다. Git flow 단계가
   바뀌면 새 skill/phase도 짧게 알린다.

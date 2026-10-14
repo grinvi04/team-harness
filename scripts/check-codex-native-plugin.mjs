@@ -98,27 +98,21 @@ function validate(root, expectedVersion, installedVersion) {
 
   const hooks = readJson(path.join(root, 'codex', 'hooks', 'hooks.json')).hooks
   const hookEvents = Object.keys(hooks || {}).sort()
-  if (JSON.stringify(hookEvents) !== JSON.stringify(['PreToolUse', 'UserPromptSubmit'])) {
+  if (JSON.stringify(hookEvents) !== JSON.stringify(['PreToolUse'])) {
     fail('native hook event inventory mismatch')
   }
   const preTool = hooks?.PreToolUse
-  const prompt = hooks?.UserPromptSubmit
   if (!Array.isArray(preTool) || preTool.length !== 1 || preTool[0].matcher !== 'Bash') {
     fail('native PreToolUse Bash matcher mismatch')
   }
-  if (!Array.isArray(prompt) || prompt.length !== 1 || 'matcher' in prompt[0]) {
-    fail('native UserPromptSubmit matcher mismatch')
-  }
-  const handlers = [...(preTool[0].hooks || []), ...(prompt[0].hooks || [])]
-  if (handlers.length !== 2 || handlers.some((handler) => handler.type !== 'command')) {
-    fail('native hooks must contain exactly two command handlers')
+  const handlers = preTool[0].hooks || []
+  if (handlers.length !== 1 || handlers[0].type !== 'command') {
+    fail('native hooks must contain exactly one command handler')
   }
   if (preTool[0].hooks[0].command !== 'node "${PLUGIN_ROOT}/scripts/codex-pretool-guard.mjs"') {
     fail('native PreToolUse command mismatch')
   }
-  if (prompt[0].hooks[0].command !== 'node "${PLUGIN_ROOT}/scripts/route-intent.mjs"') {
-    fail('native UserPromptSubmit command mismatch')
-  }
+  if (handlers[0].timeout !== 10) fail('native PreToolUse timeout mismatch')
 
   const skillsRoot = path.join(root, 'codex', 'skills')
   const skills = existsSync(skillsRoot)

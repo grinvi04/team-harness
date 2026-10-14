@@ -5,14 +5,14 @@
 ## 먼저 사용할 범위 선택
 
 개인이 로컬 프로젝트에서 시작하고, 검증된 구성만 차츰 동료에게 공유할 수 있다. 회사 공통 기준이나
-원격 저장소가 선행 조건은 아니다. **아래 A절은 GitHub 온보딩을 선택한 프로젝트 전용**이며 로컬 샘플에는 실행하지 않는다.
+원격 저장소가 선행 조건은 아니다. 아래 A절은 신규 자산 셋업이다. 원격 보호 단계는 GitHub 연결을 선택한 경우만 실행한다.
 
 - **로컬 개발:** 제품의 실제 루트·스택·검사 명령을 AGENTS.md에 기록하고 [개발 흐름](development-coordination.md)과
   [스택별 검사 연결](#스택별-검사를-연결하는-방법)을 사용한다. 기존 검사·설정을 먼저 재사용한다.
   준비된 앱은 [스택별 로컬 검사](local-development.md)에서 지원·준비 조건을 확인하고 단독 스택을
   명시해 진입점을 추가한다. API와 프런트는 각 앱 루트에 따로 적용한다.
   [스택 버전 안내](stack-versions.md)에서 React·Nuxt·Python framework·Rails UI를 선택한다.
-  `new-repo.sh`는 GitHub 전용이며 새 로컬 경로도 앱·검사 도구 설정 자체를 생성하지 않는다.
+  `new-repo.sh` 기본 실행은 로컬 자산만 연결하며 앱·검사 도구 설정 자체를 생성하지 않는다.
 - **GitHub 연결:** 접근·공개 범위와 회사 정책을 확인한 뒤 A절을 적용한다. 기존 원격의 CI·승인 기준은 유지한다.
   아래 개인 저장소의 가시성·라이선스 기본값을 회사 코드 공개나 라이선스 변경 승인으로 사용하지 않는다.
 
@@ -39,18 +39,18 @@ bash /path/to/team-harness/scripts/new-repo.sh
 스크립트가 자동으로 처리하는 항목:
 - 템플릿 파일 복사 (pre-commit 훅·CI·AGENTS.md·CLAUDE.md·settings.json·PR 템플릿·gitignore)
 - `git config core.hooksPath .githooks`
-- main·develop branch protection (enforce_admins=on·승인0·status-checks·conversation-resolve) — **CI 워크플로가 원격에 push된 뒤** 적용(아래 부트스트랩 순서)
+- 원격 조회·보호 변경은 기본 실행에 포함하지 않는다. `--with-protection` 명시 시에만 별도 단계로 적용한다.
 
-> 멱등: 이미 있는 파일·protection은 건드리지 않음. 브랜치 없거나 워크플로 미push면 "커밋·push 후 재실행" 안내.
+> 멱등: 이미 있는 파일·protection은 보존한다. 원격 단계를 선택한 경우 gh 인증·GitHub origin이 필요하다.
 
 > **부트스트랩 순서 (중요 — 이 순서로 안 하면 첫 push가 막힌다)**:
-> 1. `new-repo.sh` — 템플릿 복사. **required-check 보호는 보류**한다 — 워크플로가 원격에 없는데 보호를
+> 1. `new-repo.sh` — 템플릿 복사. **원격 보호는 실행하지 않는다** — 워크플로가 원격에 없는데 보호를
 >    걸면 초기 커밋 push가 `required status checks are expected`로 거부돼 워크플로를 올릴 수 없는 데드락.
 > 2. §2 커스터마이즈(ci-gate.yml·AGENTS.md).
 > 3. 초기 커밋 — pre-commit 훅이 main 직접 커밋을 막으니 이 1회만 `git commit --no-verify` → `git push origin main`
 >    (보호가 아직 없어 push 성공).
 > 4. `git checkout -b develop && git push -u origin develop`.
-> 5. 기록을 소비하는 생성 CI가 그대로면 `new-repo.sh` **재실행** — 이제 워크플로가 원격에 있어 main·develop 보호가 적용된다.
+> 5. 기록을 소비하는 생성 CI가 그대로면 `new-repo.sh --with-protection` 실행 — 원격 자산을 확인하고 main·develop 보호를 적용한다.
 >
 > ⚠️ `git commit --no-verify`는 **로컬 pre-commit 훅만** 우회한다 — **서버 branch protection은 못 뚫는다**.
 > 그래서 --no-verify로도 보호된 브랜치엔 push가 거부되므로, "보호를 push 뒤(5단계)에 거는" 순서가 해법이다.
@@ -98,7 +98,7 @@ bash /path/to/team-harness/scripts/new-repo.sh
 
 ### 3. 최종 검증
 
-- [ ] 기본 브랜치에 표준 `commitlint.yml`·validator가 올라간 뒤 보호 설정 적용. `new-repo.sh`는
+- [ ] 기본 브랜치에 표준 `commitlint.yml`·validator가 올라간 뒤 보호 설정 적용. `new-repo.sh --with-protection`은
       원격 자산이 정본과 다르거나 조회에 실패하면 새 보호를 적용하지 않으며, 기존 보호는 재실행해도
       변경하지 않는다. 이전 `commitlint`에서 전환할 때는 [전환 절차](specs/trusted-commitlint.md)를 따른다.
 - [ ] `commitlint-trusted` target 검사가 실제 PR에 연결되어 통과하는지 확인. 공개 repo는 해당 이벤트의

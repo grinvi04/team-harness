@@ -32,7 +32,9 @@ node scripts/sync-repository-config.mjs --check
 
 이 명령은 표에 적힌 세 배치 사본의 내용과 실행 권한만 관리한다.
 다른 workflow와 이 저장소의 설정은 각각 목적이 있으므로 합치지 않는다.
-Codex 스킬 wrapper는 공통 스킬을 연결하는 공식 진입점이다. 공통 내용을 wrapper에 복사하지 않는다.
+Codex 스킬 wrapper는 공통 스킬을 연결하는 공식 진입점이다. metadata 정본은 공유 `skills/*/SKILL.md`다.
+`node scripts/generate-codex-skills.mjs --write`로 생성하고 `--check`로 drift를 거부한다.
+Codex 차이는 `codex/native-runtime.md`의 공통 절과 해당 작업 절에만 두며 공통 본문을 복사하지 않는다.
 
 ## 스택 템플릿을 바꿀 때
 

@@ -2,7 +2,7 @@
 set -u
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-DOC="$ROOT/docs/product-boundaries.md"
+DOC="$ROOT/docs/product-boundary-experiment.md"
 SPEC="$ROOT/docs/specs/product-boundary-separation.md"
 README="$ROOT/README.md"
 PRODUCT="$ROOT/docs/product-direction-governance-history.md"
@@ -25,6 +25,14 @@ if [ -f "$DOC" ]; then
   pass "제품 경계 정본 존재"
 else
   fail "docs/product-boundaries.md 누락"
+fi
+
+if contains "$ROOT/docs/product-boundaries.md" "공개 설치 단위는 **harness-guard 플러그인 하나**" \
+  && contains "$ROOT/docs/product-boundaries.md" "product-boundary-experiment.md" \
+  && contains "$ROOT/docs/product-boundaries.md" "기본 제품 목표에 포함하지 않는다"; then
+  pass "공개 사용 경로와 분리 실험의 독자 경계"
+else
+  fail "공개 경로의 단일 설치·실험 reader·비기본 범위 누락"
 fi
 
 for heading in \

@@ -6,6 +6,8 @@ argument-hint: <slug> "<목표 설명>" [--by YYYY-MM-DD] | status | breakdown <
 
 # /milestone — 제품 마일스톤 추적
 
+먼저 [공통 프로젝트 계약](../ao-coordinate/project-contract.md)을 읽고 현재 요청의 범위·보존 대상·완료 기준에 연결한다.
+
 스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
 
 **사용법 (3가지 모드)**

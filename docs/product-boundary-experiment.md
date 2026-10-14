@@ -1,0 +1,199 @@
+# Team Harness 분리 패키지 실험의 경계
+
+이 문서는 분리 패키지 실험의 계약·당시 결과를 보존한다. 현재 공개 경로는 [제품 경계](product-boundaries.md)다. 소유 판단은
+[`product-direction.md`](product-direction.md), 현재 구현 분류는
+[`platform-overlap-audit.md`](platform-overlap-audit.md)를 따른다.
+
+## 현재 전환 상태
+
+현재 `harness-guard`는 governance core, Claude·Codex 호환 adapter, 17개 skill과 agent를 함께 배포하는
+**전환기 monolith**다. marketplace manifest도 하나이고 사용자는 구성 요소를 독립적으로 설치하거나 제거할 수
+없다. 아래 세 단위는 **실험의 목표 제품 경계**이며 현재 독립 설치 단위가 아니다.
+
+[분리 패키징 실험](../experiments/split-packaging/README.md)의 staged `0.69.0`은 현재 monolith 버전과 별개다.
+v0.59.0부터 `experiments/split-packaging/packages.json`과 `scripts/build-packages.mjs`가 네 단위의 파일 소속·호환 범위를
+검증하고 staged artifact를 물리 디렉터리로 조립한다. source는 중복하지 않고 기록된 Git `HEAD`에서 결정적으로
+복사한다. adapter가 core 실행 파일을 호출하는 지점은 runtime binding으로 명시하며, 새 artifact는 profile
+installer가 binding을 제공하고 doctor로 실측하기 전이라 `installable: false`이고 marketplace에 노출하지 않는다.
+v0.60.0의 `manage-profile.mjs`와 `profile-doctor.mjs`는 명시한 filesystem 대상에서 세 profile의 수명주기와
+runtime binding을 실측한다. 사용자 plugin cache/config와 marketplace는 변경하지 않으며 기존 plugin 설치·업데이트·doctor
+경로도 그대로 유지한다. 이 결과는 독립 package의 공식 marketplace 공개가 아니라 승격 전 검증 surface다.
+`check-plugin-coexistence.mjs`는 같은 clean filesystem session의 외부 plugin을 실행하지 않고 두 runtime manifest
+identity, namespaced skill과 hook matcher overlap을 읽는다. overlap 순서는 플랫폼에 위임하며 승자를 정하지 않는다.
+v0.61.0부터 monolith Codex 경로는 `.codex-plugin/plugin.json`과 native command hook·skill wrapper를
+source에서 직접 제공한다. 현재 통합 후보의 wrapper는 17개다. 설치 cache patch, overlay, Codex custom agent 복사와 unified exec 비활성화는 제거했고
+doctor는 설치 source를 읽기 전용으로 검증한다. 이는 monolith adapter의 공식 loader 전환이며 네 split package의
+`installable:false` 또는 marketplace 공개 판정을 바꾸지 않는다.
+v0.62.0 이후 exact commit `d580808`의 staged package는 Codex 0.144.6 공식 local marketplace loader에서 세
+profile의 독립 설치, 생성 artifact와 cache의 전체 tree digest 일치, 역의존 순서 제거와 사용자 상태 불변을
+통과했다. 원본은 [`pilots/codex-split-loader-v0.61.0.md`](https://github.com/grinvi04/team-harness/blob/54657b3ef79ab36c3e0877664964356badd3510b/docs/pilots/codex-split-loader-v0.61.0.md)다. 이 증거는
+loader·rollback 수명주기만 검증한다. Codex의 공식 plugin dependency/runtime binding 선언 surface와 분리된
+core+adapter의 model·hook session은 아직 없으므로 `installable:false`와 monolith를 유지한다.
+
+## 목표 제품 단위
+
+아래 단위는 배포 책임의 구분이다. 사용자의 시작 순서는 [개인 개발부터 시작하는 제품 방향](product-direction.md)과
+[온보딩의 범위 선택](onboarding.md#먼저-사용할-범위-선택)을 따른다. 로컬 개발에 원격 저장소를 만들거나
+모든 거버넌스 설정을 도입할 의무는 없다. GitHub 프로젝트에는 기존 core의 서버 gate를 유지한다.
+
+### `unit:governance-core`
+
+Team Harness가 항상 소유하고 기본 설치하는 제품 본체다.
+
+- 저장소 규약과 policy as code: AGENTS, commit 규약, 스펙·결정 기록, stack별 표준.
+- 서버 강제: branch protection, required CI, commit·PR·release gate.
+- 증거·감사·복구: 현재 SHA 검증, 리뷰·배포 상태, 드리프트, 원자적 보호 복구와 back-merge.
+- 도구 중립 실행기: PR wrapper, commit validator, repo-sync, migration·secret·test guard와 신규 repo baseline.
+- core skill 9개: GitHub delivery와 증거 계약을 수행하는 최소 인터페이스.
+
+core는 agent runtime이나 일반 개발 방법론을 구현하지 않는다. 로컬 adapter가 없어도 Git hook·CI·GitHub 계층은
+독립적으로 동작해야 한다.
+
+### `unit:native-adapter`
+
+Claude Code나 Codex 같은 특정 runtime의 공식 확장 surface를 core 정책에 연결하는 얇은 배포 단위다.
+
+- 해당 runtime의 hook 등록과 입력 payload 정규화.
+- core 수용기준을 native skill·agent에 전달하는 metadata와 역할 매핑.
+- plugin 설치·trust·managed policy 상태를 읽는 adapter별 doctor probe.
+- runtime 고유 cache, config, agent definition은 adapter가 소유하되 repo/GitHub 정책의 정본이 될 수 없다.
+
+사용하는 runtime adapter 하나만 기본 활성화한다. Claude adapter는 Codex adapter에 의존하지 않는다.
+Codex adapter는 Claude adapter에 의존하지 않는다. 외부 runtime이 없어도 core의 server-backed enforcement는 남는다.
+
+### `unit:workflow-pack`
+
+개발자가 원할 때만 활성화하는 방법론·편의 workflow 모음이다.
+
+- 계획 작성, TDD 진행, 반복 수정, milestone 관리, 일반 디버깅과 프론트 QA처럼 플랫폼이 수행할 수 있는 절차.
+- core의 승인 spec, wrapper, 증거 게이트를 호출할 수 있지만 새로운 commit·push·PR·merge·release 권한은 만들지 않는다.
+- 제거해도 저장소 정책과 GitHub 게이트가 바뀌지 않으며, 산출물은 repo 문서·GitHub Issue·commit에 남는다.
+
+개발 조정은 `skills/ao-coordinate/SKILL.md`의 짧은 인계·재개 지침으로 제공한다. 별도 npm 패키지·검사기·역할 installer 없이 기존 workflow-assisted 선택을 사용한다.
+
+workflow-pack은 범용 agent runtime, 필수 개발 방법론, 독립된 정책 정본이 아니다.
+
+## Skill 설치 경계
+
+`기본`은 governance-core 설치 시 제공되는 delivery 인터페이스이고, `선택`은 workflow-pack을 명시적으로
+활성화할 때만 제공하는 목표 상태다. 현재 monolith에서는 모두 함께 배포된다.
+
+| 식별자 | 목표 단위 | 활성화 | 이유 |
+|---|---|---|---|
+| `skill:ao-coordinate` | **workflow-pack** | **선택** | 요청·역할·인계·검증을 제품 기록과 core gate에 연결하며 실행 엔진은 native에 맡긴다. |
+| `skill:feature-add` | **workflow-pack** | **선택** | 선택된 일반 방법론에 프로젝트 구현·테스트 계약을 연결하며 core의 승인 spec·브랜치·증거 게이트를 따른다. |
+| `skill:feature-merge` | **governance-core** | **기본** | 품질·리뷰·승인·CI를 develop 머지에 연결하는 delivery gate다. |
+| `skill:feature-modify` | **workflow-pack** | **선택** | 선택된 수정 방법론에 변경·유지 테스트와 프로젝트 검사를 연결하며 머지 정책은 core가 소유한다. |
+| `skill:hotfix` | **governance-core** | **기본** | main 패치·태그·develop 역병합과 복구 증거를 보존한다. |
+| `skill:loop` | **workflow-pack** | **선택** | 반복 수행은 편의 workflow이며 종료 증거만 core 계약을 사용한다. |
+| `skill:milestone` | **workflow-pack** | **선택** | GitHub milestone을 이용하는 제품 관리 편의 기능이다. |
+| `skill:plan` | **workflow-pack** | **선택** | 선택된 설계 방법의 기존 계획·승인을 프로젝트 spec 계약에 연결하며 별도 승인 루프를 만들지 않는다. |
+| `skill:pr-create` | **governance-core** | **기본** | guard가 맨손 PR 생성을 막으므로 검증된 wrapper 진입점을 항상 제공해야 한다. |
+| `skill:pr-review-gate` | **governance-core** | **기본** | 현재 SHA의 CI·리뷰·승인·배포 상태를 머지 증거로 합성한다. |
+| `skill:qa` | **workflow-pack** | **선택** | 일반 WCAG·디자인 검토는 소비 repo와 플랫폼이 선택한다. |
+| `skill:release-check` | **governance-core** | **기본** | 정식 릴리스 전 품질·보안·DB 준비 증거를 합성한다. |
+| `skill:release` | **governance-core** | **기본** | release branch·tag·back-merge·health 결과 계약을 수행한다. |
+| `skill:repo-sync` | **governance-core** | **기본** | 소비 repo와 정책 자산의 드리프트를 검출한다. |
+| `skill:solo-merge` | **governance-core** | **기본** | 승인 제약만 원자적으로 풀고 보호 설정을 복구한다. |
+| `skill:systematic-debugging` | **workflow-pack** | **선택** | 선택된 진단 방법에 제품 재현 증거·무수정 경계·수정 인계를 연결한다. |
+| `skill:verification-before-completion` | **governance-core** | **기본** | 완료·PR·머지·릴리스 주장을 현재 상태의 새 증거에 묶는다. |
+
+runtime별 skill metadata와 agent 기준은 위 skill의 제품 소속이 아니라 `native-adapter`의 전달 메커니즘이다.
+예를 들어 verifier의 수용기준은 core에 속하고, Claude agent Markdown은 Claude adapter에 속한다. Codex의 agent
+생성·모델·reasoning effort는 플랫폼에 위임하며 하네스 전용 TOML을 배포하지 않는다.
+
+## 설치 프로필
+
+프로필은 목표 구조의 사용자 선택이다. 물리 분리 전에는 문서상 계약이며 현재 설치 명령이 아니다.
+
+| 프로필 | 구성 | 대상 | 기본 여부 |
+|---|---|---|---|
+| `profile:repository-only` | governance-core | AI plugin 없이 Git·CI·GitHub 정책만 사용하는 repo | 지원 |
+| `profile:agent-governed` | governance-core + 해당 native-adapter | 하나의 지원 AI runtime에서 조기 가드와 delivery skill을 사용하는 팀 | **권장 기본** |
+| `profile:workflow-assisted` | governance-core + 해당 native-adapter + 선택 workflow pack | 일반 방법론과 프로젝트 계약의 연결·QA 지원을 원하는 팀 | opt-in |
+
+여러 AI runtime을 함께 쓰는 팀은 core 하나에 adapter를 각각 독립 설치한다. workflow-pack 활성화 여부도 runtime별
+UI가 아니라 repo 정책으로 기록하되, 어느 profile도 사용자의 기존 권한을 확대하지 않는다.
+
+## 의존 방향
+
+허용하는 제품 의존은 아래 두 방향뿐이다.
+
+```text
+native-adapter → governance-core
+workflow-pack → governance-core
+governance-core ↛ native-adapter
+governance-core ↛ workflow-pack
+```
+
+- adapter는 core 검사기·wrapper·수용기준을 호출할 수 있다. core는 특정 runtime hook이나 model slug를 import하지 않는다.
+- workflow는 core의 spec·wrapper·게이트를 호출할 수 있다. core CI는 workflow skill 존재 여부로 통과하지 않는다.
+- adapter끼리 직접 의존하지 않는다. 공통 변환이 필요하면 core의 도구 중립 계약으로 올리거나 중복보다 작은
+  공용 adapter 라이브러리로 분리하되 runtime 내부 구현을 복제하지 않는다.
+- 순환 의존이 생기면 package 분리를 중단하고 책임 판정을 다시 한다.
+
+workflow-pack을 설치하지 않거나 제거해도 다음 core 불변조건은 유지돼야 한다: **branch protection**,
+**required CI**, **commit·PR·release gate**, **repo drift**, **audit·recovery**. adapter가 실패하거나 제거돼도
+Git hook·CI·GitHub의 서버 강제를 성공으로 오판하지 않는다.
+
+## 운영 수명주기
+
+| 단계 | governance-core | native-adapter | workflow-pack |
+|---|---|---|---|
+| **설치** | repo baseline과 GitHub 정책을 먼저 적용하고 현재 SHA에서 self-check한다. | 사용하는 runtime 하나만 core version과 호환되는 공식 surface로 연결한다. | core와 adapter가 건강한 뒤 명시적 opt-in으로 활성화한다. |
+| **업데이트** | 정책 schema·CI·wrapper migration을 우선 검증하고 소비 repo drift를 보고한다. | runtime 지원 matrix와 clean-session outcome parity를 검증한다. | skill 계약 변경만 배포하며 core 정책 변경을 숨겨 포함하지 않는다. |
+| **doctor** | repo asset·branch protection·required check·wrapper 상태를 도구 호출 없이도 판정한다. | plugin·hook·managed policy·fresh-session probe를 해당 runtime에서만 검사한다. | 설치 목록·core 호환 version·권한 비확대만 검사한다. |
+| **비활성화** | 서버 강제는 비활성화 대상으로 제공하지 않고 변경은 별도 승인 migration을 요구한다. | 로컬 조기 가드만 멈추며 CI·GitHub가 계속 최종 판정한다. | skill 자동·명시 선택을 멈추되 생성된 spec·Issue·commit은 보존한다. |
+| **제거** | repo·GitHub 정책 제거는 영향 미리보기와 rollback 지점을 가진 별도 절차로만 수행한다. | 해당 runtime 설정·cache만 제거하고 다른 adapter와 core는 건드리지 않는다. | pack 파일·등록만 제거하고 core gate·repo 산출물은 삭제하지 않는다. |
+
+영구 데이터의 소유자는 core다. repo 문서·spec·결정·commit과 GitHub Issue·PR·check가 정본이며 adapter cache와
+workflow 세션 상태는 재생성 가능해야 한다. 제거 명령은 다른 단위의 파일이나 설정을 포괄 삭제하지 않는다.
+
+## 물리 분리 전환 순서
+
+1. **계약 잠금:** 이 문서와 동적 skill 경계 테스트를 먼저 배포한다. rollback은 문서 완료 표시를 되돌리는 것이다.
+2. **manifest/package 분리(완료):** core, runtime adapter, workflow pack manifest와 버전 호환 범위를 추가하되
+   기존 monolith는 그대로 유지한다. build artifact는 설치 불가로 표시해 검증 전 노출을 막는다.
+3. **profile 설치·doctor 검증(완료):** clean 대상에서 세 profile의 설치·업데이트·비활성화·제거와 core 보존,
+   파일 drift·binding·실패 원자성을 filesystem surface에서 실측했다.
+4. **clean-session 공존 검증(완료):** 세 profile과 외부 plugin의 identity·skill namespace·hook overlap·파일
+   불변을 검사하고 malformed·symlink 입력을 fail-closed했다. 실제 hook 순서는 플랫폼에 위임한다.
+5. **공식 loader·rollback 검증(완료):** Codex 공식 local marketplace loader로 세 profile을 core-first 설치하고
+   exact cache digest와 역의존 순서 제거, 사용자 상태 불변, 격리 HOME 삭제를 실측했다.
+6. **runtime 결과 계약(대기):** 공식 dependency/runtime binding surface에서 분리 core+adapter의 native
+   hook·skill session parity를 검증한다. surface가 없으면 custom resolver를 만들지 않고 monolith를 유지한다.
+7. **호환 기간:** 최소 한 릴리스 동안 monolith를 deprecated alias로 유지하고 동일 결과·rollback 안내를 제공한다.
+8. **legacy 경로 제거(부분 완료):** v0.61.0에서 harness cache patch·overlay·Codex agent 복사본을 제거했다.
+   monolith manifest는 split package runtime 결과 계약이 충족될 때까지 유지한다. required CI와 branch
+   protection drift가 있으면 추가 제거를 중단한다.
+
+DriveTree 외부 파일럿의 repo-sync MISSING 11은 실제 세 PR로 OK 18 · MISSING 0까지 처리했고 v0.61.0에서
+monolith 공식 loader session도 검증했다. 두 번째 Python·Alembic 파일럿도 webhook-service PR #69에서
+같은 정본 세 slice를 실제 적용해 OK 18 · MISSING 0으로 수렴했고, main·develop에 `commitlint`와
+`destructive-ddl`을 포함한 required context 5개 exact set을 연결했다. 두 public repo에서 공통 backfill 경로와
+split package 자체의 공식 loader·rollback은 검증됐다. 남은 전환 조건은 공식 dependency/runtime binding
+surface와 분리 core+adapter의 native hook·skill session parity다. 따라서 독립 package의 `installable:false`를
+유지하고 marketplace 승격은 별도 결정한다.
+
+## 비목표와 재검토 조건
+
+- staged package는 실제 plugin·marketplace source, 설치 명령, 기본 활성 skill을 바꾸지 않는다.
+- workflow-pack을 별도 범용 방법론 제품으로 확장하지 않는다.
+- adapter가 플랫폼 sandbox·permission·agent runtime을 재구현하지 않는다.
+- core를 설치하지 않은 standalone adapter나 workflow-pack은 지원하지 않는다.
+- 공식 plugin packaging이 독립 dependency를 지원하지 않으면 임시 bundle을 유지할 수 있지만 논리 경계와
+  제거 안전성 테스트는 유지한다.
+- 지원 runtime, 조직 규모, GitHub 정책 모델이 바뀌면 profile과 단위 책임을 재검토하되 server-backed
+  enforcement와 evidence-before-claims 원칙은 유지한다.
+
+## 개발 조정의 staged split 제한
+
+통합 후보 0.69.0에서도 공개 사용 경로는 monolith다. split Codex adapter의 wrapper는 다른 artifact의 공용 skill을 가리키며, 생성된 workflow Codex manifest는 공용 `skills/`를 직접 가리킨다. wrapper의 native 실행 계약까지 자동 연결되는 것은 검증되지 않았다. 따라서 파일 inventory·profile doctor 통과만으로 split Codex 조정 실행을 지원한다고 주장하지 않는다. `installable:false`를 유지하며 별도 runtime resolver나 중복 installer를 이번 통합에 추가하지 않는다.
+
+## 공통 계약 연결
+
+0.87.0 구현 후보는 기존 17개 호출 이름과 core9/workflow8 소속을 유지한다.
+계획·신규/기존 구현·진단은 [공통 프로젝트 계약](../plugins/harness-guard/skills/ao-coordinate/project-contract.md)을
+공유하고 일반 방법론은 Superpowers 또는 native 실행 하나로 대체한다. 별도 승인·TDD 루프를 반복하지 않는다.
+release/release-check의 전용 검사·changelog·생성물 경로는 대상 repo AGENTS.md가 선언한다.
+GitHub 정책·현재 후보 증거·태그·역병합·복구와 필수 미확인 차단은 core에 남는다.

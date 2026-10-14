@@ -12,7 +12,7 @@
 | 담당 | 역할 | 원본 |
 |---|---|---|
 | Codex·Claude | 스킬 선택, 훅·에이전트 실행, sandbox·권한 관리 | [플랫폼 위임 범위](product-direction.md#실행-플랫폼에-위임하는-것) |
-| 저장소 규약·단계 안내 | AGENTS와 스택 규칙을 읽고 작업한다. route-intent는 다음 Git 단계를 제안한다. | [AI 협업·스킬 선택](ai-collaboration.md#skill-실행과-가시성) |
+| 저장소 규약·단계 안내 | AGENTS와 스택 규칙·현재 작업 계약을 읽고 범위와 완료 기준을 확인한다. | [AI 협업·스킬 선택](ai-collaboration.md#skill-실행과-가시성) |
 | PreToolUse 가드 | 대상 명령의 보호 브랜치 작업·위험 패턴·시크릿 전송을 검사한다. | [플러그인 훅](harness-plugin.md) |
 | 로컬 Git 훅 | 활성화된 pre-commit·commit-msg가 커밋과 시크릿·메시지 형식을 검사한다. | [커밋 규칙](code-review.md) |
 | 검증 증거 | 요구·테스트·독립 리뷰·완료 범위를 현재 작업트리와 커밋에 연결한다. | [완료 검증 계약](../plugins/harness-guard/skills/verification-before-completion/SKILL.md) |
@@ -25,7 +25,7 @@
 
 Claude의 PreToolUse에는 공유 guard.sh와 시크릿 전송 탐지용 prompt 훅이 있다.
 Codex는 codex-pretool-guard.mjs가 명령 입력을 정규화하고 공유 가드와 전송 가드를 실행한다.
-두 도구 모두 UserPromptSubmit에서 route-intent.mjs를 연결한다. 이 안내는 실행 권한을 추가하지 않는다.
+기본 연결은 PreToolUse 보호만 포함한다. 스킬은 native 선택 또는 명시 호출로 읽고, 요청 범위와 대조한다.
 현재 배포 단위는 **harness-guard 플러그인 하나**다. staged core·adapter·workflow는 별도 설치 완료 상태가 아니다.
 
 Git 훅은 설치·활성화된 로컬 경로에 적용된다. --no-verify는 로컬 훅을 건너뛸 수 있지만 GitHub의
