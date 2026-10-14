@@ -68,8 +68,8 @@ OS·플랫폼이 자체 기록하는 영역을 관찰하지 못하면 그 영역
 
 ## 5. Harness 자체 평가를 제품으로 관리
 
-최근 `.runtime/` 안의 일회성 관찰기·판정기는 제품 검증 자산으로 이전한다.
-제안 위치는 `tests/acceptance/`다. 기존 `tests/fixtures/qa-command-binding.mjs`와 회귀를 먼저 대조해 재사용한다.
+최근 `.runtime/` 관찰기의 필요한 책임을 `tests/acceptance/`로 이전했다.
+기존 `tests/fixtures/qa-command-binding.mjs`와 회귀를 대조했으며 실제 검출력은 [M1 기록](execution.md)에 연결한다.
 이는 Harness 저장소의 평가 도구이며 소비 프로젝트에 설치하는 범용 완료 CLI가 아니다.
 입력은 고정 시험 기준·fixture 후보·실제 도구 원문·관찰 지문이고, 출력은 기준별 결과 한 벌이다.
 Markdown 보고는 그 결과와 독립 의미 검토를 참조한다. 사람이 별도의 전체 PASS 값을 여러 곳에 입력하지 않는다.
