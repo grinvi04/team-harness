@@ -30,7 +30,6 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 `plugins/harness-guard/.codex-plugin/plugin.json` + README 배지.
 자체 CI는 두 manifest·README의 버전 일치와 `CHANGELOG.md` 재현도 검사한다. 구현 커밋 뒤
 `node scripts/generate-changelog.mjs --release vX.Y.Z --write`로 CHANGELOG index와 `docs/changelog/` 전체를 생성한다(태그 발행 아님).
-동작 변경을 머지하고 버전을 안 올리면 팀원에게 배포되지 않은 것과 같다.
 
 미발행1.0.0의 조합 제거·단독 앱 이전·검증·전달 경계는 [후속 스펙](specs/workflow-maturity.md)을 따른다.
 
