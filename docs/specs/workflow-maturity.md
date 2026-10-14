@@ -117,14 +117,18 @@ writer 상태 조회는 actor sandbox의 EPERM으로 미확인이며 범위 보�
 인증 값은 기록하지 않고 임시 사본을 정리한다. 전역 설정 불변과 프로세스 설정 hash 변화는 구분한다.
 새 업무2개×2조건=4회는 최신 요청·일부 필수 검사 실패 보존을 확인하며 독립 의미 검토는 대기다.
 로그 경계 후속2회는 같은 구현 요청으로 양쪽 숨김 검사가 통과했다. 허용 파일2개만 바뀌었다.
-배우18/24회이며 필수 리뷰는 별도 계수한다. 후속 config 변경은 각 격리 경로의 trust 항목이며 원문을 보존한다.
+배우18/24회이며 필수 리뷰는 별도 계수한다. 구현 후속2회 config 변경은 격리 경로의 trust 항목이다.
+미사용4회는 설정 원문이 없어 hash 변화의 내용은 미확인이다. 전역 불변·실제 헤더와 별개로 남긴다.
 문맥 비용의 초기 관측은 기준선355.38초/996,035입력 토큰, Harness406.94초/1,131,020입력 토큰이다.
 명령 출력 bytes를 실제 읽기 bytes로 부르지 않는다. 인과 효과·비용 절감·생산성 향상은 입증하지 못했다.
 따라서 새 resolver/cache/요약 계층을 추가하지 않는다. 권한·품질·재개 진입점은 유지한다.
 M2 최초 RED의6실패·조합 허용 반례, macOS 시스템 링크의 첫 GREEN 실패를 보존한다.
 잠긴 테스트는 바꾸지 않고 TMPDIR 실경로로 환경을 정정해20PASS를 확인했다.
 원문은 로컬 `.runtime/workflow-maturity-20261014/`, 현재 후속 판정은 이 스펙에 연결한다.
-전체 quality·커밋 source package/bundle·독립 검토는 아직 미실행이다.
+전체 quality 최초74단계는72PASS/2FAIL이었다. 두 실패는 승인된 공통 계약2줄의 기존 checksum 한 행이 원인이었다.
+현재 계약 digest만 갱신해 source-native loader·Claude 격리 두 명령은 재실행 PASS다. 원래 실패 원문을 보존한다.
+검사 코드·거부 기준·Claude 동작을 완화하지 않았다. 커밋 source package/bundle과 독립 소스·후속6회 검토는 완료했다.
+독립 후속6회는 모두 요청 적합성 PASS이며 실제 시험 제품의 준비 완료와 구분한다. 종합 완료는 잔여 품질·문서 대조 뒤 판정한다.
 로컬 후보 완료·원격 전달·태그·설치는 서로 별개이며 이번에 원격 전달을 시작하지 않는다.
 
 ```harness-doc-sync
@@ -142,6 +146,10 @@ M2 최초 RED의6실패·조합 허용 반례, macOS 시스템 링크의 첫 GRE
  {"path":"docs/harness-maintenance.md","reason":"MAJOR 후보와 이전·전달 경계"},
  {"path":"docs/specs/local-spring-vue-setup.md","reason":"이전 로컬 조합 결과 보존과 대체 계약 연결"},
  {"path":"docs/specs/structure-cleanup.md","reason":"과거 무옵션 보존 계약의 대체 경로"},
- {"path":"docs/specs/stack-profiles-version-contract.md","reason":"과거 로컬 프로필 범위와 후속 변경 구분"}
+ {"path":"docs/specs/stack-profiles-version-contract.md","reason":"과거 로컬 프로필 범위와 후속 변경 구분"},
+ {"path":"docs/pilots/workflow-maturity-2026-10-14.md","reason":"실제 업무·앱·비용 결과와 판정 한계"},
+ {"path":"CHANGELOG.md","reason":"미발행1.0.0 구현 커밋 이력"},
+ {"path":"docs/changelog/releases.md","reason":"생성한 이력 index"},
+ {"path":"docs/changelog/2026/v1.0.0.md","reason":"후보 생성 이력이며 태그 발행과 구분"}
 ],"items":[]}
 ```
