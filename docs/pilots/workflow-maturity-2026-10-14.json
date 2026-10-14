@@ -5,7 +5,7 @@
   "implementationCommit": "cf650fcd53fcc37100f406c2b87f49302a826fc2",
   "candidateVersion": "1.0.0",
   "actors": 18,
-  "actorLimit": 24,
+  "actorLimit": 30,
   "independentReviewsSeparate": true,
   "initial": {
     "protocol": {
@@ -4436,5 +4436,12 @@
     "localChecks": "74 steps PASS scoped; source checksum-only drift verified"
   },
   "comparisonEffectiveness": "UNVERIFIED: initial condition drift; later samples do not prove causal benefit",
-  "completion": "M2_LOCAL_GENERATOR_VERIFIED; FULL_M0_M4_NOT_VERIFIED"
+  "completion": "M2_LOCAL_GENERATOR_VERIFIED; FULL_M0_M4_NOT_VERIFIED",
+  "controlledRerun": {
+    "status": "PREPARING_NOT_RUN",
+    "additionalActors": 12,
+    "originalCases": 6,
+    "variants": 2,
+    "reason": "Original required configuration equivalence and actual writer observation unverified. Correct self-imposed planning estimate24 to30 within approved local verification scope; no user-specified spend budget changed. Preserve original evidence and criteria."
+  }
 }
