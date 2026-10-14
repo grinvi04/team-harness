@@ -103,8 +103,21 @@ Codex·Claude가 실행하고, Harness가 정책과 검증 증거를 연결하�
 
 ## 🚀 빠른 시작
 
-[한국어 설치·갱신·점검](docs/harness-setup.md), [English Quick Start](docs/quick-start.md),
-[지원 환경](docs/support.md)을 현재 실행기에 맞춰 읽는다.
+처음이라면 아래 순서로 시작한다. 설치 명령과 복사용 요청문은 연결된 정본에서 가져온다.
+
+| 순서 | 할 일 | 다음 단계로 넘어가는 기준 |
+|---|---|---|
+| 1. 준비 | [지원 환경](docs/support.md)과 [설치 전 준비](docs/harness-setup.md#설치-전-준비) 확인 | 선택한 Codex 또는 Claude Code를 실행하고 로그인할 수 있음 |
+| 2. 설치 | [Codex](docs/harness-setup.md#codex-최초-설치갱신) 또는 [Claude Code](docs/harness-setup.md#claude-code-최초-설치) 안내 실행. 팀원도 각자 설치 | 설치 목록의 `harness-guard` 버전·활성 상태 확인 |
+| 3. 저장소 연결 | 기존 저장소는 [필요한 구성만 선택](docs/company-onboarding.md), 새 프로젝트는 [온보딩](docs/onboarding.md#먼저-사용할-범위-선택) | 기존 규약·hook·검사 명령 확인 후 채택할 범위를 정함 |
+| 4. 첫 확인 | **제품 저장소 루트에서 새 대화**를 열고 [혼자 시작하는 확인 요청](docs/development-coordination.md#처음-연결할-때) 또는 [팀 확인 요청](docs/team-development-guide.md#처음-함께-사용할-때)을 복사 | 수정 없이 현재 상태·완료 기준·허용 범위 확인 |
+| 5. 실제 업무 | [혼자 개발](docs/development-coordination.md#혼자-개발할-때) 또는 [작은 팀](docs/team-development-guide.md#공유-업무와-담당자별-시작)의 업무 요청 사용 | 혼자는 작업 범위, 팀은 담당자·리뷰어·통합 책임을 정한 뒤 착수 |
+| 6. 완료·인계 | 같은 사용 가이드의 단계별 완료 기준으로 결과 확인 | 현재 후보의 필수 검사·리뷰 증거와 잔여 항목을 대조하고, PR·발행 여부는 별도 보고 |
+
+플러그인 설치만으로 저장소 파일·Git hook·원격 보호가 적용되지는 않는다. 기존 설정은 먼저 보존한다.
+로컬 업무에는 GitHub가 필수가 아니다. GitHub를 쓰면 프로젝트가 선택한 브랜치 흐름과 기존 리뷰·CI를 따른다.
+설치 확인과 실제 hook 실행 확인은 별개다. 막히면 [선택한 구성만 점검](docs/harness-setup.md#현재-상태-점검)한다.
+[English Quick Start](docs/quick-start.md)도 제공한다.
 
 ## 🧪 테스트
 
