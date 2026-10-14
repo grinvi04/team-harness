@@ -129,6 +129,24 @@ test('orphan generated wrappers are rejected rather than silently left active', 
   assert.deepEqual(tree(directory), before)
 })
 
+test('dangling output symlink refuses all writes and does not create its external target', t => {
+  const directory = fixture(t)
+  ok(run(directory, '--write'))
+  const outside = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'codex-generation-outside-'))
+  t.after(() => fs.rmSync(outside, { recursive: true, force: true }))
+  const target = path.join(outside, 'missing.md')
+  const output = path.join(directory, wrappers, 'beta/SKILL.md')
+  fs.unlinkSync(output)
+  fs.symlinkSync(target, output)
+  fs.appendFileSync(path.join(directory, wrappers, 'alpha/SKILL.md'), '\nstale\n')
+  const before = tree(directory)
+  const result = run(directory, '--write')
+  assert.equal(fs.existsSync(target), false, 'generator created the external symlink target')
+  reject(result)
+  assert.match(result.stderr, /symlink path refused/)
+  assert.deepEqual(tree(directory), before)
+})
+
 test('non-directory output parent is rejected before an earlier stale wrapper is rewritten', t => {
   const directory = fixture(t)
   ok(run(directory, '--write'))

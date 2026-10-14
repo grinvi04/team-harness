@@ -14,12 +14,15 @@ function checkedPath(root, relative) {
   for (let index = 0; index < components.length; index++) {
     const component = components[index]
     current = path.join(current, component)
-    if (fs.existsSync(current)) {
-      const info = fs.lstatSync(current)
-      if (info.isSymbolicLink()) throw new Error(`symlink path refused: ${relative}`)
-      if (info.isFile() && info.nlink > 1) throw new Error(`hardlinked file refused: ${relative}`)
-      if (index < components.length - 1 && !info.isDirectory()) throw new Error(`non-directory path refused: ${relative}`)
+    let info
+    try { info = fs.lstatSync(current) }
+    catch (error) {
+      if (error.code === 'ENOENT') continue
+      throw error
     }
+    if (info.isSymbolicLink()) throw new Error(`symlink path refused: ${relative}`)
+    if (info.isFile() && info.nlink > 1) throw new Error(`hardlinked file refused: ${relative}`)
+    if (index < components.length - 1 && !info.isDirectory()) throw new Error(`non-directory path refused: ${relative}`)
   }
   return resolved
 }
