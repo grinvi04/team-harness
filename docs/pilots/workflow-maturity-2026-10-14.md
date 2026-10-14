@@ -86,7 +86,8 @@ Nuxt 기본 타입 설정은 JS 결함을 놓쳤다. 시험 앱에 checkJs와 �
 quality 최초74단계는72PASS/2FAIL이다. 두 실패는 공통 계약2줄의 이전 checksum 한 행 때문이다.
 승인된 공용 계약 hash만 갱신해 해당2명령을 재실행 PASS; 검사·거부 기준과 최초 실패는 보존했다.
 source fingerprint803개 중802개 불변을 대조했다. 최종74단계 PASS는 로컬 재현이며 hosted CI가 아니다.
-b49f288 source package/bundle checksum·provenance는 PASS다. 최종 기록 커밋은 재조립해야 한다.
+b49f288 최초 source package/bundle checksum·provenance는 PASS다. 최종 기록 커밋의 재조립 판정은
+로컬 원문의 `final/verification.json`·`final/bundle/RELEASE-MANIFEST.json`에서 대상 SHA와 대조한다.
 최종 독립 문서 검토는 전체M0–M4 NOT VERIFIED다. 비교 조건 동등성·실제 writer 상태가 필수 미확인이다.
 로컬 생성기·74단계 검사 통과와 전체 목표를 구분한다. 초기 기록을 무효화하거나 효과 향상을 주장하지 않는다.
 현재18/24회 상한으로 완전 비교12회 재시험은 부족하다. 총30회 확대 선택을 요청했으며 응답 전 실행하지 않는다.

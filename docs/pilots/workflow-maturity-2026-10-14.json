@@ -4336,7 +4336,11 @@
       "result": "PASS_SCOPED",
       "notInstallation": true
     },
-    "finalCommittedRebuild": "PENDING_AFTER_FINAL_DOCUMENT_COMMIT"
+    "finalCommittedRebuild": {
+      "proofReference": ".runtime/workflow-maturity-20261014/final/verification.json",
+      "manifestReference": ".runtime/workflow-maturity-20261014/final/bundle/RELEASE-MANIFEST.json",
+      "rule": "Build after record commit, compare current committed HEAD, archive and metadata checksums; result stored externally to avoid circular self-commit record. Source-only, not installation."
+    }
   },
   "finalIndependentReview": {
     "localEvidence": "final-review.answer.md",
@@ -4427,7 +4431,7 @@
     "verdict": "FULL_M0_M4_NOT_VERIFIED",
     "findings": {
       "P1": "Original comparison condition equivalence and actual writer status not verified; followup6 cannot resolve retrospectively",
-      "P2": "Final committed artifact rebuild remains; initial package result targets b49f288 only"
+      "P2": "At review: only b49f288 archive verified. Final committed rebuild proof is referenced in packages.finalCommittedRebuild; inspect current runtime proof instead of assuming pass."
     },
     "localChecks": "74 steps PASS scoped; source checksum-only drift verified"
   },
