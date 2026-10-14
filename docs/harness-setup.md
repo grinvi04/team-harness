@@ -89,6 +89,15 @@ launcher는 공식 설치 상태·native loader를 점검하며 외부 `security
 `--probe`는 별도 격리 fixture·모델 실행 검증이다.
 
 실제 새 Codex 세션에서 합성 위험 명령과 가짜 시크릿 전송의 `PreToolUse` 차단을 확인하려면
-모델 호출·격리 실행을 승인한 뒤 위 Codex 구성 점검에 `--probe`를 추가한다. probe는 throwaway
+**설치·cache 갱신과 모델 호출·격리 실행이 승인된 경우에만** 제품 저장소 루트에서 아래를 실행한다.
+launcher는 지정한 source 기준으로 설치 cache를 동기화한 뒤 확인하고, doctor는 Codex 구성과 실제 차단을 점검한다.
+
+```bash
+HARNESS_SOURCE="/path/to/team-harness"
+bash "$HARNESS_SOURCE"/scripts/codex-hardened.sh --version
+PYTHON_BIN=python3.11 bash "$HARNESS_SOURCE"/scripts/harness-doctor.sh --repo . --probe --components codex --expected-version 0.93.2
+```
+
+`HARNESS_SOURCE`는 위 발행 태그의 원본 루트로 바꾼다. probe는 throwaway
 디렉터리와 loopback 폐쇄 포트만 사용하고, 검토된 hook을 해당 invocation에서만 실행하도록 hook trust를
 일회성 우회한다(approval·sandbox는 유지). 인증된 Codex 세션의 모델 토큰을 소비하므로 CI에서는 실행하지 않는다.
