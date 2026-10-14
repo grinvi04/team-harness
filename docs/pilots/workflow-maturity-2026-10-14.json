@@ -4335,7 +4335,8 @@
       ],
       "result": "PASS_SCOPED",
       "notInstallation": true
-    }
+    },
+    "finalCommittedRebuild": "PENDING_AFTER_FINAL_DOCUMENT_COMMIT"
   },
   "finalIndependentReview": {
     "localEvidence": "final-review.answer.md",
@@ -4396,6 +4397,40 @@
     "ClaudeHostHook": "UNVERIFIED_DEFERRED",
     "companyAndActualPeople": "OUT_OF_CURRENT_SCOPE"
   },
-  "finalDocumentationReview": "PENDING",
-  "comparisonEffectiveness": "UNVERIFIED: initial condition drift; later samples do not prove causal benefit"
+  "finalDocumentationReview": {
+    "localEvidence": "documentation-review.answer.md",
+    "sha256": "9e8a544633e356a4eb547ff5550cb03ab9139a1d4dc853a85531557ec9fa7c0f",
+    "meta": {
+      "command": [
+        "codex",
+        "--no-daemon",
+        "-a",
+        "never",
+        "-m",
+        "gpt-6-astra",
+        "-c",
+        "model_reasoning_effort=\"medium\"",
+        "exec",
+        "--ephemeral",
+        "--sandbox",
+        "read-only",
+        "-C",
+        "/Users/grinvi04/.codex/worktrees/workflow-maturity/team-harness",
+        "-o",
+        "/Users/grinvi04/team-harness/.runtime/workflow-maturity-20261014/documentation-review.answer.md",
+        "-"
+      ],
+      "exitCode": 0,
+      "seconds": 110.51,
+      "globalConfigUnchanged": true
+    },
+    "verdict": "FULL_M0_M4_NOT_VERIFIED",
+    "findings": {
+      "P1": "Original comparison condition equivalence and actual writer status not verified; followup6 cannot resolve retrospectively",
+      "P2": "Final committed artifact rebuild remains; initial package result targets b49f288 only"
+    },
+    "localChecks": "74 steps PASS scoped; source checksum-only drift verified"
+  },
+  "comparisonEffectiveness": "UNVERIFIED: initial condition drift; later samples do not prove causal benefit",
+  "completion": "M2_LOCAL_GENERATOR_VERIFIED; FULL_M0_M4_NOT_VERIFIED"
 }
