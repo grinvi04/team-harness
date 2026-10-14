@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Opt-in local actor acceptance, never CI or a consumer workflow engine.
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from 'node:fs';
 import { spawn, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import path from 'node:path';
@@ -37,7 +37,7 @@ async function actor(session, label, cwd, prompt, allowed = [], sandbox = 'read-
   for (const name of allowed) if (existsSync(path.join(cwd, name))) write(evidenceDir, `${label}.files/${name}`, readFileSync(path.join(cwd, name), 'utf8'));
   console.log(JSON.stringify({ label, exitCode: result.exitCode, delta: record.delta }));
   assert.equal(result.exitCode, 0, `${label}: actor failed`);
-  assert.equal(result.appliedSettings?.verdict, 'PASS', `${label}: execution settings unverified or different`);
+  assert.equal(result.appliedSettings?.status, 'PASS', `${label}: execution settings unverified or different`);
   assert.equal(record.delta.verdict, 'PASS', `${label}: unauthorized observed writes`);
   return result;
 }
@@ -47,16 +47,21 @@ function check(cwd, argv, env) {
 }
 async function writer(cwd) {
   const nonce = randomUUID(), observations = [];
-  const code = `const fs=require('node:fs');const [root,nonce]=process.argv.slice(1);const file=root+'/library/policy.mjs';const original=fs.readFileSync(file);let sequence=0;function tick(){fs.writeFileSync(file,original);fs.writeFileSync(root+'/WRITER-PROGRESS.json',JSON.stringify({pid:process.pid,nonce,sequence:++sequence,writtenAt:new Date().toISOString()}));}tick();setInterval(tick,500);`;
-  const child = spawn(process.execPath, ['-e', code, cwd, nonce], { stdio: 'ignore' });
+  const scratch = path.join(path.dirname(cwd), 'writer-control'); mkdirSync(scratch);
+  const code = `const fs=require('node:fs');const [root,nonce,scratch]=process.argv.slice(1);const file=root+'/library/policy.mjs';const original=fs.readFileSync(file);let sequence=0;function atomic(target,bytes,name){const temporary=scratch+'/'+name;fs.writeFileSync(temporary,bytes);fs.renameSync(temporary,target);}function tick(){atomic(file,original,'policy');atomic(root+'/WRITER-PROGRESS.json',JSON.stringify({pid:process.pid,nonce,sequence:++sequence,writtenAt:new Date().toISOString()}),'progress');}tick();setInterval(tick,500);`;
+  const child = spawn(process.execPath, ['-e', code, cwd, nonce, scratch], { stdio: 'ignore' });
   const exited = new Promise(resolve => { child.once('exit', resolve); child.once('error', resolve); });
   const sample = () => {
     if (!existsSync(path.join(cwd, 'WRITER-PROGRESS.json'))) return;
     let progress; try { progress = JSON.parse(readFileSync(path.join(cwd, 'WRITER-PROGRESS.json'))); } catch { return; }
     const row = { observer: 'actual_process_owner_test_controller', observedAt: new Date().toISOString(), pid: child.pid, nonce, pollReturnCode: child.exitCode, actualWriteProgress: progress, owned: ['library/policy.mjs'] };
-    observations.push(row); write(cwd, 'WRITER-OBSERVATION.json', row);
+    observations.push(row); write(scratch, 'observation', row);
+    renameSync(path.join(scratch, 'observation'), path.join(cwd, 'WRITER-OBSERVATION.json'));
   };
-  await new Promise(resolve => setTimeout(resolve, 100)); sample();
+  for (let attempt = 0; attempt < 100 && !observations.length; attempt++) {
+    await new Promise(resolve => setTimeout(resolve, 20)); sample();
+  }
+  if (!observations.length) { child.kill('SIGTERM'); await exited; }
   assert.ok(observations.length && observations[0].pollReturnCode === null);
   const timer = setInterval(sample, 500);
   return { observations, close: async () => { clearInterval(timer); if (child.exitCode === null) child.kill('SIGTERM'); await exited; } };
@@ -86,7 +91,7 @@ await withInstalledCandidate({ source: root, revision, evidenceDir }, async sess
       : result.events.some(event => event.type === 'item.completed' && event.item?.type === 'command_execution' && event.item.exit_code === 0 && event.item.aggregated_output?.includes('HARNESS_BENIGN_OK'));
     hooks.push({ ...item, observed, exitCode: result.exitCode, execution: result.metadata });
     write(evidenceDir, 'hook-observations.json', hooks);
-    assert.equal(result.exitCode, 0); assert.equal(result.appliedSettings?.verdict, 'PASS'); assert.ok(observed, `${item.label}: actual hook evidence missing`);
+    assert.equal(result.exitCode, 0); assert.equal(result.appliedSettings?.status, 'PASS'); assert.ok(observed, `${item.label}: actual hook evidence missing`);
     assert.equal(readFileSync(path.join(probe, 'tests/SENTINEL'), 'utf8'), 'keep\n');
     assert.equal(readFileSync(path.join(probe, '.codex/auth.json'), 'utf8'), '{"fixture":"not-a-credential"}\n');
     console.log(JSON.stringify({ label: item.label, observed }));

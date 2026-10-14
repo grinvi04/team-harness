@@ -1,4 +1,11 @@
 {
+  "publication": {
+    "originalRecordSha256": "508cab0ceb69dc1a519a17dd4778955263831a83d583bc355a33e1a8716254f9",
+    "privateOriginalRecord": "$HOME/team-harness/.runtime/redesign-live-20261015/private-original-records/current-evaluation-2026-10-15.json",
+    "normalizationRule": "Replace the evaluator macOS user-home prefix with the literal $HOME placeholder in public string path displays only.",
+    "evidencePreservation": "Execution originals remain in external local runtime. Original verdicts, versions, statistics and existing evidence digests are unchanged. Public command/cwd/output strings are display-normalized copies, not byte-identical execution originals; verify original bytes using originalRecordSha256.",
+    "originalMarkdownSha256": "8ca841861f2a478cdb8887e4c3c5254a6a71ce5ebe1a72b75f3914938be470e7"
+  },
   "schemaVersion": 1,
   "date": "2026-10-15",
   "scope": "Local three-flow evaluation of unpublished1.0.0; synthetic products, explicit Harness contracts; not release/install/company/human adoption",
@@ -23,7 +30,7 @@
       "verdict": "PASS_SCOPED",
       "sessionId": "01a13c24-f5f6-78c0-92f4-aa5917dd49a3",
       "originalCwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/current-evaluation-5_j5hhaf/baseline/A",
-      "retainedSource": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/baseline-A",
+      "retainedSource": "$HOME/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/baseline-A",
       "phases": [
         {
           "phase": 1,
@@ -42,7 +49,7 @@
             "--sandbox",
             "workspace-write",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-1.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-1.answer.md",
             "-"
           ],
           "prompt": "이 저장소에서 혼자 Team Harness를 쓰기 시작하려고 해. REQUIREMENTS와 ONBOARDING, 기존 코드·사용자 변경·검사·준비 조건을 확인해줘. Node API와 React 앱을 각각 어떻게 연결할지 실제 setup-local 명령의 지원 조회·preview까지 확인해줘. 아직 파일·설정을 변경하거나 검사·설치를 실행하지 마. 준비 여부, 보존할 것, 적용 후 검사 순서와 미확인을 보고해.",
@@ -59,15 +66,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-1.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-1.answer.md",
               "sha256": "50afd3b5a26cf9a11dc6bdb9d0930b6d903cb488abf8488b805cba021ee1391c"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-1.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-1.stderr.log",
               "sha256": "52009d48f0e7eaa685f3121432a037daa1c38a4da997291446a2345152a3a073"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-1.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-1.execution.json",
               "sha256": "6395b6293810650729bb94a16a0d0f989d20546bee3775dc69a66b750878e690"
             }
           }
@@ -89,7 +96,7 @@
             "resume",
             "01a13c24-f5f6-78c0-92f4-aa5917dd49a3",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-2.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-2.answer.md",
             "-"
           ],
           "prompt": "앞서 확인한 별도 Node·React 연결을 승인해. 각 앱 scripts/check-harness.sh만 생성하고 실제로 실행해줘. 원본 source/test/package/lock/AGENTS·사용자 변경을 보존하고 E2E는 선택하지 마. npm은 준비된 앱별 offline cache만 사용해. 실제 검사 결과와 제외한 검사를 구분해줘. Git·전역·원격 변경은 하지 마.",
@@ -109,15 +116,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-2.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-2.answer.md",
               "sha256": "5e31fad46fe2fdb05d84aaad801c0a4bbe98cc27ff121efb0f248fabf4dd048c"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-2.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-2.stderr.log",
               "sha256": "3b3038a712763b1d216c092d65d2d750eee5d229df017d17f35657b4bcdfabf3"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-2.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-A/phase-2.execution.json",
               "sha256": "366567729f114019d51e90681ed7a207227f64eadb1ecee67d03bc955cfd4f7a"
             }
           }
@@ -162,7 +169,7 @@
       "verdict": "PASS_SCOPED",
       "sessionId": "01a13c24-f5f6-7041-9333-fe2e8d5ffe96",
       "originalCwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/current-evaluation-5_j5hhaf/candidate/A",
-      "retainedSource": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/candidate-A",
+      "retainedSource": "$HOME/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/candidate-A",
       "phases": [
         {
           "phase": 1,
@@ -181,7 +188,7 @@
             "--sandbox",
             "workspace-write",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-1.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-1.answer.md",
             "-"
           ],
           "prompt": "이 저장소에서 혼자 Team Harness를 쓰기 시작하려고 해. REQUIREMENTS와 ONBOARDING, 기존 코드·사용자 변경·검사·준비 조건을 확인해줘. Node API와 React 앱을 각각 어떻게 연결할지 실제 setup-local 명령의 지원 조회·preview까지 확인해줘. 아직 파일·설정을 변경하거나 검사·설치를 실행하지 마. 준비 여부, 보존할 것, 적용 후 검사 순서와 미확인을 보고해.",
@@ -198,15 +205,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-1.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-1.answer.md",
               "sha256": "98ac01a4fb3ac42635661b6d87d0c48f5dc304479262a49ece887f21d10ba10e"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-1.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-1.stderr.log",
               "sha256": "61bbad4a078df4113c1b2f9e8567cf1e36d6b83b2fd203c97a48e986dd1aa720"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-1.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-1.execution.json",
               "sha256": "528326004aac4063d5fd28ea367d38a76a70dea7ff3b8de09dd5d61c907d59a5"
             }
           }
@@ -228,7 +235,7 @@
             "resume",
             "01a13c24-f5f6-7041-9333-fe2e8d5ffe96",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-2.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-2.answer.md",
             "-"
           ],
           "prompt": "앞서 확인한 별도 Node·React 연결을 승인해. 각 앱 scripts/check-harness.sh만 생성하고 실제로 실행해줘. 원본 source/test/package/lock/AGENTS·사용자 변경을 보존하고 E2E는 선택하지 마. npm은 준비된 앱별 offline cache만 사용해. 실제 검사 결과와 제외한 검사를 구분해줘. Git·전역·원격 변경은 하지 마.",
@@ -248,15 +255,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-2.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-2.answer.md",
               "sha256": "16959e1d1ad4033b2da21e1d8928dee5139ce9841a5760750d2f5ec530d5a339"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-2.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-2.stderr.log",
               "sha256": "5b6c93a2bcc8623463d3dea8508f695b43f923413bdbfb05cbd7db110308b9f0"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-2.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-A/phase-2.execution.json",
               "sha256": "1ad4d44230f28afa0cae4908e2cb47564e4f153b5c0fd6c83143c1999617dd86"
             }
           }
@@ -301,7 +308,7 @@
       "verdict": "FAIL_SCOPE_AND_OR_REPORTING",
       "sessionId": "01a13c26-bfca-7a62-989a-6c4311ba4b11",
       "originalCwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/current-evaluation-5_j5hhaf/baseline/B",
-      "retainedSource": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/baseline-B",
+      "retainedSource": "$HOME/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/baseline-B",
       "phases": [
         {
           "phase": 1,
@@ -320,7 +327,7 @@
             "--sandbox",
             "workspace-write",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-1.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-1.answer.md",
             "-"
           ],
           "prompt": "같은 검색어에서 재고 필터 설정 revision을 바꾸면 이전 목록이 남는 원인을 진단하고 최소 수정 계획을 설명해줘. REQUIREMENTS·공개 호출부·상태 소유·현재 검사를 확인하고 실제로 재현해. 아직 코드·테스트·기록을 수정하지 마. 정상·경계·유지 검사와 완료 기준을 정리해.",
@@ -337,15 +344,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-1.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-1.answer.md",
               "sha256": "9c297d6103555e8f09d79c79408bee9134cc3629e27afc91b8454eceaf7e87d9"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-1.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-1.stderr.log",
               "sha256": "02bd17fe360f4c8bd3c2e891d56165c2d8363f98cfba4a2f8be7b3639c66a40a"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-1.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-1.execution.json",
               "sha256": "57ed206f8f1f68b8221fb2bd56647e45f9b99c7eb609a562d5b3403ac21a9e7b"
             }
           }
@@ -367,7 +374,7 @@
             "resume",
             "01a13c26-bfca-7a62-989a-6c4311ba4b11",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-2.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-2.answer.md",
             "-"
           ],
           "prompt": "앞서 정한 목표의 수정을 승인해. 허용한 src/catalog.mjs, 신규 test/cache-revision.test.mjs, docs/progress.md만 변경해. revision 변경·빈 결과·원래 API/정렬/필드를 유지하고 기존 테스트를 약화하지 마. 정확한 제품 루트의 필수 검사를 실행하고 직접 소비자 관점에서 변경을 리뷰해줘. 실제 결과·후보와 남은 한계를 진행 기록에 연결해. 커밋·원격 작업은 하지 마.",
@@ -388,15 +395,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-2.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-2.answer.md",
               "sha256": "00687f926de18a036645690d647e4675c5e3b7ef3018937394ff4fc8ed62567a"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-2.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-2.stderr.log",
               "sha256": "48caa1a8bfe956258a5cc0191ec59daaed16e4b3ad1db2271e99be3e3d0716d5"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-2.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-B/phase-2.execution.json",
               "sha256": "3a6c2d11e4217da5d2be43a0fc1daa3aff8e446225e9144578384888df289d35"
             }
           }
@@ -445,7 +452,7 @@
       "verdict": "FAIL_SCOPE_AND_OR_REPORTING",
       "sessionId": "01a13c26-bfca-76f1-a88f-15cbf5c20405",
       "originalCwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/current-evaluation-5_j5hhaf/candidate/B",
-      "retainedSource": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/candidate-B",
+      "retainedSource": "$HOME/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/candidate-B",
       "phases": [
         {
           "phase": 1,
@@ -464,7 +471,7 @@
             "--sandbox",
             "workspace-write",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-1.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-1.answer.md",
             "-"
           ],
           "prompt": "같은 검색어에서 재고 필터 설정 revision을 바꾸면 이전 목록이 남는 원인을 진단하고 최소 수정 계획을 설명해줘. REQUIREMENTS·공개 호출부·상태 소유·현재 검사를 확인하고 실제로 재현해. 아직 코드·테스트·기록을 수정하지 마. 정상·경계·유지 검사와 완료 기준을 정리해.",
@@ -481,15 +488,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-1.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-1.answer.md",
               "sha256": "9043eee6d93ef0bdb15c66837d37cb450806fc8a8863424b67228861fd2a754e"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-1.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-1.stderr.log",
               "sha256": "884b5b2eade9a0cf3a89eb7eeb3471b5ad4e57f5c09ba08d3b187644935885d7"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-1.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-1.execution.json",
               "sha256": "505725845df060dca9770a6f68a9cb767a7cedc283d3a585381458e824bc7d31"
             }
           }
@@ -511,7 +518,7 @@
             "resume",
             "01a13c26-bfca-76f1-a88f-15cbf5c20405",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-2.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-2.answer.md",
             "-"
           ],
           "prompt": "앞서 정한 목표의 수정을 승인해. 허용한 src/catalog.mjs, 신규 test/cache-revision.test.mjs, docs/progress.md만 변경해. revision 변경·빈 결과·원래 API/정렬/필드를 유지하고 기존 테스트를 약화하지 마. 정확한 제품 루트의 필수 검사를 실행하고 직접 소비자 관점에서 변경을 리뷰해줘. 실제 결과·후보와 남은 한계를 진행 기록에 연결해. 커밋·원격 작업은 하지 마.",
@@ -532,15 +539,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-2.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-2.answer.md",
               "sha256": "77265a4ff6b458d8d184c77f89645db2fb69b0f6c86ef9c1e4c022114d39b143"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-2.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-2.stderr.log",
               "sha256": "8455a0abb6f6dacb67463ac4ff51c83c47fbf050da99bf8b271601408a7a068a"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-2.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-B/phase-2.execution.json",
               "sha256": "03d89bf09527219f56483d8a5a30ecff1fca50ac1b0fde59c926c87cdbe53b6d"
             }
           }
@@ -589,7 +596,7 @@
       "verdict": "FAIL_SCOPE_AND_OR_REPORTING",
       "sessionId": "01a13c29-a42b-7883-a4fe-dd4e9a9fdfd2",
       "originalCwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/current-evaluation-5_j5hhaf/baseline/C",
-      "retainedSource": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/baseline-C",
+      "retainedSource": "$HOME/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/baseline-C",
       "phases": [
         {
           "phase": 1,
@@ -608,7 +615,7 @@
             "--sandbox",
             "workspace-write",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-C/phase-1.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-C/phase-1.answer.md",
             "-"
           ],
           "prompt": "이전 담당자의 HANDOFF를 인수하고 현재 REQUIREMENTS의 최신 목표로 재개해줘. 기존 PASS를 믿지 말고 현재 검사와 실제 writer 소유자의 신선한 상태 관측을 두 번 이상 확인해. 살아 있는 writer의 영역을 수정하거나 중단하지 마. 허용된 summary·신규 summary 테스트·진행 기록만 수정해 현재 목표를 구현·검사해. 부분 완료와 전체 완료를 구분하고 다음 담당자가 이어갈 수 있게 실제 후보·실패·담당·다음 행동을 남겨줘. 권한을 바꾸거나 직접 프로세스 조회 성공을 추측하지 마.",
@@ -629,15 +636,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-C/phase-1.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-C/phase-1.answer.md",
               "sha256": "a70b4bccce1cf4a58086d4ed48bfcc0ee82371e59d79b5e507ecffc6b23b169b"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-C/phase-1.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-C/phase-1.stderr.log",
               "sha256": "fd09a8f087fb1786badee16df65edd3c58953026165932c5d47f740fa1cf975b"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/baseline-C/phase-1.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/baseline-C/phase-1.execution.json",
               "sha256": "862a844ace9a80ad501a0821e6318206895373fe878e2f45f7f883ccc65c07d9"
             }
           }
@@ -685,7 +692,7 @@
       "verdict": "FAIL_SCOPE_AND_OR_REPORTING",
       "sessionId": "01a13c29-a42b-7763-b386-b3266db6ee15",
       "originalCwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/current-evaluation-5_j5hhaf/candidate/C",
-      "retainedSource": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/candidate-C",
+      "retainedSource": "$HOME/team-harness/.runtime/current-evaluation-20261015/fixtures/initial/candidate-C",
       "phases": [
         {
           "phase": 1,
@@ -704,7 +711,7 @@
             "--sandbox",
             "workspace-write",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-C/phase-1.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-C/phase-1.answer.md",
             "-"
           ],
           "prompt": "이전 담당자의 HANDOFF를 인수하고 현재 REQUIREMENTS의 최신 목표로 재개해줘. 기존 PASS를 믿지 말고 현재 검사와 실제 writer 소유자의 신선한 상태 관측을 두 번 이상 확인해. 살아 있는 writer의 영역을 수정하거나 중단하지 마. 허용된 summary·신규 summary 테스트·진행 기록만 수정해 현재 목표를 구현·검사해. 부분 완료와 전체 완료를 구분하고 다음 담당자가 이어갈 수 있게 실제 후보·실패·담당·다음 행동을 남겨줘. 권한을 바꾸거나 직접 프로세스 조회 성공을 추측하지 마.",
@@ -725,15 +732,15 @@
           "scopeObservation": "Source-file snapshot excludes cache; initial B/C log violations independently observed and rejected",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-C/phase-1.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-C/phase-1.answer.md",
               "sha256": "6132f1a335809d3e6a5625bbad6d17298c99277cf35af6739182afa8cba5eb02"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-C/phase-1.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-C/phase-1.stderr.log",
               "sha256": "90d333179e0ead82811dcc68b070dc885f78a3b3dd1ee678663c5e9185d855b5"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/runs/candidate-C/phase-1.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/runs/candidate-C/phase-1.execution.json",
               "sha256": "8e9bc2780a79e14d853ff1461317e64095a08fe13ec9cbcf9fcac4edd87b11ab"
             }
           }
@@ -781,7 +788,7 @@
       "verdict": "PASS_SCOPED_INDEPENDENTLY_REVIEWED",
       "sessionId": "01a13c2f-17e2-7cc2-b525-264ae9658656",
       "originalCwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/current-impact-jzba6ix2/candidate/B",
-      "retainedSource": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/fixtures/impact/candidate-B",
+      "retainedSource": "$HOME/team-harness/.runtime/current-evaluation-20261015/fixtures/impact/candidate-B",
       "phases": [
         {
           "phase": 1,
@@ -800,7 +807,7 @@
             "--sandbox",
             "workspace-write",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-1.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-1.answer.md",
             "-"
           ],
           "prompt": "같은 검색어에서 재고 필터 설정 revision을 바꾸면 이전 목록이 남는 원인을 진단하고 최소 수정 계획을 설명해줘. REQUIREMENTS·공개 호출부·상태 소유·현재 검사를 확인하고 실제로 재현해. 아직 코드·테스트·기록을 수정하지 마. 정상·경계·유지 검사와 완료 기준을 정리해.",
@@ -817,15 +824,15 @@
           "scopeObservation": "B/C cache files included",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-1.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-1.answer.md",
               "sha256": "59603efba55f26a198a173502b7b5152a2e74410d7aaaa8c8988d448c6b22ad0"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-1.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-1.stderr.log",
               "sha256": "14a485f2817bffa9f8f63c025993b8a508c37287718375bae932f1f85beb1487"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-1.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-1.execution.json",
               "sha256": "0094097ca6ea830e3037c1f7fef14d94e0d24910d55113e672d9e21133bc63ce"
             }
           }
@@ -847,7 +854,7 @@
             "resume",
             "01a13c2f-17e2-7cc2-b525-264ae9658656",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-2.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-2.answer.md",
             "-"
           ],
           "prompt": "앞서 정한 목표의 수정을 승인해. 허용한 src/catalog.mjs, 신규 test/cache-revision.test.mjs, docs/progress.md만 변경해. revision 변경·빈 결과·원래 API/정렬/필드를 유지하고 기존 테스트를 약화하지 마. 정확한 제품 루트의 필수 검사를 실행하고 직접 소비자 관점에서 변경을 리뷰해줘. 실제 결과·후보와 남은 한계를 진행 기록에 연결해. 커밋·원격 작업은 하지 마.",
@@ -868,15 +875,15 @@
           "scopeObservation": "B/C cache files included",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-2.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-2.answer.md",
               "sha256": "b4019d67c4b8029a8ef388bb643bc42fe394030c1593f8825f8c8b508ff84fe6"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-2.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-2.stderr.log",
               "sha256": "2ae253f336799a96f67f9a5d41c20dc56e7aa82b47fc97fe1d8a2ebd71ce07d0"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-2.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-B/phase-2.execution.json",
               "sha256": "7e63f24ed1e2ce73f0239d1e3ffc4fa4e1db7bb6073387cdc1fdbeb46f30cc5d"
             }
           }
@@ -925,7 +932,7 @@
       "verdict": "PASS_SCOPED_INDEPENDENTLY_REVIEWED",
       "sessionId": "01a13c2f-17e2-7502-9b93-a7a15c6509e1",
       "originalCwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/current-impact-jzba6ix2/candidate/C",
-      "retainedSource": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/fixtures/impact/candidate-C",
+      "retainedSource": "$HOME/team-harness/.runtime/current-evaluation-20261015/fixtures/impact/candidate-C",
       "phases": [
         {
           "phase": 1,
@@ -944,7 +951,7 @@
             "--sandbox",
             "workspace-write",
             "-o",
-            "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-C/phase-1.answer.md",
+            "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-C/phase-1.answer.md",
             "-"
           ],
           "prompt": "이전 담당자의 HANDOFF를 인수하고 현재 REQUIREMENTS의 최신 목표로 재개해줘. 기존 PASS를 믿지 말고 현재 검사와 실제 writer 소유자의 신선한 상태 관측을 두 번 이상 확인해. 살아 있는 writer의 영역을 수정하거나 중단하지 마. 허용된 summary·신규 summary 테스트·진행 기록만 수정해 현재 목표를 구현·검사해. 부분 완료와 전체 완료를 구분하고 다음 담당자가 이어갈 수 있게 실제 후보·실패·담당·다음 행동을 남겨줘. 권한을 바꾸거나 직접 프로세스 조회 성공을 추측하지 마.",
@@ -965,15 +972,15 @@
           "scopeObservation": "B/C cache files included",
           "evidence": {
             ".answer.md": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-C/phase-1.answer.md",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-C/phase-1.answer.md",
               "sha256": "061847c15336a35a1ca53015ee5be4f05ed2301fd0deb3737caccd159120a19e"
             },
             ".stderr.log": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-C/phase-1.stderr.log",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-C/phase-1.stderr.log",
               "sha256": "f631d767b955ddb551f0325a2dd3e8ba2c0e4e39fa58a487316017ed52e201d7"
             },
             ".execution.json": {
-              "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-C/phase-1.execution.json",
+              "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/runs/candidate-C/phase-1.execution.json",
               "sha256": "8172eaf71b7eab4b9bb6776900490c23b749822cbba3df4aa609946fa7517912"
             }
           }
@@ -1017,87 +1024,87 @@
   ],
   "rawEvidence": {
     "plan-at-start.md": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/plan-at-start.md",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/plan-at-start.md",
       "sha256": "bb720b4deb8828a7b88b1ae1adb66a4a201d58cb2df4e5c769c41c2f0ab1b754"
     },
     "protocol.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/protocol.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/protocol.json",
       "sha256": "cbd83dbadf99c60d9a135f66098bcde63060a61b3ea4862fa9f7446db7b6fa6d"
     },
     "run.py": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/run.py",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/run.py",
       "sha256": "02556dba15e19ea4cbd29e4be65da802c2598cec0a2819af9612a56ee5ab8b72"
     },
     "execution.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/execution.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/execution.json",
       "sha256": "bdde9d33aaf43b8b2a61d7505c73ddb09bbfbaaedfaadde2903059615559f726"
     },
     "preflight.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/preflight.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/preflight.json",
       "sha256": "382b9c26a23074ade03d441fb474b1fb7e7bfca918a76ecb4c3016ec4e3d1f74"
     },
     "refusals.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/refusals.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/refusals.json",
       "sha256": "b56161898a96d9e7a2abdd74013da849819601472edc351bd65be5a7d9fe96cf"
     },
     "source-continuity.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/source-continuity.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/source-continuity.json",
       "sha256": "8576aac34198d3b05a4d28bdef14d5dac0f3b7b578a310fb98ef2d202571ce9a"
     },
     "mechanical-proof.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/mechanical-proof.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/mechanical-proof.json",
       "sha256": "84b0c1cbd9964b69398533238187f30c5f59c7971a3e121a3459b7ad03cc322f"
     },
     "review.answer.md": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/review.answer.md",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/review.answer.md",
       "sha256": "938254d5b315dfcd46283d1c39c74761932f893034266be63610326bf1176525"
     },
     "review.stderr.log": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/review.stderr.log",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/review.stderr.log",
       "sha256": "673f2b718d795b2cc85338216eb4f045a9306676e6abd88a598e01c5823da890"
     },
     "review.meta.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/review.meta.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/review.meta.json",
       "sha256": "a84eb85c7870f8fac1c4228ccedf70e9a87fc08862d7719c5c65c99efc333866"
     },
     "npm-side-effects.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/npm-side-effects.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/npm-side-effects.json",
       "sha256": "9a97291496b6d4fcb5639194f93ac279375a14d6b305237dc4d2dc864d741d58"
     },
     "impact.py": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact.py",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact.py",
       "sha256": "0dfc7ecf34acbadeee50b44b20f6aa83684585574e51e8c687f420251111d16a"
     },
     "impact/protocol.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/protocol.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/protocol.json",
       "sha256": "e687a33a090c27a0915f50214a9f2c1187fb49b747647a5fa9d9c44d2bcd260e"
     },
     "impact/execution.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/execution.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/execution.json",
       "sha256": "9cc1725f0abdfba27ca8cdd9d84466da18099529f301c7d311895a5a16706db9"
     },
     "impact/strict-proof.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact/strict-proof.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact/strict-proof.json",
       "sha256": "fd9002b5a0836a10f8c00733026e24bffa69e2d95f6d562115d6ac042ae8fb38"
     },
     "impact-quality.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/impact-quality.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/impact-quality.json",
       "sha256": "7e25eaf4db838f618479f2af8b8dc8997cee76b5c1db2fc556be9baf8cd24c15"
     },
     "review-impact.answer.md": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/review-impact.answer.md",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/review-impact.answer.md",
       "sha256": "24c3a43545557fce7af907cd673200f88132f7a6f5640fbf8311b104cfbd3acd"
     },
     "review-impact.stderr.log": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/review-impact.stderr.log",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/review-impact.stderr.log",
       "sha256": "f2c206fe2830f70eb206d65b4f18d59d373e291a750453c0be4dd669e882cfc9"
     },
     "review-impact.meta.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/review-impact.meta.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/review-impact.meta.json",
       "sha256": "280bd568d20fa80063c45f70bfb4f1fa1a67d675745d812fca1b44658e14b6af"
     },
     "cleanup-final.json": {
-      "path": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/cleanup-final.json",
+      "path": "$HOME/team-harness/.runtime/current-evaluation-20261015/cleanup-final.json",
       "sha256": "7fb755a6b4a20dd5209e289015e13ec07549c73c11631e2658d06bed474a74bf"
     }
   },
@@ -1116,46 +1123,46 @@
     "checks": [
       {
         "command": "bash tests/codex-native-loader-test.sh",
-        "cwd": "/Users/grinvi04/.codex/worktrees/workflow-maturity/team-harness",
+        "cwd": "$HOME/.codex/worktrees/workflow-maturity/team-harness",
         "exitCode": 1,
         "sourceState": "changed shared contract before pin refresh",
-        "log": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/native-pin-before.log",
+        "log": "$HOME/team-harness/.runtime/current-evaluation-20261015/native-pin-before.log",
         "sha256": "f00e3225fba40e39c640c720c58c480656d217b3dceb55948387ba1e87f2bfbd",
         "exitSource": "Observed exec_command/write_stdin exit at execution; log hash preserved, not inferred from PASS alone."
       },
       {
         "command": "bash tests/claude-surface-isolation-test.sh",
-        "cwd": "/Users/grinvi04/.codex/worktrees/workflow-maturity/team-harness",
+        "cwd": "$HOME/.codex/worktrees/workflow-maturity/team-harness",
         "exitCode": 1,
         "sourceState": "changed shared contract before pin refresh",
-        "log": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/claude-pin-before.log",
+        "log": "$HOME/team-harness/.runtime/current-evaluation-20261015/claude-pin-before.log",
         "sha256": "2ae4ac1e80b5d215403c4f8e7ab008182fe2d858be2a4d48c8f355ac81270c4c",
         "exitSource": "Observed exec_command/write_stdin exit at execution; log hash preserved, not inferred from PASS alone."
       },
       {
         "command": "bash tests/codex-native-loader-test.sh",
-        "cwd": "/Users/grinvi04/.codex/worktrees/workflow-maturity/team-harness",
+        "cwd": "$HOME/.codex/worktrees/workflow-maturity/team-harness",
         "exitCode": 0,
         "sourceState": "changed shared contract and matching approved pin",
-        "log": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/native-pin-after.log",
+        "log": "$HOME/team-harness/.runtime/current-evaluation-20261015/native-pin-after.log",
         "sha256": "0ceed3a801c532cfea247afda87f065c789f9b2aa20b8ae2c662cc4befcb0c02",
         "exitSource": "Observed exec_command/write_stdin exit at execution; log hash preserved, not inferred from PASS alone."
       },
       {
         "command": "bash tests/claude-surface-isolation-test.sh",
-        "cwd": "/Users/grinvi04/.codex/worktrees/workflow-maturity/team-harness",
+        "cwd": "$HOME/.codex/worktrees/workflow-maturity/team-harness",
         "exitCode": 0,
         "sourceState": "changed shared contract and matching approved pin",
-        "log": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/claude-pin-after.log",
+        "log": "$HOME/team-harness/.runtime/current-evaluation-20261015/claude-pin-after.log",
         "sha256": "2aee619c1f4a78dbfe47958a942417e2b45ecbf249a1225ed2b35b23e0b40ec1",
         "exitSource": "Observed exec_command/write_stdin exit at execution; log hash preserved, not inferred from PASS alone."
       },
       {
         "command": "node --test tests/skill-contract-consolidation-test.mjs",
-        "cwd": "/Users/grinvi04/.codex/worktrees/workflow-maturity/team-harness",
+        "cwd": "$HOME/.codex/worktrees/workflow-maturity/team-harness",
         "exitCode": 0,
         "sourceState": "changed shared contract and matching approved pin",
-        "log": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/shared-contract.log",
+        "log": "$HOME/team-harness/.runtime/current-evaluation-20261015/shared-contract.log",
         "sha256": "8aea6bdac795af3a4b5de4888dd40c39f5e70cee19d3a46987207f0cc9c8b3bc",
         "exitSource": "Observed exec_command/write_stdin exit at execution; log hash preserved, not inferred from PASS alone."
       }
@@ -1197,8 +1204,8 @@
     ],
     "temporaryActorAndReviewerCredentialHomesRemoved": 10,
     "writerProcessesStoppedByActualOwners": 3,
-    "finalSourceAndRawEvidencePreserved": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/fixtures",
-    "observedNpmLogsPreserved": "/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/observed-cache-logs",
+    "finalSourceAndRawEvidencePreserved": "$HOME/team-harness/.runtime/current-evaluation-20261015/fixtures",
+    "observedNpmLogsPreserved": "$HOME/team-harness/.runtime/current-evaluation-20261015/observed-cache-logs",
     "remainingFixtureSource": "Retained original disposable sources and hashed evidence; no live service, writer, DB or credential environment remains.",
     "limits": "No original/global npm cache or source checkout removed."
   },

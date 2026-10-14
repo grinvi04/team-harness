@@ -1,11 +1,15 @@
 # 현재1.0.0 사용 흐름 평가
 
 상태: 2026-10-15 승인된 세 흐름의 로컬 후보 인수 PASS. 최초 실패와 보완 후 판정을 구분한다.
+재설계 이전 표본의 당시 기록이다. 후속 후보의 현재 판정은 [재설계 실행 기록](../specs/team-harness-redesign/execution.md)을 따른다.
 정본은 [승인 계획](../specs/workflow-maturity-current-evaluation.md)이며 과거6업무 비교와 분리한다.
 시작은 미발행1.0.0 `f11280e50da61b92d203175404a524b6bc311697`, 후속은 같은 HEAD+계약·지문 수정이다.
 실제 세션·명령·원문 지문은 [구조화 결과](current-evaluation-2026-10-15.json)에 연결한다.
 
 ## 조건과 증거
+
+공개본의 사용자 홈 경로 표시는 `$HOME`으로 정규화했다. 원문은 별도 비공개 보존하며 지문은 구조화 결과의 publication에 기록했다.
+명령·cwd·출력 문자열은 공개 표시 사본이며 원문 bytes와 다르다. 실행 원문·판정·기존 증거 지문은 변경하지 않았다.
 
 최초3흐름×2조건=6개 독립 시작 세션, A·B의 승인 전후는 같은 실제 세션의 별도 턴이다.
 최초 배우 호출10회, 영향 재시험 B·C 후보2세션·3호출이다. 독립 검토 호출은 별도로 계수한다.
@@ -14,7 +18,7 @@
 차이는 후보에 명시 공급한 현재 Harness 계약이다. 양쪽 모두 A의 공개 생성기·문서를 사용했다.
 순수 Harness 미사용 비교, 자동 skill 발견·hook 실행, 인과적 생산성 개선을 입증하는 시험은 아니다.
 
-실행 원문은 로컬 `/Users/grinvi04/team-harness/.runtime/current-evaluation-20261015/`에 있다.
+실행 원문은 로컬 `$HOME/team-harness/.runtime/current-evaluation-20261015/`에 있다.
 `protocol.json`, 단계별 요청·답변·stderr·설정·파일 지문, controller 재검사와 owner 관측을 분리했다.
 `review.answer.md`는 최초 독립 읽기 전용 검토이며 초기 실패를 덮어쓰지 않는다.
 임시 인증값은 기록하지 않았으며 각 배우의 임시 CODEX_HOME은 종료 후 제거했다.
