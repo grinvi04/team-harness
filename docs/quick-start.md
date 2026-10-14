@@ -6,8 +6,8 @@ guidance and guards to server-enforced pull-request, CI, review, and release evi
 
 For local development, start with the [development guide](development-coordination.md) and the product's existing
 checks; a remote repository is not required. The instructions below cover GitHub rollout and package evaluation.
-Prepared Spring Boot+Vue projects can use the [local check setup](local-development.md) to preview and add a
-portable check entry point without overwriting existing files. Application generation and configuring the
+Prepared Spring Boot, Vue, Node, React/Vite, Next.js, and Nuxt apps can use the [local check setup](local-development.md)
+with an explicit single stack. Apply separately to each app; existing files are preserved. Application generation and configuring the
 underlying test tools remain product responsibilities; broader reuse follows the [product roadmap](product-direction.md).
 
 Use natural-language requests; skill commands are optional. Use one development methodology (such as installed

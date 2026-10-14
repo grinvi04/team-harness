@@ -14,7 +14,7 @@ Team Harness는 앱 코드가 아니라 개발 기준·설정·검사 연결을 
 | 스택별 CI·rule·보조 설정 | `templates/stacks/<스택>/` | 선택한 스택의 생성물·배치 파일 |
 | 여러 스택이 함께 쓰는 원문 | `templates/ci/common/`, `templates/rules/typescript.md` | 공통 CI·TypeScript rule |
 | 회사 선택형 적용 | `scripts/manage-repo-assets.mjs`, `templates/company/AGENTS.md` | 기존 회사 파일·규약을 보존한 명시 plan |
-| 로컬 검사 실행 틀 | `templates/local/check-harness.sh` | Spring Boot·Vue 명령을 조합한 checker |
+| 로컬 검사 실행 틀 | `templates/local/check-harness.sh` | 명시 단독 스택의 checker |
 | 분리 패키지 평가 | `experiments/split-packaging/` | 격리된 실험; 공개 설치 경로와 구분 |
 | 과거 후보의 실행 증거 | Git 고정 커밋과 해당 PR | 당시 결과·실패·보류를 확인할 때 |
 
@@ -44,7 +44,7 @@ CI 생성기의 `--render <번호>`는 선택 자산을 조합해 출력한다. 
 셋업·버전 판정은 [버전 안내](stack-versions.md)의 미리보기·기록·실패 경계를 따른다.
 schema3의 `pathBase: repository-root`는 카탈로그의 원문 경로가 저장소 루트 기준임을 뜻한다.
 `sources`는 CI, `ruleSources`는 rule 이름과 원문, `assetSources`는 보조 파일,
-`localCheck`는 현재 지원하는 Spring Boot·Vue 로컬 명령을 연결한다.
+`localCheck`는 기존 Spring Boot·Vue 명령 원문, `localProfile`은 로컬 준비 조건·명령 순서·E2E 선택을 연결한다.
 공통 workflow와 시크릿 검사는 `templates/ci/common/`에서 수정한다.
 완성 `ci-gate-*.yml`은 복사 가능한 생성물이다. 직접 편집하면 CI가 불일치를 거부한다.
 
@@ -86,19 +86,21 @@ Prisma/Flyway/Alembic는 기존 프리셋 연결이며 DB 제품이나 운영 �
 
 ## 로컬 검사를 바꿀 때
 
-Spring Boot 명령은 `templates/stacks/spring-boot/local-check.sh`, Vue 명령은 해당 스택의 같은 파일에 있다.
-공통 실행 틀과 이 원문에서 `setup-local.mjs`가 독립 실행 가능한 checker 하나를 만든다.
-옵션 없는 기존 Spring Boot+Vue 순서와 기본 경로는 유지한다. 단독 검사나 조합 경로는 명시적으로 고른다.
+`templates/stacks.json`의 `localProfile`이 지원 실행기·필수/선택 scripts·명령 순서·E2E를 선언한다.
+Spring Boot·Vue는 기존 `templates/stacks/<스택>/local-check.sh` 원문도 유지한다.
+공통 실행 틀에서 `setup-local.mjs`가 Harness checkout 없이 실행 가능한 checker 하나를 만든다.
+로컬에서는 `--stack` 단독 선택만 지원하며 미지정·모든 조합을 거부한다. GitHub/CI 조합은 그대로 지원한다.
 
 ```bash
+node scripts/setup-local.mjs --list
 node scripts/setup-local.mjs --project /path/to/app --stack spring-boot
-node scripts/setup-local.mjs --project /path/to/app --stack vue
-node scripts/setup-local.mjs --project /path/to/app --stack spring-boot+vue --backend-dir apps/api --frontend-dir apps/web
+node scripts/setup-local.mjs --project /path/to/app --stack react --e2e
 ```
 
-위 명령은 미리보기다. 준비 조건을 확인한 뒤 `--apply`를 붙이면 파일 하나를 추가한다.
-기존 파일은 덮어쓰지 않으며 다른 스택의 로컬 검사는 아직 제공하지 않는다.
-필수 앱 설정·검사 명령과 실패 조건은 [로컬 개발 안내](local-development.md)를 따른다.
+위 명령은 지원 조회 또는 무쓰기·무실행 미리보기다. `--apply`는 checker 하나만 추가한다.
+Spring Boot/Gradle, Vue·Node·React/Vite·Next.js·Nuxt/npm을 지원한다. Python·Rails 및 다른 실행기는 미지원이다.
+기존 파일·AGENTS·.env·CI는 보존한다. 실행 프로필·선택 미실행 표시·준비 조건·거부 경계는
+[로컬 개발 안내](local-development.md)를 따른다. 제품 필수 검사는 제품에서 계속 연결한다.
 
 ## 실험과 발행 준비
 

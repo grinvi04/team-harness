@@ -50,6 +50,27 @@
           "ecosystem": "node",
           "required": false
         }
+      },
+      "localProfile": {
+        "runner": "npm",
+        "required": [
+          "lint",
+          "test",
+          "build"
+        ],
+        "optional": [
+          "type-check",
+          "lint:design"
+        ],
+        "order": [
+          "lint",
+          "type-check",
+          "lint:design",
+          "test",
+          "build"
+        ],
+        "dependencies": [],
+        "e2e": "optional"
       }
     },
     {
@@ -106,6 +127,10 @@
           "ecosystem": "gradle",
           "required": false
         }
+      },
+      "localProfile": {
+        "runner": "Gradle",
+        "e2e": "unsupported"
       }
     },
     {
@@ -401,6 +426,30 @@
           "packageName": "react-dom",
           "required": true
         }
+      },
+      "localProfile": {
+        "runner": "npm",
+        "required": [
+          "lint",
+          "build"
+        ],
+        "optional": [
+          "type-check",
+          "lint:design",
+          "test"
+        ],
+        "order": [
+          "lint",
+          "type-check",
+          "lint:design",
+          "test",
+          "build"
+        ],
+        "dependencies": [
+          "next",
+          "react"
+        ],
+        "e2e": "optional"
       }
     },
     {
@@ -458,6 +507,29 @@
           "packageName": "@vitejs/plugin-vue",
           "required": true
         }
+      },
+      "localProfile": {
+        "runner": "npm",
+        "required": [
+          "type-check",
+          "lint",
+          "test:unit",
+          "build",
+          "test:e2e"
+        ],
+        "optional": [],
+        "order": [
+          "type-check",
+          "lint",
+          "test:unit",
+          "build",
+          "test:e2e"
+        ],
+        "dependencies": [
+          "vue",
+          "@playwright/test"
+        ],
+        "e2e": "required"
       }
     },
     {
@@ -518,6 +590,27 @@
           "packageName": "@vitejs/plugin-react",
           "required": true
         }
+      },
+      "localProfile": {
+        "runner": "npm",
+        "required": [
+          "lint",
+          "type-check",
+          "test:unit",
+          "build"
+        ],
+        "optional": [],
+        "order": [
+          "lint",
+          "type-check",
+          "test:unit",
+          "build"
+        ],
+        "dependencies": [
+          "react",
+          "vite"
+        ],
+        "e2e": "optional"
       }
     },
     {
@@ -569,6 +662,26 @@
           "packageName": "vue",
           "required": true
         }
+      },
+      "localProfile": {
+        "runner": "npm",
+        "required": [
+          "lint",
+          "type-check",
+          "test:unit",
+          "build"
+        ],
+        "optional": [],
+        "order": [
+          "lint",
+          "type-check",
+          "test:unit",
+          "build"
+        ],
+        "dependencies": [
+          "nuxt"
+        ],
+        "e2e": "optional"
       }
     }
   ],

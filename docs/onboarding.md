@@ -9,8 +9,8 @@
 
 - **로컬 개발:** 제품의 실제 루트·스택·검사 명령을 AGENTS.md에 기록하고 [개발 흐름](development-coordination.md)과
   [스택별 검사 연결](#스택별-검사를-연결하는-방법)을 사용한다. 기존 검사·설정을 먼저 재사용한다.
-  준비된 Spring Boot 또는 Vue 앱은 [로컬 검사 시작 구성](local-development.md)으로 검사 진입점을
-  추가할 수 있다. 개별 스택을 선택하거나 두 스택의 경로를 지정해 조합한다.
+  준비된 앱은 [스택별 로컬 검사](local-development.md)에서 지원·준비 조건을 확인하고 단독 스택을
+  명시해 진입점을 추가한다. API와 프런트는 각 앱 루트에 따로 적용한다.
   [스택 버전 안내](stack-versions.md)에서 React·Nuxt·Python framework·Rails UI를 선택한다.
   `new-repo.sh`는 GitHub 전용이며 새 로컬 경로도 앱·검사 도구 설정 자체를 생성하지 않는다.
 - **GitHub 연결:** 접근·공개 범위와 회사 정책을 확인한 뒤 A절을 적용한다. 기존 원격의 CI·승인 기준은 유지한다.
