@@ -10,8 +10,12 @@
 name: test-guard
 
 on:
-  pull_request:
+  pull_request_target:
     branches: [main, develop]
+    types: [opened, synchronize, reopened, edited, stacked, labeled, unlabeled]
+
+permissions:
+  contents: read
 
 jobs:
   test-guard:
@@ -19,23 +23,46 @@ jobs:
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
         with:
+          ref: ${{ github.sha }}
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Detect test removals
         env:
-          BASE: ${{ github.base_ref }}
+          BASE: ${{ github.event.pull_request.stack.base.ref || github.event.pull_request.base.ref }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          READ_TOKEN: ${{ github.token }}
           LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
         run: |
           set -euo pipefail
 
-          if echo "$LABELS" | grep -q "allow-test-removal"; then
+          HAS_EXEMPTION=$(node -e '
+            const labels = JSON.parse(process.env.LABELS);
+            if (!Array.isArray(labels) || labels.some(x => typeof x !== "string")) process.exit(1);
+            console.log(labels.includes("allow-test-removal"));
+          ') || { echo "::error::잘못된 label metadata입니다."; exit 1; }
+          if [ "$HAS_EXEMPTION" = true ]; then
             echo "::notice::'allow-test-removal' 라벨 — 테스트 감소 허용(게이트 스킵)"
             exit 0
           fi
 
-          if ! git fetch --quiet origin "$BASE"; then
-            echo "::error::기준 브랜치를 가져오지 못해 테스트 단언 수를 비교할 수 없습니다."; exit 1
+          if ! [[ "$BASE" = main || "$BASE" = develop ]] || ! [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ && "$BASE_SHA" =~ ^[0-9a-f]{40}$ && "$HEAD_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::잘못된 PR 비교 metadata입니다."; exit 1
           fi
+          FETCH_AUTH="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$READ_TOKEN" | base64 | tr -d '\n')"
+          unset READ_TOKEN
+          fetch_objects() {
+            GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.extraheader GIT_CONFIG_VALUE_0="$FETCH_AUTH" \
+              git fetch --quiet --no-tags origin "$@"
+          }
+          fetch_objects "refs/pull/$PR_NUMBER/head"
+          if [ "$(git rev-parse FETCH_HEAD)" != "$HEAD_SHA" ]; then
+            echo "::error::PR head가 변경되었습니다. 최신 이벤트가 필요합니다."; exit 1
+          fi
+          fetch_objects "$BASE_SHA"
+          unset FETCH_AUTH
 
           # 테스트·실행 단언 줄 총개수(스택 무관): JUnit @Test / JS·TS it()·test() / pytest def test_
           # / rspec·minitest 블록 DSL(it/describe/context/test '...' do — 괄호 없이 공백+따옴표)
@@ -53,13 +80,13 @@ jobs:
             fi
           }
 
-          if ! BEFORE=$(count "origin/$BASE"); then
+          if ! BEFORE=$(count "$BASE_SHA"); then
             echo "::error::기준 브랜치 테스트 단언 수를 확인할 수 없습니다."; exit 1
           fi
-          if ! AFTER=$(count "HEAD"); then
+          if ! AFTER=$(count "$HEAD_SHA"); then
             echo "::error::PR 테스트 단언 수를 확인할 수 없습니다."; exit 1
           fi
-          echo "테스트 마커 — base($BASE)=$BEFORE, PR(merge)=$AFTER"
+          echo "테스트 마커 — base($BASE)=$BEFORE, PR(head)=$AFTER"
 
           if [ "$BEFORE" -gt 0 ] && [ "$AFTER" -eq 0 ]; then
             echo "::error::기준의 테스트 단언 전체가 사라졌습니다."; exit 1
