@@ -9,11 +9,11 @@
 한 개발자가 프론트엔드·백엔드·DB·인프라를 맡아도 매번 기술 기준·설정·검사 방법을 처음부터 찾고
 구성하지 않도록 돕는다. 실제 프로젝트에서 검증된 구성을 재사용하고, 유용한 부분부터 동료에게 공유한다.
 현재 스택별 기준·템플릿·검사 연결 안내와 개발 조정 절차를 제공하며, 새 앱 전체를 자동 생성하지는 않는다.
-회사 기존 repo는 [선택형 온보딩](docs/company-onboarding.md)에서 필요한 자산만 고른다.
+기존 repo는 [선택형 온보딩](docs/guides/existing-repository.md)에서 필요한 자산만 고른다.
 
 [공통 프로젝트 계약](plugins/harness-guard/skills/ao-coordinate/project-contract.md)에 따라 일반 설계·TDD·디버깅은 선택한 방법론(설치된 Superpowers 등)에 맡기고, Harness는 프로젝트 기준·검사·인계·delivery 조건을 연결한다. 스킬 이름을 외우지 않고 목표를 자연어로 요청한다.
 
-로컬 프로젝트와 GitHub 제품 업무는 [혼자·작은 팀의 개발 가이드](docs/development-coordination.md#개발자가-하는-일)에서 요청 예시와 단계별 완료 기준을 따라 시작한다.
+로컬 프로젝트와 GitHub 제품 업무는 [혼자 개발](docs/guides/solo-development.md#개발자가-하는-일)·[작은 팀](docs/guides/team-development.md) 가이드에서 요청 예시와 단계별 완료 기준을 따라 시작한다.
 준비된 Spring Boot·Vue·Node·React/Vite·Next.js·Nuxt 앱에는 [스택별 로컬 검사](docs/local-development.md)로
 공통 검사 진입점을 미리 보고 추가할 수 있다. 스택은 단독으로 명시하며 앱·검사 도구는 제품에서 준비한다.
 1.0.0 설치는 [발행 태그와 전달 기록](docs/specs/team-harness-redesign/delivery.md)을 확인한 뒤 진행한다.
@@ -30,7 +30,7 @@
 
 ## 제품 개발 조정
 
-Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `ao-coordinate`로 통합했다. 팀의 기술·품질 기준과 요청 → 구현 → 인계 → 검증 → 인수를 같은 Team Harness 안에서 연결한다. 제품 코드·요구·진행은 제품 저장소에 두며, 역할 실행은 native 도구를 쓴다. [개발자 사용 흐름](docs/development-coordination.md)에서 시작한다.
+Agent Orchestration에서 필요한 인계·검증·재개 원칙만 선택형 `ao-coordinate`로 통합했다. 팀의 기술·품질 기준과 요청 → 구현 → 인계 → 검증 → 인수를 같은 Team Harness 안에서 연결한다. 제품 코드·요구·진행은 제품 저장소에 두며, 역할 실행은 native 도구를 쓴다. [개발자 사용 흐름](docs/guides/solo-development.md)에서 시작한다.
 
 ## 목차
 
@@ -111,9 +111,9 @@ Codex·Claude가 실행하고, Harness가 정책과 검증 증거를 연결하�
 |---|---|---|
 | 1. 준비 | [지원 환경](docs/support.md)과 [설치 전 준비](docs/harness-setup.md#설치-전-준비) 확인 | 선택한 Codex 또는 Claude Code를 실행하고 로그인할 수 있음 |
 | 2. 설치 | [Codex](docs/harness-setup.md#codex-최초-설치갱신) 또는 [Claude Code](docs/harness-setup.md#claude-code-최초-설치) 안내 실행. 팀원도 각자 설치 | 설치 목록의 `harness-guard` 버전·활성 상태 확인 |
-| 3. 저장소 연결 | 기존 저장소는 [필요한 구성만 선택](docs/company-onboarding.md), 새 프로젝트는 [온보딩](docs/onboarding.md#먼저-사용할-범위-선택) | 기존 규약·hook·검사 명령 확인 후 채택할 범위를 정함 |
-| 4. 첫 확인 | **제품 저장소 루트에서 새 대화**를 열고 [혼자 시작하는 확인 요청](docs/development-coordination.md#처음-연결할-때) 또는 [팀 확인 요청](docs/team-development-guide.md#처음-함께-사용할-때)을 복사 | 수정 없이 현재 상태·완료 기준·허용 범위 확인 |
-| 5. 실제 업무 | [혼자 개발](docs/development-coordination.md#혼자-개발할-때) 또는 [작은 팀](docs/team-development-guide.md#공유-업무와-담당자별-시작)의 업무 요청 사용 | 혼자는 작업 범위, 팀은 담당자·리뷰어·통합 책임을 정한 뒤 착수 |
+| 3. 저장소 연결 | 기존 저장소는 [필요한 구성만 선택](docs/guides/existing-repository.md), 새 프로젝트는 [온보딩](docs/onboarding.md#먼저-사용할-범위-선택) | 기존 규약·hook·검사 명령 확인 후 채택할 범위를 정함 |
+| 4. 첫 확인 | **제품 저장소 루트에서 새 대화**를 열고 [혼자 시작하는 확인 요청](docs/guides/solo-development.md#처음-연결할-때) 또는 [팀 확인 요청](docs/guides/team-development.md#처음-함께-사용할-때)을 복사 | 수정 없이 현재 상태·완료 기준·허용 범위 확인 |
+| 5. 실제 업무 | [혼자 개발](docs/guides/solo-development.md#혼자-개발할-때) 또는 [작은 팀](docs/guides/team-development.md#공유-업무와-담당자별-시작)의 업무 요청 사용 | 혼자는 작업 범위, 팀은 담당자·리뷰어·통합 책임을 정한 뒤 착수 |
 | 6. 완료·인계 | 같은 사용 가이드의 단계별 완료 기준으로 결과 확인 | 현재 후보의 필수 검사·리뷰 증거와 잔여 항목을 대조하고, PR·발행 여부는 별도 보고 |
 
 플러그인 설치만으로 저장소 파일·Git hook·원격 보호가 적용되지는 않는다. 기존 설정은 먼저 보존한다.
@@ -153,7 +153,7 @@ team-harness/
 │   ├── ci/stacks/ci-gate-*.yml        스택별 완성 생성물 (new-repo.sh가 복사)
 │   ├── githooks/pre-commit            계층 0.5 git 훅
 │   └── PULL_REQUEST_TEMPLATE.md · gitignore.snippet
-└── docs/                              현재 표준·specs/명세 (과거 원문은 고정 Git 연결)
+└── docs/                              목적별 안내·guides/·specs/·pilots/ (분류는 docs/README.md)
 ```
 
 수정할 정본·필수 배치 사본·생성 명령은 [저장소 유지보수 안내](docs/repository-structure.md)를 따른다.
@@ -161,7 +161,7 @@ team-harness/
 
 ## 📚 팀 표준 문서 (`docs/`)
 
-먼저 [표준 적용 기준](docs/standards-scope.md)을 읽는다. 기술·제품 선택은 조건에 맞춰 채택한다.
+[목적별 문서 찾기](docs/README.md)에서 시작한다. [표준 적용 기준](docs/standards-scope.md)에 따라 필요한 기준을 채택한다.
 [스택별 문제 해결](docs/standards-scope.md#문제-해결-안내를-읽는-방법)은 공식 자료와 실행 결과를 구분한다.
 
 | 문서 | 내용 |
@@ -178,7 +178,7 @@ team-harness/
 | [api-standards.md](docs/api-standards.md) | 공통 Envelope · 에러코드 체계 · 페이지네이션 |
 | [db-standards.md](docs/db-standards.md) | BIGINT PK+채번 · 공통 감사 컬럼 · forward-only 마이그레이션 |
 | [auth-standards.md](docs/auth-standards.md) | Keycloak OIDC · RBAC 권한코드 + 데이터 스코프 |
-| [code-review.md](docs/code-review.md) | Conventional Commits(타입 영어+본문 한국어) · 리뷰어 배정 규칙 |
+| [code-review.md](docs/code-review.md) | Git Flow 순서 · 현재 후보 리뷰·CI·보호·병합 계약 |
 | [ai-collaboration.md](docs/ai-collaboration.md) | AI 협업 책임 원칙 · 도구 공통 금지사항 |
 | [operations.md](docs/operations.md) | 장애 대응 · 로그 레벨 기준 · traceId 전파 (서비스 오픈 시 활성화) |
 | [troubleshooting.md](docs/troubleshooting.md) | 가드 차단 사유별 해법 · 훅 미발동 · 의존성 fail-closed · 감사/복구 |

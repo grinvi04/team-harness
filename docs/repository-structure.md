@@ -2,6 +2,7 @@
 
 Team Harness는 앱 코드가 아니라 개발 기준·설정·검사 연결을 제공한다.
 먼저 아래 표에서 수정할 정본을 찾는다. 같은 이름이라도 사용하는 대상이 다를 수 있다.
+문서만 찾는다면 [목적별 문서 인덱스](README.md)를 먼저 읽는다.
 
 | 영역 | 수정할 정본 | 사용하는 곳 |
 |---|---|---|
@@ -18,7 +19,7 @@ Team Harness는 앱 코드가 아니라 개발 기준·설정·검사 연결을 
 | 분리 패키지 평가 | `experiments/split-packaging/` | 격리된 실험; 공개 설치 경로와 구분 |
 | 과거 후보의 실행 증거 | Git 고정 커밋과 해당 PR | 당시 결과·실패·보류를 확인할 때 |
 
-회사 기존 repo는 [선택형 온보딩](company-onboarding.md)과 [자산 갱신·제거](repo-assets.md)를 먼저 읽는다.
+회사 기존 repo는 [선택형 온보딩](guides/existing-repository.md)과 [자산 갱신·제거](repo-assets.md)를 먼저 읽는다.
 
 ## 정본과 배치 파일
 
@@ -121,6 +122,11 @@ archive에는 그 후보의 전체 소스가 들어간다. manifest의 `packages
 명령과 결과 계약은 [유지보수 안내](harness-maintenance.md#분리-package-artifact-전환-단계)를 따른다.
 
 ## 과거 기록을 찾을 때
+
+문서의 현재 안내·승인 스펙·실행 증거·과거 결정은 [분류와 수명 기준](README.md#파일명수명-관리)으로 구분한다.
+사용자 가이드 정본은 `docs/guides/`에 모았다. 기존 공개 URL은 해당 절로 연결하는 안내로 보존한다.
+정책·설치·생성 계약의 루트 문서는 배포된 reader가 직접 읽으므로 유지한다. 사본을 추가하지 않는다.
+AI 작성 여부가 소유 위치를 결정하지 않는다. 재생성 파일과 실행 원문은 각각의 정본·후보로 추적한다.
 
 현재 checkout의 중복 역사 폴더는 삭제했다. 당시 후보 SHA·결과·실패 원문은
 [Git85338bd의 원래 경로](https://github.com/grinvi04/team-harness/tree/85338bdcb691727ebd098f4ee0ce5167faf36e24/docs/specs/harness-modernization)에 남는다.

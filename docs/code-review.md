@@ -7,7 +7,7 @@
 ## 커밋 메시지 — Conventional Commits + team-harness 규칙
 
 아래는 개인 기본 규약이다. 회사는 기존 validator와 언어를 유지하고 필요한 기술 자산만
-[선택형 온보딩](company-onboarding.md)으로 연결한다. 한국어 규칙 채택은 필수가 아니다.
+[선택형 온보딩](guides/existing-repository.md)으로 연결한다. 한국어 규칙 채택은 필수가 아니다.
 
 ```text
 feat(order): 월 주문 한도 검증 추가
