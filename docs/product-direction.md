@@ -124,7 +124,8 @@ Team Harness의 해당 스킬은 프로젝트 기준·계획 산출물·테스�
 2026-10-15 사용자는 제품 전체의 원점 재설계를 요청했다. [승인된 전체 재설계](specs/team-harness-redesign.md)에
 책임·사용 경로·완료 판정·이전 순서를 고정하고 M1–M5 구현·고정 범위 검증을 완료했다.
 [실행 기록](specs/team-harness-redesign/execution.md)이 R1–R7의 실제 CLI·데스크톱·독립 검토 판정 정본이다.
-기존 계약·과거 평가를 보존했다. 1.0.0은 미발행 로컬 후보이며 시험 후 설치는 v0.93.2로 복구했다. 이후 승인된 [M6 정식 전달](specs/team-harness-redesign/delivery.md)의 원격·설치 상태는 해당 원본으로 확인한다.
+기존 계약·과거 평가를 보존했다. M1–M5 시험 종료 당시에는 미발행 후보였고 설치를 v0.93.2로 복구했다.
+후속 [M6 정식 전달](specs/team-harness-redesign/delivery.md)의 PR·태그·설치 상태는 연결된 현재 원본으로 확인한다.
 
 ## 기존 거버넌스 작업과 보류 항목
 

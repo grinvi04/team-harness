@@ -31,7 +31,7 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 자체 CI는 두 manifest·README의 버전 일치와 `CHANGELOG.md` 재현도 검사한다. 구현 커밋 뒤
 `node scripts/generate-changelog.mjs --release vX.Y.Z --write`로 CHANGELOG index와 `docs/changelog/` 전체를 생성한다(태그 발행 아님).
 
-미발행1.0.0의 조합 제거·단독 앱 이전·검증·전달 경계는 [후속 스펙](specs/workflow-maturity.md)을 따른다.
+1.0.0은 [이전 안내](specs/team-harness-redesign/migration.md)와 [전달 기록](specs/team-harness-redesign/delivery.md)을 따른다.
 
 릴리즈 정리는 develop에서 `release-cleanup.sh <버전>`으로 수행한다. Apple Git 호환성과
 설정 충돌·조회 실패·미병합·사용 중 브랜치의 거부 조건은 [정리 계약](specs/release-cleanup-apple-git.md)을 따른다.

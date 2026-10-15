@@ -1,6 +1,6 @@
 # Team Harness 전체 재설계
 
-상태: **M1–M5 구현·고정 범위 검증 완료, M6 정식 전달 승인**. 2026-10-15 사용자가 재설계안대로 M1부터 순서대로 구현·검증을 승인했다.
+상태: **M1–M5 구현·고정 범위 검증 완료**. M6의 현재 전달 상태는 아래 정본을 따른다. 2026-10-15 사용자가 재설계안대로 M1부터 순서대로 구현·검증을 승인했다.
 기존 작업·보호·Git Flow와 R1–R7을 유지한다. 전역 설정·소비 제품·원격 발행 권한은 자동 확대하지 않는다.
 실행·판정은 [구현 기록](team-harness-redesign/execution.md)에 연결한다. [M6 전달 계약](team-harness-redesign/delivery.md)에 따라 1.0.0의 PR·태그·설치를 순서대로 진행한다.
 
@@ -166,6 +166,7 @@ M1–M5 종료 당시 설치는 `v0.93.2`로 복구했다. 이후 승인된 M6�
     {"path": "docs/repo-assets.md", "reason": "동시 변경 보존·중단 복구"},
     {"path": "docs/company-policy.md", "reason": "채택한 branchFlow와 명시 base"},
     {"path": "docs/code-review.md", "reason": "PR base와 기존 보호"},
+    {"path": "docs/harness-maintenance.md", "reason": "1.0.0 이전·전달 정본 연결"},
     {"path": "docs/harness-setup.md", "reason": "로컬 시작과 선택 원격"},
     {"path": "docs/harness-architecture.md", "reason": "현재 hook 연결"},
     {"path": "docs/harness-plugin.md", "reason": "현재 skill·hook"},

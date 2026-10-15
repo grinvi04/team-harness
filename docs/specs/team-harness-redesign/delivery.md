@@ -39,3 +39,12 @@ Claude 실호스트 보류, 소비 제품 수정·실제 사람·회사 고유 �
   실제 임시 디렉터리 시험은 외부 파일 생성으로 RED(기존 16개 PASS), 직접 lstat 검사로 수정 후 17개 PASS다.
   최초 리뷰·RED/GREEN 원문은 위 전달 기록에 보존한다. 생성된 wrapper 내용은 바뀌지 않는다.
   현재 후보 리뷰·CI를 다시 통과하기 전에는 병합하지 않는다.
+
+## 확인한 선행 전달
+
+- [작업 PR #572](https://github.com/grinvi04/team-harness/pull/572)는 2026-10-15 develop에 병합됐다.
+  실제 merge SHA는 `aa26200dfe9f259229aa59800e676790640546db`이며 원격 develop 포함을 확인했다.
+- 검토 head `f0fcc84`의 Codex native 독립 재검토에서 최초 P2 해결·추가 지적 0건, 실제 read-only를 확인했다.
+  [필수 CI](https://github.com/grinvi04/team-harness/actions/runs/38656992283)와 별도 test-guard·commitlint가 통과했다.
+- `release/v1.0.0`은 위 병합 SHA에서 만든다. main·태그·역병합 결과는 앞의 원격 원본과 각 PR의 단계 기록을 따른다.
+  영구 설치는 원격 태그 확인 뒤 수행하며 실제 설치 증거도 release PR에 연결한다.

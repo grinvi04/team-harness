@@ -16,7 +16,8 @@
 로컬 프로젝트와 GitHub 제품 업무는 [혼자·작은 팀의 개발 가이드](docs/development-coordination.md#개발자가-하는-일)에서 요청 예시와 단계별 완료 기준을 따라 시작한다.
 준비된 Spring Boot·Vue·Node·React/Vite·Next.js·Nuxt 앱에는 [스택별 로컬 검사](docs/local-development.md)로
 공통 검사 진입점을 미리 보고 추가할 수 있다. 스택은 단독으로 명시하며 앱·검사 도구는 제품에서 준비한다.
-1.0.0은 미발행 소스 후보다. 기존 로컬 조합·기본 선택의 이전 방법은 위 안내를 따른다. GitHub에 연결할 때는
+1.0.0 설치는 [발행 태그와 전달 기록](docs/specs/team-harness-redesign/delivery.md)을 확인한 뒤 진행한다.
+기존 로컬 조합·기본 선택의 이전 방법은 위 안내를 따른다. GitHub에 연결할 때는
 다음 세 계층으로 기존 품질·리뷰·배포 정책을 적용한다:
 
 1. **Claude Code·Codex 플러그인 경로** — 가드·스킬·절차를 버전 있는 플러그인으로 배포
