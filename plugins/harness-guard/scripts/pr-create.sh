@@ -84,7 +84,18 @@ if [[ ! "$REMOTE_SHA" =~ ^[0-9a-f]{40}$ ]] || [ "$REMOTE_REF" != "refs/heads/$BA
 fi
 echo "확인된 base: $BASE  (브랜치: $BRANCH)"
 
-git push -u origin "$BRANCH"
+if [ "$STACK" = 1 ]; then
+  # The adapter normally published this exact layer already. Never repeat its
+  # push through ambient followTags/refspec defaults or a mutable source ref.
+  STACK_REFS=$(printf '%s' "$STACK_CONTEXT" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const c=JSON.parse(s);console.log([c.headOid,c.remoteOid??""].join("|"))})')
+  IFS='|' read -r STACK_HEAD STACK_REMOTE <<< "$STACK_REFS"
+  if [ "$STACK_HEAD" != "$STACK_REMOTE" ]; then
+    git push --atomic --no-follow-tags origin \
+      "--force-with-lease=refs/heads/$BRANCH:$STACK_REMOTE" "$STACK_HEAD:refs/heads/$BRANCH"
+  fi
+else
+  git push -u origin "$BRANCH"
+fi
 
 ARGS=(pr create --base "$BASE" --head "$BRANCH")
 [ -n "$TITLE" ]     && ARGS+=(--title "$TITLE")

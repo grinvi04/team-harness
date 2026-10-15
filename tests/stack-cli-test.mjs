@@ -153,6 +153,32 @@ test('submit previews, reuses existing parent, creates upper draft and links ful
   assert.deepEqual(f.calls().find(a => a[0] === 'stack' && a[1] === 'link'), ['stack', 'link', '--base', 'develop', '--remote', 'origin', 'https://github.com/org/repo/pull/11', 'https://github.com/org/repo/pull/12'])
   assert.equal(f.runGit('branch', '--show-current'), 'codex/b')
 })
+for (const mode of ['submit', 'direct wrapper']) {
+  test(`${mode} publishes only the intended layer when push.followTags is enabled`, t => {
+    const f = fixture(t)
+    f.runGit('tag', '-a', 'v9.9.9-unpublished', '-m', 'local release candidate')
+    f.runGit('config', 'push.followTags', 'true')
+    const tag = f.runGit('rev-parse', 'refs/tags/v9.9.9-unpublished')
+    const head = f.runGit('rev-parse', 'codex/b')
+    const r = mode === 'submit' ? submit(f, plan(f)) : f.run(['--stack', '--base', 'codex/a', '--draft'])
+    assert.equal(r.status, 0, r.stdout + r.stderr)
+    assert.equal(f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/b').split('\t')[0], head)
+    assert.equal(f.runGit('ls-remote', '--tags', 'origin'), '', 'PR creation must not publish a release tag outside its preview')
+    assert.equal(f.runGit('rev-parse', 'refs/tags/v9.9.9-unpublished'), tag, 'local tag is preserved')
+    assert.equal(f.runGit('config', '--get', 'push.followTags'), 'true', 'user configuration is preserved')
+  })
+}
+test('direct stack PR creation preserves a writer ref that appears after preflight', t => {
+  const f = fixture(t)
+  const writer = f.runGit('commit-tree', 'codex/b^{tree}', '-p', 'codex/b', '-m', 'independent writer')
+  f.runGit('push', 'origin', `${writer}:refs/fixture/writer`)
+  f.change(s => { s.concurrentPush = writer })
+  const r = f.run(['--stack', '--base', 'codex/a', '--draft'])
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.equal(f.state().writerRan, true)
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/b').split('\t')[0], writer)
+  assert.equal(f.calls().some(a => a[0] === 'pr' && a[1] === 'create'), false)
+})
 test('link exit zero with unchanged membership remains unverified and keeps effects journal', t => {
   const f = fixture(t, s => { s.linkNoop = true }), r = submit(f, plan(f))
   assert.notEqual(r.status, 0)

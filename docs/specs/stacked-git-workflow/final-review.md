@@ -1,6 +1,6 @@
 # 공식 계약 기준 최종 설계 검토 — 2026-10-15
 
-상태: **G0–G2 인수 완료, G3 연결 구현·대시보드 실제 사용 미완료**. 전체1.2.0 후보이며 CI1.1.0은 발행됐다.
+상태: **G0–G2 인수 뒤 PR584 제출 경계 결함 수정·재검증 중**. G3·대시보드는 미완료, CI1.1.0은 발행됐다.
 [현재 인수 기록](../../pilots/gh-stack-adapter-acceptance.md)을 따른다. 아래 후보별 실패·부분 판정은 당시 기록으로 보존한다.
 사용자는 공식 사용법 확인 뒤 최종 검토와 문제 해소 시 진행을 요청했다.
 공식 원격 stack을 포기해야 할 근거는 확인되지 않았다. 지원 완료 판정은 아직 아니다.
@@ -177,6 +177,16 @@ quality20–27 PASS 뒤28단계는 설치본의 옛 workflow digest와 새 clone
 quality30–42단계 PASS 뒤43단계는 감사 JSON의 절대 경로 형식 에이전트 식별자를 홈 경로로 탐지했다.
 동일 에이전트의 기존 짧은 이름으로 정규화했다. 첫 설명에도 같은 경로 표기가 남아 실패했고,
 그 표기까지 정리한 뒤19/0 PASS다. 공개 안전성 검사 규칙은 유지한다.
+
+## PR584 제출 경계 후속 — 2026-10-16
+
+고정 후보 `31cac4c`의 실제 read-only Codex/Astra medium 리뷰에서 wrapper의 두 번째 push가
+`push.followTags=true`를 상속해 preview 밖의 미발행 annotated tag를 발행하는 결함을 발견했다.
+실제 Git·bare remote에서 adapter/direct wrapper 두 경로 모두 RED, 동시 writer 보존은 PASS였다.
+동일 OID의 중복 push를 없애고 직접 stack 생성은 고정 SHA·full ref·최초 lease·태그 제외를 유지한다.
+동일 세 검사 GREEN이며 GitHub REST·확장 응답은 대역이다. 원문은
+`.runtime/gh-stack-g0/stack-integration-delivery-1/tag-boundary-fix/{red,green}.log`다.
+이 수정의 전체 품질·새 후보 리뷰·CI는 다시 확인한다. `90d7e0f`의 과거 전체 PASS로 대신하지 않는다.
 
 ## 공식 원본
 

@@ -82,6 +82,8 @@ bash "${HARNESS_PLUGIN_ROOT:?}/scripts/stack.sh" submit --plan /tmp/stack-submit
 
 `inspect`의 fingerprint를 submit에 쓰지 않는다. submit preview는 후보와 제목·본문 hash를 함께 결박한다.
 apply는 관찰한 OID에 대한 lease·atomic push, 기존 `pr-create.sh` 검증, 공식 stack link와 readback을 수행한다.
+wrapper는 이미 전송된 동일 OID를 다시 push하지 않는다. 직접 `--stack` 생성도 고정 SHA·대상 ref·
+최초 원격 OID lease와 `--no-follow-tags`를 사용하며 사용자의 `push.followTags` 설정을 바꾸지 않는다.
 최하단 새 PR은 일반 PR, 상위 새 PR은 draft로 생성한다. 기존 PR은 생성하지 않고 건너뛰므로
 재실행이 기존 제목·본문을 갱신한다고 가정하지 않는다. 상위 기존 PR도 제출 시 draft여야 한다.
 draft 해제는 해당 층이 다음 병합 후보가 된 뒤 현재 head/base의 리뷰·검사를 확인하는 별도 단계다.

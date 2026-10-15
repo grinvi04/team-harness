@@ -3,7 +3,7 @@
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
 > 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
 > 원래 연결 범위와 순서를 유지한다. 모든 구현 checkbox는 미실행이다.
-> [현재 원격 인수](../../pilots/gh-stack-adapter-acceptance.md): solo 복구·409 실측 완료, 전체1.2.0 로컬 품질74개 통과. 대시보드는 미착수다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): solo·409와 당시90d7e0f 품질74개 PASS. PR584 제출 경계 수정 재검증 뒤 develop 통합·대시보드에 착수한다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.

@@ -1,6 +1,6 @@
 # 공식 gh-stack 연결 설계
 
-상태: **G0–G2 인수 완료, G3 자체 전달·대시보드 미완료**. 전체1.2.0 후보·CI1.1.0 발행.
+상태: **G0–G2 인수 뒤 PR584 제출 결함 수정·재검증 중, G3·대시보드 미완료**. 전체1.2.0 후보·CI1.1.0 발행.
 [현재 실제 인수](../pilots/gh-stack-adapter-acceptance.md)는 후보별 증거·발견 결함·남은 범위를 구분한다.
 [최초 G0](../pilots/gh-stack-compatibility.md)의 frozen-group FAIL을 보존하고,
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 trunk·그룹 의미로 연결 설계를 정정했다. 현재 실제 원격 인수 범위와 전체 지원 완료를 구분한다.
@@ -56,7 +56,7 @@ Actions branch 필터는 trunk로 평가된다. main/develop 필터를 넓히지
 | stack 재구성·포기 | 대상 diff·복구 지점 확인 후 명시 수행; 자동 drop/fold/unstack 제외 |
 
 미발행 후보에는 opt-in·`inspect/check-create/submit/restack/sync`와 충돌·유실 응답 재개가 구현됐다.
-실제 adapter 3층·연속 sync·순차 병합·UUID 조회·solo 보호 복구를 확인했다. 원래 live409 반례도 실제로 확인했다. 현재 코드90d7e0f의 로컬 전체 품질74개를 통과했다.
+실제 adapter 3층·연속 sync·순차 병합·UUID 조회·solo 보호 복구·live409를 확인했다. 당시90d7e0f의 전체 품질74개는 PASS이며 후속 제출 경계 수정의 재검증은 별도다.
 현재 설치 버전의 명령으로 안내하지 않는다. [현재 검사·한계](stacked-git-workflow/final-review.md#g1-제출-경계-최종-검토)를 따른다.
 확장 자동 설치·업데이트, `gh skill install`, alias·전역 설정 변경을 제출 경로에 숨기지 않는다.
 

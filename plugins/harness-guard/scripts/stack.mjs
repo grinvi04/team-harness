@@ -115,7 +115,7 @@ export function checkCreate({ base, draft, cwd }) {
     const fresh = observed.api(`repos/${snapshot.repo}/pulls/${prNumber(parent.prUrl, snapshot.repo)}`)
     if (JSON.stringify(prIdentity(fresh)) !== JSON.stringify(prIdentity(observed.prs[i - 1]))) throw Error('parent PR changed during preflight')
   }
-  return { base, repo: snapshot.repo }
+  return { base, repo: snapshot.repo, headOid: layer.headOid, remoteOid: layer.remoteOid }
 }
 function submissionPlan(file, snapshot) {
   if (!file || !lstatSync(file).isFile()) throw Error('regular submission plan file required')
