@@ -70,5 +70,12 @@ adapter 코드·stack opt-in·공통 스킬·소비 repo 설정은 복사하거�
 - main 병합 SHA의 develop 역병합과 포함 관계를 확인한다.
 - 기본 브랜치 trusted workflow의 실제 stacked 이벤트·필수 검사 결과를 별도 확인한다.
 
-현재는 승인된 로컬 후보 준비 단계다. 원격 전달·태그·역병합·설치는 아직 완료가 아니다.
-이 담당자는 로컬 수정·커밋·검사만 수행하고 원격 작업과 최종 판정은 통합 담당자에게 인계한다.
+## 로컬 검증 스냅샷 — 2026-10-16
+
+후보 `029fba71c4a8b4531058d6370a96f30df7380c58`의 격리 quality74/74는 PASS다.
+74개 원문 명령·종료 코드·로그 digest를 대조했으며 원본과 clone의 HEAD 동일·clean을 확인했다.
+실행 816.92초, 해당 실행의 실패·재시도·단계 생략0이다. 앞선 실패 기록은 그대로 보존한다.
+증거는 `.runtime/gh-stack-g0/ci-bootstrap-1.1.0/revision3/`의 `quality/results.json`과 `handoff.json`이다.
+이 스냅샷은 로컬 검증만 증명한다. 원격 CI·리뷰·순차 병합·태그·역병합·설치는 포함하지 않는다.
+후속 전달 상태는 [저장소 PR 원본](https://github.com/grinvi04/team-harness/pulls)과 해당 버전 태그에서 확인한다.
+통합 담당자가 기존 완료 기준에 따라 원격 결과와 현재 소스를 대조한다.
