@@ -51,6 +51,8 @@ develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, �
 
 ## PR 규칙
 
+PR base는 명시 인자와 제품의 채택 선언을 대조하고 원격에서 확인한다. [선언 형식·거부 조건](company-policy.md#pr-대상-브랜치-선언)을 따른다.
+
 - **작게**: 리뷰 가능한 단위 ±400라인 가이드 (마이그레이션·자동생성 제외) — 넘으면 분리 우선 검토
 - 템플릿(`templates/PULL_REQUEST_TEMPLATE.md`) 필수 작성, 미완성 공유는 **Draft**로
 - 진행 문서 검사 채택 repo는 PR 본문에 [동기화 선언](ai-collaboration.md#선언한-문서의-기계적-검사)을 연결한다. team-harness 자체 quality는 이를 필수 검사한다. 선언의 대상 누락·근거 의미·비적용 이유는 리뷰어가 diff와 대조한다.

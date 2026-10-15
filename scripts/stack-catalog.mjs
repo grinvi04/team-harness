@@ -8,12 +8,15 @@ export const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '
 
 export function loadCatalog(root = repositoryRoot) {
   const catalog = JSON.parse(readFileSync(resolve(root, 'templates/stacks.json'), 'utf8'));
-  const keys = ['node', 'spring-boot', 'python', 'rails', 'nextjs', 'vue', 'react', 'nuxt'];
-  if (catalog.schemaVersion !== 3 || catalog.pathBase !== 'repository-root' || !Array.isArray(catalog.stacks)
-      || catalog.stacks.length !== 8 || catalog.stacks.some((stack, i) => stack.id !== i + 1
-        || stack.key !== keys[i] || JSON.stringify(stack.roles) !== JSON.stringify(
-          i === 0 ? ['backend', 'frontend'] : i < 4 ? ['backend'] : ['frontend']))) {
-    throw new Error('Invalid stack catalog: expected schema 3 with repository-root paths and selections 1..8');
+  const stacks = catalog.stacks;
+  if (catalog.schemaVersion !== 3 || catalog.pathBase !== 'repository-root' || !Array.isArray(stacks)
+      || !stacks.length || stacks.some(stack => !Number.isSafeInteger(stack.id) || stack.id < 1
+        || !/^[a-z][a-z0-9-]*$/.test(stack.key) || !Array.isArray(stack.roles) || !stack.roles.length
+        || stack.roles.some(role => !['backend', 'frontend'].includes(role))
+        || new Set(stack.roles).size !== stack.roles.length)
+      || new Set(stacks.map(stack => stack.id)).size !== stacks.length
+      || new Set(stacks.map(stack => stack.key)).size !== stacks.length) {
+    throw new Error('Invalid stack catalog: expected schema 3, unique ids/keys and declared roles');
   }
   for (const file of [...Object.values(catalog.commonSources), ...Object.values(catalog.ruleSources),
     ...catalog.stacks.flatMap(stack => [stack.sources.header, ...stack.sources.jobs,
@@ -72,8 +75,9 @@ export function selectStack(selection, options = {}, catalog = loadCatalog()) {
     throw new Error('Invalid stack options');
   }
   const id = String(selection);
-  if (!/^[1-8](\+[1-8])?$/.test(id)) throw new Error('Invalid stack selection: choose 1..8 or backend+frontend');
+  if (!/^[1-9][0-9]*(\+[1-9][0-9]*)?$/.test(id)) throw new Error('Invalid stack selection: choose a catalog id or backend+frontend');
   const stacks = id.split('+').map(value => catalog.stacks.find(entry => entry.id === Number(value)));
+  if (stacks.some(stack => !stack)) throw new Error('Invalid stack selection: id not in catalog');
   if (stacks.length === 1) {
     if (Object.hasOwn(options, 'backendDir') || Object.hasOwn(options, 'frontendDir')) throw new Error('Directory options require a composed selection');
     const stack = withProfile(stacks[0], options);
@@ -87,7 +91,7 @@ export function selectStack(selection, options = {}, catalog = loadCatalog()) {
   }
   const backend = withProfile(stacks[0], options), frontend = withProfile(stacks[1], {});
   if (!backend.roles.includes('backend') || !frontend.roles.includes('frontend')) {
-    throw new Error('Invalid composition: backend must be 1..4 and frontend must be 1, 5..8');
+    throw new Error('Invalid composition: selected stacks must declare backend and frontend roles');
   }
   if (backend.profile && backend.ui !== 'api') throw new Error('Separate frontend composition requires API UI mode');
   const backendDir = validateDirectory(Object.hasOwn(options, 'backendDir') ? options.backendDir : 'backend');
@@ -131,7 +135,7 @@ function main(args) {
     return;
   }
   if (args[0] !== '--select') {
-    throw new Error('Usage: stack-catalog.mjs --menu | --select <1..8|backend+frontend> [--backend-dir relative] [--frontend-dir relative] [--framework name] [--ui mode]');
+    throw new Error('Usage: stack-catalog.mjs --menu | --select <catalog-id|backend+frontend> [--backend-dir relative] [--frontend-dir relative] [--framework name] [--ui mode]');
   }
   const { selection, options } = parseSelectionArgs(args.slice(1));
   console.log(JSON.stringify(selectStack(selection, options)));

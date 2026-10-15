@@ -6,6 +6,8 @@ argument-hint: "\"<작업 설명>\" \"<통과 기준 명령>\" [--max <N=5>] [--
 
 # /loop — 조건 기반 자율 수정 루프
 
+먼저 [공통 프로젝트 계약](../ao-coordinate/project-contract.md)을 읽고 현재 요청의 범위·보존 대상·완료 기준에 연결한다.
+
 스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
 
 **사용법**: `/loop "<작업 설명>" "<통과 기준 명령>" [--max <N>] [--timeout <초>] [--no-commit]`

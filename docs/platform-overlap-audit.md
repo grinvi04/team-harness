@@ -66,7 +66,7 @@
 |---|---|---|---|
 | `hook:PreToolUse:1:Bash:1:command` | **연결** | 얇게 유지 | 명령을 서버 정책과 같은 규칙에 연결하는 조기 피드백이며 CI·GitHub가 최종 강제한다. |
 | `hook:PreToolUse:1:Bash:2:prompt` | **위임** | 제거 | LLM prompt 기반 시크릿 판정은 플랫폼 permission과 결정적 검사에 위임하고 서버 secret scan을 유지한다. |
-| `hook:UserPromptSubmit:1:*:1:command` | **연결** | 좁게 유지 | `route-intent`는 Git/PR **상태 기반** 다음 단계만 연결하고 일반 자연어 **의미 분류기**로 확장하지 않는다. |
+| `legacy-hook:UserPromptSubmit:1:*:1:command` | **위임** | 기본 연결 제거 | 과거 상태 기반 `route-intent` 소스만 호환 회귀로 보존한다. 의미 분류기는 native에 위임한다. |
 
 ### Codex 호환 실행 파일
 
@@ -77,6 +77,7 @@
 | `codex-file:plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs` | **위임** | 제거 | 외부 플러그인의 Claude 전용 출력을 고치는 책임은 upstream 또는 공식 호환 surface에 맡긴다. |
 | `codex-file:plugins/harness-guard/scripts/patch-codex-security-guidance.mjs` | **위임** | 우선 제거 | 외부 plugin cache와 marketplace snapshot mutation은 장기 지원 API가 아니므로 제거한다. |
 | `codex-file:scripts/check-codex-native-plugin.mjs` | **연결** | 얇게 유지 | 설치된 source path의 native manifest·command hooks·skill inventory만 읽기 전용으로 검증한다. |
+| `codex-file:scripts/generate-codex-skills.mjs` | **연결** | 유지 | 공유 skill metadata와 native 계약에서 얇은 wrapper를 생성하고 drift를 검사한다. |
 | `codex-file:scripts/codex-binary-trust.mjs` | **소유** | 유지 | 승인 digest·code signature·version과 실행 전후 identity를 결박해 Codex provenance 증거를 책임진다. |
 | `codex-file:scripts/codex-fresh-session-smoke.sh` | **소유** | 유지 | 실제 새 세션에서 정책·시크릿 차단 결과를 검증하는 outcome parity 증거다. |
 | `codex-file:scripts/codex-hardened.sh` | **연결** | 얇게 유지 | 공식 plugin version sync와 native 계약 검사 뒤 Codex 인자를 그대로 전달한다. |
@@ -133,7 +134,7 @@ skill의 선택 패키지 분리가 3순위다. 실제 제거는 각각 별도 �
 
 plan·feature-add·feature-modify·systematic-debugging의 반복 계약을
 [공통 프로젝트 계약](../plugins/harness-guard/skills/ao-coordinate/project-contract.md)으로 모은다.
-일반 방법론은 선택한 Superpowers/native에 위임하고 기존 발견 이름·wrapper·라우팅은 유지한다.
+일반 방법론은 선택한 Superpowers/native에 위임하고 기존 발견 이름·wrapper는 유지하고 기본 라우팅 연결은 제거한다.
 loop의 timeout·fingerprint·중단과 milestone의 AC 증거 집계는 유지하며 고정 모델·인원·플랫폼 전용 호출을 줄인다.
 release-check의 SVG·mtime·전용 provenance, release의 changelog 경로는 repo 선언으로 이전한다.
 이 저장소의 live provenance·changelog는 AGENTS.md 필수 선언으로 유지한다.

@@ -1,5 +1,7 @@
 # Codex native 실행 계약
 
+## 공통 실행
+
 - 사용자는 목표를 자연어로 요청한다. 현재 요청과 프로젝트 지침으로 일반 개발 방법론 하나를 선택한다.
   사용자 선택이 우선이며, 설치된 Superpowers를 사용할 때 Harness는 프로젝트 기준·검사·인계·delivery
   계약을 연결한다. 별도 설계·승인·TDD 루프를 다시 시작하지 않는다. 미설치면 native 방식으로 같은 계약을 지킨다.
@@ -30,3 +32,78 @@
 
 스크립트 실행은 [현재 스킬 경로 검증](../runtime-path.md)을 각 도구 호출에서 먼저 적용한다.
 플랫폼이 제공한 현재 스킬 절대 경로를 쓰며 오래된 HOME checkout을 fallback으로 실행하지 않는다.
+
+## ao-coordinate
+
+현재 agent가 조정·Git 작업과 최종 인수를 소유한다. 범위가 명확한 저위험 구현과 독립 탐색·반증은
+native 실행 계약에 따라 기존 플랫폼 역할에 위임할 수 있다. 역할 이름을 늘리거나 별도 TOML을 설치하지 않는다.
+필수 독립성·유효 권한을 충족하지 못한 위임은 시작하지 않는다. 진행 기록과 관련 체크리스트를 함께 현행화한다.
+
+## feature-add
+
+현재 agent가 요구와 RED 테스트 계약을 검수한다. 범위가 명확한 저위험 구현은 native 실행 계약에 따라
+승인된 worker에 위임할 수 있다. 테스트 작성 → RED 검수 → 잠긴 테스트에 대한 구현 순서를 지킨다.
+독립 검증자는 후보를 수정하지 않고 반증만 한다. 현재 agent가 통합 검증·문서 현행화·커밋을 맡는다.
+
+## feature-merge
+
+현재 agent가 품질 검증·review·wrapper 실행을 소유하고, 독립 근거 수집만 플랫폼 subagent에 위임한다.
+
+## feature-modify
+
+현재 agent가 변경 요구와 RED 계약을 검수한다. 범위가 명확한 저위험 수정은 native 실행 계약에 따라
+승인된 worker에 맡기되 잠긴 테스트를 변경하지 않는다. 독립 검증자는 후보를 수정하지 않는다.
+현재 agent가 영향 범위의 회귀·문서 현행화·통합·Git 작업을 책임진다.
+
+## hotfix
+
+재현·수정·main/develop 반영은 현재 agent가 소유하고 읽기 전용 원인 탐색과 반증만 위임한다.
+
+## loop
+
+현재 선택 model을 유지하고 timeout·stuck·checkpoint 안전장치 안에서 현재 agent가 종료조건까지 반복한다.
+
+## milestone
+
+GitHub milestone·repo spec·issue를 정본으로 유지하며 Codex task goal은 이를 대체하지 않는다.
+
+## plan
+
+승인 전에는 읽기·계획만 수행하고 Codex에 없는 Claude plan-mode 도구 호출을 가장하지 않는다.
+
+## pr-create
+
+현재 agent가 품질 명령과 PR wrapper를 직접 실행하며 push·PR 생성 권한을 subagent에 위임하지 않는다.
+
+## pr-review-gate
+
+공용 계약에 따라 Codex native 리뷰를 우선 사용한다. 구현자와 다른 읽기 전용 인스턴스의 현재
+head/base 리뷰를 연결하고, 현재 agent가 지적 처리·증거 대조와 GitHub gate 최종 판정을 소유한다.
+
+## qa
+
+QA 축은 현재 agent가 종합하고 독립적인 읽기 전용 검토만 플랫폼 subagent에 위임한다.
+
+## release
+
+branch·tag·back-merge는 현재 agent가 소유하고 사전·사후 검증만 읽기 전용으로 위임한다.
+
+## release-check
+
+현재 agent가 품질·보안·마이그레이션 증거를 종합하고 독립 반증은 읽기 전용으로만 위임한다.
+
+## repo-sync
+
+현재 agent가 결과를 집계하고, 여러 repo의 독립적 읽기만 플랫폼 subagent에 위임한다.
+
+## solo-merge
+
+현재 agent가 review gate 완료 뒤 원자적 wrapper만 실행하며 보호 정책 복구를 직접 검증한다.
+
+## systematic-debugging
+
+현재 agent가 재현·가설 판별·원인 확정을 소유하고 독립 증거 수집과 반증만 읽기 전용으로 위임한다.
+
+## verification-before-completion
+
+현재 agent가 주장·증거 매핑과 fail-closed 판정을 소유하며 고위험 주장만 읽기 전용으로 독립 반증한다.

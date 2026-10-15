@@ -5,6 +5,8 @@ description: 열린 PR의 AI 리뷰·사람 승인·CI·외부 배포 상태를 
 
 # PR 리뷰·CI 게이트 (공통 절차)
 
+먼저 [공통 프로젝트 계약](../ao-coordinate/project-contract.md)을 읽고 현재 요청의 범위·보존 대상·완료 기준에 연결한다.
+
 스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
 
 `feature-merge`·`hotfix`·`release`가 PR 생성 후 머지 전까지 공통으로 따르는 단일 출처 절차다.

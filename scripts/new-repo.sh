@@ -4,8 +4,8 @@
 # 사용법: 새 repo 루트에서
 #   bash /path/to/team-harness/scripts/new-repo.sh
 #
-# 전제: gh 인증 완료, git remote(origin)가 GitHub을 가리킬 것
-# 멱등: 이미 있는 파일·protection은 건드리지 않음
+# 기본은 로컬 자산만 설정. 원격 보호는 --with-protection을 명시한 경우에만 적용한다.
+# 멱등: 이미 있는 파일·protection은 건드리지 않음; 원격 단계에는 gh 인증과 GitHub origin 필요
 
 set -euo pipefail
 
@@ -18,19 +18,25 @@ prot_exit_ok() { [ "${1:-0}" = "0" ]; }   # rc0 = 실패 없음(exit 0), rc1 = �
 # 테스트 훅: 함수만 로드하고 종료(git/gh/파일복사 없이 prot_exit_ok만 검증).
 [ -n "${NEWREPO_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
+WITH_PROTECTION=false
+case "${1:-}" in
+  "") [ "$#" = 0 ] || exit 1 ;;
+  --with-protection) [ "$#" = 1 ] || exit 1; WITH_PROTECTION=true ;;
+  *) echo "Usage: bash new-repo.sh [--with-protection]" >&2; exit 1 ;;
+esac
+
 # ── 사전 검사 ────────────────────────────────────────────────────────────────
 
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "❌ git repo가 아닙니다. 먼저 git init && git remote add origin <url>" >&2
+  echo "❌ git repo가 아닙니다. 먼저 git init" >&2
   exit 1
 fi
 
-OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null || true)
-if [ -z "$OWNER_REPO" ]; then
-  echo "❌ GitHub remote가 없습니다. gh repo create 또는 git remote add 먼저." >&2
-  exit 1
+OWNER_REPO="local"
+if [ "$WITH_PROTECTION" = true ]; then
+  OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner) || exit 1
+  [ -n "$OWNER_REPO" ] || { echo "GitHub remote 확인 실패" >&2; exit 1; }
 fi
-
 echo "🔧  $OWNER_REPO 셋업 시작 ($(pwd))"
 echo ""
 
@@ -42,14 +48,15 @@ read -rp "번호 한 개 또는 백엔드+프론트엔드 (예: 2+6=Spring Boot+
 
 SELECT_ARGS=(--select "$STACK_CHOICE")
 PROFILE_FRAMEWORK=""; PROFILE_UI=""
-case "${STACK_CHOICE%%+*}" in
-  3)
+BASE_STACK=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" --select "${STACK_CHOICE%%+*}" | node -e 'console.log(JSON.parse(require("fs").readFileSync(0,"utf8")).key)')
+case "$BASE_STACK" in
+  python)
     read -rp "Python 프레임워크 (django/fastapi/flask, 빈 값=기존 범용): " PROFILE_FRAMEWORK || true
     if [ -n "$PROFILE_FRAMEWORK" ]; then
       SELECT_ARGS+=(--framework "$PROFILE_FRAMEWORK")
       read -rp "화면 구성 (templates/htmx/api, 빈 값=프레임워크 기본): " PROFILE_UI || true
     fi ;;
-  4) read -rp "Rails 화면 구성 (hotwire/inertia-react/inertia-vue/api, 빈 값=기존 범용): " PROFILE_UI || true ;;
+  rails) read -rp "Rails 화면 구성 (hotwire/inertia-react/inertia-vue/api, 빈 값=기존 범용): " PROFILE_UI || true ;;
 esac
 [ -z "$PROFILE_UI" ] || SELECT_ARGS+=(--ui "$PROFILE_UI")
 STACK_SELECTION=$(node "$HARNESS_DIR/scripts/stack-catalog.mjs" "${SELECT_ARGS[@]}")
@@ -246,7 +253,7 @@ apply_protection() {
   local branch="$1"
   if ! git ls-remote --exit-code --heads origin "$branch" > /dev/null 2>&1; then
     echo "  ⚠️  $branch — 원격 브랜치 없음 → 보호 미적용 (직접 push 가능)"
-    echo "      push 후 반드시 재실행: bash $0"
+    echo "      push 후 반드시 재실행: bash $0 --with-protection"
     return
   fi
 
@@ -284,7 +291,7 @@ apply_protection() {
   #  워크플로를 올릴 방법이 없어진다. develop처럼 '설정 push 후 재실행' 2-스텝으로 유도.)
   if ! gh api "repos/$OWNER_REPO/contents/.github/workflows?ref=$branch" > /dev/null 2>&1; then
     echo "  ⚠️  $branch — CI 워크플로가 아직 원격에 없음 → 보호 보류 (required check 데드락 방지)"
-    echo "      설정을 커밋·push한 뒤 재실행: bash $0"
+    echo "      설정을 커밋·push한 뒤 재실행: bash $0 --with-protection"
     return
   fi
 
@@ -313,9 +320,13 @@ apply_protection() {
 }
 
 PROT_FAILED=0   # B4: 보호 적용 실패를 ❌ 출력 후 삼키지 않고 스크립트 종료코드(exit)에 반영
-echo "🔒  Branch protection 적용..."
-apply_protection main
-apply_protection develop
+if [ "$WITH_PROTECTION" = true ]; then
+  echo "🔒  명시 요청한 Branch protection 적용..."
+  apply_protection main
+  apply_protection develop
+else
+  echo "원격 조회·보호 변경 미실행. 검토 후 필요하면 --with-protection으로 별도 실행하세요."
+fi
 echo ""
 
 # ── 4. 드리프트 self-check (정보성, 비차단) ──────────────────────────────────
@@ -346,7 +357,7 @@ echo ""
 echo "  PR AI 리뷰는 Codex native 리뷰 우선 — docs/code-review.md와 pr-review-gate 계약 적용."
 echo ""
 echo "  이후: 테스트 PR 1개 → ci-gate 통과 확인"
-echo "  (main/develop 보호를 못 걸었으면 이 스크립트 재실행)"
+echo "  (원격 보호가 필요하면 정책을 확인한 뒤 --with-protection으로 별도 실행)"
 echo "────────────────────────────────────────────────"
 
 # B4: 보호 적용에 실패했으면(위 ❌) 성공 요약을 냈더라도 non-zero로 종료 — 체이닝·자동화가 감지.
