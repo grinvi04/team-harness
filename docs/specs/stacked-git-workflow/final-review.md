@@ -157,7 +157,11 @@ G3 통합55 PASS에는 signal 시 provider 종료 전 보호 PATCH를 거부하�
 전체 quality의 첫 실행은7단계에서 옛 workflow hash와 새 이벤트 구독의 충돌로 FAIL했다.
 exact `stacked` 구독 한 줄을 별도 단언하고 나머지 바이트는 기존 hash로 보존한다. 수정 후 생성 회귀 PASS.
 첫 커밋은 도구 workdir 미인식 가드와 메시지 본문 형식에 막혔다. 명시 `git -C`와 규약 본문으로
-재실행해 secret scan·commit-msg를 통과했다. 가드·훅 예외를 사용하지 않았다. 전체 품질 후속 실행은 진행 중이다.
+재실행해 secret scan·commit-msg를 통과했다. 가드·훅 예외를 사용하지 않았다. 후속 후보 `9a667f3`는7–19단계 PASS 뒤20단계의 옛 배선 단언으로 FAIL했다.
+현재 trunk/parent와 `template + repo 전용 suffix`의 정확 일치를 검사하도록 교정해62/0 PASS, trusted 문서2/2 PASS다.
+원격 준비 첫 시도는 lab의 추적 정책을 덮어쓰지 않고 거부했다. 원문을 보존하며 선택형 stack만 첫 층에 추가하도록 고쳤다.
+실제 trusted 이벤트 원본을 위해 lab [PR29](https://github.com/grinvi04/team-harness-acceptance-lab/pull/29)를
+develop에 제출했다. 아직 병합 전이며 기존 필수 검사·원격 보호는 바꾸지 않았다.
 
 ## 공식 원본
 
