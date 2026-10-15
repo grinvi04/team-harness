@@ -64,16 +64,23 @@ export function validateRemoteStack(snapshot, prs, remote, { requireLinked = fal
   const require = (condition, message) => { if (!condition) violations.push(message) }
   try {
     require(prs.length === snapshot.layers.length, 'PR inventory length changed')
-    for (const [i, l] of snapshot.layers.entries()) if (l.merged) {
-      const p = prs[i]
-      require(p?.state === 'closed' && Boolean(p.merged || p.merged_at), 'merged prefix not confirmed')
+    const allPrs = prs, allLayers = snapshot.layers
+    let activeSeen = false
+    for (const [i, l] of allLayers.entries()) {
+      if (!l.merged) { activeSeen = true; continue }
+      require(!activeSeen, 'merged layers must be a verified prefix')
+      const p = allPrs[i]
+      require(p?.state === 'closed' && p.merged === true && Boolean(p.merged_at), 'merged prefix not confirmed')
       require(p?.head?.repo?.full_name === snapshot.repo && p?.base?.repo?.full_name === snapshot.repo, 'foreign merged PR')
       require(p?.head?.ref === l.branch && p?.head?.sha === l.headOid, 'merged branch has unreviewed local changes')
       require(p?.html_url === l.prUrl && p?.number === prNumber(l.prUrl, snapshot.repo), 'merged PR identity mismatch')
+      require(p?.stack?.position === i + 1 && p.stack.id === remote?.id && p.stack.number === remote?.number
+        && p.stack.base?.ref === snapshot.trunk, 'merged stack identity/order changed')
     }
-    prs = prs.filter((_, i) => !snapshot.layers[i].merged)
-    snapshot = { ...snapshot, layers: snapshot.layers.filter(l => !l.merged) }
-    const members = []
+    const mergedCount = allLayers.filter(l => l.merged).length
+    prs = allPrs.filter((_, i) => !allLayers[i].merged)
+    snapshot = { ...snapshot, layers: allLayers.filter(l => !l.merged) }
+    const members = allPrs.slice(0, mergedCount).map(p => p.number)
     for (const [i, l] of snapshot.layers.entries()) {
       const p = prs[i]
       if (!p) { require(l.prUrl === null && !requireLinked, `missing PR: ${l.branch}`); continue }
@@ -87,7 +94,7 @@ export function validateRemoteStack(snapshot, prs, remote, { requireLinked = fal
       require(i === 0 || p.draft === true, 'upper PR must remain draft during submission')
       if (p.stack) {
         require(p.stack.base?.ref === snapshot.trunk && p.stack.base.sha === snapshot.trunkOid, 'stack trunk changed')
-        require(p.stack.position === i + 1, 'stack order changed')
+        require(p.stack.position === mergedCount + i + 1, 'stack order changed')
         require(p.stack.id === remote?.id && p.stack.number === remote?.number, 'stack identity changed')
         members.push(p.number)
       } else require(!requireLinked || snapshot.layers.length === 1, 'PR link not confirmed')
@@ -96,9 +103,9 @@ export function validateRemoteStack(snapshot, prs, remote, { requireLinked = fal
       require(remote.open === true && remote.base?.ref === snapshot.trunk, 'remote stack is closed or has wrong trunk')
       const actual = remote.pull_requests.map(p => p.number)
       require(actual.length === members.length && actual.every((n, i) => n === members[i]), 'remote membership/order changed')
-      require(members.every((n, i) => prs[i]?.number === n), 'existing stack must be a prefix')
-      for (const p of prs.filter(p => p?.stack)) require(p.stack.size === actual.length, 'stack size changed')
-      if (requireLinked) require(actual.length === snapshot.layers.length, 'not all layers linked')
+      require(members.every((n, i) => allPrs[i]?.number === n), 'existing stack must be a prefix')
+      for (const p of allPrs.filter(p => p?.stack)) require(p.stack.size === actual.length, 'stack size changed')
+      if (requireLinked) require(actual.length === allLayers.length, 'not all layers linked')
     } else require(members.length === 0 && (!requireLinked || snapshot.layers.length === 1), 'remote link not confirmed')
   } catch (e) { violations.push(e.message) }
   return { allowed: violations.length === 0, violations }

@@ -221,3 +221,45 @@ test('lostReplyIntentPreservation prevents a blind PUT on resume', async () => {
   const wrong = harness({ actualSha: upperOid }), wrongResult = await wrong.run({ resume: clone(h.saved.at(-1)) })
   assert.equal(wrongResult.state, 'unverified'); assert.equal(puts(wrong).length, 0)
 })
+
+// Live GitHub stack35 kept merged PR32 at position1/3 and retargeted PR33 to develop.
+function retainedPrefix() {
+  const f = fixture(), lower = f.data[`${prefix}/pulls/11`], next = f.data[`${prefix}/pulls/12`]
+  Object.assign(lower, { state: 'closed', merged: true, merged_at: '2026-10-15T11:55:55Z', merge_commit_sha: mergeSha })
+  next.base = { ref: 'develop', sha: laterTrunkOid, repo: { full_name: repo } }
+  f.data[`${prefix}/git/ref/heads/develop`].object.sha = laterTrunkOid
+  const members = f.data[`${prefix}/stacks/13`].pull_requests
+  Object.assign(members[0], { state: 'closed', merged_at: lower.merged_at }); members[1].base = clone(next.base)
+  return f
+}
+test('next lowest keeps the verified merged prefix in its full fingerprint', () => {
+  const f = retainedPrefix(), s = f.observe(12)
+  assert.equal(s.pr, 12); assert.equal(s.headOid, upperOid); assert.equal(s.members.length, 2)
+  assert.equal(s.members[0].merged, true); assert.equal(s.members[1].stack.position, 2)
+  assert.throws(() => f.observe(11), /lowest|draft|candidate/)
+})
+for (const [name, alter] of [
+  ['closed but not merged cannot be skipped', f => { f.data[`${prefix}/pulls/11`].merged = false; f.data[`${prefix}/pulls/11`].merged_at = null }],
+  ['foreign merged prefix cannot be skipped', f => { f.data[`${prefix}/pulls/11`].head.repo.full_name = 'other/repo' }],
+  ['merged prefix identity cannot change', f => { f.data[`${prefix}/pulls/11`].stack.position = 2 }],
+  ['next lowest still requires ready', f => { f.data[`${prefix}/pulls/12`].draft = true }],
+]) test(name, () => { const f = retainedPrefix(); alter(f); assert.throws(() => f.observe(12)) })
+test('a merged member after an open member is never a removable prefix', () => {
+  const f = fixture(); Object.assign(f.data[`${prefix}/pulls/12`], { state: 'closed', merged: true, merged_at: '2026-10-15T11:55:55Z' })
+  assert.throws(() => f.observe())
+})
+
+test('two merged predecessors leave only the third PR eligible, without renumbering history', () => {
+  const f = retainedPrefix(), second = f.data[`${prefix}/pulls/12`], third = clone(second)
+  third.number = 14; third.html_url = `https://github.com/${repo}/pull/14`
+  third.head = { ref: 'codex/c', sha: 'f'.repeat(40), repo: { full_name: repo } }
+  Object.assign(second, { state: 'closed', merged: true, merged_at: '2026-10-15T12:00:00Z' })
+  third.stack.position = 3
+  const all = [f.data[`${prefix}/pulls/11`], second, third]
+  all.forEach(p => { p.stack.size = 3 })
+  f.data[`${prefix}/pulls/14`] = third
+  f.data[`${prefix}/stacks/13`].pull_requests = clone(all)
+  const s = f.observe(14)
+  assert.equal(s.pr, 14); assert.equal(s.members.length, 3); assert.equal(s.members[2].stack.position, 3)
+  assert.throws(() => f.observe(12), /lowest/)
+})

@@ -1,6 +1,7 @@
 # 공식 gh-stack 연결 설계
 
-상태: **G1·G2 로컬 구현·독립 검토 PASS, G3 연결 중**. 구현 후보 `5d46b7c`, 미발행 1.1.0.
+상태: **실제 3층 제출·재기반·trusted CI·첫 층 응답 유실 복구 확인, 후속 층 검증 중**. 미발행 1.1.0.
+[현재 실제 인수](../pilots/gh-stack-adapter-acceptance.md)는 후보별 증거·발견 결함·남은 범위를 구분한다.
 [최초 G0](../pilots/gh-stack-compatibility.md)의 frozen-group FAIL을 보존하고,
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 trunk·그룹 의미로 연결 설계를 정정했다. 실제 원격 인수·전체 지원 완료는 아직 아니다.
 사용자는 stacked PR 방식과 무료 GitHub CLI 확장을 선택했다. 유료 Graphite는 범위 밖이다.
@@ -55,7 +56,7 @@ Actions branch 필터는 trunk로 평가된다. main/develop 필터를 넓히지
 | stack 재구성·포기 | 대상 diff·복구 지점 확인 후 명시 수행; 자동 drop/fold/unstack 제외 |
 
 미발행 후보에는 opt-in·`inspect/check-create/submit/restack/sync`와 충돌·유실 응답 재개가 구현됐다.
-층별 trusted CI는 로컬 검증했으며 실제 adapter 원격3층·trusted 이벤트·async 병합은 아직 미확인이다.
+실제 adapter 3층 제출·trusted 이벤트·첫 층 병합은 확인했다. 다음 층 sync와 async/solo 잔여 경계는 검증 중이다.
 현재 설치 버전의 명령으로 안내하지 않는다. [현재 검사·한계](stacked-git-workflow/final-review.md#g1-제출-경계-최종-검토)를 따른다.
 확장 자동 설치·업데이트, `gh skill install`, alias·전역 설정 변경을 제출 경로에 숨기지 않는다.
 

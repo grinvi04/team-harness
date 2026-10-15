@@ -65,3 +65,25 @@ for (const [name, change] of [
   const x = linked(); change(x)
   assert.equal(validateRemoteStack(x.s, x.prs, x.remote, { requireLinked: true }).allowed, false)
 })
+
+function retainedLinkedPrefix() {
+  const x = linked(); x.s.operation = 'sync'; x.s.layers[0].merged = true
+  x.s.layers[1].parent = 'develop'
+  Object.assign(x.prs[0], { state: 'closed', merged: true, merged_at: '2026-10-15T11:55:55Z' })
+  x.prs[1].base = { ref: 'develop', sha: a, repo: { full_name: 'org/repo' } }
+  return x
+}
+test('sync validates retained merged prefix with original remote positions and size', () => {
+  const x = retainedLinkedPrefix()
+  assert.equal(validateRemoteStack(x.s, x.prs, x.remote, { requireLinked: true }).allowed, true)
+})
+for (const [name, alter] of [
+  ['closed nonmerged prefix', x => { x.prs[0].merged = false; x.prs[0].merged_at = null }],
+  ['foreign historical prefix', x => { x.prs[0].head.repo.full_name = 'other/repo' }],
+  ['historical identity mismatch', x => { x.prs[0].stack.id = 100 }],
+  ['historical position mismatch', x => { x.prs[0].stack.position = 2 }],
+  ['omitted historical membership', x => { x.remote.pull_requests = [x.prs[1]] }],
+]) test(`sync rejects ${name}`, () => {
+  const x = retainedLinkedPrefix(); alter(x)
+  assert.equal(validateRemoteStack(x.s, x.prs, x.remote, { requireLinked: true }).allowed, false)
+})

@@ -22,24 +22,29 @@ export function observeMerge({ repo, pr, policy, get }) {
     'invalid stack membership')
   const trunkOid = get(`${prefix}/git/ref/heads/${trunk}`)?.object?.sha
   require(oid(trunkOid), 'invalid live trunk OID')
-  const members = [], seen = new Set()
+  const members = [], active = [], seen = new Set()
   let parent = trunk, parentOid = trunkOid
   for (const [i, item] of stack.pull_requests.entries()) {
     require(Number.isSafeInteger(item.number) && item.number > 0 && !seen.has(item.number), 'invalid duplicate member')
     seen.add(item.number)
     const p = get(`${prefix}/pulls/${item.number}`)
     require(p.number === item.number && prNumber(p.html_url, repo) === p.number, 'member identity mismatch')
-    require(p.state === 'open' && !p.merged && !p.merged_at, 'stack member is not open')
     require(p.head?.repo?.full_name === repo && p.base?.repo?.full_name === repo, 'foreign stack member')
     require(/^(codex|feature|fix)\/.+/.test(p.head.ref) && oid(p.head.sha), 'invalid work branch/head')
-    require(p.base.ref === parent && (i === 0 || p.base.sha === parentOid), 'wrong actual parent/order')
     require(p.stack?.number === stackNumber && p.stack.id === stack.id && p.stack.position === i + 1
       && p.stack.size === stack.pull_requests.length && p.stack.base?.ref === trunk, 'member stack changed')
     require(item.head?.sha === p.head.sha && item.base?.ref === p.base.ref, 'membership observation changed')
-    members.push(identity(p)); parent = p.head.ref; parentOid = p.head.sha
+    members.push(identity(p))
+    if (p.state === 'closed' && p.merged === true && p.merged_at) {
+      require(active.length === 0, 'merged members must form a verified prefix')
+      continue
+    }
+    require(p.state === 'open' && !p.merged && !p.merged_at, 'stack member is not open')
+    require(p.base.ref === parent && (active.length === 0 || p.base.sha === parentOid), 'wrong actual parent/order')
+    active.push(identity(p)); parent = p.head.ref; parentOid = p.head.sha
   }
-  require(members[0].number === pr && selected.base.ref === trunk, 'only lowest unmerged PR may be merged')
-  require(selected.draft === false && JSON.stringify(identity(selected)) === JSON.stringify(members[0]), 'selected candidate changed/draft')
+  require(active[0]?.number === pr && selected.base.ref === trunk, 'only lowest unmerged PR may be merged')
+  require(selected.draft === false && JSON.stringify(identity(selected)) === JSON.stringify(active[0]), 'selected candidate changed/draft')
   const s = { kind: 'stack', repo, pr, trunk, trunkOid, headOid: selected.head.sha,
     headBranch: selected.head.ref, stackNumber, members, policy }
   return { ...s, fingerprint: createHash('sha256').update(JSON.stringify(s)).digest('hex') }

@@ -262,8 +262,8 @@ test('sync reconciles a live merged prefix without recreating or pushing its bra
     s.view.branches[0].isMerged=true;s.view.branches[0].pr={url:s.prs[0].html_url}
     s.prs[0].state='closed';s.prs[0].merged=true;s.prs[0].merged_at='2026-10-15T00:00:00Z'
     s.prs[1].base={ref:'develop',sha:f.runGit('rev-parse','develop'),repo:{full_name:'org/repo'}}
-    s.prs[1].stack={id:99,number:13,size:1,position:1,base:{ref:'develop',sha:f.runGit('rev-parse','develop')}}
-    s.remote.pull_requests=[s.prs[1]];s.refreshPRs=true
+    // GitHub retains the merged prefix and original member positions/size.
+    s.remote.pull_requests=s.prs;s.refreshPRs=true
   })
   const r=rebase(f,'sync');assert.equal(r.status,0,r.stdout+r.stderr)
   assert.equal(f.runGit('show','codex/b:trunk.txt'),'trunk update')

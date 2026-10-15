@@ -2,7 +2,8 @@
 
 > 실행자: `superpowers:executing-plans`로 순차 구현하고 고위험 전달 경계는 별도 독립 검토한다.
 > 최초 frozen-group G0 FAIL은 [원래 결과](../../pilots/gh-stack-compatibility.md)에 보존한다.
-> [최종 검토](final-review.md)에 따라 보호 통합 시험·G1 제출·재기반·trusted CI 로컬 검사·독립 검토를 통과했다. G1·G2는 로컬 구현·독립 검토 통과, G3는 연결 중이다. 실제 원격 인수·package 실행은 남았다.
+> [현재 원격 인수](../../pilots/gh-stack-adapter-acceptance.md): 실제 3층 제출·재기반·trusted CI·첫 층 응답 유실 복구 PASS.
+> retained merged prefix 결함을 수정했으며 후속 층 sync·병합과 G2 잔여 경계를 검증 중이다. packaged local 3사례 PASS, G3 실제 전달은 남았다.
 
 **Goal:** 공식 gh-stack의 branch/PR 관리를 기존 Harness gate와 Git Flow에 연결한다.
 **Architecture:** 공식 엔진 + 얇은 stack 사전/사후 검사 + 기존 PR gate + SHA가 결박된 async provider.
@@ -82,21 +83,21 @@ CI 정본: `templates/ci/common/workflow.yml`, `templates/ci/commitlint.yml` 및
 - [x] `unregisteredParentRejected`, `protectedRefRejected`, `staleRemoteRejected`, `dirtyOwnerPreserved`,
   `numericBranchNotPushed`, `foreignPrUrlRejected`, `linkWarningIsNotSuccess` 테스트를 먼저 작성한다.
 - [x] `node --test tests/stack-workflow-test.mjs tests/pr-base-selection-test.mjs`로 RED를 확인한다.
-- [ ] opt-in·현재 모든 층·소유 worktree·PR 본문을 먼저 검사하고 검증 문맥을 PR wrapper에서 재조회한다.
-- [ ] 기존 wrapper로 층별 PR을 만들고 동일 repo의 완전한 PR URL만 공식 link에 전달한다.
+- [x] opt-in·현재 모든 층·소유 worktree·PR 본문을 먼저 검사하고 검증 문맥을 PR wrapper에서 재조회한다.
+- [x] 기존 wrapper로 층별 PR을 만들고 동일 repo의 완전한 PR URL만 공식 link에 전달한다.
   기존 stack 구성/순서가 다르면 link 전에 거부한다. 상위 PR은 draft이며 각 층 body-file을 유지한다.
-  opt-in·preflight·submit·restack/sync와 충돌 재개를 로컬 구현했다. 공식 binary+adapter 3사례 PASS. 실제 adapter의 원격 3층 실행은 아직 미실행이다.
+  공식 binary+adapter 로컬3사례와 실제 lab PR32/33/34의 제출·연결을 확인했다.
 - [ ] restack/sync는 변경 ref·예상 OID·worktree 전체를 보여주고 공식 engine을 호출한다.
   부분 성공·중단·다른 소유자의 remote push·noninteractive divergence를 readback으로 판정한다.
   공식 local rebase 후 최초 관찰 OID의 atomic push를 사용한다. native sync/push에는 expected OID 입력이 없다.
-  통합 로컬87개 PASS. 실제 adapter 원격 시험 전까지 G1 전체 완료로 세지 않는다.
+  통합 로컬87개와 실제 원격 restack PASS. 병합 후 sync는 retained-prefix 수정으로 재검증 중이다.
 - [ ] raw submit/link/merge/sync/push/modify/unstack를 guard로 래퍼 유도한다.
   init/add/navigation의 실제 checkout·rerere 효과도 안내한다. shell alias로 보호를 우회하지 않는다.
   raw 7종 유도와 기존 guard 회귀191개 PASS. 전체 스킬 안내·후속 restack/sync 스킬은 G3에서 연결했고 실제 실행은 남았다.
 - [ ] trunk branch 필터를 유지하고 직접 parent payload·정책 trunk·trusted SHA를 분리한다. validator/helper/config는 같은
   protected SHA에서 읽고 후보 코드는 비밀정보 없는 job에서 실행한다. `stacked` 가입 이벤트·재실행을 관찰해 연결한다.
   commitlint는 policy branch와 layer commit 범위를 구분하며 test-guard는 직접 parent SHA를 비교한다.
-  자체 commitlint-trusted job에 protected 문서 checker를 연결했다. 로컬 회귀 PASS, 실제 trusted 이벤트는 미확인이다.
+  자체 commitlint-trusted job에 protected 문서 checker를 연결했다. 실제 stacked 이벤트·protected validator 실행과 후보 변조 거부를 확인했다.
 - [ ] candidate helper 변조·상위 CI 미실행·잘못된 parent·policy 미선언 거부와 기존 일반 PR PASS를 확인한다.
 - [x] parent 커밋만 있는 child의 고유 변경 0을 완료 작업으로 세지 않고 미보호 parent의 404를 solo로
   안내하지 않는 회귀를 추가한다. 관계 조회 실패는 추측하지 않으며 안내와 실행 승인을 구분한다.
