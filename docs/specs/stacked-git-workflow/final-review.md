@@ -163,6 +163,13 @@ exact `stacked` 구독 한 줄을 별도 단언하고 나머지 바이트는 기
 실제 trusted 이벤트 원본을 위해 lab [PR29](https://github.com/grinvi04/team-harness-acceptance-lab/pull/29)를
 develop에 제출했다. 아직 병합 전이며 기존 필수 검사·원격 보호는 바꾸지 않았다.
 
+
+후속 독립 리뷰는 test-guard의 비슷한 예외 라벨 허용·라벨 제거 뒤 재검사 누락을 재현했다.
+정확한 JSON 라벨 일치와 labeled/unlabeled 이벤트를 연결해 실제 shell 반례5FAIL→17/17 PASS다.
+공용 정본·배치 사본·lab 후보를 함께 수정했다. 기존 삭제 차단·필수 CI를 완화하지 않는다.
+quality20–27 PASS 뒤28단계는 설치본의 옛 workflow digest와 새 clone의 npm 도구 누락으로 FAIL했다.
+내장 digest를 현재 정본과 맞췄으며 설치본 digest 사례는 PASS다. 도구를 준비한 깨끗한 후보에서 후속 검사한다.
+
 ## 공식 원본
 
 - [보호·CI의 trunk 의미](https://docs.github.com/en/pull-requests/reference/stacked-pull-requests)

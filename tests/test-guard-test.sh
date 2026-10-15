@@ -176,6 +176,24 @@ guard_case "removed case_ assertion is rejected" "$TMP/workflow.sh" remove-case 
 guard_case "previously applicable set cannot become empty" "$TMP/workflow.sh" remove-all 1 \
   "base(main)=8, PR(head)=0"
 
+# Exemption is an exact label and label changes must schedule a fresh check.
+LABEL_REPO=$(setup_repo "label-removal" remove-check)
+for labels in '["allow-test-removal"]' '["disallow-test-removal"]' '["allow-test-removal-requested"]' '["allow-test-removal",3]' '"allow-test-removal"'; do
+  rc=$(run_guard "$TMP/workflow.sh" "$LABEL_REPO" "$TMP/label.log" "$labels")
+  expected=1; [ "$labels" = '["allow-test-removal"]' ] && expected=0
+  report "exact validated exemption: $labels" "$([ "$rc" = "$expected" ] && echo true || echo false)"
+done
+if python3 - "$WORKFLOW_SOURCE" "$TEMPLATE_SOURCE" <<'PY_LABEL_EVENTS'
+from pathlib import Path
+import sys
+for file in sys.argv[1:]:
+    line=next(x.strip() for x in Path(file).read_text().splitlines() if x.strip().startswith('types:'))
+    events={x.strip() for x in line.split('[',1)[1].split(']',1)[0].split(',')}
+    assert {'labeled','unlabeled','stacked'} <= events,events
+PY_LABEL_EVENTS
+then report "exemption label changes refresh the check" true
+else report "exemption label changes refresh the check" false; fi
+
 NORMAL_REPO=$(setup_repo "normal-runtime" normal)
 NORMAL_RUNNER_RC=0
 bash "$NORMAL_REPO/tests/cases.sh" > "$TMP/normal-runtime.log" 2>&1 || NORMAL_RUNNER_RC=$?

@@ -12,7 +12,7 @@ name: test-guard
 on:
   pull_request_target:
     branches: [main, develop]
-    types: [opened, synchronize, reopened, edited, stacked]
+    types: [opened, synchronize, reopened, edited, stacked, labeled, unlabeled]
 
 permissions:
   contents: read
@@ -38,7 +38,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          if echo "$LABELS" | grep -q "allow-test-removal"; then
+          HAS_EXEMPTION=$(node -e '
+            const labels = JSON.parse(process.env.LABELS);
+            if (!Array.isArray(labels) || labels.some(x => typeof x !== "string")) process.exit(1);
+            console.log(labels.includes("allow-test-removal"));
+          ') || { echo "::error::잘못된 label metadata입니다."; exit 1; }
+          if [ "$HAS_EXEMPTION" = true ]; then
             echo "::notice::'allow-test-removal' 라벨 — 테스트 감소 허용(게이트 스킵)"
             exit 0
           fi
