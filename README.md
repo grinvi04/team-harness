@@ -189,8 +189,8 @@ team-harness/
 
 ## 운영 원칙과 이력
 
-[공유 범위·운영 원칙·과거 구축 이력](docs/harness-operating-history.md)을 따르며,
-현재 우선순위는 [제품 방향](docs/product-direction.md#우선순위-로드맵)을 확인한다.
+현재 원칙·우선순위는 [제품 방향](docs/product-direction.md#우선순위-로드맵), 변경·전파는
+[유지보수 규약](docs/harness-maintenance.md)을 따른다. [초기 구축 이력](docs/harness-operating-history.md)은 당시 기록이다.
 
 ## 📄 라이선스
 

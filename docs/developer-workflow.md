@@ -6,110 +6,64 @@
 > 처음 설치한다면 [onboarding.md](onboarding.md), 전체 구조를 먼저 보고 싶다면
 > [아키텍처 안내](harness-architecture.md)를 읽는다.
 
-## 1. 이것만 먼저 이해하기
+## 1. 제품 저장소에서 시작하기
 
-team-harness는 선택한 개발 방법론에 프로젝트 기준·검사·Git 완료 조건을 연결한다.
-일반 설계·TDD·디버깅은 설치된 Superpowers 등 방법론 하나로 수행하고 중복 절차를 시작하지 않는다.
+실제 첫 확인·업무 시작 요청과 단계별 완료 기준은 [제품 개발 가이드](development-coordination.md)가 정본이다.
+혼자는 그 문서의 [첫 연결과 업무 요청](development-coordination.md#처음-연결할-때), 작은 팀은
+[팀 사용 가이드](team-development-guide.md#처음-함께-사용할-때)를 따른다. 이 문서는 업무별 계약을 찾는 색인이다.
+일반 설계·TDD·디버깅은 선택한 방법론 하나로 수행하고 이미 유효한 계획·검사를 재사용한다.
 
-개인은 [개발 흐름](development-coordination.md)에 따라 기존 스택 기준·설정·검사 명령을 재사용하며 시작한다.
-아래 브랜치·PR·서버 보호 절차는 GitHub에 연결한 프로젝트 기준이다. 로컬 전용 제품에는 원격 생성·공개를
-강요하지 않고 제품의 Git 규칙과 검사·진행 문서를 사용한다.
+로컬 전용 제품은 제품의 검사·진행 기록으로 마치며 원격 생성·공개·PR을 강요하지 않는다.
+GitHub를 사용하면 제품이 채택한 브랜치 흐름과 기존 리뷰·CI·보호를 유지한다.
+PR base는 명시한 `--base` 또는 제품 `.harness-policy.json`의 `branchFlow`로 정한다.
+`main`은 작업 브랜치→main, `git-flow`는 작업 브랜치→develop이다. develop 존재만으로 추정하지 않으며,
+선언·명시 대상이 충돌하거나 둘 다 없으면 push 전에 중단한다. 실행 계약은
+[`pr-create`](../plugins/harness-guard/skills/pr-create/SKILL.md)가 정본이다.
 
-1. `AGENTS.md`에 프로젝트 규칙과 검증 명령을 적는다.
-2. 작업 전에 기대 결과를 정하고, 테스트로 실패를 재현한다.
-3. `feature/*` 또는 `fix/*` 브랜치에서만 변경한다.
-4. PR은 AI 리뷰, CI, 미해결 스레드 확인을 거쳐 머지한다.
-5. `main`과 `develop`의 보호 규칙이 사람과 AI 모두에게 같은 절차를 강제한다.
-
-즉, AI가 코드를 작성할 수는 있지만 **무엇을 만들지 결정하고 결과를 검수할 책임은 개발자에게 있다.**
-자세한 책임 원칙은 [AI 협업 가이드](ai-collaboration.md)를 따른다.
+이 **team-harness 저장소 자체**는 [Git Flow 순서 검사](code-review.md#git-flow-순서-검사--team-harness-자체-전달)를 유지한다.
+다른 제품의 main 중심 흐름과 혼동하지 않는다. AI가 작성한 결과를 설명하고 검수할 책임은 개발자에게 있다.
+책임 원칙은 [AI 협업 가이드](ai-collaboration.md)를 따른다.
 
 ## 2. 지금 하려는 일 찾기
 
 | 하려는 일 | 시작 위치 | 사용할 절차 | 완료 결과 |
 |---|---|---|---|
-| 새 기능 개발 | 기존 작업 브랜치 또는 `develop` | 승인된 계획 재사용 → `feature-add` 계약 | 테스트된 기능 커밋이 `feature/*`에 생성됨 |
-| 기존 기능 확장 | 기존 작업 브랜치 또는 `develop` | 필요한 계획만 보완 → `feature-modify` 계약 | 변경 동작은 GREEN, 기존 동작도 유지됨 |
-| 버그 수정 | `develop` | `feature-modify` | 재현 테스트와 수정이 `fix/*`에 생성됨 |
+| 새 기능 개발 | 제품이 채택한 base 또는 기존 작업 브랜치 | 승인된 계획 재사용 → `feature-add` 계약 | 테스트된 기능 커밋이 `feature/*`에 생성됨 |
+| 기존 기능 확장 | 제품이 채택한 base 또는 기존 작업 브랜치 | 필요한 계획만 보완 → `feature-modify` 계약 | 변경 동작은 GREEN, 기존 동작도 유지됨 |
+| 버그 수정 | 제품이 채택한 base | `feature-modify` | 재현 테스트와 수정이 `fix/*`에 생성됨 |
 | 원인 불명 실패 진단 | 현재 브랜치 | `systematic-debugging` | 재현·가설 판별로 근본 원인 또는 미확정 증거가 보고됨 |
 | 완료 주장 재검증 | 어느 브랜치든 가능 | `verification-before-completion` | 현재 worktree·HEAD 기준 `VERIFIED / NOT VERIFIED` 판정 |
-| 기능·수정 머지 | `feature/*` 또는 `fix/*` | `feature-merge` | 리뷰·CI 게이트 후 `develop` 반영 |
+| PR 생성 | 작업 브랜치 | `pr-create` | 명시 base 또는 제품 `branchFlow`를 검증한 PR 생성; 머지는 별도 |
+| Git Flow 기능·수정 머지 | `feature/*` 또는 `fix/*` | `feature-merge` | 리뷰·CI 게이트 후 `develop` 반영 |
 | 반복되는 CI·lint 수정 | 작업 브랜치 | `loop` | 지정 명령이 exit 0이 될 때까지 반복. 맥락 자동 선택이면 명시적 요청 없이 commit하지 않음 |
 | 프론트엔드 품질 확인 | 작업 브랜치 | `qa` | 디자인 토큰과 WCAG 2.2 점검 결과 |
-| 운영 긴급 수정 | `main` 기준 | `hotfix` | `main` 태그 배포 후 `develop` 역병합 |
-| 정식 릴리즈 | `develop` | `release-check` → `release` | `main` 태그 배포 후 `develop` 역병합 |
+| Git Flow 운영 긴급 수정 | `main` 기준 | `hotfix` | `main` 태그 배포 후 `develop` 역병합 |
+| Git Flow 정식 릴리즈 | `develop` | `release-check` → `release` | `main` 태그 배포 후 `develop` 역병합 |
 | 하네스 상태 확인 | 어느 브랜치든 가능 | `harness-doctor.sh` | 로컬 설정·플러그인·repo·브랜치 보호 진단 |
 
-도구 화면에 slash command 입력창이 없어도 목표를 자연어로 요청하면 description의 사용·제외 경계에 따라
-적합한 skill이 자동 선택될 수 있다. 중요한 작업은 “`feature-add` 절차로 주문 취소 기능을 개발해줘”처럼
-skill 이름을 함께 말해도 된다. 자동 선택 여부와 현재 phase는 작업 업데이트에서 확인한다.
+<a id="6-native-선택과-명시-호출"></a>
 
-## 3. 일반적인 기능 개발 예시
-
-일반 기능 개발을 시작하기 전에 [요청·시험·커밋·PR 순서](developer-workflow-feature.md)를 읽고 아래 변경·검증 기준과 함께 적용한다.
-
-## 4. 기존 기능 수정과 버그 수정
-
-기존 동작을 바꿀 때는 `feature-modify`를 사용한다. 핵심은 **바뀔 동작만 RED로 만들고 나머지 테스트는
-계속 GREEN으로 유지하는 것**이다.
-
-```text
-주문 취소 응답에 취소 시각을 추가해줘.
-기존 취소 가능 조건과 오류 응답은 바꾸지 마.
-```
-
-- 새 `feature/*` 브랜치에는 승인된 spec이 필요하다. 기존 계획·승인을 재사용하고 필요한 연결만
-  `plan` 계약으로 남긴다. 결과가 자명한 trivial 확장만 명시적 면제로 spec을 생략할 수 있다.
-- 명백한 버그라면 재현 테스트를 먼저 추가하고 `fix/*` 브랜치에서 수정한다.
-- 수정 범위 밖에서 발견한 개선점은 현재 변경에 섞지 않고 별도 Issue나 작업으로 분리한다.
-
-### 원인이 불분명하면 `systematic-debugging`
-
-오류 메시지만 보고 바로 패치하지 않는다. `systematic-debugging`은 기대값·실제값과 재현 명령을 고정하고,
-사실과 추론을 분리한 뒤 선택한 진단 방법으로 가설을 판별한다. 근본 원인이 확인되기 전에는 코드를 바꾸지 않으며,
-수정 요청일 때만 자동 회귀 테스트 또는 가장 작은 실행 가능 검사의 RED를 만든 뒤 `feature-modify` 계약으로
-넘어간다. “원인만 찾아줘”라면 제품을 수정하지 않는다. 도구의 로그·캐시 생성도 관찰해 실제 변화와 한계를 보고한다.
-
-### 완료라고 말하기 전에 `verification-before-completion`
-
-이 스킬은 “테스트가 통과했을 것”과 “현재 변경에서 실제 통과했다”를 구분한다. 완료·PR 준비·머지 준비·
-릴리즈 준비 주장을 대상 테스트, 전체 품질, diff, git 상태, CI·배포 대상 SHA의 유효한 증거에 연결한다.
-같은 후보·관련 환경·범위의 결과는 재사용하고 변경·드리프트·새 실패·gate 신선도 조건에는 해당 검사를 다시 수행한다.
-필수 검증이 실패하거나 실행되지 않았으면 `NOT VERIFIED`로 판정한다. 검증 실패를 직접 고치거나 머지하는
-권한은 이 스킬에 없으며, 호출한 workflow로 결과를 돌려준다.
-
-## 5. 긴급 수정과 릴리즈
-
-### 운영 장애: `hotfix`
-
-`hotfix`는 `main`에서 분기해 회귀 테스트로 장애를 재현하고, 수정 PR을 `main`에 머지한 뒤 패치 태그를
-게시한다. 마지막에는 반드시 `develop` 역병합 PR을 만들어 두 브랜치가 갈라지지 않게 한다.
-
-긴급하다는 이유로 테스트나 PR 게이트를 생략하지 않는다. 운영 DB·운영 인프라 조작은 AI에게 맡기지 않는다.
-
-### 정식 배포: `release-check` → `release`
-
-`release-check`가 품질·보안·DB 마이그레이션을 먼저 확인한다. 모두 통과한 뒤 `release`가 release 브랜치,
-`main` PR, 버전 태그, `develop` 역병합, 배포 후 헬스 체크를 순서대로 수행한다.
-
-## 6. native 선택과 명시 호출
-
-일반 작업과 `진행해` 같은 이어가기 요청은 native agent가 대화의 목표·기존 승인·프로젝트 원본을
-보고 적절한 절차를 선택한다. 기본 설치에서 `UserPromptSubmit` 상태 라우터는 연결하지 않는다.
-선택한 skill과 phase를 첫 업데이트에 표시하고 실제 요청·현재 원본·기존 승인과 대조한다.
-
-선택이 맞지 않으면 Codex에서는 다음처럼 명시한다. 설치된 skill과 해당 참조를 실제로 읽어야 한다.
-
-```text
-$plan 이 저장소의 조회 캐시 문제를 해결할 설계와 검사 기준을 정리해줘. 아직 수정하지 마.
-```
-
-Claude에서는 `/harness-guard:plan`을 사용한다. 명시 호출도 구현·커밋·PR·병합 권한을 추가하지 않는다.
-사용자가 자연어로 맡긴 업무를 계속할 수 있으며 자동 선택과 명시 호출의 성공은 각각 관측한다.
-`solo-merge`도 리뷰를 건너뛰는 절차가 아니다. AI 지적·리뷰 스레드·필수 CI·mergeability를 확인한다.
+업무는 자연어로 요청할 수 있다. native 선택·명시 호출과 같은 방법론을 중복하지 않는 기준은
+[역할 분담](development-coordination.md#자연어-요청과-역할-분담)을 따른다. 선택이 맞지 않으면 Codex는
+`$plan`, Claude는 `/harness-guard:plan`처럼 명시한다. skill 선택은 실행 권한을 추가하지 않는다.
 과거 라우터 범위와 당시 회귀는 [역사 스펙](specs/workflow-routing-scope.md)에 보존한다.
 
-## 7. 막혔을 때 우회하지 않기
+## 3. 업무별 실행 계약과 완료 경계
+
+- 기능 개발의 요청·시험·커밋·PR 예시는 [기능 개발 상세](developer-workflow-feature.md)를 따른다.
+- 기존 기능 변경은 [`feature-modify`](../plugins/harness-guard/skills/feature-modify/SKILL.md)에 변경·유지 검사를 연결한다.
+  원인 불명 실패는 [`systematic-debugging`](../plugins/harness-guard/skills/systematic-debugging/SKILL.md)으로
+  기대·실제값과 재현 증거를 고정한다. 진단만 요청했다면 수정하지 않는다.
+- [`verification-before-completion`](../plugins/harness-guard/skills/verification-before-completion/SKILL.md)은
+  현재 worktree·HEAD와 관련 환경·범위에 유효한 증거로 판정한다. 필수 실패·미실행은 `NOT VERIFIED`이며
+  검증 자체가 수정·머지 권한을 만들지 않는다.
+- PR·리뷰·머지는 [코드 리뷰 계약](code-review.md)을 따른다. main 중심 제품은 해당 제품의 머지 절차를,
+  Git Flow 제품은 `feature-merge`·`release-check`·`release`·`hotfix`의 적용 범위를 확인한다.
+  구현·PR 생성·병합·태그·설치·배포 완료를 각각 구분한다.
+- 여러 단계의 인계·재개에는 [개발 조정](development-coordination.md)의 `ao-coordinate`를 선택한다.
+  단순 수정은 직접 처리하며 필수 독립 검증은 구현자와 다른 인스턴스가 수행한다.
+
+## 4. 막혔을 때 우회하지 않기
 
 | 증상 | 의미 | 다음 행동 |
 |---|---|---|
@@ -123,7 +77,7 @@ Claude에서는 `/harness-guard:plan`을 사용한다. 명시 호출도 구현·
 `--no-verify`, 보호 규칙 해제, 테스트 삭제로 통과시키는 것은 해결이 아니다. 차단 메시지별 원인과 복구법은
 [트러블슈팅](troubleshooting.md)이 정본이다.
 
-## 8. Claude Code와 Codex의 차이
+## 5. Claude Code와 Codex의 차이
 
 두 도구의 UI는 다르지만 완료 조건은 같다.
 
@@ -139,7 +93,7 @@ Claude에서는 `/harness-guard:plan`을 사용한다. 명시 호출도 구현·
 도구별 설치와 Codex 추가 설정은 [onboarding.md의 AI 도구 섹션](onboarding.md#d-claude-codecodex기타-ai-도구)을
 따른다.
 
-## 9. 작업 완료 체크리스트
+## 6. 작업 완료 체크리스트
 
 - [ ] 요청한 범위만 변경했다.
 - [ ] 정상·예외·경계 동작을 테스트했다.
@@ -158,7 +112,7 @@ Claude에서는 `/harness-guard:plan`을 사용한다. 명시 호출도 구현·
 진행 상태가 있는 변경은 기존 스펙이나 PR 본문에 [문서 검사 선언](ai-collaboration.md#선언한-문서의-기계적-검사)을
 연결하고 같은 checker를 로컬·PR CI에서 실행한다. 누락 대상과 근거 의미는 리뷰에서 별도로 확인한다.
 
-## 10. 더 자세히 볼 문서
+## 7. 더 자세히 볼 문서
 
 | 궁금한 내용 | 정본 |
 |---|---|
@@ -169,7 +123,3 @@ Claude에서는 `/harness-guard:plan`을 사용한다. 명시 호출도 구현·
 | 가드 차단과 복구 | [troubleshooting.md](troubleshooting.md) |
 | team-harness 자체를 변경·배포 | [harness-maintenance.md](harness-maintenance.md) |
 | 개별 절차의 최신 실행 계약 | [`plugins/harness-guard/skills/`](../plugins/harness-guard/skills/) |
-
-## 제품 요청의 진행과 인수 관리
-
-승인된 요청을 여러 단계에 걸쳐 이어갈 때는 [Team Harness 개발 조정](development-coordination.md)의 `ao-coordinate`를 사용한다. 기존 구현·PR·릴리즈 workflow를 중첩 실행하지 않고 제품 기록의 현재 단계와 유효한 증거를 연결한다. 단순 수정은 직접 처리하고 필수 독립 검증은 별도 인스턴스가 수행한다.
