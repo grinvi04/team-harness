@@ -4,7 +4,7 @@ name: commitlint-trusted
 on:
   pull_request_target:
     branches: [main, develop]
-    types: [opened, synchronize, reopened, edited]
+    types: [opened, synchronize, reopened, edited, stacked]
 
 permissions:
   contents: read
@@ -20,7 +20,8 @@ jobs:
           persist-credentials: false
       - name: 신뢰 원본으로 PR 커밋 metadata 검사
         env:
-          BASE_REF: ${{ github.base_ref }}
+          BASE_REF: ${{ github.event.pull_request.stack.base.ref || github.event.pull_request.base.ref }}
+          PARENT_REF: ${{ github.event.pull_request.base.ref }}
           HEAD_REF: ${{ github.head_ref }}
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -35,13 +36,14 @@ jobs:
             echo "잘못된 PR metadata입니다." >&2
             exit 1
           fi
+          git check-ref-format --branch "$PARENT_REF" >/dev/null
           # The required job always runs; only a merged PR's edited record is non-applicable.
           case "$PR_STATE:$PR_MERGED:$EVENT_ACTION" in
             closed:true:edited)
               echo "병합된 PR의 기록 변경: 새 커밋 검사는 비적용입니다."
               exit 0
               ;;
-            open:false:opened|open:false:synchronize|open:false:reopened|open:false:edited) ;;
+            open:false:opened|open:false:synchronize|open:false:reopened|open:false:edited|open:false:stacked) ;;
             *)
               echo "잘못된 PR 상태·이벤트 metadata입니다." >&2
               exit 1
@@ -60,7 +62,7 @@ jobs:
             exit 1
           fi
           fetch_objects "$BASE_SHA"
-          if [ "$BASE_REF" = main ]; then
+          if [ "$PARENT_REF" = main ]; then
             fetch_objects develop
             DEVELOP_SHA="$(git rev-parse FETCH_HEAD)"
             unset FETCH_AUTH
@@ -78,7 +80,7 @@ jobs:
             else
               node scripts/check-commit-message.cjs --range "$BASE_SHA..$HEAD_SHA" --exclude "$DEVELOP_SHA"
             fi
-          elif [[ "$HEAD_REF" == sync/backmerge-* ]]; then
+          elif [[ "$PARENT_REF" = develop && "$HEAD_REF" == sync/backmerge-* ]]; then
             fetch_objects main
             MAIN_SHA="$(git rev-parse FETCH_HEAD)"
             unset FETCH_AUTH

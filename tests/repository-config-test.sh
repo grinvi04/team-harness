@@ -17,6 +17,8 @@ try {
       copyFileSync(path.join(process.env.ROOT, file), path.join(fixture, file))
     }
   }
+  mkdirSync(path.join(fixture, 'templates/ci/repository'), { recursive: true })
+  copyFileSync(path.join(process.env.ROOT, 'templates/ci/repository/commitlint-extra.yml'), path.join(fixture, 'templates/ci/repository/commitlint-extra.yml'))
   const [source, target] = deploymentCopies[0]
   writeFileSync(path.join(fixture, target), '# drift\n')
   assert.deepEqual(syncRepositoryConfig(fixture), [target])

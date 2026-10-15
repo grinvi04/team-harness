@@ -92,10 +92,18 @@ for (const configPath of [`${root}/commitlint.config.cjs`, `${root}/templates/co
 
 const workflowPaths = [`${root}/.github/workflows/commitlint-trusted.yml`, `${root}/templates/ci/commitlint.yml`]
 const workflows = workflowPaths.map((workflowPath) => readFileSync(workflowPath, 'utf8'))
-if (workflows[0] !== workflows[1]) process.exit(1)
+// Repository deployment appends the owned doc-sync steps; their trusted execution
+// contract is exercised by trusted-documents-test.mjs. Preserve exact bytes of both sources.
+const repositoryExtra = readFileSync(`${root}/templates/ci/repository/commitlint-extra.yml`, 'utf8')
+if (workflows[0] !== workflows[1] + repositoryExtra) process.exit(1)
 for (const workflow of workflows) {
   if (/wagoid\/commitlint-github-action|docker:\/\//.test(workflow)) process.exit(1)
-  if (!/BASE_REF: \$\{\{ github\.base_ref \}\}/.test(workflow)) process.exit(1)
+  if (!workflow.includes('BASE_REF: ${{ github.event.pull_request.stack.base.ref || github.event.pull_request.base.ref }}')) process.exit(1)
+  if (!workflow.includes('PARENT_REF: ${{ github.event.pull_request.base.ref }}')) process.exit(1)
+  if (!workflow.includes('BASE_SHA: ${{ github.event.pull_request.base.sha }}')) process.exit(1)
+  if (!workflow.includes('git check-ref-format --branch "$PARENT_REF" >/dev/null')) process.exit(1)
+  if (!workflow.includes('if [ "$PARENT_REF" = main ]; then')) process.exit(1)
+  if (!workflow.includes('elif [[ "$PARENT_REF" = develop && "$HEAD_REF" == sync/backmerge-* ]]; then')) process.exit(1)
   if (!workflow.includes('HEAD_REF: ${{ github.head_ref }}')) process.exit(1)
   if (!/fetch_objects develop/.test(workflow)) process.exit(1)
   if (!/check-commit-message\.cjs --range "\$BASE_SHA\.\.\$HEAD_SHA" --exclude "\$DEVELOP_SHA"/.test(workflow)) process.exit(1)
