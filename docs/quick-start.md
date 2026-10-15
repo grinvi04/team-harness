@@ -1,45 +1,44 @@
 # Team Harness Quick Start
 
 Team Harness helps a developer reuse technical conventions, setup, and checks across frontend, backend, database,
-and infrastructure work, then share useful practices with colleagues. For GitHub projects, it also connects local
-guidance and guards to server-enforced pull-request, CI, review, and release evidence.
-
-For local development, start with the [development guide](development-coordination.md) and the product's existing
-checks; a remote repository is not required. The instructions below cover GitHub rollout and package evaluation.
-Prepared Spring Boot, Vue, Node, React/Vite, Next.js, and Nuxt apps can use the [local check setup](local-development.md)
-with an explicit single stack. Apply separately to each app; existing files are preserved. Application generation and configuring the
-underlying test tools remain product responsibilities; broader reuse follows the [product roadmap](product-direction.md).
-
-Use natural-language requests; skill commands are optional. Use one development methodology (such as installed
-Superpowers) for design, TDD, and debugging. Harness connects project standards, checks, handoffs, and delivery
-gates without repeating that workflow. Native execution remains available without installing another methodology.
+and infrastructure work, then share useful practices with colleagues. GitHub is optional. For GitHub projects,
+Harness also connects local guidance and guards to pull-request, CI, review, and release evidence.
 
 ## Prerequisites
 
-- Git and a GitHub repository where you can configure Actions and branch protection
-- Bash and Node.js 20 or newer
-- macOS or Linux; see the [support matrix](support.md) before production adoption
-- Claude Code or Codex only if you want the optional agent adapters
+- Git, Bash, and Node.js 20 or newer on macOS or Linux; check the [support matrix](support.md)
+- Claude Code or Codex for the optional agent adapters; Codex configuration checks also require Python 3.11 or newer
+- GitHub repository access and authenticated `gh` only when you choose GitHub PRs, CI, or branch protection
 
 ## Install and verify
 
-Follow [onboarding](onboarding.md) for the current public `harness-guard` plugin installation and its checks.
-Keep branch protection and required CI as the final enforcement layer.
+Follow the [official installation and verification guide](harness-setup.md) for the public `harness-guard` plugin.
+It covers the supported Claude Code and Codex plugin commands, checking the installed version, connecting a product
+repository, and diagnosing the components you actually selected. Installation checks and actual hook enforcement
+are separate evidence; follow that guide's boundaries for optional runtime probes.
 
-Split packages, `profile-doctor.mjs`, and disposable filesystem profiles are an optional [packaging experiment](../experiments/split-packaging/README.md).
-They remain `installable: false` and are not public marketplace products. Their staged version is independent
-of the current monolith release.
+For new repository setup, follow [onboarding](onboarding.md). For an existing product, use
+[selective onboarding](company-onboarding.md) and preserve its files, hooks, checks, and branch policy.
+Local development does not require creating or publishing a remote repository. Prepared supported apps can use
+the [single-stack local check setup](local-development.md); application generation and test-tool setup belong to the product.
 
-## Build a release candidate bundle
+## Start real work in the product repository
 
-```bash
-node scripts/build-release-bundle.mjs --source-only --output /tmp/team-harness-release
-(cd /tmp/team-harness-release && shasum -a 256 -c SHA256SUMS)
-```
+Open the product repository, then follow the existing guides:
 
-The command uses committed `HEAD`, not dirty working-tree files. It creates evidence for release review; it does not
-create a tag, GitHub Release, marketplace entry, or deployment.
+- Working alone: [first readiness check and real task request](development-coordination.md#처음-연결할-때).
+  Reuse the product's conventions, checks, and adopted main or Git Flow policy.
+- Working in a small team: [shared setup and task ownership](team-development-guide.md#처음-함께-사용할-때).
+  Connect shared acceptance criteria, individual changes, independent review, and integration checks.
 
-## Optional development coordination
+Use natural-language requests; skill commands are optional. Use one development methodology, such as installed
+Superpowers, for design, TDD, and debugging. Harness connects project standards, checks, handoffs, and delivery
+gates without repeating that workflow. Native execution remains available without installing another methodology.
+The guides own the request examples and completion criteria; implementation, merge, release, installation, and
+deployment are distinct outcomes. Preserve existing required CI, review, and branch protection when using GitHub.
 
-Selected handoff and resume practices from Agent Orchestration are available through `ao-coordinate` in Team Harness. Follow [the development guide](development-coordination.md) to connect a product request, ownership, handoff, verification, and acceptance to the existing core gates. Simple tasks stay with one agent. No orchestration npm package, JSON contracts, or record generator is required or shipped. No separate role-profile installer is added. Historical runtime experiments are not bundled.
+## Maintenance and experiments
+
+Contributor release preparation belongs in [Harness maintenance](harness-maintenance.md).
+Split packages, disposable profiles, loader pilots, and bundle evaluation belong in the
+[packaging experiment](../experiments/split-packaging/README.md); they are not the public installation or first-task path.

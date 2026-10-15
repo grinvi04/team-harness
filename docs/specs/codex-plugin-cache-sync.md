@@ -1,5 +1,9 @@
 # Codex plugin cache 조건부 동기화 스펙
 
+> **역사 스펙:** 아래는 cache patch가 있던 당시 설계다. 현재 실행 지침이나 완료 조건으로 사용하지 않는다.
+> 공식 CLI를 통한 조건부 동기화는 유지하지만 patch 단계는 제거됐다. 현재 동작과 갱신 절차는
+> [Codex 계약과 Native Refresh Runbook](codex-guard-compatibility.md)을 따른다. 당시 요구·실패 판정은 보존한다.
+
 ## 1. 목표 & Why
 
 CLI launcher가 최신 team-harness source와 오래된 Codex plugin cache의 버전 드리프트를 자동으로 해소한다.

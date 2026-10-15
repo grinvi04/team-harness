@@ -1,5 +1,9 @@
 # Codex overlay 완전 격리
 
+> **역사 스펙:** 아래 cache overlay 주입 방식은 현재 기본 경로에서 제거됐다. 과거 계약을 보존한 기록이다.
+> 현재는 공식 loader가 native wrapper와 공유 skill을 읽으며 cache를 변형하지 않는다.
+> 사용·검증은 [현행 Codex 계약](codex-guard-compatibility.md)과 [지원 표](../support.md)를 따른다.
+
 Issue: #323
 
 ## 문제

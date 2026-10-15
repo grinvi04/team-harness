@@ -1,5 +1,62 @@
 # 저장소 구조 정리
 
+## 2026-10-15 후속 정리 — 현재 작업
+
+사용자는 v1.0.0 이후 Markdown·스크립트·로컬 산출물을 추가 조사하고 권장 순서대로 정리하도록 승인했다.
+기준은 develop `ea75566`이며 아래 기존 0.88.0 구현·실패·전달 기록은 당시 이력으로 보존한다.
+제품 방향은 **소유**: 현행 안내·검사 연결을 정돈한다. 신규 기능·플랫폼 실행 복제는 추가하지 않는다.
+
+1. 현재 안내의 branchFlow·공개 설치·보류된 실험 설명을 실제 계약과 맞춘다.
+2. 중복 사용 흐름은 기존 정본으로 연결하고 과거 cache/overlay 스펙은 역사임을 표시한다.
+3. 스크립트는 실제 호출·배포 목록·호환 계약을 대조한다. 기존 호출 종료가 불명확한 호환 코드는 유지한다.
+4. 로컬 산출물은 재생성 가능성과 원문·복구 자료 보존을 확인한 대상만 정리하고 증거를 남긴다.
+
+| 완료 기준 | 검증 |
+|---|---|
+| 현재 안내와 실제 계약 일치 | 직접 skill/script/hook 대조, 관련 문서 검사, 별도 읽기 전용 검토 |
+| 읽기 경로·역사·검증 증거 보존 | 링크·Markdown 199줄 검사, 기존 실패 기록 보존 대조 |
+| 동작·보호·호환 계약 유지 | 관련 회귀와 quality 전체, 기존 게이트·설치 파일 변경 여부 |
+| 로컬 정리의 대상·복구 명확 | 삭제 전 파일 종류·해시·보관/재생성 근거, 정리 후 실제 결과 |
+
+현행화 대상은 사용·설치·지원·운영 안내, 실제 발견된 직접 reader와 이 스펙이다.
+기본 폴더 `.project-map/`에 현재 범위·후보·판정을 연결했다. C1–C4 로컬 정리·검증은 완료했다.
+전역 설정·설치·소비 저장소·원격 보호는 변경하지 않는다. PR·병합·발행은 이번 정리 완료와 별개다.
+과거 실패·유일한 복구본은 삭제하지 않고 추가 기능이나 회사 인수를 완료 조건에 넣지 않는다.
+
+결과: Markdown 14개와 문서 계약 테스트 1개를 정리했다. 플러그인·실행 스크립트·템플릿·CI는 변경하지 않았다.
+호환 종료가 확인되지 않은 route-intent·no-op·security-guidance 경로와 생성물 진입 래퍼는 유지했다.
+로컬 quality 74/74, Markdown 342개·문서 동기화 검사 PASS. 독립 읽기 전용 검토에서 조치할 결함은 발견되지 않았다.
+캐시 29개 폴더의 `.pyc` 11,091개를 보관본으로 압축하고 실제 격리 복원·해시 일치를 확인했다.
+원본 로그·실패·복구 자료는 유지했다. 물리 디스크 절감량은 측정하지 않았다.
+명령·후보 diff·검토·보관/복원 원문은 기본 checkout의 `.runtime/documentation-cleanup-20261015/report.md`에 연결했다.
+사용자 후속 승인에 따라 이 변경은 작업 PR → develop → `release/docs-*` → main → develop 역병합으로 전달한다.
+각 단계는 [Git Flow 순서 검사](../code-review.md#git-flow-순서-검사--team-harness-자체-전달)를 따른다.
+확정된 병합 상태·SHA는 이 변경을 포함한 GitHub PR 원본과 기본 폴더 `.project-map/`에 연결한다.
+로컬 정리 통과만으로 병합 완료를 뜻하지 않는다. 이번 문서 전달에는 새 버전·태그·설치를 포함하지 않는다.
+
+```harness-doc-sync
+{
+  "version": 1,
+  "documents": [
+    {"path": "README.md", "reason": "현행 운영 정본과 역사 reader 구분"},
+    {"path": "docs/developer-workflow.md", "reason": "중복 사용 흐름 축소와 branchFlow 계약"},
+    {"path": "docs/quick-start.md", "reason": "공식 설치와 개인·팀 시작 reader"},
+    {"path": "docs/harness-plugin.md", "reason": "현재 plugin·base·실험 경계"},
+    {"path": "docs/harness-maintenance.md", "reason": "launcher와 별도 패치 권한"},
+    {"path": "docs/harness-operating-history.md", "reason": "과거 운영 기록과 현재 정본 구분"},
+    {"path": "docs/repository-structure.md", "reason": "호환 파일과 로컬 산출물 유지·정리 근거"},
+    {"path": "docs/platform-overlap-audit.md", "reason": "현행 인벤토리와 대체된 목표 구분"},
+    {"path": "docs/support.md", "reason": "실제 검증 호스트와 Claude 보류"},
+    {"path": "docs/troubleshooting.md", "reason": "원래 보호 정책 복원과 표준 재적용 구분"},
+    {"path": "docs/specs/codex-guard-compatibility.md", "reason": "미등록 hook과 호환 보류 상태"},
+    {"path": "docs/specs/codex-plugin-cache-sync.md", "reason": "구형 cache patch 설계의 역사 표시"},
+    {"path": "docs/specs/codex-overlay-isolation.md", "reason": "구형 overlay 설계의 역사 표시"},
+    {"path": "docs/specs/structure-maintenance.md", "reason": "이번 정리 범위와 실제 검증 판정"}
+  ],
+  "items": []
+}
+```
+
 ## 승인 범위와 기준
 
 사용자는 최신 develop에서 중복 설정·스택 템플릿·실험·과거 기록을 순서대로 정리하도록 승인했다.
