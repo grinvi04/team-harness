@@ -150,11 +150,12 @@ T1 snapshot을 소비하지만 merge 직전 다시 조회한다. 기존 CI/revie
 - [x] 17개 각각에 변경 또는 공통 계약으로 충족한 근거·직접 소비 경로를 기록한다. 신규 방법론을 중복 도입하지 않는다.
 - [x] shared frontmatter와 native runtime의 공통/스킬별 앵커를 유지하고 Codex wrapper를 재생성한다.
   trigger의 기존 사용/제외 경계를 유지한다. 단어·링크 검사는 자연어 의미 검증을 대신하지 않는다.
-- [ ] 일반1PR·의존3PR·독립2stack·main-flow 소비 fixture에 대해 올바른 trunk/승인/정리 경로를 확인한다.
+- [x] 일반1PR·의존3PR·독립2stack·main-flow 소비 fixture에 대해 올바른 trunk/승인/정리 경로를 확인한다.
+  기존 일반 PR·의존층 회귀와 후속 독립2stack/main-flow 로컬 검사를 연결했다. API 대역 범위이며 아래 실제 G3와 구분한다.
 - [x] 요청 사례로 “기능 추가”, “아래 층 수정”, “중단된 작업 재개”, “이 PR만 병합”, “전체 stack 진행”을
   소스·문서 독립 검토로 대조했다(실제 agent 행동은 미확인). 제출/병합 대상 확대·활성 writer 재기반·진단/QA만 요청했는데 Git 쓰기 수행을 거부해야 한다.
-- [ ] milestone의 간접 PR 생성과 workflow→core runtime binding도 adapter를 거친다. 새 helper를 package에
-  포함하고 packaged artifact에서 실제 경로를 실행한다. source tree에서만 성공하면 미완료다.
+- [x] milestone의 간접 PR 생성과 workflow→core runtime binding도 adapter를 거친다. 새 helper를 package에
+  포함하고 packaged artifact에서 실제 경로를 실행한다. milestone 명령→core wrapper→adapter와 잘못된 parent 거부4개 PASS.
 - [ ] 아래 기존 생성·발견·라우팅·package 검사에 영향 회귀를 연결한다. 실제 사용 증거와 구분한다.
 - [ ] 새 연결 자체는 기존 Git Flow로 develop에 통합한 뒤 대시보드 3층에서 실제 stack 제출·수정·병합을 수행한다.
 - [ ] 원격 actual base/head·CI·리뷰·병합 SHA·보호 원값, 설치 확장 버전과 효과 journal을 기록한다.

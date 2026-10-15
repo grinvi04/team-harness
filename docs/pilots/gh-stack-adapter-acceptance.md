@@ -137,3 +137,26 @@ source `6199588`의 adapter와 고정 v0.2.1로 [하단 PR1](https://github.com/
 원문은 `solo-live-proposal/execution-1/`의 제출 journal, review, check-run·GraphQL 응답,
 `upper-refusal-result.json`, `lower-solo-exit.json`, `pre-gate-outcome.json`에 보존한다.
 실패를 정상 복구 시험으로 바꾸거나 CI 판정 경로를 우회하지 않는다.
+
+## 후속 로컬 경계 검사 — 2026-10-16
+
+`6ad367f` 뒤 테스트3개만 추가했다. 제품 코드 변경은 없다. `remaining-fixtures/summary.json`의
+파일 digest를 현재 파일과 최종 독립 리뷰 기록에 대조했다. 실제 로컬 Git·패키지 실행과 GitHub/확장 대역을 구분한다.
+
+- 서로 독립인 두 stack의 계획 fingerprint·parent 격리·PR 공존과 git-flow/main trunk·기존 ref 보존을 확인했다.
+- main-flow의 company/solo 병합 경로, 보호 복구·reservation 해제·하위 의존 ref 보존을 확인했다.
+- 현재 최하단과 merged prefix 뒤 승격된 상단 모두 새 head의 required CI를 다시 읽는다.
+  관계없는 성공 검사만 있고 quality가 없으면 company/solo 모두 DELETE0·merge PUT0으로 거부했다.
+- 생성한 workflow 패키지의 milestone 명령을 core PR wrapper·adapter까지 실행했다. milestone 전달과 잘못된 parent 거부를 확인했다.
+- 첫 전체 관련 CLI/wrapper59개 PASS 뒤 승격 상단2개를 추가했고, 최종 wrapper 전체22개 PASS다.
+  CLI·package 파일은 불변이며 앞선 CLI와 package4개 증거를 재사용했다. 최종 독립 read-only Codex/Astra medium에서 추가 결함 미발견이다.
+- 최초 package 명령 추출·solo 오류 문구 단언 실패는 보존했다. 대역 보정 결과를 실제 원격 성공으로 세지 않는다.
+
+## Actions 차단과 CI 선행 PR 관측
+
+소유자가 새 solo lab의 로그인 화면에서 Actions 비활성 안내를 확인했다. 같은 시점 API는 enabled=true,
+workflow3개 active, 실행 정책0, 수동 실행3개만 반환했다. 설정 토글·반복 이벤트·병합 재요청은 하지 않았다.
+[GitHub 안내](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)는 별도 실행 제한과 Support 확인을 설명한다. 정확한 제한 이유는 미확인이다.
+문의 초안·원문은 `solo-live-proposal/execution-1/ui-disabled-diagnostic/`에 있다. 문의는 전송하지 않았다.
+기존 Harness의 [CI 선행 PR581](https://github.com/grinvi04/team-harness/pull/581)은 자동 CI를 시작했다.
+이 관측은 solo lab 제한의 계정 전체 적용을 증명하지 않는다. PR581의 필수 검사·순차 전달은 아직 진행 중이다.

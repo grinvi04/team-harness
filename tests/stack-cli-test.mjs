@@ -8,14 +8,15 @@ import test from 'node:test'
 import { fileURLToPath } from 'node:url'
 const scripts = fileURLToPath(new URL('../plugins/harness-guard/scripts/', import.meta.url))
 const git = execFileSync('which', ['git'], { encoding: 'utf8' }).trim()
-function fixture(t, change = () => {}, trackedBodies = false) {
+function fixture(t, change = () => {}, trackedBodies = false, flow = 'git-flow') {
+  const trunkName = flow === 'main' ? 'main' : 'develop'
   const dir = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'stack-cli-'))
   t.after(() => fs.rmSync(dir, { recursive: true, force: true }))
   const repo = path.join(dir, 'repo'), origin = path.join(dir, 'origin'), bin = path.join(dir, 'bin')
   fs.mkdirSync(repo); fs.mkdirSync(bin)
   const runGit = (...args) => execFileSync(git, args, { cwd: repo, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim()
-  runGit('init', '-b', 'develop'); runGit('config', 'user.email', 'fixture@example.invalid'); runGit('config', 'user.name', 'Fixture')
-  fs.writeFileSync(path.join(repo, '.harness-policy.json'), JSON.stringify({ schemaVersion: 1, mode: 'company', autoMergeTargets: [], branchFlow: 'git-flow', stackedPRs: { enabled: true, provider: 'github-gh-stack' } }))
+  runGit('init', '-b', trunkName); runGit('config', 'user.email', 'fixture@example.invalid'); runGit('config', 'user.name', 'Fixture')
+  fs.writeFileSync(path.join(repo, '.harness-policy.json'), JSON.stringify({ schemaVersion: 1, mode: 'company', autoMergeTargets: [], branchFlow: flow, stackedPRs: { enabled: true, provider: 'github-gh-stack' } }))
   runGit('add', '.'); runGit('commit', '-m', 'fixture base'); const trunk = runGit('rev-parse', 'HEAD')
   runGit('checkout', '-b', 'codex/a'); fs.writeFileSync(path.join(repo, 'a.txt'), 'a')
   if (trackedBodies) fs.writeFileSync(path.join(repo, 'body.md'), 'body on a')
@@ -23,10 +24,10 @@ function fixture(t, change = () => {}, trackedBodies = false) {
   runGit('checkout', '-b', 'codex/b'); fs.writeFileSync(path.join(repo, 'b.txt'), 'b')
   if (trackedBodies) fs.writeFileSync(path.join(repo, 'body.md'), 'reviewed body on b')
   runGit('add', '.'); runGit('commit', '-m', 'fixture b'); const b = runGit('rev-parse', 'HEAD')
-  runGit('init', '--bare', origin); runGit('remote', 'add', 'origin', origin); runGit('push', 'origin', 'develop', 'codex/a')
+  runGit('init', '--bare', origin); runGit('remote', 'add', 'origin', origin); runGit('push', 'origin', trunkName, 'codex/a')
   const pr = { number: 11, html_url: 'https://github.com/org/repo/pull/11', state: 'open', draft: false, merged: false,
-    head: { ref: 'codex/a', sha: a, repo: { full_name: 'org/repo' } }, base: { ref: 'develop', sha: trunk, repo: { full_name: 'org/repo' } }, stack: null }
-  const state = { calls: [], view: { trunk: 'develop', currentBranch: 'codex/b', branches: [
+    head: { ref: 'codex/a', sha: a, repo: { full_name: 'org/repo' } }, base: { ref: trunkName, sha: trunk, repo: { full_name: 'org/repo' } }, stack: null }
+  const state = { calls: [], view: { trunk: trunkName, currentBranch: 'codex/b', branches: [
     { name: 'codex/a', head: a, base: trunk, isMerged: false, isQueued: false, needsRebase: false },
     { name: 'codex/b', head: b, base: a, isMerged: false, isQueued: false, needsRebase: false } ] }, pr }
   change(state)
@@ -36,14 +37,14 @@ function fixture(t, change = () => {}, trackedBodies = false) {
   const shim = path.join(bin, 'git')
   fs.writeFileSync(shim, fs.readFileSync(shim, 'utf8').replace("else{const r=cp.spawnSync", `else{if(a[0]==='push'){${injectWriter}}const r=cp.spawnSync`))
   fs.writeFileSync(path.join(bin, 'gh'), `#!${process.execPath}
-const fs=require('node:fs');const a=process.argv.slice(2),p=process.env.STACK_TEST_STATE,s=JSON.parse(fs.readFileSync(p));
+const trunk=${JSON.stringify(trunkName)};const fs=require('node:fs');const a=process.argv.slice(2),p=process.env.STACK_TEST_STATE,s=JSON.parse(fs.readFileSync(p));
 s.calls.push(a);fs.writeFileSync(p,JSON.stringify(s));const out=x=>console.log(JSON.stringify(x));
 const cp=require('node:child_process'); const git=(...a)=>cp.execFileSync(${JSON.stringify(git)},a,{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
 s.prs=s.prs||[s.pr];
 if(a.join(' ')==='stack --version') console.log('gh stack version 0.2.1');
 else if(a.join(' ')==='stack view --json') out({...s.view,currentBranch:git('branch','--show-current')});
 else if(a[0]==='api' && a.includes('GET')) {
- if(s.refreshPRs){for(const pr of s.prs.filter(p=>p.state==='open')){pr.head.sha=git('ls-remote','--heads','origin','refs/heads/'+pr.head.ref).split('\\t')[0];pr.base.sha=git('ls-remote','--heads','origin','refs/heads/'+pr.base.ref).split('\\t')[0];if(pr.stack)pr.stack.base.sha=git('ls-remote','--heads','origin','refs/heads/develop').split('\\t')[0]}fs.writeFileSync(p,JSON.stringify(s))}
+ if(s.refreshPRs){for(const pr of s.prs.filter(p=>p.state==='open')){pr.head.sha=git('ls-remote','--heads','origin','refs/heads/'+pr.head.ref).split('\\t')[0];pr.base.sha=git('ls-remote','--heads','origin','refs/heads/'+pr.base.ref).split('\\t')[0];if(pr.stack)pr.stack.base.sha=git('ls-remote','--heads','origin','refs/heads/'+trunk).split('\\t')[0]}fs.writeFileSync(p,JSON.stringify(s))}
  const e=a.at(-1);
  if(e.startsWith('repos/org/repo/pulls?')) out(s.prs.filter(p=>p.state==='open'&&e.includes(encodeURIComponent('org:'+p.head.ref))));
  else if(e.startsWith('repos/org/repo/pulls/')) out({...s.prs.find(p=>p.number===Number(e.split('/').at(-1))), additions:1, deletions:0, mergeable:true});
@@ -51,8 +52,8 @@ else if(a[0]==='api' && a.includes('GET')) {
  else {console.error('unexpected GET '+e);process.exit(99)}
 } else if(a[0]==='stack'&&a[1]==='rebase') {
  s.refreshPRs=true;s.rebaseCalled=true;fs.writeFileSync(p,JSON.stringify(s));
- const original=git('branch','--show-current');let parent='develop';
- if(!a.includes('--no-trunk')){git('fetch','origin');if(cp.spawnSync(${JSON.stringify(git)},['merge-base','--is-ancestor','develop','origin/develop']).status===0)git('branch','-f','develop','origin/develop')}
+ const original=git('branch','--show-current');let parent=trunk;
+ if(!a.includes('--no-trunk')){git('fetch','origin');if(cp.spawnSync(${JSON.stringify(git)},['merge-base','--is-ancestor',trunk,'origin/'+trunk]).status===0)git('branch','-f',trunk,'origin/'+trunk)}
  // Pinned cmd/rebase.go fetches and fast-forwards active stack branches before rebasing.
  if(!a.includes('--no-trunk'))for(const b of s.view.branches.filter(b=>!b.isMerged)){
   const remote='origin/'+b.name;
@@ -77,12 +78,12 @@ else if(a[0]==='api' && a.includes('GET')) {
  git('push','origin',...leases,'codex/a','codex/b');
 }
 else if(a[0]==='stack'&&a[1]==='link') {
- if(!s.linkNoop){s.prs.forEach((p,i)=>p.stack={id:99,number:13,size:s.prs.length,position:i+1,base:{ref:'develop',sha:git('rev-parse','develop')}});s.remote={id:99,number:13,open:true,base:{ref:'develop'},pull_requests:s.prs};fs.writeFileSync(p,JSON.stringify(s));}
+ if(!s.linkNoop){s.prs.forEach((p,i)=>p.stack={id:99,number:13,size:s.prs.length,position:i+1,base:{ref:trunk,sha:git('rev-parse',trunk)}});s.remote={id:99,number:13,open:true,base:{ref:trunk},pull_requests:s.prs};fs.writeFileSync(p,JSON.stringify(s));}
 }
 else if(a[0]==='pr'&&a[1]==='create') {
  const head=a[a.indexOf('--head')+1],base=a[a.indexOf('--base')+1];
  if(s.failCreate){process.exit(1)}
- const number=head==='codex/a'?11:12;
+ const number=({'codex/a':11,'codex/b':12,'codex/c':13,'codex/d':14})[head];
  s.prs.push({number,html_url:'https://github.com/org/repo/pull/'+number,state:'open',merged:false,draft:a.includes('--draft'),head:{ref:head,sha:git('rev-parse',head),repo:{full_name:'org/repo'}},base:{ref:base,sha:git('rev-parse',base),repo:{full_name:'org/repo'}},stack:null});
  s.submittedBodies={...s.submittedBodies,[head]:a[a.indexOf('--body')+1]};
  s.creationRepo=process.env.GH_REPO;s.creationHost=process.env.GH_HOST;fs.writeFileSync(p,JSON.stringify(s));console.log('https://github.com/org/repo/pull/'+number); }
@@ -597,4 +598,55 @@ test('sync confirmed readback proof survives ordinary native fast-forward recept
   const next = publishServerB(f, 'after-ordinary-ff.txt')
   assertReceivedServerB(f, next, 'after-ordinary-ff.txt')
   assert.equal(f.runGit('show', 'codex/b:ordinary-ff.txt'), 'ordinary-ff.txt server content')
+})
+
+for (const flow of ['git-flow', 'main']) test(`${flow} independent stacks require separate previews and preserve unrelated refs`, t => {
+  const f = fixture(t, () => {}, false, flow), trunk = flow === 'main' ? 'main' : 'develop'
+  const existingA = f.runGit('rev-parse', 'codex/a'), existingB = f.runGit('rev-parse', 'codex/b')
+  const body = path.join(f.dir, 'independent-body.md'); fs.writeFileSync(body, 'independent AC')
+  const beforeRemote = f.runGit('ls-remote', '--heads', 'origin')
+  const plans = []
+  for (const branch of ['codex/c', 'codex/d']) {
+    f.runGit('switch', '-c', branch, trunk)
+    fs.writeFileSync(path.join(f.repo, branch.split('/')[1] + '.txt'), branch)
+    f.runGit('add', '.'); f.runGit('commit', '-m', `independent ${branch}`)
+    plans.push({ branch, oid: f.runGit('rev-parse', branch), file: path.join(f.dir, branch.split('/')[1] + '-plan.json') })
+  }
+  f.change(s => { s.prs = [] })
+  const select = layer => {
+    f.runGit('switch', layer.branch)
+    f.change(s => { s.view.branches = [{ name: layer.branch, head: layer.oid, base: f.runGit('rev-parse', trunk), isMerged: false, isQueued: false, needsRebase: false }]; delete s.remote })
+    fs.writeFileSync(layer.file, JSON.stringify({ schemaVersion: 1, layers: [{ branch: layer.branch, title: layer.branch, bodyFile: body }] }))
+  }
+  select(plans[0])
+  const firstPreview = f.runStack(['submit', '--plan', plans[0].file])
+  assert.equal(firstPreview.status, 0, firstPreview.stdout + firstPreview.stderr)
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin'), beforeRemote, 'preview does not publish either independent stack')
+  const firstFingerprint = JSON.parse(firstPreview.stdout).fingerprint
+  select(plans[1])
+  const beforeWrongApproval = f.runGit('ls-remote', '--heads', 'origin')
+  const wrongApproval = f.runStack(['submit', '--plan', plans[1].file, '--apply', '--expected', firstFingerprint])
+  assert.notEqual(wrongApproval.status, 0, wrongApproval.stdout + wrongApproval.stderr)
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin'), beforeWrongApproval)
+  assert.equal(f.calls().some(a => a[0] === 'pr' && a[1] === 'create'), false)
+  for (const layer of plans) {
+    select(layer)
+    const wrongParent = f.run(['--stack', '--base', 'codex/a', '--draft'])
+    assert.notEqual(wrongParent.status, 0, wrongParent.stdout + wrongParent.stderr)
+    const result = submit(f, layer.file)
+    assert.equal(result.status, 0, result.stdout + result.stderr)
+    assert.equal(JSON.parse(result.stdout).state, 'confirmed')
+    const create = f.calls().filter(a => a[0] === 'pr' && a[1] === 'create').at(-1)
+    assert.equal(create[create.indexOf('--head') + 1], layer.branch)
+    assert.equal(create[create.indexOf('--base') + 1], trunk)
+    assert.equal(create.includes('--draft'), false, 'each independent lowest layer may be ready')
+    assert.equal(f.runGit('branch', '--show-current'), layer.branch, 'submit restores the owning branch')
+    assert.equal(f.runGit('ls-remote', '--heads', 'origin', `refs/heads/${layer.branch}`).split('\t')[0], layer.oid)
+  }
+  assert.deepEqual(f.state().prs.map(p => [p.number, p.head.ref, p.base.ref]), [[13, 'codex/c', trunk], [14, 'codex/d', trunk]], 'both independent PRs coexist without a parent relationship')
+  assert.equal(f.calls().some(a => a[0] === 'stack' && a[1] === 'link'), false, 'independent stacks must never be linked')
+  assert.equal(f.runGit('rev-parse', 'codex/a'), existingA)
+  assert.equal(f.runGit('rev-parse', 'codex/b'), existingB)
+  for (const layer of plans) assert.equal(f.runGit('rev-parse', layer.branch), layer.oid, 'cleanup preserves both independent local branches')
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/a').split('\t')[0], existingA)
 })

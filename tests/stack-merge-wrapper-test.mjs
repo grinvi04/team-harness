@@ -10,7 +10,8 @@ import { fileURLToPath } from 'node:url'
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 const script = path.join(root, 'plugins/harness-guard/scripts/pr-merge.sh')
 const a = 'a'.repeat(40), b = 'b'.repeat(40), c = 'c'.repeat(40), d = 'd'.repeat(40)
-function fixture(t, scenario, solo = false) {
+function fixture(t, scenario, solo = false, flow = 'git-flow') {
+  const trunk = flow === 'main' ? 'main' : 'develop'
   const dir = mkdtempSync(path.join(tmpdir(), 'stack-merge-wrapper-')), bin = path.join(dir, 'bin')
   t.after(() => rmSync(dir, { recursive: true, force: true })); mkdirSync(bin)
   const env = { ...process.env, PATH: `${bin}:${process.env.PATH}`, FIXTURE_DIR: dir, SCENARIO: scenario,
@@ -18,21 +19,23 @@ function fixture(t, scenario, solo = false) {
   for (const args of [['init', '-q'], ['remote', 'add', 'origin', 'https://github.com/test/repo.git']])
     assert.equal(spawnSync('git', args, { cwd: dir, env }).status, 0)
   writeFileSync(path.join(dir, '.harness-policy.json'), JSON.stringify({ schemaVersion: 1, mode: solo ? 'solo' : 'company',
-    autoMergeTargets: ['develop'], branchFlow: 'git-flow', stackedPRs: { enabled: true, provider: 'github-gh-stack' } }))
+    autoMergeTargets: ['develop'], branchFlow: flow, stackedPRs: { enabled: true, provider: 'github-gh-stack' } }))
   writeFileSync(path.join(bin, 'gh'), `#!${process.execPath}
 const fs=require('fs'),path=require('path');const dir=process.env.FIXTURE_DIR,s=process.env.SCENARIO,args=process.argv.slice(2);
 fs.appendFileSync(path.join(dir,'calls'),JSON.stringify(args)+'\\n');
-const a='a'.repeat(40),b='b'.repeat(40),c='c'.repeat(40),d='d'.repeat(40),ref={full_name:'test/repo'};
+const trunk=${JSON.stringify(trunk)};const a='a'.repeat(40),b='b'.repeat(40),c='c'.repeat(40),d='d'.repeat(40),ref={full_name:'test/repo'};
+const promoted=s==='promoted-missing-required-ci',missing=s==='missing-required-ci'||promoted,fresh='e'.repeat(40);
 const mutated=fs.existsSync(path.join(dir,'gate'))&&s==='head-drift';
-const pr=n=>({number:n,html_url:'https://github.com/test/repo/pull/'+n,state:'open',draft:false,merged:false,
-head:{ref:n===42?'codex/a':'codex/b',sha:mutated?c:n===42?a:c,repo:ref},
-base:{ref:n===42?'develop':'codex/a',sha:n===42?b:a,repo:ref},
-stack:{id:1,number:44,position:n===42?1:2,size:2,base:{ref:'develop',sha:b}}});
+const pr=n=>({number:n,html_url:'https://github.com/test/repo/pull/'+n,state:promoted&&n===42?'closed':'open',draft:false,merged:promoted&&n===42,
+...(promoted&&n===42?{merged_at:'2026-10-16T00:00:00Z',merge_commit_sha:b}:{}),
+head:{ref:n===42?'codex/a':'codex/b',sha:promoted&&n===43?fresh:mutated?c:n===42?a:c,repo:ref},
+base:{ref:n===42||promoted?trunk:'codex/a',sha:n===42||promoted?b:a,repo:ref},
+stack:{id:1,number:44,position:n===42?1:2,size:2,base:{ref:trunk,sha:b}}});
 function emit(value,status=200){if(args.includes('--include'))console.log('HTTP/2 '+status+' X\\ncontent-type: application/json\\n');console.log(JSON.stringify(value))}
 if(args[0]==='repo'){console.log('test/repo');process.exit(0)}
 if(args[0]==='pr'){
 if(args[1]==='merge'){fs.writeFileSync(path.join(dir,'legacy-merge'),'yes');process.exit(0)}
-if(args[1]==='checks'){emit([{name:'quality',bucket:'pass'}]);process.exit(0)}
+if(args[1]==='checks'){emit([{name:missing?'unrelated':'quality',bucket:'pass'}]);process.exit(0)}
 const n=Number(args[2]),p=pr(n),f=args[args.indexOf('--json')+1];
 if(f==='mergeable'){fs.writeFileSync(path.join(dir,'gate'),'yes');console.log('MERGEABLE')}
 else if(f==='number')console.log(42);
@@ -52,11 +55,11 @@ else if(ep.endsWith('/protection/required_pull_request_reviews')){
   else throw Error('unexpected protection write');emit({});
 }else if(ep.endsWith('/protection'))emit({required_pull_request_reviews:fs.existsSync(path.join(dir,'unprotected'))?null:{required_approving_review_count:1,dismiss_stale_reviews:true},enforce_admins:{enabled:true},allow_force_pushes:{enabled:false}});
 else if(ep.endsWith('/required_status_checks'))emit({strict:true,contexts:['quality'],checks:[{context:'quality',app_id:1}]});
-else if(ep.endsWith('/check-runs'))emit([{check_runs:[{id:1,name:'quality',head_sha:a,status:'completed',conclusion:'success',app:{id:1}}]}]);
+else if(ep.endsWith('/check-runs'))emit([{check_runs:[{id:1,name:missing?'unrelated':'quality',head_sha:promoted?fresh:a,status:'completed',conclusion:'success',app:{id:1}}]}]);
 else if(ep.endsWith('/statuses'))emit([[]]);
 else if(ep.includes('/git/ref/heads/')){if(args.includes('--jq'))console.log(b);else emit({object:{sha:fs.existsSync(path.join(dir,'put'))?d:b}})}
 else if(ep.includes('/compare/'))emit({status:'identical'});
-else if(ep.endsWith('/stacks/44'))emit({id:1,number:44,open:true,base:{ref:'develop'},pull_requests:[pr(42),pr(43)]});
+else if(ep.endsWith('/stacks/44'))emit({id:1,number:44,open:true,base:{ref:trunk},pull_requests:[pr(42),pr(43)]});
 else if(ep.includes('/merge-async')){
 if(method==='PUT'){fs.writeFileSync(path.join(dir,'put'),fs.readFileSync(0,'utf8'));if(s==='lost'){process.stderr.write('lost response');process.exit(1)}}
 if(s==='signal'&&method==='PUT'){
@@ -154,4 +157,51 @@ for (const solo of [false, true]) test(`host override cannot lend its successful
   assert.notEqual(r.status, 0, r.stdout + r.stderr)
   const calls = existsSync(path.join(f.dir, 'calls')) ? f.calls() : []
   assert.equal(calls.filter(c => c.includes('DELETE') || c.includes('PUT') || c[0] === 'pr' && c[1] === 'merge').length, 0)
+})
+
+for (const solo of [false, true]) test(`linked missing required CI blocks ${solo ? 'solo' : 'company'} merge before provider`, t => {
+  const f = fixture(t, 'missing-required-ci', solo), r = f.run('42')
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.match(r.stdout + r.stderr, /required CI UNVERIFIED: missing required: quality/)
+  assert.ok(f.calls().some(c => c.some(a => a.endsWith('/required_status_checks'))), 'live required-set endpoint was observed')
+  assert.equal(f.calls().filter(c => c.includes('PUT') || c[0] === 'pr' && c[1] === 'merge').length, 0)
+  assert.equal(f.calls().filter(c => c.includes('DELETE')).length, 0, 'missing CI must not open a solo protection exception')
+  assert.equal(existsSync(path.join(f.dir, 'unprotected')), false)
+})
+for (const solo of [false, true]) test(`promoted upper fresh-head CI is required before ${solo ? 'solo' : 'company'} merge`, t => {
+  const f = fixture(t, 'promoted-missing-required-ci', solo), r = f.run('43')
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.match(r.stdout + r.stderr, /required CI UNVERIFIED: missing required: quality/)
+  const calls = f.calls(), fresh = 'e'.repeat(40), previousHead = 'c'.repeat(40)
+  assert.ok(calls.some(c => c.some(a => a.endsWith('/required_status_checks'))))
+  assert.ok(calls.some(c => c.some(a => a.includes(`/commits/${fresh}/check-runs`))), 'required CI must inspect the retargeted upper candidate head')
+  assert.equal(calls.some(call => call.some(arg => arg.includes(`/commits/${previousHead}/check-runs`))), false, 'previous upper CI cannot authorize the rewritten candidate')
+  assert.equal(calls.filter(c => c.includes('DELETE') || c.includes('PUT') || c[0] === 'pr' && c[1] === 'merge').length, 0)
+  assert.equal(existsSync(path.join(f.dir, 'unprotected')), false)
+})
+for (const solo of [false, true]) test(`main-flow linked ${solo ? 'solo' : 'company'} merge gates main and preserves dependent refs`, t => {
+  const f = fixture(t, 'normal', solo, 'main')
+  const gitEnv = { ...f.env, GIT_AUTHOR_NAME: 'Fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid', GIT_COMMITTER_NAME: 'Fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid' }
+  const tree = spawnSync('git', ['mktree'], { cwd: f.dir, env: gitEnv, input: '', encoding: 'utf8' })
+  assert.equal(tree.status, 0)
+  const commit = spawnSync('git', ['commit-tree', tree.stdout.trim(), '-m', 'fixture'], { cwd: f.dir, env: gitEnv, encoding: 'utf8' })
+  assert.equal(commit.status, 0)
+  for (const branch of ['main', 'codex/a', 'codex/b']) assert.equal(spawnSync('git', ['update-ref', `refs/heads/${branch}`, commit.stdout.trim()], { cwd: f.dir, env: gitEnv }).status, 0)
+  const refs = () => spawnSync('git', ['show-ref'], { cwd: f.dir, env: gitEnv, encoding: 'utf8' }).stdout
+  const before = refs()
+  const r = f.run('42')
+  assert.equal(r.status, 0, r.stdout + r.stderr)
+  const calls = f.calls(), protection = calls.filter(c => c.some(a => a.includes('/branches/') || a.includes('/rules/branches/')))
+  assert.ok(protection.some(c => c.some(a => a.includes('/branches/main/'))))
+  assert.equal(protection.some(c => c.some(a => a.includes('/branches/develop/'))), false)
+  assert.equal(refs(), before, 'all local stack refs survive linked merge cleanup')
+  assert.equal(calls.filter(c => c.includes('PUT')).length, 1)
+  assert.equal(calls.filter(c => c[0] === 'pr' && c[1] === 'merge').length, 0)
+  assert.doesNotMatch(r.stdout, /원격 브랜치 삭제 확인|로컬 브랜치 삭제 확인/)
+  assert.equal(existsSync(path.join(f.dir, 'unprotected')), false)
+  if (solo) {
+    assert.equal(calls.filter(c => c.includes('DELETE')).length, 1)
+    assert.equal(calls.filter(c => c.includes('PATCH')).length, 1)
+    assert.deepEqual(f.journals(), [], 'confirmed main-flow solo request releases its reservation')
+  }
 })
