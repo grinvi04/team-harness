@@ -63,6 +63,11 @@ jobs:
           fi
           fetch_objects "$BASE_SHA"
           unset FETCH_AUTH
+          # Target-only additions after the fork are not removals by this PR.
+          # Bind the comparison to the fetched direct-parent/head objects; ambiguity fails closed.
+          if ! COMPARISON_SHA=$(git merge-base --all "$BASE_SHA" "$HEAD_SHA") || ! [[ "$COMPARISON_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::직접 parent와 PR의 유일한 공통 조상을 확인할 수 없습니다."; exit 1
+          fi
 
           # 테스트·실행 단언 줄 총개수(스택 무관): JUnit @Test / JS·TS it()·test() / pytest def test_
           # / rspec·minitest 블록 DSL(it/describe/context/test '...' do — 괄호 없이 공백+따옴표)
@@ -80,13 +85,14 @@ jobs:
             fi
           }
 
-          if ! BEFORE=$(count "$BASE_SHA"); then
+          if ! BEFORE=$(count "$COMPARISON_SHA"); then
             echo "::error::기준 브랜치 테스트 단언 수를 확인할 수 없습니다."; exit 1
           fi
           if ! AFTER=$(count "$HEAD_SHA"); then
             echo "::error::PR 테스트 단언 수를 확인할 수 없습니다."; exit 1
           fi
           echo "테스트 마커 — base($BASE)=$BEFORE, PR(head)=$AFTER"
+          echo "비교 merge-base=$COMPARISON_SHA, 직접 parent=$BASE_SHA"
 
           if [ "$BEFORE" -gt 0 ] && [ "$AFTER" -eq 0 ]; then
             echo "::error::기준의 테스트 단언 전체가 사라졌습니다."; exit 1

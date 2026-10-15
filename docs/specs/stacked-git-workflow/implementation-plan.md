@@ -13,14 +13,17 @@
 
 ## 전달 선행 조건 교정안 — 2026-10-16 승인
 
-현재 기본 main `d273a70`의 trusted workflow에는 stacked 구독이 없다. `pull_request_target`은
+교정안 작성 당시 main `d273a70`의 trusted workflow에는 stacked 구독이 없었다. `pull_request_target`은
 기본 브랜치에서 실행하므로 adapter를 develop에만 넣어서는 대시보드 상위층의 필수 CI가 준비되지 않는다.
 기존 T3의 대시보드 이후 main 순서에서 이 의존성을 빠뜨렸다. 원래 순서를 실행 완료로 표시하지 않는다.
 최소 CI 정본·생성기·배치·회귀 12파일을 분리한 로컬 제안은 관련 검사6개를 통과했다.
 원문은 `.runtime/gh-stack-g0/ci-bootstrap-proposal/`의 patch·manifest·실행 로그다.
 사용자가 CI 작업 PR→develop→release→main·태그·역병합 선행 후 원래 adapter·대시보드 인수를 승인했다.
 CI 선행분1.1.0·전체 기능1.2.0 후보로 구분한다. 별도 신규 solo lab의 합성2층·보호1→0→1 시험도 승인됐다.
-전체 품질·독립 리뷰·정식 전달 검사는 아직 별도다. 기존 게이트·보호·G0–G3/O1–O5 기준은 유지한다.
+CI1.1.0은 [전달 원문](../stack-ci-bootstrap.md#원격-전달--2026-10-16)의 PR581→582→583·태그로 전달했다.
+main e038399의 target 실제 실행을 확인해 전체1.2.0 후보에서 임시 PR 구독만 제거한다.
+전체 stack의 현재 후보 검증·실제 solo·G3/O1–O5는 별도다. 기존 게이트·보호·완료 기준은 유지한다.
+통합 중 self 진단이 `.runtime`의 시험 clone을 제품 스택으로 오인해 self 전용 제외를 보완했다. 소비 repo 감지는 유지하며 회귀·최초 실패는 `.runtime/gh-stack-g0/integration-1.2.0/`에 보존한다.
 
 ## 공통 제약
 
@@ -107,8 +110,8 @@ CI 정본: `templates/ci/common/workflow.yml`, `templates/ci/commitlint.yml` 및
   raw 7종 유도와 기존 guard 회귀191개 PASS. 전체 스킬 안내·후속 restack/sync 스킬은 G3에서 연결했고 실제 실행은 남았다.
 - [x] trunk branch 필터를 유지하고 직접 parent payload·정책 trunk·trusted SHA를 분리한다. validator/helper/config는 같은
   protected SHA에서 읽고 후보 코드는 비밀정보 없는 job에서 실행한다. `stacked` 가입 이벤트·재실행을 관찰해 연결한다.
-  commitlint는 policy branch와 layer commit 범위를 구분하며 test-guard는 직접 parent SHA를 비교한다.
-  자체 job의 코드 연결과 승인된 lab의 실제 stacked·protected validator·후보 변조 거부를 확인했다. Harness main 배치는 미완료다.
+  commitlint는 policy branch와 layer commit 범위를 구분하며 test-guard는 고정 parent/head의 유일한 공통 조상을 비교한다.
+  lab의 실제 stacked·protected validator·후보 변조 거부와 CI1.1.0 Harness main 배치를 확인했다. 자체 stacked 실행은 G3에서 별도 관찰한다.
 - [ ] candidate helper 변조·상위 CI 미실행·잘못된 parent·policy 미선언 거부와 기존 일반 PR PASS를 확인한다.
 - [x] parent 커밋만 있는 child의 고유 변경 0을 완료 작업으로 세지 않고 미보호 parent의 404를 solo로
   안내하지 않는 회귀를 추가한다. 관계 조회 실패는 추측하지 않으며 안내와 실행 승인을 구분한다.

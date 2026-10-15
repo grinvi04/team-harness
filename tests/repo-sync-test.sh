@@ -220,6 +220,12 @@ if node "$GATE" --repo "$GOOD" --harness "$TMP/no-harness-source" >/dev/null 2>&
 else
   echo "FAIL: 설치 plugin의 내장 커밋 계약 digest 불일치"; FAIL=$((FAIL+1))
 fi
+node "$GATE" --repo "$TMP/disabled-commitlint-validator" --harness "$TMP/no-harness-source" >/dev/null 2>&1
+if [ "$?" = 1 ]; then
+  echo "PASS: 설치 plugin도 비활성 commitlint validator 거부"; PASS=$((PASS+1))
+else
+  echo "FAIL: 설치 plugin이 비활성 commitlint validator 허용"; FAIL=$((FAIL+1))
+fi
 cp -R "$GOOD/." "$TMP/missing-commit-msg"
 rm "$TMP/missing-commit-msg/.githooks/commit-msg"
 check "bad(commit-msg 훅 누락) → MISSING/FAIL" 1 "$TMP/missing-commit-msg"
@@ -318,6 +324,33 @@ if OUT=$(node "$GATE" --repo "$SELF_WITH_GOAL" --harness "$SELF_WITH_GOAL" 2>&1)
   echo "PASS: self-repo docs/goals 중첩 checkout 스택 오탐 없음"; PASS=$((PASS+1))
 else
   echo "FAIL: self-repo docs/goals 중첩 checkout 스택 오탐"; FAIL=$((FAIL+1))
+fi
+
+
+# Self-repo: ignored runtime의 과거 격리 clone도 제품 스택이 아니다.
+mkdir -p "$SELF_WITH_GOAL/.runtime/quality/candidate/db/migration"
+touch "$SELF_WITH_GOAL/.runtime/quality/candidate/build.gradle"
+touch "$SELF_WITH_GOAL/.runtime/quality/candidate/db/migration/V1__runtime.sql"
+if OUT=$(node "$GATE" --repo "$SELF_WITH_GOAL" --harness "$SELF_WITH_GOAL" 2>&1) &&
+   echo "$OUT" | grep -q "감지된 스택: (없음)" &&
+   ! echo "$OUT" | grep -qE "룰:|✗ MISSING"; then
+  echo "PASS: self-repo .runtime 격리 clone 스택 오탐 없음"; PASS=$((PASS+1))
+else
+  echo "FAIL: self-repo .runtime 격리 clone 스택 오탐"; FAIL=$((FAIL+1))
+fi
+
+# Consumer의 .runtime은 self 제외 규칙을 상속하지 않는다.
+CONSUMER_WITH_RUNTIME="$TMP/consumer-with-runtime"
+mkdir -p "$CONSUMER_WITH_RUNTIME/.runtime/candidate/db/migration"
+touch "$CONSUMER_WITH_RUNTIME/.runtime/candidate/build.gradle"
+touch "$CONSUMER_WITH_RUNTIME/.runtime/candidate/db/migration/V1__runtime.sql"
+if OUT=$(node "$GATE" --repo "$CONSUMER_WITH_RUNTIME" --harness "$ROOT" 2>&1); then
+  echo "FAIL: consumer repo .runtime 스택 누락"; FAIL=$((FAIL+1))
+elif echo "$OUT" | grep -q "감지된 스택: java, flyway" &&
+     echo "$OUT" | grep -q "✗ MISSING"; then
+  echo "PASS: consumer repo .runtime 스택 감지·드리프트 차단"; PASS=$((PASS+1))
+else
+  echo "FAIL: consumer repo .runtime 스택 판정 불일치"; FAIL=$((FAIL+1))
 fi
 
 # Consumer repo: 같은 docs/goals 경로도 self-check가 아니면 실제 stack 신호로 취급한다.

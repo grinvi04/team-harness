@@ -1,6 +1,6 @@
 # gh-stack adapter 실제 원격 인수
 
-2026-10-15. 미발행 1.1.0의 G1–G3 실행 기록이다. **부분 검증**이며 대시보드·정식 릴리즈 완료가 아니다.
+2026-10-15–16. 당시1.1.0·현재1.2.0 후보의 G1–G3 실행 기록이다. **부분 검증**이며 전체 기능 완료가 아니다.
 설계·종료 기준은 [stack 설계](../specs/stacked-git-workflow.md), 이전 실패는
 [공식 계약 검토](../specs/stacked-git-workflow/final-review.md)에 보존한다.
 
@@ -95,12 +95,13 @@ Claude 실호스트 미확인 보류와 실제 사람·회사 고유 정책 인�
 
 ## 자체 trusted CI 전달 의존성
 
-Harness 기본 main `d273a70`에는 stacked 이벤트가 없고 develop 필수 항목은 기존5개다.
+조사 당시 Harness main `d273a70`에는 stacked 이벤트가 없었고 develop 필수 항목은 기존5개였다.
 `ci-bootstrap-remote-source.json`에서 현재 원본을 확인했다. 기본 브랜치 실행은
 [GitHub 공식 계약](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target)이다.
 develop 통합만으로 대시보드 stack의 trusted 검사기가 준비된다는 기존 계획은 성립하지 않는다.
-[선행 전달 교정안](../specs/stacked-git-workflow/implementation-plan.md#전달-선행-조건-교정안--2026-10-16-승인)은 2026-10-16 승인됐고 별도 후보로 검증 중이다.
-최소12파일 제안의 관련 검사6개는 PASS. 실제 main 배치·태그·전체 품질을 완료한 것은 아니다.
+[선행 전달 교정안](../specs/stacked-git-workflow/implementation-plan.md#전달-선행-조건-교정안--2026-10-16-승인)은 승인 후 CI1.1.0으로 전달했다.
+[전달 원문](../specs/stack-ci-bootstrap.md#원격-전달--2026-10-16)의 전체74·리뷰·PR581→582→583·태그를 확인했다.
+역병합의 실제 target 원본·검사 SHA를 확인한 뒤 전체1.2.0에 통합했다. 자체 stacked 실행·전체 인수와 구분한다.
 
 ## 품질 후속
 
@@ -156,7 +157,7 @@ source `6199588`의 adapter와 고정 v0.2.1로 [하단 PR1](https://github.com/
 
 소유자가 새 solo lab의 로그인 화면에서 Actions 비활성 안내를 확인했다. 같은 시점 API는 enabled=true,
 workflow3개 active, 실행 정책0, 수동 실행3개만 반환했다. 설정 토글·반복 이벤트·병합 재요청은 하지 않았다.
-[GitHub 안내](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)는 별도 실행 제한과 Support 확인을 설명한다. 정확한 제한 이유는 미확인이다.
-문의 초안·원문은 `solo-live-proposal/execution-1/ui-disabled-diagnostic/`에 있다. 문의는 전송하지 않았다.
+[GitHub 안내](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)는 별도 비활성 상태의 가능성과 Support 경로를 설명한다. 이 lab의 원인이나 문의 필수 여부는 확정하지 못했다.
+Support 필수 선행 조건이라는 앞선 판단은 철회했다. 사용자 영문 안내·재조회·정정은 `solo-live-proposal/execution-1/ui-disabled-diagnostic/followup.json`에 연결하며 원문·미전송 문의 초안은 보존한다.
 기존 Harness의 [CI 선행 PR581](https://github.com/grinvi04/team-harness/pull/581)은 자동 CI를 시작했다.
-이 관측은 solo lab 제한의 계정 전체 적용을 증명하지 않는다. PR581의 필수 검사·순차 전달은 아직 진행 중이다.
+이 관측은 계정 전체 제한을 증명하지 않는다. CI1.1.0은 순차 전달됐지만 solo lab 자동 실행 미발생은 미해결이다.
