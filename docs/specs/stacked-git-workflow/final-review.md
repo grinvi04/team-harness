@@ -173,6 +173,10 @@ quality20–27 PASS 뒤28단계는 설치본의 옛 workflow digest와 새 clone
 시험 runner의 독립 검토에서 timeout 효과와 삭제 OID 관찰이 섞인 경계를 수정했다.
 미확정 내부 journal은 정리를 막으며 confirmed 효과의 OID만 삭제 대상으로 삼는다. 고정 원문 재검토 PASS_SCOPE다.
 
+quality30–42단계 PASS 뒤43단계는 감사 JSON의 절대 경로 형식 에이전트 식별자를 홈 경로로 탐지했다.
+동일 에이전트의 기존 짧은 이름으로 정규화했다. 첫 설명에도 같은 경로 표기가 남아 실패했고,
+그 표기까지 정리한 뒤19/0 PASS다. 공개 안전성 검사 규칙은 유지한다.
+
 ## 공식 원본
 
 - [보호·CI의 trunk 의미](https://docs.github.com/en/pull-requests/reference/stacked-pull-requests)

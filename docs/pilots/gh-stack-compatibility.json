@@ -202,7 +202,7 @@
   },
   "independentReview": {
     "role": "personal-critical-verifier",
-    "agent": "/root/g0_probe_review",
+    "agent": "g0_probe_review",
     "effectiveSettings": "gpt-6-astra / medium, role fixed",
     "writePolicy": "instructed read-only; inherited permissions, no OS read-only claim",
     "observations": "PASS",
