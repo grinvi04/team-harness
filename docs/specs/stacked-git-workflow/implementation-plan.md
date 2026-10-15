@@ -3,7 +3,7 @@
 > 실행자: `superpowers:executing-plans`로 순차 구현하고 고위험 전달 경계는 별도 독립 검토한다.
 > 최초 frozen-group G0 FAIL은 [원래 결과](../../pilots/gh-stack-compatibility.md)에 보존한다.
 > [현재 원격 인수](../../pilots/gh-stack-adapter-acceptance.md): 실제 3층 제출·재기반·trusted CI·첫 층 응답 유실 복구 PASS.
-> retained prefix·서버 수신 수정 후 회귀110개와 실제 B/C sync·PR33→34 순차 병합 PASS. G2 잔여·G3는 미완료다.
+> retained prefix·서버 수신 수정 후 회귀110개와 실제 B/C sync·PR33→34 순차 병합 PASS. 후속 solo·409·현재 전체 품질을 포함한 G1/G2 인수 완료, G3는 미완료다.
 
 **Goal:** 공식 gh-stack의 branch/PR 관리를 기존 Harness gate와 Git Flow에 연결한다.
 **Architecture:** 공식 엔진 + 얇은 stack 사전/사후 검사 + 기존 PR gate + SHA가 결박된 async provider.
@@ -22,7 +22,7 @@
 CI 선행분1.1.0·전체 기능1.2.0 후보로 구분한다. 별도 신규 solo lab의 합성2층·보호1→0→1 시험도 승인됐다.
 CI1.1.0은 [전달 원문](../stack-ci-bootstrap.md#원격-전달--2026-10-16)의 PR581→582→583·태그로 전달했다.
 main e038399의 target 실제 실행을 확인해 전체1.2.0 후보에서 임시 PR 구독만 제거한다.
-전체 stack의 현재 후보 검증·실제 solo·G3/O1–O5는 별도다. 기존 게이트·보호·완료 기준은 유지한다.
+현재1.2.0 로컬 전체 품질74개는 통과했다. G3/O1–O5는 미완료다. 실제 solo 병합·전체 보호 복구·정리는 [후속 인수](../../pilots/gh-stack-adapter-acceptance.md#actions-복구와-실제-solo-완료--2026-10-16)에서 확인했다.
 통합 중 self 진단이 `.runtime`의 시험 clone을 제품 스택으로 오인해 self 전용 제외를 보완했다. 소비 repo 감지는 유지하며 회귀·최초 실패는 `.runtime/gh-stack-g0/integration-1.2.0/`에 보존한다.
 
 ## 공통 제약
@@ -76,9 +76,9 @@ journal은 예정/실행/확인 ref·PR·UUID와 solo의 전체 보호 원값을
 - [x] disposable clone과 합성3층으로 init/add/rebase/abort, 여러 worktree, rerere 변경·복구를 확인한다.
   로컬5개 PASS. 대화형 최초 timeout을 보존하고 후속 실제 PTY의 동의·local true2개·전역 불변을 확인했다.
 - [x] 승인된 시험 repo에서 PR URL link, wrong SHA 거부, 최하단 병합·서버 retarget, request UUID를 관측한다.
-- [ ] 요청 직전 lower PR 추가/base 변경, 409 다른 옵션, 응답 유실, 지연 병합·복구를 반증 시험한다.
+- [x] 요청 직전 lower PR 추가/base 변경, 409 다른 옵션, 응답 유실, 지연 병합·복구를 반증 시험한다.
   위험 사례는 합성 branch에서만 수행하고 운영·소비 repo·기존 보호는 건드리지 않는다.
-  요청 전 구성/base 변경으로 검토 목록 밖 X 병합을 재현했다. 나머지 항목은 중단 조건 충족 후 미실행이다.
+  최초 구성/base 변경 뒤 중단 기록을 보존한다. 후속 응답 유실·실제 solo pending/복구·다른 옵션의 live409를 확인했다. 원문은 현재 인수 기록을 따른다.
 - [x] 로컬·원격 명령을 분리하고 stdout·원격 before/after·보호 원값·최초 실패·후속 정리를 보존했다.
   실제 CLI 인자는 보고서 JSON의 명령을 따른다. 원격 runner는 승인된 합성 lab·새 prefix만 받는다.
 - [x] 최초 **NO-GO** 관찰·정리를 보존했다. 이후 공식 계약 최종 검토에서 native 원격 포기 권고를 철회했다.
@@ -112,7 +112,8 @@ CI 정본: `templates/ci/common/workflow.yml`, `templates/ci/commitlint.yml` 및
   protected SHA에서 읽고 후보 코드는 비밀정보 없는 job에서 실행한다. `stacked` 가입 이벤트·재실행을 관찰해 연결한다.
   commitlint는 policy branch와 layer commit 범위를 구분하며 test-guard는 고정 parent/head의 유일한 공통 조상을 비교한다.
   lab의 실제 stacked·protected validator·후보 변조 거부와 CI1.1.0 Harness main 배치를 확인했다. 자체 stacked 실행은 G3에서 별도 관찰한다.
-- [ ] candidate helper 변조·상위 CI 미실행·잘못된 parent·policy 미선언 거부와 기존 일반 PR PASS를 확인한다.
+- [x] candidate helper 변조·상위 CI 미실행·잘못된 parent·policy 미선언 거부와 기존 일반 PR PASS를 확인한다.
+  helper 변조는 실제 PR36/37, 나머지는 현재 quality의 stack/PR 회귀다. 로컬 API 대역과 실제 원격 근거를 구분한다.
 - [x] parent 커밋만 있는 child의 고유 변경 0을 완료 작업으로 세지 않고 미보호 parent의 404를 solo로
   안내하지 않는 회귀를 추가한다. 관계 조회 실패는 추측하지 않으며 안내와 실행 승인을 구분한다.
 - [x] `node scripts/sync-repository-config.mjs --write`, `node scripts/generate-stack-templates.mjs --write`
@@ -138,9 +139,9 @@ T1 snapshot을 소비하지만 merge 직전 다시 조회한다. 기존 CI/revie
   보호 원값 복구·readback을 수행한다. pending/미확인 요청이 있으면 같은 base의 다음 예외를 거부한다.
 - [x] branch 삭제는 하위 의존 PR·worktree가 없고 원격 병합 확인 후만 한다. 서버 retarget/rebase 후
   child의 기존 증거를 무효화하고 새 후보를 검증한다. 임의 `sync --prune`를 사용하지 않는다.
-- [ ] 새 시험과 기존 pr-merge-auto·solo-merge·guard·보호 보존 회귀, T0 live 반례를 실행한다.
-  a8b32bf 전체 local quality74 PASS로 기존 회귀를 확인했다. 실제 solo·미관측409/queue는 남았다.
-- [ ] 권한·동시 구성 변경·SIGKILL 한계를 문서에 남기고 독립 검토 후 규약대로 커밋한다.
+- [x] 새 시험과 기존 pr-merge-auto·solo-merge·guard·보호 보존 회귀, T0 live 반례를 실행한다.
+  a8b32bf quality74와 실제 solo 복구·정리를 확인했다. 현재90d7e0f 로컬 전체 품질74개·live409를 확인했다. queue/timeout의 로컬 반증과 실제 미관측은 구분한다.
+- [x] 권한·동시 구성 변경·SIGKILL 한계를 문서에 남기고 독립 검토 후 규약대로 커밋한다.
 
 ## T3 — workflow 연결·실제 사용 (G3)
 
@@ -159,13 +160,13 @@ T1 snapshot을 소비하지만 merge 직전 다시 조회한다. 기존 CI/revie
   소스·문서 독립 검토로 대조했다(실제 agent 행동은 미확인). 제출/병합 대상 확대·활성 writer 재기반·진단/QA만 요청했는데 Git 쓰기 수행을 거부해야 한다.
 - [x] milestone의 간접 PR 생성과 workflow→core runtime binding도 adapter를 거친다. 새 helper를 package에
   포함하고 packaged artifact에서 실제 경로를 실행한다. milestone 명령→core wrapper→adapter와 잘못된 parent 거부4개 PASS.
-- [ ] 아래 기존 생성·발견·라우팅·package 검사에 영향 회귀를 연결한다. 실제 사용 증거와 구분한다.
+- [x] 아래 기존 생성·발견·라우팅·package 검사에 영향 회귀를 연결한다. 실제 사용 증거와 구분한다.
 - [ ] 새 연결 자체는 기존 Git Flow로 develop에 통합한 뒤 대시보드 3층에서 실제 stack 제출·수정·병합을 수행한다.
 - [ ] 원격 actual base/head·CI·리뷰·병합 SHA·보호 원값, 설치 확장 버전과 효과 journal을 기록한다.
 - [ ] 승인된 CI 선행분 외 전체 기능 release/main은 대시보드 stack 종료 후 시작한다. 기존 hotfix/backmerge 비회귀를 확인한다.
 - [ ] 전체 quality·package/bundle·독립 검토를 통과하고 G0–G3 실제 판정을 보고한다.
 
-T3 관련 기존 검사(구현 시 실행, 이번 설계 보완에서는 미실행):
+T3 관련 기존 검사(현재90d7e0f quality에서 실행 PASS; 실제 G3 대시보드 사용과 별개):
 
 ```bash
 node scripts/generate-codex-skills.mjs --write

@@ -6,7 +6,7 @@
 
 ## 대상과 보존 경계
 
-승인된 공개 합성 저장소 `grinvi04/team-harness-acceptance-lab`만 사용했다.
+승인된 공개 합성 저장소 `grinvi04/team-harness-acceptance-lab`과 별도 `team-harness-stack-solo-lab`을 사용했다.
 공식 gh-stack v0.2.1의 격리 binary와 실제 Git·GitHub API·Actions를 실행했다. 전역 확장은 설치하지 않았다.
 기존 company 정책·main/develop 보호·rulesets, 잠금 제품 검사를 유지했다. 운영 시스템은 없다.
 원문은 작업 worktree의 `.runtime/gh-stack-g0/`에 있으며 아래 경로는 그 디렉터리 기준이다.
@@ -88,9 +88,10 @@ PR32의 이전 응답 유실 시험도 기존 명령 로그에서 PUT1회임을 
 
 ## 아직 필요한 확인
 
-실제 solo 보호 복구, 미관측409·queue 경계, 정식 release-check와 G3 전달·O1–O5 대시보드는 남았다.
+현재 코드 전체 품질74개와 실제409 반례는 확인했다. 정식 release-check·G3 전달·O1–O5 대시보드는 남았다.
+queue·timeout은 로컬 반증 PASS와 실제 미관측을 구분하며 모든 분기의 실서버 유발을 새 완료 조건으로 추가하지 않는다.
 소스 변경 뒤 기존 frozen runner의 hash나 journal을 고쳐 재사용하지 않는다. 이전 실행은 보존하고 새 후보로 이어 기록한다.
-실제 solo 시험은 2026-10-16 승인된 새 전용 lab에서 진행 중이며 아래 관측을 따른다.
+실제 solo 병합·보호 복구·시험 정리는 아래 후속 실행에서 확인했다. 최초 CI 차단 기록은 보존한다.
 Claude 실호스트 미확인 보류와 실제 사람·회사 고유 정책 인수의 제외 범위는 그대로다.
 
 ## 자체 trusted CI 전달 의존성
@@ -117,7 +118,7 @@ macOS에서는 apt 대신 기존 rg, 기존 고정 Python/Ruff를 사용하고 �
 CI의 package/bundle 계약 검사도 포함한다. 정식 release-check의 현재 배포물·live provenance 확인이나
 원격 CI·발행을 실행한 것은 아니다. 이후 변경이 이 기록·진행 안내뿐이면 해당 문서 검사로 범위를 연결한다.
 
-## 신규 solo lab 실제 시험 — 2026-10-16 진행 중
+## 신규 solo lab 최초 실행 — 2026-10-16 CI 차단
 
 새 공개 `grinvi04/team-harness-stack-solo-lab`에 허용된 합성 파일만 bootstrap했다.
 main/develop `339d2d9`에 strict·관리자 보호·Actions app15368의 필수 quality/deploy-smoke·승인1을 설정했다.
@@ -160,4 +161,39 @@ workflow3개 active, 실행 정책0, 수동 실행3개만 반환했다. 설정 �
 [GitHub 안내](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository)는 별도 비활성 상태의 가능성과 Support 경로를 설명한다. 이 lab의 원인이나 문의 필수 여부는 확정하지 못했다.
 Support 필수 선행 조건이라는 앞선 판단은 철회했다. 사용자 영문 안내·재조회·정정은 `solo-live-proposal/execution-1/ui-disabled-diagnostic/followup.json`에 연결하며 원문·미전송 문의 초안은 보존한다.
 기존 Harness의 [CI 선행 PR581](https://github.com/grinvi04/team-harness/pull/581)은 자동 CI를 시작했다.
-이 관측은 계정 전체 제한을 증명하지 않는다. CI1.1.0은 순차 전달됐지만 solo lab 자동 실행 미발생은 미해결이다.
+이 관측은 계정 전체 제한을 증명하지 않는다. 당시 미해결인 자동 실행은 아래 후속 실행에서 복구를 확인했다.
+
+## Actions 복구와 실제 solo 완료 — 2026-10-16
+
+공식 repository Actions 설정에 기존 allowlist·SHA pinning 값을 유지한 `enabled=true` PUT을 한 번 적용했다.
+204 응답 후 소유자가 새로고침한 로그인 화면에서 비활성 안내 소멸을 확인했다. 원래 비활성 원인 자체는 미확정이다.
+환경 변화 뒤 같은 PR1을 한 번 닫고 재개했다. 자동 [제품 CI](https://github.com/grinvi04/team-harness-stack-solo-lab/actions/runs/38800454491)와
+target run38800455413/38800455430의 quality·deploy-smoke·commitlint-trusted·test-guard 네 검사가 모두 성공했다.
+수동 실행 성공으로 필수 검사를 대체하지 않았다. 기존 독립 리뷰와 같은 head/base이며 새 thread 조회도 0건이다.
+
+source `90d7e0f`의 merge runtime은 최초 `6199588`과 동일함을 대조했다. 실제 solo 래퍼는 exit0으로 끝났다.
+
+- 승인 요구만 실제 `1→0→1`로 전환됐다. 예외 중 비리뷰 보호와 종료 후 전체 main/develop 보호 원값이 일치했다.
+- merge PUT1회 뒤 UUID `f1259583-8ff0-405c-a0d3-d2e96772ead1` 조회로 PR1의 병합과 develop 포함을 확인했다.
+  병합 SHA는 `61183be870a982c2c97516a16764839b589693d9`다. journal은 merged/restored로 종결·archive됐다.
+- PR2는 develop으로 자동 retarget됐다. 재작성 head의 tree·author·message 및 한 파일 diff가 기존 시험 내용과 동일했다.
+  그 근거로 새 expected OID를 고정하고 PR2를 닫은 뒤 시험 ref 두 개만 atomic lease로 삭제했다. main과 repo는 보존했다.
+
+원문은 `solo-live-proposal/execution-1/activation-recovery/result.json`과 연결된 실제 명령·job 로그·보호 JSON이다.
+이 성공은 실제 solo 정상 비동기 경로의 증거다. 실제 queue·timeout·SIGKILL이나 전체 대시보드 완료로 확대하지 않는다.
+
+## 실제409 관측·정리 — 2026-10-16
+
+company lab 새 prefix `codex/g0-protected-20261016-conflict1`에서 PR39만 ready, PR40은 draft로 시험했다.
+필수 CI·strict·관리자 보호를 유지하고 같은 PR39/SHA에 merge PUT 최대2회의 시험 예산을 적용했다.
+첫 `direct_merge`는202/pending, 즉시 보낸 `default`는409/pending이며 기존 UUID와 `direct_merge`를 반환했다.
+UUID `be6bff55-3a69-4a09-99b2-7d870e702dd8`를 이후 GET으로만 조회했다. PR39는 `6064469`로 병합되고 PR40은 미병합이다.
+`live409-1/{commands,first-response,second-response,observations}.json`이 실제 원문이다. 제품의 재요청 기능이 아니다.
+현재 provider에 해당409를 오프라인 재생하자 옵션 불일치로 unverified·UUID 미채택·추가 요청0이었다.
+`offline-provider-replay.json`은 네트워크0의 국소 시험이며 wrapper 전체 실제 실행으로 세지 않는다.
+최초 정리는 lower ref 부재로 atomic lease가 거부됐다. own trunk 보호 전체 복구를 확인했고 그 실패를 `result.json`에 보존했다.
+후속 조회로 lower 부재와 나머지 고정 OID를 확인해 두 ref만 삭제했다. `cleanup-followup/finish-result.json`은 정리 PASS다.
+기존 branch·보호·rulesets는 전후 동일하다. PR40은 닫았으며 합성 로컬 clone·실패 원문은 보존했다.
+
+현재 코드 `90d7e0f`의 로컬 quality74/74 PASS 원문은 `quality-90d7e0f/corrected-01/quality/results.json`이다.
+최초 repo 내부 TMPDIR 실패를 보존하고 외부 임시 경로로 교정했다. macOS 도구 준비만 적응했으며 hosted CI·정식 release-check는 별도다.
