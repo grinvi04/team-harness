@@ -25,12 +25,12 @@ team-harness의 `harness-guard`는 Claude Code 훅·스킬을 1차 대상으로 
 |---|---|---|---|---|
 | `hooks/hooks.json:PreToolUse:Bash:command` | `guard.sh` | `codex/hooks/hooks.json` command가 공용 guard 호출 | source-native 연결 | `guard-test.sh`, `codex-native-loader-test.sh` |
 | `hooks/hooks.json:PreToolUse:Bash:prompt` | LLM secret-egress 판정 | native command hook의 explicit-pattern 검사 | deterministic deny | `codex-secret-egress-guard-test.sh`, native loader test |
-| `hooks/hooks.json:PreToolUse:Agent` | `enforce-subagent-model.py` | 플랫폼 native agent 실행 | Codex 구현은 플랫폼에 위임 | `codex-skill-mapping-test.sh` |
+| `hooks/hooks.json:PreToolUse:Agent` (과거) | 등록 제거; `enforce-subagent-model.py`는 호환 no-op | 플랫폼 native agent 실행 | 모델 선택은 플랫폼에 위임; 실제 hook 미등록 | `enforce-subagent-model-test.sh`, `codex-skill-mapping-test.sh` |
 | `hooks/hooks.json:UserPromptSubmit` (과거) | 기본 연결 제거 | 기본 연결 제거; native 선택·명시 호출 | 비활성 호환 소스만 유지 | router 호환 회귀 + native hook inventory |
 | `.codex-plugin/plugin.json` | 해당 없음 | native skill·hook entry point | Codex 공식 loader 계약 | `codex-native-loader-test.sh` |
 | `codex/hooks/hooks.json` | 해당 없음 | `PLUGIN_ROOT` 기반 PreToolUse command hook 1개 | Codex 공식 hook 계약 | `codex-native-loader-test.sh` |
 | `codex/skills/*.md` | 해당 없음 | 17개 native wrapper가 공용 skill 계약 참조 | cache 변형 없는 skill 연결 | native loader + mapping tests |
-| `scripts/codex-security-guidance-adapter.mjs` | Claude security-guidance raw output | Codex-safe output adapter | Codex-native 대체, PostToolUse 실측 | `codex-security-guidance-adapter-test.sh` |
+| `scripts/codex-security-guidance-adapter.mjs` | Claude security-guidance raw output | 기존 patched 명령의 호환 adapter | fixture 회귀 유지; 현재 상류 실측·소비 경계는 [삭제 보류 근거](global-cleanup-upgrade.md#security-guidance-삭제-보류-근거) 참조 | `codex-security-guidance-adapter-test.sh` |
 | `scripts/patch-codex-security-guidance.mjs` | 해당 없음 | 별도 승인 `--apply` 또는 읽기 전용 `--dry-run` | deprecated optional compatibility; launcher에서 분리 | adapter patch test |
 | `scripts/check-codex-native-plugin.mjs` | 해당 없음 | 설치 source의 manifest·hooks·17 skills read-only 검사 | native 상태 검증 | launcher·doctor tests |
 | `scripts/sync-codex-plugin-cache.mjs` | 해당 없음 | source가 더 새로울 때 team-harness marketplace·plugin만 갱신 | Codex-native 설치 절차 | `codex-plugin-cache-sync-test.sh` |
@@ -48,7 +48,7 @@ team-harness의 `harness-guard`는 Claude Code 훅·스킬을 1차 대상으로 
 | `skills/milestone/SKILL.md` | slash skill + Claude tool prose | Codex `/goal` + GitHub milestone contract | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/plan/SKILL.md` | plan mode + slash skill | Codex `/plan` approval flow | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/pr-create/SKILL.md` | slash skill + wrapper | current agent + same wrapper | Codex-native mapping | `codex-skill-mapping-test.sh` |
-| `skills/pr-review-gate/SKILL.md` | Claude code review | `codex review` + same GitHub gate | Codex-native mapping | `codex-skill-mapping-test.sh` |
+| `skills/pr-review-gate/SKILL.md` | 도구 공통 리뷰 계약 | `codex review` + same GitHub gate | Codex 우선·현재 후보 리뷰 계약 | `codex-skill-mapping-test.sh` |
 | `skills/qa/SKILL.md` | slash skill + QA tools | explorer read-only QA checks + current-agent fixes | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/release-check/SKILL.md` | Claude subagent workflow | explorer/security/verifier read-only roles | Codex-native mapping | `codex-skill-mapping-test.sh` |
 | `skills/release/SKILL.md` | slash skill + wrappers | current agent + read-only evidence roles | Codex-native mapping | `codex-skill-mapping-test.sh` |

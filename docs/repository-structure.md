@@ -137,8 +137,14 @@ git restore --source=85338bd -- docs/specs/harness-modernization/execution-progr
 전체 SHA·원래 경로·SHA-256·복구 명령으로 연결했다. 역사 검사는 고정 blob을 읽고 누락·digest 불일치에 실패한다.
 binary trust·external provenance manifest와 현재 검증이 읽는 외부 JSON 일곱 개는 checkout에 유지한다.
 현재 소비 인수의 실패·미전환·배포 보류도 유지한다. 과거 PASS를 현재 후보의 완료로 쓰지 않는다.
-이번 범위·검증은 [후속 정리 스펙](specs/structure-cleanup.md), 앞선 전달은
-[0.88.0 구조 스펙](specs/structure-maintenance.md)에서 확인한다.
+앞선 역사 이동은 [정리 스펙](specs/structure-cleanup.md), 0.88.0 전달과 2026-10-15 후속 정리는
+[구조 스펙](specs/structure-maintenance.md)에서 시점을 구분한다.
+
+기본 hook에서 빠진 `route-intent.mjs`는 [재설계의 호환 보존](specs/team-harness-redesign/architecture.md),
+`enforce-subagent-model.py`는 오래된 등록을 위한 no-op 때문에 유지한다. 외부 security-guidance adapter·patcher는
+[기존 소비 경계 미확인](specs/global-cleanup-upgrade.md#security-guidance-삭제-보류-근거)으로 제거를 보류한다.
+소스만 삭제하지 말고 호출 종료·마이그레이션과 배포 목록·직접 시험을 함께 판단한다.
+로컬 `.runtime/`의 시험 캐시는 배포 소스가 아니다. 원문 로그·최초 실패·유일 복구본과 구분해 정리한다.
 
 ## 검증과 전달
 

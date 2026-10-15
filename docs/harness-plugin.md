@@ -6,19 +6,14 @@
 
 공식 플러그인이 제공하지 않는 **자체 정책만** 담는다.
 
-현재 설치 단위는 호환성을 위해 `harness-guard` 하나다. 다음 배포 단계에서 사용할 governance core,
-Claude·Codex adapter, 선택 workflow의 파일 소속과 manifest는 `experiments/split-packaging/packages.json`이 정본이며 아래 명령으로
-clean 디렉터리에 재현 가능한 staged artifact를 만들 수 있다. 이 artifact는 아직 marketplace 설치 대상이 아니다.
-
-```bash
-node scripts/build-packages.mjs --check
-node scripts/build-packages.mjs --output /tmp/team-harness-packages
-```
+현재 공개 설치 단위는 `harness-guard` 하나다. 설치·확인은 [설치 안내](harness-setup.md)를 따른다.
+분할 패키지·profile·staged artifact는 [실험 정본](../experiments/split-packaging/README.md)에서만 다룬다.
+공개 marketplace 설치 대상으로 승격되지 않았으며 다음 배포로 확정된 구성이 아니다.
 
 | 구성 요소 | 내용 |
 |---|---|
 | **가드 훅** (PreToolUse) | `guard.sh` — main/develop 직접 커밋·force push, `git reset --hard`, **검증기·마이그레이션 삭제**, 핵심 디렉터리 `rm -rf`, npm 글로벌 설치, **맨손 `gh pr create`·`gh pr merge`**(PR 생성·머지는 래퍼 스크립트=스킬 경유만 — 반사적 우회 차단) 차단 (`cd` 체인·서브셸·`git -C` 우회 포함, 보조 장치 — 최종 강제는 계층 0). **차단 시 `~/.claude/hooks/guard-block.log`에 session_id·cwd·명령(크레덴셜·토큰 마스킹) 기록**(멀티세션 위반 시도 감사). + LLM 프롬프트 훅 — 시크릿 외부 유출 패턴 전용 탐지 |
-| **PR 래퍼 스크립트** | `pr-create.sh`(base 자동감지·push·생성) · `pr-merge.sh`(CI·스레드·mergeable 게이트 후 머지) — guard가 맨손 gh를 막으므로 **PR 생성·머지의 유일 경로**. 스킬이 이 스크립트를 호출(내부 gh는 자식 프로세스라 훅에 안 걸림) |
+| **PR 래퍼 스크립트** | `pr-create.sh`(명시 base·제품 branchFlow 검증 후 push·생성) · `pr-merge.sh`(CI·스레드·mergeable 게이트 후 머지) — guard가 맨손 gh를 막으므로 **PR 생성·머지의 유일 경로**. 스킬이 이 스크립트를 호출(내부 gh는 자식 프로세스라 훅에 안 걸림) |
 | **native skill 선택·명시 호출** | runtime이 description의 사용·제외 경계와 현재 요청으로 선택한다. 잘못 선택하면 스킬을 명시한다. 기본 UserPromptSubmit 라우팅은 제거했으며, 스킬 선택은 실행 권한을 확대하지 않는다. |
 | **마일스톤 커맨드** | `/milestone` — 제품·마일스톤 정의→기능 분해→GitHub 마일스톤 생성→진행률 대시보드. `/plan` 위에 놓이는 목표 레이어. Claude Code 내장 `/goal`(세션 stopping condition)과 보완 관계 |
 | **계획 계약** | `/plan` — 선택된 방법론의 계획·승인을 프로젝트 spec·수용 기준에 연결. 기존 계획을 재사용하고 Git은 변경하지 않음 |
@@ -30,13 +25,16 @@ node scripts/build-packages.mjs --output /tmp/team-harness-packages
 | **품질 커맨드** | `/qa` — 프론트엔드 QA: 디자인 토큰 준수 + WCAG 2.2 접근성 검증 (`/feature-add`의 TDD 로직과 직교한 비주얼·a11y 축) |
 | **릴리즈 검증** | `/release-check` — 릴리즈 전 품질(Agent A)·보안(Agent B)·DB 마이그레이션(Agent C) 병렬 검증 + manifest가 있을 때 외부 파일럿 live provenance |
 | **드리프트 점검** | `/repo-sync` — 프로젝트 ↔ team-harness 표준 드리프트 점검(`check-repo-sync`). commit-msg·validator·CI·rules 등 필수 자산 누락 리포트 |
-| **PR 생성** | `/pr-create` — base 자동감지(develop 있으면 develop, 없으면 기본 브랜치) PR 생성 **단일 프리미티브**. 맨손 `gh pr create` 대체 — develop 없는 main 기반 repo도 한 경로로. `feature-merge`가 PR 생성 단계를 이 스킬에 위임 |
+| **PR 생성** | `/pr-create` — 명시 `--base` 또는 제품 `.harness-policy.json`의 `branchFlow`로 PR 생성. `main`은 main, `git-flow`는 develop 대상이며 develop 존재로 추정하지 않는다. 명시 base·선언이 둘 다 없거나 충돌하면 push 전 중단. `feature-merge`가 PR 생성 단계를 위임 |
 | **머지·릴리즈 커맨드** | `/feature-merge` · `/hotfix` · `/release` · `/solo-merge` — git-flow 전 구간을 게이트 경유로 자동화 |
 | **리뷰 게이트** | `/pr-review-gate` — PR 생성→머지의 표준 절차. AI 리뷰 스레드 reply+resolve, 사람 승인 확인, CI watch, 외부 배포 commit-status 검증 |
 | **에이전트** `security-reviewer` | 릴리즈 전 보안 검토 기준 — Claude agent로 제공하고 Codex 실행·모델 선택은 native agent에 위임 |
 | **에이전트** `verifier` | 검증·연구·설계 반증 기준 — Claude agent로 제공하고 Codex 실행·모델 선택은 native agent에 위임 |
 
 ### git-flow와 커맨드의 관계
+
+아래는 Git Flow를 채택한 제품의 예시다. main 중심 제품에 develop·release를 강요하지 않는다.
+이 team-harness 저장소의 필수 순서는 [Git Flow 순서 검사](code-review.md#git-flow-순서-검사--team-harness-자체-전달)를 따른다.
 
 ```mermaid
 %%{init: {'theme': 'base', 'themeVariables': {'lineColor': '#6b7280', 'background': '#f8fafc', 'mainBkg': '#f8fafc', 'fontSize': '14px'}}}%%
@@ -78,6 +76,9 @@ flowchart LR
 **솔로 표준**(승인요건 0)에선 사람 승인 단계는 생략된다. wrapper가 CI·스레드 resolve를 확인하고,
 설정된 GitHub 보호의 required checks·enforce_admins가 서버에서 CI-green을 강제한다(pr-review-gate §4).
 실제 보호 설정·허용된 예외·직접 API 권한도 확인해야 하며, 문구나 로컬 hook만으로 우회 불가를 보장하지 않는다.
-팀은 `set-branch-protection.sh --approvals N`으로 main에 리뷰 승인 요건을 추가한다(develop은 0 유지).
+팀의 기존 사람 승인·CODEOWNERS·검사·제한은 보존한다. 보호 변경은 별도 승인 범위에서
+[회사 정책](company-policy.md)을 따른다. `set-branch-protection.sh`의 `--approvals N`은 main,
+`--develop-approvals N`은 develop 대상이며 생략한 승인 수는 보존하고 하향은 거부한다.
+리뷰어 부재를 solo 전환이나 승인 삭제 근거로 삼지 않는다.
 
 ---

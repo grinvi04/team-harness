@@ -48,8 +48,11 @@ Codex 전송 검사는 curl URL-query의 `이름@파일`·form의 `<파일`, wge
 - **차단 이력**: Claude는 `~/.claude/hooks/guard-block.log`, Codex wrapper는
   `~/.codex/hooks/guard-block.log`(session_id·cwd·사유·명령, 크레덴셜 마스킹). 멀티세션 위반 시도 추적.
   (로컬 write-only — 중앙 집계는 #220-E.)
-- **머지 게이트 우회(솔로 승인요건)**: `/solo-merge`가 보호설정 저장→삭제→머지→복구. 중단 시 `set-branch-protection.sh`로 재적용.
-- **브랜치 보호 확인/재적용**: `bash plugins/harness-guard/scripts/set-branch-protection.sh <repo> --check`(드리프트 리포트) / 인자 없이(적용).
+- **솔로 자기승인 예외 복구**: `/solo-merge`는 전체 보호를 저장하고 승인요건만 일시 해제한 뒤 복원·대조한다.
+  중단·복구 실패 시 실행 전 저장한 **원래 전체 정책**과 실제 API 응답을 비교해 복구한다.
+  표준 정책 재적용이나 `--check` 통과는 원값 복원의 증명이 아니다. [복구 계약](../plugins/harness-guard/skills/solo-merge/SKILL.md#원자성--왜-래퍼인가-f-220)을 따른다.
+- **브랜치 보호 점검**: `bash plugins/harness-guard/scripts/set-branch-protection.sh <repo> --check`는 표준과의 드리프트를 읽는다.
+  실제 변경은 [기존 정책 보존·적용 절차](company-policy.md)를 따르며 점검 요청만으로 적용하지 않는다.
 - **드리프트 점검**: `/repo-sync` 또는 `node plugins/harness-guard/scripts/check-repo-sync.mjs --repo <경로> --harness <team-harness>`.
 
 ## 6. 릴리즈/hotfix가 막힌다
