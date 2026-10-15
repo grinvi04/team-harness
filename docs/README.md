@@ -58,6 +58,7 @@
 | 승인된 목표·범위·완료 기준 | `specs/`의 해당 명세. 상태와 후속 링크부터 확인한다 |
 | 현재 진행·다음 행동 | 백로그는 [GitHub Issues](https://github.com/grinvi04/team-harness/issues), 로컬 작업은 `.project-map/`. 계획 문서 수를 진행률로 세지 않는다 |
 | 현재 재설계의 검증·전달 경계 | [재설계](specs/team-harness-redesign.md) → [실행](specs/team-harness-redesign/execution.md) → [전달](specs/team-harness-redesign/delivery.md) |
+| 승인된 다음 기능·현재 위치 | [대시보드](specs/local-runtime-dashboard.md), [gh-stack](specs/stacked-git-workflow.md). [최종 검토](specs/stacked-git-workflow/final-review.md): G1·G2 로컬 구현·독립 검토 PASS, G3 연결 중; 실제 원격 인수·대시보드 미완료 |
 | 재설계 전 세 흐름의 실패·재시험 | [2026-10-15 평가 계획](specs/workflow-evaluation-2026-10-15.md) → [보고서](pilots/workflow-evaluation-2026-10-15.md) → 원래 JSON |
 | 그 이전 비교의 한계 | [2026-10-14 평가](pilots/workflow-maturity-2026-10-14.md) |
 | 실행 증거 | `pilots/`의 보고서·manifest·JSON. 후보·환경·최초 FAIL·재시도·미확인을 함께 읽는다 |

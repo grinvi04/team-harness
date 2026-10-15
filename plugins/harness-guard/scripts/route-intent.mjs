@@ -14,6 +14,7 @@
 import { fileURLToPath } from 'node:url'
 import { spawnSync } from 'node:child_process'
 import { existsSync, readdirSync } from 'node:fs'
+import { readPolicy } from './repo-policy.mjs'
 
 // 일반·복합 요청의 의미는 native agent가 판단한다. 짧은 명시 요청에만 상태 후보를 연결한다.
 function requestedPhase(prompt) {
@@ -99,7 +100,7 @@ export function classifySolo(status, stderr = '') {
 //   현재(feature) 브랜치를 조회하면 항상 비보호 404 → team repo도 solo 오분류돼 solo-merge(리뷰요건 해제)로
 //   오라우팅되던 버그(#181) 교정. openPR 없음(머지 대상 PR 없음)·base 불명이면 null → 호출측 team-safe(isSolo=false) 유지.
 export function soloProtectionRef({ openPR, prBase }) {
-  if (!openPR || !prBase) return null
+  if (!openPR || !['develop', 'main'].includes(prBase)) return null
   return prBase
 }
 
@@ -111,6 +112,7 @@ export function committedBaseRef(hasOriginDevelop, originHead) {
 }
 
 function collectState(cwd, prompt) {
+  const policy = readPolicy(cwd)
   const branch = ok(run('git', ['-C', cwd, 'branch', '--show-current'], cwd)) ?? ''
 
   const statusOut = ok(run('git', ['-C', cwd, 'status', '--porcelain'], cwd))
@@ -136,6 +138,20 @@ function collectState(cwd, prompt) {
     }
   }
 
+  if (policy.stackedPRs?.enabled) {
+    // A trunk-relative count includes inherited parent commits. The prompt hook
+    // does not refresh native metadata or fetch refs just to guess a workflow.
+    // Before a PR exposes its direct parent, leave this hint unverified.
+    committed = false
+    if (openPR && prBase) {
+      const parent = `refs/remotes/origin/${prBase}`
+      if (run('git', ['-C', cwd, 'merge-base', '--is-ancestor', parent, 'HEAD'], cwd).status === 0) {
+        const count = ok(run('git', ['-C', cwd, 'rev-list', '--count', `${parent}..HEAD`], cwd))
+        committed = count !== null && /^\d+$/.test(count) && Number(count) > 0
+      }
+    }
+  }
+
   // spec 파일
   let hasSpec = false
   try {
@@ -149,11 +165,11 @@ function collectState(cwd, prompt) {
   //   403/5xx/네트워크 등 '불확실'은 team으로 안전 기본값(solo-merge가 보호를 해제하려 시도하는 오판 방지).
   let isSolo = false
   const soloRef = soloProtectionRef({ openPR, prBase })
-  if (soloRef) {
+  if (soloRef && policy.mode === 'solo') {
     const repo = ok(run('gh', ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'], cwd))
     if (repo) {
       const r = run('gh', ['api', `repos/${repo}/branches/${soloRef}/protection`], cwd)
-      isSolo = classifySolo(r.status, r.stderr)   // 404=solo · 그 외 불확실=team(안전)
+      isSolo = classifySolo(r.status, r.stderr) // hint only; actual solo owner/collaborator authorization remains in the wrapper
     }
   }
 

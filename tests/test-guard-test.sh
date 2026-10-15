@@ -147,12 +147,13 @@ PY
 
   git -C "$repo" add tests
   git -C "$repo" commit --allow-empty -qm "test: PR candidate $mutation"
+  git -C "$repo" push -q origin HEAD:refs/pull/1/head
   printf '%s\n' "$repo"
 }
 
 run_guard() {
   local script="$1" repo="$2" logfile="$3" labels="${4:-[]}" rc=0
-  (cd "$repo" && BASE=main LABELS="$labels" bash "$script") > "$logfile" 2>&1 || rc=$?
+  (cd "$repo" && BASE=main BASE_SHA="$(git rev-parse origin/main)" HEAD_SHA="$(git rev-parse HEAD)" PR_NUMBER=1 READ_TOKEN=local-test LABELS="$labels" bash "$script") > "$logfile" 2>&1 || rc=$?
   printf '%s' "$rc"
 }
 
@@ -167,13 +168,13 @@ guard_case() { # description, workflow script, mutation, expected exit, expected
 }
 
 guard_case "normal supported forms preserve count" "$TMP/workflow.sh" normal 0 \
-  "base(main)=8, PR(merge)=8"
+  "base(main)=8, PR(head)=8"
 guard_case "removed check assertion is rejected" "$TMP/workflow.sh" remove-check 1 \
-  "base(main)=8, PR(merge)=7"
+  "base(main)=8, PR(head)=7"
 guard_case "removed case_ assertion is rejected" "$TMP/workflow.sh" remove-case 1 \
-  "base(main)=8, PR(merge)=7"
+  "base(main)=8, PR(head)=7"
 guard_case "previously applicable set cannot become empty" "$TMP/workflow.sh" remove-all 1 \
-  "base(main)=8, PR(merge)=0"
+  "base(main)=8, PR(head)=0"
 
 NORMAL_REPO=$(setup_repo "normal-runtime" normal)
 NORMAL_RUNNER_RC=0
@@ -190,7 +191,7 @@ fi
 for mutation in forced-failure zero-runtime; do
   repo=$(setup_repo "$mutation" "$mutation")
   rc=$(run_guard "$TMP/workflow.sh" "$repo" "$TMP/$mutation-guard.log")
-  if [ "$rc" = 0 ] && grep -Fq "base(main)=8, PR(merge)=8" "$TMP/$mutation-guard.log"; then
+  if [ "$rc" = 0 ] && grep -Fq "base(main)=8, PR(head)=8" "$TMP/$mutation-guard.log"; then
     bash "$repo/tests/cases.sh" > "$TMP/$mutation-runner.log" 2>&1
     runner_rc=$?
     if [ "$runner_rc" -ne 0 ]; then
@@ -204,7 +205,7 @@ for mutation in forced-failure zero-runtime; do
 done
 
 guard_case "template rejects a removed check assertion" "$TMP/template.sh" remove-check 1 \
-  "base(main)=8, PR(merge)=7"
+  "base(main)=8, PR(head)=7"
 
 FETCH_REPO=$(setup_repo "fetch-failure" normal)
 mkdir -p "$TMP/fake-bin"
@@ -215,13 +216,33 @@ exec "$REAL_GIT" "$@"
 MOCK
 chmod +x "$TMP/fake-bin/git"
 FETCH_RC=0
-(cd "$FETCH_REPO" && REAL_GIT="$REAL_GIT" PATH="$TMP/fake-bin:$PATH" BASE=main LABELS='[]' \
+(cd "$FETCH_REPO" && REAL_GIT="$REAL_GIT" PATH="$TMP/fake-bin:$PATH" BASE=main BASE_SHA="$(git rev-parse origin/main)" HEAD_SHA="$(git rev-parse HEAD)" PR_NUMBER=1 READ_TOKEN=local-test LABELS='[]' \
   bash "$TMP/workflow.sh") > "$TMP/fetch-failure.log" 2>&1 || FETCH_RC=$?
 if [ "$FETCH_RC" -ne 0 ] && grep -Fq "fixture fetch failure" "$TMP/fetch-failure.log"; then
   report "failed base fetch is not converted into a passing count" true
 else
   cat "$TMP/fetch-failure.log"
   report "failed base fetch is not converted into a passing count" false
+fi
+
+# Lower additions must not conceal upper-layer deletion.
+LAYER_REPO=$(setup_repo "stacked-removal" normal)
+printf 'test("lower 1")\ntest("lower 2")\n' > "$LAYER_REPO/tests/lower.js"
+git -C "$LAYER_REPO" add .
+git -C "$LAYER_REPO" commit -qm 'test: lower additions'
+PARENT_SHA=$(git -C "$LAYER_REPO" rev-parse HEAD)
+printf 'test("lower 1")\n' > "$LAYER_REPO/tests/lower.js"
+git -C "$LAYER_REPO" add .
+git -C "$LAYER_REPO" commit -qm 'test: upper deletion'
+git -C "$LAYER_REPO" push -q origin HEAD:refs/pull/1/head
+LAYER_RC=0
+(cd "$LAYER_REPO" && BASE=main BASE_SHA="$PARENT_SHA" HEAD_SHA="$(git rev-parse HEAD)" PR_NUMBER=1 READ_TOKEN=local-test LABELS='[]' \
+  bash "$TMP/workflow.sh") > "$TMP/stacked-removal.log" 2>&1 || LAYER_RC=$?
+if [ "$LAYER_RC" -eq 1 ] && grep -Fq 'base(main)=10, PR(head)=9' "$TMP/stacked-removal.log"; then
+  report "direct parent deletion cannot hide behind lower additions" true
+else
+  cat "$TMP/stacked-removal.log"
+  report "direct parent deletion cannot hide behind lower additions" false
 fi
 
 if [ "$SCENARIOS" -eq 0 ]; then

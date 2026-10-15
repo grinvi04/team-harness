@@ -12,7 +12,10 @@ export function readPolicy(root) {
   if (!d || d.schemaVersion !== 1 || !['company', 'solo'].includes(d.mode) || !Array.isArray(d.autoMergeTargets)
     || d.autoMergeTargets.some(x => x !== 'develop') || new Set(d.autoMergeTargets).size !== d.autoMergeTargets.length
     || (d.branchFlow !== undefined && !['git-flow', 'main'].includes(d.branchFlow))
-    || Object.keys(d).some(x => !['schemaVersion', 'mode', 'autoMergeTargets', 'branchFlow'].includes(x))) throw Error('unsupported repo policy')
+    || Object.keys(d).some(x => !['schemaVersion', 'mode', 'autoMergeTargets', 'branchFlow', 'stackedPRs'].includes(x))
+    || (d.stackedPRs !== undefined && (!d.stackedPRs || d.stackedPRs.enabled !== true
+      || d.stackedPRs.provider !== 'github-gh-stack' || !d.branchFlow
+      || Object.keys(d.stackedPRs).some(x => !['enabled', 'provider'].includes(x))))) throw Error('unsupported repo policy')
   return d
 }
 export function selectPrBase({ policy, explicitBase = '', branch }) {

@@ -120,6 +120,7 @@ PR base는 명시한 `--base` 또는 제품 `.harness-policy.json`의 `branchFlo
 | 프로젝트·개발자 최초 설치 | [onboarding.md](onboarding.md) |
 | AI에게 일을 맡기고 검수하는 원칙 | [ai-collaboration.md](ai-collaboration.md) |
 | 커밋·PR·리뷰 내용 기준 | [code-review.md](code-review.md) |
+| 선택형 의존 PR의 제출·재기반·병합 복구 | [층별 개발 안내](guides/stacked-development.md) |
 | 가드 차단과 복구 | [troubleshooting.md](troubleshooting.md) |
 | team-harness 자체를 변경·배포 | [harness-maintenance.md](harness-maintenance.md) |
 | 개별 절차의 최신 실행 계약 | [`plugins/harness-guard/skills/`](../plugins/harness-guard/skills/) |

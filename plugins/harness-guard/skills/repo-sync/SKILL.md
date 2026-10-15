@@ -34,6 +34,10 @@ argument-hint: "\"[repo 경로 ...]\" (생략 시 현재 작업 repo)"
    `✗ 보호 미적용`이면 보고에 포함(적용은 `--check` 빼고 실행 — 사용자 승인 후). `--approvals` 없이 `--check`하면 승인 개수는 **정보성**(0/≥1 모두 통과, 드리프트 아님)이고 `enforce_admins`·required checks·**`allow_force_pushes`/`allow_deletions`(=false, 계층0이 force-push·브랜치삭제를 실제 차단하는지 — 재설계 [A]가 force-push를 계층0에 위임하는 전제)**·strict만 엄격 판정한다 — 팀 repo는 `--approvals N`을 함께 줘 그 baseline으로 검증한다(불일치 시 `⚠ 승인요건 불일치`). check-repo-sync.mjs는 무의존 정적검사라 이 네트워크 점검은 별도 스크립트로 분리.
    인증·API·조회 실패는 보호 없음이나 정상 보호로 추정하지 않고 UNVERIFIED로 기록한다.
    GitHub가 아닌 대상은 이 보호 검사를 SKIP하고 실제 비적용 이유를 남긴다.
+4. **의존 PR 선택 점검**: `.harness-policy.json`의 `stackedPRs` opt-in을 읽는다. 미선택은 stack 자산 누락으로
+   세지 않는다. 선택한 github.com 대상은 설치 adapter/helper 버전과 실제 trunk·trusted CI 계약을 읽기 전용으로
+   대조한다. 현재 정적 checker의 자산 표가 이 관계·원격 검증까지 수행한다고 추정하지 않는다.
+   불일치·미확인과 검사한 범위를 별도로 보고하며 설치·설정·보호를 자동 변경하지 않는다.
 
 ## 보고
 

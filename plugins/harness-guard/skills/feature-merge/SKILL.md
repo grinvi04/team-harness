@@ -43,7 +43,9 @@ git status --short
 
 ### 3. PR 생성 + 리뷰 게이트 (직접 실행)
 
-PR 생성은 **래퍼 스크립트**로 한다(맨손 `gh pr create`는 guard 차단). §2에서 품질검증을 이미 했으므로, 스크립트가 base 자동감지(develop 기반이면 base=develop)·push·`gh pr create`를 수행한다(hotfix·release와 동일 경로):
+PR 생성은 [pr-create §2](../pr-create/SKILL.md#2-pr-생성--래퍼-스크립트-실행-직접-실행)를 따른다.
+§2의 유효한 품질 증거를 재사용하며, 의존 PR은 그 절의 stack 제출 경로·층별 본문·draft 계약을 적용한다.
+일반 PR은 아래 기존 wrapper를 사용한다(맨손 `gh pr create`는 guard 차단):
 
 ```bash
 bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" \
@@ -72,12 +74,15 @@ PR 생성 후 **`pr-review-gate` 스킬의 1~3단계**(AI 리뷰 대기·이슈 
 ### 5. 브랜치 정리와 결과 확인
 
 `pr-merge.sh`의 정리 결과를 먼저 확인한다. 실패·보존·미확인은 삭제 완료가 아니다.
+linked stack은 최하단 한 층의 실제 병합·trunk 포함을 확인하고 의존 브랜치를 보존한다.
+`pending|enqueued|unverified`이면 journal을 인계하고 정리·다음 층으로 진행하지 않는다.
+서버 retarget/rebase 뒤에는 공통 계약에 따라 descendants의 새 head/base로 CI·리뷰를 다시 확인한다.
 다른 worktree가 사용하는 브랜치를 강제 삭제하거나 사용자 변경을 stash/reset하지 않는다.
 필요하면 사용 중인 작업공간과 해제 조건을 보고한다. 원격 삭제도 서버 조회 결과로 판단한다.
 
 최종 보고는 확인된 결과에 따라 작성한다:
 ```
-- PR 병합: 완료 / 실패 / 미확인 (#번호, 실제 서버 결과)
+- PR 병합: merged / pending / enqueued / failed / unverified (#번호, SHA·UUID·journal 등 실제 근거)
 - 로컬 브랜치 정리: 삭제 확인 / 보존 / 실패 / 미확인 (근거와 다음 행동)
 - 원격 브랜치 정리: 삭제 확인 / 남아 있음 / 미확인 (조회 결과)
 ```

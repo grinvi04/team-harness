@@ -34,6 +34,8 @@ AI 리뷰는 PR 단계에서 아래 도구 공통 계약으로 수행하며 **Co
 
 PR 생성 후 구현자와 다른 인스턴스가 snapshot의 현재 head/base 변경분을 읽기 전용으로 검토한다.
 원래 요구·제외 범위·repo의 리뷰 기준·직접 소비 계약과 실제 검사 증거를 함께 확인한다.
+의존 PR은 직접 parent 대비 고유 diff와 trunk 통합 영향을 구분한다. 서버 retarget/rebase 후에는
+현재 head/base의 새 snapshot으로 CI·리뷰를 확인하며 이전 층의 증거를 승계하지 않는다.
 지적사항은 2단계 기준으로 처리한다 — 옳으면 수정 → 테스트 통과 → 재푸시, 틀리면 근거 기록.
 
 - **Codex 우선:** 공식 `codex review` 또는 `codex exec review`를 사용한다. 현재 CLI의 `--help`로
@@ -163,9 +165,13 @@ bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scr
 ```
 
 래퍼는 게이트 시작·종료의 head/base 이름과 JSON OID를 대조하고, 조회 실패/후보 변경을 거부한다.
-서버 merge에는 공식 `--match-head-commit`으로 검증 head를 결박한다([gh 문서](https://cli.github.com/manual/gh_pr_merge)).
+일반 PR은 공식 `--match-head-commit`으로 검증 head를 결박한다([gh 문서](https://cli.github.com/manual/gh_pr_merge)).
+linked stack은 github.com의 `merge-async`에 검증 head SHA를 전달하고 공통 계약의 최하단·구성 재검증을 따른다.
+`pending|enqueued|unverified`이면 journal·UUID와 확인된 효과를 보고하고 다음 층·정리·릴리즈로 진행하지 않는다.
+실제 병합 SHA·trunk 포함 확인 뒤에도 의존 브랜치는 보존하고 retarget된 새 후보를 검증한다.
 base 재조회는 원자적 서버 비교가 아니므로 이후 base race 제거를 보장하지 않는다. strict required CI와
-현재 protected base 정책이 계속 필요하며 정책을 완화해 통과시키지 않는다. `--auto`는 develop 전용이고
+현재 protected base 정책이 계속 필요하며 정책을 완화해 통과시키지 않는다. 일반 PR의 `--auto`는 develop 전용이고
+linked stack의 `--auto`는 거부한다.
 required CI 없음·미해결 thread·mergeable 미통과를 계속 거부한다.
 
 ## 부록 — back-merge PR 간소 게이트

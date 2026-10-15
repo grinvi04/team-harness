@@ -3,7 +3,7 @@
 # PR 생성은 이 스크립트를 통해서만 한다(내부 gh는 자식 프로세스라 PreToolUse 훅에 안 걸린다).
 # 명시한 base 또는 repo branchFlow 선언을 검증하고, 원격 base 확인 후 push·생성한다.
 #
-# 사용: pr-create.sh --title "<t>" --body "<b>" [--body-file <file>] [--base <branch>] [--draft] [--milestone <m>]
+# 사용: pr-create.sh --title "<t>" --body "<b>" [--body-file <file>] [--base <branch>] [--draft] [--milestone <m>] [--stack]
 #   --base 미지정 시 branchFlow 선언 필수. GitFlow hotfix/release는 --base main 필수.
 set -euo pipefail
 
@@ -21,7 +21,7 @@ is_base_branch() { case "$1" in main|develop) return 0;; *) return 1;; esac; }
 [ -n "${PRCREATE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-TITLE="" BODY="" BASE="" DRAFT="" MILESTONE=""
+TITLE="" BODY="" BASE="" DRAFT="" MILESTONE="" STACK=""
 while [ $# -gt 0 ]; do
   case "$1" in
     --title)     TITLE="${2:-}"; shift 2;;
@@ -30,6 +30,7 @@ while [ $# -gt 0 ]; do
     --base)      [ -n "${2:-}" ] && [ -z "$BASE" ] || { echo "--base 값은 한 번 지정하세요." >&2; exit 2; }; BASE="$2"; shift 2;;
     --milestone) MILESTONE="${2:-}"; shift 2;;
     --draft)     DRAFT="--draft"; shift;;
+    --stack)     [ -z "$STACK" ] || exit 2; STACK=1; shift;;
     *) echo "pr-create.sh: 알 수 없는 인자 '$1'" >&2; exit 2;;
   esac
 done
@@ -60,7 +61,15 @@ fi
 
 # 정책과 명시 인자를 먼저 대조한다. 로컬/원격 develop 존재는 제품 정책이 아니다.
 POLICY_ROOT=$(git rev-parse --show-toplevel)
-if ! BASE=$(node "$SCRIPT_DIR/repo-policy.mjs" "$POLICY_ROOT" base "$BRANCH" "$BASE"); then exit 2; fi
+if [ "$STACK" = 1 ]; then
+  STACK_ARGS=(check-create --base "$BASE")
+  [ -n "$DRAFT" ] && STACK_ARGS+=(--draft)
+  if ! STACK_CONTEXT=$(node "$SCRIPT_DIR/stack.mjs" "${STACK_ARGS[@]}"); then exit 2; fi
+  BASE=$(printf '%s' "$STACK_CONTEXT" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).base))')
+  STACK_REPO=$(printf '%s' "$STACK_CONTEXT" | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>console.log(JSON.parse(s).repo))')
+else
+  if ! BASE=$(node "$SCRIPT_DIR/repo-policy.mjs" "$POLICY_ROOT" base "$BRANCH" "$BASE"); then exit 2; fi
+fi
 # 확인된 base가 현재 브랜치와 같으면 self-PR(예: 기본 브랜치명이 trunk라 is_base_branch에 안 걸린 경우) → 거절(#215).
 if [ "$BRANCH" = "$BASE" ]; then
   echo "현재 브랜치($BRANCH)가 확인된 base와 같습니다 — feature/fix 브랜치에서 실행하세요(self-PR 방지)." >&2; exit 2
@@ -83,4 +92,8 @@ ARGS=(pr create --base "$BASE" --head "$BRANCH")
 [ -z "$TITLE$BODY" ] && ARGS+=(--fill)
 [ -n "$DRAFT" ]     && ARGS+=("$DRAFT")
 [ -n "$MILESTONE" ] && ARGS+=(--milestone "$MILESTONE")
-gh "${ARGS[@]}"
+if [ "$STACK" = 1 ]; then
+  GH_REPO="$STACK_REPO" GH_HOST=github.com gh "${ARGS[@]}"
+else
+  gh "${ARGS[@]}"
+fi

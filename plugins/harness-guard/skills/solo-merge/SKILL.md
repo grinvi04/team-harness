@@ -27,6 +27,8 @@ argument-hint: "\"[PR번호]\" (생략 시 현재 브랜치의 PR)"
 > ⚠️ **한계**: `SIGKILL`·전원손실은 trap으로 잡을 수 없고 API 오류는 복구를 실패시킬 수 있다.
 > 중단/복구 실패 시 실행 전에 저장한 원래 전체 보호 정책과 실제 API 읽기 결과를 대조해 복구한다.
 > `set-branch-protection.sh --check`는 표준 정책과의 드리프트만 검사하며, 이번 실행 전 예외 정책으로 복원됐다는 증명이 아니다.
+> 로컬 자식 종료·보호 복구 성공은 이미 수락된 원격 병합 요청의 취소가 아니다. 요청 결과가 미확정이면
+> journal을 보존하고 새 PUT 없이 재조회한다. 원격 병합과 보호 복구를 각각 보고한다.
 
 ---
 
@@ -47,14 +49,16 @@ bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scr
 ```
 
 래퍼가 **원자적으로** 수행한다:
-1. **pre-gate**(보호 건드리기 전): CI required green · 미해결 리뷰 스레드 0 · mergeable — 미달이면 **DELETE 이전에 중단**(보호 무손상).
-2. **save + arm trap**: 성공적으로 조회한 전체 브랜치 보호와 `required_pull_request_reviews` 복구 payload를 저장한 후 `trap … EXIT INT TERM HUP` 무장. 성공한 보호 응답에서 리뷰 정책이 명시적으로 null이면 DELETE·PATCH·trap 전부 생략(요건 신규 생성 방지).
+1. **pre-gate**(보호 건드리기 전): CI required green · 미해결 리뷰 스레드 0 · mergeable을 확인한다. github.com의 실제 후보·최하단과 active branch rules를 재조회하며 merge queue·조회 실패는 **DELETE 이전에 중단**한다. 미보호 parent는 solo 자격이 아니다.
+2. **save + arm trap**: Git common-dir journal에 전체 원정책·후보를 저장하고 같은 repo/base를 다른 worktree·PR과 공유 잠금한 뒤 `trap … EXIT INT TERM HUP`을 무장한다. 미확정 요청이나 복구 불일치 기록이 있으면 새 예외를 거부한다. 리뷰 정책이 명시적으로 null이면 DELETE·PATCH만 생략하며 journal과 보호 readback은 유지한다.
 3. **DELETE → merge → restore**: 승인요건 일시 삭제 → `pr-merge.sh`로 머지(CI·스레드·mergeable 재검증) → 저장한 **전체 설정**을 PATCH로 복원. 처리 가능한 중단에서 trap이 동일 복원을 시도한다(멱등). 조회 오류/잘못된 정책은 DELETE 전에 중단한다.
-4. **verify**: `state=MERGED` + 저장한 리뷰 정책 전체와 나머지 브랜치 보호 필드가 원값으로 복원됐는지 확인(API URL·집합 순서는 정규화). 조회 실패/불일치면 경고 후 비정상 종료.
+4. **verify**: 일반 PR의 `state=MERGED`와 wrapper·journal의 독립 readback으로 전체 보호 원값 복원을 확인한다(API URL·집합 순서는 정규화). 조회 실패/불일치는 비정상 종료하며 잠금을 유지한다. linked stack의 `pending|enqueued|unverified`는 복구 성공과 별개로 병합 미완료다. 실제 병합·trunk 포함 확인 후에만 다음 층으로 진행한다.
 
 > 삭제 대상은 **승인요건(required_pull_request_reviews)뿐**이다. `allow_force_pushes`·`enforce_admins`·status-check 등 다른 보호는 건드리지 않는다. 저장은 count만이 아니라 `dismiss_stale_reviews`·`require_code_owner_reviews`·`require_last_push_approval`까지 전체를 보존해, 복구가 base 보호를 매 실행 약화(K1)시키지 않는다.
 
-성공 시 `✅ solo-merge 완료 — PR #<N> MERGED` + `🔒 복구 확인` 출력. 실패(`❌ 복구 검증 실패`)면 원래 전체 정책과 base 보호를 직접 비교하고 필요한 복구를 한다. 기존 표준과의 비교만으로 복원 성공을 판단하지 않는다.
+실제 병합과 보호 복구가 확인된 성공만 `✅ solo-merge 완료 — PR #<N> MERGED` + `🔒 복구 확인`으로 보고한다.
+미완료 요청은 journal·UUID·실제 PR/ref와 복구 상태를 인계한다. 실패(`❌ 복구 검증 실패`)면 원래 전체 정책과
+base 보호를 직접 비교하고 승인된 범위에서 복구한다. 기존 표준과의 비교만으로 복원 성공을 판단하지 않는다.
 
 ---
 
