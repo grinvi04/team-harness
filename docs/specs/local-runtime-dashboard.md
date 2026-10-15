@@ -159,7 +159,7 @@ Claude 미확인, 실제 회사·사람 인수는 이 신규 범위의 숨은 �
 
 아래 승인 순서를 유지한다. 최초 G0 FAIL을 보존하며 공식 trunk·그룹 보호 통합 시험과 G1 제출 경계 로컬 검사를 통과했다.
 현재 main의 trusted CI가 stacked 이벤트를 받지 않아 이 순서만으로는 4단계에 진입할 수 없다.
-[CI 선행 전달 교정안](stacked-git-workflow/implementation-plan.md#전달-선행-조건-교정안--승인-대기)은 별도 승인 대기다.
+[CI 선행 전달 교정안](stacked-git-workflow/implementation-plan.md#전달-선행-조건-교정안--2026-10-16-승인)은 별도 승인 대기다.
 아래 기존 순서를 임의로 바꾸거나 대시보드가 시작됐다고 처리하지 않는다.
 
 1. G0 공식 gh-stack 호환 시험 → G1 안전한 제출 → G2 검증된 순차 병합·복구.

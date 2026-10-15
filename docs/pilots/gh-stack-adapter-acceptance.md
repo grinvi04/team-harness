@@ -99,7 +99,7 @@ Harness 기본 main `d273a70`에는 stacked 이벤트가 없고 develop 필수 �
 `ci-bootstrap-remote-source.json`에서 현재 원본을 확인했다. 기본 브랜치 실행은
 [GitHub 공식 계약](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target)이다.
 develop 통합만으로 대시보드 stack의 trusted 검사기가 준비된다는 기존 계획은 성립하지 않는다.
-[선행 전달 교정안](../specs/stacked-git-workflow/implementation-plan.md#전달-선행-조건-교정안--승인-대기)은 승인 대기다.
+[선행 전달 교정안](../specs/stacked-git-workflow/implementation-plan.md#전달-선행-조건-교정안--2026-10-16-승인)은 2026-10-16 승인됐고 실행 전이다.
 최소12파일 제안의 관련 검사6개는 PASS. 실제 main 배치·태그·전체 품질을 완료한 것은 아니다.
 
 ## 품질 후속

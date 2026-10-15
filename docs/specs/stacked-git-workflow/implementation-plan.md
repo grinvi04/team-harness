@@ -11,15 +11,15 @@
 **Tech Stack:** GitHub CLI extension v0.2.1 검증 출발점, Bash, Node ESM, 기존 GitHub Actions.
 **Spec:** [stacked Git 설계·G0–G3](../stacked-git-workflow.md).
 
-## 전달 선행 조건 교정안 — 승인 대기
+## 전달 선행 조건 교정안 — 2026-10-16 승인
 
 현재 기본 main `d273a70`의 trusted workflow에는 stacked 구독이 없다. `pull_request_target`은
 기본 브랜치에서 실행하므로 adapter를 develop에만 넣어서는 대시보드 상위층의 필수 CI가 준비되지 않는다.
 기존 T3의 대시보드 이후 main 순서에서 이 의존성을 빠뜨렸다. 원래 순서를 실행 완료로 표시하지 않는다.
 최소 CI 정본·생성기·배치·회귀 12파일을 분리한 로컬 제안은 관련 검사6개를 통과했다.
 원문은 `.runtime/gh-stack-g0/ci-bootstrap-proposal/`의 patch·manifest·실행 로그다.
-제안 순서는 CI 작업 PR→develop→release→main·태그·역병합을 먼저 마친 뒤 원래 adapter·대시보드 인수다.
-CI 선행분1.1.0·전체 기능1.2.0 후보로 구분하는 안이며 승인 전 버전·원격은 변경하지 않는다.
+사용자가 CI 작업 PR→develop→release→main·태그·역병합 선행 후 원래 adapter·대시보드 인수를 승인했다.
+CI 선행분1.1.0·전체 기능1.2.0 후보로 구분한다. 별도 신규 solo lab의 합성2층·보호1→0→1 시험도 승인됐다.
 전체 품질·독립 리뷰·정식 전달 검사는 아직 별도다. 기존 게이트·보호·G0–G3/O1–O5 기준은 유지한다.
 
 ## 공통 제약
@@ -158,7 +158,7 @@ T1 snapshot을 소비하지만 merge 직전 다시 조회한다. 기존 CI/revie
 - [ ] 아래 기존 생성·발견·라우팅·package 검사에 영향 회귀를 연결한다. 실제 사용 증거와 구분한다.
 - [ ] 새 연결 자체는 기존 Git Flow로 develop에 통합한 뒤 대시보드 3층에서 실제 stack 제출·수정·병합을 수행한다.
 - [ ] 원격 actual base/head·CI·리뷰·병합 SHA·보호 원값, 설치 확장 버전과 효과 journal을 기록한다.
-- [ ] 대시보드 stack 종료 후에만 release/main을 시작하는 순서와 기존 hotfix/backmerge 비회귀를 확인한다.
+- [ ] 승인된 CI 선행분 외 전체 기능 release/main은 대시보드 stack 종료 후 시작한다. 기존 hotfix/backmerge 비회귀를 확인한다.
 - [ ] 전체 quality·package/bundle·독립 검토를 통과하고 G0–G3 실제 판정을 보고한다.
 
 T3 관련 기존 검사(구현 시 실행, 이번 설계 보완에서는 미실행):
