@@ -26,7 +26,7 @@ if [ -e "$ROOT/.github/workflows/commitlint.yml" ]; then
   echo 'FAIL: legacy workflow must be retired after the required-check handoff'
   exit 1
 fi
-cmp "$ROOT/.github/workflows/commitlint-trusted.yml" "$ROOT/templates/ci/commitlint.yml"
+node "$ROOT/scripts/sync-repository-config.mjs" --check
 ROOT="$ROOT" node --input-type=module -e '
   const { selectStack } = await import(process.env.ROOT + "/scripts/stack-catalog.mjs");
   const selections = Array.from({ length: 6 }, (_, i) => String(i + 1));
@@ -46,7 +46,7 @@ ruby -ryaml -e '
   doc = YAML.safe_load(File.read(file))
   events = doc["on"] || doc[true]
   abort "FAIL: trusted event" unless events.keys == ["pull_request_target"]
-  abort "FAIL: retarget coverage" unless events["pull_request_target"]["types"].sort == %w[edited opened reopened synchronize]
+  abort "FAIL: retarget coverage" unless events["pull_request_target"]["types"].sort == %w[edited opened reopened stacked synchronize]
   abort "FAIL: read-only token" unless doc["permissions"] == {"contents" => "read"}
   jobs = doc.fetch("jobs")
   abort "FAIL: unique check" unless jobs.keys == ["commitlint-trusted"]
@@ -55,7 +55,7 @@ ruby -ryaml -e '
   steps = job.fetch("steps")
   checkout = steps.fetch(0)
   abort "FAIL: trusted checkout" unless checkout.fetch("with") == {"ref" => "${{ github.sha }}", "fetch-depth" => 0, "persist-credentials" => false}
-  abort "FAIL: unexpected execution" unless steps.length == 2 && steps[1].key?("run")
+  abort "FAIL: unexpected execution" unless steps.length == 4 && steps[1].key?("run")
   script = steps[1].fetch("run")
   abort "FAIL: shell expression interpolation" if script.include?("${{")
   File.write(output, script)
@@ -84,7 +84,7 @@ run_case() {
   local label="$1" expected="$2" base_ref="$3" head_ref="$4" head_sha="$5" pr_number="${6:-1}" code=0
   local pr_state="${7-open}" pr_merged="${8-false}" event_action="${9-synchronize}"
   : > "$TMP/calls.log"
-  (cd "$TMP/runner" && BASE_REF="$base_ref" HEAD_REF="$head_ref" BASE_SHA="$BASE_SHA" \
+  (cd "$TMP/runner" && BASE_REF="$base_ref" PARENT_REF="${ACTUAL_PARENT_REF:-$base_ref}" HEAD_REF="$head_ref" BASE_SHA="$BASE_SHA" \
     HEAD_SHA="$head_sha" PR_NUMBER="$pr_number" READ_TOKEN=local-test \
     PR_STATE="$pr_state" PR_MERGED="$pr_merged" EVENT_ACTION="$event_action" \
     REAL_GIT="$REAL_GIT" REAL_NODE="$REAL_NODE" TRUSTED_CALL_LOG="$TMP/calls.log" PATH="$TMP/trace-bin:$PATH" \
@@ -106,6 +106,7 @@ run_case() {
 }
 run_case 'develop full range' 0 develop candidate "$HEAD_SHA"
 run_case 'main release range' 0 main release/v1.0.0 "$HEAD_SHA"
+ACTUAL_PARENT_REF=codex/lower run_case 'main-root upper checks own range without release exclusions' 0 main codex/upper "$HEAD_SHA" 1 open false stacked
 run_case 'stale event head rejected' 1 develop candidate "$BASE_SHA"
 run_case 'missing PR objects rejected' 128 develop candidate "$HEAD_SHA" 2
 run_case 'invalid PR number rejected' 1 develop candidate "$HEAD_SHA" invalid
@@ -114,6 +115,9 @@ git -C "$TMP/source" -c core.hooksPath=/dev/null commit --allow-empty -qm 'inval
 HEAD_SHA="$(git -C "$TMP/source" rev-parse HEAD)"
 git -C "$TMP/source" update-ref refs/pull/1/head "$HEAD_SHA"
 run_case 'invalid commit message rejected' 1 develop candidate "$HEAD_SHA"
+git -C "$TMP/source" update-ref refs/heads/develop "$HEAD_SHA"
+ACTUAL_PARENT_REF=codex/lower run_case 'main-root upper cannot exclude invalid commit via develop' 1 main codex/upper "$HEAD_SHA" 1 open false stacked
+git -C "$TMP/source" update-ref refs/heads/develop "$BASE_SHA"
 git -C "$TMP/source" update-ref refs/heads/main "$HEAD_SHA"
 run_case 'pure main backmerge accepted' 0 develop sync/backmerge-v1.0.0 "$HEAD_SHA"
 git -C "$TMP/source" -c core.hooksPath=/dev/null commit --allow-empty -qm 'invalid resolution'

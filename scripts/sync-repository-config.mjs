@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Repository deployment copies. Edit the consumer template, then --write.
+// Repository deployment copies. Shared templates plus explicitly owned repository additions.
 import { chmodSync, lstatSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -19,7 +19,10 @@ export function syncRepositoryConfig(root, write = false) {
     if (!lstatSync(sourcePath).isFile() || !lstatSync(targetPath).isFile()) {
       throw new Error(`expected regular source and deployment file: ${source} -> ${target}`)
     }
-    return { source, target, targetPath, bytes: readFileSync(sourcePath), mode: lstatSync(sourcePath).mode & 0o777 }
+    const extra = source === 'templates/ci/commitlint.yml' ? path.join(root, 'templates/ci/repository/commitlint-extra.yml') : null
+    if (extra && (!lstatSync(extra).isFile() || lstatSync(extra).isSymbolicLink())) throw Error('expected repository CI addition')
+    const bytes = extra ? Buffer.concat([readFileSync(sourcePath), readFileSync(extra)]) : readFileSync(sourcePath)
+    return { source, target, targetPath, bytes, mode: lstatSync(sourcePath).mode & 0o777 }
   })
   for (const copy of copies) {
     if (!copy.bytes.equals(readFileSync(copy.targetPath)) || (lstatSync(copy.targetPath).mode & 0o777) !== copy.mode) {
