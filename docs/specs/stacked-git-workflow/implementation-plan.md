@@ -70,8 +70,8 @@ journal은 예정/실행/확인 ref·PR·UUID와 solo의 전체 보호 원값을
 
 - [x] 현재 gh/Git·확장 가용성·정확한 release SHA/버전과 기존 설정을 기록한다.
   설치 명령은 `gh extension install github/gh-stack --pin v0.2.1`; 기존 확장이 있으면 임의 교체하지 않는다.
-- [ ] disposable clone과 합성3층으로 init/add/rebase/abort, 여러 worktree, rerere 변경·복구를 확인한다.
-  로컬5개 PASS. 대화형 rerere 활성화는 PTY timeout으로 UNVERIFIED이며 완료로 세지 않는다.
+- [x] disposable clone과 합성3층으로 init/add/rebase/abort, 여러 worktree, rerere 변경·복구를 확인한다.
+  로컬5개 PASS. 대화형 최초 timeout을 보존하고 후속 실제 PTY의 동의·local true2개·전역 불변을 확인했다.
 - [x] 승인된 시험 repo에서 PR URL link, wrong SHA 거부, 최하단 병합·서버 retarget, request UUID를 관측한다.
 - [ ] 요청 직전 lower PR 추가/base 변경, 409 다른 옵션, 응답 유실, 지연 병합·복구를 반증 시험한다.
   위험 사례는 합성 branch에서만 수행하고 운영·소비 repo·기존 보호는 건드리지 않는다.

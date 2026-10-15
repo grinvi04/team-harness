@@ -90,7 +90,7 @@ PR32의 이전 응답 유실 시험도 기존 명령 로그에서 PUT1회임을 
 
 실제 solo 보호 복구, 미관측409·queue 경계, 정식 release-check와 G3 전달·O1–O5 대시보드는 남았다.
 소스 변경 뒤 기존 frozen runner의 hash나 journal을 고쳐 재사용하지 않는다. 이전 실행은 보존하고 새 후보로 이어 기록한다.
-실제 solo 시험은 company lab의 계약·보호를 임의 변경하지 않는 별도 승인 범위가 필요하다.
+실제 solo 시험은 2026-10-16 승인된 새 전용 lab에서 진행 중이며 아래 관측을 따른다.
 Claude 실호스트 미확인 보류와 실제 사람·회사 고유 정책 인수의 제외 범위는 그대로다.
 
 ## 자체 trusted CI 전달 의존성
@@ -99,7 +99,7 @@ Harness 기본 main `d273a70`에는 stacked 이벤트가 없고 develop 필수 �
 `ci-bootstrap-remote-source.json`에서 현재 원본을 확인했다. 기본 브랜치 실행은
 [GitHub 공식 계약](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target)이다.
 develop 통합만으로 대시보드 stack의 trusted 검사기가 준비된다는 기존 계획은 성립하지 않는다.
-[선행 전달 교정안](../specs/stacked-git-workflow/implementation-plan.md#전달-선행-조건-교정안--2026-10-16-승인)은 2026-10-16 승인됐고 실행 전이다.
+[선행 전달 교정안](../specs/stacked-git-workflow/implementation-plan.md#전달-선행-조건-교정안--2026-10-16-승인)은 2026-10-16 승인됐고 별도 후보로 검증 중이다.
 최소12파일 제안의 관련 검사6개는 PASS. 실제 main 배치·태그·전체 품질을 완료한 것은 아니다.
 
 ## 품질 후속
@@ -115,3 +115,25 @@ develop 통합만으로 대시보드 stack의 trusted 검사기가 준비된다�
 macOS에서는 apt 대신 기존 rg, 기존 고정 Python/Ruff를 사용하고 의존성 설치는 clone 안에서만 수행했다.
 CI의 package/bundle 계약 검사도 포함한다. 정식 release-check의 현재 배포물·live provenance 확인이나
 원격 CI·발행을 실행한 것은 아니다. 이후 변경이 이 기록·진행 안내뿐이면 해당 문서 검사로 범위를 연결한다.
+
+## 신규 solo lab 실제 시험 — 2026-10-16 진행 중
+
+새 공개 `grinvi04/team-harness-stack-solo-lab`에 허용된 합성 파일만 bootstrap했다.
+main/develop `339d2d9`에 strict·관리자 보호·Actions app15368의 필수 quality/deploy-smoke·승인1을 설정했다.
+owner와 sole collaborator는 grinvi04다. 기존 company lab과 그 보호는 변경하지 않았다.
+source `6199588`의 adapter와 고정 v0.2.1로 [하단 PR1](https://github.com/grinvi04/team-harness-stack-solo-lab/pull/1),
+[상단 PR2](https://github.com/grinvi04/team-harness-stack-solo-lab/pull/2)를 실제 제출했다. 상단은 draft다.
+
+- 상단 solo 요청은 최하단 제한으로 거부됐다. 보호 DELETE·merge PUT0회, 두 보호의 전후 원값 일치를 확인했다.
+- 하단 `dcbdf3f`를 실제 readonly Codex/Astra medium이 검토했고 추가 결함을 발견하지 못했다.
+  미해결 thread0과 head/base 불변을 대조했다. 리뷰는 required CI의 대체물이 아니다.
+- 실제 workflow_dispatch run38782486625의 두 job은 성공했지만 PR GraphQL rollup에는 포함되지 않았다.
+  [공식 required-check 계약](https://docs.github.com/en/pull-requests/how-tos/merge-and-close-pull-requests/troubleshooting-required-status-checks#checks-from-some-workflow-jobs-are-not-evaluated)에 따라 수동 실행을 PR 필수 검사 충족으로 세지 않는다.
+- 하단 wrapper는 CI pre-gate에서 exit1로 중단했다. DELETE·merge PUT0회이며 main/develop 보호는 그대로다.
+  실제 1→0→1 복구와 하단 병합은 아직 미확인이다.
+- 자동 push/opened 실행이 없던 원인을 조사하며 동일 head/base/stack의 PR을 한 번 닫고 재개했다.
+  새 eligible 이벤트와 실제 PR 검사 결과를 확인하기 전에는 병합을 재요청하지 않는다.
+
+원문은 `solo-live-proposal/execution-1/`의 제출 journal, review, check-run·GraphQL 응답,
+`upper-refusal-result.json`, `lower-solo-exit.json`, `pre-gate-outcome.json`에 보존한다.
+실패를 정상 복구 시험으로 바꾸거나 CI 판정 경로를 우회하지 않는다.

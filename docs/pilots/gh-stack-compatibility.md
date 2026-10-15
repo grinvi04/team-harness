@@ -119,3 +119,12 @@ trunk 한정 branch 필터에서 상위층 CI가 실행됐다. `pull_request_tar
 
 이 시험은 AI 리뷰·스레드·외부 상태 연결, solo 비동기 복구, queue·409·응답 유실, CODEOWNERS, 설치를
 대신하지 않는다. 이들은 [최종 검토](../specs/stacked-git-workflow/final-review.md)의 구현 항목으로 남는다.
+
+## 대화형 rerere 후속 — 2026-10-16
+
+`rerere-interactive-2/`에서 같은 v0.2.1 binary를 원격 없는 새 fixture의 실제 PTY로 실행했다.
+최초 timeout 기록은 보존한다. 후속 실행은 24×80 터미널에서 질문을 관측한 뒤 `y`를 입력해 exit0이었다.
+`git config --local --show-origin`으로 `rerere.enabled`와 `rerere.autoupdate`가 모두 fixture의
+`.git/config`에서 true임을 확인했다. 전역 설정 hash는 이전과 같았고 소유 fixture를 제거했다.
+`before.json`, `tty.log`, `result.json`이 근거다. 이 대화형 활성화 항목은 PASS이며
+기존 비대화형 보존5사례를 반복하지 않았다. 최초 timeout의 정확한 원인을 확정한 것은 아니다.
