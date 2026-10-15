@@ -220,6 +220,12 @@ if node "$GATE" --repo "$GOOD" --harness "$TMP/no-harness-source" >/dev/null 2>&
 else
   echo "FAIL: 설치 plugin의 내장 커밋 계약 digest 불일치"; FAIL=$((FAIL+1))
 fi
+node "$GATE" --repo "$TMP/disabled-commitlint-validator" --harness "$TMP/no-harness-source" >/dev/null 2>&1
+if [ "$?" = 1 ]; then
+  echo "PASS: 설치 plugin도 비활성 commitlint validator 거부"; PASS=$((PASS+1))
+else
+  echo "FAIL: 설치 plugin이 비활성 commitlint validator 허용"; FAIL=$((FAIL+1))
+fi
 cp -R "$GOOD/." "$TMP/missing-commit-msg"
 rm "$TMP/missing-commit-msg/.githooks/commit-msg"
 check "bad(commit-msg 훅 누락) → MISSING/FAIL" 1 "$TMP/missing-commit-msg"
