@@ -102,19 +102,19 @@ CI 정본: `templates/ci/common/workflow.yml`, `templates/ci/commitlint.yml` 및
   부분 성공·중단·다른 소유자의 remote push·noninteractive divergence를 readback으로 판정한다.
   공식 local rebase 후 최초 관찰 OID의 atomic push를 사용한다. native sync/push에는 expected OID 입력이 없다.
   현재 관련 회귀110개와 실제 원격 restack·B/C의 연속 서버 재기반 수신 PASS. 전체 G1 판정과 구분한다.
-- [ ] raw submit/link/merge/sync/push/modify/unstack를 guard로 래퍼 유도한다.
+- [x] raw submit/link/merge/sync/push/modify/unstack를 guard로 래퍼 유도한다.
   init/add/navigation의 실제 checkout·rerere 효과도 안내한다. shell alias로 보호를 우회하지 않는다.
   raw 7종 유도와 기존 guard 회귀191개 PASS. 전체 스킬 안내·후속 restack/sync 스킬은 G3에서 연결했고 실제 실행은 남았다.
-- [ ] trunk branch 필터를 유지하고 직접 parent payload·정책 trunk·trusted SHA를 분리한다. validator/helper/config는 같은
+- [x] trunk branch 필터를 유지하고 직접 parent payload·정책 trunk·trusted SHA를 분리한다. validator/helper/config는 같은
   protected SHA에서 읽고 후보 코드는 비밀정보 없는 job에서 실행한다. `stacked` 가입 이벤트·재실행을 관찰해 연결한다.
   commitlint는 policy branch와 layer commit 범위를 구분하며 test-guard는 직접 parent SHA를 비교한다.
-  자체 commitlint-trusted job에 protected 문서 checker를 연결했다. 실제 stacked 이벤트·protected validator 실행과 후보 변조 거부를 확인했다.
+  자체 job의 코드 연결과 승인된 lab의 실제 stacked·protected validator·후보 변조 거부를 확인했다. Harness main 배치는 미완료다.
 - [ ] candidate helper 변조·상위 CI 미실행·잘못된 parent·policy 미선언 거부와 기존 일반 PR PASS를 확인한다.
 - [x] parent 커밋만 있는 child의 고유 변경 0을 완료 작업으로 세지 않고 미보호 parent의 404를 solo로
   안내하지 않는 회귀를 추가한다. 관계 조회 실패는 추측하지 않으며 안내와 실행 승인을 구분한다.
 - [x] `node scripts/sync-repository-config.mjs --write`, `node scripts/generate-stack-templates.mjs --write`
   후 `--check`와 기존 생성 회귀를 실행한다. 현재 회사 소비 repo에 CI를 자동 적용하지 않는다.
-- [ ] `docs/{company-policy,code-review,decisions}.md`를 실제 구현과 맞추고 규약대로 커밋한다.
+- [x] `docs/{company-policy,code-review,decisions}.md`를 실제 구현과 맞추고 규약대로 커밋한다.
 
 ## T2 — 순차 async 병합·solo·정리 (G2)
 
@@ -136,6 +136,7 @@ T1 snapshot을 소비하지만 merge 직전 다시 조회한다. 기존 CI/revie
 - [x] branch 삭제는 하위 의존 PR·worktree가 없고 원격 병합 확인 후만 한다. 서버 retarget/rebase 후
   child의 기존 증거를 무효화하고 새 후보를 검증한다. 임의 `sync --prune`를 사용하지 않는다.
 - [ ] 새 시험과 기존 pr-merge-auto·solo-merge·guard·보호 보존 회귀, T0 live 반례를 실행한다.
+  a8b32bf 전체 local quality74 PASS로 기존 회귀를 확인했다. 실제 solo·미관측409/queue는 남았다.
 - [ ] 권한·동시 구성 변경·SIGKILL 한계를 문서에 남기고 독립 검토 후 규약대로 커밋한다.
 
 ## T3 — workflow 연결·실제 사용 (G3)

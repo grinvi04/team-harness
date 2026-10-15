@@ -27,8 +27,9 @@
 공식 확장에 등록된 같은 repo의 선형 작업 층만 `stack.sh`로 제출한다. 직접 parent는 작업 branch일 수 있지만
 정책 trunk는 git-flow의 develop 또는 main 흐름의 main이다. 미선택 repo의 기존 생성 경로는 유지한다.
 이 선언으로 보호 설정·사람 승인·원격 권한이 바뀌지 않는다. 현재 지원 범위는
-[구현·검증 상태](specs/stacked-git-workflow/final-review.md)를 따른다. async 병합·solo 복구는 로컬 구현·검토를
-통과했으며 실제 adapter의 원격 인수는 미확인이다. 이 후보의 병합 wrapper는 github.com만 지원하며 다른 GH_HOST는 거부한다.
+[실제 원격 검증](pilots/gh-stack-adapter-acceptance.md)을 따른다. 승인된 합성 lab에서 실제 3층 제출·재기반 수신·
+순차 async 병합과 보호 보존을 확인했다. 실제 solo 복구·대시보드를 통한 G3·정식 전달은 미완료다.
+이 후보의 병합 wrapper는 github.com만 지원하며 다른 GH_HOST는 거부한다.
 
 ## 실행 범위와 미리보기
 

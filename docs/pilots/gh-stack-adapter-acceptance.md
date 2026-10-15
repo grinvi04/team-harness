@@ -88,7 +88,7 @@ PR32의 이전 응답 유실 시험도 기존 명령 로그에서 PUT1회임을 
 
 ## 아직 필요한 확인
 
-실제 solo 보호 복구, 미관측409·queue 경계, 현 후보 package/전체 품질과 G3 전달·O1–O5 대시보드는 남았다.
+실제 solo 보호 복구, 미관측409·queue 경계, 정식 release-check와 G3 전달·O1–O5 대시보드는 남았다.
 소스 변경 뒤 기존 frozen runner의 hash나 journal을 고쳐 재사용하지 않는다. 이전 실행은 보존하고 새 후보로 이어 기록한다.
 실제 solo 시험은 company lab의 계약·보호를 임의 변경하지 않는 별도 승인 범위가 필요하다.
 Claude 실호스트 미확인 보류와 실제 사람·회사 고유 정책 인수의 제외 범위는 그대로다.
@@ -108,3 +108,10 @@ develop 통합만으로 대시보드 stack의 trusted 검사기가 준비된다�
 51은 1.1.0 변경 이력 미생성이다. 60/68은 승인된 shared stack 변경 8개의 옛 checksum 때문에 실패했다.
 8개만 갱신하고 다른 23개는 보존했다. `checksum-refresh/`의 Claude 표면·Codex loader 검사는 후속 leakage·기본값까지 PASS다.
 이 분할 결과를 단일 후보의 전체 quality PASS로 표현하지 않는다.
+
+후속 단일 후보 `a8b32bf482ea60812550b646f10a8b4da20da68d`는 격리 clone에서 전체 local quality74/74 PASS다.
+실행18분32초, 실패·재시도·단계 생략0; 종료 후 HEAD 동일·작업트리 clean을 확인했다.
+`quality-a8b32bf/quality/results.json`에 각 CI 원문·실제 명령·cwd·후보·exit·로그 SHA를 보존했다.
+macOS에서는 apt 대신 기존 rg, 기존 고정 Python/Ruff를 사용하고 의존성 설치는 clone 안에서만 수행했다.
+CI의 package/bundle 계약 검사도 포함한다. 정식 release-check의 현재 배포물·live provenance 확인이나
+원격 CI·발행을 실행한 것은 아니다. 이후 변경이 이 기록·진행 안내뿐이면 해당 문서 검사로 범위를 연결한다.
