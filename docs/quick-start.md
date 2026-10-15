@@ -18,7 +18,7 @@ repository, and diagnosing the components you actually selected. Installation ch
 are separate evidence; follow that guide's boundaries for optional runtime probes.
 
 For new repository setup, follow [onboarding](onboarding.md). For an existing product, use
-[selective onboarding](company-onboarding.md) and preserve its files, hooks, checks, and branch policy.
+[selective onboarding](guides/existing-repository.md) and preserve its files, hooks, checks, and branch policy.
 Local development does not require creating or publishing a remote repository. Prepared supported apps can use
 the [single-stack local check setup](local-development.md); application generation and test-tool setup belong to the product.
 
@@ -26,9 +26,9 @@ the [single-stack local check setup](local-development.md); application generati
 
 Open the product repository, then follow the existing guides:
 
-- Working alone: [first readiness check and real task request](development-coordination.md#처음-연결할-때).
+- Working alone: [first readiness check and real task request](guides/solo-development.md#처음-연결할-때).
   Reuse the product's conventions, checks, and adopted main or Git Flow policy.
-- Working in a small team: [shared setup and task ownership](team-development-guide.md#처음-함께-사용할-때).
+- Working in a small team: [shared setup and task ownership](guides/team-development.md#처음-함께-사용할-때).
   Connect shared acceptance criteria, individual changes, independent review, and integration checks.
 
 Use natural-language requests; skill commands are optional. Use one development methodology, such as installed

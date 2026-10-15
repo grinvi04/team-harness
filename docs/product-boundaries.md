@@ -19,8 +19,8 @@
 
 ## 사용과 설치
 
-[설치 안내](harness-setup.md) → [기존 저장소 연결](company-onboarding.md) →
-[업무 시작·완료·인계](development-coordination.md) 순서로 사용한다. 팀의 담당자·통합은 [팀 가이드](team-development-guide.md)에 연결한다.
+[설치 안내](harness-setup.md) → [기존 저장소 연결](guides/existing-repository.md) →
+[업무 시작·완료·인계](guides/solo-development.md) 순서로 사용한다. 팀의 담당자·통합은 [팀 가이드](guides/team-development.md)에 연결한다.
 필요한 로컬 구성만 사용할 수 있으며 GitHub·회사 정책·별도 조직 인수가 시작 조건은 아니다.
 
 스킬 이름17개는 기존 진입 호환성을 유지한다. 모든 공유 스킬은 같은 최소 프로젝트 계약을 읽으며

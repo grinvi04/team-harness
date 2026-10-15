@@ -60,18 +60,18 @@ git clone --branch v1.0.0 https://github.com/grinvi04/team-harness.git team-harn
 이때 `/path/to/team-harness`를 복제한 디렉터리의 절대 경로로 바꾼다. 플러그인만 사용할 때는 별도 복제가 필요 없다.
 
 **제품 저장소 루트**에서 시작한다. Team Harness 자체 저장소를 제품 업무의 작업 디렉터리로 사용하지 않는다.
-기존 저장소는 [선택 적용](company-onboarding.md), 새 프로젝트는 [온보딩의 범위 선택](onboarding.md#먼저-사용할-범위-선택)을 따른다.
+기존 저장소는 [선택 적용](guides/existing-repository.md), 새 프로젝트는 [온보딩의 범위 선택](onboarding.md#먼저-사용할-범위-선택)을 따른다.
 이미 구성된 프로젝트의 팀원은 기존 `core.hooksPath`와 `.githooks` 내용을 확인하고 [팀원 온보딩](onboarding.md#b-신규-팀원-온보딩-각자-1회)을 적용한다.
 기존 hook을 덮어쓰지 않는다. `new-repo.sh`는 신규 자산 일괄 연결용이며 기존 제품에는 선택 적용을 우선한다.
 
-혼자는 [첫 확인 요청 → 실제 업무 요청](development-coordination.md#처음-연결할-때),
-작은 팀은 [각자 첫 확인 → 공유 업무·담당자 요청](team-development-guide.md#처음-함께-사용할-때)을 사용한다.
+혼자는 [첫 확인 요청 → 실제 업무 요청](guides/solo-development.md#처음-연결할-때),
+작은 팀은 [각자 첫 확인 → 공유 업무·담당자 요청](guides/team-development.md#처음-함께-사용할-때)을 사용한다.
 단계별 완료 기준과 요청 예시는 이 두 가이드에서 관리한다. PR은 기존 [리뷰·승인 계약](code-review.md)을 유지한다.
 
 ### 현재 상태 점검
 
 아래 `/path/to/team-harness`는 검사 스크립트를 가진 원본 루트다. Codex 설치 결과의 `installedRoot`도 사용할 수 있다.
-처음에는 [구성별 점검](company-onboarding.md)에서 실제로 선택한 `tech`·`github`·`codex`만 검사한다.
+처음에는 [구성별 점검](guides/existing-repository.md)에서 실제로 선택한 `tech`·`github`·`codex`만 검사한다.
 자산을 아직 채택하지 않았다면 `tech` 기록도 없으며, 이를 적용 완료로 처리하지 않는다.
 
 ```bash
