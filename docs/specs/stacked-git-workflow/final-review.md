@@ -161,14 +161,17 @@ exact `stacked` 구독 한 줄을 별도 단언하고 나머지 바이트는 기
 현재 trunk/parent와 `template + repo 전용 suffix`의 정확 일치를 검사하도록 교정해62/0 PASS, trusted 문서2/2 PASS다.
 원격 준비 첫 시도는 lab의 추적 정책을 덮어쓰지 않고 거부했다. 원문을 보존하며 선택형 stack만 첫 층에 추가하도록 고쳤다.
 실제 trusted 이벤트 원본을 위해 lab [PR29](https://github.com/grinvi04/team-harness-acceptance-lab/pull/29)를
-develop에 제출했다. 아직 병합 전이며 기존 필수 검사·원격 보호는 바꾸지 않았다.
+develop에 제출하고 `b5cdbf5`로 병합했다. 이후 release/v0.2.2를 만들었다. 기존 필수 검사·보호는 유지했다.
 
 
 후속 독립 리뷰는 test-guard의 비슷한 예외 라벨 허용·라벨 제거 뒤 재검사 누락을 재현했다.
 정확한 JSON 라벨 일치와 labeled/unlabeled 이벤트를 연결해 실제 shell 반례5FAIL→17/17 PASS다.
 공용 정본·배치 사본·lab 후보를 함께 수정했다. 기존 삭제 차단·필수 CI를 완화하지 않는다.
 quality20–27 PASS 뒤28단계는 설치본의 옛 workflow digest와 새 clone의 npm 도구 누락으로 FAIL했다.
-내장 digest를 현재 정본과 맞췄으며 설치본 digest 사례는 PASS다. 도구를 준비한 깨끗한 후보에서 후속 검사한다.
+내장 digest와 격리 도구 준비 후28–29단계 PASS다.30단계의 Q2A gh 대역은 새 read-only PR 조회를
+지원하지 않아 FAIL했다. 실제 endpoint/host/GET 응답과 gate 전후2회 조회 단언을 추가해9/0·Q2A40 PASS다.
+시험 runner의 독립 검토에서 timeout 효과와 삭제 OID 관찰이 섞인 경계를 수정했다.
+미확정 내부 journal은 정리를 막으며 confirmed 효과의 OID만 삭제 대상으로 삼는다. 고정 원문 재검토 PASS_SCOPE다.
 
 ## 공식 원본
 
