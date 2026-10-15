@@ -3,13 +3,24 @@
 > 실행자: `superpowers:executing-plans`로 순차 구현하고 고위험 전달 경계는 별도 독립 검토한다.
 > 최초 frozen-group G0 FAIL은 [원래 결과](../../pilots/gh-stack-compatibility.md)에 보존한다.
 > [현재 원격 인수](../../pilots/gh-stack-adapter-acceptance.md): 실제 3층 제출·재기반·trusted CI·첫 층 응답 유실 복구 PASS.
-> retained merged prefix 결함을 수정했으며 후속 층 sync·병합과 G2 잔여 경계를 검증 중이다. packaged local 3사례 PASS, G3 실제 전달은 남았다.
+> retained prefix·서버 수신 수정 후 회귀110개와 실제 B/C sync·PR33→34 순차 병합 PASS. G2 잔여·G3는 미완료다.
 
 **Goal:** 공식 gh-stack의 branch/PR 관리를 기존 Harness gate와 Git Flow에 연결한다.
 **Architecture:** 공식 엔진 + 얇은 stack 사전/사후 검사 + 기존 PR gate + SHA가 결박된 async provider.
 기존 일반 PR provider와 release 경로를 유지하며 새 engine·보호 체계를 복제하지 않는다.
 **Tech Stack:** GitHub CLI extension v0.2.1 검증 출발점, Bash, Node ESM, 기존 GitHub Actions.
 **Spec:** [stacked Git 설계·G0–G3](../stacked-git-workflow.md).
+
+## 전달 선행 조건 교정안 — 승인 대기
+
+현재 기본 main `d273a70`의 trusted workflow에는 stacked 구독이 없다. `pull_request_target`은
+기본 브랜치에서 실행하므로 adapter를 develop에만 넣어서는 대시보드 상위층의 필수 CI가 준비되지 않는다.
+기존 T3의 대시보드 이후 main 순서에서 이 의존성을 빠뜨렸다. 원래 순서를 실행 완료로 표시하지 않는다.
+최소 CI 정본·생성기·배치·회귀 12파일을 분리한 로컬 제안은 관련 검사6개를 통과했다.
+원문은 `.runtime/gh-stack-g0/ci-bootstrap-proposal/`의 patch·manifest·실행 로그다.
+제안 순서는 CI 작업 PR→develop→release→main·태그·역병합을 먼저 마친 뒤 원래 adapter·대시보드 인수다.
+CI 선행분1.1.0·전체 기능1.2.0 후보로 구분하는 안이며 승인 전 버전·원격은 변경하지 않는다.
+전체 품질·독립 리뷰·정식 전달 검사는 아직 별도다. 기존 게이트·보호·G0–G3/O1–O5 기준은 유지한다.
 
 ## 공통 제약
 
@@ -87,10 +98,10 @@ CI 정본: `templates/ci/common/workflow.yml`, `templates/ci/commitlint.yml` 및
 - [x] 기존 wrapper로 층별 PR을 만들고 동일 repo의 완전한 PR URL만 공식 link에 전달한다.
   기존 stack 구성/순서가 다르면 link 전에 거부한다. 상위 PR은 draft이며 각 층 body-file을 유지한다.
   공식 binary+adapter 로컬3사례와 실제 lab PR32/33/34의 제출·연결을 확인했다.
-- [ ] restack/sync는 변경 ref·예상 OID·worktree 전체를 보여주고 공식 engine을 호출한다.
+- [x] restack/sync는 변경 ref·예상 OID·worktree 전체를 보여주고 공식 engine을 호출한다.
   부분 성공·중단·다른 소유자의 remote push·noninteractive divergence를 readback으로 판정한다.
   공식 local rebase 후 최초 관찰 OID의 atomic push를 사용한다. native sync/push에는 expected OID 입력이 없다.
-  통합 로컬87개와 실제 원격 restack PASS. 병합 후 sync는 retained-prefix 수정으로 재검증 중이다.
+  현재 관련 회귀110개와 실제 원격 restack·B/C의 연속 서버 재기반 수신 PASS. 전체 G1 판정과 구분한다.
 - [ ] raw submit/link/merge/sync/push/modify/unstack를 guard로 래퍼 유도한다.
   init/add/navigation의 실제 checkout·rerere 효과도 안내한다. shell alias로 보호를 우회하지 않는다.
   raw 7종 유도와 기존 guard 회귀191개 PASS. 전체 스킬 안내·후속 restack/sync 스킬은 G3에서 연결했고 실제 실행은 남았다.

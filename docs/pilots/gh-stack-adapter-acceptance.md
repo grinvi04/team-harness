@@ -22,6 +22,10 @@
 | 응답 유실·재개 | PR32 head `9a7d837`, merge `00bf77b`; `adapter-live-2/lost-reply-32.json`, `adapter-live-2-resume-a.log` | PASS; 실제 PUT 응답만 숨긴 뒤 GET으로 MERGED 복구 |
 | 후보 검사기 변조·무효 커밋 | Harness `f15e45c`; `trusted-negative-1/summary.json` | PASS; PR36 예상 FAIL, PR37의 고유 정상 커밋 PASS |
 | 음성 시험 정리 | `trusted-negative-1/final-audit.json` | PASS; PR36/37 닫기·소유 ref lease 삭제·기존 보호 불변 |
+| 서버 재기반 수신 | Harness `9111758`; `adapter-live-3/sync-invariants.json`, `sync-c-invariants.json` | PASS; 실제 B/C 연속 수신·tree·고유 커밋·recovery ref 보존 |
+| 후속 순차 병합 | PR33 `f3551df` → PR34 `135ead3`; `adapter-live-3/{merge-b,merge-c}.json` | PASS; 현재 후보 리뷰·required CI·실제 trunk 포함 |
+| 정상 pending 조회 | `adapter-live-3/gh-commands.jsonl` | PASS; PR33/34 각각 PUT1회·반환 UUID GET 후 MERGED |
+| 원격 보존 대조 | `adapter-live-3/final-remote-audit.json` | PASS; 기존 보호5개·rulesets·main 등 원래 비develop ref 불변, 소유 원격 ref 없음 |
 
 lab v0.2.2는 합성 시험 저장소 버전이며 Harness 1.1.0 발행이 아니다.
 PR32의 실제 pending UUID를 수신했지만 전달을 숨겼으므로 이 시험은 provider의 UUID polling 성공을 증명하지 않는다.
@@ -53,7 +57,7 @@ PR32 병합 뒤 GitHub는 stack 목록에서 PR32를 지우지 않고 `[merged32
 `adapter-live-3/b-inspect.json`과 이전 confirmed restack journal을 대조하면 로컬은 전송된 그대로이고,
 원격은 PR32 병합 뒤 재작성됐다. 공식 local rebase의 원격 반영은 FF만 지원하며 같은 구성의
 native sync도 이 원격 tip을 채택하지 않는다. [설계의 수신 경계](../specs/stacked-git-workflow.md#제출ci-신뢰-경계)를
-독립 검토 뒤 아래 회귀 검사를 통과했다. 실제 원격 수신은 별도로 남아 있다.
+독립 검토 뒤 아래 회귀 검사와 실제 원격 수신을 통과했다. 최초 거부 기록도 보존한다.
 
 기존 confirmed 기록의 동일 repo·root·trunk·PR·local=remote OID와 digest를 연결해 수신할 층을 정했다.
 새 journal을 먼저 기록하고 옛 OID recovery ref 생성과 local branch CAS를 하나의 transaction으로 묶는다.
@@ -74,16 +78,29 @@ native sync도 이 원격 tip을 채택하지 않는다. [설계의 수신 경�
 - `sync-adoption-independent-review-3.log`: 실제 read-only Codex/Astra medium에서 추가 결함 미발견.
   구문·정책 31개 PASS이며 Git 쓰기·원격 검증은 포함하지 않는다.
 
-실제 lab의 새 preview는 PR33/34의 옛 전송 OID·현재 원격 OID·proof digest를 함께 제시했다.
-`adapter-live-3/sync-adoption-preview.json`은 계획이며 실제 수신·병합의 완료 증거는 아니다.
+초기 `sync-adoption-preview.json`은 계획이다. 실제 실행은 `sync-preview-final.json`→`sync-applied-final.json`,
+PR33 병합 뒤 `sync-c-preview.json`→`sync-c-applied.json`으로 각각 기록했다.
+두 번째 수신은 첫 confirmed 수신 기록을 근거로 삼았으며 새 source 후보는 `source-final.json`에 고정했다.
+`review-b.log`·`review-c.log`는 각 새 후보의 실제 read-only Codex/Astra medium 리뷰이며 추가 결함 미발견이다.
+각 후보의 합성 제품 검사4개·build·임시 HTTP health도 PASS, 시험 서버 정리를 확인했다.
+PR33/34의 UUID는 각각 `1fed1877-083e-4e85-b812-58fa974838c2`, `93692bcd-b54e-4398-aaf2-a46d25f39c5b`다.
+PR32의 이전 응답 유실 시험도 기존 명령 로그에서 PUT1회임을 대조했다. 재개는 새 PUT을 보내지 않았다.
 
 ## 아직 필요한 확인
 
-PR33/34의 실제 sync·새 후보 리뷰·필수 CI·순차 병합, provider의 일반 pending polling,
-409·queue·실제 solo 보호 복구, 현 후보 package/전체 품질과 G3 전달·O1–O5 대시보드는 별도 남은 항목이다.
+실제 solo 보호 복구, 미관측409·queue 경계, 현 후보 package/전체 품질과 G3 전달·O1–O5 대시보드는 남았다.
 소스 변경 뒤 기존 frozen runner의 hash나 journal을 고쳐 재사용하지 않는다. 이전 실행은 보존하고 새 후보로 이어 기록한다.
 실제 solo 시험은 company lab의 계약·보호를 임의 변경하지 않는 별도 승인 범위가 필요하다.
 Claude 실호스트 미확인 보류와 실제 사람·회사 고유 정책 인수의 제외 범위는 그대로다.
+
+## 자체 trusted CI 전달 의존성
+
+Harness 기본 main `d273a70`에는 stacked 이벤트가 없고 develop 필수 항목은 기존5개다.
+`ci-bootstrap-remote-source.json`에서 현재 원본을 확인했다. 기본 브랜치 실행은
+[GitHub 공식 계약](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#pull_request_target)이다.
+develop 통합만으로 대시보드 stack의 trusted 검사기가 준비된다는 기존 계획은 성립하지 않는다.
+[선행 전달 교정안](../specs/stacked-git-workflow/implementation-plan.md#전달-선행-조건-교정안--승인-대기)은 승인 대기다.
+최소12파일 제안의 관련 검사6개는 PASS. 실제 main 배치·태그·전체 품질을 완료한 것은 아니다.
 
 ## 품질 후속
 
