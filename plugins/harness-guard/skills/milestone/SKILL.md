@@ -157,6 +157,10 @@ cat "docs/milestones/$SLUG.md"
 
 ### PR → 마일스톤 연결
 
+PR 생성은 [pr-create §2](../pr-create/SKILL.md#2-pr-생성--래퍼-스크립트-실행-직접-실행)에 위임한다.
+의존 PR은 해당 stack 제출 경로를 따르고 생성이 확인된 층별 PR에 milestone을 연결한다.
+일반 PR의 기존 예시는 다음과 같다. 진행률은 PR 개수가 아닌 각 층의 원래 AC·현재 증거로 판단한다.
+
 ```bash
 # PR 생성은 pr-create 래퍼 경유(맨손 gh pr create는 guard 차단) — 마일스톤은 --milestone로 전달
 bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" --milestone "<slug>" --title "..." --body "..."

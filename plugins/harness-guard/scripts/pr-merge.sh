@@ -145,6 +145,11 @@ verify_required_ci() { # base head; PR와 OWNER_REPO는 현재 후보의 조회 
 # 테스트 훅: 함수만 로드하고 종료(main 로직·gh 호출 없이 순수 판정 함수만 검증).
 [ -n "${PRMERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 
+# The linked-stack API is verified on github.com. Gate and mutation hosts must
+# never differ; an enterprise override needs its own supported contract.
+[ -z "${GH_HOST:-}" ] || [ "$GH_HOST" = github.com ] || { echo "⛔ 이 merge 경로는 github.com만 지원합니다(GH_HOST 불일치)." >&2; exit 1; }
+export GH_HOST=github.com
+
 PR="" BASE="" AUTO=0 EXPECTED_HEAD="" EXPECTED_BASE_OID=""
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -162,7 +167,8 @@ for expected_oid in "$EXPECTED_HEAD" "$EXPECTED_BASE_OID"; do
 done
 
 OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
-[ -z "$PR" ] && PR=$(gh pr view --json number --jq .number)
+export GH_REPO="$OWNER_REPO"
+[ -z "$PR" ] && PR=$(gh pr view --repo "$OWNER_REPO" --json number --jq .number)
 OWNER="${OWNER_REPO%/*}"; NAME="${OWNER_REPO#*/}"
 echo "게이트 검증: $OWNER_REPO PR #$PR"
 
@@ -174,6 +180,14 @@ EOF
 [ -z "$BASE" ] || [ "$BASE" = "$PR_BASE" ] || { echo "  ⛔ 요청 base=$BASE, 실제 base=$PR_BASE — 머지 중단" >&2; exit 3; }
 [ -z "$EXPECTED_HEAD" ] || [ "$EXPECTED_HEAD" = "$HEAD_SHA" ] || { echo "  ⛔ 앞선 리뷰의 head와 현재 후보가 다름 — 재검토 필요" >&2; exit 1; }
 [ -z "$EXPECTED_BASE_OID" ] || [ "$EXPECTED_BASE_OID" = "$BASE_SHA" ] || { echo "  ⛔ 앞선 리뷰의 base OID와 현재 후보가 다름 — 재검토 필요" >&2; exit 1; }
+
+STACK_ENGINE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stack-merge-cli.mjs"
+STACK_SNAPSHOT=$(node "$STACK_ENGINE" probe "$OWNER_REPO" "$PR") || exit 1
+STACK_KIND=$(node -e 'const s=JSON.parse(process.argv[1]);if(s.kind==="stack"&&(s.trunk!==process.argv[2]||s.trunkOid!==process.argv[3]||s.headOid!==process.argv[4]))process.exit(1);console.log(s.kind)' \
+  "$STACK_SNAPSHOT" "$PR_BASE" "$BASE_SHA" "$HEAD_SHA") || { echo "⛔ stack 후보와 gate 후보 불일치" >&2; exit 1; }
+if [ "$STACK_KIND" = stack ] && [ "$AUTO" = 1 ]; then
+  echo "⛔ linked stack은 --auto를 지원하지 않습니다. 최하단을 한 층씩 검증·병합하세요." >&2; exit 3
+fi
 
 # --auto: 이 PR의 실제 base가 develop인지 강제(아니면 거부). 게이트 검증 전 선차단.
 if [ "$AUTO" = "1" ]; then
@@ -214,10 +228,28 @@ CURRENT_CANDIDATE=$(read_pr_candidate) || { echo "  ⛔ 게이트 후 PR 후보 
 if [ "$CURRENT_CANDIDATE" != "$VERIFIED_CANDIDATE" ]; then
   echo "  ⛔ 게이트 후 PR head/base 변경 — 현재 후보로 검토·검증을 다시 수행하세요." >&2; exit 1
 fi
+CURRENT_STACK=$(node "$STACK_ENGINE" probe "$OWNER_REPO" "$PR") || exit 1
+[ "$CURRENT_STACK" = "$STACK_SNAPSHOT" ] || { echo "⛔ gate 이후 stack 구성/후보 변경 — 재검토 필요" >&2; exit 1; }
 # head는 GitHub의 expected-head 옵션으로 서버에서 결박한다. base 재조회는 원자적 비교가 아니므로
 # 그 이후 base 이동은 strict required CI·현재 protected base 정책의 서버 계약이 계속 필요하다.
 
 echo "게이트 통과 → 머지"
+if [ "$STACK_KIND" = stack ]; then
+  # Stop and wait for our provider before a solo parent restores protection.
+  # The server may already have accepted the request; its journal remains authoritative.
+  MERGE_PID=""
+  stop_provider() { if [ -n "$MERGE_PID" ]; then kill -TERM "$MERGE_PID" 2>/dev/null || true; wait "$MERGE_PID" 2>/dev/null || true; fi; }
+  trap 'stop_provider; exit 130' INT
+  trap 'stop_provider; exit 143' TERM
+  trap 'stop_provider; exit 129' HUP
+  node "$STACK_ENGINE" merge "$OWNER_REPO" "$PR" "$STACK_SNAPSHOT" "${HARNESS_STACK_MERGE_JOURNAL:-}" &
+  MERGE_PID=$!
+  if wait "$MERGE_PID"; then MERGE_RC=0; else MERGE_RC=$?; fi
+  MERGE_PID=""; trap - INT TERM HUP
+  [ "$MERGE_RC" = 0 ] || exit "$MERGE_RC"
+  echo "✅ PR #$PR 실제 병합과 trunk 포함 확인 — 의존 브랜치는 보존, 다음 층은 새 후보로 검증"
+  exit 0
+fi
 gh pr merge "$PR" --repo "$OWNER_REPO" --merge --delete-branch --match-head-commit "$HEAD_SHA"
 echo "✅ PR #$PR 머지 완료"
 

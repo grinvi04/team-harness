@@ -16,6 +16,34 @@ Harness는 아래 프로젝트 계약만 연결한다. 같은 계획·승인·RE
   다른 위치의 상세 계획은 링크해도 된다. 파일 존재는 승인 증거가 아니며 trivial 면제는 실제 자명한 변경만 해당한다.
   로컬 전용 제품에 원격·공개·PR을 강제하지 않는다.
 
+## 선택한 의존 PR 흐름
+
+- `.harness-policy.json`의 `stackedPRs.enabled=true`, `provider=github-gh-stack`일 때만 공식 stack을 연결한다.
+  현재 adapter의 원격 지원은 github.com이다. 다른 host를 같은 지원 범위로 추정하지 않는다.
+  repo·worktree·실제 writer·trunk·현재 층·직접 parent·실제 head/base OID·PR·descendants를 원본에서 확인한다.
+  GitFlow trunk는 develop, main 흐름은 main이다. 등록된 parent가 달라도 보호 정책 대상 trunk는 바뀌지 않는다.
+- 승인된 기능은 기존 층 또는 의존 새 층에 배치한다. 독립 작업은 별도 stack이며 parent 커밋만 있는 층을
+  완료 작업으로 세지 않는다. 제출은 `pr-create`의 stack 경로를 따른다. 진단·QA 요청은 Git 쓰기를 승인하지 않는다.
+- 하단 수정은 descendants의 후보·검증에 영향을 준다. 사용 중인 다른 writer가 있거나 소유권이 불명확하면
+  그 범위의 재기반·동기화를 중단하고 인계를 확인한다. clean 상태만으로 writer가 없다고 판단하지 않는다.
+- 현재 설치 경로를 검증한 뒤 `stack.sh restack` 또는 `stack.sh sync`로 변경 ref·예상 OID를 미리 본다.
+  승인된 범위에서만 같은 fingerprint의 `--apply --expected <값>`을 실행한다. raw push/sync로 우회하지 않는다.
+  충돌은 공식 `gh stack rebase --continue` 또는 명시한 `--abort` 후 해당 action의 `--resume <journal>`로
+  다시 미리 보고 적용한다. 다른 writer의 원격 OID로 lease를 바꾸거나 native metadata를 직접 고치지 않는다.
+- 병합은 actual base=trunk인 최하단 미병합 PR(lowest) 한 층씩 수행한다. 현재 구성·순서·head/base·trunk를
+  기존 CI·리뷰 gate 뒤 다시 대조하고 변경 시 중단한다. 상위 PR 선택을 하단 전체 병합 승인으로 확대하지 않는다.
+- `pending|enqueued|unverified`와 부분 성공은 병합 완료가 아니다. `merged` 응답도 실제 PR의 병합 SHA와
+  trunk 포함을 확인해야 완료다. stack은 `--auto`를 거부하며 의존 브랜치를 보존한다.
+- Git common-dir의 journal에 요청 의도·UUID·후보를 보존한다. 내부 merge CLI의 `resume`은 기록된 요청과
+  실제 원격 상태를 재조회하며 새 PUT을 보내지 않는다. UUID가 없거나 응답이 유실돼도 자동 병합 재요청하지 않는다.
+  재개는 일반 PR의 새 리뷰·병합 gate나 보호 변경 권한을 대신하지 않는다.
+- 병합 뒤 서버 retarget/rebase 결과와 descendants의 head/base를 다시 읽는다. 변경된 후보의 기존 CI·리뷰
+  증거를 무효화하고 필요한 `stack.sh sync`를 미리 본 뒤 새 후보를 검증한다. 활성 writer는 보존한다.
+- 보호 복구와 원격 병합 결과를 별도로 보고한다. 시그널로 로컬 provider를 멈추고 보호를 복구해도 이미
+  수락된 원격 요청의 취소를 뜻하지 않는다. 미확정 요청·복구 불일치의 same-base journal은 다음 예외를 막는다.
+- release/main/tag/backmerge는 개발 stack 밖의 기존 Git Flow 순서를 유지한다. 해당 작업의 필수 층이 실제
+  trunk와 릴리즈 후보에 포함됐는지 확인한다. 보호 없는 parent는 solo 자격이 아니다.
+
 ## 프론트엔드 설계 연결
 
 프론트엔드의 업무 흐름·데이터·상태·구조를 설계하거나 변경할 때만 [프론트엔드 계약](frontend-contract.md)을 읽는다.

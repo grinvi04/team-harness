@@ -249,7 +249,17 @@ fi
 if [[ "$LITE" != 1 ]]; then
   while IFS= read -r GSEG; do
     _tok_into _gt "$GSEG"
-    [[ "${_gt[0]:-}" == gh && "${_gt[1]:-}" == pr ]] || continue
+    [[ "${_gt[0]:-}" == gh ]] || continue
+    if [[ "${_gt[1]:-}" == stack ]]; then
+      case " ${_gt[*]} " in *' --help '*|*' -h '*) continue;; esac
+      case "${_gt[2]:-}" in
+        submit|link|merge|sync|push|modify|unstack)
+          deny "맨손 gh stack 변경 금지 — 현재 후보·대상·결과 검증은 Harness 경유" \
+            "제출/restack/sync는 scripts/stack.sh, 병합은 /feature-merge·/solo-merge 계약을 사용하세요. 명령 안내는 실행 승인이나 병합 완료가 아닙니다." ;;
+      esac
+      continue
+    fi
+    [[ "${_gt[1]:-}" == pr ]] || continue
     case "${_gt[2]:-}" in
       create) deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다." ;;
       merge)  deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다." ;;
