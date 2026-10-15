@@ -1,6 +1,6 @@
 # 공식 계약 기준 최종 설계 검토 — 2026-10-15
 
-상태: **G1·G2 로컬 구현·독립 검토 PASS, G3 연결 중**. 기준 `59bf40b`의 미커밋 1.1.0 후보.
+상태: **G1·G2 로컬 구현·독립 검토 PASS, G3 연결 중**. 구현 후보 `5d46b7c`, 미발행 1.1.0.
 사용자는 공식 사용법 확인 뒤 최종 검토와 문제 해소 시 진행을 요청했다.
 공식 원격 stack을 포기해야 할 근거는 확인되지 않았다. 지원 완료 판정은 아직 아니다.
 
@@ -150,6 +150,14 @@ wrapper 시험의 첫1ms 제한은 fixture 준비 전에 종료되어 1000ms로 
 잠금은 같은 Git common-dir 범위다. 다른 clone·관리자의 동시 변경 또는 원자적 stack 구성 고정을 보장하지 않는다.
 현재 github.com만 지원하며 다른 GH_HOST는 쓰기 전에 거부한다. 실제 GitHub pending/409/유실·solo 복구는 미확인이다.
 package catalog의 파일 포함·문서 검토는 packaged 실행이나 실제 native 사용자 행동의 증명이 아니다.
+
+G3 후속: `5d46b7c`의 분리 core 패키지에서 실제 native binary·Git을 실행해 restack·abort·continue/resume
+3/3 PASS를 확인했다(`g3-packaged-native-1/result.json`). REST는 대역이며 시험 환경을 정리했다.
+G3 통합55 PASS에는 signal 시 provider 종료 전 보호 PATCH를 거부하는 순서 단언이 포함된다.
+전체 quality의 첫 실행은7단계에서 옛 workflow hash와 새 이벤트 구독의 충돌로 FAIL했다.
+exact `stacked` 구독 한 줄을 별도 단언하고 나머지 바이트는 기존 hash로 보존한다. 수정 후 생성 회귀 PASS.
+첫 커밋은 도구 workdir 미인식 가드와 메시지 본문 형식에 막혔다. 명시 `git -C`와 규약 본문으로
+재실행해 secret scan·commit-msg를 통과했다. 가드·훅 예외를 사용하지 않았다. 전체 품질 후속 실행은 진행 중이다.
 
 ## 공식 원본
 

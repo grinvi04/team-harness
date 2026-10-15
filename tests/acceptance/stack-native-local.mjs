@@ -5,13 +5,14 @@ import * as fs from 'node:fs'
 import path from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
-const [source, output] = process.argv.slice(2)
+const [source, output, pluginRoot = path.resolve('plugins/harness-guard')] = process.argv.slice(2)
 assert.ok(source && output && path.isAbsolute(source) && path.isAbsolute(output), 'absolute binary and new evidence directory required')
+assert.ok(path.isAbsolute(pluginRoot), 'absolute source or packaged plugin root required')
 assert.ok(!fs.existsSync(output), 'preserve prior attempts')
 fs.mkdirSync(output, { recursive: true })
 const workspace = fs.mkdtempSync(path.join(output, 'workspace-')), repo = path.join(workspace, 'repo'), origin = path.join(workspace, 'origin'), bin = path.join(workspace, 'bin')
 for (const p of [repo, bin]) fs.mkdirSync(p)
-const binary = path.join(bin, 'gh-stack'), adapter = path.resolve('plugins/harness-guard/scripts/stack.mjs')
+const binary = path.join(bin, 'gh-stack'), adapter = path.join(pluginRoot, 'scripts/stack.mjs')
 fs.copyFileSync(source, binary);fs.chmodSync(binary, 0o700)
 const env = { PATH: bin + path.delimiter + process.env.PATH, HOME: workspace, GH_CONFIG_DIR: path.join(workspace, 'empty-auth'),
   GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1', GIT_TERMINAL_PROMPT: '0', GH_PROMPT_DISABLED: '1',
@@ -68,7 +69,7 @@ try {
 } catch(e) { reason=e.message;process.exitCode=1 }
 finally {
   fs.rmSync(workspace,{recursive:true,force:true})
-  const result={verdict,reason,cases,binaryDigest:createHash('sha256').update(fs.readFileSync(source)).digest('hex'),
+  const result={verdict,reason,cases,adapter,binaryDigest:createHash('sha256').update(fs.readFileSync(source)).digest('hex'),
     scope:'native v0.2.1 + actual Harness adapter + bare Git; GitHub inventory doubled; no global installation or remote service changes',cleanup:!fs.existsSync(workspace)}
   fs.writeFileSync(path.join(output,'result.json'),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result))
 }

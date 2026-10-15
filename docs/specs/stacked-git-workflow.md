@@ -1,6 +1,6 @@
 # 공식 gh-stack 연결 설계
 
-상태: **G1 제출·재기반·trusted CI와 G2 async/solo 로컬 구현·독립 검토 PASS, G3 연결 중**. 기준 `59bf40b`의 미커밋 1.1.0 후보.
+상태: **G1·G2 로컬 구현·독립 검토 PASS, G3 연결 중**. 구현 후보 `5d46b7c`, 미발행 1.1.0.
 [최초 G0](../pilots/gh-stack-compatibility.md)의 frozen-group FAIL을 보존하고,
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 trunk·그룹 의미로 연결 설계를 정정했다. 실제 원격 인수·전체 지원 완료는 아직 아니다.
 사용자는 stacked PR 방식과 무료 GitHub CLI 확장을 선택했다. 유료 Graphite는 범위 밖이다.
