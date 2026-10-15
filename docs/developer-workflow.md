@@ -8,9 +8,9 @@
 
 ## 1. 제품 저장소에서 시작하기
 
-실제 첫 확인·업무 시작 요청과 단계별 완료 기준은 [제품 개발 가이드](development-coordination.md)가 정본이다.
-혼자는 그 문서의 [첫 연결과 업무 요청](development-coordination.md#처음-연결할-때), 작은 팀은
-[팀 사용 가이드](team-development-guide.md#처음-함께-사용할-때)를 따른다. 이 문서는 업무별 계약을 찾는 색인이다.
+실제 첫 확인·업무 시작 요청과 단계별 완료 기준은 [제품 개발 가이드](guides/solo-development.md)가 정본이다.
+혼자는 그 문서의 [첫 연결과 업무 요청](guides/solo-development.md#처음-연결할-때), 작은 팀은
+[팀 사용 가이드](guides/team-development.md#처음-함께-사용할-때)를 따른다. 이 문서는 업무별 계약을 찾는 색인이다.
 일반 설계·TDD·디버깅은 선택한 방법론 하나로 수행하고 이미 유효한 계획·검사를 재사용한다.
 
 로컬 전용 제품은 제품의 검사·진행 기록으로 마치며 원격 생성·공개·PR을 강요하지 않는다.
@@ -44,13 +44,13 @@ PR base는 명시한 `--base` 또는 제품 `.harness-policy.json`의 `branchFlo
 <a id="6-native-선택과-명시-호출"></a>
 
 업무는 자연어로 요청할 수 있다. native 선택·명시 호출과 같은 방법론을 중복하지 않는 기준은
-[역할 분담](development-coordination.md#자연어-요청과-역할-분담)을 따른다. 선택이 맞지 않으면 Codex는
+[역할 분담](guides/solo-development.md#자연어-요청과-역할-분담)을 따른다. 선택이 맞지 않으면 Codex는
 `$plan`, Claude는 `/harness-guard:plan`처럼 명시한다. skill 선택은 실행 권한을 추가하지 않는다.
 과거 라우터 범위와 당시 회귀는 [역사 스펙](specs/workflow-routing-scope.md)에 보존한다.
 
 ## 3. 업무별 실행 계약과 완료 경계
 
-- 기능 개발의 요청·시험·커밋·PR 예시는 [기능 개발 상세](developer-workflow-feature.md)를 따른다.
+- 기능 개발의 요청·시험·커밋·PR 예시는 [기능 개발 상세](guides/feature-development.md)를 따른다.
 - 기존 기능 변경은 [`feature-modify`](../plugins/harness-guard/skills/feature-modify/SKILL.md)에 변경·유지 검사를 연결한다.
   원인 불명 실패는 [`systematic-debugging`](../plugins/harness-guard/skills/systematic-debugging/SKILL.md)으로
   기대·실제값과 재현 증거를 고정한다. 진단만 요청했다면 수정하지 않는다.
@@ -60,7 +60,7 @@ PR base는 명시한 `--base` 또는 제품 `.harness-policy.json`의 `branchFlo
 - PR·리뷰·머지는 [코드 리뷰 계약](code-review.md)을 따른다. main 중심 제품은 해당 제품의 머지 절차를,
   Git Flow 제품은 `feature-merge`·`release-check`·`release`·`hotfix`의 적용 범위를 확인한다.
   구현·PR 생성·병합·태그·설치·배포 완료를 각각 구분한다.
-- 여러 단계의 인계·재개에는 [개발 조정](development-coordination.md)의 `ao-coordinate`를 선택한다.
+- 여러 단계의 인계·재개에는 [개발 조정](guides/solo-development.md)의 `ao-coordinate`를 선택한다.
   단순 수정은 직접 처리하며 필수 독립 검증은 구현자와 다른 인스턴스가 수행한다.
 
 ## 4. 막혔을 때 우회하지 않기

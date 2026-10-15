@@ -7,7 +7,7 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 
 ## 변경 절차
 
-보호 적용은 선택 브랜치와 기존 회사 정책의 사전 조회를 통과해야 시작한다. [회사 정책](company-policy.md)과 [선택형 온보딩](company-onboarding.md)을 따른다.
+보호 적용은 선택 브랜치와 기존 회사 정책의 사전 조회를 통과해야 시작한다. [회사 정책](company-policy.md)과 [선택형 온보딩](guides/existing-repository.md)을 따른다.
 조회 오류·잘못된 응답·빈 집합은 보호를 쓰지 않고 실패한다. 첫 CI 또는 명시한 `--contexts`를 확인한 뒤 재실행한다.
 
 1. 브랜치 생성 (`fix/*`·`feature/*`·`docs/*`·`chore/*`) — main 직접 커밋은 이 repo에서도 금지

@@ -141,7 +141,7 @@ Claude Code의 slash skill과 Codex의 skill 로딩은 UI가 다르다. Claude�
 일반 개발 방법론은 사용자 선택을 우선하고 설치된 Superpowers를 활용한다. Harness의 계획·구현·진단
 스킬은 프로젝트 계약을 연결하며 별도 방법론으로 중첩하지 않는다. 미설치면 native 방식으로 같은 계약을
 지킨다. 기존 계획·승인과 현재 후보/환경/범위가 같은 검증 증거를 재사용한다. 필수 gate와 신선도 요구는
-유지한다. 구체적인 요청 예시는 [개발 안내](development-coordination.md#자연어-요청과-역할-분담)를 따른다.
+유지한다. 구체적인 요청 예시는 [개발 안내](guides/solo-development.md#자연어-요청과-역할-분담)를 따른다.
 
 기본 설치에서 `route-intent`와 UserPromptSubmit 연결은 제거했다. 일반 요청과 “진행해”는 native agent가
 기존 목표·승인과 현재 원본을 대조해 처리한다. 선택이 맞지 않으면 [명시 호출](developer-workflow.md#6-native-선택과-명시-호출)로 지정한다.
@@ -183,4 +183,4 @@ Claude Code의 slash skill과 Codex의 skill 로딩은 UI가 다르다. Claude�
 
 ## 요청부터 인수까지 이어가기
 
-여러 경계를 조정하거나 중단된 개발을 이어갈 때 [ao-coordinate 사용 흐름](development-coordination.md)을 적용한다. 단순 작업에는 역할·JSON을 강제하지 않는다. 제품 원본에서 목표·수용 기준·소유 경로·현재 후보·다음 행동을 관리하며, 이미 승인된 단계는 재승인 없이 이어간다. 독립 검증과 core gate를 생략하지 않는다. 별도 역할 TOML·skill 복사본은 설치하지 않는다.
+여러 경계를 조정하거나 중단된 개발을 이어갈 때 [ao-coordinate 사용 흐름](guides/solo-development.md)을 적용한다. 단순 작업에는 역할·JSON을 강제하지 않는다. 제품 원본에서 목표·수용 기준·소유 경로·현재 후보·다음 행동을 관리하며, 이미 승인된 단계는 재승인 없이 이어간다. 독립 검증과 core gate를 생략하지 않는다. 별도 역할 TOML·skill 복사본은 설치하지 않는다.
