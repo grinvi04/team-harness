@@ -15,7 +15,7 @@ main에 먼저 배치해야 이후 dashboard 의존 PR의 trusted 검사를 실�
 | 승인된 CI 파일 | 변경 |
 |---|---|
 | `templates/ci/commitlint.yml` | 정책 trunk와 직접 parent의 고유 commit 범위 분리 |
-| `templates/ci/test-guard.yml` | stacked 이벤트와 직접 parent 비교 |
+| `templates/ci/test-guard.yml` | stacked 이벤트와 직접 parent/head의 merge-base 비교 |
 | `templates/ci/repository/commitlint-extra.yml` | 보호된 원본의 repo 전용 문서 검사 |
 | `scripts/sync-repository-config.mjs` | 공통 template와 repo 전용 추가의 결정적 생성 |
 | `.github/workflows/commitlint-trusted.yml` | 정본과 repo 추가의 배치 사본 |
@@ -47,6 +47,14 @@ adapter 코드·stack opt-in·공통 스킬·소비 repo 설정은 복사하거�
 검사 증거는 이 worktree의 `.runtime/gh-stack-g0/ci-bootstrap-1.1.0/`에 보존한다.
 로컬 quality는 설치된 rg·검증된 pinned Python/Ruff의 macOS 도구 준비 적응만 사용한다.
 실제 GitHub 이벤트·서버 보호 집행은 로컬 fixture 통과로 완료 처리하지 않는다.
+
+독립 검토에서 target이 분기 후 추가한 단언을 문서-only PR의 삭제로 오인하는 반례를 확인했다.
+최초 12파일 SHA 복사와 이 후속 교정을 구분한다. 고정 parent/head 객체에서 유일한 merge-base를
+구해 PR 자신의 변경만 비교하며, 조회 실패·공통 조상 없음·복수 merge-base는 거부한다.
+실제 Git 분기 회귀는 기존 17개 통과·신규 1개 실패의 RED를 먼저 보존했다.
+직접 parent가 이미 포함한 하단의 추가로 상위의 삭제를 숨기는 기존 거부 조건은 유지한다.
+승인된 교정 후 같은 18개 시나리오가 모두 통과했고, 생성 배치 일치도 확인했다.
+이전 후보의 quality는 14단계 통과 후 검토에 따른 중단으로 보존하며 전체 통과로 세지 않는다.
 
 ## 전달 완료 기준
 

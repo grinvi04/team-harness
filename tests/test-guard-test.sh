@@ -263,6 +263,26 @@ else
   report "direct parent deletion cannot hide behind lower additions" false
 fi
 
+# Target-only additions after the fork are not deletions by a documentation-only PR.
+DIVERGED_REPO=$(setup_repo "diverged-document-only" normal)
+git -C "$DIVERGED_REPO" checkout -q main
+printf 'test("target added after fork")\n' > "$DIVERGED_REPO/tests/target-only.js"
+git -C "$DIVERGED_REPO" add tests
+git -C "$DIVERGED_REPO" commit -qm 'test: target adds an assertion after fork'
+git -C "$DIVERGED_REPO" push -q origin main
+git -C "$DIVERGED_REPO" checkout -q pr
+printf 'documentation-only change\n' > "$DIVERGED_REPO/README.md"
+git -C "$DIVERGED_REPO" add README.md
+git -C "$DIVERGED_REPO" commit -qm 'docs: candidate documentation only'
+git -C "$DIVERGED_REPO" push -q origin HEAD:refs/pull/1/head
+DIVERGED_RC=$(run_guard "$TMP/workflow.sh" "$DIVERGED_REPO" "$TMP/diverged-document-only.log")
+if [ "$DIVERGED_RC" -eq 0 ] && grep -Fq 'base(main)=8, PR(head)=8' "$TMP/diverged-document-only.log"; then
+  report "target additions after fork do not reject a document-only PR" true
+else
+  cat "$TMP/diverged-document-only.log"
+  report "target additions after fork do not reject a document-only PR" false
+fi
+
 if [ "$SCENARIOS" -eq 0 ]; then
   echo "FAIL: no test-guard scenarios executed"
   FAIL=$((FAIL + 1))
