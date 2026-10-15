@@ -185,14 +185,33 @@ for labels in '["allow-test-removal"]' '["disallow-test-removal"]' '["allow-test
 done
 if python3 - "$WORKFLOW_SOURCE" "$TEMPLATE_SOURCE" <<'PY_LABEL_EVENTS'
 from pathlib import Path
+import re
 import sys
+ordinary = {'opened', 'synchronize', 'reopened', 'edited', 'labeled', 'unlabeled'}
 for file in sys.argv[1:]:
-    line=next(x.strip() for x in Path(file).read_text().splitlines() if x.strip().startswith('types:'))
-    events={x.strip() for x in line.split('[',1)[1].split(']',1)[0].split(',')}
-    assert {'labeled','unlabeled','stacked'} <= events,events
+    text = Path(file).read_text()
+    trigger = re.search(r'^on:\n(.*?)(?=^\S)', text, re.M | re.S).group(1)
+    blocks = re.findall(r'^  ([a-z_]+):\n((?:^    .*\n|^\s*\n)*)', trigger, re.M)
+    assert len(blocks) == 2 and {name for name, _ in blocks} == {'pull_request', 'pull_request_target'}, (file, blocks)
+    for name, block in blocks:
+        def values(key):
+            lines = re.findall(r'^    ' + key + r': \[([^\]]+)\]$', block, re.M)
+            assert len(lines) == 1, (file, name, key, lines)
+            items = [x.strip() for x in lines[0].split(',')]
+            assert len(items) == len(set(items)), (file, name, key, items)
+            return set(items)
+        assert values('branches') == {'main', 'develop'}, (file, name)
+        assert values('types') == ordinary | ({'stacked'} if name == 'pull_request_target' else set()), (file, name)
+    permissions = re.search(r'^permissions:\n(.*?)(?=^\S)', text, re.M | re.S).group(1)
+    assert permissions.strip() == 'contents: read', (file, permissions)
+    jobs = text.split('\njobs:\n', 1)[1]
+    assert re.findall(r'^  ([a-zA-Z0-9_-]+):$', jobs, re.M) == ['test-guard'], file
+    assert not re.search(r'^\s*(?:concurrency|if):', text, re.M), file
+    checkout = re.search(r'^      - uses: actions/checkout@[^\n]+\n(.*?)(?=^      - )', jobs, re.M | re.S).group(1)
+    assert re.findall(r'^          persist-credentials: (.+)$', checkout, re.M) == ['false'], file
 PY_LABEL_EVENTS
-then report "exemption label changes refresh the check" true
-else report "exemption label changes refresh the check" false; fi
+then report "both events preserve branches, label refresh, read-only token and credential-free checkout" true
+else report "both events preserve branches, label refresh, read-only token and credential-free checkout" false; fi
 
 NORMAL_REPO=$(setup_repo "normal-runtime" normal)
 NORMAL_RUNNER_RC=0

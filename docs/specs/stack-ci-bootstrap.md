@@ -79,3 +79,21 @@ adapter 코드·stack opt-in·공통 스킬·소비 repo 설정은 복사하거�
 이 스냅샷은 로컬 검증만 증명한다. 원격 CI·리뷰·순차 병합·태그·역병합·설치는 포함하지 않는다.
 후속 전달 상태는 [저장소 PR 원본](https://github.com/grinvi04/team-harness/pulls)과 해당 버전 태그에서 확인한다.
 통합 담당자가 기존 완료 기준에 따라 원격 결과와 현재 소스를 대조한다.
+
+## 1.1.0 이벤트 전환
+
+PR #581의 후보 `c8c7f44`에서 required `test-guard`가 생성되지 않는 전환 공백을 확인했다.
+기존 base/default main은 `pull_request`만, 후보는 `pull_request_target`만 구독한다.
+1.1.0은 한 job에 두 이벤트를 구독해 기존 PR 검사를 유지하고 target 배치 경로를 연다.
+두 이벤트 모두 main/develop과 기존 활동·라벨 변경을 구독하며 target에만 `stacked`를 포함한다.
+inline 검사·읽기 전용 contents 권한·credential 비보존 checkout·required 보호는 유지한다.
+조건부 skip이나 concurrency 취소를 추가하지 않는다.
+
+후보가 통제하는 `pull_request` 성공을 trusted 실행 증거로 세지 않는다.
+required check 이름만으로 실행 이벤트 종류를 강제할 수 없으므로 main 배치 후
+target run의 이벤트·workflow 원본 SHA·검사 대상 후보 SHA를 직접 확인한다.
+그 확인을 거쳐 전체 1.2.0 작업 PR에서 임시 `pull_request` 구독을 제거한다.
+이번 로컬 변경은 이벤트별 계약 RED 후 기존 18개 시나리오·생성물·문법 검사를 대상으로 한다.
+이벤트별 계약 추가 직후 17 PASS/1 FAIL을 보존했고, 수정 후 18/18과 생성물·YAML/쉘 구문은 PASS다.
+원문 증거는 `.runtime/gh-stack-g0/ci-bootstrap-delivery-1/transition-fixture/`에 보존한다.
+이전 74단계 PASS는 위 후보의 과거 기록이며 현재 변경 전체의 PASS를 뜻하지 않는다.

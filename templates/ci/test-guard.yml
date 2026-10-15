@@ -10,6 +10,9 @@
 name: test-guard
 
 on:
+  pull_request:
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, edited, labeled, unlabeled]
   pull_request_target:
     branches: [main, develop]
     types: [opened, synchronize, reopened, edited, stacked, labeled, unlabeled]
