@@ -1,5 +1,5 @@
 // Native local rebase owns conflicts/abort. Harness owns the observed publication boundary.
-import { existsSync, lstatSync, readFileSync, realpathSync, writeFileSync } from 'node:fs'
+import { existsSync, lstatSync, readFileSync, readdirSync, realpathSync, writeFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { assertAllowed, fingerprint, journalFor, observeStack, prIdentity, pushObserved, run } from './stack.mjs'
@@ -15,6 +15,81 @@ function recoveryPending(root) {
   return [path.join(commonDir(root), 'gh-stack-rebase-state'), path.join(gitDir, 'gh-stack-rebase-state'),
     path.join(gitDir, 'rebase-merge'), path.join(gitDir, 'rebase-apply')].some(p => existsSync(p))
 }
+function publicationRecords(root) {
+  const directory = path.join(commonDir(root), 'harness-stack')
+  if (!existsSync(directory)) return []
+  const safe = (file, directory = false) => {
+    const s = lstatSync(file)
+    if (s.isSymbolicLink() || (directory ? !s.isDirectory() : !s.isFile())
+      || (s.mode & 0o077) || (process.getuid && s.uid !== process.getuid())) throw Error('unsafe publication journal')
+  }
+  safe(directory, true)
+  return readdirSync(directory).filter(f => f.endsWith('.json')).sort().map(name => {
+    const file = path.join(directory, name); safe(file)
+    const raw = readFileSync(file, 'utf8'), data = JSON.parse(raw)
+    return { file, hash: createHash('sha256').update(raw).digest('hex'), data }
+  })
+}
+function adoptionPlan(snapshot) {
+  if (snapshot.operation !== 'sync') return []
+  const layers = snapshot.layers.filter(l => !l.merged && !l.remoteIsAncestor && !l.localIsAncestor)
+  if (!layers.length) return []
+  const records = publicationRecords(snapshot.root)
+  const branches = new Set(snapshot.layers.map(l => l.branch))
+  for (const { data } of records) {
+    if (data.repo === snapshot.repo && data.trunk === snapshot.trunk
+      && data.before?.layers?.some(l => branches.has(l.branch))
+      && !['confirmed', 'aborted'].includes(data.state) && data.effects?.length)
+      throw Error('unresolved overlapping publication journal; reconcile its effects before remote adoption')
+  }
+  function publicationProof(record, layer) {
+    const d = record.data
+    if (d.schemaVersion !== 1 || d.state !== 'confirmed'
+      || !['submit', 'sync', 'restack'].includes(d.action) || d.repo !== snapshot.repo || d.trunk !== snapshot.trunk
+      || d.before?.root !== snapshot.root || d.after?.root !== snapshot.root || d.after.repo !== snapshot.repo
+      || d.after.trunk !== snapshot.trunk || !Array.isArray(d.effects)
+      || !d.effects.some(e => ['push-observed-refs', 'native-rebase'].includes(e.kind))
+      || !d.effects.every(e => typeof e.kind === 'string' && ['returned', 'unknown'].includes(e.state))
+      || !d.after.layers?.some(l => l.branch === layer.branch && l.prUrl === layer.prUrl && l.prUrl
+        && l.headOid === layer.headOid && l.remoteOid === layer.headOid)) return null
+    // confirmed is written only after current local/remote readback agrees.
+    // Recovery may confirm a lost response (effect stays unknown), and native
+    // fast-forward/adoption may need no push. Neither invalidates that readback.
+    return { file: record.file, hash: record.hash }
+  }
+  return layers.map(layer => {
+    const proof = records.slice().reverse().map(r => publicationProof(r, layer)).find(Boolean)
+    if (!proof) throw Error(`remote adoption has no confirmed publication for unchanged local ${layer.branch}`)
+    return { branch: layer.branch, prUrl: layer.prUrl, oldOid: layer.headOid, remoteOid: layer.remoteOid,
+      proof }
+  })
+}
+function adoptRemote(journal, observed, adoptions) {
+  const { snapshot: s } = observed, git = args => run('git', args, { cwd: s.root })
+  const original = s.layers.find(l => l.branch === s.currentBranch)
+  const recovery = { stage: 'planned', originalBranch: s.currentBranch, originalHead: original.headOid,
+    entries: adoptions.map(a => ({ ...a, backupRef: `refs/harness-stack-recovery/${path.basename(journal.file, '.json')}/${a.branch}` })) }
+  journal.data.remoteAdoption = recovery; journal.save()
+  if (git(['branch', '--show-current']) !== s.currentBranch || git(['rev-parse', 'HEAD']) !== original.headOid
+    || git(['status', '--porcelain', '--untracked-files=normal'])) throw Error('local work changed before remote adoption')
+  journal.effect('adoption-detach', () => git(['switch', '--detach', original.headOid]))
+  recovery.stage = 'detached'; journal.save()
+  for (const { proof: p } of adoptions) {
+    if (createHash('sha256').update(readFileSync(p.file)).digest('hex') !== p.hash)
+      throw Error('publication evidence changed before remote adoption; inspect the journal')
+  }
+  const commands = ['start', 'option no-deref']
+  for (const a of recovery.entries) {
+    commands.push(`create ${a.backupRef} ${a.oldOid}`, `update refs/heads/${a.branch} ${a.remoteOid} ${a.oldOid}`)
+  }
+  for (const l of s.layers.filter(l => !adoptions.some(a => a.branch === l.branch)))
+    commands.push(`verify refs/heads/${l.branch} ${l.headOid}`)
+  commands.push(`verify refs/heads/${s.trunk} ${s.localTrunkOid}`, 'prepare', 'commit', '')
+  journal.effect('adoption-ref-transaction', () => run('git', ['update-ref', '--stdin'], { cwd: s.root, input: commands.join('\n') }))
+  recovery.stage = 'adopted'; journal.save()
+  journal.effect('adoption-checkout', () => git(['switch', s.currentBranch]))
+  recovery.stage = 'complete'; journal.save()
+}
 function metadata(prs) {
   return prs.map(p => {
     if (!p) return null
@@ -25,14 +100,14 @@ function metadata(prs) {
     return result
   })
 }
-function sameContext(data, observed) {
+function sameContext(data, observed, beforeNative = false) {
   const b = data.before, a = observed.snapshot
   if (b.repo !== a.repo || b.root !== a.root || b.trunk !== a.trunk || b.trunkOid !== a.trunkOid
     || b.currentBranch !== a.currentBranch || !equal(data.policy, observed.policy)
     || !equal(metadata(data.prs), metadata(observed.prs))
     || !equal(b.layers.map(l => [l.branch, l.parent, l.merged]), a.layers.map(l => [l.branch, l.parent, l.merged])))
     throw Error('stack context, policy, PR relationship, or trunk changed during rebase; inspect before continuing')
-  if (a.localTrunkOid !== (data.action === 'sync' ? b.trunkOid : b.localTrunkOid))
+  if (a.localTrunkOid !== (data.action === 'sync' && !beforeNative ? b.trunkOid : b.localTrunkOid))
     throw Error('local trunk changed outside the observed synchronization target')
   assertAllowed(validateStack(a, observed.policy, { allowRewritten: true }))
   assertAllowed(observed.remoteCheck)
@@ -66,21 +141,28 @@ function remoteState(data, snapshot) {
 export function rebaseStack({ action, apply = false, expected, resume, cwd = process.cwd() }) {
   if (!['restack', 'sync'].includes(action)) throw Error('unknown local rebase operation')
   const root = realpathSync(run('git', ['rev-parse', '--show-toplevel'], { cwd }))
+  let journal = resume ? loadJournal(resume, root, action) : null
+  if (!resume && publicationRecords(root).some(({ data }) => data.before?.root === root
+    && data.remoteAdoption && !['confirmed', 'aborted'].includes(data.state)))
+    throw Error('remote adoption recovery is pending; inspect its journal instead of starting a new native rebase')
+  if (journal?.data.remoteAdoption && (journal.data.remoteAdoption.stage !== 'complete'
+    || !journal.data.effects.some(e => e.kind === 'native-rebase')))
+    throw Error('remote adoption is incomplete; preserve recovery refs and inspect local refs/checkout before any native resume')
   if (recoveryPending(root)) throw Error('native rebase recovery is pending; resolve then gh stack rebase --continue, or explicitly --abort, before resuming this journal')
-  let observed = observeStack({ cwd: root, operation: action }), journal
+  let observed = observeStack({ cwd: root, operation: action })
+  const adoptions = resume ? [] : adoptionPlan(observed.snapshot)
   if (resume) {
-    journal = loadJournal(resume, root, action)
     sameContext(journal.data, observed)
     if (journal.data.local && !equal(journal.data.local.layers.map(l => l.headOid), observed.snapshot.layers.map(l => l.headOid)))
       throw Error('local refs changed after recorded rebase; do not silently resume another candidate')
     remoteState(journal.data, observed.snapshot)
   } else {
-    assertAllowed(observed.localCheck); assertAllowed(observed.remoteCheck)
+    assertAllowed(validateStack(observed.snapshot, observed.policy, { adoptions })); assertAllowed(observed.remoteCheck)
   }
   const now = digest({ action, candidate: fingerprint(observed.snapshot), prs: observed.prs.map(p => p && prIdentity(p)),
-    policy: observed.policy, recovery: journal?.data || null })
+    policy: observed.policy, adoptions, recovery: journal?.data || null })
   if (!apply) return { state: 'preview', action, fingerprint: now, snapshot: observed.snapshot,
-    resume: resume || null, engine: action === 'restack' ? 'gh stack rebase --no-trunk' : 'gh stack rebase --remote origin' }
+    adoptions, resume: resume || null, engine: action === 'restack' ? 'gh stack rebase --no-trunk' : 'gh stack rebase --remote origin' }
   if (expected !== now) throw Error('preview is stale; inspect current rebase candidate')
   if (!journal) {
     journal = journalFor(observed.snapshot, action, expected)
@@ -88,11 +170,22 @@ export function rebaseStack({ action, apply = false, expected, resume, cwd = pro
   }
   const git = args => run('git', args, { cwd: root })
   try {
+    if (adoptions.length) {
+      adoptRemote(journal, observed, adoptions)
+      observed = observeStack({ cwd: root, operation: action })
+      sameContext(journal.data, observed, true); assertAllowed(observed.localCheck)
+      const expectedLayers = journal.data.before.layers.map(l => ({ ...l,
+        headOid: adoptions.find(a => a.branch === l.branch)?.remoteOid || l.headOid }))
+      if (!equal(expectedLayers.map(l => l.headOid), observed.snapshot.layers.map(l => l.headOid))
+        || !equal(journal.data.before.layers.map(l => l.remoteOid), observed.snapshot.layers.map(l => l.remoteOid)))
+        throw Error('refs changed during remote adoption; inspect before native rebase')
+      journal.data.nativeBefore = observed.snapshot; journal.save()
+    }
     if (!resume) journal.effect('native-rebase', () => observed.gh(['stack', 'rebase', ...(action === 'restack' ? ['--no-trunk'] : ['--remote', 'origin'])]))
     if (recoveryPending(root)) throw Error('native rebase is incomplete; use its continue/abort recovery before publication')
     observed = observeStack({ cwd: root, operation: action }); sameContext(journal.data, observed)
     // An explicit native abort restores the original local candidate. Never re-run it on resume.
-    if (resume && !journal.data.local && equal(journal.data.before.layers.map(l => l.headOid), observed.snapshot.layers.map(l => l.headOid))) {
+    if (resume && !journal.data.local && equal((journal.data.nativeBefore || journal.data.before).layers.map(l => l.headOid), observed.snapshot.layers.map(l => l.headOid))) {
       journal.data.state = 'aborted'; journal.data.after = observed.snapshot; journal.save()
       return { state: 'aborted', journal: journal.file }
     }

@@ -104,7 +104,9 @@ bash "${HARNESS_PLUGIN_ROOT:?}/scripts/stack.sh" sync \
 
 restack은 공식 `rebase --no-trunk`, sync는 `rebase --remote origin`을 사용한다.
 adapter가 rebase와 전송을 분리하며 원래 관찰한 원격 OID를 lease로 유지한다.
-다른 writer의 원격 변경·dirty/locked worktree·미확정 queue가 있으면 중단한다.
+관찰 후 달라진 원격 OID·dirty/locked worktree·미확정 queue가 있으면 중단한다.
+서버 재기반으로 갈라진 층은 과거 confirmed 전송/수신 journal과 현재 로컬 OID가 같을 때만
+sync preview의 `adoptions`에 나온다. 수신 시 옛 OID를 recovery ref로 보존하며 미발행 로컬 변경은 덮어쓰지 않는다.
 공식 `gh stack sync`나 `sync --prune` 직접 호출로 이 경계를 건너뛰지 않는다.
 재기반·서버 retarget 후에는 head/base·고유 diff·CI·리뷰 증거를 새 후보로 다시 확인한다.
 
@@ -118,6 +120,8 @@ bash "${HARNESS_PLUGIN_ROOT:?}/scripts/stack.sh" restack --resume '/absolute/jou
 ```
 
 sync 복구는 위의 `restack` 두 곳을 `sync`로 바꾼다. 이 재개는 원격 push를 할 수 있다.
+원격 수신 중 detach·ref 갱신·checkout이 중단됐으면 이 일반 재개를 거부한다.
+journal의 `remoteAdoption` 단계·원래 branch/OID·recovery ref와 실제 작업 상태를 먼저 대조하고 보존한다.
 submit에는 `--resume`이 없다. 부분 성공·응답 유실은 journal과 현재 PR/refs를 먼저 대조하고
 성공한 PR·refs를 삭제하거나 같은 mutation을 맹목적으로 반복하지 않는다.
 

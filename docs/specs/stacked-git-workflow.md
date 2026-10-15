@@ -126,6 +126,13 @@ PR 본문은 preview 해시와 연결한 내용을 메모리에 보관해 층 �
 표준 Git push는 모든 full ref와 source commit을 명시하고 absent ref에는 빈 expected lease를 쓴다.
 원격 경합·atomic 미지원·응답 유실은 미확인으로 기록한다. 새 fetch 값으로 lease를 교체해 재시도하지 않는다.
 공식 sync에는 no-push 옵션이 없다. local rebase 엔진과 전송을 분리하며 공식 metadata를 직접 편집하지 않는다.
+서버 재기반 뒤 local/remote가 갈라진 sync는 confirmed 전송/수신 journal의 repo·root·PR·branch와
+`after.headOid == after.remoteOid == 현재 local HEAD`가 맞는 층만 원격 수신 후보로 삼는다.
+증거 파일 digest·관찰 remote OID를 preview에 결박하고, 미확정 효과·dirty·다른 worktree 소유는 거부한다.
+명령 응답 유실도 이후 사후 조회로 확인됐으면 사용하며, 명령 반환 성공만으로 confirmed를 만들지 않는다.
+기존 OID의 recovery ref 생성과 branch CAS 갱신은 한 transaction이다. hard reset·기존 journal 수정은 없다.
+detach·갱신·checkout 중단은 보존·수동 대조하며 일반 native rebase 재개로 숨기지 않는다.
+수신 후 공식 local rebase와 최초 remote lease를 유지하고, 바뀐 후보의 리뷰·CI를 다시 확인한다.
 
 상위 PR도 trunk 필터로 CI가 실행되는지 관찰한다. 신뢰 검사 원문은 protected 원본의 고정 SHA에서 읽는다.
 후보 코드의 시험은 read-only token·비밀정보 없는 격리 job으로 실행한다.

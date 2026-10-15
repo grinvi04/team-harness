@@ -14,7 +14,7 @@ export function prNumber(url, repo) {
   if (!Number.isSafeInteger(number)) throw Error('invalid PR number')
   return number
 }
-export function validateStack(snapshot, policy, { allowRewritten = false } = {}) {
+export function validateStack(snapshot, policy, { allowRewritten = false, adoptions = [] } = {}) {
   const violations = []
   const require = (condition, message) => { if (!condition) violations.push(message) }
   try {
@@ -32,7 +32,9 @@ export function validateStack(snapshot, policy, { allowRewritten = false } = {})
       require(l.parent === parent && l.parent !== l.branch, `unregistered parent: ${l.branch}`)
       require(oid(l.headOid) && (l.remoteOid === null || oid(l.remoteOid)), `invalid layer OID: ${l.branch}`)
       if (!allowRewritten && !l.merged) require(l.remoteIsAncestor === true
-        || (s.operation === 'sync' && l.localIsAncestor === true), `remote changed outside this candidate: ${l.branch}`)
+        || (s.operation === 'sync' && (l.localIsAncestor === true || adoptions.some(a =>
+          a.branch === l.branch && a.oldOid === l.headOid && a.remoteOid === l.remoteOid && a.prUrl === l.prUrl))),
+      `remote changed outside this candidate: ${l.branch}`)
       require(!l.merged || (s.operation === 'sync' && !activeSeen), `merged layers must be a verified prefix: ${l.branch}`)
       if (!l.merged) activeSeen = true
       if (s.operation === 'submit') {

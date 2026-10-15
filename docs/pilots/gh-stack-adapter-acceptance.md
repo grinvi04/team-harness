@@ -47,6 +47,36 @@ PR32 병합 뒤 GitHub는 stack 목록에서 PR32를 지우지 않고 `[merged32
 - `retained-prefix-independent-review.log`: 실제 read-only Codex/Astra medium 검토에서 추가 회귀 미발견;
   순수 계약 73개 재확인. sandbox상 CLI·원격 실행은 검토자가 수행하지 않았으며 별도 증거와 구분한다.
 
+## 서버 재기반 뒤 로컬 수신 검증
+
+다음 실제 sync preview는 B/C의 local·remote divergence 때문에 변경 전에 거부됐다.
+`adapter-live-3/b-inspect.json`과 이전 confirmed restack journal을 대조하면 로컬은 전송된 그대로이고,
+원격은 PR32 병합 뒤 재작성됐다. 공식 local rebase의 원격 반영은 FF만 지원하며 같은 구성의
+native sync도 이 원격 tip을 채택하지 않는다. [설계의 수신 경계](../specs/stacked-git-workflow.md#제출ci-신뢰-경계)를
+독립 검토 뒤 아래 회귀 검사를 통과했다. 실제 원격 수신은 별도로 남아 있다.
+
+기존 confirmed 기록의 동일 repo·root·trunk·PR·local=remote OID와 digest를 연결해 수신할 층을 정했다.
+새 journal을 먼저 기록하고 옛 OID recovery ref 생성과 local branch CAS를 하나의 transaction으로 묶는다.
+서버 tip 수신 후 공식 local rebase를 실행하며 remote 전송은 최초 lease를 유지한다.
+
+- `sync-adoption-red.log`: 구현 전 4개 중 기대 수신·preview 2개 FAIL, 기존 거부 2개 PASS.
+- `sync-adoption-green-1.log`: 4개 PASS; 서버 고유 내용·옛 로컬 OID 보존, 미발행·미확정·stale 거부.
+- `sync-adoption-boundaries.log`, `sync-adoption-proof.log`: 추가 5개 PASS; dirty·CAS 경합·checkout 중단·
+  원격 writer·증거 변경을 검사했다. 실제 Git 객체/ref를 쓰지만 REST와 native metadata는 대역이다.
+- `sync-adoption-independent-review.log`: 실제 read-only Codex/Astra가 push 없는 confirmed 수신 뒤
+  다음 서버 재작성을 받을 수 없는 결함을 지적했다. `sync-successive-adoption-red.log`에서 재현했다.
+- `sync-successive-adoption-green.log`: 중간 수정의 연속 수신 1개 PASS. 최종 구현 증거와 구분한다.
+- `sync-adoption-independent-review-2.log`: 응답 유실 후 확정된 전송·일반 FF 수신도 다음 재작성을
+  받지 못하는 결함 발견. `sync-readback-proof-red.log`에서 2개 FAIL로 재현했다.
+- 최종 기준은 명령 반환 여부가 아니라 confirmed journal의 실제 사후 local/remote OID 일치다.
+  재귀 증거 사슬을 추가하지 않으며 미확정 효과와 미발행 로컬 후보는 계속 거부한다.
+- `sync-adoption-final-suite.log`: CLI·정책·merge 110/110 PASS, skip 0, exit 0.
+- `sync-adoption-independent-review-3.log`: 실제 read-only Codex/Astra medium에서 추가 결함 미발견.
+  구문·정책 31개 PASS이며 Git 쓰기·원격 검증은 포함하지 않는다.
+
+실제 lab의 새 preview는 PR33/34의 옛 전송 OID·현재 원격 OID·proof digest를 함께 제시했다.
+`adapter-live-3/sync-adoption-preview.json`은 계획이며 실제 수신·병합의 완료 증거는 아니다.
+
 ## 아직 필요한 확인
 
 PR33/34의 실제 sync·새 후보 리뷰·필수 CI·순차 병합, provider의 일반 pending polling,

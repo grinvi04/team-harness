@@ -53,6 +53,13 @@ else if(a[0]==='api' && a.includes('GET')) {
  s.refreshPRs=true;s.rebaseCalled=true;fs.writeFileSync(p,JSON.stringify(s));
  const original=git('branch','--show-current');let parent='develop';
  if(!a.includes('--no-trunk')){git('fetch','origin');if(cp.spawnSync(${JSON.stringify(git)},['merge-base','--is-ancestor','develop','origin/develop']).status===0)git('branch','-f','develop','origin/develop')}
+ // Pinned cmd/rebase.go fetches and fast-forwards active stack branches before rebasing.
+ if(!a.includes('--no-trunk'))for(const b of s.view.branches.filter(b=>!b.isMerged)){
+  const remote='origin/'+b.name;
+  if(cp.spawnSync(${JSON.stringify(git)},['merge-base','--is-ancestor',b.name,remote]).status===0&&git('rev-parse',b.name)!==git('rev-parse',remote)){
+   if(b.name===original)git('merge','--ff-only',remote);else git('branch','-f',b.name,remote);
+  }
+ }
  for(const [i,b]of s.view.branches.entries()){
   if(b.isMerged)continue;
   if(i||!a.includes('--no-trunk')){
@@ -311,4 +318,283 @@ test('sync preview binds local trunk even when its remote has not changed', t =>
   const r=f.runStack(['sync','--apply','--expected',JSON.parse(p.stdout).fingerprint])
   assert.notEqual(r.status,0,r.stdout+r.stderr);assert.match(r.stderr,/local trunk|preview is stale/)
   assert.equal(f.calls().some(a=>a[0]==='stack'&&a[1]==='rebase'),false)
+})
+
+// GitHub REST/native metadata is doubled; every rewritten commit/tree/ref is real Git.
+function serverRewrittenPublishedLayer(t) {
+  const f = fixture(t), submitted = submit(f, plan(f))
+  assert.equal(submitted.status, 0, submitted.stdout + submitted.stderr)
+  const publication = JSON.parse(submitted.stdout)
+  assert.equal(publication.state, 'confirmed')
+  const oldA = f.runGit('rev-parse', 'codex/a'), oldB = f.runGit('rev-parse', 'codex/b')
+  const trunk = f.runGit('rev-parse', 'develop')
+  const merged = f.runGit('commit-tree', `${oldA}^{tree}`, '-p', trunk, '-p', oldA, '-m', 'server merged a')
+  const extra = path.join(f.dir, 'server-only.txt')
+  fs.writeFileSync(extra, 'unique content added to rewritten remote b\n')
+  const blob = f.runGit('hash-object', '-w', extra), index = path.join(f.dir, 'server-index')
+  const indexed = (...args) => execFileSync(git, args, { cwd: f.repo, env: { ...process.env, GIT_INDEX_FILE: index }, encoding: 'utf8' }).trim()
+  indexed('read-tree', `${oldB}^{tree}`)
+  indexed('update-index', '--add', '--cacheinfo', `100644,${blob},server-only.txt`)
+  const rewritten = f.runGit('commit-tree', indexed('write-tree'), '-p', merged, '-m', 'server rewrote b with unique content')
+  // Transfer objects, then emulate server updates in the isolated bare remote.
+  f.runGit('push', 'origin', `${rewritten}:refs/fixture/server-rewrite`)
+  f.runGit('--git-dir', path.join(f.dir, 'origin'), 'update-ref', 'refs/heads/develop', merged, trunk)
+  f.runGit('--git-dir', path.join(f.dir, 'origin'), 'update-ref', 'refs/heads/codex/b', rewritten, oldB)
+  f.change(s => {
+    s.view.branches[0].isMerged = true
+    s.view.branches[0].pr = { url: s.prs[0].html_url }
+    s.prs[0].state = 'closed'; s.prs[0].merged = true; s.prs[0].merged_at = '2026-10-15T00:00:00Z'
+    s.prs[1].base = { ref: 'develop', sha: merged, repo: { full_name: 'org/repo' } }
+    s.prs[1].head.sha = rewritten
+    for (const p of s.prs) p.stack.base.sha = merged
+    s.remote.pull_requests = s.prs; s.refreshPRs = true
+  })
+  assert.equal(f.runGit('rev-parse', 'codex/b'), oldB, 'local remains the confirmed published candidate')
+  assert.equal(f.runGit('status', '--porcelain'), '')
+  return { f, oldB, rewritten, publication }
+}
+function adoptionRefs(f) {
+  return { local: f.runGit('show-ref'), remote: f.runGit('ls-remote', '--heads', 'origin') }
+}
+test('sync adoption preserves server-only content and a recovery ref for the confirmed published local', t => {
+  const { f, oldB, rewritten } = serverRewrittenPublishedLayer(t)
+  const preview = f.runStack(['sync'])
+  assert.equal(preview.status, 0, preview.stdout + preview.stderr)
+  const r = f.runStack(['sync', '--apply', '--expected', JSON.parse(preview.stdout).fingerprint])
+  assert.equal(r.status, 0, r.stdout + r.stderr)
+  const result = JSON.parse(r.stdout)
+  assert.equal(result.state, 'confirmed')
+  assert.equal(f.runGit('show', 'codex/b:server-only.txt'), 'unique content added to rewritten remote b')
+  assert.equal(f.runGit('merge-base', '--is-ancestor', rewritten, 'codex/b'), '')
+  const recovery = `refs/harness-stack-recovery/${path.basename(result.journal, '.json')}/codex/b`
+  assert.equal(f.runGit('rev-parse', recovery), oldB)
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/b').split('\t')[0], f.runGit('rev-parse', 'codex/b'))
+})
+test('sync adoption rejects an extra local commit instead of replacing unpublished work', t => {
+  const { f } = serverRewrittenPublishedLayer(t)
+  fs.writeFileSync(path.join(f.repo, 'local-only.txt'), 'unpublished local work')
+  f.runGit('add', 'local-only.txt'); f.runGit('commit', '-m', 'unpublished local b update')
+  const before = adoptionRefs(f), r = f.runStack(['sync'])
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.deepEqual(adoptionRefs(f), before)
+  assert.equal(f.runGit('show', 'codex/b:local-only.txt'), 'unpublished local work')
+  assert.equal(f.calls().some(a => a[0] === 'stack' && a[1] === 'rebase'), false)
+})
+test('sync adoption rejects an unresolved journal despite an older confirmed publication', t => {
+  const { f, publication } = serverRewrittenPublishedLayer(t)
+  const pending = JSON.parse(fs.readFileSync(publication.journal, 'utf8'))
+  pending.action = 'sync'; pending.state = 'unverified'
+  pending.effects = [{ kind: 'push-observed-refs', state: 'unknown' }]
+  const file = path.join(path.dirname(publication.journal), '9999999999999-11111111-1111-4111-8111-111111111111.json')
+  fs.writeFileSync(file, JSON.stringify(pending), { mode: 0o600 })
+  const before = adoptionRefs(f), r = f.runStack(['sync'])
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.deepEqual(adoptionRefs(f), before)
+  assert.equal(JSON.parse(fs.readFileSync(file, 'utf8')).effects[0].state, 'unknown')
+  assert.equal(f.calls().some(a => a[0] === 'stack' && a[1] === 'rebase'), false)
+})
+test('sync adoption preview rejects a later remote move before changing local branches', t => {
+  const { f, rewritten } = serverRewrittenPublishedLayer(t)
+  const preview = f.runStack(['sync'])
+  assert.equal(preview.status, 0, preview.stdout + preview.stderr)
+  const moved = f.runGit('commit-tree', `${rewritten}^{tree}`, '-p', rewritten, '-m', 'later server writer')
+  f.runGit('push', 'origin', `${moved}:refs/fixture/later-server-writer`)
+  f.runGit('--git-dir', path.join(f.dir, 'origin'), 'update-ref', 'refs/heads/codex/b', moved, rewritten)
+  const before = adoptionRefs(f)
+  const r = f.runStack(['sync', '--apply', '--expected', JSON.parse(preview.stdout).fingerprint])
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.deepEqual(adoptionRefs(f), before)
+  assert.equal(f.calls().some(a => a[0] === 'stack' && a[1] === 'rebase'), false)
+})
+
+function adoptionFault(f, kind, writer = null) {
+  const file = path.join(f.dir, 'bin', 'git'), source = fs.readFileSync(file, 'utf8')
+  const marker = "if(a.join(' ')==='remote get-url origin')"
+  assert.ok(source.includes(marker))
+  const inject = `{
+    const fs=require('node:fs'),p=process.env.STACK_TEST_STATE,s=JSON.parse(fs.readFileSync(p));
+    if(${JSON.stringify(kind)}==='cas'&&a[0]==='update-ref'&&a[1]==='--stdin'&&!s.adoptionCASWriterRan){
+      cp.execFileSync(${JSON.stringify(git)},['update-ref','refs/heads/codex/b',${JSON.stringify(writer)}]);
+      s.adoptionCASWriterRan=true;fs.writeFileSync(p,JSON.stringify(s));
+    }
+    if(${JSON.stringify(kind)}==='checkout'&&a.length===2&&a[0]==='switch'&&a[1]==='codex/b'){
+      s.adoptionCheckoutFailed=true;fs.writeFileSync(p,JSON.stringify(s));process.exit(41);
+    }
+  }`
+  fs.writeFileSync(file, source.replace(marker, inject + marker))
+}
+function applyAdoption(f) {
+  const preview = f.runStack(['sync'])
+  assert.equal(preview.status, 0, preview.stdout + preview.stderr)
+  return f.runStack(['sync', '--apply', '--expected', JSON.parse(preview.stdout).fingerprint])
+}
+test('sync adoption boundary refuses a dirty owner without changing refs or native state', t => {
+  const { f } = serverRewrittenPublishedLayer(t)
+  fs.writeFileSync(path.join(f.repo, 'b.txt'), 'uncommitted owner change')
+  const before = adoptionRefs(f), r = f.runStack(['sync'])
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.deepEqual(adoptionRefs(f), before)
+  assert.equal(fs.readFileSync(path.join(f.repo, 'b.txt'), 'utf8'), 'uncommitted owner change')
+  assert.equal(f.calls().some(a => a[0] === 'stack' && a[1] === 'rebase'), false)
+})
+test('sync adoption boundary CAS collision preserves writer and creates no partial recovery refs', t => {
+  const { f, oldB } = serverRewrittenPublishedLayer(t)
+  const writer = f.runGit('commit-tree', `${oldB}^{tree}`, '-p', oldB, '-m', 'concurrent local writer')
+  const remote = f.runGit('ls-remote', '--heads', 'origin')
+  adoptionFault(f, 'cas', writer)
+  const r = applyAdoption(f)
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.equal(f.state().adoptionCASWriterRan, true, 'fault occurred at update-ref transaction boundary')
+  assert.equal(f.runGit('rev-parse', 'codex/b'), writer)
+  assert.equal(f.runGit('for-each-ref', '--format=%(refname)', 'refs/harness-stack-recovery'), '')
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin'), remote)
+  assert.equal(f.calls().some(a => a[0] === 'stack' && a[1] === 'rebase'), false)
+  const journal = JSON.parse(fs.readFileSync(JSON.parse(r.stdout).journal, 'utf8'))
+  assert.equal(journal.state, 'unverified')
+  assert.notEqual(journal.remoteAdoption.stage, 'complete')
+})
+test('sync adoption boundary checkout failure keeps adopted refs and rejects ordinary resume', t => {
+  const { f, oldB, rewritten } = serverRewrittenPublishedLayer(t)
+  const remote = f.runGit('ls-remote', '--heads', 'origin')
+  adoptionFault(f, 'checkout')
+  const r = applyAdoption(f)
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.equal(f.state().adoptionCheckoutFailed, true)
+  const result = JSON.parse(r.stdout), journal = JSON.parse(fs.readFileSync(result.journal, 'utf8'))
+  assert.equal(f.runGit('rev-parse', 'codex/b'), rewritten)
+  assert.equal(f.runGit('rev-parse', journal.remoteAdoption.entries[0].backupRef), oldB)
+  assert.notEqual(journal.remoteAdoption.stage, 'complete')
+  assert.equal(journal.state, 'unverified')
+  assert.equal(f.runGit('branch', '--show-current'), '', 'checkout failure remains detached')
+  const before = adoptionRefs(f), resumed = f.runStack(['sync', '--resume', result.journal])
+  assert.notEqual(resumed.status, 0, resumed.stdout + resumed.stderr)
+  assert.match(resumed.stderr, /adoption.*incomplete|incomplete.*adoption/)
+  assert.deepEqual(adoptionRefs(f), before)
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin'), remote)
+  assert.equal(f.calls().some(a => a[0] === 'stack' && a[1] === 'rebase'), false)
+})
+test('sync adoption boundary retains the original remote lease after native rebase', t => {
+  const { f, oldB, rewritten } = serverRewrittenPublishedLayer(t)
+  // A later protected-trunk commit requires an actual rebase, hence publication.
+  const oldTrunk = f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/develop').split('\t')[0]
+  const newTrunk = f.runGit('commit-tree', `${oldTrunk}^{tree}`, '-p', oldTrunk, '-m', 'later protected trunk')
+  f.runGit('push', 'origin', `${newTrunk}:refs/fixture/trunk-advance`)
+  f.runGit('--git-dir', path.join(f.dir, 'origin'), 'update-ref', 'refs/heads/develop', newTrunk, oldTrunk)
+  const writer = f.runGit('commit-tree', `${rewritten}^{tree}`, '-p', rewritten, '-m', 'remote writer before publication')
+  f.runGit('push', 'origin', `${writer}:refs/fixture/concurrent-writer`)
+  f.change(s => { for (const p of s.prs) p.stack.base.sha = newTrunk; s.concurrentPush = writer })
+  const r = applyAdoption(f)
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.equal(f.state().rebaseCalled, true)
+  assert.equal(f.state().writerRan, true, 'remote writer ran immediately before actual push')
+  const result = JSON.parse(r.stdout), journal = JSON.parse(fs.readFileSync(result.journal, 'utf8'))
+  assert.equal(journal.state, 'unverified')
+  assert.equal(journal.remoteAdoption.stage, 'complete')
+  assert.equal(f.runGit('rev-parse', journal.remoteAdoption.entries[0].backupRef), oldB)
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/b').split('\t')[0], writer)
+  assert.equal(journal.before.layers.find(l => l.branch === 'codex/b').remoteOid, rewritten)
+  const resumed = f.runStack(['sync', '--resume', result.journal])
+  assert.notEqual(resumed.status, 0, resumed.stdout + resumed.stderr)
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/b').split('\t')[0], writer)
+})
+test('sync adoption proof journal bytes are bound to the preview', t => {
+  const { f, publication } = serverRewrittenPublishedLayer(t)
+  const preview = f.runStack(['sync'])
+  assert.equal(preview.status, 0, preview.stdout + preview.stderr)
+  // Even a semantic no-op must change the proof hash used by this preview.
+  fs.appendFileSync(publication.journal, '\n')
+  const before = adoptionRefs(f)
+  const r = f.runStack(['sync', '--apply', '--expected', JSON.parse(preview.stdout).fingerprint])
+  assert.notEqual(r.status, 0, r.stdout + r.stderr)
+  assert.match(r.stderr, /preview is stale/)
+  assert.deepEqual(adoptionRefs(f), before)
+  assert.equal(f.calls().some(a => a[0] === 'stack' && a[1] === 'rebase'), false)
+})
+test('sync successive adoption accepts the latest confirmed no-push publication proof', t => {
+  const { f, oldB, rewritten } = serverRewrittenPublishedLayer(t)
+  const first = applyAdoption(f)
+  assert.equal(first.status, 0, first.stdout + first.stderr)
+  const firstResult = JSON.parse(first.stdout)
+  assert.equal(firstResult.state, 'confirmed')
+  const firstJournal = JSON.parse(fs.readFileSync(firstResult.journal, 'utf8'))
+  assert.equal(f.runGit('rev-parse', 'codex/b'), rewritten, 'first native rebase is genuinely a no-op')
+  assert.ok(firstJournal.effects.some(e => e.kind === 'native-rebase' && e.state === 'returned'))
+  assert.equal(firstJournal.effects.some(e => e.kind === 'push-observed-refs'), false, 'no push produced the first confirmed sync')
+  assert.equal(f.runGit('rev-parse', firstJournal.remoteAdoption.entries[0].backupRef), oldB)
+  const extra = path.join(f.dir, 'second-server-only.txt')
+  fs.writeFileSync(extra, 'second distinct server rewrite content\n')
+  const blob = f.runGit('hash-object', '-w', extra), index = path.join(f.dir, 'second-server-index')
+  const indexed = (...args) => execFileSync(git, args, { cwd: f.repo, env: { ...process.env, GIT_INDEX_FILE: index }, encoding: 'utf8' }).trim()
+  indexed('read-tree', `${rewritten}^{tree}`)
+  indexed('update-index', '--add', '--cacheinfo', `100644,${blob},second-server-only.txt`)
+  const parent = f.runGit('rev-parse', `${rewritten}^`)
+  const secondRemote = f.runGit('commit-tree', indexed('write-tree'), '-p', parent, '-m', 'second independent server rewrite')
+  f.runGit('push', 'origin', `${secondRemote}:refs/fixture/second-server-rewrite`)
+  f.runGit('--git-dir', path.join(f.dir, 'origin'), 'update-ref', 'refs/heads/codex/b', secondRemote, rewritten)
+  assert.equal(f.runGit('rev-parse', 'codex/b'), rewritten, 'local retains the immediately preceding confirmed OID')
+  const second = applyAdoption(f)
+  assert.equal(second.status, 0, second.stdout + second.stderr)
+  const secondResult = JSON.parse(second.stdout)
+  assert.equal(secondResult.state, 'confirmed')
+  const secondJournal = JSON.parse(fs.readFileSync(secondResult.journal, 'utf8'))
+  assert.equal(f.runGit('rev-parse', secondJournal.remoteAdoption.entries[0].backupRef), rewritten)
+  assert.equal(f.runGit('rev-parse', firstJournal.remoteAdoption.entries[0].backupRef), oldB)
+  assert.equal(f.runGit('show', 'codex/b:server-only.txt'), 'unique content added to rewritten remote b')
+  assert.equal(f.runGit('show', 'codex/b:second-server-only.txt'), 'second distinct server rewrite content')
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/b').split('\t')[0], f.runGit('rev-parse', 'codex/b'))
+})
+
+function publishServerB(f, name, fastForward = false) {
+  const old = f.runGit('rev-parse', 'codex/b'), extra = path.join(f.dir, name)
+  fs.writeFileSync(extra, `${name} server content\n`)
+  const blob = f.runGit('hash-object', '-w', extra), index = path.join(f.dir, `${name}.index`)
+  const indexed = (...args) => execFileSync(git, args, { cwd: f.repo, env: { ...process.env, GIT_INDEX_FILE: index }, encoding: 'utf8' }).trim()
+  indexed('read-tree', `${old}^{tree}`)
+  indexed('update-index', '--add', '--cacheinfo', `100644,${blob},${name}`)
+  const parent = fastForward ? old : f.runGit('rev-parse', `${old}^`)
+  const remote = f.runGit('commit-tree', indexed('write-tree'), '-p', parent, '-m', `server ${name}`)
+  f.runGit('push', 'origin', `${remote}:refs/fixture/${name}`)
+  f.runGit('--git-dir', path.join(f.dir, 'origin'), 'update-ref', 'refs/heads/codex/b', remote, old)
+  f.change(s => { s.refreshPRs = true })
+  return { old, remote }
+}
+function assertReceivedServerB(f, before, filename) {
+  const r = applyAdoption(f)
+  assert.equal(r.status, 0, r.stdout + r.stderr)
+  const result = JSON.parse(r.stdout), journal = JSON.parse(fs.readFileSync(result.journal, 'utf8'))
+  assert.equal(result.state, 'confirmed')
+  assert.equal(f.runGit('rev-parse', journal.remoteAdoption.entries[0].backupRef), before.old)
+  assert.equal(f.runGit('rev-parse', 'codex/b'), before.remote)
+  assert.equal(f.runGit('show', `codex/b:${filename}`), `${filename} server content`)
+  assert.equal(f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/b').split('\t')[0], before.remote)
+}
+test('sync confirmed readback proof survives a recovered unknown push effect', t => {
+  const f = fixture(t); assert.equal(submit(f, plan(f)).status, 0)
+  updateLower(f); f.change(s => { s.losePushResponse = true })
+  const lost = rebase(f)
+  assert.notEqual(lost.status, 0); assert.equal(f.state().responseLost, true)
+  const lostResult = JSON.parse(lost.stdout), nativeCalls = f.calls().filter(a => a[0] === 'stack' && a[1] === 'rebase').length
+  const resumed = rebase(f, 'restack', ['--resume', lostResult.journal])
+  assert.equal(resumed.status, 0, resumed.stdout + resumed.stderr)
+  const recovered = JSON.parse(fs.readFileSync(lostResult.journal, 'utf8'))
+  assert.equal(recovered.state, 'confirmed')
+  assert.ok(recovered.effects.some(e => e.kind === 'push-observed-refs' && e.state === 'unknown'))
+  assert.equal(f.calls().filter(a => a[0] === 'stack' && a[1] === 'rebase').length, nativeCalls)
+  assert.equal(f.runGit('rev-parse', 'codex/b'), f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/b').split('\t')[0])
+  assertReceivedServerB(f, publishServerB(f, 'after-lost-push.txt'), 'after-lost-push.txt')
+})
+test('sync confirmed readback proof survives ordinary native fast-forward reception', t => {
+  const f = fixture(t); assert.equal(submit(f, plan(f)).status, 0)
+  const received = publishServerB(f, 'ordinary-ff.txt', true)
+  assert.equal(f.runGit('merge-base', received.old, received.remote), received.old)
+  const first = rebase(f, 'sync')
+  assert.equal(first.status, 0, first.stdout + first.stderr)
+  const firstResult = JSON.parse(first.stdout), journal = JSON.parse(fs.readFileSync(firstResult.journal, 'utf8'))
+  assert.equal(firstResult.state, 'confirmed')
+  assert.equal(f.runGit('rev-parse', 'codex/b'), received.remote, 'native rebase really received the remote fast-forward')
+  assert.equal(journal.remoteAdoption, undefined)
+  assert.equal(journal.effects.some(e => e.kind === 'push-observed-refs'), false)
+  const next = publishServerB(f, 'after-ordinary-ff.txt')
+  assertReceivedServerB(f, next, 'after-ordinary-ff.txt')
+  assert.equal(f.runGit('show', 'codex/b:ordinary-ff.txt'), 'ordinary-ff.txt server content')
 })
