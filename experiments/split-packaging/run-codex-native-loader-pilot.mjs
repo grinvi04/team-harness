@@ -149,17 +149,35 @@ function validateGuardTranscript(value) {
   }
 }
 
-function normalizeRoutingTranscript(value) {
-  const messages = parseJsonLines(value, 'routing transcript').filter(
-    (event) => event.type === 'item.completed' && event.item?.type === 'agent_message',
-  )
-  if (messages.length !== 1 || messages[0].item.text !== 'harness-guard:feature-add') {
-    throw new Error('feature-add routing context was not an exact agent message')
-  }
-  return `${JSON.stringify({
-    type: 'item.completed',
-    item: { type: 'agent_message', text: messages[0].item.text },
-  })}\n`
+const skillFiles = [
+  'codex/skills/plan/SKILL.md',
+  'skills/plan/SKILL.md',
+  'codex/native-runtime.md',
+  'skills/ao-coordinate/project-contract.md',
+]
+
+function observeSkillLoading(value, installedRoot) {
+  const events = parseJsonLines(value, 'skill transcript')
+  const reads = events.filter(event => event.type === 'item.completed' &&
+    event.item?.type === 'command_execution' && event.item.status === 'completed' &&
+    event.item.exit_code === 0 && typeof event.item.command === 'string' &&
+    typeof event.item.aggregated_output === 'string')
+  return skillFiles.map(file => {
+    const absolute = path.join(installedRoot, file)
+    const body = readFileSync(absolute, 'utf8')
+    const spellings = [...new Set([absolute, realpathSync(absolute)])]
+    // This observes full-body tool output bound to an installed absolute path.
+    // Unsupported/partial reads remain unverified; an agent's assertion is insufficient.
+    const observed = reads.some(({ item }) =>
+      /(?:^|[\s'";])(?:cat|sed|head|tail|readFileSync)\b/.test(item.command) &&
+      spellings.some(filePath => item.command.includes(filePath)) && item.aggregated_output.includes(body))
+    if (!body || !observed) {
+      const error = new Error(`installed skill body read was not observed: ${file}`)
+      error.code = 'skill-loading-unverified'
+      throw error
+    }
+    return { path: file, digest: digest(body) }
+  })
 }
 
 function run(program, args, options = {}) {
@@ -447,9 +465,9 @@ function markdown(report) {
 - 파괴 명령 차단·sentinel 보존: ${mark(report.session.destructiveGuard)}
 - 시크릿 외부 전송 차단: ${mark(report.session.secretEgressGuard)}
 - credential 파일 외부 전송 차단: ${mark(report.session.credentialEgressGuard)}
-- UserPromptSubmit 라우팅: ${report.session.routing || 'FAIL'}
+- 명시 skill 본문 읽기 ($plan): ${report.session.skillLoading.status.toUpperCase()}
 - guard transcript: ${report.session.evidence.guardTranscript?.file || '확인 실패'} (${report.session.evidence.guardTranscript?.digest || '확인 실패'})
-- routing transcript: ${report.session.evidence.routingTranscript?.file || '확인 실패'} (${report.session.evidence.routingTranscript?.digest || '확인 실패'})
+- skill transcript: ${report.session.evidence.skillTranscript?.file || '확인 실패'} (${report.session.evidence.skillTranscript?.digest || '확인 실패'})
 - 사용자 marketplace/plugin 상태 byte-equivalent: ${mark(report.userState.unchanged)}
 - 격리 CODEX_HOME 삭제: ${mark(report.cleanup.isolatedHomeRemoved)}
 
@@ -531,11 +549,11 @@ function prepareReportTargets(args, source, userCodexHome) {
   const jsonReport = resolveTarget(args.jsonReport)
   const markdownReport = resolveTarget(args.markdownReport)
   const guard = resolveTarget(transcriptPaths.guard)
-  const routing = resolveTarget(transcriptPaths.routing)
-  if (new Set([jsonReport, markdownReport, guard, routing].map(target => target.path)).size !== 4) {
+  const skill = resolveTarget(transcriptPaths.skill)
+  if (new Set([jsonReport, markdownReport, guard, skill].map(target => target.path)).size !== 4) {
     throw new Error('report and transcript destinations must be distinct')
   }
-  return { jsonReport, markdownReport, guard, routing, protectedRoots }
+  return { jsonReport, markdownReport, guard, skill, protectedRoots }
 }
 
 function assertReportParent(target, protectedRoots) {
@@ -650,9 +668,9 @@ const userEnvironment = { ...process.env, CODEX_HOME: userCodexHome }
 const reportStem = args.jsonReport.endsWith('.json') ? args.jsonReport.slice(0, -5) : args.jsonReport
 const transcriptPaths = {
   guard: `${reportStem}.guard.txt`,
-  routing: `${reportStem}.routing.jsonl`,
+  skill: `${reportStem}.skill.jsonl`,
 }
-const transcriptContent = { guard: null, routing: null }
+const transcriptContent = { guard: null, skill: null }
 let tempRoot = null
 let pilotHome = null
 let exactSource = null
@@ -664,7 +682,7 @@ let beforePublicationUser = null
 let beforePublicationSource = null
 let failure = null
 const report = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   status: 'fail',
   observedAt: new Date().toISOString(),
   evidence: { mode: fixtureMode ? 'fixture' : 'live' },
@@ -683,10 +701,10 @@ const report = {
     destructiveGuard: false,
     secretEgressGuard: false,
     credentialEgressGuard: false,
-    routing: null,
+    skillLoading: { skill: 'plan', entry: '$plan', status: 'unverified', files: [] },
     evidence: {
       guardTranscript: { file: path.basename(transcriptPaths.guard), digest: null },
-      routingTranscript: { file: path.basename(transcriptPaths.routing), digest: null },
+      skillTranscript: { file: path.basename(transcriptPaths.skill), digest: null },
     },
   },
   userState: {
@@ -825,33 +843,44 @@ try {
     throw new Error('fresh-session guard evidence missing')
   }
 
-  const routeRepo = path.join(pilotHome, 'route-repo')
-  mkdirSync(path.join(routeRepo, 'docs', 'specs'), { recursive: true })
-  run(gitBin, ['init', '-q', '-b', 'develop', routeRepo], { env: gitEnvironment(), label: 'route fixture init' })
-  run(gitBin, ['config', 'user.name', 'pilot'], { env: gitEnvironment(), cwd: routeRepo, label: 'route fixture config' })
-  run(gitBin, ['config', 'user.email', 'pilot@example.invalid'], { env: gitEnvironment(), cwd: routeRepo, label: 'route fixture config' })
-  writeFileSync(path.join(routeRepo, 'docs', 'specs', 'pilot.md'), '# approved pilot spec\n')
-  run(gitBin, ['add', '.'], { env: gitEnvironment(), cwd: routeRepo, label: 'route fixture add' })
-  run(gitBin, ['commit', '-qm', 'docs: add pilot spec'], { env: gitEnvironment(), cwd: routeRepo, label: 'route fixture commit' })
-  const routeOutput = codex(
+  const skillRepo = path.join(pilotHome, 'skill-repo')
+  mkdirSync(skillRepo)
+  const installedPlugins = JSON.parse(codex(['plugin', 'list', '--json'], pilotEnvironment, 'installed skill source'))
+  const installedPath = installedPlugins.installed?.find(entry => entry.pluginId === 'harness-guard@team-harness')?.source?.path
+  if (typeof installedPath !== 'string' || !path.isAbsolute(installedPath)) {
+    throw new Error('installed skill source path is unavailable')
+  }
+  const installedRoot = installedPath
+  for (const file of skillFiles) {
+    if (readFileSync(path.join(installedRoot, file), 'utf8') !==
+      readFileSync(path.join(exactSource, 'plugins/harness-guard', file), 'utf8')) {
+      throw new Error(`installed skill source mismatch: ${file}`)
+    }
+  }
+  const skillOutput = codex(
     [
       'exec',
       '--ephemeral',
       '--dangerously-bypass-hook-trust',
       '-s',
       'read-only',
+      '--skip-git-repo-check',
       '-C',
-      routeRepo,
+      skillRepo,
       '--json',
-      '진행해. Do not use tools. Read the current Team Harness skill from hook context. Reply with exactly harness-guard:<skill>, replacing <skill> with that context value and adding no other text.',
+      '$plan\nCreate a brief plan for adding a greeting message to a future local command-line example. ' +
+      'Plan only: do not create or change project files, run Git commands, or access the network. ' +
+      'Use actual tool reads for applicable installed skill references so this read-only pilot can observe body loading. ' +
+      'Do not implement or install anything.',
     ],
     pilotEnvironment,
-    'fresh-session routing probe',
+    'fresh-session explicit skill probe',
   )
-  const routingTranscript = normalizeRoutingTranscript(routeOutput)
-  transcriptContent.routing = routingTranscript
-  report.session.evidence.routingTranscript.digest = digest(routingTranscript)
-  report.session.routing = 'feature-add'
+  transcriptContent.skill = skillOutput
+  report.session.evidence.skillTranscript.digest = digest(skillOutput)
+  report.session.skillLoading.files = observeSkillLoading(skillOutput, installedRoot)
+  report.session.skillLoading.status = 'pass'
+
 } catch (error) {
   failure = error
   report.error = error.message

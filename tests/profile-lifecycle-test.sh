@@ -256,7 +256,6 @@ for (const name of ['ordinary', 'with spaces', 'with "quote', 'dollar-$HOME', 'w
     const workflow = path.join(target, 'packages/harness-workflows')
     const hooks = JSON.parse(fs.readFileSync(path.join(adapter, 'hooks/hooks.json'), 'utf8'))
     fs.writeFileSync(path.join(core, 'scripts/guard.sh'), '#!/usr/bin/env bash\nprintf "guard\\n%s\\n" "$0" > "$HARNESS_HOOK_PROBE"\n')
-    fs.writeFileSync(path.join(core, 'scripts/route-intent.mjs'), 'import fs from "node:fs"; fs.writeFileSync(process.env.HARNESS_HOOK_PROBE, `route\\n${process.argv[1]}\\n`)\n')
     fs.writeFileSync(path.join(core, 'scripts/pr-create.sh'), '#!/usr/bin/env bash\nprintf "pr\\n%s\\n" "$0" > "$HARNESS_HOOK_PROBE"\n')
     const stateFile = path.join(target, 'profile-state.json')
     const state = JSON.parse(fs.readFileSync(stateFile, 'utf8'))
@@ -264,9 +263,10 @@ for (const name of ['ordinary', 'with spaces', 'with "quote', 'dollar-$HOME', 'w
     fs.writeFileSync(stateFile, JSON.stringify(state))
     const doctor = run('profile-doctor.mjs', ['--target', target])
     assert.equal(doctor.status, 0, `doctor failed: ${doctor.stderr}`)
+    assert.deepEqual(Object.keys(hooks.hooks), ['PreToolUse'], 'only guard hooks remain connected by default')
     const commands = Object.values(hooks.hooks).flatMap(groups => groups.flatMap(group => group.hooks))
     const output = path.join(temporary, 'hook-probe.txt')
-    for (const [file, kind] of [['guard.sh', 'guard'], ['route-intent.mjs', 'route']]) {
+    for (const [file, kind] of [['guard.sh', 'guard']]) {
       const command = commands.find(hook => hook.type === 'command' && hook.command.includes(`/scripts/${file}`))?.command
       assert.ok(command, `missing ${file} hook`)
       fs.rmSync(output, { force: true })

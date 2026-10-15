@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url'
 
 const cli = fileURLToPath(new URL('../scripts/manage-repo-assets.mjs', import.meta.url))
 const hash = value => createHash('sha256').update(value).digest('hex')
+const transactionName = '.harness-assets-transaction'
 function git(root, ...args) {
   return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8', env: { ...process.env, GIT_CONFIG_GLOBAL: '/dev/null', GIT_CONFIG_NOSYSTEM: '1' } }).trim()
 }
@@ -55,6 +56,31 @@ function snapshot(root) {
 }
 function ok(result) { assert.equal(result.status, 0, result.stderr) }
 function rejected(result, pattern) { assert.equal(result.status, 2, result.stderr); assert.match(result.stderr, pattern) }
+
+function updateFixture(t) {
+  const f = fixture(t)
+  ok(f.run('apply', ['--apply']))
+  fs.writeFileSync(path.join(f.source, 'assets/check.sh'), '#!/bin/sh\necho updated\n')
+  fs.writeFileSync(path.join(f.source, 'assets/rule.md'), 'updated rule\n')
+  git(f.source, 'add', '.')
+  git(f.source, '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'update recovery fixture')
+  return { ...f, options: { action: 'update', repo: f.repo, source: f.source, revision: git(f.source, 'rev-parse', 'HEAD'), plan: f.plan, apply: true } }
+}
+function crashAfterFirstWrite(f) {
+  const result = spawnSync(process.execPath, ['--input-type=module', '--eval', `
+    import * as fs from 'node:fs';
+    import { manageRepoAssets } from ${JSON.stringify(new URL('../scripts/manage-repo-assets.mjs', import.meta.url).href)};
+    manageRepoAssets(${JSON.stringify(f.options)}, {
+      renameSync(from, to) {
+        fs.renameSync(from, to);
+        if (to === ${JSON.stringify(path.join(f.repo, 'checks/harness.sh'))}) process.exit(77);
+      }
+    });
+  `], { encoding: 'utf8' })
+  assert.equal(result.status, 77, result.stderr)
+}
+const recover = (f, apply = true) => spawnSync(process.execPath,
+  [cli, 'recover', '--repo', f.repo, ...(apply ? ['--apply'] : [])], { encoding: 'utf8' })
 
 test('preview leaves all repository bytes, modes, config and directories unchanged', t => {
   const f = fixture(t), before = snapshot(f.repo), sourceBefore = snapshot(f.source)
@@ -258,6 +284,182 @@ for (const destination of ['.HARNESS-ASSETS.JSON', '.HARNESS-ASSETS.JSON/child',
   const before = snapshot(f.repo)
   rejected(f.run('apply', ['--apply']), /unsafe asset path/)
   assert.deepEqual(snapshot(f.repo), before)
+})
+
+test('rollback preserves a committed file edited by another writer and reports partial recovery', async t => {
+  const f = updateFixture(t)
+  const { manageRepoAssets } = await import('../scripts/manage-repo-assets.mjs')
+  let count = 0
+  assert.throws(() => manageRepoAssets(f.options, {
+    renameSync(from, to) {
+      if (++count === 2) {
+        fs.writeFileSync(path.join(f.repo, 'checks/harness.sh'), 'other writer after commit\n')
+        throw new Error('later mutation failed')
+      }
+      fs.renameSync(from, to)
+    },
+  }), /rollback incomplete.*checks\/harness\.sh/)
+  assert.equal(fs.readFileSync(path.join(f.repo, 'checks/harness.sh'), 'utf8'), 'other writer after commit\n')
+  assert.equal(fs.readFileSync(path.join(f.repo, 'docs/harness-rule.md'), 'utf8'), 'first rule\n')
+  assert.equal(fs.existsSync(path.join(f.repo, transactionName, 'journal.json')), true)
+})
+
+test('each commit rechecks its destination after preceding writes', async t => {
+  const f = updateFixture(t)
+  const { manageRepoAssets } = await import('../scripts/manage-repo-assets.mjs')
+  let count = 0
+  assert.throws(() => manageRepoAssets(f.options, {
+    renameSync(from, to) {
+      fs.renameSync(from, to)
+      if (++count === 1) fs.writeFileSync(path.join(f.repo, 'docs/harness-rule.md'), 'other writer before commit\n')
+    },
+  }), /changed during|conflict/)
+  assert.equal(fs.readFileSync(path.join(f.repo, 'docs/harness-rule.md'), 'utf8'), 'other writer before commit\n')
+  assert.equal(fs.readFileSync(path.join(f.repo, 'checks/harness.sh'), 'utf8'), '#!/bin/sh\necho first\n')
+})
+
+test('crash recovery is explicit, durable and restores original bytes and modes', t => {
+  const f = updateFixture(t), before = snapshot(f.repo)
+  crashAfterFirstWrite(f)
+  assert.match(fs.readFileSync(path.join(f.repo, 'checks/harness.sh'), 'utf8'), /updated/)
+  assert.equal(fs.existsSync(path.join(f.repo, transactionName, 'journal.json')), true)
+  const crashed = snapshot(f.repo)
+  ok(recover(f, false))
+  assert.deepEqual(snapshot(f.repo), crashed, 'recovery preview must not write')
+  rejected(spawnSync(process.execPath, [cli, ...f.args('update'), '--apply'], { encoding: 'utf8' }), /transaction|recovery|lock/)
+  ok(recover(f))
+  assert.deepEqual(snapshot(f.repo), before)
+})
+
+for (const damage of ['missing', 'invalid JSON', 'corrupt original', 'unsafe path', 'invalid mode', 'hardlink', 'symlink']) test(`recovery with ${damage} evidence never overwrites files`, t => {
+  const f = updateFixture(t)
+  crashAfterFirstWrite(f)
+  const journalPath = path.join(f.repo, transactionName, 'journal.json')
+  assert.equal(fs.existsSync(journalPath), true)
+  if (damage === 'missing') fs.unlinkSync(journalPath)
+  else if (damage === 'invalid JSON') fs.writeFileSync(journalPath, '{broken')
+  else if (damage === 'hardlink') fs.linkSync(journalPath, path.join(f.root, 'journal-link'))
+  else if (damage === 'symlink') {
+    fs.renameSync(journalPath, path.join(f.root, 'outside-journal'))
+    fs.symlinkSync(path.join(f.root, 'outside-journal'), journalPath)
+  }
+  else {
+    const journal = JSON.parse(fs.readFileSync(journalPath, 'utf8'))
+    // A bad later entry must be rejected before an earlier committed file is restored.
+    if (damage === 'corrupt original') journal.entries.at(-1).original.bytes = Buffer.from('corrupted original').toString('base64')
+    else if (damage === 'unsafe path') journal.entries.at(-1).destination = '../escape'
+    else journal.entries.at(-1).original.mode = -1
+    fs.writeFileSync(journalPath, JSON.stringify(journal))
+  }
+  const before = snapshot(f.repo)
+  rejected(recover(f), /journal|evidence|original|recovery|unsafe asset path/)
+  assert.deepEqual(snapshot(f.repo), before)
+})
+
+test('manual recovery preserves divergent content and leaves evidence for manual resolution', t => {
+  const f = updateFixture(t)
+  crashAfterFirstWrite(f)
+  fs.writeFileSync(path.join(f.repo, 'checks/harness.sh'), 'writer after crash\n')
+  rejected(recover(f), /incomplete|conflict/)
+  assert.equal(fs.readFileSync(path.join(f.repo, 'checks/harness.sh'), 'utf8'), 'writer after crash\n')
+  assert.equal(fs.existsSync(path.join(f.repo, transactionName, 'journal.json')), true)
+})
+
+test('exclusive instance lock rejects another Harness mutation during staging', async t => {
+  const f = fixture(t)
+  const { manageRepoAssets } = await import('../scripts/manage-repo-assets.mjs')
+  const options = { action: 'apply', repo: f.repo, source: f.source, revision: f.revision, plan: f.plan, apply: true }
+  let probed = false
+  manageRepoAssets(options, {
+    writeFileSync(...args) {
+      if (!probed) {
+        probed = true
+        assert.throws(() => manageRepoAssets(options), /lock|transaction|recovery/)
+        assert.throws(() => manageRepoAssets({ action: 'recover', repo: f.repo, apply: true }), /active/)
+      }
+      return fs.writeFileSync(...args)
+    },
+  })
+  assert.equal(probed, true)
+  assert.equal(fs.existsSync(path.join(f.repo, transactionName)), false)
+})
+
+for (const destination of [transactionName, `${transactionName}/journal.json`, '.HARNESS-ASSETS-TRANSACTION/child', '.env', 'nested/.env.local']) test(`transaction and sensitive paths are not selectable assets: ${destination}`, t => {
+  const f = fixture(t), before = snapshot(f.repo)
+  fs.writeFileSync(f.plan, JSON.stringify({ assets: [{ source: 'assets/rule.md', destination }] }))
+  rejected(f.run('apply', ['--apply']), /unsafe asset path/)
+  assert.deepEqual(snapshot(f.repo), before)
+})
+
+test('foreign transaction directory and a transaction symlink are preserved', t => {
+  const f = fixture(t), directory = path.join(f.repo, transactionName)
+  fs.mkdirSync(directory)
+  fs.writeFileSync(path.join(directory, 'foreign.txt'), 'foreign data\n')
+  let before = snapshot(f.repo)
+  rejected(f.run('apply', ['--apply']), /lock|transaction/)
+  assert.deepEqual(snapshot(f.repo), before)
+  fs.rmSync(directory, { recursive: true })
+  fs.symlinkSync(f.root, directory)
+  before = snapshot(f.repo)
+  rejected(f.run('apply', ['--apply']), /unsafe|transaction/)
+  assert.deepEqual(snapshot(f.repo), before)
+})
+
+test('same-process recovery can resolve an abandoned transaction after explicit conflict resolution', async t => {
+  const f = updateFixture(t)
+  const before = snapshot(f.repo)
+  const { manageRepoAssets } = await import('../scripts/manage-repo-assets.mjs')
+  let count = 0
+  assert.throws(() => manageRepoAssets(f.options, {
+    renameSync(from, to) {
+      if (++count === 2) {
+        fs.writeFileSync(path.join(f.repo, 'checks/harness.sh'), 'writer conflict\n')
+        throw new Error('injected failure')
+      }
+      fs.renameSync(from, to)
+    },
+  }), /rollback incomplete/)
+  fs.copyFileSync(path.join(f.source, 'assets/check.sh'), path.join(f.repo, 'checks/harness.sh'))
+  manageRepoAssets({ action: 'recover', repo: f.repo, apply: true })
+  assert.deepEqual(snapshot(f.repo), before)
+})
+
+test('rollback preserves a staging temporary changed by another writer', async t => {
+  const f = fixture(t)
+  const { manageRepoAssets } = await import('../scripts/manage-repo-assets.mjs')
+  let temporary, count = 0
+  assert.throws(() => manageRepoAssets({ action: 'apply', repo: f.repo, source: f.source, revision: f.revision, plan: f.plan, apply: true }, {
+    writeFileSync(file, ...args) {
+      if (++count === 2) throw new Error('later staging write failed')
+      fs.writeFileSync(file, ...args)
+      temporary = file
+      fs.writeFileSync(file, 'other writer staging content\n')
+    },
+  }), /rollback incomplete.*harness-asset-/)
+  assert.equal(fs.readFileSync(temporary, 'utf8'), 'other writer staging content\n')
+  assert.equal(fs.existsSync(path.join(f.repo, transactionName, 'journal.json')), true)
+})
+
+test('recovery refuses evidence changed between initial read and recovery lock acquisition', async t => {
+  const f = updateFixture(t)
+  crashAfterFirstWrite(f)
+  const { manageRepoAssets } = await import('../scripts/manage-repo-assets.mjs')
+  const bytes = fs.readFileSync(path.join(f.repo, 'checks/harness.sh'))
+  let intercepted = false
+  assert.throws(() => manageRepoAssets({ action: 'recover', repo: f.repo, apply: true }, {
+    openSync(...args) {
+      intercepted = true
+      const journalPath = path.join(f.repo, transactionName, 'journal.json')
+      const journal = JSON.parse(fs.readFileSync(journalPath, 'utf8'))
+      // Keep this syntactically valid; stale identity itself must stop the restore.
+      journal.status = 'abandoned'
+      fs.writeFileSync(journalPath, JSON.stringify(journal))
+      return fs.openSync(...args)
+    },
+  }), /journal.*changed|stale.*evidence/)
+  assert.equal(intercepted, true)
+  assert.deepEqual(fs.readFileSync(path.join(f.repo, 'checks/harness.sh')), bytes)
+  assert.equal(fs.existsSync(path.join(f.repo, transactionName, 'recovery.lock')), false)
 })
 for (const action of ['apply', 'update', 'remove']) test(`${action} rejects aliases in an existing ownership record`, t => {
   const f = fixture(t)

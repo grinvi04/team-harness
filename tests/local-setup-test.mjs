@@ -47,93 +47,6 @@ function snapshot(root) {
 function invoke(project, extra = [], cwd = tmpdir()) {
   return spawnSync(process.execPath, [setup, '--project', project, ...extra], { cwd, encoding: 'utf8' })
 }
-test('AC-1: preview lists exact destination and checks without writes', t => {
-  const { project } = fixture(t), before = snapshot(project), r = invoke(project)
-  assert.equal(r.status, 0, r.stderr)
-  assert.match(r.stdout, /scripts\/check-harness\.sh/)
-  for (const command of ['check bootJar', 'type-check', 'test:unit', 'test:e2e']) assert.ok(r.stdout.includes(command), command)
-  assert.deepEqual(snapshot(project), before)
-})
-test('AC-2: apply from unrelated cwd creates only the portable checker', t => {
-  const { project } = fixture(t), before = snapshot(project), r = invoke(project, ['--apply'])
-  assert.equal(r.status, 0, r.stderr)
-  const after = snapshot(project)
-  assert.ok(after['scripts/check-harness.sh'])
-  delete after['scripts/check-harness.sh']
-  assert.deepEqual(after, before)
-  assert.equal(readFileSync(path.join(project, 'scripts/check-harness.sh'), 'utf8'), originalChecker)
-})
-test('AC-3: invalid options and missing project are explicit errors', t => {
-  const { project } = fixture(t), before = snapshot(project)
-  for (const args of [['--unknown'], ['--apply', '--apply'], ['--project'], ['--project', project]]) {
-    const r = invoke(project, args)
-    assert.notEqual(r.status, 0, JSON.stringify(args)); assert.ok(r.stderr.trim())
-  }
-  const missing = invoke(path.join(project, 'missing'), ['--apply'])
-  assert.notEqual(missing.status, 0); assert.ok(missing.stderr.trim())
-  assert.deepEqual(snapshot(project), before)
-})
-test('AC-3: absent stack files or required scripts leave no changes', t => {
-  for (const file of ['backend/gradlew', 'backend/build.gradle', 'frontend/package-lock.json']) {
-    const { project } = fixture(t)
-    rmSync(path.join(project, file)); const before = snapshot(project)
-    const r = invoke(project, ['--apply'])
-    assert.notEqual(r.status, 0, file); assert.ok(r.stderr.trim()); assert.deepEqual(snapshot(project), before)
-  }
-  for (const field of [...commands, 'vue', '@playwright/test', 'invalid-json']) {
-    const { project } = fixture(t), file = path.join(project, 'frontend/package.json')
-    const pkg = JSON.parse(readFileSync(file, 'utf8'))
-    if (commands.includes(field)) delete pkg.scripts[field]
-    else if (field === 'vue') delete pkg.dependencies.vue
-    else delete pkg.devDependencies['@playwright/test']
-    writeFileSync(file, field === 'invalid-json' ? '{' : JSON.stringify(pkg))
-    const before = snapshot(project), r = invoke(project, ['--apply'])
-    assert.notEqual(r.status, 0, field); assert.ok(r.stderr.trim()); assert.deepEqual(snapshot(project), before)
-  }
-})
-test('AC-3: existing destinations and linked scripts directories are preserved', t => {
-  for (const kind of ['file', 'directory', 'broken-link', 'linked-parent']) {
-    const { root, project } = fixture(t), target = path.join(project, 'scripts/check-harness.sh')
-    if (kind === 'file') writeFileSync(target, 'existing')
-    if (kind === 'directory') mkdirSync(target)
-    if (kind === 'broken-link') symlinkSync(path.join(root, 'absent'), target)
-    if (kind === 'linked-parent') {
-      rmSync(path.join(project, 'scripts'), { recursive: true })
-      mkdirSync(path.join(root, 'outside')); symlinkSync(path.join(root, 'outside'), path.join(project, 'scripts'))
-    }
-    const before = snapshot(root), r = invoke(project, ['--apply'])
-    assert.notEqual(r.status, 0, kind); assert.ok(r.stderr.trim()); assert.deepEqual(snapshot(root), before)
-  }
-})
-test('AC-2/3: absent scripts directory is created and repeat apply preserves it', t => {
-  const { project } = fixture(t)
-  rmSync(path.join(project, 'scripts'), { recursive: true })
-  assert.equal(invoke(project, ['--apply']).status, 0)
-  assert.ok(existsSync(path.join(project, 'scripts/check-harness.sh')))
-  const before = snapshot(project), r = invoke(project, ['--apply'])
-  assert.notEqual(r.status, 0); assert.deepEqual(snapshot(project), before)
-})
-function runChecker(t, fail = '') {
-  const { root, project } = fixture(t), trace = path.join(root, 'trace')
-  assert.equal(invoke(project, ['--apply']).status, 0)
-  put(root, 'bin/npm', '#!/bin/sh\nprintf "npm %s\\n" "$*" >> "$TRACE"\n[ "${FAIL_STEP:-}" != "$*" ]\n', true)
-  put(root, 'bin/java', '#!/bin/sh\nexit 0\n', true)
-  put(project, 'frontend/node_modules/.bin/playwright', '#!/bin/sh\nprintf "playwright %s\\n" "$*" >> "$TRACE"\n[ "${FAIL_STEP:-}" != playwright ]\n', true)
-  writeFileSync(trace, '')
-  const r = spawnSync('bash', [path.join(project, 'scripts/check-harness.sh')], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${path.join(root, 'bin')}:${process.env.PATH}`, TRACE: trace, FAIL_STEP: fail } })
-  return { r, trace: readFileSync(trace, 'utf8').trim().split('\n').filter(Boolean) }
-}
-test('AC-4: checker runs every declared stage in order from unrelated cwd', t => {
-  const { r, trace } = runChecker(t)
-  assert.equal(r.status, 0, r.stderr); assert.deepEqual(trace, sequence); assert.match(r.stdout, /PASS/)
-})
-test('AC-4: failures stop immediately without a success claim', t => {
-  for (const [stage, count] of [['backend', 1], ['run build', 6], ['playwright', 7], ['run test:e2e', 8]]) {
-    const { r, trace } = runChecker(t, stage)
-    assert.notEqual(r.status, 0, stage); assert.deepEqual(trace, sequence.slice(0, count)); assert.doesNotMatch(r.stdout, /PASS/)
-  }
-})
-
 // These cases catch wrong stack branches, path routing, command omission and fail-open execution.
 function selectedFixture(t, stack, custom = false) {
   const f = fixture(t)
@@ -151,7 +64,7 @@ function selectedFixture(t, stack, custom = false) {
   }
   return f
 }
-for (const stack of ['spring', 'vue', 'spring+vue']) {
+for (const stack of ['spring', 'vue']) {
   test(`cleanup: ${stack} preview and portable checker preserve selected command order and fail-fast`, t => {
     const { root, project } = selectedFixture(t, stack)
     const before = snapshot(project), preview = invoke(project, ['--stack', stack])
@@ -175,23 +88,11 @@ for (const stack of ['spring', 'vue', 'spring+vue']) {
     }
   })
 }
-test('cleanup: composed custom directories route execution to the selected apps', t => {
-  const { root, project } = selectedFixture(t, 'spring+vue', true)
-  const args = ['--stack', 'spring+vue', '--backend-dir', 'apps/api', '--frontend-dir', 'apps/web', '--apply']
-  const result = invoke(project, args)
-  assert.equal(result.status, 0, result.stderr)
-  put(root, 'bin/npm', '#!/bin/sh\nprintf "npm %s\\n" "$*" >> "$TRACE"\n', true)
-  put(project, 'apps/web/node_modules/.bin/playwright', '#!/bin/sh\nprintf "playwright %s\\n" "$*" >> "$TRACE"\n', true)
-  const trace = path.join(root, 'trace'); writeFileSync(trace, '')
-  const run = spawnSync('bash', [path.join(project, 'scripts/check-harness.sh')], { cwd: root, encoding: 'utf8', env: { ...process.env, PATH: `${path.join(root, 'bin')}:${process.env.PATH}`, TRACE: trace } })
-  assert.equal(run.status, 0, run.stderr)
-  assert.deepEqual(readFileSync(trace, 'utf8').trim().split('\n'), sequence)
-})
 test('cleanup: unsupported stacks, unsafe paths and linked source directories refuse without writes', t => {
   const { root, project } = fixture(t)
   const before = snapshot(root)
   for (const args of [
-    ['--stack', 'node'], ['--stack', 'nextjs'], ['--stack', 'spring', '--backend-dir', 'backend'],
+    ['--stack', 'python'], ['--stack', 'rails'], [], ['--stack', 'spring-boot+vue'], ['--stack', 'spring', '--backend-dir', 'backend'],
     ['--stack', 'vue', '--frontend-dir', 'frontend'], ['--stack', 'spring+vue', '--backend-dir', '../outside'],
     ['--stack', 'spring+vue', '--frontend-dir', '/tmp'], ['--stack', 'spring+vue', '--backend-dir', 'same', '--frontend-dir', 'same'],
   ]) {
@@ -206,11 +107,79 @@ test('cleanup: unsupported stacks, unsafe paths and linked source directories re
 })
 
 test('Spring Boot canonical choices and legacy aliases produce the same portable checks', t => {
-  for (const [canonical, old] of [['spring-boot','spring'],['spring-boot+vue','spring+vue']]) {
+  for (const [canonical, old] of [['spring-boot','spring']]) {
     const { project } = selectedFixture(t, old)
     const before = snapshot(project)
     const a = invoke(project, ['--stack',canonical]), b = invoke(project,['--stack',old])
     assert.equal(a.status,0,a.stderr); assert.equal(b.status,0,b.stderr)
     assert.equal(a.stdout,b.stdout); assert.deepEqual(snapshot(project),before)
   }
+})
+
+for (const stack of ['spring', 'vue']) {
+  test(`single: ${stack} rejects invalid options, missing inputs and linked destination without writes`, t => {
+    for (const extra of [['--unknown'], ['--apply', '--apply'], ['--project'], ['--project', 'duplicate']]) {
+      const { project } = selectedFixture(t, stack), before = snapshot(project)
+      assert.notEqual(invoke(project, ['--stack', stack, ...extra]).status, 0)
+      assert.deepEqual(snapshot(project), before)
+    }
+    for (const file of stack === 'spring' ? ['gradlew', 'build.gradle'] : ['package.json', 'package-lock.json']) {
+      const { project } = selectedFixture(t, stack)
+      rmSync(path.join(project, file)); const before = snapshot(project)
+      assert.notEqual(invoke(project, ['--stack', stack, '--apply']).status, 0)
+      assert.deepEqual(snapshot(project), before)
+    }
+    for (const kind of ['file', 'directory', 'broken-link', 'linked-parent', 'linked-project', 'linked-source']) {
+      const { root, project } = selectedFixture(t, stack), target = path.join(project, 'scripts/check-harness.sh')
+      let input = project
+      if (kind === 'file') writeFileSync(target, 'existing')
+      if (kind === 'directory') mkdirSync(target)
+      if (kind === 'broken-link') symlinkSync(path.join(root, 'absent'), target)
+      if (kind === 'linked-parent') {
+        rmSync(path.join(project, 'scripts'), { recursive: true }); mkdirSync(path.join(root, 'outside'))
+        symlinkSync(path.join(root, 'outside'), path.join(project, 'scripts'))
+      }
+      if (kind === 'linked-project') { input = path.join(root, 'link'); symlinkSync(project, input) }
+      if (kind === 'linked-source') {
+        const name = stack === 'spring' ? 'gradlew' : 'package.json'
+        renameSync(path.join(project, name), path.join(root, name)); symlinkSync(path.join(root, name), path.join(project, name))
+      }
+      const before = snapshot(root)
+      assert.notEqual(invoke(input, ['--stack', stack, '--apply']).status, 0, kind)
+      assert.deepEqual(snapshot(root), before)
+    }
+  })
+}
+test('single checker source bytes are preserved and repeat apply is rejected', t => {
+  for (const stack of ['spring', 'vue']) {
+    const { project } = selectedFixture(t, stack)
+    rmSync(path.join(project, 'scripts'), { recursive: true })
+    const key = stack === 'spring' ? 'spring-boot' : stack, role = stack === 'spring' ? 'backend' : 'frontend'
+    const checks = readFileSync(path.join(repo, `templates/stacks/${key}/local-check.sh`), 'utf8').replace(`$PROJECT_ROOT/${role}`, '$PROJECT_ROOT') + '\n'
+    const expected = readFileSync(path.join(repo, 'templates/local/check-harness.sh'), 'utf8').replace('{{CHECKS}}', checks)
+    assert.equal(invoke(project, ['--stack', stack, '--apply']).status, 0)
+    assert.equal(readFileSync(path.join(project, 'scripts/check-harness.sh'), 'utf8'), expected)
+    const before = snapshot(project)
+    assert.notEqual(invoke(project, ['--stack', stack, '--apply']).status, 0)
+    assert.deepEqual(snapshot(project), before)
+  }
+})
+test('Vue mandatory scripts and dependencies are never made optional', t => {
+  for (const field of [...commands, 'vue', '@playwright/test', 'invalid-json']) {
+    const { project } = selectedFixture(t, 'vue'), file = path.join(project, 'package.json')
+    const pkg = JSON.parse(readFileSync(file, 'utf8'))
+    if (commands.includes(field)) delete pkg.scripts[field]
+    else if (field === 'vue') delete pkg.dependencies.vue
+    else delete pkg.devDependencies['@playwright/test']
+    writeFileSync(file, field === 'invalid-json' ? '{' : JSON.stringify(pkg))
+    const before = snapshot(project)
+    assert.notEqual(invoke(project, ['--stack', 'vue', '--apply']).status, 0, field)
+    assert.deepEqual(snapshot(project), before)
+  }
+})
+test('removed composition refuses a fully prepared old combined project without writes', t => {
+  const { project } = fixture(t), before = snapshot(project)
+  const result = invoke(project, ['--stack', 'spring-boot+vue', '--apply'])
+  assert.notEqual(result.status, 0)
+  assert.deepEqual(snapshot(project), before)
 })

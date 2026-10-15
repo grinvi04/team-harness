@@ -43,7 +43,8 @@ fi
 HOOKS="$TMP/output/harness-claude-adapter/hooks/hooks.json"
 if grep -Fq '${HARNESS_GOVERNANCE_CORE_ROOT}' "$HOOKS" \
   && ! grep -Fq '${CLAUDE_PLUGIN_ROOT}/scripts/guard.sh' "$HOOKS" \
-  && ! grep -Fq '${CLAUDE_PLUGIN_ROOT}/scripts/route-intent.mjs' "$HOOKS"; then
+  && ! grep -Fq 'route-intent.mjs' "$HOOKS" \
+  && ! grep -Fq 'UserPromptSubmit' "$HOOKS"; then
   pass "Claude hook이 명시적 governance core binding 사용"
 else
   fail "Claude hook에 깨지는 adapter-local core 참조 잔존"
@@ -58,7 +59,6 @@ data = json.loads(Path(sys.argv[1]).read_text())
 bindings = data.get("runtimeBindings", [])
 expected = {
     ("HARNESS_GOVERNANCE_CORE_ROOT", "governance-core", "scripts/guard.sh"),
-    ("HARNESS_GOVERNANCE_CORE_ROOT", "governance-core", "scripts/route-intent.mjs"),
 }
 actual = {(item.get("environment"), item.get("unit"), item.get("target")) for item in bindings}
 raise SystemExit(0 if actual == expected and data.get("installable") is False else 1)

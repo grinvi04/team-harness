@@ -15,6 +15,8 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
+| **작업 계약·연결·검증·전달로 재설계** — 기존 보호와 R1–R7을 고정한다. 기본 prompt 라우팅은 native에 위임하고 공통 계약·선택 자산 복구·채택한 브랜치·실행 원문 판정을 연결한다. split 승격은 기본 목표에서 제외하며 실제 호스트와 소스 검사를 구분한다. 앞선 라우팅 기본 연결 결정을 대체한다. | 2026-10-15 | specs/team-harness-redesign.md | README.md, product-boundaries.md, developer-workflow.md, repo-assets.md, skills, PR wrapper |
+| **로컬 생성은 명시 단독 스택으로 전환** — 로컬 기본 Spring Boot+Vue·조합·경로 옵션은 제거하고 기존 단독 명령·GitHub CI 조합은 보존한다. npm4프로필을 같은 카탈로그로 연결하며 필수 검사·선언된 선택 검사·E2E 선택을 구분한다. 소유는 검사 연결, native 실행은 위임이다. 호환 변경은 기존 규약대로 미발행1.0.0 후보로 관리한다. | 2026-10-14 | specs/workflow-maturity.md, local-development.md | setup-local.mjs, stacks.json, repository-structure.md, README.md, onboarding.md |
 | **순차 Git Flow·순수 develop 전달** — 문서도 선행 병합 SHA에서 release 전달·main 이후 역병합을 확인한다. 이미 검사한 develop 이력만 있는 release는 진짜 빈 범위와 구분하며 trusted 경계·고유 커밋·조회 실패 차단을 유지한다. 제품 방향은 소유다. | 2026-10-14 | code-review.md, specs/commitlint-gitflow-forward.md | AGENTS.md, commitlint workflow·template·repo-sync digest |
 | **도구 공통 PR 리뷰·Codex 우선** — 공식 native 리뷰에 현재 head/base·원래 요구·직접 소비 계약·독립 읽기 전용 검토·증거를 연결한다. Claude 전용 의존·과금 단정을 제거하고 실행 미확인·후보 변경은 차단한다. 사람 승인·CI·보호·래퍼는 유지한다. 제품 방향은 연결이다. | 2026-10-13 | code-review.md, pr-review-gate skill | solo-merge skill, Codex wrapper, harness-setup.md, onboarding.md, new-repo.sh |
 | **프론트 설계 기준 연결** — 설치된 공통 계약에 핵심 판단을 두고 기존 설계·QA 기록을 재사용한다. 상세 안내와 제품 결정을 구분한다. | 2026-10-13 | frontend-engineering.md, specs/frontend-engineering-contract.md | project-contract.md, frontend-design-standards.md, templates/AGENTS.md |
@@ -51,7 +53,7 @@ Spring Boot·Vue 로컬 검사는 개별 원문에서 조합하며 기존 명령
 
 ## 브라우저 자동화 도구 선택 (2026-09-22)
 
-현재 로컬 Spring Boot+Vue 검사 연결은 Playwright Test를 유지한다. Stagehand v4 도입 검토는
+현재 Vue 필수·신규 npm 선택 E2E는 Playwright Test를 유지한다. Stagehand v4 도입 검토는
 브라우저 실행을 외부 도구에 **위임**하는 선택이며 새 공용 실행기나 호환 계층을 만들지 않는다.
 
 Stagehand v4는 테스트 프레임워크가 아니며 Playwright Page와 직접 호환되지 않는다.

@@ -5,6 +5,8 @@ description: 정식 릴리즈 직전에 품질·보안·DB 마이그레이션 �
 
 # /release-check — 릴리즈 사전 검증 계약
 
+먼저 [공통 프로젝트 계약](../ao-coordinate/project-contract.md)을 읽고 현재 요청의 범위·보존 대상·완료 기준에 연결한다.
+
 **사용법:** `/release-check`. 검증 결과를 현재 후보에 연결하며, 이 스킬은 수정·머지·배포 권한을 만들지 않는다.
 필수 항목이 모두 PASS이거나 실제 비적용으로 SKIP일 때만 `/release <version>`으로 인계한다.
 

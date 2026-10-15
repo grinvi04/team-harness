@@ -143,12 +143,10 @@ Claude Code의 slash skill과 Codex의 skill 로딩은 UI가 다르다. Claude�
 지킨다. 기존 계획·승인과 현재 후보/환경/범위가 같은 검증 증거를 재사용한다. 필수 gate와 신선도 요구는
 유지한다. 구체적인 요청 예시는 [개발 안내](development-coordination.md#자연어-요청과-역할-분담)를 따른다.
 
-`route-intent`는 짧은 명시 구현·병합 요청에 Git/PR 상태를 연결해 후보만 안내한다.
-일반 요청과 “진행해”는 native agent가 기존 목표·승인과 현재 원본을 대조해 처리한다.
-후보가 없어도 작업을 막지 않는다. [현재 범위](specs/workflow-routing-scope.md)를 따른다.
-사용자가 허용하지 않은 commit·push·PR·merge·release 권한을 새로 만들지 않는다. 출력의 `상태 기반 후보`는 확정된 현재 단계가 아니다.
-과거 스펙이 남아 있거나 현재 요청과 다른 Git 단계가 관측될 수 있으므로, 실제 요청·기존 승인 범위·
-제품 원본을 대조한 뒤 적합한 skill을 선택한다. 라우터 안내만으로 새 작업을 시작하거나 재승인을 요구하지 않는다.
+기본 설치에서 `route-intent`와 UserPromptSubmit 연결은 제거했다. 일반 요청과 “진행해”는 native agent가
+기존 목표·승인과 현재 원본을 대조해 처리한다. 선택이 맞지 않으면 [명시 호출](developer-workflow.md#6-native-선택과-명시-호출)로 지정한다.
+과거 라우터 소스와 [당시 범위](specs/workflow-routing-scope.md)는 호환 회귀로 보존한다.
+스킬 선택은 사용자가 허용하지 않은 commit·push·PR·merge·release 권한을 새로 만들지 않는다.
 특히 자연어 맥락으로 자동 선택된 `/loop`는 사용자가 commit을 명시하지 않으면 no-commit으로 실행한다.
 
 사용자가 실제 적용 여부를 확인할 수 있도록 AI는 skill을 적용하는 첫 업데이트와 Git flow 단계 전환 때

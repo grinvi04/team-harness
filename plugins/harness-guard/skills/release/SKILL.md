@@ -6,6 +6,8 @@ argument-hint: <version>
 
 # /release — 릴리즈 실행 계약
 
+먼저 [공통 프로젝트 계약](../ao-coordinate/project-contract.md)을 읽고 현재 요청의 범위·보존 대상·완료 기준에 연결한다.
+
 **사용법:** `/release <version>` (예: `/release 1.5.0`).
 검증된 develop → release/vX.X.X → main PR·정확한 병합 SHA의 태그 → develop back-merge PR 순서다.
 [release-check](../release-check/SKILL.md) 통과가 전제이며, 스킬 호출 자체가 운영 실행 권한을 추가하지 않는다.

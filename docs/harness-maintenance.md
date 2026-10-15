@@ -30,7 +30,8 @@ team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로�
 `plugins/harness-guard/.codex-plugin/plugin.json` + README 배지.
 자체 CI는 두 manifest·README의 버전 일치와 `CHANGELOG.md` 재현도 검사한다. 구현 커밋 뒤
 `node scripts/generate-changelog.mjs --release vX.Y.Z --write`로 CHANGELOG index와 `docs/changelog/` 전체를 생성한다(태그 발행 아님).
-동작 변경을 머지하고 버전을 안 올리면 팀원에게 배포되지 않은 것과 같다.
+
+미발행1.0.0의 조합 제거·단독 앱 이전·검증·전달 경계는 [후속 스펙](specs/workflow-maturity.md)을 따른다.
 
 릴리즈 정리는 develop에서 `release-cleanup.sh <버전>`으로 수행한다. Apple Git 호환성과
 설정 충돌·조회 실패·미병합·사용 중 브랜치의 거부 조건은 [정리 계약](specs/release-cleanup-apple-git.md)을 따른다.
@@ -195,5 +196,4 @@ PR 병합 성공과 branch 정리는 별도 결과다. 정리 실패·조회 실
 release/release-check는 대상 repo AGENTS.md의 버전·changelog·생성물·추가 필수 검사·health 선언을 읽는다.
 이 저장소의 필수 live provenance와 changelog는 AGENTS.md에 명시돼 있으며 실패 기준은 유지한다.
 [현재 구현·검증](specs/skill-contract-consolidation.md)과 실제 발행 태그·설치 버전을 구분한다.
-0.93.0의 프론트 기준 연결·F1–F5 표본 PASS·quality74는 당시 로컬 후보 기록이다. 과거 FAIL을 보존하며 후속 전달 gate와 구분한다.
-[현재 통합·전달](specs/frontend-contract-integration.md#현재-다음-단계)의 PR·태그·설치 원본을 확인한다. 회사 사용 예상 준비와 실제 인수는 구분한다.
+[프론트 통합 당시 표본·실패·후속 전달](specs/frontend-contract-integration.md#현재-다음-단계)을 읽고 로컬 검증·태그·설치·실제 인수를 구분한다.

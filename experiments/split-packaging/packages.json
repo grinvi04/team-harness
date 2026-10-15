@@ -58,12 +58,6 @@
           "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
           "unit": "governance-core",
           "target": "scripts/guard.sh"
-        },
-        {
-          "consumer": "hooks/hooks.json",
-          "environment": "HARNESS_GOVERNANCE_CORE_ROOT",
-          "unit": "governance-core",
-          "target": "scripts/route-intent.mjs"
         }
       ],
       "sources": [

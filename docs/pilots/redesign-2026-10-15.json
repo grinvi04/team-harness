@@ -1,0 +1,1577 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-15",
+  "implementationCandidate": {
+    "revision": "71a1d6333b81735122306de7875ae3d526ba8991",
+    "tree": "7a9f1979da5dc5be982c35dc256a42fcc2bf2379"
+  },
+  "version": "1.0.0",
+  "scope": "M1-M5 local implementation and fixed R1-R7 acceptance; not M6 delivery",
+  "evidenceRoot": ".runtime/redesign-live-20261015 under the primary team-harness checkout",
+  "recordNature": "Publication summary joins immutable controller outputs with independent semantic reviews; it does not overwrite raw pending-review fields. Raw evidence is local and not publicly hosted.",
+  "criteria": [
+    {
+      "id": "R1",
+      "status": "PASS",
+      "scope": "selected assets, conflicts, interruption and manual recovery"
+    },
+    {
+      "id": "R2",
+      "status": "PASS",
+      "scope": "selected actual first-use, diagnosis and authorized modification"
+    },
+    {
+      "id": "R3",
+      "status": "PASS",
+      "scope": "candidate-bound observations, missing/stale evidence and aggregation counterexamples"
+    },
+    {
+      "id": "R4",
+      "status": "PASS",
+      "scope": "fresh handoff, live writer ownership and honest partial/full distinction"
+    },
+    {
+      "id": "R5",
+      "status": "PASS",
+      "scope": "local delivery regressions and adopted branch policy; no new remote delivery"
+    },
+    {
+      "id": "R6",
+      "status": "PASS",
+      "scope": "fixed CLI and desktop execution rows; Claude source compatibility only"
+    },
+    {
+      "id": "R7",
+      "status": "PASS",
+      "scope": "fresh-context public documentation entry and explicit skill fallback"
+    }
+  ],
+  "quality": {
+    "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+    "qualityWorkflowSha256": "7712601d3afff144315fe8843c0f1fd79dc4210532304cf8791ad6151ef63d9c",
+    "latestResults": [
+      {
+        "step": 1,
+        "name": "필수 검색 도구 설치",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "rg --version",
+        "originalCommand": "sudo apt-get update\nsudo apt-get install --yes ripgrep\nrg --version\n",
+        "exitCode": 0,
+        "seconds": 0.02,
+        "adaptations": [
+          "macOS existing ripgrep; Linux apt setup not executed"
+        ],
+        "log": "$EVIDENCE_ROOT/quality/01.log",
+        "sha256": "1b93a92a4194b0cd390151eee9782bc4a7f759ea78c87ff567ab48fa9d224218"
+      },
+      {
+        "step": 2,
+        "name": "스택 버전 도구 설치와 판독·충돌 검사",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "npm ci --ignore-scripts --prefix scripts/stack-versions\n$HOME/team-harness/.runtime/frontend-resume-20261013/tooling/stack-versions/bin/python -m pip check\n$HOME/team-harness/.runtime/frontend-resume-20261013/tooling/stack-versions/bin/python - <<'CHECK_PINS'\nfrom pathlib import Path\nfrom importlib.metadata import version\nimport re\nfor name,pin in re.findall(r'^([A-Za-z0-9_.-]+)==([^ \\\\]+)',Path('scripts/stack-versions/requirements.txt').read_text(),re.M):\n    assert version(name)==pin,(name,version(name),pin)\n    print(name,pin,'installed pin matches')\nCHECK_PINS\nSTACK_VERSION_PYTHON=$HOME/team-harness/.runtime/frontend-resume-20261013/tooling/stack-versions/bin/python node --test tests/stack-project-test.mjs tests/stack-version-check-test.mjs tests/stack-version-cli-test.mjs\n",
+        "originalCommand": "npm ci --ignore-scripts --prefix scripts/stack-versions\npython3 -m venv .runtime/stack-versions/venv\n.runtime/stack-versions/venv/bin/python -m pip install --require-hashes -r scripts/stack-versions/requirements.txt\necho \"STACK_VERSION_PYTHON=$PWD/.runtime/stack-versions/venv/bin/python\" >> \"$GITHUB_ENV\"\nSTACK_VERSION_PYTHON=\"$PWD/.runtime/stack-versions/venv/bin/python\" node --test tests/stack-project-test.mjs tests/stack-version-check-test.mjs tests/stack-version-cli-test.mjs\n",
+        "exitCode": 0,
+        "seconds": 14.51,
+        "adaptations": [
+          "same pinned existing local Python environment validated; no shared venv reinstall; fresh npm ci in task worktree; Ubuntu tool preparation remains hosted CI"
+        ],
+        "log": "$EVIDENCE_ROOT/quality/02.log",
+        "sha256": "085af7232e1f7a6086c1ff2fec6024a5f3b4d96aca5f8896ebf0123b5ae6fa47"
+      },
+      {
+        "step": 3,
+        "name": "진행 문서 동기화 선언 검사",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "node plugins/harness-guard/scripts/check-document-sync.mjs --repo . --record docs/specs/team-harness-redesign.md\nnode --test tests/document-sync-test.mjs tests/skill-path-cleanup-test.mjs tests/release-cleanup-test.mjs\nnode --test tests/negative-search-assertions-test.mjs\n",
+        "originalCommand": "node plugins/harness-guard/scripts/check-document-sync.mjs --repo . --event \"$GITHUB_EVENT_PATH\"\nnode --test tests/document-sync-test.mjs tests/skill-path-cleanup-test.mjs tests/release-cleanup-test.mjs\nnode --test tests/negative-search-assertions-test.mjs\n",
+        "exitCode": 0,
+        "seconds": 39.65,
+        "adaptations": [
+          "current redesign specification declaration; no PR or hosted CI claimed"
+        ],
+        "log": "$EVIDENCE_ROOT/quality-final/03.log",
+        "sha256": "fa227504bcca9ab4deb8fd2458547819ff23e6a10827b6ad047f684959bb6fdc"
+      },
+      {
+        "step": 4,
+        "name": "문서 구조·생성·판정·모델 설정 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "node --test tests/markdown-structure-test.mjs tests/changelog-generation-test.mjs tests/harness-review-test.mjs\nnode scripts/check-markdown-structure.mjs --root . --virtual-root templates/AGENTS.md=. --virtual-root templates/README.template.md=.\nbash tests/native-model-contract-test.sh\n",
+        "originalCommand": "node --test tests/markdown-structure-test.mjs tests/changelog-generation-test.mjs tests/harness-review-test.mjs\nnode scripts/check-markdown-structure.mjs --root . --virtual-root templates/AGENTS.md=. --virtual-root templates/README.template.md=.\nbash tests/native-model-contract-test.sh\n",
+        "exitCode": 0,
+        "seconds": 39.83,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/04.log",
+        "sha256": "a98dc9382d9716842fad7b3ec8dc1d6ff158c76480ec98e5334a875400e2b663"
+      },
+      {
+        "step": 5,
+        "name": "선택형 개발 조정 배포 경계 검사",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/orchestration-integration-test.sh",
+        "originalCommand": "bash tests/orchestration-integration-test.sh",
+        "exitCode": 0,
+        "seconds": 1.27,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/05.log",
+        "sha256": "bb38840b7659290a14f9318a34dfb67bf10f4064343d194e0017d1d3938e2406"
+      },
+      {
+        "step": 6,
+        "name": "공통 Git·CI 배치 사본 일치 검사",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "node scripts/sync-repository-config.mjs --check\nbash tests/repository-config-test.sh\n",
+        "originalCommand": "node scripts/sync-repository-config.mjs --check\nbash tests/repository-config-test.sh\n",
+        "exitCode": 0,
+        "seconds": 0.15,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/06.log",
+        "sha256": "6faa98c5396c7f0c7081a81e08230397860782ec04574b2c0f21ea28be9e660f"
+      },
+      {
+        "step": 7,
+        "name": "스택 정본·생성물·선택 계약 검사",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "node scripts/generate-stack-templates.mjs --check\nbash tests/stack-templates-test.sh\n",
+        "originalCommand": "node scripts/generate-stack-templates.mjs --check\nbash tests/stack-templates-test.sh\n",
+        "exitCode": 0,
+        "seconds": 4.53,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/07.log",
+        "sha256": "d8ec84946d5daa30cc99dd78891fea6890152049fbfdba0dc4db07169240804b"
+      },
+      {
+        "step": 8,
+        "name": "명시 단독 스택 로컬 검사·보존·거부 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "node --test tests/local-setup-test.mjs tests/local-profiles-test.mjs",
+        "originalCommand": "node --test tests/local-setup-test.mjs tests/local-profiles-test.mjs",
+        "exitCode": 0,
+        "seconds": 8.96,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/08.log",
+        "sha256": "1e85ac6ccc0dea749c42fc6c8c51701e743429f1b0a3ec736fb31d2575e9d3c2"
+      },
+      {
+        "step": 9,
+        "name": "고정 Git 역사 읽기·누락·다이제스트 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/history-blob-test.sh",
+        "originalCommand": "bash tests/history-blob-test.sh",
+        "exitCode": 0,
+        "seconds": 0.48,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/09.log",
+        "sha256": "3c75b0da8a66bcc9f1a66e421c16531b1b103e862a9b9f05a8dd913d202545ff"
+      },
+      {
+        "step": 10,
+        "name": "쉘 구문 검사",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash -n plugins/harness-guard/scripts/guard.sh\nbash -n plugins/harness-guard/scripts/pr-create.sh\nbash -n plugins/harness-guard/scripts/pr-merge.sh\nbash -n plugins/harness-guard/scripts/release-cleanup.sh\nbash -n plugins/harness-guard/scripts/set-branch-protection.sh\nbash -n plugins/harness-guard/scripts/solo-merge.sh\nbash -n templates/githooks/pre-commit\nbash -n templates/githooks/commit-msg\nbash -n .githooks/pre-commit\nbash -n .githooks/commit-msg\nbash -n templates/local/check-harness.sh\nfor file in templates/stacks/*/local-check.sh; do bash -n \"$file\"; done\nbash -n tests/history-blob-test.sh\nnode --check tests/lib/read-history-blob.mjs\nbash -n tests/architecture-generator-test.sh\nbash -n tests/test-guard-test.sh\nbash -n tests/guard-test.sh\nbash -n tests/guard-matrix-test.sh\nbash -n tests/guard-tokenizer-test.sh\nbash -n tests/route-intent-test.sh\nbash -n tests/merge-permissions-test.sh\nbash -n tests/pr-merge-auto-test.sh\nbash -n tests/pr-create-test.sh\nbash -n tests/set-branch-protection-test.sh\nbash -n tests/solo-merge-test.sh\nbash -n tests/hotfix-tag-test.sh\nbash -n tests/new-repo-test.sh\nbash -n tests/repository-config-test.sh\nbash -n tests/stack-templates-test.sh\nbash -n tests/alembic-heads-test.sh\nbash -n tests/alembic-destructive-ddl-test.sh\nbash -n tests/activerecord-destructive-ddl-test.sh\nbash -n tests/skill-discovery-test.sh\nbash -n tests/skill-trigger-contract-test.sh\nbash -n tests/commit-message-test.sh\nbash -n tests/loop-skill-test.sh\nbash -n tests/flagship-skills-test.sh\nbash -n tests/product-direction-test.sh\nbash -n tests/public-safety-audit-test.sh\nbash -n tests/platform-overlap-audit-test.sh\nbash -n tests/product-boundary-test.sh\nbash -n tests/package-build-test.sh\nbash -n tests/package-artifact-integrity-test.sh\nbash -n tests/open-source-docs-test.sh\nbash -n tests/release-bundle-test.sh\nbash -n tests/plugin-coexistence-test.sh\nbash -n tests/external-pilot-test.sh\nbash -n tests/external-pilot-report-test.sh\nbash -n tests/external-pilot-provenance-test.sh\nbash -n tests/package-catalog-integrity-test.sh\nbash -n tests/package-workflow-binding-test.sh\nbash -n tests/profile-lifecycle-test.sh\nbash -n tests/enforce-subagent-model-test.sh\nbash -n tests/plugin-wiring-test.sh\nbash -n tests/settings-deny-test.sh\nbash -n tests/codex-security-guidance-adapter-test.sh\nbash -n tests/patch-codex-security-guidance-test.sh\nbash -n tests/codex-native-loader-test.sh\nbash -n tests/codex-native-loader-pilot-test.sh\nbash -n tests/codex-native-loader-report-test.sh\nbash -n tests/codex-split-loader-pilot-test.sh\nbash -n tests/codex-secret-egress-guard-test.sh\nbash -n tests/codex-pretool-guard-test.sh\nbash -n tests/codex-semantic-parity-test.sh\nbash -n tests/codex-skill-mapping-test.sh\nbash -n tests/claude-surface-isolation-test.sh\nbash -n tests/codex-plugin-cache-sync-test.sh\nbash -n scripts/new-repo.sh\nbash -n scripts/codex-hardened.sh\nbash -n scripts/install-codex-managed-requirements.sh\nbash -n scripts/codex-fresh-session-smoke.sh\nbash -n scripts/harness-doctor.sh\nbash -n tests/codex-managed-requirements-test.sh\nbash -n tests/codex-fresh-session-smoke-test.sh\nbash -n tests/harness-doctor-test.sh\nbash -n tests/action-pin-test.sh\nnode --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs\nnode --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs\nnode --check plugins/harness-guard/scripts/codex-secret-egress-guard.mjs\nnode --check plugins/harness-guard/scripts/codex-pretool-guard.mjs\nnode --check plugins/harness-guard/scripts/route-intent.mjs\nnode --check plugins/harness-guard/scripts/run-with-timeout.mjs\nnode --check plugins/harness-guard/scripts/worktree-fingerprint.mjs\nnode --check scripts/check-commit-message.cjs\nnode --check scripts/build-packages.mjs\nnode --check scripts/build-release-bundle.mjs\nnode --check tests/skill-contract-consolidation-test.mjs\nnode --check scripts/generate-changelog.mjs\nnode --check scripts/check-markdown-structure.mjs\nnode --check scripts/check-plugin-coexistence.mjs\nnode --check scripts/run-external-pilot.mjs\nnode --check scripts/check-external-pilot-provenance.mjs\nnode --check scripts/codex-binary-trust.mjs\nnode --check scripts/sync-codex-plugin-cache.mjs\nnode --check scripts/check-codex-native-plugin.mjs\nnode --check scripts/run-codex-native-loader-pilot.mjs\nnode --check scripts/run-codex-split-loader-pilot.mjs\nnode --check scripts/merge-permissions.mjs\nnode --check scripts/sync-repository-config.mjs\nnode --check scripts/stack-catalog.mjs\nnode --check scripts/generate-stack-templates.mjs\nfor file in experiments/split-packaging/*.mjs; do node --check \"$file\"; done\nnode --check scripts/check-destructive-ddl.mjs\nnode --check scripts/check-alembic-destructive-ddl.mjs\nnode --check scripts/check-activerecord-destructive-ddl.mjs\nnode --check templates/frontend/check-design-tokens.mjs\n",
+        "originalCommand": "bash -n plugins/harness-guard/scripts/guard.sh\nbash -n plugins/harness-guard/scripts/pr-create.sh\nbash -n plugins/harness-guard/scripts/pr-merge.sh\nbash -n plugins/harness-guard/scripts/release-cleanup.sh\nbash -n plugins/harness-guard/scripts/set-branch-protection.sh\nbash -n plugins/harness-guard/scripts/solo-merge.sh\nbash -n templates/githooks/pre-commit\nbash -n templates/githooks/commit-msg\nbash -n .githooks/pre-commit\nbash -n .githooks/commit-msg\nbash -n templates/local/check-harness.sh\nfor file in templates/stacks/*/local-check.sh; do bash -n \"$file\"; done\nbash -n tests/history-blob-test.sh\nnode --check tests/lib/read-history-blob.mjs\nbash -n tests/architecture-generator-test.sh\nbash -n tests/test-guard-test.sh\nbash -n tests/guard-test.sh\nbash -n tests/guard-matrix-test.sh\nbash -n tests/guard-tokenizer-test.sh\nbash -n tests/route-intent-test.sh\nbash -n tests/merge-permissions-test.sh\nbash -n tests/pr-merge-auto-test.sh\nbash -n tests/pr-create-test.sh\nbash -n tests/set-branch-protection-test.sh\nbash -n tests/solo-merge-test.sh\nbash -n tests/hotfix-tag-test.sh\nbash -n tests/new-repo-test.sh\nbash -n tests/repository-config-test.sh\nbash -n tests/stack-templates-test.sh\nbash -n tests/alembic-heads-test.sh\nbash -n tests/alembic-destructive-ddl-test.sh\nbash -n tests/activerecord-destructive-ddl-test.sh\nbash -n tests/skill-discovery-test.sh\nbash -n tests/skill-trigger-contract-test.sh\nbash -n tests/commit-message-test.sh\nbash -n tests/loop-skill-test.sh\nbash -n tests/flagship-skills-test.sh\nbash -n tests/product-direction-test.sh\nbash -n tests/public-safety-audit-test.sh\nbash -n tests/platform-overlap-audit-test.sh\nbash -n tests/product-boundary-test.sh\nbash -n tests/package-build-test.sh\nbash -n tests/package-artifact-integrity-test.sh\nbash -n tests/open-source-docs-test.sh\nbash -n tests/release-bundle-test.sh\nbash -n tests/plugin-coexistence-test.sh\nbash -n tests/external-pilot-test.sh\nbash -n tests/external-pilot-report-test.sh\nbash -n tests/external-pilot-provenance-test.sh\nbash -n tests/package-catalog-integrity-test.sh\nbash -n tests/package-workflow-binding-test.sh\nbash -n tests/profile-lifecycle-test.sh\nbash -n tests/enforce-subagent-model-test.sh\nbash -n tests/plugin-wiring-test.sh\nbash -n tests/settings-deny-test.sh\nbash -n tests/codex-security-guidance-adapter-test.sh\nbash -n tests/patch-codex-security-guidance-test.sh\nbash -n tests/codex-native-loader-test.sh\nbash -n tests/codex-native-loader-pilot-test.sh\nbash -n tests/codex-native-loader-report-test.sh\nbash -n tests/codex-split-loader-pilot-test.sh\nbash -n tests/codex-secret-egress-guard-test.sh\nbash -n tests/codex-pretool-guard-test.sh\nbash -n tests/codex-semantic-parity-test.sh\nbash -n tests/codex-skill-mapping-test.sh\nbash -n tests/claude-surface-isolation-test.sh\nbash -n tests/codex-plugin-cache-sync-test.sh\nbash -n scripts/new-repo.sh\nbash -n scripts/codex-hardened.sh\nbash -n scripts/install-codex-managed-requirements.sh\nbash -n scripts/codex-fresh-session-smoke.sh\nbash -n scripts/harness-doctor.sh\nbash -n tests/codex-managed-requirements-test.sh\nbash -n tests/codex-fresh-session-smoke-test.sh\nbash -n tests/harness-doctor-test.sh\nbash -n tests/action-pin-test.sh\nnode --check plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs\nnode --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs\nnode --check plugins/harness-guard/scripts/codex-secret-egress-guard.mjs\nnode --check plugins/harness-guard/scripts/codex-pretool-guard.mjs\nnode --check plugins/harness-guard/scripts/route-intent.mjs\nnode --check plugins/harness-guard/scripts/run-with-timeout.mjs\nnode --check plugins/harness-guard/scripts/worktree-fingerprint.mjs\nnode --check scripts/check-commit-message.cjs\nnode --check scripts/build-packages.mjs\nnode --check scripts/build-release-bundle.mjs\nnode --check tests/skill-contract-consolidation-test.mjs\nnode --check scripts/generate-changelog.mjs\nnode --check scripts/check-markdown-structure.mjs\nnode --check scripts/check-plugin-coexistence.mjs\nnode --check scripts/run-external-pilot.mjs\nnode --check scripts/check-external-pilot-provenance.mjs\nnode --check scripts/codex-binary-trust.mjs\nnode --check scripts/sync-codex-plugin-cache.mjs\nnode --check scripts/check-codex-native-plugin.mjs\nnode --check scripts/run-codex-native-loader-pilot.mjs\nnode --check scripts/run-codex-split-loader-pilot.mjs\nnode --check scripts/merge-permissions.mjs\nnode --check scripts/sync-repository-config.mjs\nnode --check scripts/stack-catalog.mjs\nnode --check scripts/generate-stack-templates.mjs\nfor file in experiments/split-packaging/*.mjs; do node --check \"$file\"; done\nnode --check scripts/check-destructive-ddl.mjs\nnode --check scripts/check-alembic-destructive-ddl.mjs\nnode --check scripts/check-activerecord-destructive-ddl.mjs\nnode --check templates/frontend/check-design-tokens.mjs\n",
+        "exitCode": 0,
+        "seconds": 1.32,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/10.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "step": 11,
+        "name": "JSON 유효성 검사",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "python3 - <<'EOF'\nimport json\nimport subprocess\npaths = [\n    \"plugins/harness-guard/.claude-plugin/plugin.json\",\n    \"plugins/harness-guard/.codex-plugin/plugin.json\",\n    \"plugins/harness-guard/hooks/hooks.json\",\n    \"plugins/harness-guard/codex/hooks/hooks.json\",\n    \".claude-plugin/marketplace.json\",\n    \"templates/settings.json\",\n    \"experiments/split-packaging/packages.json\",\n    \"templates/stacks.json\",\n    \"docs/pilots/external-pilot-provenance.json\",\n]\nfor p in paths:\n    json.load(open(p))\n    print(\"OK\", p)\nrevision = \"54657b3ef79ab36c3e0877664964356badd3510b\"\nhistory = [\n    (\"docs/pilots/codex-split-loader-v0.61.0.json\", \"4a28fe68d0860f85dc3c356ca0b36d098a3caa498cc0407b2374f26e5c711719\"),\n    (\"docs/pilots/codex-split-runtime-v0.61.0.json\", \"2db6f9ee87df527ce4ff1e27623a1fafbfb5e473b4e19c0b138c9d354b933e75\"),\n]\nfor p, digest in history:\n    data = subprocess.check_output([\"node\", \"tests/lib/read-history-blob.mjs\", \".\", revision, p, digest])\n    json.loads(data)\n    print(\"OK\", p, \"fixed Git blob\")\nEOF\n",
+        "originalCommand": "python3 - <<'EOF'\nimport json\nimport subprocess\npaths = [\n    \"plugins/harness-guard/.claude-plugin/plugin.json\",\n    \"plugins/harness-guard/.codex-plugin/plugin.json\",\n    \"plugins/harness-guard/hooks/hooks.json\",\n    \"plugins/harness-guard/codex/hooks/hooks.json\",\n    \".claude-plugin/marketplace.json\",\n    \"templates/settings.json\",\n    \"experiments/split-packaging/packages.json\",\n    \"templates/stacks.json\",\n    \"docs/pilots/external-pilot-provenance.json\",\n]\nfor p in paths:\n    json.load(open(p))\n    print(\"OK\", p)\nrevision = \"54657b3ef79ab36c3e0877664964356badd3510b\"\nhistory = [\n    (\"docs/pilots/codex-split-loader-v0.61.0.json\", \"4a28fe68d0860f85dc3c356ca0b36d098a3caa498cc0407b2374f26e5c711719\"),\n    (\"docs/pilots/codex-split-runtime-v0.61.0.json\", \"2db6f9ee87df527ce4ff1e27623a1fafbfb5e473b4e19c0b138c9d354b933e75\"),\n]\nfor p, digest in history:\n    data = subprocess.check_output([\"node\", \"tests/lib/read-history-blob.mjs\", \".\", revision, p, digest])\n    json.loads(data)\n    print(\"OK\", p, \"fixed Git blob\")\nEOF\n",
+        "exitCode": 0,
+        "seconds": 0.14,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/11.log",
+        "sha256": "8bcca5c8d240d748768a9f88f282fcc069ac730d2e35b9046dc37db4974296dd"
+      },
+      {
+        "step": 12,
+        "name": "파이썬 구문 검사 (호환 경로·실행기)",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "python3 -m py_compile plugins/harness-guard/scripts/enforce-subagent-model.py\npython3 -m py_compile scripts/spawn-verified-executable.py\n",
+        "originalCommand": "python3 -m py_compile plugins/harness-guard/scripts/enforce-subagent-model.py\npython3 -m py_compile scripts/spawn-verified-executable.py\n",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/12.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      {
+        "step": 13,
+        "name": "템플릿 생성기 ruff 검사 (python repo가 복사 시 CI 통과 보장 — v0.24.1)",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "$HOME/team-harness/.runtime/frontend-current-acceptance-20261013/tooling/ruff/bin/ruff --version | grep -Fx \"ruff 0.15.15\"\nexport PATH=\"$HOME/team-harness/.runtime/frontend-current-acceptance-20261013/tooling/ruff/bin:$PATH\"\nruff check --line-length 100 --select E,F,W templates/gen_arch_svg.py\nruff format --line-length 100 --check templates/gen_arch_svg.py\n",
+        "originalCommand": "pipx install ruff==0.15.15\nruff check --line-length 100 --select E,F,W templates/gen_arch_svg.py\nruff format --line-length 100 --check templates/gen_arch_svg.py\n",
+        "exitCode": 0,
+        "seconds": 0.08,
+        "adaptations": [
+          "reuse verified same pinned Ruff0.15.15 outside repository; no global pipx install"
+        ],
+        "log": "$EVIDENCE_ROOT/quality/13.log",
+        "sha256": "d0aa7c40d15b6058492a0880ba2c91430ced6a1f5277f42ef232631c078e6d4d"
+      },
+      {
+        "step": 14,
+        "name": "아키텍처 생성기 실패·XML 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/architecture-generator-test.sh",
+        "originalCommand": "bash tests/architecture-generator-test.sh",
+        "exitCode": 0,
+        "seconds": 0.19,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/14.log",
+        "sha256": "d961a549b1c1b905825d689ed804b0a3413dd59caf341125895f63f0f70bae30"
+      },
+      {
+        "step": 15,
+        "name": "가드 시나리오 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/guard-test.sh",
+        "originalCommand": "bash tests/guard-test.sh",
+        "exitCode": 0,
+        "seconds": 36.91,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/15.log",
+        "sha256": "47d3186528d656b911752f4ec5df9a0dfb6c932f4c337ad992040d0373c854df"
+      },
+      {
+        "step": 16,
+        "name": "가드 계약 전수 매트릭스",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/guard-matrix-test.sh",
+        "originalCommand": "bash tests/guard-matrix-test.sh",
+        "exitCode": 0,
+        "seconds": 24.91,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/16.log",
+        "sha256": "cd27c2de9ac4348a564c5369e74f95c173734f6fa4f820b4fbe5a95c3a0e9dc0"
+      },
+      {
+        "step": 17,
+        "name": "가드 tokenizer 경계 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/guard-tokenizer-test.sh",
+        "originalCommand": "bash tests/guard-tokenizer-test.sh",
+        "exitCode": 0,
+        "seconds": 0.13,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/17.log",
+        "sha256": "4802f358e6bf2614f21a99d86c7c86868b06dbec87ce976645856943a21fc0ab"
+      },
+      {
+        "step": 18,
+        "name": "의도 라우터 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/route-intent-test.sh",
+        "originalCommand": "bash tests/route-intent-test.sh",
+        "exitCode": 0,
+        "seconds": 2.11,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/18.log",
+        "sha256": "7c446bd35f66550230ad2b45da38ef111a8a0b865ac52008f45bf2766f9ff901"
+      },
+      {
+        "step": 19,
+        "name": "skill 자동 선택 description 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/skill-trigger-contract-test.sh",
+        "originalCommand": "bash tests/skill-trigger-contract-test.sh",
+        "exitCode": 0,
+        "seconds": 1.63,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/19.log",
+        "sha256": "700d80d5648f1425cbf1d228dc33b452571ae7b93ea8f0f5e3591ac2b613f2fd"
+      },
+      {
+        "step": 20,
+        "name": "커밋 메시지 로컬·CI 공통 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/commit-message-test.sh\nbash tests/commitlint-trusted-test.sh\n",
+        "originalCommand": "bash tests/commit-message-test.sh\nbash tests/commitlint-trusted-test.sh\n",
+        "exitCode": 0,
+        "seconds": 10.42,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/20.log",
+        "sha256": "4e5039232869a0d994e3710dbb7e3a685ebc6b5c7b697050b0b5b69b84e99c27"
+      },
+      {
+        "step": 21,
+        "name": "스킬 공통 계약과 릴리즈 적용 범위",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "node scripts/generate-codex-skills.mjs --check\nnode --test tests/codex-skill-generation-test.mjs\nnode tests/skill-contract-consolidation-test.mjs\n",
+        "originalCommand": "node scripts/generate-codex-skills.mjs --check\nnode --test tests/codex-skill-generation-test.mjs\nnode tests/skill-contract-consolidation-test.mjs\n",
+        "exitCode": 0,
+        "seconds": 2.05,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/21.log",
+        "sha256": "0ee0b0009bc14a88f33ef91b01a2db523145748a0d7b262afe9bc25a640d10ce"
+      },
+      {
+        "step": 22,
+        "name": "loop 실행 안전장치 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/loop-skill-test.sh",
+        "originalCommand": "bash tests/loop-skill-test.sh",
+        "exitCode": 0,
+        "seconds": 22.52,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/22.log",
+        "sha256": "45213856b9420f7e96330d5a78c8b28502c371a3af1401051c88213332517dfc"
+      },
+      {
+        "step": 23,
+        "name": "권한 병합 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/merge-permissions-test.sh",
+        "originalCommand": "bash tests/merge-permissions-test.sh",
+        "exitCode": 0,
+        "seconds": 0.55,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/23.log",
+        "sha256": "3bf4bab994d869f8e14ea48d05537174a3932c95acd368c9bb701f5266367129"
+      },
+      {
+        "step": 24,
+        "name": "마이그레이션 안전성 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/migration-safety-test.sh",
+        "originalCommand": "bash tests/migration-safety-test.sh",
+        "exitCode": 0,
+        "seconds": 1.62,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/24.log",
+        "sha256": "98b7505853217407843ce64d19d0b5de45a38187ebabe99339e00c8e44e49cda"
+      },
+      {
+        "step": 25,
+        "name": "파괴적 DDL 게이트 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/destructive-ddl-test.sh",
+        "originalCommand": "bash tests/destructive-ddl-test.sh",
+        "exitCode": 0,
+        "seconds": 3.62,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/25.log",
+        "sha256": "c0e566b14ad4f018816ea976a93ee58c4d2cb18f4138c204bc64758c5f802006"
+      },
+      {
+        "step": 26,
+        "name": "Alembic 파괴 DDL 게이트 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/alembic-destructive-ddl-test.sh",
+        "originalCommand": "bash tests/alembic-destructive-ddl-test.sh",
+        "exitCode": 0,
+        "seconds": 2.18,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/26.log",
+        "sha256": "dbf6d4b3c6ae9d8595ccd6eea9303d630d9040ac947a7a6e6806f200763c1c2a"
+      },
+      {
+        "step": 27,
+        "name": "ActiveRecord 파괴 DDL 게이트 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/activerecord-destructive-ddl-test.sh",
+        "originalCommand": "bash tests/activerecord-destructive-ddl-test.sh",
+        "exitCode": 0,
+        "seconds": 2.32,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/27.log",
+        "sha256": "19fbabf69639caf8f89fb9a2a7ac296599975ffc06299733c4c2825c64096448"
+      },
+      {
+        "step": 28,
+        "name": "드리프트 점검 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/repo-sync-test.sh",
+        "originalCommand": "bash tests/repo-sync-test.sh",
+        "exitCode": 0,
+        "seconds": 4.08,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/28.log",
+        "sha256": "63dbeb1af63cd9616988b48b9430f1eadd262e7452fa635636eb3f4a4a0a70f1"
+      },
+      {
+        "step": 29,
+        "name": "pr-merge --auto·게이트 판정 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/pr-merge-auto-test.sh",
+        "originalCommand": "bash tests/pr-merge-auto-test.sh",
+        "exitCode": 0,
+        "seconds": 12.59,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/29.log",
+        "sha256": "2787da3d833cf5a7bd8bfb8b60dd588da4b38ddbd872919bb3480cf438c0c5d4"
+      },
+      {
+        "step": 30,
+        "name": "pr-create 검증 함수 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/pr-create-test.sh",
+        "originalCommand": "bash tests/pr-create-test.sh",
+        "exitCode": 0,
+        "seconds": 16.1,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/30.log",
+        "sha256": "be8de33f88745168e64fa34e7cdc8f8c8f3a4cc73563a32a0c8ebf613c219fea"
+      },
+      {
+        "step": 31,
+        "name": "set-branch-protection --check 판정 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/set-branch-protection-test.sh",
+        "originalCommand": "bash tests/set-branch-protection-test.sh",
+        "exitCode": 0,
+        "seconds": 14.45,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/31.log",
+        "sha256": "863600b99dfc7bca94ad24c5b86bf15a28ba0ef67da4616e87f5a3e3d02e7774"
+      },
+      {
+        "step": 32,
+        "name": "회사 병합 경계·선택 자산 수명주기",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "node --test tests/company-merge-test.mjs tests/repo-assets-test.mjs tests/branch-protection-policy-test.mjs tests/pr-base-selection-test.mjs\n",
+        "originalCommand": "node --test tests/company-merge-test.mjs tests/repo-assets-test.mjs tests/branch-protection-policy-test.mjs tests/pr-base-selection-test.mjs\n",
+        "exitCode": 0,
+        "seconds": 25.53,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/32.log",
+        "sha256": "15ea5322672da9d3ae5bcb6c7b0bab0fc3f1112ae5fccb47f3e23c372861a422"
+      },
+      {
+        "step": 33,
+        "name": "solo-merge break-glass 원자성 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/solo-merge-test.sh",
+        "originalCommand": "bash tests/solo-merge-test.sh",
+        "exitCode": 0,
+        "seconds": 11.67,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/33.log",
+        "sha256": "f84ca1a2aa5d158f48d51e9442ee45e861806fbfc6290e1a1bc53f119f36441f"
+      },
+      {
+        "step": 34,
+        "name": "핫픽스 PR 커밋·단일 태그 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/hotfix-tag-test.sh",
+        "originalCommand": "bash tests/hotfix-tag-test.sh",
+        "exitCode": 0,
+        "seconds": 0.83,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/34.log",
+        "sha256": "2c41ce902cc3db4c57b56fe04ca20bf198f5640739d0c40cc078609f21c8a20f"
+      },
+      {
+        "step": 35,
+        "name": "new-repo B4 게이트 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/new-repo-test.sh",
+        "originalCommand": "bash tests/new-repo-test.sh",
+        "exitCode": 0,
+        "seconds": 49.79,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/35.log",
+        "sha256": "9eaf91bb11c6353d4c291045012fdfddf49b3dc24ec999651d7bbd54fe72ea2d"
+      },
+      {
+        "step": 36,
+        "name": "테스트 단언 감소 판정 회귀",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/test-guard-test.sh",
+        "originalCommand": "bash tests/test-guard-test.sh",
+        "exitCode": 0,
+        "seconds": 3.9,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/36.log",
+        "sha256": "67469b4817e294c9d73be3e310ba0e640411126d087aedc5458b4bec989d3c26"
+      },
+      {
+        "step": 37,
+        "name": "alembic-heads 계수 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/alembic-heads-test.sh",
+        "originalCommand": "bash tests/alembic-heads-test.sh",
+        "exitCode": 0,
+        "seconds": 0.79,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/37.log",
+        "sha256": "028aa571b1143a08414ede0e0c73a8f21cb78f7b6232fc199e26b4b4f6c7126b"
+      },
+      {
+        "step": 38,
+        "name": "스킬 발견성(SKILL.md) 테스트",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/skill-discovery-test.sh",
+        "originalCommand": "bash tests/skill-discovery-test.sh",
+        "exitCode": 0,
+        "seconds": 0.51,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/38.log",
+        "sha256": "3708308dec19ed3e55a1b8560c60b9b7f0631d1fcf8dba78559a15a1049392af"
+      },
+      {
+        "step": 39,
+        "name": "대표 디버깅·완료 검증 스킬 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/flagship-skills-test.sh",
+        "originalCommand": "bash tests/flagship-skills-test.sh",
+        "exitCode": 0,
+        "seconds": 0.35,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/39.log",
+        "sha256": "59249b501783e0a4f22813b207b34b1299f7973746b21c8b848d10802be30f73"
+      },
+      {
+        "step": 40,
+        "name": "QA 실제 과제 판정자 자체 검증 (모델 호출 없음)",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "node --test tests/qa-practical-test.mjs",
+        "originalCommand": "node --test tests/qa-practical-test.mjs",
+        "exitCode": 0,
+        "seconds": 37.06,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/40.log",
+        "sha256": "899962dfcb52981f105422b028434d32f94c4a57254d63a14ae9582b9e0d81ab"
+      },
+      {
+        "step": 41,
+        "name": "QA 명령별 증거 판정자 자체 검증 (모델 호출 없음)",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "node --check tests/fixtures/qa-command-binding.mjs\nnode --test tests/qa-command-binding-test.mjs\nnode --test tests/acceptance/*-test.mjs\n",
+        "originalCommand": "node --check tests/fixtures/qa-command-binding.mjs\nnode --test tests/qa-command-binding-test.mjs\nnode --test tests/acceptance/*-test.mjs\n",
+        "exitCode": 0,
+        "seconds": 1.9,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/41.log",
+        "sha256": "267555049b9ee50d89f5f0d1ee237ea192522599df786bea8e667a825abcf005"
+      },
+      {
+        "step": 42,
+        "name": "제품 방향·신규 기능 판단 게이트 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/product-direction-test.sh",
+        "originalCommand": "bash tests/product-direction-test.sh",
+        "exitCode": 0,
+        "seconds": 0.13,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/42.log",
+        "sha256": "a0cec8fe12445c8119ae033bca78d593633a327904deb9707c4eb90a2e016a1c"
+      },
+      {
+        "step": 43,
+        "name": "오픈소스 공개 안전성 baseline 계약",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/public-safety-audit-test.sh",
+        "originalCommand": "bash tests/public-safety-audit-test.sh",
+        "exitCode": 0,
+        "seconds": 0.6,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/43.log",
+        "sha256": "d497e037da6c1d8d476748873ac9af5023600f743bd2cd54e854201562c85bb9"
+      },
+      {
+        "step": 44,
+        "name": "플랫폼 중복 감사 인벤토리 계약",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/platform-overlap-audit-test.sh",
+        "originalCommand": "bash tests/platform-overlap-audit-test.sh",
+        "exitCode": 0,
+        "seconds": 0.19,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/44.log",
+        "sha256": "51cace08c5d17f359cb138c38ca27d79dfd43e29428e911ae447629c6ae19fe4"
+      },
+      {
+        "step": 45,
+        "name": "제품 core·adapter·workflow 경계 계약",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/product-boundary-test.sh",
+        "originalCommand": "bash tests/product-boundary-test.sh",
+        "exitCode": 0,
+        "seconds": 0.23,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/45.log",
+        "sha256": "f151b6506eb97f63e71e125c96a365da37e5f0708e6f84c9c458061121e225b5"
+      },
+      {
+        "step": 46,
+        "name": "제품 package manifest·재현 build 계약",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/package-build-test.sh",
+        "originalCommand": "bash tests/package-build-test.sh",
+        "exitCode": 0,
+        "seconds": 3.57,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/46.log",
+        "sha256": "be948b8d48a685a8b8bfba514ca945ece067e3d8cc14397afe51dbcb5f13402a"
+      },
+      {
+        "step": 47,
+        "name": "package runtime binding·provenance 계약",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/package-artifact-integrity-test.sh",
+        "originalCommand": "bash tests/package-artifact-integrity-test.sh",
+        "exitCode": 0,
+        "seconds": 1.2,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/47.log",
+        "sha256": "49845b8c02e773f10220631ac6dcc8e26a25d79cbe0f1343b9f3949b806a6b94"
+      },
+      {
+        "step": 48,
+        "name": "package catalog 검증·digest provenance 계약",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/package-catalog-integrity-test.sh",
+        "originalCommand": "bash tests/package-catalog-integrity-test.sh",
+        "exitCode": 0,
+        "seconds": 1.27,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/48.log",
+        "sha256": "54c8c6af49b37fa3d14a7ecc214ac910999d05234e25b90d54994a102a09cee4"
+      },
+      {
+        "step": 49,
+        "name": "workflow pack→core runtime binding 계약",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/package-workflow-binding-test.sh",
+        "originalCommand": "bash tests/package-workflow-binding-test.sh",
+        "exitCode": 0,
+        "seconds": 1.25,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/49.log",
+        "sha256": "a4f395e4fc5a43f9ce857ba27c9277e2f510f1b7aac14cee6ae4d4b190da5c8b"
+      },
+      {
+        "step": 50,
+        "name": "profile 설치·doctor 수명주기 계약",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/profile-lifecycle-test.sh",
+        "originalCommand": "bash tests/profile-lifecycle-test.sh",
+        "exitCode": 0,
+        "seconds": 39.72,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/50.log",
+        "sha256": "a3481dd0b46ce42624f9845bd59e31a77eaf0e16b87e12bb315a200a54ffa13d"
+      },
+      {
+        "step": 51,
+        "name": "오픈소스 공개 문서 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/open-source-docs-test.sh",
+        "originalCommand": "bash tests/open-source-docs-test.sh",
+        "exitCode": 0,
+        "seconds": 12.87,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/51.log",
+        "sha256": "5247ec2aa34cb54d67e958a160fcf0002217b91f6414bec19ec5b33b254577f7"
+      },
+      {
+        "step": 52,
+        "name": "릴리즈 bundle provenance·재현성 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/release-bundle-test.sh",
+        "originalCommand": "bash tests/release-bundle-test.sh",
+        "exitCode": 0,
+        "seconds": 10.05,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/52.log",
+        "sha256": "a3e8950ce8fe6c2ded1123e51902016a27ed38901fd63ba59aad306d4a4eb723"
+      },
+      {
+        "step": 53,
+        "name": "plugin·skill clean-session 공존 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/plugin-coexistence-test.sh",
+        "originalCommand": "bash tests/plugin-coexistence-test.sh",
+        "exitCode": 0,
+        "seconds": 6.23,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/53.log",
+        "sha256": "70e41ba8a9b26ccc2cf4f715e07b21b12875a8177803f22df8a7d32a3cce55d2"
+      },
+      {
+        "step": 54,
+        "name": "외부 파일럿 runner·보고서 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/external-pilot-test.sh\nbash tests/external-pilot-report-test.sh\nbash tests/external-pilot-provenance-test.sh\n",
+        "originalCommand": "bash tests/external-pilot-test.sh\nbash tests/external-pilot-report-test.sh\nbash tests/external-pilot-provenance-test.sh\n",
+        "exitCode": 0,
+        "seconds": 41.35,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/54.log",
+        "sha256": "38fa143d97e10d0087034964108aee2b035beaa0f27347578d4b52afef547899"
+      },
+      {
+        "step": 55,
+        "name": "native 모델 선택·강제 없는 호환 경로 테스트",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/enforce-subagent-model-test.sh",
+        "originalCommand": "bash tests/enforce-subagent-model-test.sh",
+        "exitCode": 0,
+        "seconds": 0.93,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/55.log",
+        "sha256": "9840f6869e50590afa7ed26a2dff80ae100d3b06515d7de248ec3dee8ad252f6"
+      },
+      {
+        "step": 56,
+        "name": "플러그인 배선 반증-스모크 (guard 실발동·hooksPath)",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/plugin-wiring-test.sh",
+        "originalCommand": "bash tests/plugin-wiring-test.sh",
+        "exitCode": 0,
+        "seconds": 0.4,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/56.log",
+        "sha256": "ee82057f8bb4a69fd0b47a24443a1c85f21f592dcd36dc70d8f6db086b2e3f1b"
+      },
+      {
+        "step": 57,
+        "name": "settings.json .env-리더 deny 커버리지 (#237)",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/settings-deny-test.sh",
+        "originalCommand": "bash tests/settings-deny-test.sh",
+        "exitCode": 0,
+        "seconds": 0.07,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/57.log",
+        "sha256": "e95052f42bed2f1f5be5bc4b86d2fe78fbc529d01ec812cf363f86587c0ab4f8"
+      },
+      {
+        "step": 58,
+        "name": "Codex security-guidance adapter 테스트",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-security-guidance-adapter-test.sh",
+        "originalCommand": "bash tests/codex-security-guidance-adapter-test.sh",
+        "exitCode": 0,
+        "seconds": 0.45,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/58.log",
+        "sha256": "406a4bfc802b530d9a1598ca806e841ccd265879b609ceaa6db91a7d21afade3"
+      },
+      {
+        "step": 59,
+        "name": "Codex security-guidance cache refresh 패치 테스트",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/patch-codex-security-guidance-test.sh",
+        "originalCommand": "bash tests/patch-codex-security-guidance-test.sh",
+        "exitCode": 0,
+        "seconds": 1.37,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/59.log",
+        "sha256": "234b4169d9b1b734b0930be8a8ad04a78bc66c2988f2e66bbd1c2c363894c64e"
+      },
+      {
+        "step": 60,
+        "name": "Codex source-native loader 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-native-loader-test.sh",
+        "originalCommand": "bash tests/codex-native-loader-test.sh",
+        "exitCode": 0,
+        "seconds": 1.26,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/60.log",
+        "sha256": "3fe8f1cfaedbbe7650566597ac0947cbeef76ac641150d72f3daa9cf28417ea9"
+      },
+      {
+        "step": 61,
+        "name": "Codex native loader pilot 격리·보고 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-native-loader-pilot-test.sh",
+        "originalCommand": "bash tests/codex-native-loader-pilot-test.sh",
+        "exitCode": 0,
+        "seconds": 54.26,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/61.log",
+        "sha256": "0b00baff497e1564a51bc50ea40443099ceebc914c51b8503b936a93217fa712"
+      },
+      {
+        "step": 62,
+        "name": "Codex native loader 실측 보고서 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-native-loader-report-test.sh",
+        "originalCommand": "bash tests/codex-native-loader-report-test.sh",
+        "exitCode": 0,
+        "seconds": 0.77,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/62.log",
+        "sha256": "6d4b95bbedb564f4ebb429a4afbc1825e045a5dd16670399f06fdc6d0abc5f8d"
+      },
+      {
+        "step": 63,
+        "name": "Codex split package 공식 loader·rollback 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-split-loader-pilot-test.sh",
+        "originalCommand": "bash tests/codex-split-loader-pilot-test.sh",
+        "exitCode": 0,
+        "seconds": 40.33,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/63.log",
+        "sha256": "0f5ee6e5fae403a68a81a69eca074c5f13f8aea154f9d968a3e23e33ce335b4c"
+      },
+      {
+        "step": 64,
+        "name": "Codex 시크릿 외부 전송 가드 테스트",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-secret-egress-guard-test.sh",
+        "originalCommand": "bash tests/codex-secret-egress-guard-test.sh",
+        "exitCode": 0,
+        "seconds": 10.63,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/64.log",
+        "sha256": "a332b557ef1b8b0241baf5205ca9cf97a0a915e299f3b8768780e2655fe4ff2e"
+      },
+      {
+        "step": 65,
+        "name": "Codex PreToolUse 정규화 가드 테스트",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-pretool-guard-test.sh",
+        "originalCommand": "bash tests/codex-pretool-guard-test.sh",
+        "exitCode": 0,
+        "seconds": 2.64,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/65.log",
+        "sha256": "27f6459a1558f94ae6eeed3c4214ae7772ce2289252dbf33a3bdad7bb2c1d3e5"
+      },
+      {
+        "step": 66,
+        "name": "Codex semantic parity matrix 완전성",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-semantic-parity-test.sh",
+        "originalCommand": "bash tests/codex-semantic-parity-test.sh",
+        "exitCode": 0,
+        "seconds": 0.13,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/66.log",
+        "sha256": "15ad60a945b887e6582c180981e49f531175462c1bca47496b581a25654f6189"
+      },
+      {
+        "step": 67,
+        "name": "Codex skill 실행 mapping",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-skill-mapping-test.sh",
+        "originalCommand": "bash tests/codex-skill-mapping-test.sh",
+        "exitCode": 0,
+        "seconds": 0.34,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/67.log",
+        "sha256": "a6f06fa6c4d59765cdc8ea5f3aafbcef0440d9137db2817b5ae81bded05a430e"
+      },
+      {
+        "step": 68,
+        "name": "Claude-facing source 격리",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/claude-surface-isolation-test.sh",
+        "originalCommand": "bash tests/claude-surface-isolation-test.sh",
+        "exitCode": 0,
+        "seconds": 0.29,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/68.log",
+        "sha256": "d2f6688d707897ba903a2648f7b725754355a7ef6693f75c571e2f47bfd3b6b2"
+      },
+      {
+        "step": 69,
+        "name": "Codex hardened launcher native validation",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-hardened-launcher-test.sh",
+        "originalCommand": "bash tests/codex-hardened-launcher-test.sh",
+        "exitCode": 0,
+        "seconds": 3.63,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/69.log",
+        "sha256": "efe37ba54d5211e1e0228a092e08902501e4ca43da418f293eecfeb7e8a9e27d"
+      },
+      {
+        "step": 70,
+        "name": "Codex plugin cache 조건부 동기화",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-plugin-cache-sync-test.sh",
+        "originalCommand": "bash tests/codex-plugin-cache-sync-test.sh",
+        "exitCode": 0,
+        "seconds": 0.65,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/70.log",
+        "sha256": "a213d492108026d0830334e5cf30f02712225bcf67a801c9ac0e9980e6b64243"
+      },
+      {
+        "step": 71,
+        "name": "Codex managed requirements 설치 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-managed-requirements-test.sh",
+        "originalCommand": "bash tests/codex-managed-requirements-test.sh",
+        "exitCode": 0,
+        "seconds": 0.18,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/71.log",
+        "sha256": "79ed59d7719a7da36a1303b66cb1d45fbde119e701f59e9b09a2ca88950abf8e"
+      },
+      {
+        "step": 72,
+        "name": "Codex fresh-session smoke 계약",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/codex-fresh-session-smoke-test.sh",
+        "originalCommand": "bash tests/codex-fresh-session-smoke-test.sh",
+        "exitCode": 0,
+        "seconds": 2.81,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/72.log",
+        "sha256": "aab2f3432c3f6a2ee7461a7d07911d7eb5a985ceefc47aaa4646d461c018d38d"
+      },
+      {
+        "step": 73,
+        "name": "team-harness doctor 종합 판정",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/harness-doctor-test.sh",
+        "originalCommand": "bash tests/harness-doctor-test.sh",
+        "exitCode": 0,
+        "seconds": 6.36,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/73.log",
+        "sha256": "f6db623e5e6c61b625963d6f7c21908a2dd3acf65fcc4b1468a7e7232f18b719"
+      },
+      {
+        "step": 74,
+        "name": "GitHub Actions 공급망 SHA 고정",
+        "candidate": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/action-pin-test.sh",
+        "originalCommand": "bash tests/action-pin-test.sh",
+        "exitCode": 0,
+        "seconds": 0.19,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-final/74.log",
+        "sha256": "2c30dbf8ac0ab7793be4da118dcad93c9e5d52b09650c6e30a9fdedd919ec460"
+      }
+    ],
+    "firstFailures": [
+      {
+        "step": 43,
+        "name": "오픈소스 공개 안전성 baseline 계약",
+        "candidate": "ac842ac0b64695e5e4603971777f760f23ef9bc1",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/public-safety-audit-test.sh",
+        "originalCommand": "bash tests/public-safety-audit-test.sh",
+        "exitCode": 1,
+        "seconds": 0.83,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality/43.log",
+        "sha256": "5ca85555dc016efe4beeccaa73cc4bcdd5a80436847fbadd6260e2ead2ca36fd"
+      },
+      {
+        "step": 51,
+        "name": "오픈소스 공개 문서 계약",
+        "candidate": "05c06d1b4ae9afb5771ff16f1a0b2f0396cbf21d",
+        "cwd": "$CANDIDATE_ROOT",
+        "command": "bash tests/open-source-docs-test.sh",
+        "originalCommand": "bash tests/open-source-docs-test.sh",
+        "exitCode": 1,
+        "seconds": 13.03,
+        "adaptations": [],
+        "log": "$EVIDENCE_ROOT/quality-remaining/51.log",
+        "sha256": "9cef462f17e13c695fea5c3e301de6f641b47c7d1af5c1a88a653cfefbada1b3"
+      }
+    ],
+    "reuse": "ac842ac to 05c06d1 changed publication paths, run-public-workflow appliedSettings field and execution record; impact steps 3/4/41/43+ rerun. 05c06d1 to 71a1d63 changed generated CHANGELOG and execution record only; steps3/4/51+ rerun. Original commands and local environment adaptations retained. This is local quality execution, not hosted CI.",
+    "bundle": {
+      "schemaVersion": 1,
+      "version": "1.0.0",
+      "sourceCommit": "71a1d6333b81735122306de7875ae3d526ba8991",
+      "sourceArchive": {
+        "path": "team-harness-v1.0.0-source.tar",
+        "sha256": "4026e0131001c7ad9d20957404b6bc5030c2f43b031ef20010b36827102ad009"
+      },
+      "installable": false,
+      "packages": []
+    },
+    "checksumInitialAttempt": {
+      "cwd": "$CANDIDATE_ROOT",
+      "exitCode": 2,
+      "reason": "checksum command executed from source rather than generated bundle directory"
+    },
+    "checksumCorrectedAttempt": {
+      "cwd": "$EVIDENCE_ROOT/bundle-71a1d63",
+      "command": "shasum -a 256 -c SHA256SUMS",
+      "exitCode": 0
+    }
+  },
+  "cli": {
+    "version": "0.161.0",
+    "modelCalls": 8,
+    "attemptsPerCall": 1,
+    "installation": "official loader, isolated HOME/CODEX_HOME/XDG, exact committed archive",
+    "trustFlag": "Isolated exec used --dangerously-bypass-hook-trust for the prepared candidate; actual PreToolUse execution is independently observed, not disabled.",
+    "flows": [
+      {
+        "label": "first-use",
+        "delta": {
+          "verdict": "PASS",
+          "changes": []
+        },
+        "exitCode": 0,
+        "appliedSettingsStatus": "PASS",
+        "actual": [
+          {
+            "model": "gpt-6.1-sol",
+            "effort": "medium",
+            "approval_policy": "never",
+            "sandbox_policy": {
+              "type": "read-only"
+            },
+            "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-local-session.0x6R9z/workspaces/first-use"
+          }
+        ]
+      },
+      {
+        "label": "diagnosis",
+        "delta": {
+          "verdict": "PASS",
+          "changes": []
+        },
+        "exitCode": 0,
+        "appliedSettingsStatus": "PASS",
+        "actual": [
+          {
+            "model": "gpt-6.1-sol",
+            "effort": "medium",
+            "approval_policy": "never",
+            "sandbox_policy": {
+              "type": "read-only"
+            },
+            "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-local-session.0x6R9z/workspaces/maintenance"
+          }
+        ]
+      },
+      {
+        "label": "modification",
+        "delta": {
+          "verdict": "PASS",
+          "changes": [
+            {
+              "path": "docs/progress.md",
+              "kind": "modified"
+            },
+            {
+              "path": "src/catalog.mjs",
+              "kind": "modified"
+            },
+            {
+              "path": "test/cache-revision.test.mjs",
+              "kind": "added"
+            }
+          ]
+        },
+        "exitCode": 0,
+        "appliedSettingsStatus": "PASS",
+        "actual": [
+          {
+            "model": "gpt-6.1-sol",
+            "effort": "medium",
+            "approval_policy": "never",
+            "sandbox_policy": {
+              "type": "workspace-write",
+              "network_access": false,
+              "exclude_tmpdir_env_var": false,
+              "exclude_slash_tmp": false
+            },
+            "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-local-session.0x6R9z/workspaces/maintenance"
+          }
+        ]
+      },
+      {
+        "label": "handoff",
+        "delta": {
+          "verdict": "PASS",
+          "changes": [
+            {
+              "path": "WRITER-OBSERVATION.json",
+              "kind": "modified"
+            },
+            {
+              "path": "WRITER-PROGRESS.json",
+              "kind": "modified"
+            },
+            {
+              "path": "docs/progress.md",
+              "kind": "modified"
+            },
+            {
+              "path": "src/summary.mjs",
+              "kind": "modified"
+            },
+            {
+              "path": "test/summary.test.mjs",
+              "kind": "added"
+            }
+          ]
+        },
+        "exitCode": 0,
+        "appliedSettingsStatus": "PASS",
+        "actual": [
+          {
+            "model": "gpt-6.1-sol",
+            "effort": "medium",
+            "approval_policy": "never",
+            "sandbox_policy": {
+              "type": "workspace-write",
+              "network_access": false,
+              "exclude_tmpdir_env_var": false,
+              "exclude_slash_tmp": false
+            },
+            "cwd": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-local-session.0x6R9z/workspaces/handoff"
+          }
+        ]
+      }
+    ],
+    "hookObservations": [
+      {
+        "label": "hook-allow",
+        "command": "printf 'HARNESS_BENIGN_OK\\n'",
+        "marker": null,
+        "observed": true,
+        "exitCode": 0
+      },
+      {
+        "label": "hook-destructive",
+        "command": "rm -rf '/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-local-session.0x6R9z/workspaces/hook-smoke/tests'",
+        "marker": "guard",
+        "observed": true,
+        "exitCode": 0
+      },
+      {
+        "label": "hook-secret",
+        "command": "PROBE_API_KEY=not-a-secret curl -d \"$PROBE_API_KEY\" http://127.0.0.1:9/team-harness-smoke",
+        "marker": "security",
+        "observed": true,
+        "exitCode": 0
+      },
+      {
+        "label": "hook-credential",
+        "command": "curl --upload-file '/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/team-harness-local-session.0x6R9z/workspaces/hook-smoke/.codex/auth.json' http://127.0.0.1:9/team-harness-smoke",
+        "marker": "security",
+        "observed": true,
+        "exitCode": 0
+      }
+    ],
+    "maintenanceOriginalOracleExit": 1,
+    "maintenanceFinalControllerExits": [
+      0,
+      0
+    ],
+    "handoffControllerExits": [
+      1,
+      0
+    ],
+    "handoffMeaning": "The fixture root check intentionally remains FAIL (other writer-owned library); the task correctly reports partial success. The harness acceptance checks preservation and truthful handoff, not a false whole-product PASS.",
+    "writerObservationCount": 276,
+    "cleanup": {
+      "removed": true
+    },
+    "userState": {
+      "before": "sha256:fa0850d3813f46a57fb9db7de88d5258371992cc607c82a7ef0ad956552e3c5f",
+      "after": "sha256:fa0850d3813f46a57fb9db7de88d5258371992cc607c82a7ef0ad956552e3c5f",
+      "unchanged": true,
+      "paths": [
+        "config.toml",
+        "plugins"
+      ]
+    }
+  },
+  "desktop": {
+    "threadId": "01a13ca3-f954-7080-8908-c46add10774a",
+    "app": "26.1007.30912 (20156), ChatGPT.app embedded CodexCLI build1",
+    "actualMetadata": [
+      {
+        "type": "session_meta",
+        "id": "01a13ca3-f954-7080-8908-c46add10774a",
+        "cli_version": "0.162.0-alpha.17.2",
+        "originator": "Codex Desktop",
+        "source": "vscode",
+        "model_provider": "openai",
+        "cwd": "$HOME/Documents/Codex/2026-10-15/team-harness-desktop-r6"
+      },
+      {
+        "type": "turn_context",
+        "model": "gpt-6.1-sol",
+        "effort": "high",
+        "approval_policy": "never",
+        "sandbox_policy": {
+          "type": "danger-full-access"
+        },
+        "cwd": "$HOME/Documents/Codex/2026-10-15/team-harness-desktop-r6"
+      }
+    ],
+    "cacheVerification": {
+      "command": "node scripts/check-codex-native-plugin.mjs --root <actual desktop cache 1.0.0> --trusted-root <exact archived candidate plugin>",
+      "exitCode": 0,
+      "output": "native harness-guard 1.0.0: manifest, hooks, 17 skills"
+    },
+    "actualAllowCount": 1,
+    "actualBlockedDeleteCount": 1,
+    "fixtureExpectedFilesPreserved": {
+      "tests/SENTINEL": true,
+      "USER-NOTE.txt": true,
+      "tests/smoke.test.mjs": true
+    },
+    "restoration": {
+      "plugin": {
+        "pluginId": "harness-guard@team-harness",
+        "name": "harness-guard",
+        "marketplaceName": "team-harness",
+        "version": "0.93.2",
+        "installed": true,
+        "enabled": true,
+        "source": {
+          "source": "local",
+          "path": "$HOME/.codex/.tmp/marketplaces/team-harness/plugins/harness-guard"
+        },
+        "marketplaceSource": {
+          "sourceType": "git",
+          "source": "https://github.com/grinvi04/team-harness.git"
+        },
+        "installPolicy": "AVAILABLE",
+        "authPolicy": "ON_INSTALL"
+      },
+      "configurationSemanticMatch": true,
+      "originalConfigurationBytesMatch": false,
+      "otherPluginAssetsMatch": true,
+      "originalCacheFilesMatch": true
+    },
+    "cleanup": {
+      "finishedAt": "2026-10-14T23:05:46.672354+00:00",
+      "configurationSemanticMatch": true,
+      "originalConfigurationBytesMatch": false,
+      "originalConfigSha256": "c508e7d4e0734ac84c9de2f4815d3b4f0499c5d4593675fdf06428d7a6b15212",
+      "restoredConfigSha256": "7ed8d50cc888c884e7388988757aee41b537e843b048be7d5b791093d1ad80a8",
+      "originalRolloutPrefixLines": 64,
+      "originalRolloutPrefixSha256": "05f43b202408ff1dff160040bf6737c573096b36689cedab6d1e7de040c76ed7",
+      "rolloutAppendObserved": true,
+      "removed": [
+        "fixture",
+        "candidate-source",
+        "original-cache",
+        "original-config.toml",
+        "before.json"
+      ],
+      "preserved": "execution records, original historical evaluation records, restored v0.93.2 cache and new desktop thread"
+    },
+    "observationLimits": "selected expected fixture file bytes and actual tool records, not a whole-filesystem pre/post snapshot"
+  },
+  "independentReviews": [
+    {
+      "scope": "fixed implementation, CLI flows, quality and bundle",
+      "result": {
+        "revision": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "source": "$CANDIDATE_ROOT",
+        "requested": {
+          "model": "gpt-6-astra",
+          "effort": "medium",
+          "approval": "never",
+          "sandbox": "read-only"
+        },
+        "cleanup": true,
+        "binary": {
+          "path": "$HOME/.codex/packages/standalone/releases/0.161.0-aarch64-apple-darwin/bin/codex",
+          "digest": "sha256:12ac11d2c7eee27cfae34393986d7b7c9ed0dea537cb749831cdd7033893e6de",
+          "version": "codex-cli 0.161.0"
+        },
+        "startedAt": "2026-10-14T22:52:35.867Z",
+        "exitCode": 0,
+        "signal": null,
+        "finishedAt": "2026-10-14T22:54:10.936Z",
+        "contexts": [
+          {
+            "file": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/redesign-review.88DGzP/sessions/2026/10/15/rollout-2026-10-15T07-52-38-01a13c9e-1d54-7083-a895-256e3b623a10.jsonl",
+            "digest": "sha256:a7de89f11325c6ca9a76d4aab8eb97af0bd88d2dccb82241297ee3bd577331b5",
+            "records": [
+              {
+                "type": "session_meta",
+                "id": "01a13c9e-1d54-7083-a895-256e3b623a10",
+                "cli_version": "0.161.0",
+                "originator": "codex_exec",
+                "model_provider": "openai"
+              },
+              {
+                "type": "turn_context",
+                "model": "gpt-6-astra",
+                "effort": "medium",
+                "approval_policy": "never",
+                "sandbox_policy": {
+                  "type": "read-only"
+                },
+                "cwd": "$CANDIDATE_ROOT"
+              }
+            ]
+          }
+        ],
+        "appliedSettings": "PASS",
+        "userConfigurationUnchanged": true
+      },
+      "assessment": "No new blockers; R6 desktop was still pending at this review.",
+      "answer": {
+        "path": "final-review/answer.md",
+        "sha256": "c24c2cb64c8a2aa616ec5e4eecaad18f648c4f5a99d9ce3116183c23f8729bca"
+      }
+    },
+    {
+      "scope": "new desktop R6 and restoration evidence only",
+      "result": {
+        "revision": "71a1d6333b81735122306de7875ae3d526ba8991",
+        "source": "$CANDIDATE_ROOT",
+        "requested": {
+          "model": "gpt-6-astra",
+          "effort": "medium",
+          "approval": "never",
+          "sandbox": "read-only"
+        },
+        "cleanup": true,
+        "binary": {
+          "path": "$HOME/.codex/packages/standalone/releases/0.161.0-aarch64-apple-darwin/bin/codex",
+          "digest": "sha256:12ac11d2c7eee27cfae34393986d7b7c9ed0dea537cb749831cdd7033893e6de",
+          "version": "codex-cli 0.161.0"
+        },
+        "startedAt": "2026-10-14T23:01:49.978Z",
+        "exitCode": 0,
+        "signal": null,
+        "finishedAt": "2026-10-14T23:03:11.835Z",
+        "contexts": [
+          {
+            "file": "/private/var/folders/hq/2zd76ngn24l98vx3j_yvkfdr0000gn/T/redesign-review.PADfZC/sessions/2026/10/15/rollout-2026-10-15T08-01-52-01a13ca6-9137-7680-a181-9597f0806f48.jsonl",
+            "digest": "sha256:56703d2f537991e6046af490cc99cf7db850a022e0d6263a720627ffe8e5afb9",
+            "records": [
+              {
+                "type": "session_meta",
+                "id": "01a13ca6-9137-7680-a181-9597f0806f48",
+                "cli_version": "0.161.0",
+                "originator": "codex_exec",
+                "model_provider": "openai"
+              },
+              {
+                "type": "turn_context",
+                "model": "gpt-6-astra",
+                "effort": "medium",
+                "approval_policy": "never",
+                "sandbox_policy": {
+                  "type": "read-only"
+                },
+                "cwd": "$CANDIDATE_ROOT"
+              }
+            ]
+          }
+        ],
+        "appliedSettings": "PASS",
+        "userConfigurationUnchanged": true
+      },
+      "assessment": "R6 desktop bounded PASS; no blockers. Raw rollout append reconciled by matching original 64-line prefix and all selected records.",
+      "answer": {
+        "path": "desktop-review/answer.md",
+        "sha256": "f6d4f001d62f554374783f569a7a323ae3fdb44db5aed29fa883f91b17e8a98e"
+      }
+    }
+  ],
+  "exclusions": [
+    "M6 remote PR/merge/hosted CI/release-check/tag/permanent candidate installation",
+    "Claude live host remains UNVERIFIED on hold",
+    "consumer repository modifications; actual people or company-specific acceptance",
+    "universal security, whole-machine or transient-write absence, productivity or cost causation"
+  ],
+  "rawEvidence": [
+    {
+      "path": "quality-coverage.json",
+      "sha256": "36878b56a7cd63883a500bde56080c8d1bc3d355a1db5311ffadddf47b497352"
+    },
+    {
+      "path": "bundle-71a1d63/RELEASE-MANIFEST.json",
+      "sha256": "bb7c7e17f4ac99f8c3b6d773c8e3b09041cb3ed3ac7bfb79c7f6f895d055a7b8"
+    },
+    {
+      "path": "bundle-71a1d63/SHA256SUMS",
+      "sha256": "b29732be5e9f901336acfe095b8b44f9df9536f72ffcd1b3949ac0982086f015"
+    },
+    {
+      "path": "cli-attempt1/session.json",
+      "sha256": "b818fc5dff157e32ecb467ad429c35af56956616b049991e269b1316264cd93b"
+    },
+    {
+      "path": "cli-attempt1/workflow-result.json",
+      "sha256": "215e5d617b8156991b0e3f5ea23a5f1935479b71bf91c8540c3550fff9352f54"
+    },
+    {
+      "path": "cli-attempt1/hook-observations.json",
+      "sha256": "7e45fd0c2e31ffbcc0894af527fad83a0af38358d0729a0fdda94319355a4e39"
+    },
+    {
+      "path": "cli-attempt1/maintenance-original-red.json",
+      "sha256": "dce30f197a33b5c65dd1347d0c9a54fc0e76ed4983e2633833f0c92dca1eca11"
+    },
+    {
+      "path": "cli-attempt1/maintenance-controller.json",
+      "sha256": "ddaee61a114d60d6f6c6c90b3677eb0c43201c11d8021753852aa66d2945983b"
+    },
+    {
+      "path": "cli-attempt1/handoff-controller.json",
+      "sha256": "91b080278ec5ca310ef90239a5200ef577c4a2208f61825ad675c5cf1b9521a1"
+    },
+    {
+      "path": "cli-attempt1/writer-observations.json",
+      "sha256": "065881b146160df42464befb4424a9983bd67402d486911934d4ae1ee842d03d"
+    },
+    {
+      "path": "cli-attempt1/cleanup-audit.json",
+      "sha256": "90539c7ee602997ce1c79b88a67eccd1cc995a8a2c2051c8e2428f67f6842b20"
+    },
+    {
+      "path": "cli-attempt1/observed-usage.json",
+      "sha256": "e25580374211277eda71ea39e9c5599b0daa8a1aaa74069891997e848a8f9144"
+    },
+    {
+      "path": "desktop/actual-tools.jsonl",
+      "sha256": "9cc8194cadaa3d5ff95ea4b8c91faeb8a2fce7dd712a2c8f191d3b786300c36a"
+    },
+    {
+      "path": "desktop/actual-session.json",
+      "sha256": "a3ce8ea711464aea4e234e35c5e1e47f54317afea43195cdae65a1914dbf6fbd"
+    },
+    {
+      "path": "desktop/installed.json",
+      "sha256": "3a692414335e1ecff0ff301fd23af1b7814d25781a8378636213398689b6553d"
+    },
+    {
+      "path": "desktop/restored.json",
+      "sha256": "e3d905eeea59626b680b70d8860561ef16a4870fc1acb7fe0b3302b4d4d79432"
+    },
+    {
+      "path": "desktop/cleanup.json",
+      "sha256": "f2c52761025d5053e1ccc2782675ff970b97b08b873f460286ed7bf79a472dee"
+    },
+    {
+      "path": "desktop/restore-03-add-marketplace.json",
+      "sha256": "4eab05ce1cba452a9740f6247d85bc67877fca29131323d54631f2b0efec813e"
+    },
+    {
+      "path": "final-review/answer.md",
+      "sha256": "c24c2cb64c8a2aa616ec5e4eecaad18f648c4f5a99d9ce3116183c23f8729bca"
+    },
+    {
+      "path": "final-review/result.json",
+      "sha256": "d1c000fd7f64125cb9de5fbd19304cba39bc896fa43188e6cc61c49d84067a46"
+    },
+    {
+      "path": "desktop-review/answer.md",
+      "sha256": "f6d4f001d62f554374783f569a7a323ae3fdb44db5aed29fa883f91b17e8a98e"
+    },
+    {
+      "path": "desktop-review/result.json",
+      "sha256": "f3de5fa61f96b4fb8903b28e63c4b44b3e722cb6a459bcc8c4a3f176accafe02"
+    },
+    {
+      "path": "cli-attempt1/04-hook-allow.raw.jsonl",
+      "sha256": "035082200a94e74de424d8722727dae451b7fbe3f95941562eb95964f2abee36"
+    },
+    {
+      "path": "cli-attempt1/05-hook-destructive.raw.jsonl",
+      "sha256": "e734dda874b4900af88f4c22084cbda5c832dc36acbcd37407141d576e4379de"
+    },
+    {
+      "path": "cli-attempt1/06-hook-secret.raw.jsonl",
+      "sha256": "95be08e118e26ee95db88a009aa48a82355e1ec13ee9b1455ef6338949e9143b"
+    },
+    {
+      "path": "cli-attempt1/07-hook-credential.raw.jsonl",
+      "sha256": "6f72f5714b6ee7c4d1f564dd4af07bc755d83d7111046db3db38d5964824d41d"
+    },
+    {
+      "path": "cli-attempt1/08-first-use.raw.jsonl",
+      "sha256": "71ab365841e1678c8f34a1ae78eb5c96d5112989f757366c8ee64daff0d7087b"
+    },
+    {
+      "path": "cli-attempt1/09-diagnosis.raw.jsonl",
+      "sha256": "0cc8a6e560048260756314d4654606a45f6b9f3acc627a2e515cf702ed88adcc"
+    },
+    {
+      "path": "cli-attempt1/10-modification.raw.jsonl",
+      "sha256": "47b790fa5ac3aad5a7d35ceb870b10e0fde419399151b1563a67f28d15334d18"
+    },
+    {
+      "path": "cli-attempt1/11-handoff.raw.jsonl",
+      "sha256": "7b35edebea1cc5fb6d2aa44d22c1d6d655d08279c0008c441aa45005f31f2b6e"
+    }
+  ]
+}

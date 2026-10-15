@@ -26,9 +26,9 @@ team-harness의 `harness-guard`는 Claude Code 훅·스킬을 1차 대상으로 
 | `hooks/hooks.json:PreToolUse:Bash:command` | `guard.sh` | `codex/hooks/hooks.json` command가 공용 guard 호출 | source-native 연결 | `guard-test.sh`, `codex-native-loader-test.sh` |
 | `hooks/hooks.json:PreToolUse:Bash:prompt` | LLM secret-egress 판정 | native command hook의 explicit-pattern 검사 | deterministic deny | `codex-secret-egress-guard-test.sh`, native loader test |
 | `hooks/hooks.json:PreToolUse:Agent` | `enforce-subagent-model.py` | 플랫폼 native agent 실행 | Codex 구현은 플랫폼에 위임 | `codex-skill-mapping-test.sh` |
-| `hooks/hooks.json:UserPromptSubmit` | `route-intent.mjs` | native command hook이 같은 router 호출 | source-native 공통 | `route-intent-test.sh`, native loader test |
+| `hooks/hooks.json:UserPromptSubmit` (과거) | 기본 연결 제거 | 기본 연결 제거; native 선택·명시 호출 | 비활성 호환 소스만 유지 | router 호환 회귀 + native hook inventory |
 | `.codex-plugin/plugin.json` | 해당 없음 | native skill·hook entry point | Codex 공식 loader 계약 | `codex-native-loader-test.sh` |
-| `codex/hooks/hooks.json` | 해당 없음 | `PLUGIN_ROOT` 기반 command hook 2개 | Codex 공식 hook 계약 | `codex-native-loader-test.sh` |
+| `codex/hooks/hooks.json` | 해당 없음 | `PLUGIN_ROOT` 기반 PreToolUse command hook 1개 | Codex 공식 hook 계약 | `codex-native-loader-test.sh` |
 | `codex/skills/*.md` | 해당 없음 | 17개 native wrapper가 공용 skill 계약 참조 | cache 변형 없는 skill 연결 | native loader + mapping tests |
 | `scripts/codex-security-guidance-adapter.mjs` | Claude security-guidance raw output | Codex-safe output adapter | Codex-native 대체, PostToolUse 실측 | `codex-security-guidance-adapter-test.sh` |
 | `scripts/patch-codex-security-guidance.mjs` | 해당 없음 | 별도 승인 `--apply` 또는 읽기 전용 `--dry-run` | deprecated optional compatibility; launcher에서 분리 | adapter patch test |

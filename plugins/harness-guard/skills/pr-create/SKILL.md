@@ -3,17 +3,19 @@ name: pr-create
 description: 현재 feature/fix/codex 브랜치의 품질을 확인하고 올바른 base로 PR만 생성할 때 사용. 코드 수정·리뷰 처리·머지·릴리즈는 제외
 ---
 
-# /pr-create — base 자동감지 PR 생성 (단일 프리미티브)
+# /pr-create — 채택한 base로 PR 생성
+
+먼저 [공통 프로젝트 계약](../ao-coordinate/project-contract.md)을 읽고 현재 요청의 범위·보존 대상·완료 기준에 연결한다.
 
 스크립트 실행 전 [현재 스킬 경로 검증](../../runtime-path.md)을 각 도구 호출에서 적용한다.
 
 **사용법**: `/pr-create`
 현재 브랜치가 `feature/*`, `fix/*` 또는 `codex/*`인 상태에서 실행한다.
 
-> 푸는 문제: **PR 생성을 맨손 `gh pr create`로 하던 노출**. `feature-merge`는 `--base develop` 하드코딩이라
-> develop 없는 main 기반 repo(team-harness 자체·develop 미사용 public repo)에서는 안 맞아 매번 맨손 gh로 샜다.
-> 이 스킬이 **base를 동적 감지**(develop 있으면 develop, 없으면 origin 기본 브랜치)해 **모든 repo에서 PR 생성을 한 경로로** 만든다.
-> `feature-merge`도 PR 생성 단계를 이 스킬에 위임한다 — PR 생성 로직의 단일 출처.
+명시한 `--base` 또는 제품의 `.harness-policy.json` `branchFlow`를 사용한다.
+`git-flow`는 작업→develop, `main`은 작업→main이다. 둘이 충돌하면 push 전에 중단한다.
+선언과 명시 인자가 둘 다 없으면 대상을 먼저 정한다. 남아 있는 develop만으로 흐름을 추정하지 않는다.
+`feature-merge`는 PR 생성을 이 래퍼에 위임한다.
 
 ---
 
@@ -39,12 +41,12 @@ description: 현재 feature/fix/codex 브랜치의 품질을 확인하고 올바
 ### 2. PR 생성 — 래퍼 스크립트 실행 (직접 실행)
 
 > ⛔ 맨손 `gh pr create`는 guard가 차단한다(반사적 우회 방지). **반드시 아래 스크립트로** 생성한다.
-> 스크립트가 base 자동 감지(develop 있으면 develop, 없으면 기본 브랜치) · push · `gh pr create`를 수행한다(내부 gh는 자식 프로세스라 guard에 안 걸린다).
+> 스크립트가 선언·명시 대상과 실제 원격 branch를 확인한 뒤 push·PR 생성한다. 조회 오류·부재는 중단한다.
 
 ```bash
 bash "${HARNESS_PLUGIN_ROOT:?먼저 현재 스킬 경로를 검증하세요}/scripts/pr-create.sh" \
   --title "<타입(scope): 요약>" --body "<무엇을·왜·검증>"
-# base를 강제해야 하면(hotfix/release 등) --base <branch> 추가.
+# 선언이 없으면 --base <branch>를 명시한다. GitFlow hotfix/release 전달은 --base main 필수.
 ```
 
 PR 번호를 출력한다.
@@ -53,7 +55,7 @@ PR 번호를 출력한다.
 
 `/pr-create`는 **PR 생성까지만** 한다 — 머지는 별도 게이트가 소유한다:
 - **리뷰 게이트**: `pr-review-gate` 1~3단계(AI 리뷰 대기·이슈 처리·스레드 reply+resolve).
-- **머지**: 솔로 표준(승인요건 0) → CI·스레드 게이트 통과 후 `pr-merge.sh`로 직접 머지(우회할 승인요건이 없어 `/solo-merge` 불필요). 팀 모드(승인 1+ 재활성) → `pr-review-gate` 4~7단계(리뷰어 부재로 REVIEW_REQUIRED 고착 시 `/solo-merge`로 승인요건만 break-glass).
+- **머지**: 솔로 표준(승인요건 0) → CI·스레드 게이트 통과 후 `pr-merge.sh`로 직접 머지(우회할 승인요건이 없어 `/solo-merge` 불필요). 팀 모드 → `pr-review-gate`의 기존 사람 승인·CI·보호를 유지한다. 리뷰어 부재만으로 solo 전환하지 않는다.
 - develop 기반 feature 흐름 전체(PR 생성→리뷰→머지→브랜치 정리)를 원하면 `/feature-merge`를 쓴다 — 그 스킬이 이 PR 생성을 포함한다.
 
 완료 후 출력:
