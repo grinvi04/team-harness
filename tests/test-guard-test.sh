@@ -192,7 +192,7 @@ for file in sys.argv[1:]:
     text = Path(file).read_text()
     trigger = re.search(r'^on:\n(.*?)(?=^\S)', text, re.M | re.S).group(1)
     blocks = re.findall(r'^  ([a-z_]+):\n((?:^    .*\n|^\s*\n)*)', trigger, re.M)
-    assert len(blocks) == 2 and {name for name, _ in blocks} == {'pull_request', 'pull_request_target'}, (file, blocks)
+    assert len(blocks) == 1 and blocks[0][0] == 'pull_request_target', (file, blocks)
     for name, block in blocks:
         def values(key):
             lines = re.findall(r'^    ' + key + r': \[([^\]]+)\]$', block, re.M)
@@ -201,7 +201,7 @@ for file in sys.argv[1:]:
             assert len(items) == len(set(items)), (file, name, key, items)
             return set(items)
         assert values('branches') == {'main', 'develop'}, (file, name)
-        assert values('types') == ordinary | ({'stacked'} if name == 'pull_request_target' else set()), (file, name)
+        assert values('types') == ordinary | {'stacked'}, (file, name)
     permissions = re.search(r'^permissions:\n(.*?)(?=^\S)', text, re.M | re.S).group(1)
     assert permissions.strip() == 'contents: read', (file, permissions)
     jobs = text.split('\njobs:\n', 1)[1]
@@ -210,8 +210,8 @@ for file in sys.argv[1:]:
     checkout = re.search(r'^      - uses: actions/checkout@[^\n]+\n(.*?)(?=^      - )', jobs, re.M | re.S).group(1)
     assert re.findall(r'^          persist-credentials: (.+)$', checkout, re.M) == ['false'], file
 PY_LABEL_EVENTS
-then report "both events preserve branches, label refresh, read-only token and credential-free checkout" true
-else report "both events preserve branches, label refresh, read-only token and credential-free checkout" false; fi
+then report "trusted target alone preserves branches, label refresh, read-only token and credential-free checkout" true
+else report "trusted target alone preserves branches, label refresh, read-only token and credential-free checkout" false; fi
 
 NORMAL_REPO=$(setup_repo "normal-runtime" normal)
 NORMAL_RUNNER_RC=0

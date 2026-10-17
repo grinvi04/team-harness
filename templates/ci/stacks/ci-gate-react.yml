@@ -5,6 +5,7 @@ name: ci-gate
 on:
   pull_request:
     branches: [main, develop]
+    types: [opened, synchronize, reopened, edited, stacked]
 
 permissions:
   contents: read

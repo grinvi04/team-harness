@@ -141,7 +141,8 @@ try {
     options[flag] = args.shift();
   }
   if (Boolean(options['--record']) === Boolean(options['--event'])) fail('USAGE', 'exactly one record or event required');
-  const input = options['--record'] ? fs.readFileSync(options['--record'], 'utf8') :
+  // Node child stdin can be socket-backed on Linux; consume the descriptor directly.
+  const input = options['--record'] ? fs.readFileSync(options['--record'] === '/dev/stdin' ? 0 : options['--record'], 'utf8') :
     JSON.parse(fs.readFileSync(options['--event'], 'utf8')).pull_request?.body;
   if (typeof input !== 'string') fail('DECLARATION', 'PR body is missing');
   check(options['--repo'] || '.', input, options['--committed'], options['--record']);

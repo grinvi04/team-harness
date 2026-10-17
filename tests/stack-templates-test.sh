@@ -98,9 +98,12 @@ try {
   const original = snapshot();
   for (const [name, hash] of Object.entries(originalHashes)) {
     assert.ok(original[name].startsWith(generatedBanner));
-    assert.equal(sha256(original[name].slice(generatedBanner.length)), hash, `${name}: original bytes changed`);
+    const stackEvents = '    types: [opened, synchronize, reopened, edited, stacked]\n';
+    assert.equal(original[name].split(stackEvents).length, 2, `${name}: exact stacked event subscription required`);
+    assert.equal(sha256(original[name].slice(generatedBanner.length).replace(stackEvents, '')), hash,
+      `${name}: bytes outside the approved event subscription changed`);
   }
-  pass('6 generated workflows preserve fixed original bytes except banner');
+  pass('6 generated workflows preserve fixed original bytes except banner and exact stacked event subscription');
   cli('generate-stack-templates.mjs', ['--write']);
   assert.deepEqual(snapshot(), original);
   cli('generate-stack-templates.mjs', ['--write']);
