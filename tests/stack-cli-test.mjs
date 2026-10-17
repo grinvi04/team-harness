@@ -145,6 +145,17 @@ function submit(f, file) {
   assert.equal(preview.status, 0, preview.stdout + preview.stderr)
   return f.runStack(['submit', '--plan', file, '--apply', '--expected', JSON.parse(preview.stdout).fingerprint])
 }
+test('submit validates and preserves a doc-sync body across child stdin', t => {
+  const f = fixture(t), file = plan(f);
+  const body = '합성 업무 본문\n\n```harness-doc-sync\n' + JSON.stringify({
+    version: 1, noImpact: '합성 코드만 있는 fixture이며 현재 안내 변경 없음',
+  }) + '\n```';
+  fs.writeFileSync(path.join(f.dir, 'body.md'), body);
+  const result = submit(f, file);
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  assert.equal(f.state().submittedBodies['codex/b'], body);
+  assert.match(f.runGit('ls-remote', '--heads', 'origin', 'refs/heads/codex/b'), /^[0-9a-f]{40}\s+refs\/heads\/codex\/b$/);
+});
 test('submit previews, reuses existing parent, creates upper draft and links full URLs', t => {
   const f = fixture(t), r = submit(f, plan(f))
   assert.equal(r.status, 0, r.stdout + r.stderr)

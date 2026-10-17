@@ -26,7 +26,11 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --title)     TITLE="${2:-}"; shift 2;;
     --body)      BODY="${2:-}"; shift 2;;
-    --body-file) BODY="$(cat "${2:?body file required}")"; shift 2;;
+    --body-file)
+      # Node child stdin can be a socket on Linux; read fd 0 without reopening it.
+      if [ "${2:?body file required}" = /dev/stdin ]; then BODY="$(cat)";
+      else BODY="$(cat -- "$2")"; fi
+      shift 2;;
     --base)      [ -n "${2:-}" ] && [ -z "$BASE" ] || { echo "--base 값은 한 번 지정하세요." >&2; exit 2; }; BASE="$2"; shift 2;;
     --milestone) MILESTONE="${2:-}"; shift 2;;
     --draft)     DRAFT="--draft"; shift;;

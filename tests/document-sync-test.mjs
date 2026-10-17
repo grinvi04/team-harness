@@ -38,6 +38,17 @@ test('완료 결과와 원래 스펙을 연결하고 재사용 미체크는 허�
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /declared scope only/);
 });
+test('Node child stdin keeps committed evidence validation and stale rejection', t => {
+  const { root, record, git } = fixture(t);
+  git('init', '-q'); git('config', 'user.email', 'fixture@example.invalid'); git('config', 'user.name', 'fixture');
+  git('add', '.'); git('commit', '-qm', 'fixture');
+  const run = () => spawnSync(process.execPath, [checker, '--repo', root, '--record', '/dev/stdin', '--committed'],
+    { input: fence(record), encoding: 'utf8' });
+  const result = run();
+  assert.equal(result.status, 0, result.stdout + result.stderr);
+  record.items[0].evidence.sha256 = '0'.repeat(64);
+  expectFailure(run(), 'STALE');
+});
 for (const [name, change, code] of [
   ['완료 결과만 있고 원래 스펙 미갱신', f => fs.writeFileSync(path.join(f.root, 'plan.md'), '- [ ] 구현\n'), 'STATE'],
   ['문서 누락', f => fs.unlinkSync(path.join(f.root, 'plan.md')), 'PATH'],

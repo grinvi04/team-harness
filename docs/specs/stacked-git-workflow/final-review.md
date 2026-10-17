@@ -1,6 +1,6 @@
 # 공식 계약 기준 최종 설계 검토 — 2026-10-15
 
-상태: **G0–G2 인수 뒤 PR584 제출 경계 결함 수정·재검증 중**. G3·대시보드는 미완료, CI1.1.0은 발행됐다.
+상태: **G0–G2 인수 뒤 PR584 Linux 입력 경계 수정·재검증 중**. G3·대시보드는 미완료, CI1.1.0은 발행됐다.
 [현재 인수 기록](../../pilots/gh-stack-adapter-acceptance.md)을 따른다. 아래 후보별 실패·부분 판정은 당시 기록으로 보존한다.
 사용자는 공식 사용법 확인 뒤 최종 검토와 문제 해소 시 진행을 요청했다.
 공식 원격 stack을 포기해야 할 근거는 확인되지 않았다. 지원 완료 판정은 아직 아니다.
@@ -180,13 +180,9 @@ quality30–42단계 PASS 뒤43단계는 감사 JSON의 절대 경로 형식 에
 
 ## PR584 제출 경계 후속 — 2026-10-16
 
-고정 후보 `31cac4c`의 실제 read-only Codex/Astra medium 리뷰에서 wrapper의 두 번째 push가
-`push.followTags=true`를 상속해 preview 밖의 미발행 annotated tag를 발행하는 결함을 발견했다.
-실제 Git·bare remote에서 adapter/direct wrapper 두 경로 모두 RED, 동시 writer 보존은 PASS였다.
-동일 OID의 중복 push를 없애고 직접 stack 생성은 고정 SHA·full ref·최초 lease·태그 제외를 유지한다.
-동일 세 검사 GREEN이며 GitHub REST·확장 응답은 대역이다. 원문은
-`.runtime/gh-stack-g0/stack-integration-delivery-1/tag-boundary-fix/{red,green}.log`다.
-이 수정의 전체 품질·새 후보 리뷰·CI는 다시 확인한다. `90d7e0f`의 과거 전체 PASS로 대신하지 않는다.
+[후보별 제출 경계 검증](submission-review.md)에 태그 전송 RED/GREEN과 Linux stdin 실패·수정을 기록한다.
+`934fa99` 로컬74/74는 PASS지만 hosted Linux는 FAIL, 독립 리뷰는 사용 제한 중단으로 미확인이다.
+현재 수정 후보의 전체 CI·리뷰 통과 뒤 develop에 통합한다. G3·대시보드 완료로 확대하지 않는다.
 
 ## 공식 원본
 
