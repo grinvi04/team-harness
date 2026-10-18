@@ -145,7 +145,7 @@ verify_required_ci() { # base head; PR와 OWNER_REPO는 현재 후보의 조회 
 # 테스트 훅: 함수만 로드하고 종료(main 로직·gh 호출 없이 순수 판정 함수만 검증).
 [ -n "${PRMERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 if ! source "${BASH_SOURCE[0]%/*}/observation/shell.sh" 2>/dev/null; then
-  obs_start() { :; }; obs_exit() { :; }
+  obs_start() { :; }; obs_exit() { :; }; obs_merge_begin() { :; }; obs_merge_result() { :; }
 fi
 trap 'rc=$?; obs_exit "$rc"; exit "$rc"' EXIT
 
@@ -248,12 +248,13 @@ if [ "$STACK_KIND" = stack ]; then
   trap 'stop_provider; exit 130' INT
   trap 'stop_provider; exit 143' TERM
   trap 'stop_provider; exit 129' HUP
+  obs_merge_begin
   node "$STACK_ENGINE" merge "$OWNER_REPO" "$PR" "$STACK_SNAPSHOT" "${HARNESS_STACK_MERGE_JOURNAL:-}" &
   MERGE_PID=$!
   if wait "$MERGE_PID"; then MERGE_RC=0; else MERGE_RC=$?; fi
   MERGE_PID=""; trap - INT TERM HUP
+  obs_merge_result stack
   [ "$MERGE_RC" = 0 ] || exit "$MERGE_RC"
-  OBS_OUTCOME=pass OBS_REASON=MERGED
   echo "✅ PR #$PR 실제 병합과 trunk 포함 확인 — 의존 브랜치는 보존, 다음 층은 새 후보로 검증"
   exit 0
 fi

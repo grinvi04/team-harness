@@ -130,7 +130,7 @@ solo_gate_decide() { # ci_rc unresolved_count mergeable → rc
 
 [ -n "${SOLO_MERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 if ! source "${BASH_SOURCE[0]%/*}/observation/shell.sh" 2>/dev/null; then
-  obs_start() { :; }; obs_exit() { :; }; obs_restore_start() { :; }; obs_restore_finish() { :; }
+  obs_start() { :; }; obs_exit() { :; }; obs_restore_start() { :; }; obs_restore_finish() { :; }; obs_merge_begin() { :; }; obs_merge_result() { :; }
 fi
 trap 'rc=$?; obs_exit "$rc"; exit "$rc"' EXIT
 
@@ -188,8 +188,8 @@ MERGE_ARGS=("$PR" --base "$ACTUAL_BASE" --expected-head "$ACTUAL_HEAD_OID" --exp
 STACK_ENGINE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stack-merge-cli.mjs"
 # Reject an upper linked PR before looking up its unprotected parent or changing protection.
 STACK_SNAPSHOT=$(node "$STACK_ENGINE" probe "$OWNER_REPO" "$PR") || exit 1
-node -e 'const s=JSON.parse(process.argv[1]);if(s.kind==="stack"&&(s.trunk!==process.argv[2]||s.trunkOid!==process.argv[3]||s.headOid!==process.argv[4]))process.exit(1)' \
-  "$STACK_SNAPSHOT" "$ACTUAL_BASE" "$ACTUAL_BASE_OID" "$ACTUAL_HEAD_OID" || exit 1
+STACK_KIND=$(node -e 'const s=JSON.parse(process.argv[1]);if(s.kind==="stack"&&(s.trunk!==process.argv[2]||s.trunkOid!==process.argv[3]||s.headOid!==process.argv[4]))process.exit(1);console.log(s.kind)' \
+  "$STACK_SNAPSHOT" "$ACTUAL_BASE" "$ACTUAL_BASE_OID" "$ACTUAL_HEAD_OID") || exit 1
 if verify_required_ci "$ACTUAL_BASE" "$ACTUAL_HEAD_OID"; then CI_RC=0; else CI_RC=1; fi
 UNRESOLVED=$(count_unresolved_threads "${OWNER_REPO%/*}" "${OWNER_REPO#*/}" "$PR" 2>/dev/null || echo "?")
 MERGEABLE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable 2>/dev/null || echo "?")
@@ -274,10 +274,12 @@ if [ "$HAD_PROTECTION" = yes ]; then
 fi
 
 # merge — 실패 시 set -e로 스크립트 이탈 → EXIT trap이 복구. pr-merge가 CI·스레드·mergeable 재검증.
+[ "$STACK_KIND" != stack ] || obs_merge_begin
 bash "$MERGE_CMD" "${MERGE_ARGS[@]}" &
 MERGE_PID=$!
 if wait "$MERGE_PID"; then MERGE_RC=0; else MERGE_RC=$?; fi
 MERGE_PID=""
+[ "$STACK_KIND" != stack ] || obs_merge_result pr-merge
 [ "$MERGE_RC" = 0 ] || exit "$MERGE_RC"
 
 # 정상 경로: 명시 복구 후 trap 해제(성공 확정).
@@ -289,5 +291,5 @@ trap 'rc=$?; obs_exit "$rc"; exit "$rc"' EXIT
 #   판정(복구 실패를 조용히 통과시키지 않는다). 복구가 어떤 이유로든(파서 부재·PATCH 5xx) 안 됐으면 여기서 경보.
 STATE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json state --jq .state 2>/dev/null || echo "?")
 [ "$STATE" = "MERGED" ] || { echo "❌ 머지 상태 확인 실패: state=$STATE" >&2; exit 1; }
-OBS_OUTCOME=pass OBS_REASON=MERGED
+if [ "$STACK_KIND" != stack ]; then OBS_OUTCOME=pass OBS_REASON=MERGED; fi
 echo "✅ solo-merge 완료 — PR #$PR MERGED"

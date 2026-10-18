@@ -259,3 +259,105 @@ test('TERM and HUP keep signal exit and original full restore under ON and activ
     }
   }
 });
+
+// Reuse the stack boundary's stateful GitHub double; executeMerge, journals,
+// both wrappers and the real observation writer remain production code.
+function observedStack(t, scenario, solo, capture, missingResult = false) {
+  const f = fixture(t), bin = path.join(f.root, 'bin'); fs.mkdirSync(bin);
+  const source = fs.readFileSync('tests/stack-merge-wrapper-test.mjs', 'utf8');
+  const template = source.split("writeFileSync(path.join(bin, 'gh'), `")[1]?.split('`); spawnSync')[0];
+  assert.ok(template);
+  let gh = Function('process', 'trunk', `return \`${template}\``)(process, 'develop');
+  gh = gh.replace("if(s==='queue')emit", "if(s==='failed')emit({status:'failed',details:{message:'rejected'}},400);else if(s==='queue')emit");
+  fs.writeFileSync(path.join(bin, 'gh'), gh, { mode: 0o700 });
+  fs.writeFileSync(path.join(f.repo, '.harness-policy.json'), JSON.stringify({ schemaVersion: 1,
+    mode: solo ? 'solo' : 'company', autoMergeTargets: ['develop'], branchFlow: 'git-flow',
+    stackedPRs: { enabled: true, provider: 'github-gh-stack' } }));
+  f.git('remote', 'add', 'origin', 'https://github.com/test/repo.git');
+  if (capture) f.active();
+  const env = { ...f.env, PATH: `${bin}:${process.env.PATH}`, FIXTURE_DIR: f.repo, SCENARIO: scenario,
+    HARNESS_STACK_WAIT_MS: '1000', HARNESS_OBSERVE_DIR: f.spool };
+  let scriptRoot = scripts;
+  if (missingResult) {
+    const plugin = path.join(f.root, 'plugin'); scriptRoot = path.join(plugin, 'scripts');
+    fs.cpSync(scripts, scriptRoot, { recursive: true }); fs.mkdirSync(path.join(plugin, '.claude-plugin'));
+    fs.writeFileSync(path.join(plugin, '.claude-plugin/plugin.json'), '{"version":"1.2.0"}');
+    if (missingResult === 'result-timeout') {
+      const eventFile = path.join(scriptRoot, 'observation/event.mjs');
+      fs.writeFileSync(eventFile, fs.readFileSync(eventFile, 'utf8').replace('export function readEvents(root) {',
+        "export function readEvents(root) { if (process.argv[2]?.startsWith('result')) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000);"));
+    } else fs.writeFileSync(path.join(scriptRoot, 'observation/emit.mjs'), `import fs from 'node:fs';
+      import {appendEvent} from './event.mjs';const event=JSON.parse(fs.readFileSync(0,'utf8'));
+      if(event.source==='stack'&&event.phase==='finished')process.exit(19);
+      await appendEvent(process.argv[2],event);`);
+  }
+  const r = spawnSync('bash', [path.join(scriptRoot, solo ? 'solo-merge.sh' : 'pr-merge.sh'), '42'],
+    { cwd: f.repo, env, encoding: 'utf8', timeout: 12000 });
+  assert.equal(r.error, undefined, r.error?.message);
+  const result = { status: r.status, stdout: r.stdout, stderr: r.stderr };
+  result.stdout = result.stdout.replace(/"archive":"[^"]+"/g, '"archive":"<per-run archive>"');
+  result.stdout = result.stdout.split(f.repo).join('<fixture>');
+  const calls = fs.readFileSync(path.join(f.repo, 'calls'), 'utf8').trim().split('\n').map(JSON.parse);
+  assert.equal(calls.filter(c => c.includes('PUT')).length, 1, result.stdout + result.stderr);
+  assert.equal(calls.filter(c => c[0] === 'pr' && c[1] === 'merge').length, 0);
+  if (solo) {
+    assert.equal(calls.filter(c => c.includes('DELETE')).length, 1);
+    assert.equal(calls.filter(c => c.includes('PATCH')).length, 1);
+    assert.equal(fs.existsSync(path.join(f.repo, 'unprotected')), scenario === 'restore-fail');
+  }
+  return { f, result, calls, scriptRoot };
+}
+
+for (const solo of [false, true]) for (const [scenario, outcome, reason, rc] of [
+  ['pending', 'pending', 'MERGE_PENDING', 1], ['queue', 'enqueued', 'MERGE_PENDING', 1],
+  ['lost', 'unverified', 'RESULT_UNVERIFIED', 1], ['failed', 'fail', 'MERGE_FAILED', 1],
+  ['normal', 'pass', 'MERGED', 0],
+]) test(`structured stack ${scenario} stays ${outcome} through ${solo ? 'solo' : 'pr'} wrapper exit`, t => {
+  const off = observedStack(t, scenario, solo, false), on = observedStack(t, scenario, solo, true);
+  assert.equal(off.result.status, rc, off.result.stderr); assert.deepEqual(on.result, off.result);
+  assert.deepEqual(on.calls, off.calls);
+  const source = solo ? 'solo-merge' : 'pr-merge', events = on.f.events();
+  completed(events, source, outcome, reason);
+  assert.ok(events.filter(e => e.source === 'stack' && e.phase === 'finished').every(e => !Object.hasOwn(e, 'exitCode')),
+    'structured stack result does not predict the eventual CLI exit code');
+  const operation = events.find(e => e.source === source && e.phase === 'started' && e.parentOperationId === null);
+  const terminal = events.filter(e => e.operationId === operation.operationId && e.phase === 'finished');
+  assert.equal(terminal.length, 1); assert.equal(terminal[0].outcome, outcome); assert.equal(terminal[0].reasonCode, reason);
+  assert.equal(terminal[0].exitCode, rc);
+  if (rc) assert.ok(events.every(e => e.reasonCode !== 'MERGED'));
+  if (solo) completed(events, 'solo-merge', 'pass', 'RESTORE_VERIFIED');
+});
+
+for (const solo of [false, true]) test(`missing structured result never becomes MERGED from exit zero in ${solo ? 'solo' : 'pr'}`, t => {
+  const off = observedStack(t, 'normal', solo, false), on = observedStack(t, 'normal', solo, true, true);
+  assert.equal(on.result.status, 0); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
+  const source = solo ? 'solo-merge' : 'pr-merge';
+  completed(on.f.events(), source, 'unverified', 'RESULT_UNVERIFIED');
+  assert.ok(on.f.events().every(e => e.reasonCode !== 'MERGED'));
+  assert.equal(readSnapshot(on.f.spool, on.f.lease).health.captureState, 'loss-suspected');
+});
+
+test('confirmed stack merge with failed solo restore never marks the solo operation pass', t => {
+  const off = observedStack(t, 'restore-fail', true, false), on = observedStack(t, 'restore-fail', true, true);
+  assert.equal(on.result.status, 1); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
+  completed(on.f.events(), 'stack', 'pass', 'MERGED');
+  completed(on.f.events(), 'solo-merge', 'unverified', 'RESTORE_UNVERIFIED');
+  const parent = on.f.events().find(e => e.source === 'solo-merge' && e.phase === 'started' && e.parentOperationId === null);
+  const terminal = on.f.events().filter(e => e.operationId === parent.operationId && e.phase === 'finished');
+  assert.equal(terminal.length, 1); assert.equal(terminal[0].outcome, 'unverified');
+  assert.equal(terminal[0].reasonCode, 'RESULT_UNVERIFIED'); assert.equal(terminal[0].exitCode, 1);
+});
+
+test('stalled structured result reads are bounded and preserve solo restore and command results', t => {
+  const off = observedStack(t, 'normal', true, false), on = observedStack(t, 'normal', true, true, 'result-timeout');
+  assert.equal(on.result.status, 0); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
+  const parent = on.f.events().find(e => e.source === 'pr-merge' && e.phase === 'started');
+  const start = Date.now();
+  const query = spawnSync(process.execPath, [path.join(on.scriptRoot, 'observation/bridge.mjs'), 'result', 'stack'],
+    { input: JSON.stringify({ ...parent, dataDir: on.f.spool }), encoding: 'utf8', timeout: 4000 });
+  assert.equal(query.error, undefined); assert.equal(query.status, 0);
+  assert.ok(Date.now() - start < 1200, 'result read must stop waiting after its 250ms worker timeout');
+  assert.equal(query.stdout, ''); assert.equal(query.stderr, '');
+  completed(on.f.events(), 'solo-merge', 'unverified', 'RESULT_UNVERIFIED');
+  completed(on.f.events(), 'solo-merge', 'pass', 'RESTORE_VERIFIED');
+});

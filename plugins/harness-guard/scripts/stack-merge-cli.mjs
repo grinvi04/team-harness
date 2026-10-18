@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { readPolicy } from './repo-policy.mjs'
 import { observeMerge, executeMerge } from './stack-merge.mjs'
 import { reserve, load, save, finish } from './stack-merge-journal.mjs'
+const { startOperation, finishOperation } = await import('./observation/client.mjs').catch(() => ({ startOperation: () => null, finishOperation: () => {} }))
 
 const here = path.dirname(fileURLToPath(import.meta.url))
 let child, interrupted = false, signalCode = 0
@@ -91,6 +92,16 @@ async function runProvider(dir, file, snapshot, resume) {
     return outcome
   } finally { fs.rmdirSync(lock) }
 }
+async function observedProvider(dir, file, snapshot, resume) {
+  const observation = startOperation('stack', { candidate: { headSha: snapshot.headOid, baseSha: snapshot.trunkOid } })
+  let outcome
+  try { outcome = await runProvider(dir, file, snapshot, resume); return outcome }
+  finally {
+    const fields = { merged: ['pass', 'MERGED'], failed: ['fail', 'MERGE_FAILED'],
+      pending: ['pending', 'MERGE_PENDING'], enqueued: ['enqueued', 'MERGE_PENDING'] }[outcome?.state] || ['unverified', 'RESULT_UNVERIFIED']
+    finishOperation(observation, { outcome: fields[0], reasonCode: fields[1] })
+  }
+}
 try {
   const [action, first, second, third, fourth] = process.argv.slice(2)
   if (action === 'probe') console.log(JSON.stringify(probe(first, Number(second))))
@@ -113,13 +124,13 @@ try {
     const data = load(dir, file)
     if (JSON.stringify(data.snapshot) !== JSON.stringify(snapshot) || data.requestStarted || data.state !== 'reserved')
       throw Error(`existing merge is not a fresh reservation: ${file}`)
-    const outcome = await runProvider(dir, file, snapshot, false)
+    const outcome = await observedProvider(dir, file, snapshot, false)
     console.log(JSON.stringify({ ...outcome, journal: file }))
     if (outcome.state !== 'merged') process.exitCode = 1
   } else if (action === 'resume') {
     const dir = directory(), data = load(dir, first)
     if (data.snapshot.kind !== 'stack') throw Error('ordinary solo record requires protection readback via finish')
-    const outcome = await runProvider(dir, first, data.snapshot, true)
+    const outcome = await observedProvider(dir, first, data.snapshot, true)
     if (data.solo) finish(dir, first, { restored: restored(load(dir, first)) })
     console.log(JSON.stringify({ ...outcome, journal: first }))
     if (outcome.state !== 'merged') process.exitCode = 1

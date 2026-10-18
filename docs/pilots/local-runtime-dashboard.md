@@ -69,6 +69,15 @@ reader만 같은 repo의 유효한 worktree lease를 허용한다. append와 명
 실제 격리 Git·프로세스·wrapper를 사용했으며 GitHub API만 기존 상태형 test double이다.
 이 결과를 실제 원격 병합이나 Codex 호스트 실행 증거로 세지 않는다.
 
+후속 독립 검토에서 stack의 `pending/enqueued/unverified`를 wrapper nonzero만으로 실패로
+표시한 결함을 재현했다. CLI의 구조화된 결과를 기존 사건으로 연결하고 같은 parent·후보의
+직접 자식 종료가 정확히 한 개일 때만 부모에 반영한다. 누락·모호함·조회 오류는 미확인이다.
+원격 MERGED 뒤 보호 복구 실패도 전체 작업 성공으로 올리지 않는다. 결과 조회 자체는
+별도 프로세스250ms 상한이며 지연 시 미확인으로 남기고 기존 복구·출력·exit를 유지한다.
+교정 v2 통합22/22·기존 stack wrapper22/22 PASS, 원래 stdout/stderr·exit·보호 호출을 보존했다.
+실제 CLI 종료 전인 stack 사건에는 추정 exitCode를 넣지 않으며 부모 wrapper가 실제 종료를 기록한다.
+교정 증거는 `.runtime/dashboard/review-fix-b/`의 최초 RED·후속 GREEN과 후보별 digest다.
+
 | 요구·위험 | 관찰한 결과 | 판정·범위 |
 |---|---|---|
 | capture OFF·ON·잘못된 저장 권한 | 허용/차단/에러의 exit·stdout·stderr 유지 | PASS, 실제 wrapper |
