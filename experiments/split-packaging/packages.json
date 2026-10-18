@@ -45,7 +45,8 @@
         "scripts/stack-merge-cli.mjs",
         "scripts/stack-merge-journal.mjs",
         "scripts/stack.mjs",
-        "scripts/stack.sh"
+        "scripts/stack.sh",
+        "scripts/observation"
       ]
     },
     {

@@ -15,6 +15,9 @@
 첫 실패는 Node child stdin을 wrapper가 `/dev/stdin` 경로로 다시 열면서 발생했다. doc-sync에도 같은 경계가 있다.
 두 reader만 fd0으로 읽도록 수정하고 본문·후보 hash·사전 문서 검사·push 보호를 유지한다.
 회귀는 실제 Node child stdin의 선언 본문 제출과 committed 근거 검증·stale 거부다. macOS 성공을 Linux로 확대하지 않는다.
-수정 후 현재 후보의 hosted 전체 quality·독립 리뷰를 통과하기 전 develop 통합은 보류한다.
+후속4dc0783 영향106개·Astra/medium read-only 리뷰 PASS, hosted39078076952·39078972798 quality80/80·필수5 PASS.
+PR 본문 갱신으로 새 CI가 생성되어 첫 병합은 차단됐다. 최신 실행 통과 후 [PR584](https://github.com/grinvi04/team-harness/pull/584)를 develop4c1136e로 병합했다.
+실제 병합 tree와 hosted checkout tree가 일치하며 develop/main 전체 보호·rulesets 원값을 확인했다.
+원격 작업 브랜치는 삭제, 로컬 작업공간은 기존 develop 점유를 보존해 유지했다. main/태그/설치는 실행하지 않았다.
 첫 실패 로그와 후속 결과는 `.runtime/gh-stack-g0/resume-20261018/`에 연결한다.
 

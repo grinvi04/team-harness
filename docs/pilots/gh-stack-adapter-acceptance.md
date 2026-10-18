@@ -3,7 +3,6 @@
 2026-10-15–16. 당시1.1.0·현재1.2.0 후보의 G1–G3 실행 기록이다. **부분 검증**이며 전체 기능 완료가 아니다.
 설계·종료 기준은 [stack 설계](../specs/stacked-git-workflow.md), 이전 실패는
 [공식 계약 검토](../specs/stacked-git-workflow/final-review.md)에 보존한다.
-
 ## 대상과 보존 경계
 
 승인된 공개 합성 저장소 `grinvi04/team-harness-acceptance-lab`과 별도 `team-harness-stack-solo-lab`을 사용했다.
@@ -88,7 +87,8 @@ PR32의 이전 응답 유실 시험도 기존 명령 로그에서 PUT1회임을 
 
 ## 아직 필요한 확인
 
-`934fa99` 로컬74개·실제409는 확인했지만 Linux CI 입력 경계 실패는 남았다. [PR584 제출 결함 수정](../specs/stacked-git-workflow/final-review.md#pr584-제출-경계-후속--2026-10-16)의 재검증·G3·O1–O5·release-check는 남았다.
+`934fa99` Linux 실패는 보존하고 수정4dc0783의 영향106개·독립 리뷰·hosted quality80/필수5 PASS를 확인했다.
+[PR584 제출 결함 수정](../specs/stacked-git-workflow/submission-review.md)은 develop4c1136e 통합 완료다. G3·O1–O5·release-check는 남았다.
 queue·timeout은 로컬 반증 PASS와 실제 미관측을 구분하며 모든 분기의 실서버 유발을 새 완료 조건으로 추가하지 않는다.
 소스 변경 뒤 기존 frozen runner의 hash나 journal을 고쳐 재사용하지 않는다. 이전 실행은 보존하고 새 후보로 이어 기록한다.
 실제 solo 병합·보호 복구·시험 정리는 아래 후속 실행에서 확인했다. 최초 CI 차단 기록은 보존한다.

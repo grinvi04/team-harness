@@ -2,8 +2,8 @@
 
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
 > 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
-> 원래 연결 범위와 순서를 유지한다. 모든 구현 checkbox는 미실행이다.
-> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): solo·409와934fa99 로컬74개 PASS, Linux CI 입력 경계 실패. PR584 수정 재검증 뒤 develop 통합·대시보드에 착수한다.
+> 원래 연결 범위와 순서를 유지한다. T1 저장·reader 14개 시험을 통과했다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 한계와 다음 단계를 기록한다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 A층을 시작했다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
@@ -70,13 +70,13 @@ HTTP snapshot은 `readSnapshot` 결과에 `schemaVersion=1,viewerId,repoId,workt
 
 파일: 위 `event.mjs`, `emit.mjs`, `read.mjs`; 신규 `tests/observation-test.mjs`.
 
-- [ ] OFF·만료 lease에서는 `written=false`와 무기록, ON에서는 허용 필드만 기록하는 테스트를 먼저 쓴다.
-- [ ] `rejectsRawCommand`, `rejectsSymlink`, `separatesWorktrees`, `deduplicatesEventId`,
+- [x] OFF·만료 lease에서는 `written=false`와 무기록, ON에서는 허용 필드만 기록하는 테스트를 먼저 쓴다.
+- [x] `rejectsRawCommand`, `rejectsSymlink`, `separatesWorktrees`, `deduplicatesEventId`,
   `reportsSequenceGap`, `unfinishedIsUnknown`, `boundsConcurrentWrites`에 구체적 단언을 둔다.
-- [ ] `node --test tests/observation-test.mjs`의 의미 있는 RED를 확인하고 스펙을 잠근다.
-- [ ] 위 세 API를 구현한다. 10개 writer×100건, 잘린 파일·잘못된 schema·32 MiB/7일 경계를 처리한다.
-- [ ] 같은 시험 PASS, Node 구문 검사, 기록 권한·허용 필드·용량 측정 결과를 보존한다.
-- [ ] 설계의 O1/O3 충족 범위와 최초 실패를 갱신한 뒤 해당 파일만 규약대로 커밋한다.
+- [x] `node --test tests/observation-test.mjs`의 의미 있는 RED를 확인하고 스펙을 잠근다.
+- [x] 위 세 API를 구현한다. 10개 writer×100건, 잘린 파일·잘못된 schema·32 MiB/7일 경계를 처리한다.
+- [x] 같은 시험 PASS, Node 구문 검사, 기록 권한·허용 필드·용량 측정 결과를 보존한다.
+- [x] 설계의 O1/O3 충족 범위와 최초 실패를 갱신한 뒤 해당 파일만 규약대로 커밋한다.
 
 ## T2 — 실제 guard·검증·Git 경로 연결 (O2·O3)
 
