@@ -7,7 +7,7 @@
 
 ## 정체성·범위
 
-이 repo는 **개인 개발에서 시작해 공유하는 AI 개발 기반 자체**다 — 제품 앱이 아니다(런타임 서버·DB·프론트 없음).
+이 repo는 **개인 개발에서 시작해 공유하는 AI 개발 기반 자체**다. 업무 제품·DB는 없으며 선택형 로컬 읽기 전용 관측 화면을 제공한다.
 
 - **harness-guard 플러그인**(`plugins/harness-guard/`): `guard.sh`(PreToolUse 가드), PR 래퍼(`pr-create.sh`·`pr-merge.sh`), 스킬(`skills/`), 에이전트.
 - **팀 표준 문서**(`docs/`): 전 소비 repo가 상속하는 표준의 **단일 출처**. 설계 결정 = `docs/decisions.md`.
@@ -26,7 +26,8 @@
 ## 스택
 
 - **bash** 스크립트(가드·훅·PR 래퍼·테스트), **Node ESM `.mjs`**(`route-intent`·`merge-permissions`·`check-migration-safety`·`check-repo-sync`), **Markdown** 표준 문서.
-- 앱 빌드 없음. 여기서 "빌드"는 **구문·JSON·테스트 검증**을 뜻한다.
+- 핵심 검사는 **구문·JSON·테스트 검증**이다. 관측 화면은 root `dashboard/`의 React·TypeScript 정본을
+  Vite로 제작하며 Node 서버와 생성된 정적 파일만 플러그인에 포함한다. 소비자 설치 시 빌드하지 않는다.
 
 ## 빌드·테스트 명령
 

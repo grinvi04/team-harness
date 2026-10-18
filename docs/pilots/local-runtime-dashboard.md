@@ -2,13 +2,13 @@
 
 2026-10-18. 미발행1.2.0 후보. [설계·O1–O5](../specs/local-runtime-dashboard.md)와
 [T1–T4 실행 계획](../specs/local-runtime-dashboard/implementation-plan.md)의 결과를 연결한다.
-현재는 **T1 저장·reader 및 T2 수집 연결 시험 PASS**다. 화면·실제 호스트·전체 기능 인수는 아직 완료하지 않았다.
+현재는 **T1·T2 및 T3 개별 시험 PASS·브라우저 필수 과제 확인·T4 연결 구현 중**이다. 실제 호스트·전체 기능 인수는 미완료다.
 
 ## 후보와 환경
 
 - 기반: PR584 원격 develop 병합 `4c1136eea0988dc252475eb5edfbfdc241b66ee5`.
-- 별도 clone `team-harness/.runtime/dashboard-stack-20261018`, A층 `codex/dashboard-events` 커밋 `452cde5`, B층 `codex/dashboard-hooks`.
-- macOS, 실제 파일시스템·독립 Node 프로세스. GitHub/실제 hook/UI를 이 시험의 실행 경계로 세지 않는다.
+- 별도 clone `team-harness/.runtime/dashboard-stack-20261018`, A층 `codex/dashboard-events` 커밋 `452cde5`, B층 `codex/dashboard-hooks` 커밋 `42f79d0`, C층 `codex/dashboard-viewer` 검증 후보(정확한 커밋은 실행 증거와 연결).
+- macOS, 실제 파일시스템·독립 Node 프로세스. T1·T2는 GitHub/native hook/UI 인수가 아니며 T3 브라우저는 아래 별도 범위다.
 - 원문·파일 digest는 해당 clone의 `.runtime/dashboard/t1-*.{log,json}`에 보존한다.
   미커밋 시험은 `t1-final.json`의 소스4개·시험2개 SHA-256으로 현재 원본과 대조했다.
 - core 배포 catalog와 CI quality에 저장·reader 및 두 시험 파일을 연결했다. 설치 후보 시험은 T4다.
@@ -105,9 +105,60 @@ operation이다. gate 허용은 명령 완료가 아니며 기록 손실 건수�
 최초7/8의 새 reason 기대값 오류를 원래 MERGE_FAILED로 바로잡았고 실패 원문을 보존한다.
 이 보완은 검증 공백 보충이며 새 구현 전 RED로 세지 않는다. 증거: `t2-gap-*`, `t2-final-regressions.json`.
 
+## T3 viewer·브라우저와 T4 연결 — 2026-10-18
+
+현재 후보는 B층 `42f79d0` 위 C층 검증 소스·생성 asset이다. 정확한 커밋은 실행 증거와 연결한다. 아래는 개별 명령·관찰의 결과이며
+커밋된 설치 artifact나 전체 quality·native 호스트 인수가 아니다. 원문은 같은 clone의 `.runtime/dashboard/`다.
+제작 도구는 Node22.18.0/npm11.6.2, React/react-dom19.3.1·Query5.104.4이며 lockfile과 실제 설치 목록을 대조했다.
+
+| 명령·관찰 경계 | 실제 결과·원문 | 판정 |
+|---|---|---|
+| `npm ci --prefix dashboard` | 의존성 재현 exit0; `t3-npm-ci.log` | PASS, 로컬 제작 |
+| `npm run lint --prefix dashboard`, `npm run typecheck --prefix dashboard` | 오류0; `t3-bootstrap-{lint,typecheck}.log` | PASS, 제작 소스 |
+| `npm run test:unit --prefix dashboard` | 34/34; `t3-ui-bootstrap-final.log` | PASS, jsdom·mock API |
+| `node --test tests/dashboard-test.mjs` | 4/4; `t3-server-second.log` | PASS, 실제 loopback·파일 fixture |
+| `node --test tests/dashboard-build-test.mjs` | 5/5; `t3-build-final.log` | PASS, Vite·격리 env·재빌드 fixture |
+| `node --test tests/dashboard-workflow-test.mjs` | 2/2; `t4-workflow-green.log` | PASS, 현재 YAML 연결 계약 |
+
+UI는 캐시 PASS 뒤 연결 실패·이전 worktree의 늦은 응답·HTTP200과 gate PASS 구분·오프라인 loopback·
+복귀 재조회·StrictMode 단일 poller·unknown schema/대상 불일치·취소/2초 timeout·8MiB 경계를 확인했다.
+서버는 exact Host/Origin/token/path/method, 고정 대상·viewer별 lease와 asset digest/MIME/경로 거부를 확인했다.
+빌드는 `.env`·`VITE_*` canary 배제, 양방향 파일 비교, `--check` 무수정, 오래된 chunk·symlink 거부와
+빌드 중 사용자 파일 생성 경합의 무덮어쓰기를 확인했다. 재현 fixture 성공을 현재 설치본 실행으로 세지 않는다.
+
+최초 UI 9 FAIL/6 PASS와 첫 GREEN의 notification 경계 실패를 보존했다. fake timer의 다음 notification을
++1ms flush하도록 교정하고 기존 단언·2초 polling 기준은 유지했다. raw fragment·스크롤 반증도 보존한다.
+실제 초기 화면 점검 뒤 문구 RED 6개를 확인했다. 사건 부재/이전 SHA와 finished-unverified를 종료 누락으로
+기대한 두 시험을 원래 의미에 맞게 정정했고, pass는 검사·PR 생성·병합·복구의 실제 이유로 구분했다.
+서버 첫 GREEN의 fixture 정리 순서 ENOENT, 빌드 경합 RED, workflow RED도 `t3-*`·`t4-*`에 남긴다.
+
+실제 Node가 제공한 빌드 화면에서 정상 검사, main/develop guard 거부(exit2), 중간 SIGKILL 뒤 종료 미확인,
+키보드·375px 폭·과거 기록·같은 탭의 다른 worktree URL 전환·연결 단절 후 캐시 미확인을 관찰했다.
+`browser/{normal,deny,interrupted}.json`, `interrupted.ax.txt`, `worktree-b.ax.txt`, `disconnected.ax.txt`,
+`mobile.png`, `timeline.png`가 근거다. 실제 guard·검사 실행과 화면의 연결이며 **native Codex hook 실행은 아니다**.
+추가 live 검증에서 IAB 새로고침은 메모리 토큰 부재·CLI 주소 재개방 안내를 표시했다(`browser/tokenless-reload.ax.txt`).
+Safari 전용 시험 창의 두 탭 전환에서24.035초 숨김 동안 snapshot 요청0건이었다. 숨김 중 실제 runCheck exit9를
+기록했고 복귀 기준 시각 후201ms에 새 요청,713ms 안에 CHECK_FAILED 화면을 관찰했다.
+근거는 `browser/visibility-result.json`, `visibility-requests.jsonl`, `safari-hidden.ax.txt`, `safari-return.ax.txt/png`다.
+이 두 live 항목은 PASS이며 native Codex 호스트 인수가 아니다.
+
+이어 같은 탭에서 원래 CLI URL을 다시 열면 fragment-only navigation으로 진입점이 재실행되지 않는 결함을 발견했다.
+`browser/reopen-before-fix.ax.txt`에 주소 필요 화면과 미소비 fragment가 남았으며 bootstrap 타깃 회귀1개도 RED였다.
+`main.tsx`가 hashchange를 소비·재인증하고 이전 인증을 abort·세대 검사하며 Query 캐시를 격리하도록 수정했다.
+타깃 GREEN1·전체 UI34 PASS와 실제 재접속 복구(`browser/reopen-after-fix.ax.txt`)를 확인했다. 최초33개 결과는 보존한다.
+정상534ms·거부959ms·중단2995ms의 사건 시각→화면 관측은 `browser/receipt.json`에 연결했다.
+최초 정상4308ms는 도구 샘플 지연으로3초 증거가 부족했고, 다음 시도는 지연 사건 발생 전에 locator deadline이 끝났다.
+세 번째 정상 시도에서534ms를 측정했다. 최초 두 시도를 성공으로 덮지 않는다.
+정상은 bootstrap 수정 빌드, 거부·중단·숨김/복귀는 이전 bootstrap 빌드다. 표시·API·서버 소스는 변하지 않았다.
+receipt의 현재 소스·manifest5개 SHA-256을 원본과 대조했다. 변경된 bootstrap은 타깃·전체 UI와 실제 재개로 재검사했다.
+
+T4의 catalog asset 소유·좁은 gitignore·제작/배포 문서·고정 도구와 CI `--check` 연결은 소스에 반영했다.
+[사용 가이드](../guides/observability.md)에 실행·종료·전용 디스크 경로·정리·미연결 해결을 한 번만 기록했다.
+CI 연결 시험 PASS는 hosted CI나 전체 quality 성공을 뜻하지 않는다.
+
 ## 남은 승인 범위
 
-T3 React/Query·HTTP·실제 브라우저 과제 →
-T4 패키지·전체 품질·Codex CLI/desktop과 실제 A/B/C stack(G3) 순서다. O1–O5 전체는 진행 중이다.
-main·태그·설치는 아직 실행하지 않았다. Claude 실제 호스트는 미확인 보류다.
-소비 저장소 변경과 실제 회사·사람 인수는 이 기능의 완료 조건에 추가하지 않는다.
+C층 커밋된 후보의 package/bundle·전체 quality →
+T4 설치 경로·Codex CLI/desktop hook→기록→화면 및 실제 A/B/C stack(G3) 인수 순서다.
+O1–O5 전체는 진행 중이며 독립 최종 검수도 남았다. 새 관측 기능의 main·태그·설치는 실행하지 않았다.
+Claude 실제 호스트는 미확인 보류다. 소비 저장소 변경과 회사·사람 인수는 숨은 완료 조건으로 추가하지 않는다.

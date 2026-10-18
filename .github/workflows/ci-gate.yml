@@ -20,6 +20,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: 고정 Node 제작 도구 준비
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444
+        with:
+          node-version: '22.18.0'
+
+      - name: 제작 npm 버전 고정·확인
+        run: |
+          npm install --global npm@11.6.2
+          test "$(node --version)" = "v22.18.0"
+          test "$(npm --version)" = "11.6.2"
+
       - name: 필수 검색 도구 설치
         run: |
           sudo apt-get update
@@ -43,6 +54,15 @@ jobs:
         run: |
           node --test tests/observation-test.mjs tests/observation-boundaries-test.mjs tests/observation-run-check-test.mjs
           bash tests/observation-integration-test.sh
+
+      - name: 로컬 viewer 제작·경계·배포 산출물 검사
+        run: |
+          npm ci --prefix dashboard
+          npm run lint --prefix dashboard
+          npm run typecheck --prefix dashboard
+          npm run test:unit --prefix dashboard
+          node --test tests/dashboard-test.mjs tests/dashboard-build-test.mjs tests/dashboard-workflow-test.mjs
+          node scripts/build-dashboard.mjs --check
 
       - name: 진행 문서 동기화 선언 검사
         run: |
@@ -156,6 +176,9 @@ jobs:
           node --check plugins/harness-guard/scripts/patch-codex-security-guidance.mjs
           node --check plugins/harness-guard/scripts/codex-secret-egress-guard.mjs
           node --check plugins/harness-guard/scripts/codex-pretool-guard.mjs
+          node --check plugins/harness-guard/scripts/observe.mjs
+          for file in plugins/harness-guard/scripts/observation/*.mjs; do node --check "$file"; done
+          node --check scripts/build-dashboard.mjs
           node --check plugins/harness-guard/scripts/route-intent.mjs
           node --check plugins/harness-guard/scripts/run-with-timeout.mjs
           node --check plugins/harness-guard/scripts/worktree-fingerprint.mjs
@@ -197,6 +220,9 @@ jobs:
               "templates/settings.json",
               "experiments/split-packaging/packages.json",
               "templates/stacks.json",
+              "dashboard/package.json",
+              "dashboard/package-lock.json",
+              "plugins/harness-guard/dashboard/asset-manifest.json",
               "docs/pilots/external-pilot-provenance.json",
           ]
           for p in paths:

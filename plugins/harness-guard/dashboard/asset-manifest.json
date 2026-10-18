@@ -1,0 +1,20 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": "assets/index-DO-Sxv2o.js",
+      "mime": "text/javascript; charset=utf-8",
+      "sha256": "c70823064d670406e2bb98277de2058d6f3896ce7c1c56f95eccbded713e494f"
+    },
+    {
+      "path": "assets/index-Dkpv0X3e.css",
+      "mime": "text/css; charset=utf-8",
+      "sha256": "39f8934d7fd0ae682fc0f0f912e505419b8f915cf9462b13b84fa59a1da35b3c"
+    },
+    {
+      "path": "index.html",
+      "mime": "text/html; charset=utf-8",
+      "sha256": "444bb957cc94abc5072b5bd72c0d5d87116be92e258946af2bd66e261bc45759"
+    }
+  ]
+}

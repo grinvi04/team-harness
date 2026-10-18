@@ -1,6 +1,6 @@
 # 로컬 실시간 대시보드 설계
 
-상태: **선행 stack PR584 develop4c1136e 통합 완료·대시보드 T1·T2 구현 검증 완료·T3 진행**. 전체1.2.0 후보이며 CI1.1.0은 발행됐다. 독립 복제본에서 A452cde5 이후 B수집 연결을 완료하고 C화면을 진행한다.
+상태: **T1·T2 및 T3 개별 시험 PASS·브라우저 필수 과제 확인·T4 연결 구현 중**. 전체1.2.0 미발행 후보다. A452cde5→B42f79d0 이후 C층 검증 후보(정확한 커밋은 실행 증거 연결)이며 전체 quality·native CLI/desktop·G3는 미실행이다.
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 원래 연결 범위와 선행 순서를 유지한다.
 사용자가 React + TanStack 채택을 승인했다. 아래는 초기 바닐라 JavaScript 안을 대체하는 설계다.
 기존 재설계·문서 정리의 완료 판정은 유지한다. 아래는 새 기능의 완료 기준이다.
@@ -96,7 +96,7 @@ CLI가 출력하는 시작 URL의 fragment에서 토큰을 읽고 즉시 주소�
 React 소스·설정·lockfile·제작 Node/npm 버전과 정적 산출물을 같은 후보로 기록한다.
 현재 builder는 커밋된 파일을 복사하므로 산출물을 Git에 포함한다. CI는 임시 경로에 재빌드해
 파일 목록·내용을 양방향 비교한다. 누락·추가·남은 옛 chunk·수동 수정은 실패이며 checksum만으로 대체하지 않는다.
-`node scripts/build-dashboard.mjs --write/--check`를 신규 제작 진입점으로 계획한다. --check는 배포 파일을 고치지 않는다.
+`node scripts/build-dashboard.mjs --write/--check`가 제작 진입점이다. --check는 배포 파일을 고치지 않는다.
 Vite의 상대 asset 경로와 manifest로 배포 allowlist를 만들고 파일 경로·MIME·digest를 서버 시작 시 검사한다.
 CDN·외부 font·원격 script·개발 서버에 의존하지 않는다. source map·원본 .env·개발 의존성을 배포 화면에 포함하지 않는다.
 분리 package의 `installable:false`는 유지한다. 공개 플러그인 실제 설치 시험은 staged package 검사와 별개다.
@@ -162,7 +162,7 @@ Claude 미확인, 실제 회사·사람 인수는 이 신규 범위의 숨은 �
 아래 승인 순서를 유지한다. 최초 G0 FAIL을 보존하며 공식 trunk·그룹 보호 통합 시험과 G1 제출 경계 로컬 검사를 통과했다.
 계획 당시 main의 trusted CI가 stacked 이벤트를 받지 않아 CI 선행 전달을 추가 승인받았다.
 [CI1.1.0 전달 원문](stack-ci-bootstrap.md#원격-전달--2026-10-16)의 main·태그·역병합을 확인했다. 전체 후보는1.2.0이며 G1/G2 인수와 PR584의 develop4c1136e 통합이 완료됐다.
-아래 순서를 유지하며 [현재 T1·T2 실행 결과](../pilots/local-runtime-dashboard.md)를 연결한다. T2 관측29개·보완8개·기존 회귀6개 묶음 PASS이며 T3–T4는 진행 중이다.
+아래 순서와 [현재 T1–T4 실행 결과](../pilots/local-runtime-dashboard.md)를 따른다. T3 UI34·서버4·빌드5·CI 연결2개 PASS다. 브라우저3초 반영·숨김/복귀·tokenless reload·같은 탭 재개를 확인했다. T4 필수 인수는 남았다.
 
 1. G0 공식 gh-stack 호환 시험 → G1 안전한 제출 → G2 검증된 순차 병합·복구.
 2. 이 연결 자체는 기존 Git Flow로 검증·통합한다. 자기 구현을 미검증 stack 경로로 전달하지 않는다.
@@ -180,7 +180,7 @@ GitHub 상시 자동 조회, 비용·토큰 통계, 모든 앱의 내부 event �
 최초 `--root .` 탐색은 과거 실행 사본까지1954개를 읽어375건 실패했다. 이를 현재 문서 성공으로 덮지 않는다.
 과거 자료·검사기는 수정하지 않았다. React 전환안의 관련 문서5개 구조·참조·199줄 검사와
 `git diff --check`를 통과했고, 스택·파일 책임·제작/배포·검증 연결을 대조했다.
-계획 검토 당시 기능 시험·전체 quality·설치·원격 실행은 미실행이었다. 현재 결과는 위 T1·T2 기록을 따른다.
+계획 검토 당시 기능 시험·전체 quality·설치·원격 실행은 미실행이었다. 현재 결과는 위 T1–T4 기록을 따른다.
 
 ## 참고 원본
 

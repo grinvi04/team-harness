@@ -101,3 +101,10 @@ PYTHON_BIN=python3.11 bash "$HARNESS_SOURCE"/scripts/harness-doctor.sh --repo . 
 `HARNESS_SOURCE`는 위 발행 태그의 원본 루트로 바꾼다. probe는 throwaway
 디렉터리와 loopback 폐쇄 포트만 사용하고, 검토된 hook을 해당 invocation에서만 실행하도록 hook trust를
 일회성 우회한다(approval·sandbox는 유지). 인증된 Codex 세션의 모델 토큰을 소비하므로 CI에서는 실행하지 않는다.
+
+### 선택적 로컬 실행 관측
+
+[관측 대시보드 가이드](guides/observability.md)에서 첫 실행·종료·기록 경로·미연결 해결을 확인한다.
+관측 기능은 현재 개발 후보로 아직 정식 발행되지 않았으며 위 v1.0.0 설치 안내에 포함됐다고 가정하지 않는다.
+설치 후보는 생성 asset을 함께 제공하므로 사용자가 npm 설치·빌드를 하지 않는다.
+새 관측 경로의 실제 Codex CLI·desktop·Claude 연결 인수는 [현재 실행 기록](pilots/local-runtime-dashboard.md)과 구분한다.

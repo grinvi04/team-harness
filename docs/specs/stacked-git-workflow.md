@@ -1,6 +1,6 @@
 # 공식 gh-stack 연결 설계
 
-상태: **G0–G2 인수·PR584 develop4c1136e 통합 완료, G3·대시보드 T3 진행 중**. 전체1.2.0 후보·CI1.1.0 발행.
+상태: **G0–G2 인수·PR584 develop4c1136e 통합 완료, G3·대시보드 T4 통합 검증 진행 중**. 전체1.2.0 후보·CI1.1.0 발행.
 [현재 실제 인수](../pilots/gh-stack-adapter-acceptance.md)는 후보별 증거·발견 결함·남은 범위를 구분한다.
 [최초 G0](../pilots/gh-stack-compatibility.md)의 frozen-group FAIL을 보존하고,
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 trunk·그룹 의미로 연결 설계를 정정했다. 현재 실제 원격 인수 범위와 전체 지원 완료를 구분한다.

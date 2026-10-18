@@ -62,6 +62,29 @@ else
   fail 'legacy schema1·네 staged package 계약'
 fi
 
+if node - "$TMP/one" "$ROOT" <<'NODE'
+const fs = require('fs')
+const path = require('path')
+const assert = require('assert/strict')
+const { execFileSync } = require('child_process')
+const [output, root] = process.argv.slice(2)
+const manifest = JSON.parse(fs.readFileSync(path.join(output, 'RELEASE-MANIFEST.json')))
+const archive = path.join(output, manifest.sourceArchive.path)
+const prefix = `team-harness-v${manifest.version}/`
+for (const source of ['dashboard/package.json', 'dashboard/package-lock.json', 'dashboard/src/main.tsx',
+  'dashboard/vite.config.ts', 'dashboard/tsconfig.json']) {
+  assert.deepEqual(execFileSync('tar', ['-xOf', archive, `${prefix}${source}`]),
+    execFileSync('git', ['show', `${manifest.sourceCommit}:${source}`], {cwd: root}))
+}
+const files = execFileSync('tar', ['-tf', archive], {encoding: 'utf8'}).split('\n')
+assert(!files.some((file) => file.startsWith(`${prefix}dashboard/node_modules/`)))
+NODE
+then
+  pass 'source archive가 dashboard source·lock을 Git bytes로 보존하고 node_modules 제외'
+else
+  fail 'source archive dashboard authoring 경계 불일치'
+fi
+
 if grep -Rq '"installable": false' "$TMP/one/packages"; then
   pass 'package 설치불가 경계 보존'
 else
