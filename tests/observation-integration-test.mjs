@@ -22,9 +22,22 @@ const guardCases = [
   ['npm install -g fixture', 'GUARD_GLOBAL_INSTALL'],
 ];
 const hash = value => createHash('sha256').update(value).digest('hex');
+function emitterTrace(root) {
+  try { return fs.readFileSync(path.join(root, 'emitter-trace.jsonl'), 'utf8').trim().split('\n')
+    .filter(Boolean).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } }); }
+  catch { return []; }
+}
 function fixture(t) {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'harness-observation-')));
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const diagnostics = { reported: false };
+  t.after(() => {
+    try {
+      const trace = emitterTrace(root), errors = trace.filter(e => e.errorCode || e.status !== 0);
+      if (!diagnostics.reported && (t.passed === false || errors.length))
+        t.diagnostic(`observation fixture emitters: ${JSON.stringify({ failed: t.passed === false, trace: t.passed === false ? trace : errors })}`);
+    } catch { /* Preserve the original assertion even if diagnostics fail. */ }
+    finally { fs.rmSync(root, { recursive: true, force: true }); }
+  });
   const repo = path.join(root, 'repo'), data = path.join(root, 'data'), spool = path.join(data, 'observability');
   fs.mkdirSync(repo); fs.mkdirSync(data, { mode: 0o700 }); fs.mkdirSync(spool, { mode: 0o700 });
   const git = (...args) => { const r = spawnSync('git', args, { cwd: repo, encoding: 'utf8' }); assert.equal(r.status, 0, r.stderr); return r.stdout.trim(); };
@@ -32,7 +45,11 @@ function fixture(t) {
   fs.writeFileSync(path.join(repo, '.harness-policy.json'), JSON.stringify({ schemaVersion: 1, mode: 'company', branchFlow: 'git-flow', autoMergeTargets: [] }));
   git('add', '.'); git('commit', '-m', 'test: fixture'); git('branch', 'develop');
   const lease = { schemaVersion: 1, viewerId: randomUUID(), repoId: hash(fs.realpathSync(path.join(repo, '.git'))), worktreeId: hash(repo), expiresAt: new Date(Date.now() + 29000).toISOString() };
-  const env = { ...process.env, PLUGIN_DATA: data, HARNESS_GUARD_LOG: path.join(root, 'guard.log') };
+  const env = { ...process.env, PLUGIN_DATA: data, HARNESS_GUARD_LOG: path.join(root, 'guard.log'),
+    OBSERVATION_STACK_TRACE: path.join(root, 'emitter-trace.jsonl'),
+    OBSERVATION_FIXTURE_KIND: t.name.startsWith('250ms emitter timeout') ? 'intentional-timeout'
+      : t.name.startsWith('guard ') ? 'guard' : t.name.startsWith('structured stack') ? 'structured-stack' : 'other',
+    NODE_OPTIONS: `${process.env.NODE_OPTIONS || ''} --require ${JSON.stringify(path.resolve('tests/helpers/observation-emitter-probe.cjs'))}` };
   for (const k of ['HARNESS_OBSERVE_DIR', 'HARNESS_OBSERVE_PARENT', 'HARNESS_OBSERVE_SESSION', 'HARNESS_GOVERNANCE_CORE_ROOT']) delete env[k];
   const active = () => { lease.expiresAt = new Date(Date.now() + 29000).toISOString(); writeLease(spool, lease); };
   const events = () => fs.readdirSync(spool).filter(n => n.startsWith('evt-')).map(n => JSON.parse(fs.readFileSync(path.join(spool, n), 'utf8')));
@@ -41,7 +58,7 @@ function fixture(t) {
     assert.equal(r.error, undefined, r.error?.message);
     return { status: r.status, stdout: r.stdout, stderr: r.stderr };
   };
-  return { root, repo, data, spool, lease, env, git, active, events, run };
+  return { root, repo, data, spool, lease, env, git, active, events, run, diagnostics };
 }
 function completed(events, source, outcome, reason) {
   const finished = events.filter(e => e.source === source && e.phase === 'finished' && e.outcome === outcome && e.reasonCode === reason);
@@ -282,7 +299,7 @@ function copiedSolo(t, mode, mergeBody, changes = {}) {
   const r = spawnSync('bash', [path.join(plugin, 'scripts/solo-merge.sh'), '42'], { cwd: f.repo,
     env: { ...f.env, PATH: `${bin}:${process.env.PATH}`, HARNESS_OBSERVE_DIR: f.spool,
       GH_STATE: state, GH_LOG: log, FAKE_REVIEWS_CONFIG: reviews, SOLO_MERGE_MERGE_CMD: merge,
-      OBSERVATION_EMITTER_PROBE: probe, ...changes }, encoding: 'utf8', timeout: 10000 });
+      OBSERVATION_EMITTER_PROBE: probe, OBSERVATION_FIXTURE_KIND: mode.startsWith('emitter-') ? mode : 'other', ...changes }, encoding: 'utf8', timeout: 10000 });
   assert.equal(r.error, undefined, r.error?.message); assert.equal(r.signal, null);
   const result = { status: r.status, stdout: r.stdout, stderr: r.stderr };
   result.stdout = result.stdout.replace(/^\{"released":true,"archive":"([^"\n]+)"\}$/gm, (line, archive) => {
@@ -352,9 +369,7 @@ function stackDiagnostics(t, body) {
     for (const { f, scenario, solo, capture } of fixtures) {
       try {
         const collect = (read, fallback) => { try { return read(); } catch { return fallback; } };
-        const traceFile = path.join(f.root, 'emitter-trace.jsonl');
-        const trace = collect(() => fs.readFileSync(traceFile, 'utf8'), '').trim().split('\n')
-          .filter(Boolean).flatMap(line => collect(() => [JSON.parse(line)], []));
+        const trace = emitterTrace(f.root);
         const events = collect(() => f.events(), []), journalDir = path.join(f.repo, '.git/harness-stack-merges');
         const journals = collect(() => fs.readdirSync(journalDir), []).filter(n => n.endsWith('.json')).slice(0, 16).map(n => collect(() => {
           const value = JSON.parse(fs.readFileSync(path.join(journalDir, n), 'utf8'));
@@ -371,18 +386,10 @@ function stackDiagnostics(t, body) {
           protectionRestored: !fs.existsSync(path.join(f.repo, 'unprotected')), journals };
         collect(() => fs.writeFileSync(path.join(f.root, 'stack-diagnostic.json'), JSON.stringify(diagnostic), { mode: 0o600 }), null);
         t.diagnostic(`structured stack fixture: ${JSON.stringify(diagnostic)}`);
+        f.diagnostics.reported = true;
       } catch { t.diagnostic('structured stack fixture diagnostics unavailable'); }
     }
     throw error;
-  }
-  for (const { f, scenario, solo, capture } of fixtures) {
-    try {
-      const file = path.join(f.root, 'emitter-trace.jsonl');
-      const trace = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse) : [];
-      t.diagnostic(`structured stack timing: ${JSON.stringify({ scenario, solo, capture, emitterCount: trace.length,
-        maxDurationMs: Math.max(0, ...trace.map(e => e.durationMs)), timeoutCount: trace.filter(e => e.errorCode === 'ETIMEDOUT').length,
-        errorCount: trace.filter(e => e.errorCode || e.status !== 0).length })}`);
-    } catch { t.diagnostic('structured stack timing unavailable'); }
   }
 }
 
@@ -403,9 +410,7 @@ function observedStack(t, scenario, solo, capture, missingResult = false, fixtur
   f.git('remote', 'add', 'origin', 'https://github.com/test/repo.git');
   if (capture) f.active();
   const env = { ...f.env, PATH: `${bin}:${process.env.PATH}`, FIXTURE_DIR: f.repo, SCENARIO: scenario,
-    HARNESS_STACK_WAIT_MS: '1000', HARNESS_OBSERVE_DIR: f.spool,
-    OBSERVATION_STACK_TRACE: path.join(f.root, 'emitter-trace.jsonl'),
-    NODE_OPTIONS: `${process.env.NODE_OPTIONS || ''} --require ${JSON.stringify(path.resolve('tests/helpers/observation-emitter-probe.cjs'))}` };
+    HARNESS_STACK_WAIT_MS: '1000', HARNESS_OBSERVE_DIR: f.spool };
   let scriptRoot = scripts;
   if (missingResult) {
     const plugin = path.join(f.root, 'plugin'); scriptRoot = path.join(plugin, 'scripts');
