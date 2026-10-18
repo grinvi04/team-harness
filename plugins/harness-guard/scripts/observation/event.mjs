@@ -44,12 +44,14 @@ export function validLease(lease, target, now = Date.now()) {
     date(lease.expiresAt) && Date.parse(lease.expiresAt) > now && Date.parse(lease.expiresAt) <= now + 30000 &&
     lease.repoId === target.repoId && lease.worktreeId === target.worktreeId;
 }
-export function readLease(root, target) {
+export function readLease(root, target, { allowAnyWorktree = false } = {}) {
   for (const name of fs.readdirSync(root.dir)) {
     if (!name.startsWith('lease-') || !name.endsWith('.json') || !UUID.test(name.slice(6, -5))) continue;
     try {
       const value = JSON.parse(readFile(root, name, 512).data);
-      if (value.viewerId === name.slice(6, -5) && validLease(value, target)) return value;
+      const leaseTarget = allowAnyWorktree && target.worktreeId === undefined
+        ? { repoId: target.repoId, worktreeId: value.worktreeId } : target;
+      if (value.viewerId === name.slice(6, -5) && validLease(value, leaseTarget)) return value;
     } catch (e) { if (e.code !== 'ENOENT' && e.message !== 'RECORD_CHANGED') throw e; }
   }
   return null;

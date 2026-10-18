@@ -50,6 +50,19 @@ retention marker는 삭제 전에 기록한다. 32MiB는 **사건 파일 bytes**
 최대 용량 cold scan 실측314ms와 T2 emitter의250ms 상한은 별도 경계다. 현재 저장 시험 통과가
 hook 성능·250ms 제한·실제 화면3초 반영을 증명하지 않는다. 해당 실패 시 gate 원결과 보존을 T2에서 확인한다.
 
+## PR585 독립 검토 교정
+
+실제 Codex Astra/medium/read-only 리뷰가 A `cc014ba`에서 repo-only 조회의 활성 상태 오류를 찾았다.
+계약상 `worktreeId`를 생략하면 저장소 전체를 읽지만, 활성 lease도 정확한 worktree 일치만 요구해
+사건이 기록되는 동안 `captureState=off`로 표시했다. `pr585-review/`에 원래 리뷰와 후보를 보존한다.
+reader만 같은 repo의 유효한 worktree lease를 허용한다. append와 명시 worktree 선택은 계속 정확한
+대상 lease를 요구한다. 만료·잘못된 schema·다른 repo의 lease는 활성 상태나 기록 권한을 만들지 않는다.
+
+`pr585-lease-fix/`: 원래 A+새 회귀시험에서 기대 active/실제 off 2건 RED·유지7 PASS를 확인했다.
+잠긴 시험을 유지한 최소 교정 후 타깃9/9, observation+boundaries22/22·exit0·160.91초 PASS다.
+기존10×100 writer·32MiB 한도 시험과 구문·diff 검사도 유지했다. 소스2개와 시험1개의 digest를
+실제 통합 바이트에 대조했다. 이 결과는 로컬 교정 검증이며 새 PR 후보의 독립 리뷰·CI는 별도다.
+
 ## 남은 승인 범위
 
 T2 실제 guard/검사/Git 연결의 OFF·ON·기록 실패 비교 → T3 React/Query·HTTP·실제 브라우저 과제 →

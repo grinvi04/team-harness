@@ -67,6 +67,53 @@ test('OFF, expired and wrong-target lease do not record; ON is private and exact
   for (const name of fs.readdirSync(dir)) assert.equal(fs.statSync(path.join(dir, name)).mode & 0o777, 0o600);
 });
 
+test('repo-only reader recognizes a valid lease before any event exists', t => {
+  const { dir } = fixture(t); activate(dir);
+  const snapshot = readSnapshot(dir, { repoId });
+  assert.deepEqual(snapshot.operations, []);
+  assert.equal(snapshot.health.captureState, 'active');
+});
+
+test('repo-only reader includes leased worktrees and preserves operation selection', async t => {
+  const { dir } = fixture(t); const first = event(), other = event({ worktreeId: 'e'.repeat(64) });
+  activate(dir); activate(dir, { worktreeId: other.worktreeId });
+  assert.equal((await appendEvent(dir, first)).written, true);
+  assert.equal((await appendEvent(dir, other)).written, true);
+  const snapshot = readSnapshot(dir, { repoId });
+  assert.equal(snapshot.health.captureState, 'active');
+  assert.equal(snapshot.operations.length, 2);
+  const selected = readSnapshot(dir, { repoId, operationId: other.operationId });
+  assert.equal(selected.health.captureState, 'active');
+  assert.equal(selected.operations.length, 1);
+  assert.equal(selected.operations[0].worktreeId, 'e'.repeat(64));
+});
+
+test('exact-worktree reader and append reject another worktree lease', async t => {
+  const { dir } = fixture(t); activate(dir, { worktreeId: 'e'.repeat(64) });
+  assert.equal(readSnapshot(dir, selection).health.captureState, 'off');
+  assert.equal((await appendEvent(dir, event())).reasonCode, 'CAPTURE_OFF');
+  assert.deepEqual(names(dir), []);
+  assert.equal((await appendEvent(dir, event({ worktreeId: 'e'.repeat(64) }))).written, true);
+});
+
+for (const [label, patch] of [
+  ['absent', null],
+  ['other repo', { repoId: 'e'.repeat(64) }],
+  ['expired', { expiresAt: new Date(Date.now() - 1000).toISOString() }],
+  ['malformed worktree', { worktreeId: 'invalid' }],
+  ['malformed schema', { schemaVersion: 2 }],
+]) test(`repo-only reader does not activate ${label} lease or authorize append`, async t => {
+  const { dir } = fixture(t);
+  if (patch) {
+    const lease = { schemaVersion: 1, viewerId: randomUUID(), ...selection,
+      expiresAt: new Date(Date.now() + 30000).toISOString(), ...patch };
+    fs.writeFileSync(path.join(dir, `lease-${lease.viewerId}.json`), JSON.stringify(lease), { mode: 0o600 });
+  }
+  assert.equal(readSnapshot(dir, { repoId }).health.captureState, 'off');
+  assert.equal((await appendEvent(dir, event())).reasonCode, 'CAPTURE_OFF');
+  assert.deepEqual(names(dir), []);
+});
+
 test('rejectsRawCommand and unknown/invalid fields, identifiers and outcomes', async t => {
   const { dir } = fixture(t); activate(dir);
   assert.equal(validateEvent(event()), true);
