@@ -3,7 +3,7 @@
 > 실행자: `superpowers:executing-plans`로 순차 구현하고 고위험 전달 경계는 별도 독립 검토한다.
 > 최초 frozen-group G0 FAIL은 [원래 결과](../../pilots/gh-stack-compatibility.md)에 보존한다.
 > [현재 원격 인수](../../pilots/gh-stack-adapter-acceptance.md): 실제 3층 제출·재기반·trusted CI·첫 층 응답 유실 복구 PASS.
-> retained prefix·서버 수신 수정 후 회귀110개와 실제 B/C sync·PR33→34 순차 병합 PASS. 후속 solo·409·현재 전체 품질을 포함한 G1/G2 인수 완료, G3는 미완료다.
+> retained prefix·서버 수신 수정 후 회귀110개와 실제 B/C sync·PR33→34 순차 병합 PASS. 후속 solo·409·현재 전체 품질을 포함한 G1/G2 인수 완료, G3는 미완료다. PR584는 develop4c1136e로 통합됐으며 대시보드 A/B/C 실제 인수를 시작한다.
 
 **Goal:** 공식 gh-stack의 branch/PR 관리를 기존 Harness gate와 Git Flow에 연결한다.
 **Architecture:** 공식 엔진 + 얇은 stack 사전/사후 검사 + 기존 PR gate + SHA가 결박된 async provider.
