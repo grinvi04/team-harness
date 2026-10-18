@@ -127,6 +127,8 @@ Claude는 명시 전달 경로와 fixture 계약을 유지하되 실제 호스�
 source는 `codex-hook|claude-hook|guard|check-runner|pr-create|pr-merge|solo-merge|stack` 중 하나다.
 phase는 `started|finished`, outcome은 `allow|deny|pass|fail|pending|enqueued|unverified`로 제한한다.
 started의 outcome은 pending이다. schema에 없는 key·자유 서술 reason·원문 output을 거부한다.
+명시 검사는 시작·종료에 동일한 검증된 evidenceId를 남긴다. guard는 허용된 규칙별 code를 기록하며
+부모 hook은 같은 문맥의 직접 자식 deny 결과 하나만 승계한다. 누락·모호함은 generic deny를 유지한다.
 
 | 사건 | 확인 주체 | 표시 기준 |
 |---|---|---|

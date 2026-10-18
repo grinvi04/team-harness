@@ -1,7 +1,7 @@
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { startOperation, finishOperation, startChild } from './client.mjs';
-import { readEvents } from './event.mjs';
+import { readEvents, guardDenialReason } from './event.mjs';
 import { directory } from './storage.mjs';
 let raw = '';
 try {
@@ -20,13 +20,15 @@ try {
       input: raw, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'], timeout: 250, killSignal: 'SIGKILL', maxBuffer: 128,
     });
     if (!result.error && result.status === 0) process.stdout.write(result.stdout);
-  } else if (mode === 'result-read' && ['stack', 'pr-merge'].includes(source)) {
+  } else if (mode === 'result-read' && ['stack', 'pr-merge', 'guard'].includes(source)) {
     const state = JSON.parse(raw), scan = readEvents(directory(state.dataDir));
     const matches = scan.records.map(record => record.value).filter(event =>
       event.parentOperationId === state.operationId && event.source === source && event.phase === 'finished' &&
       ['repoId', 'worktreeId', 'headSha', 'baseSha', 'hostSessionId'].every(key => event[key] === state[key]));
     const reasons = { pass: 'MERGED', fail: 'MERGE_FAILED', pending: 'MERGE_PENDING', enqueued: 'MERGE_PENDING', unverified: 'RESULT_UNVERIFIED' };
-    if (!scan.parseErrors && matches.length === 1 && reasons[matches[0].outcome] === matches[0].reasonCode)
+    const guard = source === 'guard' && matches.length === 1 && matches[0].outcome === 'deny' &&
+      matches[0].exitCode === 2 && guardDenialReason(matches[0].reasonCode) === matches[0].reasonCode;
+    if (!scan.parseErrors && matches.length === 1 && (guard || source !== 'guard' && reasons[matches[0].outcome] === matches[0].reasonCode))
       process.stdout.write(`${matches[0].outcome}\n${matches[0].reasonCode}`);
   } else if (mode === 'child') {
     const state = startChild(JSON.parse(raw), reason);

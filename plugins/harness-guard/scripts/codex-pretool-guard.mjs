@@ -61,7 +61,8 @@ for (const [program, args, env] of [
     process.exit(1)
   }
   if (result.status !== 0) {
-    finish(result.status === 2 ? 'deny' : 'unverified', result.status === 2 ? 'GUARD_DENIED' : 'EXECUTION_ERROR', result.status ?? 1)
+    const reason = result.status === 2 && program === 'bash' ? observation?.denialReason?.() || 'GUARD_DENIED' : 'GUARD_DENIED'
+    finish(result.status === 2 ? 'deny' : 'unverified', result.status === 2 ? reason : 'EXECUTION_ERROR', result.status ?? 1)
     process.exit(result.status ?? 1)
   }
 }

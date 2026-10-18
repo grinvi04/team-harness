@@ -73,6 +73,7 @@ test('ON records only correlated check-runner start/finish and evidence identifi
   assert.equal(events[0].operationId, events[1].operationId);
   assert.equal(events[0].hostSessionId, 'fixture-session');
   assert.equal(events[0].parentOperationId, null);
+  assert.equal(events[0].evidenceId, 'qa.runner');
   assert.equal(events[1].evidenceId, 'qa.runner'); assert.equal(events[1].exitCode, 0);
   assert.equal(events[1].reasonCode, 'CHECK_PASSED'); assert.ok(events[1].durationMs >= 0);
   const encoded = JSON.stringify(events);
@@ -85,8 +86,18 @@ test('signal termination returns conventional exit code and a failed check event
   const result = invoke(f, [process.execPath, '-e', "process.kill(process.pid,'SIGTERM')"]);
   assert.equal(result.status, 143); assert.equal(result.signal, null);
   const events = records(f.dir); assert.equal(events.length, 2);
+  assert.ok(events.every(event => event.evidenceId === 'qa.runner'));
   assert.equal(events[1].outcome, 'fail'); assert.equal(events[1].exitCode, 143);
   assert.equal(events[1].reasonCode, 'CHECK_FAILED');
+});
+
+test('nonzero checks retain the same evidence name from started to finished', t => {
+  const f = fixture(t); activate(f);
+  assert.equal(invoke(f, command(f, 23)).status, 23);
+  const events = records(f.dir); assert.equal(events.length, 2);
+  assert.ok(events.every(event => event.evidenceId === 'qa.runner'));
+  assert.equal(events[0].operationId, events[1].operationId);
+  assert.equal(events[1].outcome, 'fail'); assert.equal(events[1].exitCode, 23);
 });
 
 test('storage failure preserves actual execution, bytes and failure result', t => {

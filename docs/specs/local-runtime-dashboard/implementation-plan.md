@@ -88,6 +88,9 @@ HTTP snapshot은 `readSnapshot` 결과에 `schemaVersion=1,viewerId,repoId,workt
 - [x] start/finish 상관관계, 자식 wrapper의 parentOperationId, 실제 session 부재=null을 연결한다.
 - [x] `runCheck`가 실제 명령을 한 번만 실행하고 출력을 원래 터미널로 전달하며 원래 exit를 반환하게 한다.
   기존 QA workflow에서 선택적으로 감싸되 임의 명령의 의미·전체 테스트 PASS를 추정하지 않는다.
+  started·finished에 동일한 검증된 검사 id를 남겨 실행 중·완료·재시도를 식별한다.
+- [x] 규칙별 allowlist reason을 guard에서 직접 기록하고 부모 hook에 bounded 조회로 전달한다.
+  같은 후보·세션의 직접 자식 결과가 없거나 모호하면 generic deny를 유지하며 원출력·exit는 바꾸지 않는다.
 - [x] OFF에서는 추가 emitter process를 만들지 않는다. ON emitter는 250ms 상한으로 종료한다.
   emitter 실패/timeout은 진단만 남기고 기존 gate 결과를 덮어쓰지 않는지 확인한다.
 - [x] `bash tests/observation-integration-test.sh`와 guard·pr-create·pr-merge-auto·solo-merge 기존 회귀를 실행한다.

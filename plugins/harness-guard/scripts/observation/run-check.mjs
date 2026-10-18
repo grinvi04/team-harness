@@ -10,7 +10,7 @@ export async function runCheck({ id, argv, cwd = process.cwd(), context = {} }) 
   if (!validId(id) || !Array.isArray(argv) || !argv.length || !argv[0] ||
     argv.some(arg => typeof arg !== 'string' || arg.includes('\0'))) throw new TypeError('INVALID_CHECK');
   let state = null;
-  try { state = startOperation('check-runner', { cwd, sessionId: context?.sessionId, dataDir: context?.dataDir }); }
+  try { state = startOperation('check-runner', { cwd, sessionId: context?.sessionId, dataDir: context?.dataDir, evidenceId: id }); }
   catch { /* Observation must not change command execution. */ }
   const startedAt = performance.now();
   const exitCode = await new Promise(resolve => {

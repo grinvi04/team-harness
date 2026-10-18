@@ -10,6 +10,7 @@ export async function observeHook(hook, source = 'codex-hook') {
     const state = client.startOperation(source, { cwd: hook?.cwd || process.cwd(), sessionId: hook?.session_id,
       dataDir: path.join(process.env.PLUGIN_DATA, 'observability') });
     if (!state) return null;
-    return { state, finish: (outcome, reasonCode, exitCode) => client.finishOperation(state, { outcome, reasonCode, exitCode }) };
+    return { state, denialReason: () => client.childGuardDenial?.(state) || 'GUARD_DENIED',
+      finish: (outcome, reasonCode, exitCode) => client.finishOperation(state, { outcome, reasonCode, exitCode }) };
   } catch { return null; }
 }
