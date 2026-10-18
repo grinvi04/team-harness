@@ -133,6 +133,15 @@ develop의 strict·관리자 보호·필수5개를 유지했고 solo 예외는 �
 후속 후보는 바뀐 문서와 runtime 바이트를 구분하고, 해당 SHA bundle·checksum·CI·리뷰를 별도로 기록한다.
 실제 C 병합 SHA·develop 포함과 최종 O1–O5/G3 판정은 [PR587](https://github.com/grinvi04/team-harness/pull/587)의 전달 결과가 정본이다.
 
+### C94032ee CI 최초 실패
+
+CI39093503746의 관측 통합40개 중39 PASS·1 FAIL이다. solo 병합 실패 사례에서
+`RESTORE_VERIFIED` 사건이 누락됐다. 그 앞의 ON/OFF exit·출력·원격 호출 동일성과 보호 복구 단언은 통과했다.
+원본 실패에는 emitter별 종료 원인이 없어 timeout·저장 거부·child 상태 전달을 아직 구분하지 못한다.
+격리 진단은 원래250ms 상한·정상 사건 필수 단언을 유지하며, 로컬 재실행 PASS만으로 이 실패를 해소하지 않는다.
+`post-desktop-docs/pr587-ci-first-failed.*`, `ci-observation-diagnostic/`에 최초·후속 실행을 구분해 보존한다.
+현재 CI 실패가 해소되고 같은 후보의 필수 검사·독립 리뷰가 확인되기 전에는 C를 병합하지 않는다.
+
 ## 현재 판정과 다음 단계
 
 | 기준 | 확보한 실행 근거 | 최종 전달에서 대조할 근거 |

@@ -343,10 +343,54 @@ test('TERM and HUP keep signal exit and original full restore under ON and activ
   }
 });
 
+// Report only allowlisted fixture state, before fixture cleanup, preserving the assertion.
+function stackDiagnostics(t, body) {
+  const fixtures = [];
+  const observe = (scenario, solo, capture, missingResult = false) => observedStack(t, scenario, solo, capture, missingResult, fixtures);
+  try { body(observe); }
+  catch (error) {
+    for (const { f, scenario, solo, capture } of fixtures) {
+      try {
+        const collect = (read, fallback) => { try { return read(); } catch { return fallback; } };
+        const traceFile = path.join(f.root, 'emitter-trace.jsonl');
+        const trace = collect(() => fs.readFileSync(traceFile, 'utf8'), '').trim().split('\n')
+          .filter(Boolean).flatMap(line => collect(() => [JSON.parse(line)], []));
+        const events = collect(() => f.events(), []), journalDir = path.join(f.repo, '.git/harness-stack-merges');
+        const journals = collect(() => fs.readdirSync(journalDir), []).filter(n => n.endsWith('.json')).slice(0, 16).map(n => collect(() => {
+          const value = JSON.parse(fs.readFileSync(path.join(journalDir, n), 'utf8'));
+          return { archived: n.startsWith('archive-'), restored: value.restored === true,
+            state: ['reserved', 'pending', 'enqueued', 'failed', 'merged', 'unverified'].includes(value.state) ? value.state : null };
+        }, { unreadable: true }));
+        const diagnostic = { scenario, solo, capture, trace,
+          restoreAttempt: events.some(e => e.reasonCode === 'RESTORE_ATTEMPT'),
+          restoreVerified: events.some(e => e.reasonCode === 'RESTORE_VERIFIED'),
+          writerLoss: fs.existsSync(path.join(f.spool, 'writer-loss-v1.json')),
+          health: collect(() => readSnapshot(f.spool, f.lease).health, { captureState: 'unavailable' }),
+          leasePresent: fs.existsSync(path.join(f.spool, `lease-${f.lease.viewerId}.json`)),
+          leaseRemainingMs: Date.parse(f.lease.expiresAt) - Date.now(),
+          protectionRestored: !fs.existsSync(path.join(f.repo, 'unprotected')), journals };
+        collect(() => fs.writeFileSync(path.join(f.root, 'stack-diagnostic.json'), JSON.stringify(diagnostic), { mode: 0o600 }), null);
+        t.diagnostic(`structured stack fixture: ${JSON.stringify(diagnostic)}`);
+      } catch { t.diagnostic('structured stack fixture diagnostics unavailable'); }
+    }
+    throw error;
+  }
+  for (const { f, scenario, solo, capture } of fixtures) {
+    try {
+      const file = path.join(f.root, 'emitter-trace.jsonl');
+      const trace = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse) : [];
+      t.diagnostic(`structured stack timing: ${JSON.stringify({ scenario, solo, capture, emitterCount: trace.length,
+        maxDurationMs: Math.max(0, ...trace.map(e => e.durationMs)), timeoutCount: trace.filter(e => e.errorCode === 'ETIMEDOUT').length,
+        errorCount: trace.filter(e => e.errorCode || e.status !== 0).length })}`);
+    } catch { t.diagnostic('structured stack timing unavailable'); }
+  }
+}
+
 // Reuse the stack boundary's stateful GitHub double; executeMerge, journals,
 // both wrappers and the real observation writer remain production code.
-function observedStack(t, scenario, solo, capture, missingResult = false) {
+function observedStack(t, scenario, solo, capture, missingResult = false, fixtures = []) {
   const f = fixture(t), bin = path.join(f.root, 'bin'); fs.mkdirSync(bin);
+  fixtures.push({ f, scenario, solo, capture });
   const source = fs.readFileSync('tests/stack-merge-wrapper-test.mjs', 'utf8');
   const template = source.split("writeFileSync(path.join(bin, 'gh'), `")[1]?.split('`); spawnSync')[0];
   assert.ok(template);
@@ -359,7 +403,9 @@ function observedStack(t, scenario, solo, capture, missingResult = false) {
   f.git('remote', 'add', 'origin', 'https://github.com/test/repo.git');
   if (capture) f.active();
   const env = { ...f.env, PATH: `${bin}:${process.env.PATH}`, FIXTURE_DIR: f.repo, SCENARIO: scenario,
-    HARNESS_STACK_WAIT_MS: '1000', HARNESS_OBSERVE_DIR: f.spool };
+    HARNESS_STACK_WAIT_MS: '1000', HARNESS_OBSERVE_DIR: f.spool,
+    OBSERVATION_STACK_TRACE: path.join(f.root, 'emitter-trace.jsonl'),
+    NODE_OPTIONS: `${process.env.NODE_OPTIONS || ''} --require ${JSON.stringify(path.resolve('tests/helpers/observation-emitter-probe.cjs'))}` };
   let scriptRoot = scripts;
   if (missingResult) {
     const plugin = path.join(f.root, 'plugin'); scriptRoot = path.join(plugin, 'scripts');
@@ -395,8 +441,8 @@ for (const solo of [false, true]) for (const [scenario, outcome, reason, rc] of 
   ['pending', 'pending', 'MERGE_PENDING', 1], ['queue', 'enqueued', 'MERGE_PENDING', 1],
   ['lost', 'unverified', 'RESULT_UNVERIFIED', 1], ['failed', 'fail', 'MERGE_FAILED', 1],
   ['normal', 'pass', 'MERGED', 0],
-]) test(`structured stack ${scenario} stays ${outcome} through ${solo ? 'solo' : 'pr'} wrapper exit`, t => {
-  const off = observedStack(t, scenario, solo, false), on = observedStack(t, scenario, solo, true);
+]) test(`structured stack ${scenario} stays ${outcome} through ${solo ? 'solo' : 'pr'} wrapper exit`, t => stackDiagnostics(t, observe => {
+  const off = observe(scenario, solo, false), on = observe(scenario, solo, true);
   assert.equal(off.result.status, rc, off.result.stderr); assert.deepEqual(on.result, off.result);
   assert.deepEqual(on.calls, off.calls);
   const source = solo ? 'solo-merge' : 'pr-merge', events = on.f.events();
@@ -409,19 +455,19 @@ for (const solo of [false, true]) for (const [scenario, outcome, reason, rc] of 
   assert.equal(terminal[0].exitCode, rc);
   if (rc) assert.ok(events.every(e => e.reasonCode !== 'MERGED'));
   if (solo) completed(events, 'solo-merge', 'pass', 'RESTORE_VERIFIED');
-});
+}));
 
-for (const solo of [false, true]) test(`missing structured result never becomes MERGED from exit zero in ${solo ? 'solo' : 'pr'}`, t => {
-  const off = observedStack(t, 'normal', solo, false), on = observedStack(t, 'normal', solo, true, true);
+for (const solo of [false, true]) test(`missing structured result never becomes MERGED from exit zero in ${solo ? 'solo' : 'pr'}`, t => stackDiagnostics(t, observe => {
+  const off = observe('normal', solo, false), on = observe('normal', solo, true, true);
   assert.equal(on.result.status, 0); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
   const source = solo ? 'solo-merge' : 'pr-merge';
   completed(on.f.events(), source, 'unverified', 'RESULT_UNVERIFIED');
   assert.ok(on.f.events().every(e => e.reasonCode !== 'MERGED'));
   assert.equal(readSnapshot(on.f.spool, on.f.lease).health.captureState, 'loss-suspected');
-});
+}));
 
-test('confirmed stack merge with failed solo restore never marks the solo operation pass', t => {
-  const off = observedStack(t, 'restore-fail', true, false), on = observedStack(t, 'restore-fail', true, true);
+test('confirmed stack merge with failed solo restore never marks the solo operation pass', t => stackDiagnostics(t, observe => {
+  const off = observe('restore-fail', true, false), on = observe('restore-fail', true, true);
   assert.equal(on.result.status, 1); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
   completed(on.f.events(), 'stack', 'pass', 'MERGED');
   completed(on.f.events(), 'solo-merge', 'unverified', 'RESTORE_UNVERIFIED');
@@ -429,10 +475,10 @@ test('confirmed stack merge with failed solo restore never marks the solo operat
   const terminal = on.f.events().filter(e => e.operationId === parent.operationId && e.phase === 'finished');
   assert.equal(terminal.length, 1); assert.equal(terminal[0].outcome, 'unverified');
   assert.equal(terminal[0].reasonCode, 'RESULT_UNVERIFIED'); assert.equal(terminal[0].exitCode, 1);
-});
+}));
 
-test('stalled structured result reads are bounded and preserve solo restore and command results', t => {
-  const off = observedStack(t, 'normal', true, false), on = observedStack(t, 'normal', true, true, 'result-timeout');
+test('stalled structured result reads are bounded and preserve solo restore and command results', t => stackDiagnostics(t, observe => {
+  const off = observe('normal', true, false), on = observe('normal', true, true, 'result-timeout');
   assert.equal(on.result.status, 0); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
   const parent = on.f.events().find(e => e.source === 'pr-merge' && e.phase === 'started');
   const start = Date.now();
@@ -443,4 +489,4 @@ test('stalled structured result reads are bounded and preserve solo restore and 
   assert.equal(query.stdout, ''); assert.equal(query.stderr, '');
   completed(on.f.events(), 'solo-merge', 'unverified', 'RESULT_UNVERIFIED');
   completed(on.f.events(), 'solo-merge', 'pass', 'RESTORE_VERIFIED');
-});
+}));
