@@ -9,6 +9,11 @@ export function readSnapshot(dataDir, selection) {
     const root = directory(dataDir), scan = readEvents(root); health.parseErrors = scan.parseErrors;
     if (readLease(root, selection, { allowAnyWorktree: true })) health.captureState = 'active';
     try {
+      const loss = JSON.parse(readFile(root, 'writer-loss-v1.json', 128).data);
+      if (loss.schemaVersion !== 1 || loss.lost !== true || Object.keys(loss).length !== 2) throw Error('INVALID_LOSS');
+      health.captureState = 'loss-suspected';
+    } catch (e) { if (e.code !== 'ENOENT') health.parseErrors++; }
+    try {
       const retained = JSON.parse(readFile(root, 'retention-v1.json', 128).data);
       if (retained.schemaVersion !== 1 || retained.applied !== true || Object.keys(retained).length !== 2) throw Error('INVALID_RETENTION');
       health.retentionApplied = true;

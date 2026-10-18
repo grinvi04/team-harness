@@ -40,7 +40,9 @@ jobs:
           STACK_VERSION_PYTHON="$PWD/.runtime/stack-versions/venv/bin/python" node --test tests/stack-project-test.mjs tests/stack-version-check-test.mjs tests/stack-version-cli-test.mjs
 
       - name: 선택형 관측 사건 저장·읽기 검사
-        run: node --test tests/observation-test.mjs tests/observation-boundaries-test.mjs
+        run: |
+          node --test tests/observation-test.mjs tests/observation-boundaries-test.mjs tests/observation-run-check-test.mjs
+          bash tests/observation-integration-test.sh
 
       - name: 진행 문서 동기화 선언 검사
         run: |

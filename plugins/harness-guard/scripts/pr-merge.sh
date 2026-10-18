@@ -144,6 +144,10 @@ verify_required_ci() { # base head; PR와 OWNER_REPO는 현재 후보의 조회 
 
 # 테스트 훅: 함수만 로드하고 종료(main 로직·gh 호출 없이 순수 판정 함수만 검증).
 [ -n "${PRMERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
+if ! source "${BASH_SOURCE[0]%/*}/observation/shell.sh" 2>/dev/null; then
+  obs_start() { :; }; obs_exit() { :; }
+fi
+trap 'rc=$?; obs_exit "$rc"; exit "$rc"' EXIT
 
 # The linked-stack API is verified on github.com. Gate and mutation hosts must
 # never differ; an enterprise override needs its own supported contract.
@@ -177,6 +181,8 @@ VERIFIED_CANDIDATE=$(read_pr_candidate) || { echo "  ⛔ PR head/base 후보 조
 IFS='|' read -r PR_BASE BASE_SHA HBRANCH HEAD_SHA <<EOF
 $VERIFIED_CANDIDATE
 EOF
+obs_start pr-merge '' "$HEAD_SHA" "$BASE_SHA"
+OBS_REASON=MERGE_FAILED
 [ -z "$BASE" ] || [ "$BASE" = "$PR_BASE" ] || { echo "  ⛔ 요청 base=$BASE, 실제 base=$PR_BASE — 머지 중단" >&2; exit 3; }
 [ -z "$EXPECTED_HEAD" ] || [ "$EXPECTED_HEAD" = "$HEAD_SHA" ] || { echo "  ⛔ 앞선 리뷰의 head와 현재 후보가 다름 — 재검토 필요" >&2; exit 1; }
 [ -z "$EXPECTED_BASE_OID" ] || [ "$EXPECTED_BASE_OID" = "$BASE_SHA" ] || { echo "  ⛔ 앞선 리뷰의 base OID와 현재 후보가 다름 — 재검토 필요" >&2; exit 1; }
@@ -247,10 +253,12 @@ if [ "$STACK_KIND" = stack ]; then
   if wait "$MERGE_PID"; then MERGE_RC=0; else MERGE_RC=$?; fi
   MERGE_PID=""; trap - INT TERM HUP
   [ "$MERGE_RC" = 0 ] || exit "$MERGE_RC"
+  OBS_OUTCOME=pass OBS_REASON=MERGED
   echo "✅ PR #$PR 실제 병합과 trunk 포함 확인 — 의존 브랜치는 보존, 다음 층은 새 후보로 검증"
   exit 0
 fi
 gh pr merge "$PR" --repo "$OWNER_REPO" --merge --delete-branch --match-head-commit "$HEAD_SHA"
+OBS_OUTCOME=unverified OBS_REASON=MERGE_REQUESTED
 echo "✅ PR #$PR 머지 완료"
 
 # PR 병합과 정리 결과는 별도다. 실패를 숨기거나 삭제를 추정하지 않는다.

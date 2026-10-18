@@ -30,6 +30,10 @@
 # 로그: ~/.claude/hooks/guard-block.log (session_id·cwd·사유·명령) — 멀티세션 위반 시도 추적.
 
 INPUT=$(cat)
+if source "${BASH_SOURCE[0]%/*}/observation/shell.sh" 2>/dev/null; then
+  obs_start guard "$INPUT"
+  trap 'rc=$?; if [ "$rc" = 0 ]; then obs_finish "$rc" allow GUARD_ALLOWED; elif [ "$rc" = 2 ]; then obs_finish "$rc" deny GUARD_DENIED; else obs_finish "$rc" unverified EXECUTION_ERROR; fi; exit "$rc"' EXIT
+fi
 COMMAND=""
 GUARD_LOG="${HARNESS_GUARD_LOG:-${HOME}/.claude/hooks/guard-block.log}"
 HARNESS_AGENT_NAME="${HARNESS_AGENT_NAME:-Claude}"

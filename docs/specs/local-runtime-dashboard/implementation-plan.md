@@ -2,8 +2,8 @@
 
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
 > 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
-> 원래 연결 범위와 순서를 유지한다. T1 저장·reader 14개 시험을 통과했다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 한계와 다음 단계를 기록한다.
-> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 A층을 시작했다.
+> 원래 연결 범위와 순서를 유지한다. T1 커밋452cde5 이후 T2 포함29개 시험을 통과했다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 한계와 다음 단계를 기록한다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 B층 연결 검증을 마치고 C층을 진행한다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
@@ -83,15 +83,15 @@ HTTP snapshot은 `readSnapshot` 결과에 `schemaVersion=1,viewerId,repoId,workt
 수정: `scripts/{guard.sh,codex-pretool-guard.mjs,codex-secret-egress-guard.mjs,pr-create.sh,pr-merge.sh,solo-merge.sh}`.
 신규: `run-check.mjs`, `tests/observation-integration-test.sh`. T1의 API를 소비한다.
 
-- [ ] 기존 허용/거부/에러를 capture OFF·ON·기록 실패 상태에서 실행하고 exit·기존 출력을 비교한다.
-- [ ] malformed hook·누락 PLUGIN_DATA·egress 거부·PR 실패·보호 PATCH 성공/readback 불일치 사례를 잠근다.
-- [ ] start/finish 상관관계, 자식 wrapper의 parentOperationId, 실제 session 부재=null을 연결한다.
-- [ ] `runCheck`가 실제 명령을 한 번만 실행하고 출력을 원래 터미널로 전달하며 원래 exit를 반환하게 한다.
+- [x] 기존 허용/거부/에러를 capture OFF·ON·기록 실패 상태에서 실행하고 exit·기존 출력을 비교한다.
+- [x] malformed hook·누락 PLUGIN_DATA·egress 거부·PR 실패·보호 PATCH 성공/readback 불일치 사례를 잠근다.
+- [x] start/finish 상관관계, 자식 wrapper의 parentOperationId, 실제 session 부재=null을 연결한다.
+- [x] `runCheck`가 실제 명령을 한 번만 실행하고 출력을 원래 터미널로 전달하며 원래 exit를 반환하게 한다.
   기존 QA workflow에서 선택적으로 감싸되 임의 명령의 의미·전체 테스트 PASS를 추정하지 않는다.
-- [ ] OFF에서는 추가 emitter process를 만들지 않는다. ON emitter는 250ms 상한으로 종료한다.
+- [x] OFF에서는 추가 emitter process를 만들지 않는다. ON emitter는 250ms 상한으로 종료한다.
   emitter 실패/timeout은 진단만 남기고 기존 gate 결과를 덮어쓰지 않는지 확인한다.
-- [ ] `bash tests/observation-integration-test.sh`와 guard·pr-create·pr-merge-auto·solo-merge 기존 회귀를 실행한다.
-- [ ] 현재 동작·수집 한계·코드 소비자 문서를 갱신하고 규약대로 커밋한다.
+- [x] `bash tests/observation-integration-test.sh`와 guard·pr-create·pr-merge-auto·solo-merge 기존 회귀를 실행한다.
+- [x] 현재 동작·수집 한계·코드 소비자 문서를 갱신하고 규약대로 커밋한다.
 
 ## T3 — 로컬 viewer와 사용 과제 (O3·O4)
 
