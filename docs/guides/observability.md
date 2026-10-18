@@ -2,7 +2,7 @@
 
 Harness의 검사·차단·전달 사건을 읽기 전용 화면에서 확인한다. 실행·승인·병합은 기존 workflow가 담당한다.
 이 기능은 현재 개발 후보이며 아직 정식 발행되지 않았다. 실제 격리 Codex CLI의 hook→기록→화면은
-확인했다. 검사 이름·세부 차단 이유의 새 후보 영향 검사도 PASS이며 desktop 인수는 남았다. Claude 실호스트는 미확인 보류다.
+확인했다. 승인된 Desktop 시험·설치 복구도 확인했으며 최종 PR 통합은 진행 중이다. Claude 실호스트는 미확인 보류다.
 후보·실행 범위·남은 검증은 [현재 실행 기록](../pilots/local-runtime-dashboard.md)을 따른다.
 
 ## 처음 실행하기
@@ -34,6 +34,8 @@ CLI가 쓴 활성 표식과 실제 writer의 경로·repo·worktree가 일치해
 - Codex hook은 **호스트가 실제 제공한 `PLUGIN_DATA` 아래 `observability/`**를 사용한다.
   임의로 설치 경로를 추정하지 말고 실제 제공된 데이터 경로를 확인해 viewer의 `--data-dir`와 맞춘다.
   `PLUGIN_DATA`가 없으면 Codex 관측 adapter는 기록하지 않는다.
+  관측 대상은 hook이 받은 대화의 작업 폴더다. Git 저장소 안에서 연 대화를 사용하고 viewer의 `--repo`를
+  그 worktree와 맞춘다. 개별 명령의 작업 폴더만 바꿔도 대화의 관측 대상이 바뀌지는 않는다.
 - 터미널에서 wrapper나 명시 검사를 실행할 때는 같은 `HARNESS_OBSERVE_DIR`를 그 실행에 전달한다.
   환경변수는 viewer가 다른 프로세스에 자동 주입하지 않는다. 작업 디렉터리도 선택한 worktree여야 한다.
 - 기존 guard·PR wrapper를 평소 경로로 실행한다. 명시 검사만 기록하려면 제품 worktree에서 다음처럼 감싼다.

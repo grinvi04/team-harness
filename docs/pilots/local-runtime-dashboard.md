@@ -2,15 +2,18 @@
 
 2026-10-18. 1.2.0 미발행 후보. [설계·O1–O5](../specs/local-runtime-dashboard.md)와
 [T1–T4 계획](../specs/local-runtime-dashboard/implementation-plan.md)의 원래 완료 기준을 유지한다.
-현재 **전체 quality 실행과 발견 실패의 교정 검증을 마치고 PR 전달 준비 중**이며 전체 인수는 미완료다.
+현재 **실제 Codex CLI·Desktop 연결과 교정 영향 검증을 마치고 3층 PR의 순차 인수 중**이다.
+G3 develop 병합과 최종 후보별 CI·독립 검토는 미완료다.
 
 ## 후보와 보존 범위
 
 - 기반은 PR584의 develop 병합 `4c1136eea0988dc252475eb5edfbfdc241b66ee5`다.
 - 실행 clone은 `team-harness/.runtime/dashboard-stack-20261018`, 원문은 그 아래 `.runtime/dashboard/`다.
-- 교정 통합: Acc014ba → Bea22d87 → Cce994dc에서 공식 restack과 원격 각 ref 일치를 확인했다.
-  이후 C의 진행 문서·변경 이력을 갱신한다. 실제 실행 후보 Cc62e8ca와 현재 전달 후보는 구분한다.
-- main·태그1.1.0 e038399와 사용자 설치1.0.0은 유지했다. 1.2.0 PR·태그·전역 설치는 미실행이다.
+- lease 교정 통합: A903d677 → B63470a4 → C640584c에서 공식 restack과 원격 각 ref 일치를 확인했다.
+  실제 실행 후보·후속 문서 커밋은 구분하며 현재 head는 PR585·586·587 원본을 따른다.
+- [PR585](https://github.com/grinvi04/team-harness/pull/585)→[586](https://github.com/grinvi04/team-harness/pull/586)→[587](https://github.com/grinvi04/team-harness/pull/587)를 제출했다. 586·587은 선행 병합 전 draft다.
+- main·태그1.1.0 e038399는 유지했다. 승인된 c62 임시 설치 시험 후 사용자 설치1.0.0으로 복구했다.
+  1.2.0 정식 main·태그·영구 설치는 미실행이다.
 - [초기 T1–T3 및 첫 리뷰 교정](local-runtime-dashboard-initial.md)에 당시 명령·실패·수정·한계를 보존한다.
   그 결과를 변경된 바이트의 실행으로 바꿔 적지 않는다.
 
@@ -87,23 +90,47 @@ reader만 같은 repo의 유효한 worktree lease를 허용한다. append와 명
 | 54 변경 이력 | 구현 커밋 이후 각 층의1.2.0 변경 이력을 재생성 | `changelog-fix/`, `claude-baseline-fix/b-changelog-*` 전체 문서 시험 PASS |
 | 63·71 공용 표면 | 승인된 O4 guard 변경의 해시 한 행 갱신; 기존 행·검사 유지 | `claude-baseline-fix/` native loader·명시 Claude surface 검사 PASS |
 
-현재 plugin100파일과 dashboard 제작 원문은 Cc62e8ca와 같다. 실제 CLI·화면·이동 artifact의 동작 근거를
-바이트 일치 범위에서 재사용한다. 새 SHA의 설치 실행으로 바꿔 적지 않는다. 이후 차이는 문서·검사 기대값·기준 해시다.
+교정 통합 Cb11faa5의 plugin100파일·dashboard 제작 원문은 Cc62e8ca와 같았고 hosted39089091469는 PASS다.
+이후 repo-only lease 수정으로 event/read 소스2개가 달라졌다. 기존 UI71·asset 및 hook 연결 근거는
+변경되지 않은 범위만 재사용하며 C640584c의 영향 검사·실제 CLI·이동 artifact를 아래에 별도로 기록한다.
 원래77단계 실행, 교정 명령·로그·후보·파일 해시 대조는 `quality-corrections/`에 연결한다.
 최종 문서·현재 SHA 패키지·PR CI/리뷰는 전달 후보에서 별도로 확인한다. Claude 실호스트 확인을 뜻하지 않는다.
+
+## lease 교정 이후 실제 실행
+
+- `pr585-review-after-lease/`: A903d677·base4c1136e의 공식 Codex Astra/medium/read-only 리뷰에서 추가 결함 미발견.
+  checkout은 clean, 명령·실행 설정·원본 리뷰를 보존했다. 이후 후보 변경은 새 snapshot으로 검토한다.
+- `pr585-lease-integration/`: C640584c의 깨끗한 별도 clone에서 npm ci·runCheck/통합50개·결합28개 PASS.
+  30개 관련 소스 digest가 커밋과 일치한다. 기존 실패·거부·writer/용량 조건을 유지했다.
+- `native-cli/run-H9WWAz/`: C640584c 공식 Codex0.161.0 격리 설치100파일 일치.
+  실제 허용1회 exit0·삭제 실행0회·sentinel 보존·10사건/5작업·실제 화면과 session/SHA/reason 대조 PASS.
+  임시 auth 사본 제거·원본 인증 보존을 확인했다. 시험 driver의 SIGINT 후 남은 소유 lease는
+  프로세스 종료를 확인하고 공식 removeLease로 정리했다. 제품 CLI의 정상 종료 시험과 구분한다.
+- `package-live-lease/`: 같은 C640584c의 이동 artifact58파일과 catalog·원본55파일이 일치한다.
+  HTML/CSS/JS·MIME·거부·갱신·제작 의존성 미접근·외부 요청 없음·정상 종료 lease0 PASS.
+
+## 승인된 Desktop 실행·복구
+
+- `desktop/`: 승인한 c62e8ca를 공식 명령으로 임시 설치하고100파일 일치를 확인했다. 검증 대화는1개다.
+- 첫 시험은 대화 작업 폴더가 Git 밖이라 사건0·UNVERIFIED였다. hook 차단과 이 최초 결과를 보존했다.
+  같은 대화의 빈 작업 폴더에 같은 합성 커밋2c78e36을 배치해 host cwd와 viewer 대상을 맞췄다.
+- 실제 native skill 목록과 wrapper 읽기, allow1회 exit0·deny 실행0회·sentinel 보존을 확인했다.
+  session `01a14cd7-2105-77e0-a33a-bf0c36778605`, 같은 SHA·10사건/5작업·세부 이유가 실제 화면과 일치한다.
+- viewer 정상 종료·lease0 후 v1.0.0/69c198b로 복구했다. 설치77파일·전체 plugin/marketplace 목록·선택 설정이 원래와 같다.
+- 이 결과는 c62의 실제 Desktop 연결이다. C640 실제 Desktop 설치나 전체 skill workflow 평가로 확대하지 않는다.
+  `first-attempt.json`, `result.json`, `restoration.json`과 원본 도구·화면 기록을 함께 읽는다.
 
 ## 현재 판정과 다음 단계
 
 | 기준 | 상태 | 완료까지 필요한 근거 |
 |---|---|---|
-| O1 | 통합 검증 중 | 저장·한도 기존 근거와 최종 schema 변경 영향 대조 |
-| O2 | 영향 검사 PASS | guard/wrapper 원결과 보존; 최종 quality·독립 PR 검토 대조 |
-| O3 | 통합 검증 중 | 미확정 병합·복구·용량 교정의 현재 후보 회귀 |
-| O4 | 영향 검사 PASS | 실제 현재/상세 화면 확인; 독립 PR 검토 대조 |
-| O5 | 부분 PASS | CLI·artifact·quality 교정 PASS; 현재 SHA 패키지·승인된 desktop 실행 |
-| G3 | 미실행 | 세 층 PR의 CI·독립 리뷰·최하단 순차 develop 병합 |
+| O1 | 구현·영향 검사 PASS | 저장·한도·lease 교정22/22와 최종 PR 후보 대조 |
+| O2 | 구현·실제 연결 PASS | 원결과 보존·CLI/Desktop 연결; 후속 층 CI·독립 검토 |
+| O3 | 구현·영향 검사 PASS | 미확정 병합·복구·용량과 현재 후보50+28 회귀; G3 실제 병합 |
+| O4 | 실제 화면 PASS | 현재/상세·검사 이름·세부 이유; 후속 층 독립 검토 |
+| O5 | 실제 실행 PASS·전달 검증 중 | 현재 SHA 패키지·전체 quality와 최종 독립 대조 |
+| G3 | 3층 제출 완료 | 새 후보별 CI·독립 리뷰·최하단 순차 develop 병합 |
 
-다음 순서: 현재 문서·패키지·PR 후보 확정 → G3 제출 → 각 층의 새 CI·독립 리뷰·최하단 순차 병합.
-desktop은 Cc62e8ca 임시 전환·검증 대화1개·v1.0.0 복구안을 준비했으며 명시 승인을 기다린다.
+다음 순서: 본문·후보 일치 → 각 층의 새 CI·독립 리뷰 → 최하단 순차 develop 병합 → 최종 기준 대조.
 정식 main·태그·사용자 설치는 그 후 별도 전달 범위다. Claude 실호스트는 미확인 보류로 유지한다.
 소비 저장소 수정·회사 고유 정책·실제 사람 인수는 현재 잔여 기준에 넣지 않는다.

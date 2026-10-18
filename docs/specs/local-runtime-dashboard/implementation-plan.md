@@ -3,7 +3,7 @@
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
 > 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
 > 원래 범위를 유지한다. O4 교정 Cc62e8ca의 실제 실행과 이후 문서·검사 교정을 구분한다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 최초 quality 실패5건·교정 PASS·남은 인수를 연결한다.
-> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 CLI hook→화면·검사 이름·이동 artifact PASS이며 현재 SHA 패키지·desktop·G3는 남았다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. CLI·Desktop 연결과 복구를 확인했다. G3는 PR585→586→587 제출 완료이며 현재 후보 CI·독립 검토·순차 병합은 남았다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
@@ -19,7 +19,7 @@
 - event는 명령 원문·출력·비밀정보를 받지 않는다. 차단 이유는 허용된 code→설명으로 변환한다.
 - 구현 후보는 MINOR 변경이다. 시작 시 원격 최신 버전을 확인하고 두 manifest·README를 같이 준비한다.
 - 각 task는 검수한 실패 사례→최소 구현→유지 회귀→문서 현행화→규약 커밋으로 끝낸다.
-- 아래 파일/함수는 현재 C층 검증 후보에 구현됐다. 정식 발행·사용자 설치와 필수 native 인수는 아직 미실행이다.
+- 아래 파일/함수는 현재 C층 검증 후보에 구현됐다. 필수 native 연결을 확인했으며 정식 발행·영구 사용자 설치는 미실행이다.
 - React·Query 채택은 승인됐다. Router·Table·Virtual·Start·별도 전역 store는 이번 구현에 추가하지 않는다.
 - 제작 의존성·도구 버전은 구현 시 공식 지원 범위를 확인해 lockfile과 함께 고정한다. 소비자 설치 시 빌드하지 않는다.
 - 서버 데이터는 Query, 필터·선택은 React가 소유한다. 토큰·Query 캐시는 메모리에만 두고 원문 .env는 읽지 않는다.
@@ -151,9 +151,9 @@ node scripts/build-dashboard.mjs --check
 
 수정: `experiments/split-packaging/packages.json`, `.github/workflows/ci-gate.yml`,
 `.gitignore`, `docs/{repository-structure,harness-setup,harness-maintenance}.md`, 양쪽 plugin manifest와 README 배지.
-추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. Cc62e8ca artifact·실제 격리 CLI hook→화면 PASS. quality77단계 실행·실패5건 교정 PASS이며 현재 SHA 패키지·desktop·G3는 남았다.
+추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. C640584c 영향·CLI·이동 artifact와 c62 Desktop 시험·복구 PASS. quality 최초 실패와 교정을 보존하며 현재 후보 CI·최종 검토·G3 순차 병합은 남았다.
 
-- [ ] 세 층 A=계약/저장, B=수집 연결, C=viewer/패키지로 stack을 제출한다. T4 검증은 각 층 결과를 함께 대조한다.
+- [x] 세 층 A=계약/저장, B=수집 연결, C=viewer/패키지로 stack을 제출한다. T4 검증은 각 층 결과를 함께 대조한다.
 - [x] 배포 catalog에 core 파일·asset 소유와 adapter import를 연결하고 실제 staged 경로에서 실행한다.
 - [x] core sources에 plugin `dashboard/`를 포함한다. root 제작 소스·node_modules는 설치 artifact에 넣지 않는다.
   source archive는 root 제작 소스·lockfile도 보존한다. 기존 Git revision 복사·checksum builder는 유지한다.
@@ -167,8 +167,8 @@ node scripts/build-dashboard.mjs --check
   로드한다. 해시 asset·MIME·접근 거부·오프라인 localhost 갱신을 확인한다. vite preview를 설치 실행기로 쓰지 않는다.
   C3ffe395 과거 결과를 보존하고 Cc62e8ca에서도 실제 이동·조회·갱신·거부·정리 PASS.
 - [x] 격리된 Codex CLI에서 실제 hook allow/deny→기록→화면을 확인하고 source/runtime 버전을 기록한다.
-- [ ] 실제 desktop은 승인된 전용 대화·설치 대상에서 같은 연결을 확인한다. 전역 전환이 필요하면
-  대상·복구 명령을 먼저 구체화한다. 임의 cache patch·다른 plugin 변경은 하지 않는다.
+- [x] 실제 desktop은 승인된 전용 대화·설치 대상에서 같은 연결을 확인한다. 승인한 c62 임시 설치·대화1개로
+  첫 Git 밖 cwd 실패와 교정 실행을 보존했다. v1.0.0·전체 plugin 목록·설정 복구를 확인했다.
 - [ ] 독립 검토자가 O1–O5와 G3의 실제 후보·명령·화면·실패 근거를 대조한다. fixture는 별도 표기한다.
 - [ ] 현재 사용 안내·스펙의 판정을 갱신하고 구현/검증/PR/태그/설치를 각각 보고한다.
 
