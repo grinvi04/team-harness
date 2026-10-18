@@ -2,12 +2,12 @@
 
 2026-10-18. 미발행1.2.0 후보. [설계·O1–O5](../specs/local-runtime-dashboard.md)와
 [T1–T4 실행 계획](../specs/local-runtime-dashboard/implementation-plan.md)의 결과를 연결한다.
-현재는 **Cff4e016 독립 검토 뒤 용량 교정·B층 비동기 병합 상태 교정 중**이다. 과거 개별 PASS는 보존하며 실제 호스트·전체 기능 인수는 미완료다.
+현재는 **검토 결함 두 건 교정·공식 restack 완료, C2e983ed 통합 검증 준비**이다. 과거 개별 PASS는 보존하며 실제 호스트·전체 기능 인수는 미완료다.
 
 ## 후보와 환경
 
 - 기반: PR584 원격 develop 병합 `4c1136eea0988dc252475eb5edfbfdc241b66ee5`.
-- 별도 clone `team-harness/.runtime/dashboard-stack-20261018`, A층 `codex/dashboard-events` 커밋 `452cde5`, B층 `codex/dashboard-hooks` 커밋 `42f79d0`, C층 `codex/dashboard-viewer` 커밋 `ff4e016`. 검토 교정 바이트의 새 후보는 별도 연결한다.
+- 별도 clone `team-harness/.runtime/dashboard-stack-20261018`, A층 `codex/dashboard-events` 커밋 `452cde5`, B층 `codex/dashboard-hooks` 커밋 `42f79d0`, C층 `codex/dashboard-viewer` 커밋 `ff4e016`. 교정 후 B51a5739·C2e983ed이며 A는 그대로다.
 - macOS, 실제 파일시스템·독립 Node 프로세스. T1·T2는 GitHub/native hook/UI 인수가 아니며 T3 브라우저는 아래 별도 범위다.
 - 원문·파일 digest는 해당 clone의 `.runtime/dashboard/t1-*.{log,json}`에 보존한다.
   미커밋 시험은 `t1-final.json`의 소스4개·시험2개 SHA-256으로 현재 원본과 대조했다.
@@ -167,7 +167,7 @@ CI 연결 시험 PASS는 hosted CI나 전체 quality 성공을 뜻하지 않는�
 UI36/36 PASS 뒤 빈 목록을 사건 부재로 표시하는 문구 반례도 RED→교정했다. 전체37/37 PASS는
 `review-capacity-empty-green.log`다. lint/typecheck·asset write/check도 PASS(`review-capacity-{lint,types,build}-final.log`)다.
 다른 결함은 stack pending/enqueued/unverified를 nonzero exit만으로 fail/MERGE_FAILED로 기록한 것이다.
-B층 worker가 교정 중이다. 기존 T2 PASS를 이 결함의 수정·재검증 완료로 세지 않는다.
+B51a5739에 교정을 커밋했다. v2 통합22/22·기존 wrapper22/22와 v3 exitCode 생략 RED→GREEN1/1을 별도 기록했다. 새 C의 전체 검증은 다음 단계다.
 
 초기 전체 quality는1–5단계 exit0 뒤6단계를 검토 교정을 위해 중단했다(6단계 기록 exit1).
 `full-quality/quality/results.json`과 `interrupted-for-review.json`이 근거며 전체 quality PASS가 아니다.
@@ -176,8 +176,12 @@ Cff4e016의 `package-live/result.json`은 커밋된 artifact를 경로 이동 �
 격리된 공식 Codex CLI0.161.0에서 설치·bootstrap·PreToolUse 거부는 관찰했다(`native-cli/run-99nqDI/`).
 실제 hook allow/deny→기록→화면의 O5 연결은 아직 미실행이다. desktop·G3도 미실행이다.
 
+공식 restack은 C 전용 의존성 폴더가 B에서 미추적으로 보이자 중단했다. 폴더를 보존·이동하고
+공식 abort·journal 재개로 이전 시도를 종료한 뒤 재실행했다. A/B/C ancestry·원격 OID가 일치하며
+PR은 아직 없다. 증거는 `restack-corrected-apply-2.json`; 최초 중단·복구 로그도 보존한다.
+
 ## 남은 승인 범위
 
-B 교정·통합 및 새 C 후보의 영향 시험·package/bundle·전체 quality → native CLI/desktop O5·G3 인수 순서다.
+새 C 후보의 영향 시험·package/bundle·전체 quality → native CLI/desktop O5·G3 인수 순서다.
 O1–O5 전체와 독립 최종 인수는 미완료다. 새 기능의 정식 main·태그·사용자 설치는 실행하지 않았다.
 Claude 실제 호스트는 미확인 보류다. 소비 저장소 변경과 회사·사람 인수는 숨은 완료 조건으로 추가하지 않는다.

@@ -2,8 +2,8 @@
 
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
 > 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
-> 원래 범위를 유지한다. Cff4e016 독립 검토 뒤 용량 교정 서버6·UI37 PASS, B층 비동기 병합 상태 교정 중이다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 과거 후보·부분 quality·남은 인수를 연결한다.
-> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 B/C 검토 교정과 새 후보 통합 검증을 진행한다.
+> 원래 범위를 유지한다. Cff4e016 독립 검토 뒤 용량 교정 서버6·UI37 PASS, B층 교정과 공식 restack을 마쳤다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 과거 후보·부분 quality·남은 인수를 연결한다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 C2e983ed의 새 후보 통합 검증을 진행한다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
