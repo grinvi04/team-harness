@@ -2,8 +2,8 @@
 
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
 > 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
-> 원래 범위를 유지한다. Cff4e016 독립 검토 뒤 용량 교정 서버6·UI37 PASS, B층 교정과 공식 restack을 마쳤다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 과거 후보·부분 quality·남은 인수를 연결한다.
-> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 C2e983ed의 새 후보 통합 검증을 진행한다.
+> 원래 범위를 유지한다. 앞선 용량·병합 판정 교정 뒤 C3ffe395 검토에서 발견한 O4 검사 이름·차단 이유를 보완한다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 과거 후보·부분 quality·남은 인수를 연결한다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드의 격리 CLI hook→화면은 C3ffe395에서 PASS이며 새 교정 영향과 desktop·G3는 남았다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
@@ -151,7 +151,7 @@ node scripts/build-dashboard.mjs --check
 
 수정: `experiments/split-packaging/packages.json`, `.github/workflows/ci-gate.yml`,
 `.gitignore`, `docs/{repository-structure,harness-setup,harness-maintenance}.md`, 양쪽 plugin manifest와 README 배지.
-추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. Cff4e016의 artifact 전용 시험은 PASS이나 변경된 B/C 바이트에는 재검증이 필요하다. quality1–5 PASS·6중단, CLI 설치/bootstrap·거부만 관찰했으며 native O5·desktop·G3는 미실행이다.
+추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. C3ffe395 artifact·실제 격리 CLI hook→화면 PASS, quality1–6 PASS·7단계 시험 사본 혼입 FAIL이다. 교정 영향 검사·desktop·G3는 남았다.
 
 - [ ] 세 층 A=계약/저장, B=수집 연결, C=viewer/패키지로 stack을 제출한다. T4 검증은 각 층 결과를 함께 대조한다.
 - [ ] 배포 catalog에 core 파일·asset 소유와 adapter import를 연결하고 실제 staged 경로에서 실행한다.
@@ -165,7 +165,7 @@ node scripts/build-dashboard.mjs --check
   release-bundle 테스트 및 현재 quality 전체를 실행한다. artifact는 커밋된 후보를 대상으로 만든다.
 - [ ] 설치 경로를 바꾸고 root 소스·제작 node_modules·외부 네트워크 없이 Node 서버에서 HTML/CSS/JS를
   로드한다. 해시 asset·MIME·접근 거부·오프라인 localhost 갱신을 확인한다. vite preview를 설치 실행기로 쓰지 않는다.
-  ff4e016 artifact PASS는 보존하며 교정 후보 재검증은 남았다.
+  C3ffe395 artifact PASS는 보존하며 새 교정 후보 영향 검사는 남았다.
 - [ ] 격리된 Codex CLI에서 실제 hook allow/deny→기록→화면을 확인하고 source/runtime 버전을 기록한다.
 - [ ] 실제 desktop은 승인된 전용 대화·설치 대상에서 같은 연결을 확인한다. 전역 전환이 필요하면
   대상·복구 명령을 먼저 구체화한다. 임의 cache patch·다른 plugin 변경은 하지 않는다.

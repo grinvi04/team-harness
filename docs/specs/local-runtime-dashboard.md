@@ -1,6 +1,6 @@
 # 로컬 실시간 대시보드 설계
 
-상태: **두 검토 결함 교정·공식 restack 완료, C2e983ed 통합 검증 준비**. 전체1.2.0 미발행 후보다. 전체 quality는1–5단계 PASS 후6단계에서 검토를 위해 중단했다. native O5·desktop·G3는 미실행이다.
+상태: **O4 검사 이름·차단 이유 교정 중**. C3ffe395의 실제 격리 CLI hook→화면·이동 artifact PASS, 전체 quality1–6 PASS·7단계 시험 사본 혼입 FAIL을 보존한다. desktop·G3는 미실행이다.
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 원래 연결 범위와 선행 순서를 유지한다.
 사용자가 React + TanStack 채택을 승인했다. 아래는 초기 바닐라 JavaScript 안을 대체하는 설계다.
 기존 재설계·문서 정리의 완료 판정은 유지한다. 아래는 새 기능의 완료 기준이다.
@@ -164,7 +164,7 @@ Claude 미확인, 실제 회사·사람 인수는 이 신규 범위의 숨은 �
 아래 승인 순서를 유지한다. 최초 G0 FAIL을 보존하며 공식 trunk·그룹 보호 통합 시험과 G1 제출 경계 로컬 검사를 통과했다.
 계획 당시 main의 trusted CI가 stacked 이벤트를 받지 않아 CI 선행 전달을 추가 승인받았다.
 [CI1.1.0 전달 원문](stack-ci-bootstrap.md#원격-전달--2026-10-16)의 main·태그·역병합을 확인했다. 전체 후보는1.2.0이며 G1/G2 인수와 PR584의 develop4c1136e 통합이 완료됐다.
-아래 순서와 [현재 T1–T4 실행 결과](../pilots/local-runtime-dashboard.md)를 따른다. Cff4e016의 UI34·서버4·브라우저 결과를 보존한다. 용량 교정은 서버6·UI37 및 lint/typecheck·빌드 비교 PASS다. 이전 artifact 시험은 변경된 바이트를 증명하지 않으며 T4 필수 인수는 남았다.
+아래 순서와 [현재 T1–T4 실행 결과](../pilots/local-runtime-dashboard.md)를 따른다. 초기 결과는 별도 역사로 보존하고 새 후보의 영향 검사와 T4 필수 인수를 연결한다.
 
 1. G0 공식 gh-stack 호환 시험 → G1 안전한 제출 → G2 검증된 순차 병합·복구.
 2. 이 연결 자체는 기존 Git Flow로 검증·통합한다. 자기 구현을 미검증 stack 경로로 전달하지 않는다.

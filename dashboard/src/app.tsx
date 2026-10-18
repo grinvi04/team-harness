@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { focusManager, useQuery } from '@tanstack/react-query';
 import { fetchSnapshot, REASONS, type Operation, type ViewerContext } from './api';
-import { currentOperation, nextAction, reasonFor, operationLabel } from './view-model';
+import { currentOperation, nextAction, reasonFor, operationLabel, checkIdentifier } from './view-model';
 const subscribeFocus = (onChange: () => void) => focusManager.subscribe(onChange);
 const getFocused = () => focusManager.isFocused();
 const operationKey = (op: Operation) => JSON.stringify([op.operationId, op.source, op.repoId, op.worktreeId, op.hostSessionId, op.headSha, op.baseSha]);
@@ -34,7 +34,7 @@ function Observation({ context }: { context: ViewerContext }) {
       {!!snapshot?.health.omittedOperations && <p className="status warn">화면 용량 한도로 {snapshot.health.omittedOperations}개 작업을 생략했습니다. 최신 작업부터 표시하며 기록 파일은 유지합니다.</p>}
       <p className="muted">hook 연결: {operations.some(op => ['codex-hook', 'claude-hook'].includes(op.source)) ? 'hook 사건 관측됨 · 전체 호스트 실행을 보장하지 않음' : 'hook 연결 미확인'}</p>
     </section>
-    <section aria-labelledby="current-title"><h2 id="current-title">현재 작업</h2><p data-testid="current-state" className={`current ${currentKnown ? operation?.state ?? 'unverified' : 'unverified'}`}>{currentKnown ? operationLabel(operation) : '현재 상태 미확인'}</p><p>{currentKnown ? reasonFor(operation) : '마지막 기록이 있어도 현재 실행 결과를 확정하지 않습니다.'}</p></section>
+    <section aria-labelledby="current-title"><h2 id="current-title">현재 작업</h2>{currentKnown && operation?.source === 'check-runner' && <p>검사: {checkIdentifier(operation) ?? '식별자 미제공 · check-runner'}</p>}<p data-testid="current-state" className={`current ${currentKnown ? operation?.state ?? 'unverified' : 'unverified'}`}>{currentKnown ? operationLabel(operation) : '현재 상태 미확인'}</p><p>{currentKnown ? reasonFor(operation) : '마지막 기록이 있어도 현재 실행 결과를 확정하지 않습니다.'}</p></section>
     <section aria-labelledby="next-title"><h2 id="next-title">차단 이유 · 다음 행동</h2><p>{reasonFor(operation)}</p><p>{query.isError ? 'viewer가 실행 중인지 확인하고 터미널의 CLI 주소를 다시 여세요.' : nextAction(operation)}</p>{operation?.events.at(-1)?.reasonCode.startsWith('RESTORE_') && <p className="status warn">복구 주의 · 시도와 원값 재조회 일치를 구분하세요.</p>}</section>
     <section aria-labelledby="timeline-title"><div className="section-head"><h2 id="timeline-title">타임라인</h2><span>{count}개 사건</span></div>
       <div className="controls"><label>작업 필터 <select value={filter} onChange={e => setFilter(e.target.value)}><option value="all">모든 작업</option>{[...new Set(operations.map(op => op.operationId))].map(id => <option key={id} value={id}>{id}</option>)}</select></label><button onClick={() => { if (following) pause(); else setFollowing(true); }}>{following ? '자동 스크롤 중지' : `새 사건 ${Math.max(0, count - readCount)}개 · 자동 스크롤 재개`}</button></div>
@@ -42,10 +42,10 @@ function Observation({ context }: { context: ViewerContext }) {
         {visible.length === 0 ? <p>{operations.length === 0 && snapshot?.health.omittedOperations ? '관측 기록이 화면 용량 한도를 넘어 표시할 수 없습니다. 현재 상태는 미확인입니다.' : '관측된 사건이 없습니다. 수집 연결과 실제 실행을 확인하세요.'}</p> : <ol>{visible.slice().reverse().map(op => {
           const key = operationKey(op);
           const historical = op.headSha !== snapshot?.target.headSha;
-          return <li key={key}><button className="operation" aria-expanded={selected === key} onClick={() => setSelected(selected === key ? null : key)}><span>{op.source}</span><strong className={`badge ${op.state}`}>{operationLabel(op)}</strong><span>{historical ? '이전 후보의 근거' : '현재 후보의 근거'}</span><span className="mono">{op.operationId}</span></button><ol>{op.events.map(e => <li key={e.eventId}><time dateTime={e.recordedAt}>{e.recordedAt}</time><span>{REASONS[e.reasonCode]}</span><code>{e.reasonCode}</code>{e.prNumber ? <span>PR #{e.prNumber}</span> : null}</li>)}</ol></li>;
+          return <li key={key}><button className="operation" aria-expanded={selected === key} onClick={() => setSelected(selected === key ? null : key)}><span>{op.source}</span>{checkIdentifier(op) && <span>검사: {checkIdentifier(op)}</span>}<strong className={`badge ${op.state}`}>{operationLabel(op)}</strong><span>{historical ? '이전 후보의 근거' : '현재 후보의 근거'}</span><span className="mono">{op.operationId}</span></button><ol>{op.events.map(e => <li key={e.eventId}><time dateTime={e.recordedAt}>{e.recordedAt}</time><span>{REASONS[e.reasonCode]}</span><code>{e.reasonCode}</code>{e.prNumber ? <span>PR #{e.prNumber}</span> : null}</li>)}</ol></li>;
         })}</ol>}
       </div>
-      {details && <aside aria-label="선택 근거"><h3>선택 근거</h3><dl><dt>작업</dt><dd className="mono">{details.operationId}</dd><dt>확인 후보</dt><dd className="mono">{details.headSha ?? '미제공'}</dd><dt>세션</dt><dd>{details.hostSessionId ?? '미제공'}</dd><dt>상태 근거</dt><dd>{reasonFor(details)}</dd></dl><p>종료 사건 누락은 종료 미확인입니다. 허용·접수·복구 시도를 실행 성공·병합·복구 완료로 해석하지 않습니다.</p></aside>}
+      {details && <aside aria-label="선택 근거"><h3>선택 근거</h3><dl><dt>작업</dt><dd className="mono">{details.operationId}</dd>{details.source === 'check-runner' && <><dt>검사</dt><dd>{checkIdentifier(details) ?? '식별자 미제공 · check-runner'}</dd></>}<dt>확인 후보</dt><dd className="mono">{details.headSha ?? '미제공'}</dd><dt>세션</dt><dd>{details.hostSessionId ?? '미제공'}</dd><dt>상태 근거</dt><dd>{reasonFor(details)}</dd></dl><p>종료 사건 누락은 종료 미확인입니다. 허용·접수·복구 시도를 실행 성공·병합·복구 완료로 해석하지 않습니다.</p></aside>}
     </section>
     <footer>화면 캐시·접근 토큰은 브라우저 메모리에만 보관합니다. 사건은 지정한 로컬 경로에 기록합니다.</footer>
   </main>;

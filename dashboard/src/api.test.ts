@@ -68,3 +68,18 @@ it('consumes a raw fragment token and immediately removes it from browser histor
   expect(consumeAccessToken()).toBeNull();
   expect(location.hash).toBe('');
 });
+
+it.each(['GUARD_PARSER_UNAVAILABLE', 'GUARD_TOKENIZER_UNAVAILABLE', 'GUARD_PROTECTED_COMMIT', 'GUARD_PROTECTED_FORCE_PUSH', 'GUARD_SPEC_REQUIRED', 'GUARD_STACK_WRAPPER_REQUIRED', 'GUARD_PR_CREATE_WRAPPER_REQUIRED', 'GUARD_PR_MERGE_WRAPPER_REQUIRED', 'GUARD_HARD_RESET', 'GUARD_VERIFICATION_DELETE', 'GUARD_CORE_DELETE', 'GUARD_GLOBAL_INSTALL', 'GUARD_DENIED'])('accepts explicit guard reason %s while retaining the runtime boundary', reason => {
+  const data = snapshot(context, 'deny'); data.operations[0].events[1].reasonCode = reason;
+  expect(parseSnapshot(data, context).operations[0].events[1].reasonCode).toBe(reason);
+});
+it.each(['GUARD_INVENTED', '__proto__', '<script>'])('rejects an unapproved reason %s', reason => {
+  const data = snapshot(); data.operations[0].events[1].reasonCode = reason;
+  expect(() => parseSnapshot(data, context)).toThrow('INVALID_SNAPSHOT');
+});
+it('preserves a validated check identifier and rejects HTML identifiers', () => {
+  const data = snapshot(); data.operations[0].events[1].evidenceId = 'lint.retry-2';
+  expect(parseSnapshot(data, context).operations[0].events[1].evidenceId).toBe('lint.retry-2');
+  data.operations[0].events[1].evidenceId = '<img src=x onerror=alert(1)>';
+  expect(() => parseSnapshot(data, context)).toThrow('INVALID_SNAPSHOT');
+});

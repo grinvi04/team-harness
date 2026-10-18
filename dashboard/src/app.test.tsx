@@ -102,3 +102,88 @@ it.each([['PR_CREATED', 'pr-create', 'PR 생성 확인'], ['MERGED', 'pr-merge',
   expect(screen.getAllByText(label).some(node => node.classList.contains('badge'))).toBe(true);
   expect(screen.queryByText('검사 통과')).toBeNull();
 });
+
+it('identifies different checks and a repeated check in current work, timeline and selected evidence', async () => {
+  const data = snapshot();
+  const makeCheck = (number: number, name: string) => {
+    const op = structuredClone(data.operations[0]);
+    op.operationId = `${number}3333333-3333-4333-8333-333333333333`;
+    op.events.forEach((event, index) => { event.operationId = op.operationId; event.eventId = `${number}${index}222222-2222-4222-8222-222222222222`; event.evidenceId = name; });
+    return op;
+  };
+  data.operations = [makeCheck(5, 'typecheck'), makeCheck(6, 'lint'), makeCheck(7, 'typecheck')];
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
+  const current = screen.getByRole('region', { name: '현재 작업' });
+  expect(current.textContent).toContain('검사: typecheck');
+  const typechecks = screen.getAllByRole('button', { name: /검사: typecheck/ });
+  expect(typechecks).toHaveLength(2);
+  expect(screen.getByRole('button', { name: /검사: lint/ })).toBeTruthy();
+  fireEvent.click(typechecks[0]);
+  const details = screen.getByRole('complementary', { name: '선택 근거' });
+  expect(details.textContent).toContain('typecheck');
+  expect(details.textContent).toContain('73333333-3333-4333-8333-333333333333');
+  fireEvent.click(typechecks[1]);
+  expect(screen.getByRole('complementary', { name: '선택 근거' }).textContent).toContain('53333333-3333-4333-8333-333333333333');
+});
+it('rejects an HTML check identifier without executing it or reporting a successful check', async () => {
+  const data = snapshot(); data.operations[0].events[1].evidenceId = '<img src=x onerror=alert(1)>';
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); const view = mount(); await tick();
+  expect(screen.getByTestId('current-state').textContent).toBe('현재 상태 미확인');
+  expect(view.container.querySelector('img')).toBeNull();
+  expect(screen.queryByText('검사 통과')).toBeNull();
+});
+it.each([
+  ['GUARD_PARSER_UNAVAILABLE', '명령 파서 사용 불가', '명령 파서 실행 환경을 복구'],
+  ['GUARD_TOKENIZER_UNAVAILABLE', '명령 토크나이저 사용 불가', '명령 토크나이저 실행 환경을 복구'],
+  ['GUARD_PROTECTED_COMMIT', '보호 브랜치 직접 커밋 차단', '작업 브랜치에서 커밋'],
+  ['GUARD_PROTECTED_FORCE_PUSH', '보호 브랜치 강제 push 차단', '강제 push를 중단'],
+  ['GUARD_SPEC_REQUIRED', '기능 스펙 누락', '승인된 기능 스펙을 확인'],
+  ['GUARD_STACK_WRAPPER_REQUIRED', '의존 PR 전용 wrapper 필요', '의존 PR workflow의 stack wrapper'],
+  ['GUARD_PR_CREATE_WRAPPER_REQUIRED', 'PR 생성 wrapper 필요', '기존 PR 생성 wrapper'],
+  ['GUARD_PR_MERGE_WRAPPER_REQUIRED', 'PR 병합 wrapper 필요', '기존 PR 병합 wrapper'],
+  ['GUARD_HARD_RESET', '파괴적 hard reset 차단', '변경을 보존하고 복구 가능한 방법'],
+  ['GUARD_VERIFICATION_DELETE', '검증 파일 삭제 차단', '검증 파일을 보존'],
+  ['GUARD_CORE_DELETE', '핵심 경로 삭제 차단', '핵심 경로를 보존'],
+  ['GUARD_GLOBAL_INSTALL', '전역 설치 차단', '프로젝트 로컬 설치 경로'],
+])('shows the specific safe reason and next action for %s', async (reason, label, action) => {
+  const data = snapshot(context, 'deny'); data.operations[0].source = 'guard';
+  for (const event of data.operations[0].events) event.source = 'guard';
+  data.operations[0].events[1].reasonCode = reason;
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
+  expect(screen.getByTestId('current-state').textContent).toBe('차단');
+  expect(screen.getByRole('region', { name: '차단 이유 · 다음 행동' }).textContent).toContain(label);
+  expect(screen.getByRole('region', { name: '차단 이유 · 다음 행동' }).textContent).toContain(action);
+  expect(screen.getByRole('generic', { name: /사건 기록/ }).textContent).toContain(label);
+});
+it('keeps old generic guard denial records readable with fallback guidance', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response(context, 'deny'))); mount(); await tick();
+  const next = screen.getByRole('region', { name: '차단 이유 · 다음 행동' });
+  expect(next.textContent).toContain('가드 차단'); expect(next.textContent).toContain('차단 규칙과 현재 후보를 확인');
+});
+
+it('keeps the recorded check name linked from start through finish and retry', async () => {
+  const finished = snapshot();
+  for (const event of finished.operations[0].events) event.evidenceId = 'lint';
+  const started = structuredClone(finished); started.operations[0].events.splice(1); started.operations[0].state = 'unverified';
+  const retry = structuredClone(started); retry.operations[0].operationId = '53333333-3333-4333-8333-333333333333';
+  retry.operations[0].events[0].operationId = retry.operations[0].operationId;
+  retry.operations[0].events[0].eventId = '52222222-2222-4222-8222-222222222222';
+  retry.operations.push(finished.operations[0]);
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(started))).mockResolvedValueOnce(new Response(JSON.stringify(finished))).mockResolvedValue(new Response(JSON.stringify(retry))));
+  mount(); await tick();
+  expect(screen.getByRole('region', { name: '현재 작업' }).textContent).toContain('검사: lint');
+  expect(screen.getByTestId('current-state').textContent).toBe('종료 미확인');
+  await tick(2000);
+  expect(screen.getByRole('region', { name: '현재 작업' }).textContent).toContain('검사: lint');
+  expect(screen.getByTestId('current-state').textContent).toBe('검사 통과');
+  await tick(2000);
+  expect(screen.getByRole('region', { name: '현재 작업' }).textContent).toContain('검사: lint');
+  expect(screen.getByTestId('current-state').textContent).toBe('종료 미확인');
+  expect(screen.getAllByRole('button', { name: /검사: lint/ })).toHaveLength(2);
+});
+it('uses the recorded check-runner source when a legacy check has no identifier', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response())); mount(); await tick();
+  expect(screen.getByRole('region', { name: '현재 작업' }).textContent).toContain('검사: 식별자 미제공 · check-runner');
+  fireEvent.click(screen.getByRole('button', { name: /check-runner.*33333333-3333-4333-8333-333333333333/ }));
+  expect(screen.getByRole('complementary', { name: '선택 근거' }).textContent).toContain('식별자 미제공 · check-runner');
+});
