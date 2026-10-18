@@ -1,6 +1,6 @@
 # 공식 gh-stack 연결 설계
 
-상태: **G0–G2 인수·PR584 develop4c1136e 통합 완료, G3·대시보드 T4 통합 검증 진행 중**. 전체1.2.0 후보·CI1.1.0 발행.
+상태: **G0–G2 인수·PR584 develop 통합 완료**. G3·대시보드의 후보별 실행 증거와 현재 전달 판정은 [인수 기록](../pilots/gh-stack-adapter-acceptance.md)과 PR585·586·587 원본을 따른다.
 [현재 실제 인수](../pilots/gh-stack-adapter-acceptance.md)는 후보별 증거·발견 결함·남은 범위를 구분한다.
 [최초 G0](../pilots/gh-stack-compatibility.md)의 frozen-group FAIL을 보존하고,
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 trunk·그룹 의미로 연결 설계를 정정했다. 현재 실제 원격 인수 범위와 전체 지원 완료를 구분한다.
@@ -171,7 +171,7 @@ solo의 지연 병합·보호 복구는 G2 실제 지원의 필수 검증이며 
 
 시험 repo에서 같은 head의 A 요청에 새 lower X가 함께 병합된 사실은 보존한다. X 코드는 이미 A의 부모였다.
 이는 새 코드 삽입·보호 우회의 증거가 아니다. 최종 검토 후 보호된 새 시험 trunk로 실제 gate를 관찰한다.
-G0 기준은 보호 통합 시험으로 충족했다. G1·G2는 실제 solo·409 및 현재 코드 품질을 포함해 인수했다. 범위·한계는 [인수 기록](../pilots/gh-stack-adapter-acceptance.md)을 따른다. G3·대시보드는 미완료다.
+G0 기준은 보호 통합 시험으로 충족했다. G1·G2는 실제 solo·409 및 현재 코드 품질을 포함해 인수했다. 범위·한계는 [인수 기록](../pilots/gh-stack-adapter-acceptance.md)을 따른다. G3·대시보드의 현재 전달 판정은 연결된 실행 기록과 PR 원본을 따른다.
 로컬 전용 축소를 적용하지 않고 기존 원격 보호를 보존한다.
 소비 repo 수정·실제 회사 인수·운영·DB/Auth/Storage 접근은 포함하지 않는다.
 

@@ -13,7 +13,7 @@
 | 혼자 개발·진단·리팩터링 | [첫 요청과 업무 흐름](guides/solo-development.md) |
 | 여러 사람이 함께 작업 | [팀 준비·역할·통합·인계](guides/team-development.md) |
 | 작업별 검사·전달 절차 선택 | [개발 workflow](developer-workflow.md), [기능 작업 상세](guides/feature-development.md) |
-| 로컬 실행·차단 근거 관측 | [관측 대시보드](guides/observability.md) · 개발 후보, 실호스트 연결 미확인 |
+| 로컬 실행·차단 근거 관측 | [관측 대시보드](guides/observability.md) · 미발행 후보, Codex CLI·Desktop 연결 확인 |
 | 로컬 검사·선택 자산 관리 | [로컬 검사](local-development.md), [적용·갱신·제거](repo-assets.md) |
 | 차단·실패 해결 | [가드·도구 문제](troubleshooting.md), [스택 문제 선택](standards-scope.md#문제-해결-안내를-읽는-방법) |
 
@@ -59,7 +59,7 @@
 | 승인된 목표·범위·완료 기준 | `specs/`의 해당 명세. 상태와 후속 링크부터 확인한다 |
 | 현재 진행·다음 행동 | 백로그는 [GitHub Issues](https://github.com/grinvi04/team-harness/issues), 로컬 작업은 `.project-map/`. 계획 문서 수를 진행률로 세지 않는다 |
 | 현재 재설계의 검증·전달 경계 | [재설계](specs/team-harness-redesign.md) → [실행](specs/team-harness-redesign/execution.md) → [전달](specs/team-harness-redesign/delivery.md) |
-| 승인된 다음 기능·현재 위치 | [대시보드](specs/local-runtime-dashboard.md), [gh-stack](specs/stacked-git-workflow.md). G0–G2 실제 인수·PR584 통합 완료. CLI·Desktop 연결 확인, G3 순차 병합·최종 전달 검증 중 |
+| 승인된 다음 기능·현재 위치 | [대시보드](specs/local-runtime-dashboard.md), [gh-stack](specs/stacked-git-workflow.md). G0–G2 실제 인수·PR584 통합 완료. CLI·Desktop 연결·복구 확인. G3 전달·최종 판정은 [현재 실행 기록](pilots/local-runtime-dashboard.md)의 PR 원본 참조 |
 | 재설계 전 세 흐름의 실패·재시험 | [2026-10-15 평가 계획](specs/workflow-evaluation-2026-10-15.md) → [보고서](pilots/workflow-evaluation-2026-10-15.md) → 원래 JSON |
 | 그 이전 비교의 한계 | [2026-10-14 평가](pilots/workflow-maturity-2026-10-14.md) |
 | 실행 증거 | `pilots/`의 보고서·manifest·JSON. 후보·환경·최초 FAIL·재시도·미확인을 함께 읽는다 |

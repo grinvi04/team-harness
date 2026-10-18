@@ -88,7 +88,7 @@ PR32의 이전 응답 유실 시험도 기존 명령 로그에서 PUT1회임을 
 ## 아직 필요한 확인
 
 `934fa99` Linux 실패는 보존하고 수정4dc0783의 영향106개·독립 리뷰·hosted quality80/필수5 PASS를 확인했다.
-[PR584 제출 결함 수정](../specs/stacked-git-workflow/submission-review.md)은 develop4c1136e 통합 완료다. G3는 PR585→586→587 순차 인수 중이다. [대시보드](local-runtime-dashboard.md)의 CLI·Desktop 연결은 확인했으며 최종 전달 검증·release-check는 구분한다.
+[PR584 제출 결함 수정](../specs/stacked-git-workflow/submission-review.md)은 develop4c1136e 통합 완료다. G3 후보별 CI·리뷰·실제 develop 병합은 PR585→586→587 원본을 따른다. [대시보드](local-runtime-dashboard.md)의 CLI·Desktop 연결은 확인했으며 최종 전달 검증·release-check는 구분한다.
 queue·timeout은 로컬 반증 PASS와 실제 미관측을 구분하며 모든 분기의 실서버 유발을 새 완료 조건으로 추가하지 않는다.
 소스 변경 뒤 기존 frozen runner의 hash나 journal을 고쳐 재사용하지 않는다. 이전 실행은 보존하고 새 후보로 이어 기록한다.
 실제 solo 병합·보호 복구·시험 정리는 아래 후속 실행에서 확인했다. 최초 CI 차단 기록은 보존한다.

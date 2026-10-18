@@ -2,8 +2,8 @@
 
 2026-10-18. 1.2.0 미발행 후보. [설계·O1–O5](../specs/local-runtime-dashboard.md)와
 [T1–T4 계획](../specs/local-runtime-dashboard/implementation-plan.md)의 원래 완료 기준을 유지한다.
-현재 **실제 Codex CLI·Desktop 연결과 교정 영향 검증을 마치고 3층 PR의 순차 인수 중**이다.
-G3 develop 병합과 최종 후보별 CI·독립 검토는 미완료다.
+실제 Codex CLI·Desktop 연결과 교정 영향 검증을 확인했다.
+G3의 현재 전달·최종 후보 CI·독립 검토·병합 판정은 아래 PR 원본과 마지막 판정표를 함께 따른다.
 
 ## 후보와 보존 범위
 
@@ -11,7 +11,8 @@ G3 develop 병합과 최종 후보별 CI·독립 검토는 미완료다.
 - 실행 clone은 `team-harness/.runtime/dashboard-stack-20261018`, 원문은 그 아래 `.runtime/dashboard/`다.
 - lease 교정 통합: A903d677 → B63470a4 → C640584c에서 공식 restack과 원격 각 ref 일치를 확인했다.
   실제 실행 후보·후속 문서 커밋은 구분하며 현재 head는 PR585·586·587 원본을 따른다.
-- [PR585](https://github.com/grinvi04/team-harness/pull/585)→[586](https://github.com/grinvi04/team-harness/pull/586)→[587](https://github.com/grinvi04/team-harness/pull/587)를 제출했다. 586·587은 선행 병합 전 draft다.
+- [PR585](https://github.com/grinvi04/team-harness/pull/585)→[586](https://github.com/grinvi04/team-harness/pull/586)→[587](https://github.com/grinvi04/team-harness/pull/587)를 순서대로 전달한다.
+  A는 develop ecbd1ca, B는 develop f043fe4의 실제 병합·포함을 확인했다. C의 현재 결과는 PR587 원본이다.
 - main·태그1.1.0 e038399는 유지했다. 승인된 c62 임시 설치 시험 후 사용자 설치1.0.0으로 복구했다.
   1.2.0 정식 main·태그·영구 설치는 미실행이다.
 - [초기 T1–T3 및 첫 리뷰 교정](local-runtime-dashboard-initial.md)에 당시 명령·실패·수정·한계를 보존한다.
@@ -120,17 +121,30 @@ reader만 같은 repo의 유효한 worktree lease를 허용한다. append와 명
 - 이 결과는 c62의 실제 Desktop 연결이다. C640 실제 Desktop 설치나 전체 skill workflow 평가로 확대하지 않는다.
   `first-attempt.json`, `result.json`, `restoration.json`과 원본 도구·화면 기록을 함께 읽는다.
 
+## 실제 stack 전달·후보 연결
+
+A8e4dbb8과 서버 재기반 B6f7d090은 각 후보의 필수 CI5개·전체 quality(각80·81단계)와
+공식 Codex Astra/medium/read-only 리뷰를 확인한 뒤 최하단부터 병합했다. 미해결 thread는0이다.
+develop의 strict·관리자 보호·필수5개를 유지했고 solo 예외는 사용하지 않았다.
+각 병합 뒤 원격 후보를 fetch하고 공식 sync의 preview·fingerprint·apply·수신 journal을 보존했다.
+대시보드는 실제 stack/pr-merge의 MERGED 사건과 후보 변경 뒤 이전 근거 표시를 확인했다.
+원문: `post-desktop-docs/`, `g3-observation/`. C60a3261→서버 재기반 C8aa7744는 전체1172파일 바이트가 같다.
+`current-package-final/`의 C60a3261 package 검사23/6/5/4·bundle33과 checksum112/112는 PASS다.
+후속 후보는 바뀐 문서와 runtime 바이트를 구분하고, 해당 SHA bundle·checksum·CI·리뷰를 별도로 기록한다.
+실제 C 병합 SHA·develop 포함과 최종 O1–O5/G3 판정은 [PR587](https://github.com/grinvi04/team-harness/pull/587)의 전달 결과가 정본이다.
+
 ## 현재 판정과 다음 단계
 
-| 기준 | 상태 | 완료까지 필요한 근거 |
+| 기준 | 확보한 실행 근거 | 최종 전달에서 대조할 근거 |
 |---|---|---|
 | O1 | 구현·영향 검사 PASS | 저장·한도·lease 교정22/22와 최종 PR 후보 대조 |
 | O2 | 구현·실제 연결 PASS | 원결과 보존·CLI/Desktop 연결; 후속 층 CI·독립 검토 |
 | O3 | 구현·영향 검사 PASS | 미확정 병합·복구·용량과 현재 후보50+28 회귀; G3 실제 병합 |
 | O4 | 실제 화면 PASS | 현재/상세·검사 이름·세부 이유; 후속 층 독립 검토 |
-| O5 | 실제 실행 PASS·전달 검증 중 | 현재 SHA 패키지·전체 quality와 최종 독립 대조 |
-| G3 | 3층 제출 완료 | 새 후보별 CI·독립 리뷰·최하단 순차 develop 병합 |
+| O5 | 실제 CLI·Desktop·이동 artifact PASS | 현재 SHA 패키지·전체 quality와 최종 독립 대조 |
+| G3 | 실제 3층 제출·수정·서버 재기반·순차 전달 | 각 PR의 CI·독립 리뷰·실제 병합 SHA·develop 포함 |
 
-다음 순서: 본문·후보 일치 → 각 층의 새 CI·독립 리뷰 → 최하단 순차 develop 병합 → 최종 기준 대조.
+최종 전달은 현재 후보의 CI·독립 리뷰 → 실제 병합·develop 포함 → O1–O5/G3 대조 순서다.
+이 표는 증거 연결이며 원격 결과를 미리 PASS로 선언하지 않는다. 현재 판정과 다음 행동은 PR587 전달 결과에서 확인한다.
 정식 main·태그·사용자 설치는 그 후 별도 전달 범위다. Claude 실호스트는 미확인 보류로 유지한다.
 소비 저장소 수정·회사 고유 정책·실제 사람 인수는 현재 잔여 기준에 넣지 않는다.

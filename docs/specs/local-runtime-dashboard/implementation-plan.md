@@ -1,9 +1,9 @@
 # 로컬 실시간 대시보드 구현 계획
 
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
-> 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
+> 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현과 실제 사용 검증을 확인했다.
 > 원래 범위를 유지한다. O4 교정 Cc62e8ca의 실제 실행과 이후 문서·검사 교정을 구분한다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 최초 quality 실패5건·교정 PASS·남은 인수를 연결한다.
-> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. CLI·Desktop 연결과 복구를 확인했다. G3는 PR585→586→587 제출 완료이며 현재 후보 CI·독립 검토·순차 병합은 남았다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. CLI·Desktop 연결과 복구를 확인했다. G3의 후보별 CI·독립 검토·순차 develop 병합 결과는 현재 인수 기록과 PR585→586→587 원본을 따른다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
@@ -151,7 +151,7 @@ node scripts/build-dashboard.mjs --check
 
 수정: `experiments/split-packaging/packages.json`, `.github/workflows/ci-gate.yml`,
 `.gitignore`, `docs/{repository-structure,harness-setup,harness-maintenance}.md`, 양쪽 plugin manifest와 README 배지.
-추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. C640584c 영향·CLI·이동 artifact와 c62 Desktop 시험·복구 PASS. quality 최초 실패와 교정을 보존하며 현재 후보 CI·최종 검토·G3 순차 병합은 남았다.
+추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. C640584c 영향·CLI·이동 artifact와 c62 Desktop 시험·복구 PASS. quality 최초 실패와 교정을 보존한다. 아래 전달 검사 계약의 현재 결과는 [PR587](https://github.com/grinvi04/team-harness/pull/587)에 후보별로 기록한다.
 
 - [x] 세 층 A=계약/저장, B=수집 연결, C=viewer/패키지로 stack을 제출한다. T4 검증은 각 층 결과를 함께 대조한다.
 - [x] 배포 catalog에 core 파일·asset 소유와 adapter import를 연결하고 실제 staged 경로에서 실행한다.
@@ -161,7 +161,7 @@ node scripts/build-dashboard.mjs --check
   구조 안내에 제작 정본·생성 위치·재생성/검사 명령을 기록한다. dashboard 제작에 repo 전체 TS 전환은 없다.
 - [x] 기존 quality 안에 제작 Node/npm 고정·npm ci·lint/typecheck/UI 시험·임시 재빌드 비교를 연결한다.
   trusted 검사와 후보 build 실행을 분리하고 비밀정보·쓰기 token을 후보에게 주지 않는다. CI 검사를 줄이지 않는다.
-- [ ] package-build, package-artifact-integrity, package-catalog-integrity, package-workflow-binding,
+- **필수 전달 검사:** package-build, package-artifact-integrity, package-catalog-integrity, package-workflow-binding,
   release-bundle 테스트 및 현재 quality 전체를 실행한다. artifact는 커밋된 후보를 대상으로 만든다.
 - [x] 설치 경로를 바꾸고 root 소스·제작 node_modules·외부 네트워크 없이 Node 서버에서 HTML/CSS/JS를
   로드한다. 해시 asset·MIME·접근 거부·오프라인 localhost 갱신을 확인한다. vite preview를 설치 실행기로 쓰지 않는다.
@@ -169,8 +169,9 @@ node scripts/build-dashboard.mjs --check
 - [x] 격리된 Codex CLI에서 실제 hook allow/deny→기록→화면을 확인하고 source/runtime 버전을 기록한다.
 - [x] 실제 desktop은 승인된 전용 대화·설치 대상에서 같은 연결을 확인한다. 승인한 c62 임시 설치·대화1개로
   첫 Git 밖 cwd 실패와 교정 실행을 보존했다. v1.0.0·전체 plugin 목록·설정 복구를 확인했다.
-- [ ] 독립 검토자가 O1–O5와 G3의 실제 후보·명령·화면·실패 근거를 대조한다. fixture는 별도 표기한다.
-- [ ] 현재 사용 안내·스펙의 판정을 갱신하고 구현/검증/PR/태그/설치를 각각 보고한다.
+- **필수 독립 판정:** 검토자가 O1–O5와 G3의 실제 후보·명령·화면·실패 근거를 대조한다. fixture는 별도 표기한다.
+- **필수 마감 기록:** 현재 사용 안내·스펙을 갱신하고 구현/검증/PR/태그/설치를 각각 보고한다.
+  변하는 전달 결과는 PR587이 정본이다. 위 세 계약의 FAIL·미확인이 남으면 기능 인수를 완료하지 않는다.
 
 ## 멈춤 조건과 후속 전달
 
