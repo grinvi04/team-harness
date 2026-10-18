@@ -99,8 +99,8 @@ if len([item for item in expected if item.startswith("hook:")]) != 2:
     errors.append("source hook count is not 2 after default routing removal")
 if any(group.get("matcher") == "Agent" for group in hooks.get("PreToolUse", [])):
     errors.append("retired Agent model-forcing hook is still registered")
-if len([item for item in expected if item.startswith("codex-file:")]) != 14:
-    errors.append("source Codex compatibility file count is not 14")
+if len([item for item in expected if item.startswith("codex-file:")]) != 15:
+    errors.append("source Codex compatibility file count is not 15")
 if expected_counts != counts:
     errors.append(
         f"missing={sorted((expected_counts - counts).elements())} "
@@ -119,7 +119,7 @@ if errors:
 print(f"PASS: implementation inventory classified exactly once ({len(expected)} items)")
 PY
 then
-  pass "현재 구현 인벤토리 35개 전수 단일 판정"
+  pass "현재 구현 인벤토리 36개 전수 단일 판정"
 else
   fail "현재 구현 인벤토리와 감사 분류 불일치"
 fi

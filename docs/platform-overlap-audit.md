@@ -5,9 +5,9 @@
 
 ## 감사 기준과 범위
 
-- 최초 기준일: 2026-07-24; 개발 조정 연결 추가: 2026-09-20; 현행 목록·판정 갱신: 2026-10-15
-- 현행 소스 기준: `develop`의 `ea75566`; 최초 감사 당시 근거는 아래에서 시점을 구분한다.
-- 현재 대상: skill 17개, agent 정의 2개, hook handler 2개, Codex 호환 실행 파일 14개. 합계 35개다.
+- 최초 기준일: 2026-07-24; 개발 조정 연결 추가: 2026-09-20; 현행 목록·판정 갱신: 2026-10-18
+- 현행 소스 기준: 1.2.0 대시보드 관측 후보; [현재 검증](pilots/local-runtime-dashboard.md)과 최초 감사 당시 근거를 구분한다.
+- 현재 대상: skill 17개, agent 정의 2개, hook handler 2개, Codex 호환 실행 파일 15개. 합계 36개다.
 - 최초 36개 목록에는 `Agent` 모델 강제 hook이 있었다. 현대화 후보에서 native 선택으로 이전하며 등록을 제거했다.
   호환 script는 입력을 소비하지만 선택·출력·로그를 변경하지 않는다. fixture 48건 통과와 Claude 실제 실행 보류는
   [현재 실행 스펙](specs/harness-modernization.md)에 구분해 기록한다. 발행·설치 완료를 뜻하지 않는다.
@@ -72,6 +72,7 @@
 
 | 식별자 | 판정 | 목표 상태 | 근거·후속 조치 |
 |---|---|---|---|
+| `codex-file:plugins/harness-guard/scripts/codex-observation.mjs` | **연결** | 얇게 유지 | native hook 문맥을 선택형 관측 client에 전달한다. hook lifecycle·권한 판정은 복제하지 않는다. |
 | `codex-file:plugins/harness-guard/scripts/codex-pretool-guard.mjs` | **연결** | 축소 유지 | native hook 입력을 공용 guard 계약으로 정규화하는 최소 어댑터만 남긴다. |
 | `codex-file:plugins/harness-guard/scripts/codex-secret-egress-guard.mjs` | **연결** | 축소 유지 | 결정적 외부 전송 검사를 native hook에 연결하되 플랫폼 permission과 서버 scan을 대체하지 않는다. |
 | `codex-file:plugins/harness-guard/scripts/codex-security-guidance-adapter.mjs` | **위임** | 제거 보류 | 외부 출력 호환은 upstream 책임이지만 기존 patched 소비 경계·실측 미확인으로 adapter와 회귀를 보존한다. |
