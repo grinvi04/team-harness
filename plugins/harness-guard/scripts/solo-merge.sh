@@ -129,6 +129,10 @@ solo_gate_decide() { # ci_rc unresolved_count mergeable → rc
 }
 
 [ -n "${SOLO_MERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
+if ! source "${BASH_SOURCE[0]%/*}/observation/shell.sh" 2>/dev/null; then
+  obs_start() { :; }; obs_exit() { :; }; obs_restore_start() { :; }; obs_restore_finish() { :; }; obs_merge_begin() { :; }; obs_merge_result() { :; }
+fi
+trap 'rc=$?; obs_exit "$rc"; exit "$rc"' EXIT
 
 [ -z "${GH_HOST:-}" ] || [ "$GH_HOST" = github.com ] || { echo "⛔ 이 solo 경로는 github.com만 지원합니다(GH_HOST 불일치)." >&2; exit 1; }
 export GH_HOST=github.com
@@ -174,6 +178,8 @@ PRMERGE_SOURCE_ONLY=1 source "$GATE_LIB"
 unset PRMERGE_SOURCE_ONLY
 CANDIDATE=$(read_pr_candidate) || exit 1
 IFS='|' read -r ACTUAL_BASE ACTUAL_BASE_OID ACTUAL_HEAD ACTUAL_HEAD_OID <<< "$CANDIDATE"
+obs_start solo-merge '' "$ACTUAL_HEAD_OID" "$ACTUAL_BASE_OID"
+OBS_REASON=MERGE_FAILED
 [ "$BASE" = "$ACTUAL_BASE" ] || exit 1
 [ -z "$EXPECTED_BASE" ] || [ "$EXPECTED_BASE" = "$ACTUAL_BASE" ] || exit 1
 [ -z "$EXPECTED_HEAD" ] || [ "$EXPECTED_HEAD" = "$ACTUAL_HEAD_OID" ] || exit 1
@@ -182,8 +188,8 @@ MERGE_ARGS=("$PR" --base "$ACTUAL_BASE" --expected-head "$ACTUAL_HEAD_OID" --exp
 STACK_ENGINE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stack-merge-cli.mjs"
 # Reject an upper linked PR before looking up its unprotected parent or changing protection.
 STACK_SNAPSHOT=$(node "$STACK_ENGINE" probe "$OWNER_REPO" "$PR") || exit 1
-node -e 'const s=JSON.parse(process.argv[1]);if(s.kind==="stack"&&(s.trunk!==process.argv[2]||s.trunkOid!==process.argv[3]||s.headOid!==process.argv[4]))process.exit(1)' \
-  "$STACK_SNAPSHOT" "$ACTUAL_BASE" "$ACTUAL_BASE_OID" "$ACTUAL_HEAD_OID" || exit 1
+STACK_KIND=$(node -e 'const s=JSON.parse(process.argv[1]);if(s.kind==="stack"&&(s.trunk!==process.argv[2]||s.trunkOid!==process.argv[3]||s.headOid!==process.argv[4]))process.exit(1);console.log(s.kind)' \
+  "$STACK_SNAPSHOT" "$ACTUAL_BASE" "$ACTUAL_BASE_OID" "$ACTUAL_HEAD_OID") || exit 1
 if verify_required_ci "$ACTUAL_BASE" "$ACTUAL_HEAD_OID"; then CI_RC=0; else CI_RC=1; fi
 UNRESOLVED=$(count_unresolved_threads "${OWNER_REPO%/*}" "${OWNER_REPO#*/}" "$PR" 2>/dev/null || echo "?")
 MERGEABLE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable 2>/dev/null || echo "?")
@@ -230,6 +236,7 @@ _restore() {
     return 1
   fi
   if [ "$_patched" = 0 ]; then
+    obs_restore_start
     for attempt in 1 2 3; do
       if printf '%s' "$payload" | gh api -X PATCH "$RPR_PATH" --input - >/dev/null 2>&1; then
         _patched=1; break
@@ -249,6 +256,7 @@ _restore() {
   fi
   node "$STACK_ENGINE" finish "$MERGE_JOURNAL" || return 1
   _restored=1
+  obs_restore_finish pass 0 RESTORE_VERIFIED
   echo "🔒 복구 확인: $BASE 전체 보호 정책 원값 일치"
 }
 
@@ -256,7 +264,7 @@ _restore() {
 #   복구 후 관례적 코드로 exit(그 exit이 EXIT trap을 재발화해도 _restored 가드로 no-op). 보호 있을 때만 무장.
 #   ⚠️ SIGKILL·전원손실은 uncatchable — 별도로 저장한 원래 정책과 읽기 결과를 대조해야 한다.
 stop_merge() { if [ -n "$MERGE_PID" ]; then kill -TERM "$MERGE_PID" 2>/dev/null || true; wait "$MERGE_PID" 2>/dev/null || true; MERGE_PID=""; fi; }
-trap 'rc=$?; stop_merge; if ! _restore; then exit 1; fi; exit "$rc"' EXIT
+trap 'rc=$?; stop_merge; if ! _restore; then obs_restore_finish unverified 1 RESTORE_UNVERIFIED; obs_exit 1; exit 1; fi; obs_exit "$rc"; exit "$rc"' EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
@@ -266,18 +274,22 @@ if [ "$HAD_PROTECTION" = yes ]; then
 fi
 
 # merge — 실패 시 set -e로 스크립트 이탈 → EXIT trap이 복구. pr-merge가 CI·스레드·mergeable 재검증.
+[ "$STACK_KIND" != stack ] || obs_merge_begin
 bash "$MERGE_CMD" "${MERGE_ARGS[@]}" &
 MERGE_PID=$!
 if wait "$MERGE_PID"; then MERGE_RC=0; else MERGE_RC=$?; fi
 MERGE_PID=""
+[ "$STACK_KIND" != stack ] || obs_merge_result pr-merge
 [ "$MERGE_RC" = 0 ] || exit "$MERGE_RC"
 
 # 정상 경로: 명시 복구 후 trap 해제(성공 확정).
 _restore
 trap - EXIT INT TERM HUP
+trap 'rc=$?; obs_exit "$rc"; exit "$rc"' EXIT
 
 # verify: 머지됨 + 승인요건 원값 복원 확인. **fail-closed** — sentinel("?"/빈값)이면 '일치'가 아니라 '실패'로
 #   판정(복구 실패를 조용히 통과시키지 않는다). 복구가 어떤 이유로든(파서 부재·PATCH 5xx) 안 됐으면 여기서 경보.
 STATE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json state --jq .state 2>/dev/null || echo "?")
 [ "$STATE" = "MERGED" ] || { echo "❌ 머지 상태 확인 실패: state=$STATE" >&2; exit 1; }
+if [ "$STACK_KIND" != stack ]; then OBS_OUTCOME=pass OBS_REASON=MERGED; fi
 echo "✅ solo-merge 완료 — PR #$PR MERGED"

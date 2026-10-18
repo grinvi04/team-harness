@@ -6,6 +6,7 @@ trap 'rm -rf "$TMP"' EXIT
 mkdir -p "$TMP/scripts"
 cp -R "$ROOT/plugins/harness-guard/scripts/lib" "$TMP/scripts/"
 cp "$ROOT/plugins/harness-guard/scripts/codex-pretool-guard.mjs" "$TMP/scripts/"
+cp "$ROOT/plugins/harness-guard/scripts/codex-observation.mjs" "$TMP/scripts/"
 cp "$ROOT/plugins/harness-guard/scripts/codex-secret-egress-guard.mjs" "$TMP/scripts/"
 cp "$ROOT/plugins/harness-guard/scripts/guard.sh" "$TMP/scripts/"
 GUARD="$TMP/scripts/codex-pretool-guard.mjs"

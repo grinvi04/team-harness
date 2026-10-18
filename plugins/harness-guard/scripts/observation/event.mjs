@@ -4,12 +4,20 @@ import { directory, unchanged, readFile, statRecord, cleanDeadTemps, atomicWrite
 
 export const REASONS = Object.freeze({
   STARTED: '확인 시작', GUARD_ALLOWED: '가드 허용: 명령 성공을 뜻하지 않음', GUARD_DENIED: '가드 차단',
+  GUARD_PARSER_UNAVAILABLE: '가드 입력 파서 사용 불가', GUARD_TOKENIZER_UNAVAILABLE: '가드 토크나이저 사용 불가',
+  GUARD_PROTECTED_COMMIT: '보호 브랜치 직접 커밋 차단', GUARD_PROTECTED_FORCE_PUSH: '보호 브랜치 강제 push 차단',
+  GUARD_SPEC_REQUIRED: 'feature 스펙 필요', GUARD_STACK_WRAPPER_REQUIRED: 'stack 래퍼 필요',
+  GUARD_PR_CREATE_WRAPPER_REQUIRED: 'PR 생성 래퍼 필요', GUARD_PR_MERGE_WRAPPER_REQUIRED: 'PR 병합 래퍼 필요',
+  GUARD_HARD_RESET: 'hard reset 차단', GUARD_VERIFICATION_DELETE: '검증기 삭제 차단',
+  GUARD_CORE_DELETE: '핵심 디렉터리 삭제 차단', GUARD_GLOBAL_INSTALL: '전역 설치 차단',
   INPUT_INVALID: '입력 확인 실패', CONTEXT_MISSING: '실행 문맥 누락', CHECK_PASSED: '명시한 검사 통과',
   CHECK_FAILED: '명시한 검사 실패', PR_CREATED: 'PR 생성 확인', PR_CREATE_FAILED: 'PR 생성 실패',
   MERGE_REQUESTED: '병합 요청', MERGED: '원격 병합 확인', MERGE_PENDING: '병합 결과 대기',
   MERGE_FAILED: '병합 실패', RESTORE_ATTEMPT: '보호 복구 시도', RESTORE_VERIFIED: '보호 원값 재조회 일치',
   RESTORE_UNVERIFIED: '보호 복구 미확인', EXECUTION_ERROR: '실행 오류', RESULT_UNVERIFIED: '결과 미확인',
 });
+export const guardDenialReason = reason => typeof reason === 'string' && reason.startsWith('GUARD_') &&
+  reason !== 'GUARD_ALLOWED' && Object.hasOwn(REASONS, reason) ? reason : 'GUARD_DENIED';
 const required = ['schemaVersion', 'eventId', 'operationId', 'parentOperationId', 'sequence', 'recordedAt',
   'source', 'phase', 'outcome', 'reasonCode', 'pluginVersion', 'repoId', 'worktreeId', 'hostSessionId', 'headSha', 'baseSha'];
 const optional = ['branch', 'prNumber', 'exitCode', 'durationMs', 'evidenceId'];

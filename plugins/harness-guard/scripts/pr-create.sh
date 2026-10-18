@@ -20,6 +20,12 @@ is_base_branch() { case "$1" in main|develop) return 0;; *) return 1;; esac; }
 # 테스트 훅: 함수만 로드하고 종료(인자 파싱·git/gh 없이 순수 함수만 검증).
 [ -n "${PRCREATE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if ! source "$SCRIPT_DIR/observation/shell.sh" 2>/dev/null; then
+  obs_start() { :; }; obs_exit() { :; }
+fi
+obs_start pr-create
+OBS_REASON=PR_CREATE_FAILED
+trap 'rc=$?; obs_exit "$rc"; exit "$rc"' EXIT
 
 TITLE="" BODY="" BASE="" DRAFT="" MILESTONE="" STACK=""
 while [ $# -gt 0 ]; do
@@ -112,3 +118,4 @@ if [ "$STACK" = 1 ]; then
 else
   gh "${ARGS[@]}"
 fi
+OBS_OUTCOME=pass OBS_REASON=PR_CREATED

@@ -2,12 +2,12 @@
 
 2026-10-18. 미발행1.2.0 후보. [설계·O1–O5](../specs/local-runtime-dashboard.md)와
 [T1–T4 실행 계획](../specs/local-runtime-dashboard/implementation-plan.md)의 결과를 연결한다.
-현재는 **T1 저장·reader 구현 시험 PASS**다. 훅·화면·실제 호스트·전체 기능 인수는 아직 완료하지 않았다.
+현재는 **T1 저장·reader 및 T2 수집 연결 시험 PASS**다. 화면·실제 호스트·전체 기능 인수는 아직 완료하지 않았다.
 
 ## 후보와 환경
 
 - 기반: PR584 원격 develop 병합 `4c1136eea0988dc252475eb5edfbfdc241b66ee5`.
-- 별도 clone `team-harness/.runtime/dashboard-stack-20261018`, A층 `codex/dashboard-events`.
+- 별도 clone `team-harness/.runtime/dashboard-stack-20261018`, A층 `codex/dashboard-events` 커밋 `452cde5`, B층 `codex/dashboard-hooks`.
 - macOS, 실제 파일시스템·독립 Node 프로세스. GitHub/실제 hook/UI를 이 시험의 실행 경계로 세지 않는다.
 - 원문·파일 digest는 해당 clone의 `.runtime/dashboard/t1-*.{log,json}`에 보존한다.
   미커밋 시험은 `t1-final.json`의 소스4개·시험2개 SHA-256으로 현재 원본과 대조했다.
@@ -62,10 +62,52 @@ reader만 같은 repo의 유효한 worktree lease를 허용한다. append와 명
 잠긴 시험을 유지한 최소 교정 후 타깃9/9, observation+boundaries22/22·exit0·160.91초 PASS다.
 기존10×100 writer·32MiB 한도 시험과 구문·diff 검사도 유지했다. 소스2개와 시험1개의 digest를
 실제 통합 바이트에 대조했다. 이 결과는 로컬 교정 검증이며 새 PR 후보의 독립 리뷰·CI는 별도다.
+## T2 연결 검증 — 2026-10-18
+
+현재 소스·시험의 SHA-256과 명령은 `.runtime/dashboard/t2-final.json`에 연결한다.
+저장·경계·검사 runner·통합 시험을 함께 실행해 **29/29 PASS, 152.08초, exit0**다.
+실제 격리 Git·프로세스·wrapper를 사용했으며 GitHub API만 기존 상태형 test double이다.
+이 결과를 실제 원격 병합이나 Codex 호스트 실행 증거로 세지 않는다.
+
+후속 독립 검토에서 stack의 `pending/enqueued/unverified`를 wrapper nonzero만으로 실패로
+표시한 결함을 재현했다. CLI의 구조화된 결과를 기존 사건으로 연결하고 같은 parent·후보의
+직접 자식 종료가 정확히 한 개일 때만 부모에 반영한다. 누락·모호함·조회 오류는 미확인이다.
+원격 MERGED 뒤 보호 복구 실패도 전체 작업 성공으로 올리지 않는다. 결과 조회 자체는
+별도 프로세스250ms 상한이며 지연 시 미확인으로 남기고 기존 복구·출력·exit를 유지한다.
+교정 v2 통합22/22·기존 stack wrapper22/22 PASS, 원래 stdout/stderr·exit·보호 호출을 보존했다.
+실제 CLI 종료 전인 stack 사건에는 추정 exitCode를 넣지 않으며 부모 wrapper가 실제 종료를 기록한다.
+교정 증거는 `.runtime/dashboard/review-fix-b/`의 최초 RED·후속 GREEN과 후보별 digest다.
+
+| 요구·위험 | 관찰한 결과 | 판정·범위 |
+|---|---|---|
+| capture OFF·ON·잘못된 저장 권한 | 허용/차단/에러의 exit·stdout·stderr 유지 | PASS, 실제 wrapper |
+| 잘못된 hook·PLUGIN_DATA 누락·egress 거부 | 기존 거부·원래 오류와 출력 유지 | PASS, adapter fixture |
+| 상관관계 | 독립 operation·parent 연결, 실제 session 부재=null | PASS, 저장 사건 대조 |
+| 검사 명령 | 한 번 실행, 원출력 전달, nonzero·signal·ENOENT 보존 | PASS, 실제 자식 프로세스 |
+| OFF·시간 제한 | OFF emitter0, 지연 emitter250ms 제한·원래 거부 유지 | PASS, 손실은 별도 표시 |
+| PR 생성 실패·필수 CI 누락 | 기존 실패·호출·출력 유지, 가짜 완료 없음 | PASS, 원격 IO double |
+| 일반 병합 요청 | 요청 성공은 MERGE_REQUESTED·현재 미확인 | PASS, MERGED 추정 안 함 |
+| 보호 복구 | PATCH 성공 뒤 전체 정책 readback 일치에서만 RESTORE_VERIFIED | PASS, 정상·불일치·PATCH/병합 실패 |
+
+최초 기능 시험3개는 모두 RED였고 구현 후 통과했다. 추가 solo/merge 사례는 A층 코드에
+역적용한 음성 대조에서 관측 부재로 0/2 실패했다. 추가 사례까지 모두 구현 전 RED였다고 주장하지 않는다.
+첫 확장 시험은 실행별 감사 UUID를 비교한 fixture 오류로 4/5, 다음은 실패 복구의 정상 잔류
+예약을 다음 시험이 공유해 5/6이었다. 실제 감사 파일 검증 후 UUID 필드만 정규화하고 각 시험의
+Git 저장소를 분리했다. 원래 복구·출력 기준은 유지하며 모든 실패 로그를 `t2-*`에 보존한다.
+
+관측 실패는 조용한 bounded marker로 표시하며 원래 stderr를 바꾸지 않는다. 복구는 별도 자식
+operation이다. gate 허용은 명령 완료가 아니며 기록 손실 건수·미제공 호스트 정보는 추정하지 않는다.
+실제 원격 candidate가 있는 병합 사건은 로컬 HEAD 대신 wrapper가 확인한 head/base SHA를 사용한다.
+
+기존 guard·Codex pretool·egress·pr-create·pr-merge-auto·solo-merge 회귀6개 묶음도 exit0이다.
+추가8/8 통합 시험(47.60초)은 활성 emitter 실패/250ms timeout과 정상·readback 불일치·TERM143·HUP129를
+결합했다. 원출력·exit·GH 호출 전체와 보호 원값 복구를 유지했다. A452cde5 음성 대조는 관측 부재로0/2였다.
+최초7/8의 새 reason 기대값 오류를 원래 MERGE_FAILED로 바로잡았고 실패 원문을 보존한다.
+이 보완은 검증 공백 보충이며 새 구현 전 RED로 세지 않는다. 증거: `t2-gap-*`, `t2-final-regressions.json`.
 
 ## 남은 승인 범위
 
-T2 실제 guard/검사/Git 연결의 OFF·ON·기록 실패 비교 → T3 React/Query·HTTP·실제 브라우저 과제 →
+T3 React/Query·HTTP·실제 브라우저 과제 →
 T4 패키지·전체 품질·Codex CLI/desktop과 실제 A/B/C stack(G3) 순서다. O1–O5 전체는 진행 중이다.
 main·태그·설치는 아직 실행하지 않았다. Claude 실제 호스트는 미확인 보류다.
 소비 저장소 변경과 실제 회사·사람 인수는 이 기능의 완료 조건에 추가하지 않는다.
