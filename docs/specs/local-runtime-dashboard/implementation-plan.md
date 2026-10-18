@@ -2,8 +2,8 @@
 
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
 > 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
-> 원래 연결 범위와 순서를 유지한다. A452cde5→B42f79d0 이후 C층 검증 후보(정확한 커밋은 실행 증거 연결)의 UI34·서버4·빌드5·CI 연결2개 시험 PASS다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 한계와 다음 단계를 기록한다.
-> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 B층 연결 검증을 마치고 C층을 진행한다.
+> 원래 범위를 유지한다. Cff4e016 독립 검토 뒤 용량 교정 서버6·UI37 PASS, B층 비동기 병합 상태 교정 중이다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 과거 후보·부분 quality·남은 인수를 연결한다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 B/C 검토 교정과 새 후보 통합 검증을 진행한다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
@@ -19,7 +19,7 @@
 - event는 명령 원문·출력·비밀정보를 받지 않는다. 차단 이유는 허용된 code→설명으로 변환한다.
 - 구현 후보는 MINOR 변경이다. 시작 시 원격 최신 버전을 확인하고 두 manifest·README를 같이 준비한다.
 - 각 task는 검수한 실패 사례→최소 구현→유지 회귀→문서 현행화→규약 커밋으로 끝낸다.
-- 아래 파일/함수는 현재 C층 검증 후보에 구현됐다. 정식 발행·설치와 필수 native 인수는 아직 미실행이다.
+- 아래 파일/함수는 현재 C층 검증 후보에 구현됐다. 정식 발행·사용자 설치와 필수 native 인수는 아직 미실행이다.
 - React·Query 채택은 승인됐다. Router·Table·Virtual·Start·별도 전역 store는 이번 구현에 추가하지 않는다.
 - 제작 의존성·도구 버전은 구현 시 공식 지원 범위를 확인해 lockfile과 함께 고정한다. 소비자 설치 시 빌드하지 않는다.
 - 서버 데이터는 Query, 필터·선택은 React가 소유한다. 토큰·Query 캐시는 메모리에만 두고 원문 .env는 읽지 않는다.
@@ -64,6 +64,8 @@ repo 루트의 제작 파일·인터페이스:
 
 `ViewerContext={viewerId,repoId,worktreeId,accessToken}`는 인증된 `/api/context`와 시작 URL에서 구성한다.
 HTTP snapshot은 `readSnapshot` 결과에 `schemaVersion=1,viewerId,repoId,worktreeId`와 매조회 현재 Git의 `target`을 붙인다.
+HTTP 응답은8MiB 이하 최신순 작업 전체의 연속 구간이며 `health.omittedOperations`는 생략 작업 수다.
+최신 작업 하나가 초과하면 빈 목록·현재 미확인으로 두고 디스크 기록은 유지한다.
 `Snapshot`은 그 검증된 응답 타입이다. TypeScript 타입만으로 승인하지 않으며 UI/API 계약 fixture를 함께 대조한다.
 
 ## T1 — 사건 저장·reader (O1·O3)
@@ -143,13 +145,13 @@ node scripts/build-dashboard.mjs --check
   제작 dev server 대신 Node가 제공하는 빌드 화면에서 값과 사건을 대조한다. 3초 반영·키보드·모바일 폭·
   과거 기록 읽기·대상 전환·탭 복귀를 확인한다. live Safari 숨김/복귀와 IAB tokenless reload는 PASS다.
   정상534ms·거부959ms·중단2995ms, 같은 탭 재개 수정도 확인했다. UI mock·브라우저를 native hook 증거로 세지 않는다.
-- [ ] 첫 실행/종료/기록 위치/지우기/미연결 해결은 새 가이드에 작성했다. C층 규약 커밋은 남았다.
+- [x] 첫 실행/종료/기록 위치/지우기/미연결 해결을 새 가이드에 작성하고 Cff4e016에 커밋했다.
 
 ## T4 — 설치 후보·통합 인수 (O5, Git G3 연결)
 
 수정: `experiments/split-packaging/packages.json`, `.github/workflows/ci-gate.yml`,
 `.gitignore`, `docs/{repository-structure,harness-setup,harness-maintenance}.md`, 양쪽 plugin manifest와 README 배지.
-추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. catalog·asset·gitignore·문서 연결은 구현됐으나 커밋된 artifact·전체 quality·native CLI/desktop·G3는 미실행이다.
+추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. Cff4e016의 artifact 전용 시험은 PASS이나 변경된 B/C 바이트에는 재검증이 필요하다. quality1–5 PASS·6중단, CLI 설치/bootstrap·거부만 관찰했으며 native O5·desktop·G3는 미실행이다.
 
 - [ ] 세 층 A=계약/저장, B=수집 연결, C=viewer/패키지로 stack을 제출한다. T4 검증은 각 층 결과를 함께 대조한다.
 - [ ] 배포 catalog에 core 파일·asset 소유와 adapter import를 연결하고 실제 staged 경로에서 실행한다.
@@ -163,6 +165,7 @@ node scripts/build-dashboard.mjs --check
   release-bundle 테스트 및 현재 quality 전체를 실행한다. artifact는 커밋된 후보를 대상으로 만든다.
 - [ ] 설치 경로를 바꾸고 root 소스·제작 node_modules·외부 네트워크 없이 Node 서버에서 HTML/CSS/JS를
   로드한다. 해시 asset·MIME·접근 거부·오프라인 localhost 갱신을 확인한다. vite preview를 설치 실행기로 쓰지 않는다.
+  ff4e016 artifact PASS는 보존하며 교정 후보 재검증은 남았다.
 - [ ] 격리된 Codex CLI에서 실제 hook allow/deny→기록→화면을 확인하고 source/runtime 버전을 기록한다.
 - [ ] 실제 desktop은 승인된 전용 대화·설치 대상에서 같은 연결을 확인한다. 전역 전환이 필요하면
   대상·복구 명령을 먼저 구체화한다. 임의 cache patch·다른 plugin 변경은 하지 않는다.

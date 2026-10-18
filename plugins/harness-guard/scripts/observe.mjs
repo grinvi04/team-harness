@@ -13,6 +13,21 @@ import { readSnapshot } from './observation/read.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const MAX_RESPONSE = 8 * 1024 * 1024;
+function encodeSnapshot(snapshot) {
+  const all = snapshot.operations;
+  snapshot.operations = [];
+  snapshot.health.omittedOperations = all.length;
+  let bytes = Buffer.byteLength(JSON.stringify(snapshot));
+  // Keep a newest-first prefix of whole operations. Never invent a result from
+  // a partial operation or remove stored events to satisfy the HTTP limit.
+  for (const operation of all) {
+    const size = Buffer.byteLength(JSON.stringify(operation)) + (snapshot.operations.length ? 1 : 0);
+    if (bytes + size > MAX_RESPONSE) break;
+    snapshot.operations.push(operation); bytes += size;
+  }
+  snapshot.health.omittedOperations = all.length - snapshot.operations.length;
+  return JSON.stringify(snapshot);
+}
 const alias = value => path.basename(value).replace(/[\x00-\x1f\x7f]/g, '').slice(0, 160);
 function target(repo, initial) {
   const current = resolveContext(repo);
@@ -58,7 +73,7 @@ export async function startViewer({ dataDir, repo, port = 0 }) {
           ...publicContext, ...readSnapshot(dataDir, context), target: target(resolvedRepo, initial),
         };
         if (captureError && snapshot.health) snapshot.health.captureState = 'error';
-        const encoded = JSON.stringify(snapshot);
+        const encoded = route === '/api/snapshot' ? encodeSnapshot(snapshot) : JSON.stringify(snapshot);
         if (Buffer.byteLength(encoded) > MAX_RESPONSE) return deny(413);
         return send(200, encoded, 'application/json; charset=utf-8');
       }

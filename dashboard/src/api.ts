@@ -1,7 +1,7 @@
 export type ViewerContext = { viewerId: string; repoId: string; worktreeId: string; accessToken: string };
 export type Event = { schemaVersion: number; eventId: string; operationId: string; parentOperationId: string | null; sequence: number; recordedAt: string; source: string; phase: string; outcome: string; reasonCode: string; pluginVersion: string; repoId: string; worktreeId: string; hostSessionId: string | null; headSha: string | null; baseSha: string | null; branch?: string; prNumber?: number; exitCode?: number; durationMs?: number; evidenceId?: string };
 export type Operation = Pick<Event, 'operationId' | 'source' | 'repoId' | 'worktreeId' | 'hostSessionId' | 'headSha' | 'baseSha'> & { state: string; events: Event[] };
-export type Snapshot = { schemaVersion: number; viewerId: string; repoId: string; worktreeId: string; target: { repoAlias: string; worktreeAlias: string; branch: string | null; headSha: string | null }; observedAt: string; health: { captureState: string; lastEventAt: string | null; parseErrors: number; gaps: number; retentionApplied: boolean }; operations: Operation[] };
+export type Snapshot = { schemaVersion: number; viewerId: string; repoId: string; worktreeId: string; target: { repoAlias: string; worktreeAlias: string; branch: string | null; headSha: string | null }; observedAt: string; health: { captureState: string; lastEventAt: string | null; parseErrors: number; gaps: number; retentionApplied: boolean; omittedOperations?: number }; operations: Operation[] };
 
 export const REASONS: Record<string, string> = {
   STARTED: '확인 시작', GUARD_ALLOWED: '가드 허용 · 명령 성공을 뜻하지 않음', GUARD_DENIED: '가드 차단', INPUT_INVALID: '입력 확인 실패', CONTEXT_MISSING: '실행 문맥 누락', CHECK_PASSED: '명시한 검사 통과', CHECK_FAILED: '명시한 검사 실패', PR_CREATED: 'PR 생성 확인', PR_CREATE_FAILED: 'PR 생성 실패', MERGE_REQUESTED: '병합 요청', MERGED: '원격 병합 확인', MERGE_PENDING: '병합 결과 대기', MERGE_FAILED: '병합 실패', RESTORE_ATTEMPT: '보호 복구 시도', RESTORE_VERIFIED: '보호 원값 재조회 일치', RESTORE_UNVERIFIED: '보호 복구 미확인', EXECUTION_ERROR: '실행 오류', RESULT_UNVERIFIED: '결과 미확인',
@@ -43,8 +43,9 @@ export function parseSnapshot(value: unknown, context: ViewerContext): Snapshot 
   const t = record(s.target, ['repoAlias', 'worktreeAlias', 'branch', 'headSha']);
   const alias = (v: unknown) => typeof v === 'string' && v.length > 0 && v.length <= 160 && !v.includes('/') && !v.includes('\\') && [...v].every(c => c.charCodeAt(0) >= 32 && c.charCodeAt(0) !== 127) && v !== '.' && v !== '..';
   requireValue(alias(t.repoAlias) && alias(t.worktreeAlias) && (t.branch === null || typeof t.branch === 'string' && t.branch.length > 0 && t.branch.length <= 255 && [...t.branch].every(c => c.charCodeAt(0) >= 32 && c.charCodeAt(0) !== 127)) && sha(t.headSha));
-  const h = record(s.health, ['captureState', 'lastEventAt', 'parseErrors', 'gaps', 'retentionApplied']);
+  const h = record(s.health, ['captureState', 'lastEventAt', 'parseErrors', 'gaps', 'retentionApplied'], ['omittedOperations']);
   requireValue(['off', 'active', 'loss-suspected', 'error'].includes(h.captureState as string) && (h.lastEventAt === null || date(h.lastEventAt)) && integer(h.parseErrors, 0) && integer(h.gaps, 0) && typeof h.retentionApplied === 'boolean');
+  requireValue(!('omittedOperations' in h) || integer(h.omittedOperations, 0));
   requireValue(Array.isArray(s.operations));
   const seen = new Set<string>();
   for (const raw of s.operations) {

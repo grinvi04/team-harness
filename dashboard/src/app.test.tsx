@@ -79,6 +79,20 @@ it('noEventsIsUnknownRatherThanAnUnfinishedOperation', async () => {
   expect(screen.getByTestId('current-state').textContent).toBe('현재 상태 미확인');
   expect(screen.getByText('화면 캐시·접근 토큰은 브라우저 메모리에만 보관합니다. 사건은 지정한 로컬 경로에 기록합니다.')).toBeTruthy();
 });
+it('bounded history explicitly identifies omitted operations without claiming disk deletion', async () => {
+  const base=snapshot(); const data={...base,health:{...base.health,omittedOperations:12}};
+  vi.stubGlobal('fetch',vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
+  expect(screen.getByText(/화면 용량 한도.*12개 작업.*기록 파일은 유지/)).toBeTruthy();
+  expect(screen.queryByText(/보존 한도 삭제 발생/)).toBeNull();
+  expect(screen.getByTestId('current-state').textContent).toBe('검사 통과');
+});
+it('an operation too large to display remains unknown without claiming no events were observed', async () => {
+  const base = snapshot(); const data = { ...base, operations: [], health: { ...base.health, omittedOperations: 1 } };
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
+  expect(screen.getByTestId('current-state').textContent).toBe('현재 상태 미확인');
+  expect(screen.getByText('관측 기록이 화면 용량 한도를 넘어 표시할 수 없습니다. 현재 상태는 미확인입니다.')).toBeTruthy();
+  expect(screen.queryByText(/관측된 사건이 없습니다/)).toBeNull();
+});
 it.each([['PR_CREATED', 'pr-create', 'PR 생성 확인'], ['MERGED', 'pr-merge', '원격 병합 확인'], ['RESTORE_VERIFIED', 'solo-merge', '보호 복구 확인']])('passUsesActualReason %s', async (reason, source, label) => {
   const data = snapshot(); data.operations[0].source = source;
   for (const event of data.operations[0].events) event.source = source;

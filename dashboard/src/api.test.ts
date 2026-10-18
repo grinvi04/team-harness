@@ -3,6 +3,12 @@ import { fetchSnapshot, parseSnapshot } from './api';
 import { context, snapshot } from './fixtures';
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 describe('snapshot boundary', () => {
+  it('accepts explicit bounded-history metadata but rejects invalid omission counts', () => {
+    const base=snapshot();
+    const value={...base,health:{...base.health,omittedOperations:12}};
+    expect(parseSnapshot(value,context)).toEqual(value);
+    for(const count of [-1,1.2,'12']) expect(()=>parseSnapshot({...base,health:{...base.health,omittedOperations:count}},context)).toThrow();
+  });
   it('accepts the reader contract', () => expect(parseSnapshot(snapshot(), context)).toEqual(snapshot()));
   it.each([['schema', { ...snapshot(), schemaVersion: 2 }], ['context', { ...snapshot(), worktreeId: 'd'.repeat(64) }], ['target', { ...snapshot(), target: { ...snapshot().target, repoAlias: '/private/path' } }], ['event', { ...snapshot(), operations: [{ ...snapshot().operations[0], events: [{ ...snapshot().operations[0].events[0], outcome: 'invented' }] }] }]])('rejects invalid %s', (_name, value) => expect(() => parseSnapshot(value, context)).toThrow());
   it('sends auth only in the header and forwards cancellation', async () => {

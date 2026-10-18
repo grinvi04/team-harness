@@ -113,3 +113,49 @@ test('unsafe assets fail before activation: hashes, MIME, traversal, duplicates,
     assert.deepEqual(fs.readdirSync(f.dataDir), []);
   }
 });
+test('retained history above the HTTP budget still returns newest complete operations and declares omissions', async t => {
+  const f = fixture(t), v = await viewer(t, f);
+  const state = startOperation('check-runner', {cwd:f.repo,dataDir:f.dataDir});
+  finishOperation(state, {outcome:'pass',reasonCode:'CHECK_PASSED',exitCode:0});
+  const originals = fs.readdirSync(f.dataDir).filter(n => n.startsWith('evt-'));
+  const pair = originals.map(n => JSON.parse(fs.readFileSync(path.join(f.dataDir,n)))).sort((a,b)=>a.sequence-b.sequence);
+  for (const n of originals) fs.unlinkSync(path.join(f.dataDir,n));
+  const expected = []; let storedBytes = 0;
+  for (let i=0;i<6500;i++) {
+    const operationId=randomUUID(); expected.push(operationId);
+    for(const e of pair) {
+      const event={...e,operationId,eventId:randomUUID(),recordedAt:new Date(Date.now()-6500+i).toISOString()};
+      const bytes=JSON.stringify(event)+'\n'; storedBytes+=Buffer.byteLength(bytes);
+      fs.writeFileSync(path.join(f.dataDir,`evt-${event.eventId}.json`),bytes,{mode:0o600});
+    }
+  }
+  assert.ok(storedBytes<32*1024*1024);
+  const response=await request(v.url,'/api/snapshot',{headers:bearer(v.url)});
+  assert.equal(response.status,200); assert.ok(Buffer.byteLength(response.text)<=8*1024*1024);
+  const data=JSON.parse(response.text);
+  assert.equal(data.health.parseErrors,0); assert.ok(data.health.omittedOperations>0);
+  assert.equal(data.operations.length+data.health.omittedOperations,6500);
+  assert.equal(data.operations[0].operationId,expected.at(-1));
+  assert.ok(data.operations.every(op=>op.events.length===2&&op.state==='pass'));
+  assert.equal(fs.readdirSync(f.dataDir).filter(n=>n.startsWith('evt-')).length,13000);
+});
+test('one oversized operation is omitted whole, never turned into a partial success', async t => {
+  const f=fixture(t),v=await viewer(t,f);
+  const state=startOperation('check-runner',{cwd:f.repo,dataDir:f.dataDir});
+  finishOperation(state,{outcome:'pass',reasonCode:'CHECK_PASSED',exitCode:0});
+  const files=fs.readdirSync(f.dataDir).filter(n=>n.startsWith('evt-'));
+  const pair=files.map(n=>JSON.parse(fs.readFileSync(path.join(f.dataDir,n)))).sort((a,b)=>a.sequence-b.sequence);
+  for(const n of files)fs.unlinkSync(path.join(f.dataDir,n));
+  let storedBytes=0;
+  for(let i=0;i<10000;i++) {
+    const event={...pair[i===0?0:1],eventId:randomUUID(),sequence:i+1,branch:'b'.repeat(255),evidenceId:'e'.repeat(128),hostSessionId:'s'.repeat(128)};
+    const bytes=JSON.stringify(event)+'\n';storedBytes+=Buffer.byteLength(bytes);
+    fs.writeFileSync(path.join(f.dataDir,`evt-${event.eventId}.json`),bytes,{mode:0o600});
+  }
+  assert.ok(storedBytes>8*1024*1024&&storedBytes<32*1024*1024);
+  const response=await request(v.url,'/api/snapshot',{headers:bearer(v.url)});
+  assert.equal(response.status,200);const data=JSON.parse(response.text);
+  assert.equal(data.health.parseErrors,0);assert.equal(data.health.omittedOperations,1);
+  assert.deepEqual(data.operations,[]);assert.equal(data.health.lastEventAt,pair[1].recordedAt);
+  assert.equal(fs.readdirSync(f.dataDir).filter(n=>n.startsWith('evt-')).length,10000);
+});

@@ -2,12 +2,12 @@
 
 2026-10-18. 미발행1.2.0 후보. [설계·O1–O5](../specs/local-runtime-dashboard.md)와
 [T1–T4 실행 계획](../specs/local-runtime-dashboard/implementation-plan.md)의 결과를 연결한다.
-현재는 **T1·T2 및 T3 개별 시험 PASS·브라우저 필수 과제 확인·T4 연결 구현 중**이다. 실제 호스트·전체 기능 인수는 미완료다.
+현재는 **Cff4e016 독립 검토 뒤 용량 교정·B층 비동기 병합 상태 교정 중**이다. 과거 개별 PASS는 보존하며 실제 호스트·전체 기능 인수는 미완료다.
 
 ## 후보와 환경
 
 - 기반: PR584 원격 develop 병합 `4c1136eea0988dc252475eb5edfbfdc241b66ee5`.
-- 별도 clone `team-harness/.runtime/dashboard-stack-20261018`, A층 `codex/dashboard-events` 커밋 `452cde5`, B층 `codex/dashboard-hooks` 커밋 `42f79d0`, C층 `codex/dashboard-viewer` 검증 후보(정확한 커밋은 실행 증거와 연결).
+- 별도 clone `team-harness/.runtime/dashboard-stack-20261018`, A층 `codex/dashboard-events` 커밋 `452cde5`, B층 `codex/dashboard-hooks` 커밋 `42f79d0`, C층 `codex/dashboard-viewer` 커밋 `ff4e016`. 검토 교정 바이트의 새 후보는 별도 연결한다.
 - macOS, 실제 파일시스템·독립 Node 프로세스. T1·T2는 GitHub/native hook/UI 인수가 아니며 T3 브라우저는 아래 별도 범위다.
 - 원문·파일 digest는 해당 clone의 `.runtime/dashboard/t1-*.{log,json}`에 보존한다.
   미커밋 시험은 `t1-final.json`의 소스4개·시험2개 SHA-256으로 현재 원본과 대조했다.
@@ -64,7 +64,7 @@ reader만 같은 repo의 유효한 worktree lease를 허용한다. append와 명
 실제 통합 바이트에 대조했다. 이 결과는 로컬 교정 검증이며 새 PR 후보의 독립 리뷰·CI는 별도다.
 ## T2 연결 검증 — 2026-10-18
 
-현재 소스·시험의 SHA-256과 명령은 `.runtime/dashboard/t2-final.json`에 연결한다.
+보완 전 T2 소스·시험의 SHA-256과 명령은 `.runtime/dashboard/t2-final.json`에 연결한다.
 저장·경계·검사 runner·통합 시험을 함께 실행해 **29/29 PASS, 152.08초, exit0**다.
 실제 격리 Git·프로세스·wrapper를 사용했으며 GitHub API만 기존 상태형 test double이다.
 이 결과를 실제 원격 병합이나 Codex 호스트 실행 증거로 세지 않는다.
@@ -107,7 +107,7 @@ operation이다. gate 허용은 명령 완료가 아니며 기록 손실 건수�
 
 ## T3 viewer·브라우저와 T4 연결 — 2026-10-18
 
-현재 후보는 B층 `42f79d0` 위 C층 검증 소스·생성 asset이다. 정확한 커밋은 실행 증거와 연결한다. 아래는 개별 명령·관찰의 결과이며
+아래 초기 결과는 B층 `42f79d0` 위 C층 `ff4e016`의 소스·생성 asset에 연결한다. 개별 명령·관찰의 결과이며
 커밋된 설치 artifact나 전체 quality·native 호스트 인수가 아니다. 원문은 같은 clone의 `.runtime/dashboard/`다.
 제작 도구는 Node22.18.0/npm11.6.2, React/react-dom19.3.1·Query5.104.4이며 lockfile과 실제 설치 목록을 대조했다.
 
@@ -149,16 +149,35 @@ Safari 전용 시험 창의 두 탭 전환에서24.035초 숨김 동안 snapshot
 정상534ms·거부959ms·중단2995ms의 사건 시각→화면 관측은 `browser/receipt.json`에 연결했다.
 최초 정상4308ms는 도구 샘플 지연으로3초 증거가 부족했고, 다음 시도는 지연 사건 발생 전에 locator deadline이 끝났다.
 세 번째 정상 시도에서534ms를 측정했다. 최초 두 시도를 성공으로 덮지 않는다.
-정상은 bootstrap 수정 빌드, 거부·중단·숨김/복귀는 이전 bootstrap 빌드다. 표시·API·서버 소스는 변하지 않았다.
-receipt의 현재 소스·manifest5개 SHA-256을 원본과 대조했다. 변경된 bootstrap은 타깃·전체 UI와 실제 재개로 재검사했다.
+정상은 bootstrap 수정 빌드, 거부·중단·숨김/복귀는 이전 bootstrap 빌드다. 당시 표시·API·서버 소스는 같았다.
+receipt의 당시 소스·manifest5개 SHA-256을 대조했다. 이후 용량 교정으로 변경된 바이트에는 이 대조를 확대하지 않는다. 변경된 bootstrap은 타깃·전체 UI와 실제 재개로 재검사했다.
 
 T4의 catalog asset 소유·좁은 gitignore·제작/배포 문서·고정 도구와 CI `--check` 연결은 소스에 반영했다.
 [사용 가이드](../guides/observability.md)에 실행·종료·전용 디스크 경로·정리·미연결 해결을 한 번만 기록했다.
 CI 연결 시험 PASS는 hosted CI나 전체 quality 성공을 뜻하지 않는다.
 
+## Cff4e016 독립 검토와 교정
+
+실제 Codex native review의 Astra/medium read-only 검토가 두 결함을 찾았다(`native-review/output.log`).
+유효 spool32MiB에 도달하기 전에 HTTP8MiB 초과로413이 되어 계속 조회할 수 없었다.
+`review-capacity-red.log`는 기대200/실제413 RED를 보존한다. 서버는 최신순 작업 전체의 연속 구간만
+8MiB 안에 반환하며 `health.omittedOperations`로 생략 수를 알린다. 디스크 사건은 삭제하지 않는다.
+최신 작업 하나가8MiB를 넘으면 빈 작업 목록·현재 상태 미확인으로 두며 부분 성공을 만들지 않는다.
+교정 서버5/5→단일 초과 경계 포함6/6 PASS(`review-capacity-{green,boundaries}.log`),
+UI36/36 PASS 뒤 빈 목록을 사건 부재로 표시하는 문구 반례도 RED→교정했다. 전체37/37 PASS는
+`review-capacity-empty-green.log`다. lint/typecheck·asset write/check도 PASS(`review-capacity-{lint,types,build}-final.log`)다.
+다른 결함은 stack pending/enqueued/unverified를 nonzero exit만으로 fail/MERGE_FAILED로 기록한 것이다.
+B층 worker가 교정 중이다. 기존 T2 PASS를 이 결함의 수정·재검증 완료로 세지 않는다.
+
+초기 전체 quality는1–5단계 exit0 뒤6단계를 검토 교정을 위해 중단했다(6단계 기록 exit1).
+`full-quality/quality/results.json`과 `interrupted-for-review.json`이 근거며 전체 quality PASS가 아니다.
+Cff4e016의 `package-live/result.json`은 커밋된 artifact를 경로 이동 후 제작 소스/node_modules 없이
+제공한 fixture PASS다. 설치 가능 배포를 뜻하지 않으며 이후 서버/UI 바이트 변경으로 현재 후보 증거를 대신하지 않는다.
+격리된 공식 Codex CLI0.161.0에서 설치·bootstrap·PreToolUse 거부는 관찰했다(`native-cli/run-99nqDI/`).
+실제 hook allow/deny→기록→화면의 O5 연결은 아직 미실행이다. desktop·G3도 미실행이다.
+
 ## 남은 승인 범위
 
-C층 커밋된 후보의 package/bundle·전체 quality →
-T4 설치 경로·Codex CLI/desktop hook→기록→화면 및 실제 A/B/C stack(G3) 인수 순서다.
-O1–O5 전체는 진행 중이며 독립 최종 검수도 남았다. 새 관측 기능의 main·태그·설치는 실행하지 않았다.
+B 교정·통합 및 새 C 후보의 영향 시험·package/bundle·전체 quality → native CLI/desktop O5·G3 인수 순서다.
+O1–O5 전체와 독립 최종 인수는 미완료다. 새 기능의 정식 main·태그·사용자 설치는 실행하지 않았다.
 Claude 실제 호스트는 미확인 보류다. 소비 저장소 변경과 회사·사람 인수는 숨은 완료 조건으로 추가하지 않는다.

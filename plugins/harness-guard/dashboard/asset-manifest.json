@@ -2,19 +2,19 @@
   "schemaVersion": 1,
   "files": [
     {
-      "path": "assets/index-DO-Sxv2o.js",
-      "mime": "text/javascript; charset=utf-8",
-      "sha256": "c70823064d670406e2bb98277de2058d6f3896ce7c1c56f95eccbded713e494f"
-    },
-    {
       "path": "assets/index-Dkpv0X3e.css",
       "mime": "text/css; charset=utf-8",
       "sha256": "39f8934d7fd0ae682fc0f0f912e505419b8f915cf9462b13b84fa59a1da35b3c"
     },
     {
+      "path": "assets/index-Ds_0tbav.js",
+      "mime": "text/javascript; charset=utf-8",
+      "sha256": "3969d9e39d44a03e4abc691b80f60be683ea01a14ed098ff7560ca8ddaa3d0bf"
+    },
+    {
       "path": "index.html",
       "mime": "text/html; charset=utf-8",
-      "sha256": "444bb957cc94abc5072b5bd72c0d5d87116be92e258946af2bd66e261bc45759"
+      "sha256": "c81001543cc294df4b808da2ab53924dd7a182c9e314a2c06f1c0c7691152e8f"
     }
   ]
 }
