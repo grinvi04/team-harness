@@ -1,6 +1,6 @@
 # 로컬 실시간 대시보드 설계
 
-상태: **O4 검토 결함 교정·통합 검증 중**. Cc62e8ca의 실제 격리 CLI hook→화면·검사 이름·이동 artifact PASS. 전체 quality 실행 중이며 desktop·G3는 미실행이다. 앞선 실패는 [현재·과거 결과](../pilots/local-runtime-dashboard.md)에 보존한다.
+상태: **quality 교정 검증 완료·PR 전달 준비 중**. Cc62e8ca의 실제 격리 CLI hook→화면·검사 이름·이동 artifact PASS. 전체77단계 최초 실패5건과 교정 PASS를 구분하며 desktop·G3는 미실행이다. [현재·과거 결과](../pilots/local-runtime-dashboard.md)에 근거와 한계를 보존한다.
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 원래 연결 범위와 선행 순서를 유지한다.
 사용자가 React + TanStack 채택을 승인했다. 아래는 초기 바닐라 JavaScript 안을 대체하는 설계다.
 기존 재설계·문서 정리의 완료 판정은 유지한다. 아래는 새 기능의 완료 기준이다.

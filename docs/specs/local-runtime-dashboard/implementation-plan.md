@@ -2,8 +2,8 @@
 
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
 > 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
-> 원래 범위를 유지한다. O4 검사 이름·차단 이유 교정을 Cc62e8ca에 통합했다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 과거 후보·부분 quality·남은 인수를 연결한다.
-> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. Cc62e8ca의 격리 CLI hook→화면·검사 이름·이동 artifact PASS이며 전체 quality·desktop·G3는 남았다.
+> 원래 범위를 유지한다. O4 교정 Cc62e8ca의 실제 실행과 이후 문서·검사 교정을 구분한다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 최초 quality 실패5건·교정 PASS·남은 인수를 연결한다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드 CLI hook→화면·검사 이름·이동 artifact PASS이며 현재 SHA 패키지·desktop·G3는 남았다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
@@ -151,7 +151,7 @@ node scripts/build-dashboard.mjs --check
 
 수정: `experiments/split-packaging/packages.json`, `.github/workflows/ci-gate.yml`,
 `.gitignore`, `docs/{repository-structure,harness-setup,harness-maintenance}.md`, 양쪽 plugin manifest와 README 배지.
-추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. Cc62e8ca artifact·실제 격리 CLI hook→화면 PASS. quality31의 self-repo 기대값 교정은 PASS이며 나머지 검사를 진행한다. desktop·G3는 남았다.
+추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. Cc62e8ca artifact·실제 격리 CLI hook→화면 PASS. quality77단계 실행·실패5건 교정 PASS이며 현재 SHA 패키지·desktop·G3는 남았다.
 
 - [ ] 세 층 A=계약/저장, B=수집 연결, C=viewer/패키지로 stack을 제출한다. T4 검증은 각 층 결과를 함께 대조한다.
 - [x] 배포 catalog에 core 파일·asset 소유와 adapter import를 연결하고 실제 staged 경로에서 실행한다.
