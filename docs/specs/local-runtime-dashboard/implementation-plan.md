@@ -2,8 +2,8 @@
 
 > 실행자: `superpowers:executing-plans`로 순차 구현하고, 독립 검토는 별도 인스턴스에 맡긴다.
 > 구현은 승인됐으며 선행 [공식 계약 검토](../stacked-git-workflow/final-review.md)·보호 통합 시험 PASS·연결 구현 중이다.
-> 원래 범위를 유지한다. 앞선 용량·병합 판정 교정 뒤 C3ffe395 검토에서 발견한 O4 검사 이름·차단 이유를 보완한다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 과거 후보·부분 quality·남은 인수를 연결한다.
-> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. 대시보드의 격리 CLI hook→화면은 C3ffe395에서 PASS이며 새 교정 영향과 desktop·G3는 남았다.
+> 원래 범위를 유지한다. O4 검사 이름·차단 이유 교정을 Cc62e8ca에 통합했다. [현재 결과](../../pilots/local-runtime-dashboard.md)에 과거 후보·부분 quality·남은 인수를 연결한다.
+> [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 수정4dc0783의 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. Cc62e8ca의 격리 CLI hook→화면·검사 이름·이동 artifact PASS이며 전체 quality·desktop·G3는 남았다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
 **Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
@@ -101,7 +101,7 @@ HTTP 응답은8MiB 이하 최신순 작업 전체의 연속 구간이며 `health
 ## T3 — 로컬 viewer와 사용 과제 (O3·O4)
 
 신규: plugin `scripts/observe.mjs`·배포 `dashboard/*`, root 제작 `dashboard/*`·build helper·시험.
-안내: `docs/guides/observability.md`, `docs/README.md`. 아래 완료 표시는 소스·개별 시험 범위다. live3초 반영·숨김/복귀·tokenless reload·같은 탭 재개를 확인했으며 결합 검사는 남았다.
+안내: `docs/guides/observability.md`, `docs/README.md`. 아래 완료 표시는 소스·개별 시험 범위다. live3초 반영·숨김/복귀·tokenless reload·같은 탭 재개와 Cc62e8ca 결합 검사를 확인했다.
 
 - [x] HTTP는 loopback만, 허용하지 않은 Host/Origin/path와 API의 잘못된 token을 거부하는 실패 테스트를 작성한다.
 - [x] `missingFinishIsUnknown`, `staleShaIsHistorical`, `restoreAttemptIsNotRestored`,
@@ -129,8 +129,8 @@ HTTP 응답은8MiB 이하 최신순 작업 전체의 연속 구간이며 `health
   임시 빌드의 파일 목록과 바이트를 양방향 비교한다. --write는 기존 manifest가 관리한 생성 파일만 교체·정리하고
   예상 밖 파일을 만나면 보존·중단한다. --check는 배포 경로를 수정하지 않는다.
   manifest에 상대 asset 경로·MIME·SHA-256을 넣는다. 서버는 검증한 항목만 제공하고 파일 탐색 fallback은 없다.
-- [ ] `node --test tests/dashboard-test.mjs tests/observation-test.mjs tests/dashboard-build-test.mjs`와
-  아래 제작 명령의 PASS를 확인한다. 개별 시험·npm ci/lint/typecheck/unit은 PASS이며 이 결합 명령의 실행은 미확인이다.
+- [x] `node --test tests/dashboard-test.mjs tests/observation-test.mjs tests/dashboard-build-test.mjs`와
+  아래 제작 명령의 PASS를 확인한다. Cc62e8ca 깨끗한 clone에서 결합 명령 PASS. npm ci/lint/typecheck/unit·재빌드도 PASS다.
 
 ```bash
 npm ci --prefix dashboard
@@ -151,22 +151,22 @@ node scripts/build-dashboard.mjs --check
 
 수정: `experiments/split-packaging/packages.json`, `.github/workflows/ci-gate.yml`,
 `.gitignore`, `docs/{repository-structure,harness-setup,harness-maintenance}.md`, 양쪽 plugin manifest와 README 배지.
-추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. C3ffe395 artifact·실제 격리 CLI hook→화면 PASS, quality1–6 PASS·7단계 시험 사본 혼입 FAIL이다. 교정 영향 검사·desktop·G3는 남았다.
+추가 기록은 `docs/pilots/local-runtime-dashboard.md`와 `.runtime/`에 연결한다. Cc62e8ca artifact·실제 격리 CLI hook→화면 PASS. quality31의 self-repo 기대값 교정은 PASS이며 나머지 검사를 진행한다. desktop·G3는 남았다.
 
 - [ ] 세 층 A=계약/저장, B=수집 연결, C=viewer/패키지로 stack을 제출한다. T4 검증은 각 층 결과를 함께 대조한다.
-- [ ] 배포 catalog에 core 파일·asset 소유와 adapter import를 연결하고 실제 staged 경로에서 실행한다.
-- [ ] core sources에 plugin `dashboard/`를 포함한다. root 제작 소스·node_modules는 설치 artifact에 넣지 않는다.
+- [x] 배포 catalog에 core 파일·asset 소유와 adapter import를 연결하고 실제 staged 경로에서 실행한다.
+- [x] core sources에 plugin `dashboard/`를 포함한다. root 제작 소스·node_modules는 설치 artifact에 넣지 않는다.
   source archive는 root 제작 소스·lockfile도 보존한다. 기존 Git revision 복사·checksum builder는 유지한다.
-- [ ] `.gitignore`에 제작 node_modules·cache·tsbuildinfo만 좁게 제외하고 plugin 정적 산출물은 커밋한다.
+- [x] `.gitignore`에 제작 node_modules·cache·tsbuildinfo만 좁게 제외하고 plugin 정적 산출물은 커밋한다.
   구조 안내에 제작 정본·생성 위치·재생성/검사 명령을 기록한다. dashboard 제작에 repo 전체 TS 전환은 없다.
 - [x] 기존 quality 안에 제작 Node/npm 고정·npm ci·lint/typecheck/UI 시험·임시 재빌드 비교를 연결한다.
   trusted 검사와 후보 build 실행을 분리하고 비밀정보·쓰기 token을 후보에게 주지 않는다. CI 검사를 줄이지 않는다.
 - [ ] package-build, package-artifact-integrity, package-catalog-integrity, package-workflow-binding,
   release-bundle 테스트 및 현재 quality 전체를 실행한다. artifact는 커밋된 후보를 대상으로 만든다.
-- [ ] 설치 경로를 바꾸고 root 소스·제작 node_modules·외부 네트워크 없이 Node 서버에서 HTML/CSS/JS를
+- [x] 설치 경로를 바꾸고 root 소스·제작 node_modules·외부 네트워크 없이 Node 서버에서 HTML/CSS/JS를
   로드한다. 해시 asset·MIME·접근 거부·오프라인 localhost 갱신을 확인한다. vite preview를 설치 실행기로 쓰지 않는다.
-  C3ffe395 artifact PASS는 보존하며 새 교정 후보 영향 검사는 남았다.
-- [ ] 격리된 Codex CLI에서 실제 hook allow/deny→기록→화면을 확인하고 source/runtime 버전을 기록한다.
+  C3ffe395 과거 결과를 보존하고 Cc62e8ca에서도 실제 이동·조회·갱신·거부·정리 PASS.
+- [x] 격리된 Codex CLI에서 실제 hook allow/deny→기록→화면을 확인하고 source/runtime 버전을 기록한다.
 - [ ] 실제 desktop은 승인된 전용 대화·설치 대상에서 같은 연결을 확인한다. 전역 전환이 필요하면
   대상·복구 명령을 먼저 구체화한다. 임의 cache patch·다른 plugin 변경은 하지 않는다.
 - [ ] 독립 검토자가 O1–O5와 G3의 실제 후보·명령·화면·실패 근거를 대조한다. fixture는 별도 표기한다.

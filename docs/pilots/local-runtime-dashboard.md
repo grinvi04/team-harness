@@ -2,13 +2,13 @@
 
 2026-10-18. 1.2.0 미발행 후보. [설계·O1–O5](../specs/local-runtime-dashboard.md)와
 [T1–T4 계획](../specs/local-runtime-dashboard/implementation-plan.md)의 원래 완료 기준을 유지한다.
-현재 **O4 검사 이름·차단 이유의 독립 리뷰 결함을 교정 중**이며 전체 인수는 미완료다.
+현재 **O4 검토 결함을 교정하고 통합 검증 중**이며 전체 인수는 미완료다.
 
 ## 후보와 보존 범위
 
 - 기반은 PR584의 develop 병합 `4c1136eea0988dc252475eb5edfbfdc241b66ee5`다.
 - 실행 clone은 `team-harness/.runtime/dashboard-stack-20261018`, 원문은 그 아래 `.runtime/dashboard/`다.
-- 마지막 통합 검증 후보: A452cde5 → B51a5739 → C3ffe395. 현재 교정은 아래 별도 소스 digest로 구분한다.
+- 현재 통합 후보: A452cde5 → B9e04944 → Cc62e8ca. 공식 restack과 원격 각 ref 일치를 확인했다.
 - main·태그1.1.0 e038399와 사용자 설치1.0.0은 유지했다. 1.2.0 PR·태그·전역 설치는 미실행이다.
 - [초기 T1–T3 및 첫 리뷰 교정](local-runtime-dashboard-initial.md)에 당시 명령·실패·수정·한계를 보존한다.
   그 결과를 변경된 바이트의 실행으로 바꿔 적지 않는다.
@@ -41,7 +41,9 @@ CLI 시험은 실제 호스트 경계지만 합성 저장소이며 desktop 실�
 
 UI 격리 clone 3ffe395 기준: 최초25 FAIL →69 PASS, legacy fallback 추가1 FAIL →71 PASS.
 lint/typecheck/build write·check PASS, source5개 patch/digest와 실행 원문은 `review-fix-ui/`다.
-backend·통합 source·새 asset·실제 browser/native·전체 quality 검증은 진행 중이다.
+backend 40/40 통합·24/24 단위/경계·guard191·matrix112·tokenizer32·egress279·pretool PASS.
+`review-fix-guard/`에 최초 RED·환경 오류·교정 실행과9파일 digest를 보존한다.
+통합 후보는 같은 source5+9파일과 생성 asset 바이트를 대조했다.
 이 교정은 O4 원래 기준의 누락을 보완하며 새 인수 조건을 추가하지 않는다.
 
 ## PR585 독립 검토 교정
@@ -57,18 +59,35 @@ reader만 같은 repo의 유효한 worktree lease를 허용한다. append와 명
 기존10×100 writer·32MiB 한도 시험과 구문·diff 검사도 유지했다. 소스2개와 시험1개의 digest를
 실제 통합 바이트에 대조했다. 이 결과는 로컬 교정 검증이며 새 PR 후보의 독립 리뷰·CI는 별도다.
 
+## Cc62e8ca 통합 검증
+
+- `full-quality-final/`: 깨끗한 clone에서 CI quality1–30 PASS, 31단계 repo-sync FAIL(45 PASS/3 FAIL).
+  실제 dashboard 제작 스택을 감지한 결과에 기존 시험이 스택 없음을 요구한 원인이다.
+  scanner·소비 repo 거부는 유지하고 TS/Vite·React 감지와 중첩 Java/Flyway 제외를 단언했다.
+  `repo-sync-diagnostic/green-overlay-prepared.json`: 같은 후보+시험 파일 교정,48 PASS/0 FAIL와 하위3 PASS.
+  첫 도구 미준비 실패도 보존한다. 독립적인32–77단계는 `full-quality-tail/`에서 확인 중이며 전체 PASS 아님.
+- `combined-final/`: 별도 깨끗한 같은 후보에서 dashboard·observation·build 결합 명령 PASS.
+- `package-live-o4/`: artifact58파일, 변경 runtime/asset15파일이 커밋과 일치한다.
+  HTML/CSS/JS·MIME·token401·경로404·갱신·원문/제작 의존성 미접근·외부 요청 없음·lease0 PASS.
+- `native-cli/run-tW9e4c/`: 공식 Codex0.161.0 격리 설치100파일 일치.
+  실제 allow 명령1회/exit0, deny 실행0회·sentinel 보존, 10사건/5작업과 실제 화면 PASS.
+  deny는 `GUARD_VERIFICATION_DELETE`와 구체적인 다음 행동으로 표시된다.
+- 같은 설치본의 명시 `runCheck` 과제에서 `o4-explicit-smoke`가 시작·종료·상세 모두 일치한다.
+  이 과제는 명시 API 실행이며 native hook 실행 증거와 구분한다. 원문2사건과 실제 화면을 보존했다.
+- viewer 종료·lease0, 임시 session auth 사본 제거, 원본 인증·전역1.0.0 설치 보존을 확인했다.
+
 ## 현재 판정과 다음 단계
 
 | 기준 | 상태 | 완료까지 필요한 근거 |
 |---|---|---|
 | O1 | 통합 검증 중 | 저장·한도 기존 근거와 최종 schema 변경 영향 대조 |
-| O2 | 교정 중 | 세부사유 전달 뒤 guard/wrapper OFF·ON·실패의 원결과 보존 |
+| O2 | 영향 검사 PASS | guard/wrapper 원결과 보존; 최종 quality·독립 PR 검토 대조 |
 | O3 | 통합 검증 중 | 미확정 병합·복구·용량 교정의 현재 후보 회귀 |
-| O4 | 교정 중 | 현재 검사 이름·규칙별 이유·다음 행동의 실제 화면 확인 |
-| O5 | 부분 PASS | 새 바이트의 영향 검사·전체 quality·승인된 desktop 실행 |
+| O4 | 영향 검사 PASS | 실제 현재/상세 화면 확인; 독립 PR 검토 대조 |
+| O5 | 부분 PASS | 현재 CLI·artifact PASS; 전체 quality·승인된 desktop 실행 |
 | G3 | 미실행 | 세 층 PR의 CI·독립 리뷰·최하단 순차 develop 병합 |
 
-다음 순서: 교정 통합 → 깨끗한 후보 전체 quality·필수 결합 검사 → 영향받는 실제 경계 재검사 → G3.
+다음 순서: 깨끗한 후보 전체 quality·필수 결합 검사 → 현재 문서·PR 후보 확정 → G3.
 desktop은 정확한 후보의 임시 전환·검증 대화·원버전 복구안을 준비한 뒤 별도 승인 범위에서 실행한다.
 정식 main·태그·사용자 설치는 그 후 별도 전달 범위다. Claude 실호스트는 미확인 보류로 유지한다.
 소비 저장소 수정·회사 고유 정책·실제 사람 인수는 현재 잔여 기준에 넣지 않는다.
