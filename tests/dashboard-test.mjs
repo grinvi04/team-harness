@@ -10,9 +10,9 @@ import { execFileSync } from 'node:child_process';
 import { startOperation, finishOperation, startChild } from '../plugins/harness-guard/scripts/observation/client.mjs';
 const plugin = path.resolve('plugins/harness-guard');
 const digest = value => createHash('sha256').update(value).digest('hex');
-function fixture(t) {
+function fixture(t, repoName = 'repo') {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'harness-viewer-')));
-  const installed = path.join(root, 'installed'), repo = path.join(root, 'repo'), dataDir = path.join(root, 'data');
+  const installed = path.join(root, 'installed'), repo = path.join(root, repoName), dataDir = path.join(root, 'data');
   fs.mkdirSync(path.join(installed, 'scripts'), { recursive: true });
   fs.cpSync(path.join(plugin, 'scripts/observation'), path.join(installed, 'scripts/observation'), { recursive: true });
   fs.copyFileSync(path.join(plugin, 'scripts/observe.mjs'), path.join(installed, 'scripts/observe.mjs'));
@@ -158,4 +158,15 @@ test('one oversized operation is omitted whole, never turned into a partial succ
   assert.equal(data.health.parseErrors,0);assert.equal(data.health.omittedOperations,1);
   assert.deepEqual(data.operations,[]);assert.equal(data.health.lastEventAt,pair[1].recordedAt);
   assert.equal(fs.readdirSync(f.dataDir).filter(n=>n.startsWith('evt-')).length,10000);
+});
+
+test('legal repository names produce display aliases accepted by the snapshot client', async t => {
+  for (const [name, expected] of [['repo\\name', 'reponame'], ['\\\\', 'repository']]) {
+    const f = fixture(t, name), v = await viewer(t, f);
+    const response = await request(v.url, '/api/snapshot', { headers: bearer(v.url) });
+    assert.equal(response.status, 200);
+    const { target } = JSON.parse(response.text);
+    assert.equal(target.repoAlias, expected);
+    assert.equal(target.worktreeAlias, expected);
+  }
 });

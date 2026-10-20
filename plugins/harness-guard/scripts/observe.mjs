@@ -29,7 +29,7 @@ function encodeSnapshot(snapshot) {
   snapshot.health.omittedOperations = all.length - snapshot.operations.length;
   return JSON.stringify(snapshot);
 }
-const alias = value => path.basename(value).replace(/[\x00-\x1f\x7f]/g, '').slice(0, 160);
+const alias = value => path.basename(value).replace(/[\\\x00-\x1f\x7f]/g, '').slice(0, 160) || 'repository';
 function target(repo, initial) {
   const current = resolveContext(repo);
   const valid = current?.repoId === initial.repoId && current?.worktreeId === initial.worktreeId;

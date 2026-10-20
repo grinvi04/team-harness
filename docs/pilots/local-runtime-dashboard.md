@@ -168,6 +168,8 @@ CI39093503746의 관측 통합40개 중39 PASS·1 FAIL이다. solo 병합 실패
 이는 과거 작은-spool CI의 직접 원인 확정이나 임의 부하의 무손실을 뜻하지 않는다.
 7047100의 전체 관측 단위49·통합41·viewer/화면8개와 package23/6/5/4·bundle33·checksum113개가 PASS다.
 Astra/medium/read-only 독립 리뷰는 IPC·수명·저장·화면·패키지에서 조치할 결함을 찾지 못했다.
+최종 독립 리뷰가 별칭의 역슬래시 처리 불일치를 찾아 실제 HTTP RED 후 최소 교정했다.
+별칭 정규화·빈 이름 fallback을 포함한 viewer/화면9개는 PASS이며 식별자·저장 계약은 유지한다.
 현재 head의 전체 quality·필수 CI와 develop 병합·포함은 PR587 원본에서 최종 대조한다.
 
 ## 현재 판정과 다음 단계
