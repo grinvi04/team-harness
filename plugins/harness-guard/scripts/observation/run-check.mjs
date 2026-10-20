@@ -17,8 +17,21 @@ export async function runCheck({ id, argv, cwd = process.cwd(), context = {} }) 
     try {
       const child = spawn(argv[0], argv.slice(1), { cwd, shell: false, stdio: 'inherit',
         env: state ? { ...process.env, HARNESS_OBSERVE_PARENT: state.operationId } : process.env });
-      child.once('error', error => resolve(error.code === 'ENOENT' ? 127 : 126));
-      child.once('close', (code, signal) => resolve(code ?? 128 + (constants.signals[signal] || 1)));
+      let cancellation = null, settled = false;
+      const handlers = new Map(['SIGINT', 'SIGTERM', 'SIGHUP'].map(signal => [signal, () => {
+        cancellation ??= signal;
+        // Keep waiting for close: the check may need to finish its own cleanup.
+        child.kill(signal);
+      }]));
+      const finish = code => {
+        if (settled) return;
+        settled = true;
+        for (const [signal, handler] of handlers) process.off(signal, handler);
+        resolve(cancellation ? 128 + constants.signals[cancellation] : code);
+      };
+      for (const [signal, handler] of handlers) process.on(signal, handler);
+      child.once('error', error => finish(error.code === 'ENOENT' ? 127 : 126));
+      child.once('close', (code, signal) => finish(code ?? 128 + (constants.signals[signal] || 1)));
     } catch { resolve(126); }
   });
   try {

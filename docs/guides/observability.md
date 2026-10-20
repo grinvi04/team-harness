@@ -1,7 +1,7 @@
 # 로컬 실행 관측 대시보드
 
 Harness의 검사·차단·전달 사건을 읽기 전용 화면에서 확인한다. 실행·승인·병합은 기존 workflow가 담당한다.
-이 기능은 현재 개발 후보이며 아직 정식 발행되지 않았다. 실제 격리 Codex CLI의 hook→기록→화면은
+1.2.0의 발행·설치는 [현재 전달 기록](../pilots/local-runtime-dashboard-release-1.2.0.md)의 원본으로 판정한다. 실제 격리 Codex CLI의 hook→기록→화면은
 확인했다. 승인된 Desktop 시험·설치 복구도 확인했다. 최종 PR 통합·발행·설치는 아래 실행 기록의 원본을 따른다. Claude 실호스트는 미확인 보류다.
 후보·실행 범위·남은 검증은 [현재 실행 기록](../pilots/local-runtime-dashboard.md)을 따른다.
 
@@ -45,6 +45,9 @@ CLI가 쓴 활성 표식과 실제 writer의 경로·repo·worktree가 일치해
 ```bash
 HARNESS_OBSERVE_DIR="/existing/private-parent/observability"   node "/path/to/plugin/scripts/observation/run-check.mjs" --id node-version -- node --version
 ```
+
+명시 검사 실행기에 INT·TERM·HUP을 보내면 직접 실행한 자식에게 전달하고 정리·종료까지 기다린다.
+자식이 정리 후0으로 끝나도 취소는128+최초 신호로 실패 처리한다. SIGKILL·전원 손실·분리된 후손 전체 종료는 보장하지 않는다.
 
 사건은 위 전용 디렉터리의 이벤트별 파일로 디스크에 남는다. 원문 명령·출력·prompt·토큰은 기록하지 않는다.
 파일0600·디렉터리0700이며32 MiB 또는7일 중 먼저 도달하는 한도로 보관한다. 삭제·깨진 기록·순서 누락은
