@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createHash, randomUUID } from 'node:crypto';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
+import { once } from 'node:events';
 import { fileURLToPath } from 'node:url';
 import { writeLease, validateEvent } from '../plugins/harness-guard/scripts/observation/event.mjs';
 
@@ -167,4 +168,73 @@ test('active emitter storage failure leaves command execution and its result unc
   assert.equal(fs.readFileSync(path.join(f.dir, corrupt), 'utf8'), '{broken');
   assert.deepEqual(fs.readdirSync(f.dir).filter(name => name.startsWith('evt-')), [corrupt]);
   assert.deepEqual(JSON.parse(fs.readFileSync(path.join(f.dir, 'writer-loss-v1.json'))), { schemaVersion: 1, lost: true });
+});
+
+// Signal the runner PID (not the check PID), as CI cancellation does.
+for (const signal of ['SIGTERM', 'SIGINT', 'SIGHUP']) for (const capture of ['off', 'on', 'broken'])
+  test(`runner cancellation ${signal}/${capture} forwards, waits for cleanup and records failure`, async t => {
+    const f = fixture(t), marker = path.join(f.root, 'cleaned');
+    if (capture !== 'off') activate(f);
+    if (capture === 'broken') fs.writeFileSync(path.join(f.dir, `evt-${randomUUID()}.json`), '{broken', { mode: 0o600 });
+    const code = `const fs=require('node:fs');
+      process.on(${JSON.stringify(signal)},()=>setTimeout(()=>{
+        fs.writeFileSync(${JSON.stringify(marker)},${JSON.stringify(signal)});
+        process.stdout.write('cleaned\\n');process.exit(0);
+      },75));
+      process.stdout.write(JSON.stringify({pid:process.pid})+'\\n');
+      process.stderr.write('fixture-stderr\\n');setInterval(()=>{},1000);`;
+    const runner = spawn(process.execPath, [runnerPath, '--id', 'qa.cancel', '--', process.execPath, '-e', code],
+      { cwd: f.repo, env: { ...isolatedEnv, HARNESS_OBSERVE_DIR: f.dir }, stdio: ['ignore', 'pipe', 'pipe'] });
+    let childPid, out = '', err = '';
+    runner.stdout.on('data', bytes => { out += bytes; }); runner.stderr.on('data', bytes => { err += bytes; });
+    const exited = once(runner, 'exit'), closed = once(runner, 'close');
+    try {
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => reject(new Error('check did not become ready')), 3000);
+        const ready = () => {
+          const line = out.split('\n')[0]; if (!out.includes('\n')) return;
+          try { childPid = JSON.parse(line).pid; clearTimeout(timer); runner.stdout.off('data', ready); resolve(); }
+          catch (error) { clearTimeout(timer); reject(error); }
+        };
+        runner.stdout.on('data', ready); ready();
+      });
+      assert.equal(runner.kill(signal), true);
+      const result = await Promise.race([exited, new Promise((_, reject) => {
+        const timer = setTimeout(() => reject(new Error('runner did not terminate')), 4000); timer.unref();
+      })]);
+      assert.equal(fs.existsSync(marker), true, 'runner exited before the check received the signal and finished cleanup');
+      assert.equal(fs.readFileSync(marker, 'utf8'), signal);
+      assert.deepEqual(result, [128 + os.constants.signals[signal], null]);
+      assert.throws(() => process.kill(childPid, 0), { code: 'ESRCH' }, 'check must already be reaped');
+      await closed;
+      assert.equal(out, JSON.stringify({ pid: childPid })+'\ncleaned\n');
+      assert.equal(err, 'fixture-stderr\n');
+      if (capture === 'on') {
+        const events = records(f.dir); assert.equal(events.length, 2);
+        assert.ok(events.every(validateEvent)); assert.equal(events[1].outcome, 'fail');
+        assert.equal(events[1].exitCode, 128 + os.constants.signals[signal]);
+        assert.equal(events[1].reasonCode, 'CHECK_FAILED');
+        assert.equal(events[0].operationId, events[1].operationId);
+      } else if (capture === 'off') assert.deepEqual(records(f.dir), []);
+      else assert.ok(fs.existsSync(path.join(f.dir, 'writer-loss-v1.json')));
+    } finally {
+      if (childPid) try { process.kill(childPid, 'SIGKILL'); } catch { /* Already reaped. */ }
+      if (runner.exitCode === null && runner.signalCode === null) runner.kill('SIGKILL');
+      await closed;
+    }
+  });
+
+test('runCheck removes only its own signal listeners after completion and spawn errors', t => {
+  const f = fixture(t);
+  const code = `import assert from 'node:assert/strict';import {runCheck} from ${JSON.stringify(runnerURL)};
+    const signals=['SIGINT','SIGTERM','SIGHUP'];const existing=()=>{};
+    for(const signal of signals)process.on(signal,existing);
+    const baseline=signals.map(signal=>process.listenerCount(signal));
+    for(const argv of [[process.execPath,'-e','process.exitCode=17'],[${JSON.stringify('/fixture-does-not-exist')}]]){
+      await runCheck({id:'qa.listeners',argv,cwd:${JSON.stringify(f.repo)}});
+      assert.deepEqual(signals.map(signal=>process.listenerCount(signal)),baseline);
+      for(const signal of signals)assert.ok(process.listeners(signal).includes(existing));
+    }`;
+  const result = spawnSync(process.execPath, ['--input-type=module', '-e', code], { env: isolatedEnv, timeout: 10_000 });
+  assert.equal(result.status, 0, result.stderr.toString());
 });

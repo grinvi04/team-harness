@@ -30,6 +30,22 @@ Claude 실제 호스트 검증은 기존 합의대로 미확인 보류다. 소�
 같은 후보의1–6단계 PASS와 합쳐 로컬 품질77단계를 확인했다. 후속 현재 안내만 바꾼 문서는 별도 검사했다.
 stack 묶음120·74·88개와 전체 품질의 관측 통합41개도 PASS다. 온라인 외부 증거7개·source/실험 bundle checksum을 확인했다.
 
+## 릴리즈 리뷰의 종료 신호 교정
+
+main PR590의 독립 Codex/Astra medium read-only 검토가 실행기 PID의 SIGTERM 뒤 자식 잔류를 재현했다.
+PR590은 미병합으로 닫고 수정은 develop 작업 PR부터 전달한다. 과거 누락 원인과 구분한다.
+
+| 잠긴 범위 | 기대 결과·판정자 |
+|---|---|
+| 실행기 PID에 INT·TERM·HUP, 수집 OFF·ON·손상 | 직접 자식이 같은 신호를 받고 지연 정리를 마친 뒤 reap; 실행기가 먼저 종료하지 않음 |
+| 자식 정리의 exit0 | 취소를 PASS로 바꾸지 않고128+최초 신호; stdout·stderr 원값 보존 |
+| 관측·재사용 | ON의 상관 start/finish와 실패 exit 일치; 손상이 취소 결과를 바꾸지 않고 기존 listener 보존 |
+
+새9개는 수정 전 모두 자식의 정리 미실행으로 RED였고 수정 후 PASS다.
+listener 보존·기존 출력·반환·명령1회 실행을 포함한 runner 전체20개도 PASS다.
+실행 원문은 위 `.runtime/release-120/cancel-{red,green,regression}.log`로 연결한다.
+SIGKILL·전원 손실의 전달이나 별도 분리된 후손 프로세스 전체 종료를 보장하지 않는다.
+
 ## 전달 상태의 원본
 
 아래 원본의 실제 MERGED·SHA·태그·설치 결과로 판정한다. 검증 성공을 전달 완료로 확대하지 않는다.
