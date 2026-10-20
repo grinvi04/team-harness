@@ -82,6 +82,53 @@ if (process.env.OBSERVATION_EMITTER_CHILD === '1') {
   stage('preload-ready');
 } else if (process.env.OBSERVATION_STACK_TRACE) {
   const trace = process.env.OBSERVATION_STACK_TRACE;
+  // The shell bridge can omit an emitter entirely when state is absent/invalid.
+  // Observe its input/output boundary without changing production source or bytes.
+  if (/[\\/]observation[\\/]bridge\.mjs$/.test(process.argv[1] || '') && ['child', 'finish'].includes(process.argv[2])) {
+    const target = path.join(path.dirname(trace), 'bridge-trace.jsonl'), mode = process.argv[2];
+    const receipt = fields => {
+      try {
+        const line = JSON.stringify({ mode, ...fields }) + '\n';
+        const size = fs.existsSync(target) ? fs.statSync(target).size : 0;
+        if (Buffer.byteLength(line) > 512 || size >= 16384) return;
+        if (size + Buffer.byteLength(line) > 15360) {
+          if (!fs.readFileSync(target, 'utf8').includes('"phase":"limit"'))
+            fs.appendFileSync(target, JSON.stringify({ mode, phase: 'limit' }) + '\n', { mode: 0o600 });
+          return;
+        }
+        fs.appendFileSync(target, line, { mode: 0o600 });
+      } catch { /* Test diagnostics never replace bridge output or exit. */ }
+    };
+    let input = '', inputBytes = 0, outputBytes = 0;
+    const iterator = process.stdin[Symbol.asyncIterator], write = process.stdout.write;
+    process.stdin[Symbol.asyncIterator] = function () {
+      const actual = iterator.apply(this, arguments), next = actual.next;
+      actual.next = function () {
+        return next.apply(this, arguments).then(step => {
+          try {
+            if (!step.done) {
+              inputBytes += Buffer.byteLength(step.value);
+              if (inputBytes <= 8192) input += step.value.toString('utf8');
+            } else {
+              let state; try { if (inputBytes <= 8192) state = JSON.parse(input); } catch { /* No raw input in the receipt. */ }
+              receipt({ phase: 'input', inputBytes, inputTruncated: inputBytes > 8192,
+                jsonObject: inputBytes > 8192 ? null : !!state && typeof state === 'object' && !Array.isArray(state),
+                source: ['codex-hook', 'claude-hook', 'guard', 'check-runner', 'pr-create', 'pr-merge', 'solo-merge', 'stack'].includes(state?.source) ? state.source : null,
+                operationId: typeof state?.operationId === 'string' && /^[a-f0-9-]{36}$/.test(state.operationId) ? state.operationId : null });
+              input = '';
+            }
+          } catch { /* Keep the real iterator result. */ }
+          return step;
+        });
+      };
+      return actual;
+    };
+    process.stdout.write = function (chunk) {
+      try { outputBytes += Buffer.byteLength(chunk); } catch { /* Ignore unsupported diagnostic input. */ }
+      return write.apply(this, arguments);
+    };
+    process.on('exit', code => receipt({ phase: 'exit', exitCode: code, outputBytes }));
+  }
   const original = childProcess.spawnSync;
   childProcess.spawnSync = function (command, args, options) {
     if (!Array.isArray(args) || !/[\\/]observation[\\/]emit\.mjs$/.test(args[0] || ''))
@@ -131,6 +178,8 @@ if (process.env.OBSERVATION_EMITTER_CHILD === '1') {
           fixtureKind: safe(process.env.OBSERVATION_FIXTURE_KIND, /^(?:guard|structured-stack|intentional-timeout|emitter-error|emitter-timeout|other)$/),
           emitterKind, stagesTruncated: stages.some(row => row.stage === 'stage-limit'), stages,
         };
+        if (record.eventId && typeof args[1] === 'string' && path.isAbsolute(args[1]))
+          record.eventFilePresent = fs.existsSync(path.join(args[1], `evt-${record.eventId}.json`));
         const line = JSON.stringify(record) + '\n';
         if ((!fs.existsSync(trace) || fs.statSync(trace).size < 120000) && Buffer.byteLength(line) < MAX_STAGE_BYTES + 2048)
           fs.appendFileSync(trace, line, { mode: 0o600 });

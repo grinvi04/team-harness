@@ -60,3 +60,78 @@ test('snapshot consumer mutation does not poison cached observations', async t =
   assert.equal(next.operations[0].events[0].outcome, 'pending');
   assert.equal(next.operations[0].events[0].phase, 'started');
 });
+
+function diagnosticBridge(t, active, mode, input, bridgePrefix) {
+  const root = fixture(t), dataDir = path.join(root, 'spool'); fs.mkdirSync(dataDir, { mode: 0o700 });
+  if (active) writeLease(dataDir, lease(randomUUID()));
+  const state = { schemaVersion: 1, ...context, operationId: randomUUID(), parentOperationId: null,
+    source: 'solo-merge', pluginVersion: '1.2.0', hostSessionId: null, headSha: null, baseSha: null,
+    dataDir, startedAt: Date.now(), sequence: 0 };
+  const trace = path.join(root, 'emitter-trace.jsonl');
+  const supplied = typeof input === 'function' ? input(state) : input ?? JSON.stringify(state);
+  if (bridgePrefix) fs.writeFileSync(path.join(root, 'bridge-trace.jsonl'), bridgePrefix, { mode: 0o600 });
+  const result = spawnSync(process.execPath, [path.resolve('plugins/harness-guard/scripts/observation/bridge.mjs'),
+    ...(mode === 'child' ? ['child', 'pending', '0', 'RESTORE_ATTEMPT'] : ['finish', 'pass', '0', 'RESTORE_VERIFIED'])],
+  { input: supplied, encoding: 'utf8', timeout: 3000,
+    env: { ...process.env, OBSERVATION_STACK_TRACE: trace,
+      NODE_OPTIONS: `--require ${JSON.stringify(path.resolve('tests/helpers/observation-emitter-probe.cjs'))}` } });
+  assert.equal(result.error, undefined); assert.equal(result.status, 0); assert.equal(result.stderr, '');
+  const read = name => fs.existsSync(name) ? fs.readFileSync(name, 'utf8').trim().split('\n').filter(Boolean).map(JSON.parse) : [];
+  const bridge = read(path.join(root, 'bridge-trace.jsonl')), emitters = read(trace);
+  const stored = fs.readdirSync(dataDir).filter(name => name.startsWith('evt-')).map(name =>
+    JSON.parse(fs.readFileSync(path.join(dataDir, name), 'utf8')));
+  for (const row of bridge.filter(row => row.phase === 'input')) assert.equal(row.inputBytes, Buffer.byteLength(supplied));
+  for (const row of bridge.filter(row => row.phase === 'exit')) assert.equal(row.outputBytes, Buffer.byteLength(result.stdout));
+  for (const row of emitters) assert.equal(row.eventFilePresent, stored.some(event => event.eventId === row.eventId));
+  return { result, bridge, emitters, stored, root };
+}
+
+for (const mode of ['child', 'finish']) test(`diagnostic probe distinguishes ${mode} state output from capture-off no-write`, t => {
+  const { result, bridge, emitters, stored } = diagnosticBridge(t, false, mode);
+  if (mode === 'child') assert.equal(JSON.parse(result.stdout).source, 'solo-merge');
+  else assert.equal(result.stdout, '');
+  assert.equal(bridge[0]?.mode, mode); assert.equal(bridge[0]?.jsonObject, true);
+  assert.equal(bridge[0]?.source, 'solo-merge');
+  assert.equal(bridge[1]?.exitCode, 0); assert.deepEqual(stored, []);
+  assert.equal(emitters.length, 1); assert.equal(emitters[0].status, 0);
+  assert.equal(emitters[0].eventFilePresent, false);
+});
+
+test('diagnostic probe distinguishes stored restore finish from missing bridge state', t => {
+  const { result, bridge, emitters, stored } = diagnosticBridge(t, true, 'finish');
+  assert.equal(result.stdout, ''); assert.equal(bridge[0]?.mode, 'finish');
+  assert.equal(bridge[0]?.jsonObject, true); assert.equal(bridge[1]?.exitCode, 0);
+  assert.equal(bridge[1]?.outputBytes, 0); assert.equal(emitters.length, 1);
+  assert.equal(emitters[0].reasonCode, 'RESTORE_VERIFIED');
+  assert.equal(emitters[0].eventFilePresent, true);
+  assert.equal(stored.length, 1); assert.equal(validateEvent(stored[0]), true);
+  assert.equal(stored[0].reasonCode, 'RESTORE_VERIFIED');
+});
+
+test('diagnostic probe marks oversized valid state as uninspected while preserving storage', t => {
+  const { result, bridge, stored } = diagnosticBridge(t, true, 'finish', state => JSON.stringify(state) + ' '.repeat(8192));
+  assert.equal(result.stdout, ''); assert.equal(bridge[0]?.inputTruncated, true);
+  assert.equal(bridge[0]?.jsonObject, null); assert.equal(bridge[0]?.source, null);
+  assert.equal(stored.length, 1); assert.equal(stored[0].reasonCode, 'RESTORE_VERIFIED');
+});
+
+test('diagnostic bridge receipt preserves malformed-input silence and omits raw input', t => {
+  const sentinel = 'SYNTHETIC_PROBE_PRIVATE_INPUT';
+  const { result, bridge, emitters, root } = diagnosticBridge(t, false, 'finish', sentinel);
+  assert.equal(result.stdout, ''); assert.equal(bridge[0]?.jsonObject, false);
+  assert.equal(bridge[1]?.exitCode, 0); assert.deepEqual(emitters, []);
+  const bytes = fs.readFileSync(path.join(root, 'bridge-trace.jsonl'), 'utf8');
+  assert.equal(bytes.includes(sentinel), false); assert.equal(bytes.includes(root), false);
+  assert.ok(Buffer.byteLength(bytes) <= 1024);
+  assert.equal(fs.statSync(path.join(root, 'bridge-trace.jsonl')).mode & 0o777, 0o600);
+});
+
+test('diagnostic bridge receipt marks its limit without changing the actual stored result', t => {
+  const row = JSON.stringify({ mode: 'finish', phase: 'seed', padding: 'x'.repeat(256) }) + '\n';
+  const prefix = row.repeat(Math.ceil(15360 / Buffer.byteLength(row)));
+  const { result, bridge, emitters, root } = diagnosticBridge(t, true, 'finish', undefined, prefix);
+  assert.equal(result.stdout, ''); assert.equal(emitters[0]?.eventFilePresent, true);
+  assert.equal(bridge.filter(row => row.phase === 'limit').length, 1);
+  assert.equal(bridge.filter(row => row.phase === 'input' || row.phase === 'exit').length, 0);
+  assert.ok(fs.statSync(path.join(root, 'bridge-trace.jsonl')).size <= 16384);
+});

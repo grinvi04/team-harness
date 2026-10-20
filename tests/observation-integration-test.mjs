@@ -22,8 +22,8 @@ const guardCases = [
   ['npm install -g fixture', 'GUARD_GLOBAL_INSTALL'],
 ];
 const hash = value => createHash('sha256').update(value).digest('hex');
-function emitterTrace(root) {
-  try { return fs.readFileSync(path.join(root, 'emitter-trace.jsonl'), 'utf8').trim().split('\n')
+function emitterTrace(root, name = 'emitter-trace.jsonl') {
+  try { return fs.readFileSync(path.join(root, name), 'utf8').trim().split('\n')
     .filter(Boolean).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } }); }
   catch { return []; }
 }
@@ -34,7 +34,8 @@ function fixture(t) {
     try {
       const trace = emitterTrace(root), errors = trace.filter(e => e.errorCode || e.status !== 0);
       if (!diagnostics.reported && (t.passed === false || errors.length))
-        t.diagnostic(`observation fixture emitters: ${JSON.stringify({ failed: t.passed === false, trace: t.passed === false ? trace : errors })}`);
+        t.diagnostic(`observation fixture emitters: ${JSON.stringify({ failed: t.passed === false, trace: t.passed === false ? trace : errors,
+          bridge: t.passed === false ? emitterTrace(root, 'bridge-trace.jsonl') : [] })}`);
     } catch { /* Preserve the original assertion even if diagnostics fail. */ }
     finally { fs.rmSync(root, { recursive: true, force: true }); }
   });
@@ -376,7 +377,7 @@ function stackDiagnostics(t, body) {
           return { archived: n.startsWith('archive-'), restored: value.restored === true,
             state: ['reserved', 'pending', 'enqueued', 'failed', 'merged', 'unverified'].includes(value.state) ? value.state : null };
         }, { unreadable: true }));
-        const diagnostic = { scenario, solo, capture, trace,
+        const diagnostic = { scenario, solo, capture, trace, bridge: emitterTrace(f.root, 'bridge-trace.jsonl'),
           restoreAttempt: events.some(e => e.reasonCode === 'RESTORE_ATTEMPT'),
           restoreVerified: events.some(e => e.reasonCode === 'RESTORE_VERIFIED'),
           writerLoss: fs.existsSync(path.join(f.spool, 'writer-loss-v1.json')),
