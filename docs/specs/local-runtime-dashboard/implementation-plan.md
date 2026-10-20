@@ -6,7 +6,7 @@
 > [현재 인수](../../pilots/gh-stack-adapter-acceptance.md): PR584 필수5·hosted quality80·독립 리뷰 PASS, develop4c1136e 통합 완료. CLI·Desktop 연결과 복구를 확인했다. G3의 후보별 CI·독립 검토·순차 develop 병합 결과는 현재 인수 기록과 PR585→586→587 원본을 따른다.
 
 **Goal:** 현재 Harness 실행·차단·검증 근거를 로컬 읽기 전용 화면에서 확인한다.
-**Architecture:** 선택형 emitter → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
+**Architecture:** 선택형 emitter → viewer 소유 전용 writer/cache → 제한된 로컬 spool → reader → Node HTTP snapshot → Query → React 화면.
 기존 gate가 판정하며 viewer는 판정 권한을 갖지 않는다.
 **Tech Stack:** Node ESM·Bash, React·TypeScript·Vite·TanStack Query, CSS. DB·SSR·daemon 없음.
 **Spec:** [대시보드 설계·O1–O5](../local-runtime-dashboard.md).
@@ -41,6 +41,7 @@
 |---|---|
 | `scripts/observation/event.mjs` | `validateEvent(value)`, `appendEvent(dataDir,event) → {written,reasonCode}` |
 | `scripts/observation/emit.mjs` | schema 검증 후 stdin 사건을 기록하는 Bash용 CLI |
+| `scripts/observation/writer.mjs` | viewer 수명의 전용 writer·제한된 IPC·검증 cache·정확한 자식 결과 조회 |
 | `scripts/observation/read.mjs` | `readSnapshot(dataDir,selection) → {operations,health,observedAt}` |
 | `scripts/observe.mjs` | CLI 활성 lease와 HTTP server; `startViewer({dataDir,repo,port:0}) → {url,close}` |
 | `scripts/observation/run-check.mjs` | `runCheck({id,argv,cwd,context}) → exitCode`; argv/output은 저장하지 않음 |
@@ -48,7 +49,7 @@
 
 `selection={repoId,worktreeId?,operationId?}`이며 `context`는 스펙의 repo/worktree/session/SHA 필드다.
 `health={captureState,lastEventAt,parseErrors,gaps,retentionApplied}`이며 알 수 없는 손실 수는 추정하지 않는다.
-`operations`는 operationId와 phase별 event 목록이다. `close()`는 자신이 쓴 lease만 해제한다.
+`operations`는 operationId와 phase별 event 목록이다. `close()`는 자기 lease·endpoint를 정리하고 자기 writer의 실제 종료를 기다린다.
 이 API를 소비하는 기존 hook·wrapper는 원래 stderr/exit를 그대로 유지한다.
 
 repo 루트의 제작 파일·인터페이스:
@@ -179,3 +180,8 @@ O1–O5와 G3가 충족되면 기능 인수를 끝낸다. 토큰/비용 측정·
 필수 실제 실행이 불가능하면 해당 항목을 미확인으로 남기고 정확한 환경 조건을 보고한다.
 정식 발행은 기존 release-check의 live provenance·quality·독립 리뷰·Git Flow를 그대로 적용한다.
 공개 버전/설치 변경은 그 시점의 사용자 승인 범위 안에서만 실행한다. 계획 작성은 발행 승인이 아니다.
+
+## Cold scan 교정
+
+[원인·실행 경계·회귀 계약](capture-writer-correction.md)에 확인된 구조 결함과 과거 직접 원인 미확정을 구분한다.
+원래 O1–O5·250ms·양성 단언은 유지한다. 현재 후보 검사·독립 검토·PR587 전달 결과는 인수 기록에 연결한다.

@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { writeLease, validateEvent } from '../plugins/harness-guard/scripts/observation/event.mjs';
 import { readSnapshot } from '../plugins/harness-guard/scripts/observation/read.mjs';
+import { startWriter } from '../plugins/harness-guard/scripts/observation/writer.mjs';
 const scripts = process.env.OBSERVATION_TEST_SCRIPTS || path.resolve('plugins/harness-guard/scripts');
 const guardCases = [
   ['git commit -m fixture', 'GUARD_PROTECTED_COMMIT'],
@@ -396,8 +397,8 @@ function stackDiagnostics(t, body) {
 
 // Reuse the stack boundary's stateful GitHub double; executeMerge, journals,
 // both wrappers and the real observation writer remain production code.
-function observedStack(t, scenario, solo, capture, missingResult = false, fixtures = []) {
-  const f = fixture(t), bin = path.join(f.root, 'bin'); fs.mkdirSync(bin);
+function observedStack(t, scenario, solo, capture, missingResult = false, fixtures = [], prepared) {
+  const f = prepared ?? fixture(t), bin = path.join(f.root, 'bin'); fs.mkdirSync(bin);
   fixtures.push({ f, scenario, solo, capture });
   const source = fs.readFileSync('tests/stack-merge-wrapper-test.mjs', 'utf8');
   const template = source.split("writeFileSync(path.join(bin, 'gh'), `")[1]?.split('`); spawnSync')[0];
@@ -496,3 +497,19 @@ test('stalled structured result reads are bounded and preserve solo restore and 
   completed(on.f.events(), 'solo-merge', 'unverified', 'RESULT_UNVERIFIED');
   completed(on.f.events(), 'solo-merge', 'pass', 'RESTORE_VERIFIED');
 }));
+
+
+test('structured failed solo retains restore and gate parity through the viewer-owned writer', async t => {
+  const off = observedStack(t, 'failed', true, false), f = fixture(t);
+  const writer = await startWriter(f.spool, f.lease, f.lease.viewerId);
+  try {
+    const on = observedStack(t, 'failed', true, true, false, [], f);
+    assert.equal(off.result.status, 1); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
+    const events = on.f.events(); completed(events, 'solo-merge', 'fail', 'MERGE_FAILED');
+    completed(events, 'solo-merge', 'pass', 'RESTORE_VERIFIED');
+    const operation = events.find(e => e.source === 'solo-merge' && e.phase === 'started' && e.parentOperationId === null);
+    const terminal = events.filter(e => e.operationId === operation.operationId && e.phase === 'finished');
+    assert.equal(terminal.length, 1); assert.equal(terminal[0].reasonCode, 'MERGE_FAILED');
+    assert.equal(terminal[0].exitCode, 1); assert.ok(events.every(e => e.reasonCode !== 'MERGED'));
+  } finally { await writer.close(); }
+});

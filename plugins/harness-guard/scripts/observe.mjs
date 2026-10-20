@@ -10,6 +10,7 @@ import { directory } from './observation/storage.mjs';
 import { writeLease, removeLease } from './observation/event.mjs';
 import { resolveContext } from './observation/context.mjs';
 import { readSnapshot } from './observation/read.mjs';
+import { startWriter } from './observation/writer.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const MAX_RESPONSE = 8 * 1024 * 1024;
@@ -52,7 +53,11 @@ export async function startViewer({ dataDir, repo, port = 0 }) {
   directory(dataDir);
   const viewerId = randomUUID(), token = randomBytes(32).toString('base64url');
   const publicContext = { schemaVersion: 1, viewerId, repoId: context.repoId, worktreeId: context.worktreeId };
-  const refresh = () => writeLease(dataDir, { schemaVersion: 1, viewerId, repoId: context.repoId, worktreeId: context.worktreeId, expiresAt: new Date(Date.now() + 30000).toISOString() });
+  let writer;
+  const refresh = () => {
+    if (!writer?.active) throw Error('WRITER_UNAVAILABLE');
+    writeLease(dataDir, { schemaVersion: 1, viewerId, repoId: context.repoId, worktreeId: context.worktreeId, expiresAt: new Date(Date.now() + 30000).toISOString() });
+  };
   let origin, closed = false, timer, captureError = false;
   const server = http.createServer({ maxHeaderSize: 8192, requestTimeout: 2000, headersTimeout: 2000 }, (req, res) => {
     res.setHeader('Content-Security-Policy', "default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'none'");
@@ -85,13 +90,14 @@ export async function startViewer({ dataDir, repo, port = 0 }) {
   server.maxRequestsPerSocket = 100;
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(port, '127.0.0.1', resolve); });
   origin = `http://127.0.0.1:${server.address().port}`;
-  try { refresh(); } catch (e) { server.close(); throw e; }
+  try { writer = await startWriter(dataDir, context, viewerId); refresh(); }
+  catch (e) { await writer?.close(); server.close(); throw e; }
   timer = setInterval(() => { try { refresh(); captureError = false; } catch { captureError = true; } }, 10000);
   timer.unref();
   return { url: `${origin}/#${token}`, async close() {
     if (closed) return; closed = true; clearInterval(timer);
     const stopped = new Promise(resolve => server.close(resolve)); server.closeAllConnections();
-    try { removeLease(dataDir, viewerId); } finally { await stopped; }
+    try { removeLease(dataDir, viewerId); } finally { await writer.close(); await stopped; }
   } };
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

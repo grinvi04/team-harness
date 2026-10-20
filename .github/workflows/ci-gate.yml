@@ -52,7 +52,7 @@ jobs:
 
       - name: 선택형 관측 사건 저장·읽기 검사
         run: |
-          node --test tests/observation-test.mjs tests/observation-boundaries-test.mjs tests/observation-run-check-test.mjs
+          node --test tests/observation-test.mjs tests/observation-boundaries-test.mjs tests/observation-run-check-test.mjs tests/observation-writer-test.mjs
           bash tests/observation-integration-test.sh
 
       - name: 로컬 viewer 제작·경계·배포 산출물 검사

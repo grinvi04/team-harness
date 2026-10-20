@@ -52,9 +52,10 @@ export function validLease(lease, target, now = Date.now()) {
     date(lease.expiresAt) && Date.parse(lease.expiresAt) > now && Date.parse(lease.expiresAt) <= now + 30000 &&
     lease.repoId === target.repoId && lease.worktreeId === target.worktreeId;
 }
-export function readLease(root, target, { allowAnyWorktree = false } = {}) {
+export function readLease(root, target, { allowAnyWorktree = false, viewerId } = {}) {
   for (const name of fs.readdirSync(root.dir)) {
     if (!name.startsWith('lease-') || !name.endsWith('.json') || !UUID.test(name.slice(6, -5))) continue;
+    if (viewerId !== undefined && name !== `lease-${viewerId}.json`) continue;
     try {
       const value = JSON.parse(readFile(root, name, 512).data);
       const leaseTarget = allowAnyWorktree && target.worktreeId === undefined
@@ -102,13 +103,13 @@ export function readEvents(root) {
   unchanged(root);
   return { records, parseErrors, total };
 }
-export async function appendEvent(dataDir, event) {
+export async function appendEvent(dataDir, event, { viewerId } = {}) {
   if (!validateEvent(event)) return { written: false, reasonCode: 'INVALID_EVENT' };
   try {
     const root = directory(dataDir);
-    if (!readLease(root, event)) return { written: false, reasonCode: 'CAPTURE_OFF' };
+    if (!readLease(root, event, { viewerId })) return { written: false, reasonCode: 'CAPTURE_OFF' };
     return await withWriterLock(root, () => {
-      if (!readLease(root, event)) return { written: false, reasonCode: 'CAPTURE_OFF' };
+      if (!readLease(root, event, { viewerId })) return { written: false, reasonCode: 'CAPTURE_OFF' };
       if (cleanDeadTemps(root)) atomicWrite(root, 'retention-v1.json', JSON.stringify({ schemaVersion: 1, applied: true }) + '\n');
       const now = Date.now(), when = Date.parse(event.recordedAt);
       if (when > now + 5000 || when <= now - MAX_AGE) return { written: false, reasonCode: 'EVENT_TIME_INVALID' };

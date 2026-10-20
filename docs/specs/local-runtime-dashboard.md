@@ -107,6 +107,8 @@ CDN·외부 font·원격 script·개발 서버에 의존하지 않는다. source
 
 수집은 기본 OFF다. CLI가 지정한 데이터 디렉터리에 현재 repo/worktree의 활성 lease를 쓴다.
 lease는 10초마다 갱신하고 30초 후 만료한다. viewer 종료·lease 만료 후 새 사건은 기록하지 않는다.
+viewer는 전용 writer의 검증 cache·소유자 전용 socket 준비 후 lease를 발행한다. 사건 쓰기와 결과 조회는
+[writer 교정 계약](local-runtime-dashboard/capture-writer-correction.md)을 따르며 HTTP 처리와 실행을 분리한다.
 Codex adapter는 실제 `PLUGIN_DATA` 아래 `observability/`를 사용한다. wrapper는 검증된
 `HARNESS_OBSERVE_DIR`를 전달받는다. 화면 실행만으로 호스트에 환경변수가 전달됐다고 가정하지 않는다.
 실제 hook이 같은 경로·활성 대상을 읽었다는 사건이 오기 전에는 **hook 연결 미확인**이다.

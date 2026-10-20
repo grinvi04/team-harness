@@ -152,7 +152,21 @@ CI39093503746의 관측 통합40개 중39 PASS·1 FAIL이다. solo 병합 실패
 시험 전용 계측은 입력 바이트/EOF·owner·lock·fsync·종료를 보존한다. 지연 주입 사본에서 원래 두 단언이
 실패하고 원인 단계가 남는지 확인했으며, 제품 코드·250ms·표준 출력/오류·원래 단언은 유지한다.
 `post-desktop-docs/pr587-ci-first-failed.*`, `ci-observation-diagnostic/`에 최초·후속 실행을 구분해 보존한다.
-현재 CI 실패가 해소되고 같은 후보의 필수 검사·독립 리뷰가 확인되기 전에는 C를 병합하지 않는다.
+이 시점에는 원인 교정이 없어 C를 병합하지 않았다. 이후 교정·현재 후보 판정은 다음 절을 따른다.
+
+## 10월20일 원인에 연결된 교정
+
+실제 Astra/medium/read-only 분석에서 fresh emitter의 매번 cold scan을 확인된 구조 결함으로 좁혔다.
+같은8000건의 cold311ms·warm108ms를 대조하고 작은 최적화 두 개의 실패를 보존한 뒤 폐기했다.
+[writer 교정](../specs/local-runtime-dashboard/capture-writer-correction.md)은 viewer가 소유하는 전용 자식에서
+검증 cache를 준비한 뒤 lease를 발행한다. HTTP 동기 처리와 분리하고 쓰기·정확한 결과 조회에 재사용한다.
+원래 payload/권한/lock/retention 검증·250ms·정상 사건 필수 단언·gate 결과는 유지한다.
+실제 viewer의8000건 fresh 기록·별도 결과 조회와 IPC/수명/변조/손실 경계22개가 PASS다.
+실제 writer를 통한 원래 solo 실패 사례도 복구 사건·gate 동일성·부모 terminal1개를 확인했다.
+시험 정리 순서 오류와 잘못된 health 필드 단언의 첫 FAIL도 원문에 보존하고 시험 코드만 교정했다.
+원문은 `ci-observation-diagnostic/causal-analysis/`의 RED·폐기안·현재 실행·독립 분석이다.
+이는 과거 작은-spool CI의 직접 원인 확정이나 임의 부하의 무손실을 뜻하지 않는다.
+현재 전체 quality·패키지·독립 리뷰·CI와 develop 병합은 이 교정 후보를 대상으로 최종 대조한다.
 
 ## 현재 판정과 다음 단계
 

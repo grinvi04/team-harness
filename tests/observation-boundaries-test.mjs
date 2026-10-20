@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { validLease, writeLease, removeLease, appendEvent, validateEvent } from '../plugins/harness-guard/scripts/observation/event.mjs';
 import { readSnapshot } from '../plugins/harness-guard/scripts/observation/read.mjs';
+import { startViewer } from '../plugins/harness-guard/scripts/observe.mjs';
 
 const context = { repoId: '1'.repeat(64), worktreeId: '2'.repeat(64) };
 function fixture(t) {
@@ -134,4 +135,38 @@ test('diagnostic bridge receipt marks its limit without changing the actual stor
   assert.equal(bridge.filter(row => row.phase === 'limit').length, 1);
   assert.equal(bridge.filter(row => row.phase === 'input' || row.phase === 'exit').length, 0);
   assert.ok(fs.statSync(path.join(root, 'bridge-trace.jsonl')).size <= 16384);
+});
+
+test('fresh emitter records restore finish within its unchanged budget with a cold populated spool', async t => {
+  const dir = fixture(t), template = { ...event(), source: 'solo-merge', phase: 'finished', outcome: 'pass',
+    reasonCode: 'RESTORE_VERIFIED', sequence: 2, exitCode: 0 };
+  // The observed failure is in a fresh process; warming readSnapshot/appendEvent here would hide it.
+  for (let i = 0; i < 8000; i++) {
+    const prior = { ...template, eventId: randomUUID(), operationId: randomUUID() };
+    fs.writeFileSync(path.join(dir, `evt-${prior.eventId}.json`), JSON.stringify(prior) + '\n', { mode: 0o600 });
+  }
+  const repo = path.join(dir, 'repo'); fs.mkdirSync(repo);
+  for (const args of [['init', '-b', 'develop'], ['-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '--allow-empty', '-m', 'fixture']]) {
+    assert.equal(spawnSync('git', args, { cwd: repo }).status, 0);
+  }
+  const { resolveContext } = await import('../plugins/harness-guard/scripts/observation/context.mjs');
+  Object.assign(template, resolveContext(repo));
+  const viewer = await startViewer({ dataDir: dir, repo });
+  try {
+    const result = spawnSync(process.execPath, [path.resolve('plugins/harness-guard/scripts/observation/emit.mjs'), dir],
+      { input: JSON.stringify(template), encoding: 'utf8', timeout: 250, killSignal: 'SIGKILL' });
+    assert.equal(result.error, undefined, `fresh emitter: ${result.error?.code}/${result.signal}`);
+    assert.equal(result.status, 0); assert.equal(result.stdout, ''); assert.equal(result.stderr, '');
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, `evt-${template.eventId}.json`))), template);
+    const parent = randomUUID(), child = { ...template, source: 'stack', parentOperationId: parent,
+      eventId: randomUUID(), operationId: randomUUID(), reasonCode: 'MERGE_FAILED', outcome: 'fail', exitCode: 1 };
+    const emitted = spawnSync(process.execPath, [path.resolve('plugins/harness-guard/scripts/observation/emit.mjs'), dir],
+      { input: JSON.stringify(child), encoding: 'utf8', timeout: 250, killSignal: 'SIGKILL' });
+    assert.equal(emitted.error, undefined); assert.equal(emitted.status, 0);
+    const state = { ...template, operationId: parent, dataDir: dir };
+    const query = spawnSync(process.execPath, [path.resolve('plugins/harness-guard/scripts/observation/bridge.mjs'), 'result-read', 'stack'],
+      { input: JSON.stringify(state), encoding: 'utf8', timeout: 250, killSignal: 'SIGKILL' });
+    assert.equal(query.error, undefined); assert.equal(query.status, 0); assert.equal(query.stderr, '');
+    assert.equal(query.stdout, 'fail\nMERGE_FAILED');
+  } finally { await viewer.close(); }
 });
