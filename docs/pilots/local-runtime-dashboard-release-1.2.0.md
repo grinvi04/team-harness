@@ -75,7 +75,7 @@ RED→GREEN·원래4흐름·제한/거부 회귀·독립 판정으로 교정 범
 
 | 단계 | 현재 판정에 사용하는 원본·조건 |
 |---|---|
-| 작업 PR→develop | [작업 PR 조회](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Acodex%2Fsolo-result-reservation); MERGED와 원격 develop 포함 모두 확인 |
+| 작업 PR→develop | [작업 PR 조회](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Acodex%2Fobservation-reader-isolation); MERGED와 원격 develop 포함 모두 확인 |
 | 정식 release-check | 현재 후보의 품질·독립 보안·온라인 provenance·package/checksum 실행 결과; 하나라도 필수 미확인이면 NO-GO |
 | release→main | [1.2.0 release PR 조회](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Arelease%2Fv1.2.0); 선행 develop 병합 SHA 포함·현재 리뷰·CI 필수 |
 | 태그·역병합 | [exact 태그](https://github.com/grinvi04/team-harness/tree/v1.2.0)가 실제 main 병합 SHA를 가리키고 [역병합 PR](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Async%2Fbackmerge-v1.2.0)이 MERGED인지 각각 확인 |
