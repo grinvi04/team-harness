@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # solo-merge.sh — 솔로 break-glass 원자 래퍼. 승인요건이 걸린 base에서 솔로 머지를 위해
 # required_pull_request_reviews를 일시 삭제(DELETE)→머지→복구(PATCH)하되, 전 과정을 trap으로 감싸
-# 어떤 종료 경로(정상·에러·시그널)에서도 복구 PATCH를 **시도**하고, 정상 경로는 복구를 **검증(fail-closed:
-# 실패 시 exit1 경보)**한다([F] 원자성, #220). 시그널 경로는 best-effort 복구 + 경보(검증은 정상 경로만).
+# 어떤 종료 경로(정상·에러·시그널)에서도 복구 PATCH와 전체 정책 readback을 시도한다.
+# 복구 미확인은 실패로 남긴다. 이미 접수된 원격 병합 요청의 취소를 뜻하지 않는다.
 # 복구 실패 시 저장한 원래 전체 보호 설정과 실제 읽기 결과를 비교해 수동 복구한다.
 #
 # 기존 solo-merge/SKILL.md 프로즈는 DELETE·merge·PATCH를 AI가 별도 호출로 수동 실행 → 단계 사이
@@ -129,6 +129,13 @@ solo_gate_decide() { # ci_rc unresolved_count mergeable → rc
 }
 
 [ -n "${SOLO_MERGE_SOURCE_ONLY:-}" ] && return 0 2>/dev/null || true
+if ! source "${BASH_SOURCE[0]%/*}/observation/shell.sh" 2>/dev/null; then
+  obs_start() { :; }; obs_exit() { :; }; obs_restore_start() { :; }; obs_restore_finish() { :; }; obs_merge_begin() { :; }; obs_merge_result() { :; }
+fi
+trap 'rc=$?; obs_exit "$rc"; exit "$rc"' EXIT
+
+[ -z "${GH_HOST:-}" ] || [ "$GH_HOST" = github.com ] || { echo "⛔ 이 solo 경로는 github.com만 지원합니다(GH_HOST 불일치)." >&2; exit 1; }
+export GH_HOST=github.com
 
 # ── main — 원자 break-glass: save→arm trap→DELETE→merge→restore→verify ──
 
@@ -142,11 +149,15 @@ while [ $# -gt 0 ]; do
     *) [ -z "$PR" ] || exit 2; PR="$1"; shift;;
   esac
 done
-[ -n "$PR" ] || PR=$(gh pr view --json number --jq .number)
 for oid in "$EXPECTED_HEAD" "$EXPECTED_BASE_OID"; do
   [ -z "$oid" ] || [[ "$oid" =~ ^[0-9a-fA-F]{40}$ ]] || exit 2
 done
 OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
+export GH_REPO="$OWNER_REPO"
+if [ -z "$PR" ]; then
+  CURRENT_BRANCH=$(git symbolic-ref --quiet --short HEAD) || { echo "⛔ 현재 브랜치가 없습니다. PR 번호를 명시하세요." >&2; exit 1; }
+  PR=$(gh pr view "$CURRENT_BRANCH" --repo "$OWNER_REPO" --json number --jq .number) || exit 1
+fi
 # Company is the default; a solo declaration is an opt-in, not authorization.
 POLICY_ROOT=$(git rev-parse --show-toplevel) || exit 1
 node "$(dirname "${BASH_SOURCE[0]}")/repo-policy.mjs" "$POLICY_ROOT" solo || exit 1
@@ -170,11 +181,18 @@ PRMERGE_SOURCE_ONLY=1 source "$GATE_LIB"
 unset PRMERGE_SOURCE_ONLY
 CANDIDATE=$(read_pr_candidate) || exit 1
 IFS='|' read -r ACTUAL_BASE ACTUAL_BASE_OID ACTUAL_HEAD ACTUAL_HEAD_OID <<< "$CANDIDATE"
+obs_start solo-merge '' "$ACTUAL_HEAD_OID" "$ACTUAL_BASE_OID"
+OBS_REASON=MERGE_FAILED
 [ "$BASE" = "$ACTUAL_BASE" ] || exit 1
 [ -z "$EXPECTED_BASE" ] || [ "$EXPECTED_BASE" = "$ACTUAL_BASE" ] || exit 1
 [ -z "$EXPECTED_HEAD" ] || [ "$EXPECTED_HEAD" = "$ACTUAL_HEAD_OID" ] || exit 1
 [ -z "$EXPECTED_BASE_OID" ] || [ "$EXPECTED_BASE_OID" = "$ACTUAL_BASE_OID" ] || exit 1
 MERGE_ARGS=("$PR" --base "$ACTUAL_BASE" --expected-head "$ACTUAL_HEAD_OID" --expected-base-oid "$ACTUAL_BASE_OID")
+STACK_ENGINE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/stack-merge-cli.mjs"
+# Reject an upper linked PR before looking up its unprotected parent or changing protection.
+STACK_SNAPSHOT=$(node "$STACK_ENGINE" probe "$OWNER_REPO" "$PR") || exit 1
+STACK_KIND=$(node -e 'const s=JSON.parse(process.argv[1]);if(s.kind==="stack"&&(s.trunk!==process.argv[2]||s.trunkOid!==process.argv[3]||s.headOid!==process.argv[4]))process.exit(1);console.log(s.kind)' \
+  "$STACK_SNAPSHOT" "$ACTUAL_BASE" "$ACTUAL_BASE_OID" "$ACTUAL_HEAD_OID") || exit 1
 if verify_required_ci "$ACTUAL_BASE" "$ACTUAL_HEAD_OID"; then CI_RC=0; else CI_RC=1; fi
 UNRESOLVED=$(count_unresolved_threads "${OWNER_REPO%/*}" "${OWNER_REPO#*/}" "$PR" 2>/dev/null || echo "?")
 MERGEABLE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json mergeable --jq .mergeable 2>/dev/null || echo "?")
@@ -202,59 +220,79 @@ fi
 
 # restore(trap 대상): 저장한 원본 설정을 PATCH로 되돌린다. 멱등(_restored 가드) — 명시 호출과 trap이
 #   겹쳐도 1회. HAD_PROTECTION=no면 no-op(요건 신규 생성 방지).
-_restored=0
+# Persist the original policy and reserve this base across all local worktrees.
+# Effective merge-queue rules are checked before any review exception is opened.
+MERGE_JOURNAL=$(node "$STACK_ENGINE" prepare-solo "$STACK_SNAPSHOT" "$BRANCH_CONFIG") || exit 1
+export HARNESS_STACK_MERGE_JOURNAL="$MERGE_JOURNAL"
+
+_restored=0 _patched=0 MERGE_PID=""
 _restore() {
   [ "$_restored" = 1 ] && return 0
-  [ "$HAD_PROTECTION" = yes ] || return 0
+  if [ "$HAD_PROTECTION" = no ]; then
+    node "$STACK_ENGINE" finish "$MERGE_JOURNAL" || return 1
+    _restored=1; return 0
+  fi
   local payload attempt; payload=$(printf '%s' "$REVIEWS_CONFIG" | extract_restore_payload 2>/dev/null || true)
   if [ -z "$payload" ] || [ "$payload" = "{}" ]; then   # payload 생성 실패/빈 객체 → PATCH 안 보냄
     # 빈 PATCH나 {} PATCH는 no-op/필드 리셋 위험 → 보내지 않고 경보. verify가 fail-closed로 재확인.
     echo "  ⚠️ 복구 payload 생성 실패/공백(python3·jq 부재·실패) — $BASE 승인요건 수동 재설정 필요(count=$ORIG_COUNT)." >&2
     return 1
   fi
-  for attempt in 1 2 3; do
-    if printf '%s' "$payload" | gh api -X PATCH "$RPR_PATH" --input - >/dev/null 2>&1; then
-      _restored=1
-      return 0
+  if [ "$_patched" = 0 ]; then
+    obs_restore_start
+    for attempt in 1 2 3; do
+      if printf '%s' "$payload" | gh api -X PATCH "$RPR_PATH" --input - >/dev/null 2>&1; then
+        _patched=1; break
+      fi
+    done
+    if [ "$_patched" = 0 ]; then
+      echo "  ⚠️ 승인요건 복구 PATCH 3회 실패 — 수동으로 $BASE 보호에 승인요건 재설정 필요(count=$ORIG_COUNT)" >&2
+      return 1
     fi
-  done
-  echo "  ⚠️ 승인요건 복구 PATCH 3회 실패 — 수동으로 $BASE 보호에 승인요건 재설정 필요(count=$ORIG_COUNT)" >&2
-  return 1
+  fi
+  local restored_config restored_policy
+  restored_config=$(gh api "$PROTECTION_PATH") || return 1
+  restored_policy=$(printf '%s' "$restored_config" | canonical_branch_policy) || return 1
+  if [ "$restored_policy" != "$ORIG_BRANCH_POLICY" ]; then
+    echo "❌ 복구 검증 실패 — 전체 보호 정책이 원값과 다름: $BASE" >&2
+    return 1
+  fi
+  node "$STACK_ENGINE" finish "$MERGE_JOURNAL" || return 1
+  _restored=1
+  obs_restore_finish pass 0 RESTORE_VERIFIED
+  echo "🔒 복구 확인: $BASE 전체 보호 정책 원값 일치"
 }
 
 # arm trap: 정상·에러(set -e)·시그널(INT/TERM/HUP) 종료에서 복구를 시도한다. 시그널 핸들러는
 #   복구 후 관례적 코드로 exit(그 exit이 EXIT trap을 재발화해도 _restored 가드로 no-op). 보호 있을 때만 무장.
 #   ⚠️ SIGKILL·전원손실은 uncatchable — 별도로 저장한 원래 정책과 읽기 결과를 대조해야 한다.
+stop_merge() { if [ -n "$MERGE_PID" ]; then kill -TERM "$MERGE_PID" 2>/dev/null || true; wait "$MERGE_PID" 2>/dev/null || true; MERGE_PID=""; fi; }
+trap 'rc=$?; stop_merge; if ! _restore; then obs_restore_finish unverified 1 RESTORE_UNVERIFIED; obs_exit 1; exit 1; fi; obs_exit "$rc"; exit "$rc"' EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+trap 'exit 129' HUP
 if [ "$HAD_PROTECTION" = yes ]; then
-  trap '_restore' EXIT
-  trap '_restore; exit 130' INT
-  trap '_restore; exit 143' TERM
-  trap '_restore; exit 129' HUP
   echo "🔓 break-glass: $BASE 승인요건 일시 삭제(머지 후 복구)"
   gh api -X DELETE "$RPR_PATH" >/dev/null 2>&1
 fi
 
 # merge — 실패 시 set -e로 스크립트 이탈 → EXIT trap이 복구. pr-merge가 CI·스레드·mergeable 재검증.
-bash "$MERGE_CMD" "${MERGE_ARGS[@]}"
+[ "$STACK_KIND" != stack ] || obs_merge_begin
+bash "$MERGE_CMD" "${MERGE_ARGS[@]}" &
+MERGE_PID=$!
+if wait "$MERGE_PID"; then MERGE_RC=0; else MERGE_RC=$?; fi
+MERGE_PID=""
+[ "$STACK_KIND" != stack ] || obs_merge_result pr-merge
+[ "$MERGE_RC" = 0 ] || exit "$MERGE_RC"
 
 # 정상 경로: 명시 복구 후 trap 해제(성공 확정).
 _restore
 trap - EXIT INT TERM HUP
+trap 'rc=$?; obs_exit "$rc"; exit "$rc"' EXIT
 
 # verify: 머지됨 + 승인요건 원값 복원 확인. **fail-closed** — sentinel("?"/빈값)이면 '일치'가 아니라 '실패'로
 #   판정(복구 실패를 조용히 통과시키지 않는다). 복구가 어떤 이유로든(파서 부재·PATCH 5xx) 안 됐으면 여기서 경보.
 STATE=$(gh pr view "$PR" --repo "$OWNER_REPO" --json state --jq .state 2>/dev/null || echo "?")
-if [ "$HAD_PROTECTION" = yes ]; then
-  RESTORED_BRANCH_CONFIG=$(gh api "$PROTECTION_PATH" 2>/dev/null || echo "?")
-  RESTORED_CONFIG=$(printf '%s' "$RESTORED_BRANCH_CONFIG" | branch_review_config 2>/dev/null || echo "?")
-  RESTORED_BRANCH_POLICY=$(printf '%s' "$RESTORED_BRANCH_CONFIG" | canonical_branch_policy 2>/dev/null || echo "?")
-  RESTORED_PAYLOAD=$(printf '%s' "$RESTORED_CONFIG" | extract_restore_payload 2>/dev/null || echo "?")
-  RESTORED_COUNT=$(printf '%s' "$RESTORED_CONFIG" | _json_field required_approving_review_count 2>/dev/null || echo "?")
-  if [ "$ORIG_PAYLOAD" = "?" ] || [ "$RESTORED_PAYLOAD" = "?" ] || [ "$RESTORED_BRANCH_POLICY" = "?" ] || [ "$RESTORED_BRANCH_POLICY" != "$ORIG_BRANCH_POLICY" ]; then
-    echo "❌ 복구 검증 실패 — 리뷰 보호 전체 정책이 원값과 다름(count=$RESTORED_COUNT, 원값 $ORIG_COUNT). 즉시 수동 재설정 필요: $BASE" >&2
-    exit 1
-  fi
-  echo "🔒 복구 확인: $BASE 승인요건 count=$RESTORED_COUNT"
-fi
 [ "$STATE" = "MERGED" ] || { echo "❌ 머지 상태 확인 실패: state=$STATE" >&2; exit 1; }
+if [ "$STACK_KIND" != stack ]; then OBS_OUTCOME=pass OBS_REASON=MERGED; fi
 echo "✅ solo-merge 완료 — PR #$PR MERGED"

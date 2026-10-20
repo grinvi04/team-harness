@@ -128,6 +128,44 @@ else
   fail "artifact가 재현 가능하지 않음"
 fi
 
+if node --input-type=module - "$TMP/build-a" "$ROOT" <<'NODE'
+import {readFileSync, readdirSync} from 'node:fs';
+import {join} from 'node:path';
+import {execFileSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+const [packages, root] = process.argv.slice(2);
+const core = join(packages, 'harness-governance-core');
+const sourceFiles = execFileSync('git', ['ls-tree', '-r', '--name-only', 'HEAD', '--',
+  'plugins/harness-guard/dashboard'], {cwd: root, encoding: 'utf8'}).trim().split('\n').filter(Boolean);
+assert(sourceFiles.includes('plugins/harness-guard/dashboard/index.html'));
+assert(sourceFiles.includes('plugins/harness-guard/dashboard/asset-manifest.json'));
+for (const source of [...sourceFiles, 'plugins/harness-guard/scripts/observe.mjs',
+  'plugins/harness-guard/scripts/observation/assets.mjs']) {
+  const relative = source.slice('plugins/harness-guard/'.length);
+  assert.deepEqual(readFileSync(join(core, relative)),
+    execFileSync('git', ['show', `HEAD:${source}`], {cwd: root}));
+}
+function inspect(directory, relative = '') {
+  for (const entry of readdirSync(directory, {withFileTypes: true})) {
+    const name = join(relative, entry.name);
+    assert(!['node_modules', 'src'].includes(entry.name), name);
+    assert(!['package-lock.json', 'vite.config.ts', 'vitest.config.ts', 'tsconfig.json'].includes(entry.name), name);
+    if (entry.isDirectory()) inspect(join(directory, entry.name), name);
+  }
+}
+for (const unit of readdirSync(packages)) {
+  inspect(join(packages, unit));
+  if (unit !== 'harness-governance-core') {
+    assert(!readdirSync(join(packages, unit)).includes('dashboard'), unit);
+  }
+}
+NODE
+then
+  pass "core dashboard assets·runtime은 Git bytes와 일치하고 설치물에서 authoring source·의존성 제외"
+else
+  fail "dashboard package 배포 경계 불일치"
+fi
+
 if node --input-type=module - "$TMP/build-a/harness-governance-core" "$ROOT" <<'NODE'
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';

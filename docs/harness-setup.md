@@ -24,22 +24,22 @@ claude plugin install harness-guard@team-harness --scope user
 claude plugin list --json
 ```
 
-목록에서 `harness-guard@team-harness`의 버전·enabled 상태를 확인한다. 이 안내의 대상은1.0.0이며 [발행 태그](https://github.com/grinvi04/team-harness/tree/v1.0.0)를 먼저 확인한다.
+목록에서 `harness-guard@team-harness`의 버전·enabled 상태를 확인한다. 이 안내의 대상은1.2.0이며 [발행 태그](https://github.com/grinvi04/team-harness/tree/v1.2.0)를 먼저 확인한다.
 Claude marketplace는 기본 브랜치를 조회한다. 이후 갱신은 공식 [플러그인 관리](https://code.claude.com/docs/en/discover-plugins)를 따른다.
 이미 등록·설치된 경우 현재 목록부터 확인하며, 로컬 개발 source를 임의로 교체하지 않는다.
 
 ### Codex 최초 설치·갱신
 
-아래는 v1.0.0 태그에 고정한 설치다. 태그가 없으면 [전달 기록](specs/team-harness-redesign/delivery.md)을 확인하고 설치를 기다린다. **다른 태그·경로로 이미 등록돼 있으면
+아래는 v1.2.0 태그에 고정한 설치다. 태그가 없으면 [현재 전달 기록](pilots/local-runtime-dashboard-release-1.2.0.md)을 확인하고 설치를 기다린다. **다른 태그·경로로 이미 등록돼 있으면
 [Native Refresh Runbook](specs/codex-guard-compatibility.md#codex-native-refresh-runbook)의 기존 source 전환을 먼저 수행한다.**
 `/path/to/release-source`는 `marketplace add`의 JSON 결과에 있는 `installedRoot`로 바꾼다.
 검사기와 비교 원본도 해당 태그에서 가져오며, 이전 개발 checkout의 검사기를 사용하지 않는다.
 
 ```bash
-codex plugin marketplace add grinvi04/team-harness --ref v1.0.0 --json
+codex plugin marketplace add grinvi04/team-harness --ref v1.2.0 --json
 codex plugin add harness-guard@team-harness --json
 codex plugin list --marketplace team-harness --json
-node "/path/to/release-source/scripts/check-codex-native-plugin.mjs" --expected-version 1.0.0 --trusted-root "/path/to/release-source/plugins/harness-guard"
+node "/path/to/release-source/scripts/check-codex-native-plugin.mjs" --expected-version 1.2.0 --trusted-root "/path/to/release-source/plugins/harness-guard"
 ```
 
 기존 로컬 개발 checkout을 전환하거나 외부 플러그인을 수정하지 않는다. 다음 갱신 때는 승인된 새 태그를 명시한다.
@@ -54,7 +54,7 @@ Codex의 managed `hooks=true` 설정은 [온보딩 D절](onboarding.md#d-claude-
 원본이 없다면 **제품 디렉터리 밖의 부모 디렉터리**에서 아래로 받는다. 기존 `team-harness` 디렉터리가 있으면 재복제하지 않는다.
 
 ```bash
-git clone --branch v1.0.0 https://github.com/grinvi04/team-harness.git team-harness
+git clone --branch v1.2.0 https://github.com/grinvi04/team-harness.git team-harness
 ```
 
 이때 `/path/to/team-harness`를 복제한 디렉터리의 절대 경로로 바꾼다. 플러그인만 사용할 때는 별도 복제가 필요 없다.
@@ -75,7 +75,7 @@ git clone --branch v1.0.0 https://github.com/grinvi04/team-harness.git team-harn
 자산을 아직 채택하지 않았다면 `tech` 기록도 없으며, 이를 적용 완료로 처리하지 않는다.
 
 ```bash
-PYTHON_BIN=python3.11 bash "/path/to/team-harness/scripts/harness-doctor.sh" --repo . --components codex --expected-version 1.0.0
+PYTHON_BIN=python3.11 bash "/path/to/team-harness/scripts/harness-doctor.sh" --repo . --components codex --expected-version 1.2.0
 ```
 
 구성 실패는 해당 설치·설정부터 해결한다. 구성 PASS도 새 세션의 실제 hook 집행을 증명하지 않는다.
@@ -95,9 +95,16 @@ launcher는 지정한 source 기준으로 설치 cache를 동기화한 뒤 확�
 ```bash
 HARNESS_SOURCE="/path/to/team-harness"
 bash "$HARNESS_SOURCE"/scripts/codex-hardened.sh --version
-PYTHON_BIN=python3.11 bash "$HARNESS_SOURCE"/scripts/harness-doctor.sh --repo . --probe --components codex --expected-version 1.0.0
+PYTHON_BIN=python3.11 bash "$HARNESS_SOURCE"/scripts/harness-doctor.sh --repo . --probe --components codex --expected-version 1.2.0
 ```
 
 `HARNESS_SOURCE`는 위 발행 태그의 원본 루트로 바꾼다. probe는 throwaway
 디렉터리와 loopback 폐쇄 포트만 사용하고, 검토된 hook을 해당 invocation에서만 실행하도록 hook trust를
 일회성 우회한다(approval·sandbox는 유지). 인증된 Codex 세션의 모델 토큰을 소비하므로 CI에서는 실행하지 않는다.
+
+### 선택적 로컬 실행 관측
+
+[관측 대시보드 가이드](guides/observability.md)에서 첫 실행·종료·기록 경로·미연결 해결을 확인한다.
+관측 기능은1.2.0에 포함한다. 위 exact 태그가 발행됐는지 먼저 확인하며 개발 checkout의 존재로 발행을 추정하지 않는다.
+설치 후보는 생성 asset을 함께 제공하므로 사용자가 npm 설치·빌드를 하지 않는다.
+새 관측 경로의 실제 Codex CLI·desktop·Claude 연결 인수는 [현재 실행 기록](pilots/local-runtime-dashboard.md)과 구분한다.

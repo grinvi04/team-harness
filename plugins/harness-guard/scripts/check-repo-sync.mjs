@@ -77,7 +77,7 @@ const catalog = existsSync(catalogPath) ? JSON.parse(readFileSync(catalogPath, '
 const ruleSources = catalog?.ruleSources || {}
 const strictVersions = args.includes('--versions'), jsonOutput = args.includes('--json')
 const IS_HARNESS_SELF = REPO === HARNESS
-const SELF_IGNORED_PREFIXES = ['templates', 'tests/fixtures', 'docs/goals', 'scripts/stack-versions']
+const SELF_IGNORED_PREFIXES = ['templates', 'tests/fixtures', 'docs/goals', 'scripts/stack-versions', '.runtime']
 
 if (!existsSync(REPO)) {
   console.error(`✖ --repo 경로가 없습니다: ${REPO}`)

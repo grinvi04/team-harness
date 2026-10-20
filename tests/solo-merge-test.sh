@@ -51,6 +51,9 @@ E2E_DIR=$(mktemp -d); trap 'rm -rf "$E2E_DIR"' EXIT
 #   복구 안 된 상태의 count GET은 404(→wrapper "?")로 응답 → verify가 실데이터처럼 sentinel을 본다(반증 충실도).
 cat > "$E2E_DIR/gh" <<'GHEOF'
 #!/bin/sh
+if [ "$1" = api ] && [ "$2" = --hostname ] && [ "$3" = github.com ] && [ "$4" = --method ] && [ "$5" = GET ]; then
+  shift 5; set -- api "$@"
+fi
 args="$*"
 case "$args" in
  'api repos/owner/repo') printf '%s' '{"owner":{"login":"owner","type":"User"}}'; exit 0;;
@@ -59,6 +62,15 @@ esac; S="$GH_STATE"
 case "$args" in
   *"repo view"*) echo "owner/repo"; exit 0 ;;
   *"pr view"*"--json number"*) echo 42; exit 0 ;;
+  'api repos/owner/repo/pulls/42'|'api repos/owner/repo/pulls/42 --method GET')
+    printf '{"number":42,"html_url":"https://github.com/owner/repo/pull/42","state":"open","draft":false,"head":{"ref":"hotfix/example","sha":"%s","repo":{"full_name":"owner/repo"}},"base":{"ref":"main","sha":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","repo":{"full_name":"owner/repo"}}}' "${FAKE_HEAD_OID:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}"; exit 0 ;;
+  *"api repos/owner/repo/rules/branches/main?per_page=100&page=1"*)
+    echo "RULES-GET ${FAKE_RULES:-none}" >> "$GH_LOG"
+    case "${FAKE_RULES:-none}" in
+      queue) printf '%s' '[{"type":"merge_queue","parameters":{"merge_method":"MERGE"}}]'; exit 0 ;;
+      error) echo 'rules lookup failed' >&2; exit 1 ;;
+      *) printf '%s' '[]'; exit 0 ;;
+    esac ;;
   *"api repos/owner/repo/git/ref/heads/"*)
     [ "${FAKE_BASE_FAIL:-0}" = 0 ] || exit 1
     printf '%s\n' "${FAKE_BASE_OID:-bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb}"; exit 0 ;;
@@ -95,6 +107,7 @@ case "$args" in
     fi
     printf '%s' "$FAKE_REVIEWS_CONFIG"; [ -n "$FAKE_REVIEWS_CONFIG" ]; exit $? ;;
   *branches/*/protection*)
+    echo "POLICY-GET $cur" >> "$GH_LOG"
     [ "${FAKE_GET_RC:-0}" = 0 ] || exit "$FAKE_GET_RC"
     if [ "$cur" = restored ]; then
       [ "${FAKE_VERIFY_RC:-0}" = 0 ] || exit "$FAKE_VERIFY_RC"
@@ -114,6 +127,8 @@ cat > "$E2E_DIR/git" <<'GITEOF'
 #!/bin/sh
 if [ "$*" = 'rev-parse --show-toplevel' ]; then
  if [ "${FAKE_COMPANY_MODE:-0}" = 1 ]; then printf '%s/company\n' "$E2E_POLICY_ROOT"; else printf '%s/solo\n' "$E2E_POLICY_ROOT"; fi
+elif [ "$*" = 'rev-parse --git-common-dir' ]; then
+ printf '%s\n' "$E2E_COMMON_DIR"
 else exit 1; fi
 GITEOF
 chmod +x "$E2E_DIR/git"
@@ -124,8 +139,10 @@ NOPARSE="$E2E_DIR/noparse"; mkdir -p "$NOPARSE"; for b in python3 jq; do printf 
 E2E_N=0; L=""; RC=0
 run_e2e() { # merge_body, fake_config, [path_prefix] → 전역 L(로그경로)·RC 설정 (커맨드치환 서브셸 회피)
   E2E_N=$((E2E_N+1)); L="$E2E_DIR/log.$E2E_N"; local mc="$E2E_DIR/merge.$E2E_N.sh"
+  local common="$E2E_DIR/common.$E2E_N"; mkdir -m 700 "$common"
   : > "$L"; local st="$E2E_DIR/state.$E2E_N"; : > "$st"; printf '#!/bin/sh\nprintf "MERGE %%s\\n" "$*" >> "$GH_LOG"\n%s\n' "$1" > "$mc"; chmod +x "$mc"
   PATH="${3:+$3:}$E2E_DIR:$PATH" GH_LOG="$L" GH_STATE="$st" FAKE_REVIEWS_CONFIG="$2" SOLO_MERGE_MERGE_CMD="$mc" \
+    E2E_COMMON_DIR="$common" FAKE_RULES="${FAKE_RULES:-none}" \
     FAKE_HEAD_OID="${FAKE_HEAD_OID:-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa}" FAKE_CI_RC="${FAKE_CI_RC:-0}" FAKE_UNRESOLVED="${FAKE_UNRESOLVED:-0}" FAKE_MERGEABLE="${FAKE_MERGEABLE:-MERGEABLE}" \
     FAKE_PATCH_RC="${FAKE_PATCH_RC:-0}" \
     FAKE_GET_RC="${FAKE_GET_RC:-0}" FAKE_VERIFY_RC="${FAKE_VERIFY_RC:-0}" \
@@ -139,6 +156,14 @@ FAKE_COMPANY_MODE=1 run_e2e 'exit 0' "$FULL"
 ok "$(grep -c '^DELETE' "$L")" 0 "회사 경로 DELETE0"
 ok "$(grep -c '^PATCH' "$L")" 0 "회사 경로 PATCH0"
 [ "$RC" -ne 0 ] && { echo "PASS: 회사 경로 거부"; PASS=$((PASS+1)); } || { echo "FAIL: 회사 경로 허용"; FAIL=$((FAIL+1)); }
+
+for rules_case in queue error; do
+  FAKE_RULES="$rules_case" run_e2e 'exit 0' "$FULL"
+  ok "$(grep -c '^RULES-GET' "$L")" 1 "G2 $rules_case active rules 조회"
+  ok "$(grep -c '^DELETE' "$L")" 0 "G2 $rules_case 규칙은 DELETE 이전 거부"
+  ok "$(grep -c '^MERGE' "$L")" 0 "G2 $rules_case 규칙은 merge 실행 금지"
+  [ "$RC" -ne 0 ] && { echo "PASS: G2 $rules_case 규칙 거부"; PASS=$((PASS+1)); } || { echo "FAIL: G2 $rules_case 규칙 허용"; FAIL=$((FAIL+1)); }
+done
 
 # AC-1 정상: DELETE 1·PATCH 1(4필드)·RC0
 FAKE_REQUIRED_ROLLUP='[]' run_e2e 'exit 0' "$FULL"
@@ -158,12 +183,18 @@ ok "$RC" 0 "AC-1 정상 — RC 0"
 # AC-2 머지실패: merge exit 1 → set -e 이탈해도 trap이 PATCH 복구, RC≠0
 run_e2e 'exit 1' "$FULL"
 ok "$(grep -c '^PATCH' "$L")" 1 "AC-2 머지실패 — trap 복구 PATCH 1회"
+ok "$(grep -c '^POLICY-GET restored' "$L")" 2 "G2 머지실패 후 wrapper와 journal 전체 보호 readback"
 [ "$RC" -ne 0 ] && { echo "PASS: AC-2 머지실패 — RC≠0(=$RC)"; PASS=$((PASS+1)); } || { echo "FAIL: AC-2 — RC=$RC(기대≠0)"; FAIL=$((FAIL+1)); }
 
 # AC-3 시그널: merge가 wrapper에 SIGTERM → trap이 복구 PATCH 실행
 run_e2e 'kill -TERM $PPID' "$FULL"
 ok "$(grep -c '^PATCH' "$L")" 1 "AC-3 시그널(TERM) — trap 복구 PATCH 1회"
+ok "$(grep -c '^POLICY-GET restored' "$L")" 2 "G2 TERM 후 wrapper와 journal 전체 보호 readback"
 [ "$RC" -ne 0 ] && { echo "PASS: AC-3 시그널 — 비정상 종료(RC=$RC)"; PASS=$((PASS+1)); } || { echo "FAIL: AC-3 — RC=$RC(기대≠0)"; FAIL=$((FAIL+1)); }
+
+run_e2e 'kill -HUP $PPID' "$FULL"
+ok "$(grep -c '^POLICY-GET restored' "$L")" 2 "G2 HUP 후 wrapper와 journal 전체 보호 readback"
+[ "$RC" -ne 0 ] && { echo "PASS: G2 HUP 실패 exit 유지"; PASS=$((PASS+1)); } || { echo "FAIL: G2 HUP 성공 오판"; FAIL=$((FAIL+1)); }
 
 # AC-4 보호없음: HAD_PROTECTION=no → DELETE·PATCH 0건(요건 신규 생성 방지)
 run_e2e 'exit 0' ""

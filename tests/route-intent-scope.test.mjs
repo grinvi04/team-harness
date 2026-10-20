@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { mkdtempSync, writeFileSync, existsSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { decide, isActionable } from '../plugins/harness-guard/scripts/route-intent.mjs'
+import { decide, isActionable, soloProtectionRef } from '../plugins/harness-guard/scripts/route-intent.mjs'
 
 const states = [
   { branch: '', hasSpec: true },
@@ -15,6 +15,24 @@ const states = [
   { branch: 'feature/x', openPR: 5, isSolo: false },
   { branch: 'feature/x', openPR: 5, isSolo: true },
 ]
+test('an unprotected feature parent is never a solo protection target', () => {
+  for (const prBase of ['codex/parent', 'feature/parent', 'fix/parent', 'unknown']) {
+    assert.equal(soloProtectionRef({ openPR: 42, prBase }), null)
+  }
+})
+
+test('an opted-in local stack without a verified direct parent does not infer committed work from trunk', t => {
+  const script = fileURLToPath(new URL('../plugins/harness-guard/scripts/route-intent.mjs', import.meta.url))
+  const scratch = mkdtempSync(join(tmpdir(), 'routing-stack-'))
+  t.after(() => rmSync(scratch, { recursive: true, force: true }))
+  writeFileSync(join(scratch, '.harness-policy.json'), JSON.stringify({ schemaVersion: 1, mode: 'company',
+    autoMergeTargets: [], branchFlow: 'git-flow', stackedPRs: { enabled: true, provider: 'github-gh-stack' } }))
+  writeFileSync(join(scratch, 'git'), '#!/bin/sh\ncase "$*" in\n*"branch --show-current"*) echo codex/child;;\n*"rev-list --count"*) echo 3;;\n*"rev-parse --abbrev-ref"*) echo origin/main;;\nesac\n', { mode: 0o755 })
+  writeFileSync(join(scratch, 'gh'), '#!/bin/sh\necho "[]"\n', { mode: 0o755 })
+  const r = spawnSync(process.execPath, [script], { input: JSON.stringify({ prompt: '머지해', cwd: scratch }),
+    env: { ...process.env, PATH: scratch }, encoding: 'utf8' })
+  assert.equal(r.status, 0); assert.equal(r.stdout, '', 'three inherited parent commits do not establish child work')
+})
 
 for (const prompt of [
   '진행해', '계속해', '해줘', 'go ahead', 'proceed', '정리해줘',

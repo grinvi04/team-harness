@@ -7,6 +7,8 @@ Team Harness는 앱 코드가 아니라 개발 기준·설정·검사 연결을 
 | 영역 | 수정할 정본 | 사용하는 곳 |
 |---|---|---|
 | 가드·PR·복구·스킬 | `plugins/harness-guard/` | 설치되는 공개 플러그인 하나 |
+| 관측 화면 제작 | root `dashboard/` | React·TypeScript 정본·lockfile; 설치본에는 제작 의존성을 넣지 않음 |
+| 관측 화면 배포 | `plugins/harness-guard/dashboard/` | 빌드해 커밋한 asset·manifest를 Node viewer가 제공 |
 | 팀 기술 기준 | `docs/`의 현재 안내 | 소비 프로젝트가 선택해서 적용 |
 | 소비 프로젝트 기본 설정 | `templates/settings.json` | 새 프로젝트의 `.claude/settings.json` |
 | 이 저장소의 도구 설정 | `.claude/settings.json` | Team Harness 소스 개발용; 설치 선언을 넣지 않음 |
@@ -31,11 +33,22 @@ node scripts/sync-repository-config.mjs --write
 node scripts/sync-repository-config.mjs --check
 ```
 
-이 명령은 표에 적힌 세 배치 사본의 내용과 실행 권한만 관리한다.
+이 명령은 표에 적힌 세 배치 사본의 내용과 실행 권한만 관리한다. 자체 `commitlint-trusted.yml`은
+공용 `commitlint.yml` 뒤에 `templates/ci/repository/commitlint-extra.yml`을 연결한다. 이 추가 조각은
+기존 필수 job에서 protected checker로 후보 문서 선언을 검사하며 소비 repo에는 복사하지 않는다.
 다른 workflow와 이 저장소의 설정은 각각 목적이 있으므로 합치지 않는다.
 Codex 스킬 wrapper는 공통 스킬을 연결하는 공식 진입점이다. metadata 정본은 공유 `skills/*/SKILL.md`다.
 `node scripts/generate-codex-skills.mjs --write`로 생성하고 `--check`로 drift를 거부한다.
 Codex 차이는 `codex/native-runtime.md`의 공통 절과 해당 작업 절에만 두며 공통 본문을 복사하지 않는다.
+
+## 관측 화면을 바꿀 때
+
+화면 제작·검사·생성 명령은 [관측 가이드의 제작·재현](guides/observability.md#제작재현)을 따른다.
+정본은 root `dashboard/`이며 `scripts/build-dashboard.mjs --write`가 plugin 배포 파일을 생성한다.
+소스·lockfile·생성 asset을 같은 후보로 커밋하고 CI의 `--check`로 파일 목록·내용 일치를 검사한다.
+설치본은 생성 파일을 그대로 제공한다. 소비자 npm 설치·빌드나 root 제작 소스를 요구하지 않는다.
+분리 package에는 plugin asset을 포함하고 root 제작 소스·node_modules는 제외한다. source archive에는 제작 소스를 보존한다.
+관측 기능의 현재 인수·실호스트 미확인 범위는 [실행 기록](pilots/local-runtime-dashboard.md)에서 별도 확인한다.
 
 ## 스택 템플릿을 바꿀 때
 

@@ -120,3 +120,26 @@ test('optional branch flow preserves existing company, solo and auto policy mean
   set({ ...policy('main'), mode: 'solo', autoMergeTargets: ['main'] })
   assert.equal(run('solo').status, 1)
 })
+
+// Opt-in must not silently change ordinary PR destinations or solo/auto eligibility.
+test('stack opt-in preserves ordinary trunk selection and refuses raw parent base', t => {
+  const p = { ...policy('git-flow'), stackedPRs: { enabled: true, provider: 'github-gh-stack' } }
+  const f = fixture(t, { policy: p })
+  const result = f.run([])
+  assert.equal(result.status, 0, result.stderr)
+  assert.equal(f.calls().find(x => x.tool === 'gh').args[3], 'develop')
+  const raw = fixture(t, { policy: p, heads: ['develop', 'codex/parent'] })
+  rejected(raw, raw.run(['--base', 'codex/parent']))
+})
+for (const stackedPRs of [null, false, [], {}, { enabled: false, provider: 'github-gh-stack' },
+  { enabled: true, provider: 'other' }, { enabled: true, provider: 'github-gh-stack', trunk: 'main' }]) {
+  test(`invalid stack declaration cannot permit a push: ${JSON.stringify(stackedPRs)}`, t => {
+    const f = fixture(t, { policy: { ...policy('git-flow'), stackedPRs } })
+    rejected(f, f.run([]))
+  })
+}
+test('stack opt-in requires an explicit supported branch flow', t => {
+  const f = fixture(t, { policy: { schemaVersion: 1, mode: 'company', autoMergeTargets: [],
+    stackedPRs: { enabled: true, provider: 'github-gh-stack' } } })
+  rejected(f, f.run(['--base', 'develop']))
+})

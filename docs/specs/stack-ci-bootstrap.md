@@ -97,3 +97,16 @@ target run의 이벤트·workflow 원본 SHA·검사 대상 후보 SHA를 직접
 이벤트별 계약 추가 직후 17 PASS/1 FAIL을 보존했고, 수정 후 18/18과 생성물·YAML/쉘 구문은 PASS다.
 원문 증거는 `.runtime/gh-stack-g0/ci-bootstrap-delivery-1/transition-fixture/`에 보존한다.
 이전 74단계 PASS는 위 후보의 과거 기록이며 현재 변경 전체의 PASS를 뜻하지 않는다.
+
+## 원격 전달 — 2026-10-16
+
+[PR581](https://github.com/grinvi04/team-harness/pull/581)→develop `33c4f73`에서 release-check 전체74·산출물·live provenance7·독립 보안 검토를 통과했다.
+[PR582](https://github.com/grinvi04/team-harness/pull/582)의 독립 리뷰·필수5 통과 후 main `e038399`로 병합하고 해당 SHA에 [v1.1.0](https://github.com/grinvi04/team-harness/tree/v1.1.0)을 발행했다.
+[PR583](https://github.com/grinvi04/team-harness/pull/583)의 필수5 통과 후 develop `5ca2bd0`으로 역병합했다. main 포함·전체 보호·rulesets 원값을 확인했다.
+원문은 CI release worktree의 `.runtime/gh-stack-g0/main-pr582/delivery-result.json`과 backmerge worktree의 `backmerge/`에 보존했다.
+
+PR583의 실제 [test-guard target](https://github.com/grinvi04/team-harness/actions/runs/38792944227)와 [trusted 문서/커밋 검사](https://github.com/grinvi04/team-harness/actions/runs/38792944286)는 PASS다.
+두 실행의 checkout `e038399`, head `e038399`, base `33c4f73`와 원격 workflow bytes·job 로그를 대조했다.
+이 역병합은 head와 main이 같으므로 일반 target 실행 증거이며, 악성 후보 분리나 자체 stacked 실행의 증거로 확대하지 않는다.
+이를 확인한 전체1.2.0 후보에서 임시 PR 이벤트만 제거하고 merge-base 교정·읽기 권한·credential 비보존을 유지한다.
+실제 stacked·solo·대시보드 인수는 남았다. 기존 설치1.0.0은 유지했고 새 설치·GitHub Release 게시·운영 배포는 실행하지 않았다.

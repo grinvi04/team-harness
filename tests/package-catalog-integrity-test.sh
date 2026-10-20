@@ -12,6 +12,40 @@ FAIL=0
 pass() { echo "PASS: $1"; PASS=$((PASS + 1)); }
 fail() { echo "FAIL: $1"; FAIL=$((FAIL + 1)); }
 
+if python3 - "$CATALOG" <<'PY'
+import json
+import sys
+
+catalog = json.load(open(sys.argv[1]))
+core = next(package for package in catalog["packages"] if package["id"] == "governance-core")
+assert {"scripts/observe.mjs", "dashboard"} <= set(core["sources"])
+PY
+then
+  pass "dashboard runtime과 assets의 governance core 소유 선언"
+else
+  fail "dashboard runtime과 assets의 governance core 소유 누락"
+fi
+
+if python3 - "$ROOT" <<'PY'
+import subprocess
+import sys
+
+root = sys.argv[1]
+ignored = ["dashboard/node_modules/example/index.js", "dashboard/.vite/cache.json", "dashboard/app.tsbuildinfo"]
+retained = ["dashboard/package.json", "dashboard/package-lock.json", "dashboard/src/main.tsx",
+            "plugins/harness-guard/dashboard/index.html", "plugins/harness-guard/dashboard/asset-manifest.json",
+            "plugins/harness-guard/dashboard/assets/index.js", "other/node_modules/example/index.js"]
+for paths, expected in [(ignored, 0), (retained, 1)]:
+    for path in paths:
+        result = subprocess.run(["git", "check-ignore", "--no-index", "-q", path], cwd=root)
+        assert result.returncode == expected, path
+PY
+then
+  pass "dashboard authoring cache만 ignore하고 source·lock·배포 assets 유지"
+else
+  fail "dashboard ignore 경계 불일치"
+fi
+
 python3 - "$CATALOG" "$TMP/invalid-binding.json" <<'PY'
 import json
 from pathlib import Path

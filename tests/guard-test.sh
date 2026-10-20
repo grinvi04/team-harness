@@ -123,6 +123,17 @@ check "G4: 서브셸 (checkout -b feature/bar) spec有 통과" 0 Bash "(git chec
 check "G5: git branch feature/(무spec) 차단"  2 Bash "git branch feature/noplan && git switch feature/noplan" "$DEV"
 check "git branch -d 삭제는 게이트 무관 통과"  0 Bash "git branch -d feature/old"          "$FEAT"
 
+# Official stack mutations keep the same wrapper boundary as raw PR create/merge.
+for ACTION in submit link merge sync push modify unstack; do
+  check "raw stack $ACTION uses wrapper" 2 Bash "gh stack $ACTION" "$FEAT"
+  check "stack $ACTION help is a query" 0 Bash "gh stack $ACTION --help" "$FEAT"
+done
+for ACTION in view status log init add next prev; do
+  check "stack $ACTION stays native" 0 Bash "gh stack $ACTION" "$FEAT"
+done
+check "stack command mention is not execution" 0 Bash "echo 'gh stack merge'" "$FEAT"
+check "stack wrapper entry remains allowed" 0 Bash "bash plugins/harness-guard/scripts/stack.sh submit --plan /tmp/plan.json" "$FEAT"
+
 # P1: guard 정규식 정확성 (감사 T2) — 우회 4 + 과차단 1
 : > "$DEV/f.txt"
 # A1: force-push 결합 단축플래그(-fu)·plus-refspec(+HEAD:main) — 외부 게이트가 놓치던 것

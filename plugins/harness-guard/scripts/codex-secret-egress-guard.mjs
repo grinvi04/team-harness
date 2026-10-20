@@ -7,22 +7,27 @@
 import { createHash } from 'node:crypto'
 import { appendFileSync, chmodSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
+const { observeHook } = await import('./codex-observation.mjs').catch(() => ({ observeHook: async () => null }))
 
 let input = ''
 for await (const chunk of process.stdin) input += chunk
 
 let hook
+let observationInput
+try { observationInput = JSON.parse(input) } catch { /* Preserve the standalone malformed-input behavior. */ }
+const observation = await observeHook(observationInput, 'guard')
 try {
   hook = JSON.parse(input)
 } catch {
   // Do not turn a malformed foreign hook payload into a broad command block.
+  observation?.finish('unverified', 'INPUT_INVALID', 0)
   process.exit(0)
 }
 
 // The hook matcher chooses Bash executions. Codex uses `tool_input.cmd` for
 // exec while Claude uses `tool_input.command`, so do not gate on tool_name.
 const command = hook?.tool_input?.command ?? hook?.tool_input?.cmd
-if (typeof command !== 'string') process.exit(0)
+if (typeof command !== 'string') { observation?.finish('unverified', 'CONTEXT_MISSING', 0); process.exit(0) }
 
 function collapseLineContinuations(value) {
   let output = ''
@@ -1497,5 +1502,7 @@ const blocked = logicalCommands.truncated || logicalCommands.commands.some((logi
 if (blocked) {
   auditEgressBlock()
   process.stderr.write('⛔ [security] 명백한 시크릿 외부 전송 패턴을 차단했습니다. 네트워크 전송이 필요하면 시크릿을 제거하고 사용자 승인을 받으세요.\n')
+  observation?.finish('deny', 'GUARD_DENIED', 2)
   process.exit(2)
 }
+observation?.finish('allow', 'GUARD_ALLOWED', 0)

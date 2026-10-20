@@ -61,17 +61,23 @@ if (a[0] === 'repo' && a[1] === 'view') { save(); console.log('test/repo');
  else if (field.includes(',')) emit(s.candidate);
  else { save(); console.log(s.candidate[field] || ''); }
 } else if (a[0] === 'api' && a[1] !== 'graphql') {
- if (a[1].includes('/git/ref/heads/')) {
+ const endpoint = a.find(x => x.startsWith('repos/')) || '';
+ if (endpoint.includes('/git/ref/heads/')) {
   if (s.liveBaseFail) { save(); process.exit(1); }
   const sha = s.liveBaseMalformed ? 'not-a-commit' : (s.liveBaseOid || s.candidate.baseRefOid);
   if (a.includes('--jq')) { save(); console.log(sha); } else emit({object:{sha}});
   process.exit(0);
  }
- const endpoint = a[a.length - 1];
+ if (endpoint === 'repos/test/repo/pulls/42') {
+  if (!a.includes('--hostname') || value('--hostname') !== 'github.com' || value('--method') !== 'GET') process.exit(9);
+  emit({number:42,html_url:'https://github.com/test/repo/pull/42',state:'open',draft:false,merged:false,
+   head:{ref:s.candidate.headRefName,sha:s.candidate.headRefOid,repo:{full_name:'test/repo'}},
+   base:{ref:s.candidate.baseRefName,sha:s.candidate.baseRefOid,repo:{full_name:'test/repo'}},stack:null}); return;
+ }
  if (endpoint.endsWith('/required_status_checks')) { emit({strict:true,contexts:['quality'],checks:[{context:'quality',app_id:1}]}); process.exit(0); }
  if (endpoint.endsWith('/check-runs')) { emit([{check_runs:[{id:10,name:'quality',head_sha:s.candidate.headRefOid,status:'completed',conclusion:'success',app:{id:1}}]}]); process.exit(0); }
  if (endpoint.endsWith('/statuses')) { emit([[]]); process.exit(0); }
- const comment = Number(a[1].match(/comments\/(\d+)\/replies$/)?.[1]);
+ const comment = Number(endpoint.match(/comments\/(\d+)\/replies$/)?.[1]);
  if (!comment) { save(); process.exit(9); }
  s.replies.push({ comment, body: a.find(x => x.startsWith('body='))?.slice(5) });
  if (s.replyFail) { save(); process.exit(1); }
@@ -216,6 +222,7 @@ NODEFILL`;
  const workflowActual = JSON.parse(fs.readFileSync(workflowState, 'utf8'));
  assert.deepEqual(workflowActual.resolves, ['PRRT_reviewed']);
  assert.equal(workflowActual.merges.length, 1);
+ assert.equal(workflowActual.calls.filter(a => a.includes('repos/test/repo/pulls/42')).length, 2, 'ordinary PR observed before and after gates');
  const mergeArgs = workflowActual.merges[0];
  assert.equal(mergeArgs[mergeArgs.indexOf('--match-head-commit') + 1], candidate.headRefOid);
  if (process.env.Q2A_EVIDENCE_DIR) fs.writeFileSync(path.join(process.env.Q2A_EVIDENCE_DIR, 'skill-workflow.json'), JSON.stringify({ status: workflowResult.status, stdout: workflowResult.stdout, stderr: workflowResult.stderr, state: workflowActual }, null, 2));

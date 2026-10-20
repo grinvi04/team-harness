@@ -1,0 +1,485 @@
+{
+  "schemaVersion": 1,
+  "observedDate": "2026-10-15",
+  "baseline": "59bf40ba8f02bcbd38c941995e769ab412092f7b",
+  "candidateState": "uncommitted G0 probe and report; no product runtime change",
+  "verdict": "NO_GO_NATIVE_LINKED_MERGE",
+  "originalAcceptancePreserved": true,
+  "localCases": [
+    {
+      "id": "explicit-develop-three-layer",
+      "verdict": "PASS",
+      "firstCommand": 6,
+      "lastCommand": 20
+    },
+    {
+      "id": "cascading-rebase",
+      "verdict": "PASS",
+      "firstCommand": 21,
+      "lastCommand": 28
+    },
+    {
+      "id": "dirty-other-worktree-preserved",
+      "verdict": "PASS",
+      "firstCommand": 29,
+      "lastCommand": 40
+    },
+    {
+      "id": "conflict-abort-restores-all-layer-refs",
+      "verdict": "PASS",
+      "firstCommand": 41,
+      "lastCommand": 63
+    },
+    {
+      "id": "existing-rerere-setting-preserved",
+      "verdict": "PASS",
+      "firstCommand": 64,
+      "lastCommand": 68
+    }
+  ],
+  "wrongSha": {
+    "number": 14,
+    "expectedHead": "f404364bdb1484fa1df0290ecd40f96857c2bc01",
+    "request": {
+      "exitCode": 1,
+      "data": {
+        "status": "failed",
+        "details": {
+          "message": "Pull request head branch was modified."
+        }
+      }
+    },
+    "final": {
+      "status": "failed",
+      "details": {
+        "message": "Pull request head branch was modified."
+      }
+    }
+  },
+  "normalLowest": {
+    "number": 14,
+    "expectedHead": "cbf1690a0123f4fa14cb5868070008de598df2ed",
+    "request": {
+      "exitCode": 0,
+      "data": {
+        "status": "pending",
+        "details": {
+          "message": "Merge request enqueued.",
+          "uuid": "b0634d68-eb98-4a24-8350-4e1f4d0b7501",
+          "merge_method": "merge",
+          "merge_action": "default",
+          "expected_head_sha": "cbf1690a0123f4fa14cb5868070008de598df2ed",
+          "bypass_rules": false
+        }
+      }
+    },
+    "uuid": "b0634d68-eb98-4a24-8350-4e1f4d0b7501",
+    "final": {
+      "status": "merged",
+      "details": {
+        "message": "Pull request was merged.",
+        "sha": "711bdfe47e6245214e4fc8793bb1d879e0977c04"
+      }
+    }
+  },
+  "compositionCounterexample": {
+    "checked": {
+      "number": 18,
+      "head": "aaad8ae33fb5505e8e9b815750263bcdb55f3d39",
+      "base": "codex/g0-stack-20261015-b/race-trunk",
+      "stack": {
+        "id": 2159837,
+        "number": 20,
+        "base": {
+          "ref": "codex/g0-stack-20261015-b/race-trunk",
+          "sha": "f404364bdb1484fa1df0290ecd40f96857c2bc01"
+        },
+        "size": 2,
+        "position": 1
+      }
+    },
+    "changed": {
+      "number": 18,
+      "head": "aaad8ae33fb5505e8e9b815750263bcdb55f3d39",
+      "base": "codex/g0-stack-20261015-b/race-x",
+      "stack": {
+        "id": 2159850,
+        "number": 22,
+        "base": {
+          "ref": "codex/g0-stack-20261015-b/race-trunk",
+          "sha": "f404364bdb1484fa1df0290ecd40f96857c2bc01"
+        },
+        "size": 3,
+        "position": 2
+      }
+    },
+    "selectedRequest": {
+      "number": 18,
+      "expectedHead": "aaad8ae33fb5505e8e9b815750263bcdb55f3d39",
+      "request": {
+        "exitCode": 0,
+        "data": {
+          "status": "pending",
+          "details": {
+            "message": "Merge request enqueued.",
+            "uuid": "71cae467-9cf7-467a-9c6f-b3625b0adf62",
+            "merge_method": "merge",
+            "merge_action": "default",
+            "expected_head_sha": "aaad8ae33fb5505e8e9b815750263bcdb55f3d39",
+            "bypass_rules": false
+          }
+        }
+      },
+      "uuid": "71cae467-9cf7-467a-9c6f-b3625b0adf62",
+      "final": {
+        "status": "merged",
+        "details": {
+          "message": "Pull request was merged.",
+          "sha": "19bb441d9a3e1c870f2adc243e6b6d67e114b336"
+        }
+      }
+    },
+    "selectedMerged": true,
+    "lowerMerged": {
+      "pr": 21,
+      "merged": true,
+      "head": "ee0d0b4c7d63397dae5d00b62fd2687fc9a50963",
+      "mergeSha": "19bb441d9a3e1c870f2adc243e6b6d67e114b336"
+    }
+  },
+  "remoteCleanup": {
+    "cleanupPassed": true,
+    "existingInventoryPreserved": true,
+    "remainingOwnedRefs": [],
+    "method": "Closed owned PR head and exact current ref match recorded server update; each new commit tree equals original owned fixture tree; deletion uses exact force-with-lease.",
+    "originalAttemptResult": "result.json",
+    "branchesCompared": 6,
+    "prs": [
+      {
+        "number": 14,
+        "url": "https://github.com/grinvi04/team-harness-acceptance-lab/pull/14",
+        "branch": "codex/g0-stack-20261015-b/normal-a"
+      },
+      {
+        "number": 15,
+        "url": "https://github.com/grinvi04/team-harness-acceptance-lab/pull/15",
+        "branch": "codex/g0-stack-20261015-b/normal-b"
+      },
+      {
+        "number": 16,
+        "url": "https://github.com/grinvi04/team-harness-acceptance-lab/pull/16",
+        "branch": "codex/g0-stack-20261015-b/normal-c"
+      },
+      {
+        "number": 18,
+        "url": "https://github.com/grinvi04/team-harness-acceptance-lab/pull/18",
+        "branch": "codex/g0-stack-20261015-b/race-a"
+      },
+      {
+        "number": 19,
+        "url": "https://github.com/grinvi04/team-harness-acceptance-lab/pull/19",
+        "branch": "codex/g0-stack-20261015-b/race-b"
+      },
+      {
+        "number": 21,
+        "url": "https://github.com/grinvi04/team-harness-acceptance-lab/pull/21",
+        "branch": "codex/g0-stack-20261015-b/race-x"
+      }
+    ]
+  },
+  "localCleanup": {
+    "isolatedExtensionRemoved": true,
+    "globalExtensionsPreserved": true,
+    "globalExtensionCount": 0,
+    "removedOwnedFixtures": [
+      "live-attempt-1/fixture",
+      "live-attempt-2/fixture",
+      "rerere-interactive/fixture"
+    ],
+    "rawEvidenceRetained": true,
+    "originalInteractiveResult": "rerere-interactive/result.json",
+    "firstCleanupFailure": "Official isolated removal succeeded; archiving assumed remote merge 711bdfe47e6245214e4fc8793bb1d879e0977c04 existed locally, but cat-file failed. Remote merge API evidence remains retained. No live test rerun."
+  },
+  "independentReview": {
+    "role": "personal-critical-verifier",
+    "agent": "g0_probe_review",
+    "effectiveSettings": "gpt-6-astra / medium, role fixed",
+    "writePolicy": "instructed read-only; inherited permissions, no OS read-only claim",
+    "observations": "PASS",
+    "adoption": "FAIL; NO-GO",
+    "cleanupFollowup": "PASS",
+    "probeSha256": "92639f4f13e17a76211f2dd3895ab751a0e44337aebf0702dc4dc52626e32f81"
+  },
+  "notRun": [
+    "pending composition mutation",
+    "base race",
+    "409 differing options",
+    "response loss",
+    "solo delayed restore"
+  ],
+  "interactiveRerere": "UNVERIFIED: prompt observed; PTY timeout; fixture removed",
+  "pendingImplementation": [
+    "G1",
+    "G2",
+    "G3",
+    "O1",
+    "O2",
+    "O3",
+    "O4",
+    "O5"
+  ],
+  "rawEvidenceRoot": ".runtime/gh-stack-g0",
+  "digests": {
+    "binary-provenance.json": "df1239d45d66de71c4ff842eb3e14d20e53835c43380aac2313be71fa3f6e5f1",
+    "local-attempt-1/result.json": "db5db965889aabe30a3ebd0be06846cf7cffe716689cdd5beacf3d08844c7f38",
+    "local-attempt-3/result.json": "3d371c52e2ca5528b29ebb24c1cd8678eec91d5ec4f7b49ee055a83a98b71deb",
+    "local-attempt-3/commands.json": "1226f17f48d7ed3291236e14534522a555d62194c3c1d478dc60bb438c12cf3a",
+    "remote-readonly-1/result.json": "f0500acacaeb29520b4b068d843e5a25301c9ef751968c4543b501a8ec088d67",
+    "live-attempt-1/result.json": "ccc1b60b0bcb58d3dd154afa05c2bb505e1dcde88e10b250cbf1877ea3e9f06c",
+    "live-attempt-2/commands.json": "1dfb142d5673b9871619615bc73911e0f1bfea0451b5348ccd657c560db65fee",
+    "live-attempt-2/checked-race-candidate.json": "54589977d85214d6a28f610a35c10c03a887e16b310e435c0e69373cc3ea57c7",
+    "live-attempt-2/changed-race-candidate.json": "4398fbf84e741dbf64898f7d8280e61612bbac2771506c39e999a7ab5731bdce",
+    "live-attempt-2/unchecked-lower-after.json": "85c0faa0ef14448224771c7bad6d6b66a3127a87aafa65f279a5fcdf50712577",
+    "live-attempt-2/merge-18-2.json": "a5579f04121cf38fb8a8a8c57d2cfdf2f6be72d41c19358ca38c45e583816312",
+    "live-attempt-2/result.json": "5b1e9a52097216f6802d435cf8091f9385a1cb85557c1bdbfc85ef06213c81d1",
+    "live-attempt-2/cleanup-followup-commands.json": "d4110407db09887032bb93aa2edd076e307ca3e49ef232551b5fabe93ad337d7",
+    "live-attempt-2/cleanup-followup-after.json": "9f8c665c81603d28849eca3879e831b8e51f23515a1c937458ef2358f65874ca",
+    "live-attempt-2/cleanup-followup-result.json": "a3bb5540eac8539e08da50d58aa0059036ad9e128b1057926b90b15279cf2970",
+    "rerere-interactive/result.json": "0de858aa49d9a1e553118f789ea0fd90dafb384472b9103c13afd496d5eb127e",
+    "environment-cleanup.json": "1cfe2f8c689fe7ff2a7ef9ac1e7f446502db9d501c56f97c188411fff556cabc",
+    "fixture-commit-objects.json": "714c37d050ba5ff226cc8a37adaacabe1f7d1e01208e88523d82f2b9b2c14b6e"
+  },
+  "reproduction": {
+    "prerequisite": "Install pinned official extension only into a new isolated XDG_DATA_HOME; live requires authorization for the fixed synthetic lab and a fresh exclusive prefix. Never replay solely to reproduce this report.",
+    "localCommand": [
+      "node",
+      "tests/acceptance/gh-stack-compatibility.mjs",
+      "--local",
+      "ABS_XDG_DATA_HOME",
+      "NEW_ABS_EVIDENCE_DIR"
+    ],
+    "remoteCommand": [
+      "node",
+      "tests/acceptance/gh-stack-remote.mjs",
+      "--live",
+      "ABS_XDG_DATA_HOME",
+      "NEW_ABS_EVIDENCE_DIR",
+      "codex/g0-stack-YYYYMMDD-ID"
+    ]
+  },
+  "verdictScope": "Historical verdict against initial frozen-group criterion; not a GitHub protection bypass or overall tool rejection.",
+  "currentReassessment": {
+    "state": "IMPLEMENTATION_GO",
+    "reference": "../specs/stacked-git-workflow/final-review.md",
+    "originalEvidencePreserved": true,
+    "localOnlyRecommendation": "withdrawn after official trunk/group contract review",
+    "protectedIntegration": "PASS; CI denial, approval denial, normal group merge and cleanup independently checked",
+    "soloAsync": "UNVERIFIED"
+  },
+  "protectedIntegration": {
+    "observedDate": "2026-10-15",
+    "baseline": "59bf40ba8f02bcbd38c941995e769ab412092f7b",
+    "probe": "tests/acceptance/gh-stack-protected.mjs",
+    "probeSha256": "6f42d0085e17bdc5140636ff699c096fda5794d4acc17c36fbd5d8ebfa60d853",
+    "command": "node tests/acceptance/gh-stack-protected.mjs --live .runtime/gh-stack-g0/protected-attempt-2 codex/g0-protected-20261015-b",
+    "result": {
+      "verdict": "PASS",
+      "failure": null,
+      "observations": {
+        "failing": [
+          23,
+          24
+        ],
+        "passing": [
+          26,
+          27
+        ],
+        "ci": "PASS",
+        "failedLowerRejected": true,
+        "missingApprovalRejected": true,
+        "protectedGroupMerged": true,
+        "mergeSha": "67f49a9d8b8cbfedfb86a8ee76bec65cff232922"
+      },
+      "cleanup": "PASS",
+      "cleanupFailure": null
+    },
+    "eventObservations": [
+      {
+        "pr": 23,
+        "command": [
+          "gh",
+          "api",
+          "repos/grinvi04/team-harness-acceptance-lab/actions/jobs/116331518198/logs"
+        ],
+        "exitCode": 0,
+        "data": {
+          "action": "stacked",
+          "event": "pull_request",
+          "baseRef": "codex/g0-protected-20261015-b/trunk",
+          "githubSha": "857bc3d3858a3fe8548b7152af6a6a78d50258ce",
+          "githubRef": "refs/pull/23/merge",
+          "workflowSha": "857bc3d3858a3fe8548b7152af6a6a78d50258ce",
+          "pr": 23,
+          "base": {
+            "ref": "codex/g0-protected-20261015-b/trunk",
+            "sha": "022557d3cc4a4bacea2aad83fcc284c6db7722f2"
+          },
+          "head": "d4270bd29701cef710a1e6234ff3f7b6abef8860",
+          "stack": {
+            "base": {
+              "ref": "codex/g0-protected-20261015-b/trunk",
+              "sha": "022557d3cc4a4bacea2aad83fcc284c6db7722f2"
+            },
+            "id": 2162670,
+            "number": 25,
+            "position": 1,
+            "size": 2
+          }
+        },
+        "checkHead": "d4270bd29701cef710a1e6234ff3f7b6abef8860",
+        "checkResult": "failure"
+      },
+      {
+        "pr": 24,
+        "command": [
+          "gh",
+          "api",
+          "repos/grinvi04/team-harness-acceptance-lab/actions/jobs/116331517839/logs"
+        ],
+        "exitCode": 0,
+        "data": {
+          "action": "stacked",
+          "event": "pull_request",
+          "baseRef": "codex/g0-protected-20261015-b/trunk",
+          "githubSha": "6ccab47b2dc25eb64953fb8b7f6358bc34d46902",
+          "githubRef": "refs/pull/24/merge",
+          "workflowSha": "6ccab47b2dc25eb64953fb8b7f6358bc34d46902",
+          "pr": 24,
+          "base": {
+            "ref": "codex/g0-protected-20261015-b/failing-a",
+            "sha": "d4270bd29701cef710a1e6234ff3f7b6abef8860"
+          },
+          "head": "0bd984f55673761f497fb8dcfaf3b4a1beeee682",
+          "stack": {
+            "base": {
+              "ref": "codex/g0-protected-20261015-b/trunk",
+              "sha": "022557d3cc4a4bacea2aad83fcc284c6db7722f2"
+            },
+            "id": 2162670,
+            "number": 25,
+            "position": 2,
+            "size": 2
+          }
+        },
+        "checkHead": "0bd984f55673761f497fb8dcfaf3b4a1beeee682",
+        "checkResult": "success"
+      },
+      {
+        "pr": 26,
+        "command": [
+          "gh",
+          "api",
+          "repos/grinvi04/team-harness-acceptance-lab/actions/jobs/116331603179/logs"
+        ],
+        "exitCode": 0,
+        "data": {
+          "action": "stacked",
+          "event": "pull_request",
+          "baseRef": "codex/g0-protected-20261015-b/trunk",
+          "githubSha": "ee330f1f89aa54b77c51174e71be796ff7217a49",
+          "githubRef": "refs/pull/26/merge",
+          "workflowSha": "ee330f1f89aa54b77c51174e71be796ff7217a49",
+          "pr": 26,
+          "base": {
+            "ref": "codex/g0-protected-20261015-b/trunk",
+            "sha": "022557d3cc4a4bacea2aad83fcc284c6db7722f2"
+          },
+          "head": "e2c1799dd591d1a2263e5d96f5cc80dfcff1cb2d",
+          "stack": {
+            "base": {
+              "ref": "codex/g0-protected-20261015-b/trunk",
+              "sha": "022557d3cc4a4bacea2aad83fcc284c6db7722f2"
+            },
+            "id": 2162683,
+            "number": 28,
+            "position": 1,
+            "size": 2
+          }
+        },
+        "checkHead": "e2c1799dd591d1a2263e5d96f5cc80dfcff1cb2d",
+        "checkResult": "success"
+      },
+      {
+        "pr": 27,
+        "command": [
+          "gh",
+          "api",
+          "repos/grinvi04/team-harness-acceptance-lab/actions/jobs/116331603626/logs"
+        ],
+        "exitCode": 0,
+        "data": {
+          "action": "stacked",
+          "event": "pull_request",
+          "baseRef": "codex/g0-protected-20261015-b/trunk",
+          "githubSha": "f0b5906d164ad88e19591e0de170c1b487319ebb",
+          "githubRef": "refs/pull/27/merge",
+          "workflowSha": "f0b5906d164ad88e19591e0de170c1b487319ebb",
+          "pr": 27,
+          "base": {
+            "ref": "codex/g0-protected-20261015-b/passing-a",
+            "sha": "e2c1799dd591d1a2263e5d96f5cc80dfcff1cb2d"
+          },
+          "head": "13f5399964b9b5008526631f474075ac681ab0c7",
+          "stack": {
+            "base": {
+              "ref": "codex/g0-protected-20261015-b/trunk",
+              "sha": "022557d3cc4a4bacea2aad83fcc284c6db7722f2"
+            },
+            "id": 2162683,
+            "number": 28,
+            "position": 2,
+            "size": 2
+          }
+        },
+        "checkHead": "13f5399964b9b5008526631f474075ac681ab0c7",
+        "checkResult": "success"
+      }
+    ],
+    "independentReview": "g0_probe_review; raw command responses, job logs, candidates and policies checked; scoped PASS; implementation GO, not support completion",
+    "rawDigests": {
+      ".runtime/gh-stack-g0/protected-attempt-2/before.json": "fed74c29730a156ca276ee8bc0cb9e7005e2ed4c4a335a85326aa9110181ba80",
+      ".runtime/gh-stack-g0/protected-attempt-2/after.json": "fed74c29730a156ca276ee8bc0cb9e7005e2ed4c4a335a85326aa9110181ba80",
+      ".runtime/gh-stack-g0/protected-attempt-2/commands.json": "3eb58af53935cdbd65160f7ff5c580c08be37613610d1b6f6d30a67820daf1ff",
+      ".runtime/gh-stack-g0/protected-attempt-2/result.json": "64f3932c91f850dc1bd2c52241d68ea85f29c4a13ebbdd0edc6ab0c882339150",
+      ".runtime/gh-stack-g0/protected-attempt-2/event-observations.json": "916ba47b4aff8a3c721511f33ac0328bb1a7b3a5dcddd7207aacab23fb70f9a0",
+      ".runtime/gh-stack-g0/protected-attempt-2/owned.json": "95a314c457b3461ea625216446897b7578bd0474817180ff977ebf7d2e594ccb",
+      ".runtime/gh-stack-g0/protected-attempt-2/observations.json": "55196584d2c4b2c29849ac3d5c0c17b8ace9ede395193db162809335a3481883",
+      ".runtime/gh-stack-g0/protected-attempt-2/policy-reviews-0.json": "e537ccd38e868378a66263f8fd406d82c37027f5f753d7dc6b40b075c33920f3",
+      ".runtime/gh-stack-g0/protected-attempt-2/policy-reviews-1.json": "bcf05e59650e45831dd3181b10d21d42a08be204e3c91aaf7d6c87df90f0c2ca",
+      ".runtime/gh-stack-g0/protected-attempt-2/candidate-24-1.json": "bb2e48fce7ff1049dfc17543a245d59089ed0a477836916aeb53b785c098ec4c",
+      ".runtime/gh-stack-g0/protected-attempt-2/candidate-27-2.json": "4a69204773e9750619b80f15569d3a314484c1927bf31f47ad29e72e7bf8a874",
+      ".runtime/gh-stack-g0/protected-attempt-2/candidate-27-3.json": "39615f6010d36da9074eca70bd76d728023f244ff2773b8ecf3fd009bf526e4f",
+      ".runtime/gh-stack-g0/protected-attempt-2/merge-24-1.json": "4f48514b72e98c6a9805a0765fc60af15d8f98807d43ca2e4e093816f56e31ac",
+      ".runtime/gh-stack-g0/protected-attempt-2/merge-27-2.json": "505f0b29d88d1d97ed4035d1ed4dcc2ee1c43ed364c3be856b37daaf9b2ea60d",
+      ".runtime/gh-stack-g0/protected-attempt-2/merge-27-3.json": "95d1e3b2fb76e26fcf3dccce392d80dc826c409948cdaac9e5b99d3734a2d58f",
+      ".runtime/gh-stack-g0/protected-attempt-2/job-23.log": "e3ded7af3bef6c3c5b37ce97ac48f73321346aa8ee943776411e42c205280a40",
+      ".runtime/gh-stack-g0/protected-attempt-2/job-24.log": "ebcce8b425251b0fdfb0f9367c413c16fc9fc88ba7a2d9b49d5e56aabdbac9db",
+      ".runtime/gh-stack-g0/protected-attempt-2/job-26.log": "cb4d5166a22530b6e4a2740af4e259231764f1c8e922bf7b80c448e249eac65b",
+      ".runtime/gh-stack-g0/protected-attempt-2/job-27.log": "f043d419728f90da2bed79677b4ece5c846849eb36254075e91a4294d9541d08"
+    },
+    "unverified": [
+      "Harness adapter integration",
+      "solo async restore",
+      "pending/queue/409/response loss handling",
+      "CODEOWNERS enforcement",
+      "pull_request_target runtime context",
+      "tag and installation"
+    ],
+    "firstFailure": {
+      "path": ".runtime/gh-stack-g0/protected-attempt-1",
+      "cause": "isolated local Git credential helper missing; push authentication failed",
+      "initialVerdict": "FAIL; cleanup UNVERIFIED",
+      "followup": "cleanup-followup.json: inventory unchanged, no owned remote refs; cleanup PASS"
+    }
+  }
+}

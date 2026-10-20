@@ -301,10 +301,12 @@ else
   echo "FAIL: E3 rails 감지+ruby.md+AR게이트 점검"; FAIL=$((FAIL+1))
 fi
 
-# Self-repo: 신규 repo templates와 test fixtures는 team-harness 자신의 런타임 스택이 아니다.
+# Self-repo: dashboard 제작 스택은 감지하고 신규 repo templates와 test fixtures는 제외한다.
 if OUT=$(node "$GATE" --repo "$ROOT" --harness "$ROOT" 2>&1) &&
-   echo "$OUT" | grep -q "감지된 스택: (없음)" &&
-   ! echo "$OUT" | grep -qE "룰:|✗ MISSING"; then
+   echo "$OUT" | grep -qx "감지된 스택: typescript, vite" &&
+   echo "$OUT" | grep -q "프로필: react ·" &&
+   echo "$OUT" | grep -q '요약: .*MISSING 0$' &&
+   ! echo "$OUT" | grep -q "✗ MISSING"; then
   echo "PASS: self-repo 스택 오탐·필수 자산 드리프트 없음"; PASS=$((PASS+1))
 else
   echo "FAIL: self-repo 스택 오탐 또는 필수 자산 드리프트"; FAIL=$((FAIL+1))
@@ -319,11 +321,42 @@ mkdir -p "$SELF_WITH_GOAL/docs/goals/run/repo/db/migration"
 touch "$SELF_WITH_GOAL/docs/goals/run/repo/build.gradle"
 touch "$SELF_WITH_GOAL/docs/goals/run/repo/db/migration/V1__nested.sql"
 if OUT=$(node "$GATE" --repo "$SELF_WITH_GOAL" --harness "$SELF_WITH_GOAL" 2>&1) &&
-   echo "$OUT" | grep -q "감지된 스택: (없음)" &&
-   ! echo "$OUT" | grep -qE "룰:|✗ MISSING"; then
+   echo "$OUT" | grep -qx "감지된 스택: typescript, vite" &&
+   echo "$OUT" | grep -q "프로필: react ·" &&
+   echo "$OUT" | grep -q '요약: .*MISSING 0$' &&
+   ! echo "$OUT" | grep -qiE '감지된 스택:.*(java|flyway|spring)|룰:.*(java|flyway|spring)|✗ MISSING'; then
   echo "PASS: self-repo docs/goals 중첩 checkout 스택 오탐 없음"; PASS=$((PASS+1))
 else
   echo "FAIL: self-repo docs/goals 중첩 checkout 스택 오탐"; FAIL=$((FAIL+1))
+fi
+
+
+# Self-repo: ignored runtime의 과거 격리 clone도 제품 스택이 아니다.
+mkdir -p "$SELF_WITH_GOAL/.runtime/quality/candidate/db/migration"
+touch "$SELF_WITH_GOAL/.runtime/quality/candidate/build.gradle"
+touch "$SELF_WITH_GOAL/.runtime/quality/candidate/db/migration/V1__runtime.sql"
+if OUT=$(node "$GATE" --repo "$SELF_WITH_GOAL" --harness "$SELF_WITH_GOAL" 2>&1) &&
+   echo "$OUT" | grep -qx "감지된 스택: typescript, vite" &&
+   echo "$OUT" | grep -q "프로필: react ·" &&
+   echo "$OUT" | grep -q '요약: .*MISSING 0$' &&
+   ! echo "$OUT" | grep -qiE '감지된 스택:.*(java|flyway|spring)|룰:.*(java|flyway|spring)|✗ MISSING'; then
+  echo "PASS: self-repo .runtime 격리 clone 스택 오탐 없음"; PASS=$((PASS+1))
+else
+  echo "FAIL: self-repo .runtime 격리 clone 스택 오탐"; FAIL=$((FAIL+1))
+fi
+
+# Consumer의 .runtime은 self 제외 규칙을 상속하지 않는다.
+CONSUMER_WITH_RUNTIME="$TMP/consumer-with-runtime"
+mkdir -p "$CONSUMER_WITH_RUNTIME/.runtime/candidate/db/migration"
+touch "$CONSUMER_WITH_RUNTIME/.runtime/candidate/build.gradle"
+touch "$CONSUMER_WITH_RUNTIME/.runtime/candidate/db/migration/V1__runtime.sql"
+if OUT=$(node "$GATE" --repo "$CONSUMER_WITH_RUNTIME" --harness "$ROOT" 2>&1); then
+  echo "FAIL: consumer repo .runtime 스택 누락"; FAIL=$((FAIL+1))
+elif echo "$OUT" | grep -q "감지된 스택: java, flyway" &&
+     echo "$OUT" | grep -q "✗ MISSING"; then
+  echo "PASS: consumer repo .runtime 스택 감지·드리프트 차단"; PASS=$((PASS+1))
+else
+  echo "FAIL: consumer repo .runtime 스택 판정 불일치"; FAIL=$((FAIL+1))
 fi
 
 # Consumer repo: 같은 docs/goals 경로도 self-check가 아니면 실제 stack 신호로 취급한다.

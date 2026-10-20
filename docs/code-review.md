@@ -44,6 +44,11 @@ main 대상 release PR은 보호된 develop에서 이미 도달 가능한 이력
 develop 대상 `sync/backmerge-*` PR도 보호된 main 이력을 제외하되, 충돌 해결처럼 main 밖에서 새로 생긴
 고유 커밋은 같은 규칙으로 검사한다. 고유 커밋이 없는 순수 역병합은 재검사 없이 통과한다.
 
+후보 문서는 별도 exact-head checkout에서 데이터로 읽고 checker는 trusted checkout에서 실행한다.
+stacked 이벤트도 trunk branch 필터를 유지하되 커밋·테스트 수 비교는 직접 parent SHA와 head SHA를 사용한다.
+main release/develop 역병합 예외는 직접 parent가 그 보호 브랜치일 때만 적용한다.
+후보 quality 실행과 protected 정책 검사는 별개이며 기존 필수 검사 이름·보호 요건을 유지한다.
+
 ## 브랜치
 
 `feature/{이슈번호}-{슬러그}` · `fix/{이슈번호}-{슬러그}` · `hotfix/{슬러그}` · `release/v{버전}`
@@ -55,7 +60,7 @@ PR base는 명시 인자와 제품의 채택 선언을 대조하고 원격에서
 
 - **작게**: 리뷰 가능한 단위 ±400라인 가이드 (마이그레이션·자동생성 제외) — 넘으면 분리 우선 검토
 - 템플릿(`templates/PULL_REQUEST_TEMPLATE.md`) 필수 작성, 미완성 공유는 **Draft**로
-- 진행 문서 검사 채택 repo는 PR 본문에 [동기화 선언](ai-collaboration.md#선언한-문서의-기계적-검사)을 연결한다. team-harness 자체 quality는 이를 필수 검사한다. 선언의 대상 누락·근거 의미·비적용 이유는 리뷰어가 diff와 대조한다.
+- 진행 문서 검사 채택 repo는 PR 본문에 [동기화 선언](ai-collaboration.md#선언한-문서의-기계적-검사)을 연결한다. team-harness 자체 `commitlint-trusted`는 protected checker로 이를 필수 검사한다. 선언의 대상 누락·근거 의미·비적용 이유는 리뷰어가 diff와 대조한다.
 - **셀프 리뷰 먼저**: 본인이 diff를 한 번 훑고 나서 리뷰 요청 (AI 생성 코드는 특히 — `ai-collaboration.md`)
 - 현재 head의 비어 있지 않은 required 검사 집합 성공 + 리뷰 스레드 resolve + 회사의 사람 승인·CODEOWNERS를 모두 확인한다.
 - 회사 경로가 기본이다. 리뷰어 부재는 승인 삭제·solo 전환의 근거가 아니다. 기존 승인 수·제한을 보존한다.
@@ -65,6 +70,10 @@ PR base는 명시 인자와 제품의 채택 선언을 대조하고 원격에서
 - `pr-merge.sh --auto`는 `autoMergeTargets: ["develop"]`를 명시한 repo의 develop만 허용한다.
   회사의 승인·CI·플랫폼 권한을 대신하지 않는다. main/release는 자동머지 대상이 아니다.
 - 선택과 보호 보존의 JSON·preview·현재 한계는 [회사 정책 안내](company-policy.md)를 따른다.
+- linked stack은 검증된 최하단 한 PR만 기존 gate 뒤 SHA 결박 async API로 병합한다. 상위층·`--auto`는 거부한다.
+  `pending/enqueued/unverified`는 미완료이며 UUID 또는 원래 PR을 읽기 전용으로 재조회한다. 자동 재요청하지 않는다.
+  `merged` 응답도 실제 PR·merge SHA·trunk 포함을 확인한다. 후속 층은 새 head/base로 다시 검사한다.
+  [의존 PR 안내](guides/stacked-development.md)의 적용 범위·제출·재개 절차를 따른다.
 - 리뷰 SLA: **1영업일** — 지연 시 리뷰어 재지정
 
 ## Git Flow 순서 검사 — team-harness 자체 전달
@@ -153,6 +162,10 @@ snapshot helper와 wrapper는 실제 원격 base ref를 읽는다. PR의 `baseRe
 merge의 공식 `--match-head-commit`은 검증 head를 결박한다. base 재조회는 서버의 원자적 비교가 아니므로
 strict required CI와 protected base 정책이 계속 필요하다. 처리한 snapshot thread만 원래 코멘트에 답변·해결한다.
 
-solo 예외는 별도 승인 범위에서 리뷰 요건만 바꾸며, 정상 성공에는 저장한 전체 정책과 실제 복원 응답의 일치가 필요하다.
+solo 예외는 별도 승인 범위에서 리뷰 요건만 바꾸며, 모든 종료 경로에서 저장한 전체 정책과 복원 응답을 대조한다.
+적용되는 merge queue를 먼저 조회하고 queue·조회 불명확 상태는 보호 변경 전에 거부한다.
+원정책과 요청 intent를 Git common-dir에 저장하며, 미확정 요청·복원 실패가 있으면 같은 base의 다음 예외를 막는다.
+신호 종료는 소유 병합 프로세스를 먼저 멈춘 뒤 복구한다. 이미 서버가 받은 병합 요청을 취소했다는 뜻은 아니다.
+common-dir 잠금은 같은 저장소의 worktree 범위이며 다른 clone이나 관리자의 동시 정책 변경을 잠그지 않는다.
 trap은 복구 시도이며 SIGKILL·전원 손실·API 실패에서 복원 보장을 하지 않는다. 표준 `--check`는 예외의 원값 복원 증명이 아니다.
 긴급 수정 태그는 PR의 실제 merge SHA에 생성하고 해당 ref만 push한다. 최신 main이나 모든 로컬 태그를 발행하지 않는다.

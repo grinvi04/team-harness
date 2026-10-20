@@ -30,6 +30,11 @@
 # 로그: ~/.claude/hooks/guard-block.log (session_id·cwd·사유·명령) — 멀티세션 위반 시도 추적.
 
 INPUT=$(cat)
+GUARD_REASON=GUARD_DENIED
+if source "${BASH_SOURCE[0]%/*}/observation/shell.sh" 2>/dev/null; then
+  obs_start guard "$INPUT"
+  trap 'rc=$?; if [ "$rc" = 0 ]; then obs_finish "$rc" allow GUARD_ALLOWED; elif [ "$rc" = 2 ]; then obs_finish "$rc" deny "$GUARD_REASON"; else obs_finish "$rc" unverified EXECUTION_ERROR; fi; exit "$rc"' EXIT
+fi
 COMMAND=""
 GUARD_LOG="${HARNESS_GUARD_LOG:-${HOME}/.claude/hooks/guard-block.log}"
 HARNESS_AGENT_NAME="${HARNESS_AGENT_NAME:-Claude}"
@@ -54,8 +59,9 @@ sys.stdout.write("".join(" " if unicodedata.category(char) == "Cc" else char for
 }
 
 # 차단 단일 경로: 이력 로그 + ⛔ 메시지(+해결 안내) + exit 2.
-# $1 = 사유 라벨, $2 = 해결 안내(선택). session_id·cwd는 payload에서 추출(없으면 ?).
+# $1 = 사유 라벨, $2 = 해결 안내(선택), $3 = 고정 관측 코드. session_id·cwd는 payload에서 추출(없으면 ?).
 deny() {
+  GUARD_REASON="${3:-GUARD_DENIED}"
   local reason="$1" hint="$2" sid cwd ts cmd1
   ts=$(date +%Y-%m-%dT%H:%M:%S 2>/dev/null)
   sid=$(printf '%s' "$INPUT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('session_id','?'))" 2>/dev/null) || sid="?"
@@ -105,7 +111,7 @@ if [[ $_parsed -ne 1 ]] && command -v jq >/dev/null 2>&1; then
       && _parsed=1
   fi
 fi
-if [[ $_parsed -ne 1 ]]; then deny "가드 JSON 파싱 불가 — python3·jq 모두 부재/실패 (fail-closed)" "python3 또는 jq 설치 후 재시도"; fi
+if [[ $_parsed -ne 1 ]]; then deny "가드 JSON 파싱 불가 — python3·jq 모두 부재/실패 (fail-closed)" "python3 또는 jq 설치 후 재시도" GUARD_PARSER_UNAVAILABLE; fi
 
 if [[ "$TOOL" != "Bash" ]]; then exit 0; fi
 
@@ -113,7 +119,7 @@ if [[ "$TOOL" != "Bash" ]]; then exit 0; fi
 # 순수 bash라 python3·jq 불요([D] 폴백 보존). 부재/로드 실패 시 fail-closed(파싱 불능 → 안전측 차단).
 # BASH_SOURCE로 guard.sh 자기 위치 기준 경로 해석(캐시·워킹트리 양쪽 동작). Bash 도구일 때만 로드(비Bash 무영향).
 if ! source "${BASH_SOURCE[0]%/*}/lib/tokenize.sh" 2>/dev/null; then
-  deny "토크나이저 lib 로드 실패 (scripts/lib/tokenize.sh) — fail-closed" "플러그인 설치 무결성 확인 후 재시도"
+  deny "토크나이저 lib 로드 실패 (scripts/lib/tokenize.sh) — fail-closed" "플러그인 설치 무결성 확인 후 재시도" GUARD_TOKENIZER_UNAVAILABLE
 fi
 
 # 실제 Unix 셸이 실행 전에 제거하는 backslash+LF를 동일하게 논리행으로 합친 뒤 모든 판정에 사용한다.
@@ -181,7 +187,7 @@ if [[ "$LITE" != 1 ]]; then
     else
       BRANCH=$(git branch --show-current 2>/dev/null)
     fi
-    is_protected_branch "$BRANCH" && deny "main/develop 직접 커밋 금지" "feature/fix/hotfix/release 브랜치에서 작업 후 /feature-merge 사용"
+    is_protected_branch "$BRANCH" && deny "main/develop 직접 커밋 금지" "feature/fix/hotfix/release 브랜치에서 작업 후 /feature-merge 사용" GUARD_PROTECTED_COMMIT
     break   # 첫 commit 세그먼트만 판정(현행 head -1 under-block 보존)
   done < <(split_segments "$COMMAND")
 fi
@@ -213,9 +219,9 @@ if [[ "$LITE" != 1 ]]; then
     # 명시 refspec(remote + ref)이 있으면 현재 브랜치 무관 — bare push만 현재 브랜치가 대상(#204).
     HAS_REF=""; echo "$PSEG" | grep -qE "push([[:space:]]+-[^;&|[:space:]]+)*[[:space:]]+[^-;&|[:space:]]+[[:space:]]+[^-;&|[:space:]]+" && HAS_REF=1
     if echo "$PSEG" | grep -qE "([[:space:]]|:|\+)(refs/heads/)?($PROTECTED_RE)([[:space:]]|$)"; then
-      deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
+      deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요" GUARD_PROTECTED_FORCE_PUSH
     elif [[ -z "$HAS_REF" ]] && is_protected_branch "$BRANCH"; then
-      deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요"
+      deny "main/develop force push 금지" "브랜치 히스토리 변경이 필요하면 팀장에게 직접 요청하세요" GUARD_PROTECTED_FORCE_PUSH
     fi
   done < <(echo "$COMMAND" | grep -oE "git[^;&|]*[[:space:]]push[^;&|]*")
 fi
@@ -232,7 +238,7 @@ if [[ "$LITE" != 1 ]] && echo "$COMMAND" | grep -qE "git[[:space:]]+(checkout[[:
     SPEC_ROOT=$(git rev-parse --show-toplevel 2>/dev/null)
     if [[ -n "$FEAT_NAME" && -n "$SPEC_ROOT" && ! -f "$SPEC_ROOT/docs/specs/$FEAT_NAME.md" ]]; then
       deny "신규 feature 브랜치는 plan 연결 파일(docs/specs/$FEAT_NAME.md) 필요 — 파일 존재와 승인은 별도" \
-           "기존 승인 기록에 연결한 스펙을 준비하고 재시도. 파일 검사 자체는 승인 증명이 아닙니다. trivial 변경이면 'HARNESS_TRIVIAL=1 git checkout -b feature/$FEAT_NAME' 로 명시 면제."
+           "기존 승인 기록에 연결한 스펙을 준비하고 재시도. 파일 검사 자체는 승인 증명이 아닙니다. trivial 변경이면 'HARNESS_TRIVIAL=1 git checkout -b feature/$FEAT_NAME' 로 명시 면제." GUARD_SPEC_REQUIRED
     fi
   fi
 fi
@@ -249,10 +255,20 @@ fi
 if [[ "$LITE" != 1 ]]; then
   while IFS= read -r GSEG; do
     _tok_into _gt "$GSEG"
-    [[ "${_gt[0]:-}" == gh && "${_gt[1]:-}" == pr ]] || continue
+    [[ "${_gt[0]:-}" == gh ]] || continue
+    if [[ "${_gt[1]:-}" == stack ]]; then
+      case " ${_gt[*]} " in *' --help '*|*' -h '*) continue;; esac
+      case "${_gt[2]:-}" in
+        submit|link|merge|sync|push|modify|unstack)
+          deny "맨손 gh stack 변경 금지 — 현재 후보·대상·결과 검증은 Harness 경유" \
+            "제출/restack/sync는 scripts/stack.sh, 병합은 /feature-merge·/solo-merge 계약을 사용하세요. 명령 안내는 실행 승인이나 병합 완료가 아닙니다." GUARD_STACK_WRAPPER_REQUIRED ;;
+      esac
+      continue
+    fi
+    [[ "${_gt[1]:-}" == pr ]] || continue
     case "${_gt[2]:-}" in
-      create) deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다." ;;
-      merge)  deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다." ;;
+      create) deny "맨손 gh pr create 금지 — PR 생성은 스킬 경유" "/pr-create (feature 흐름이면 /feature-merge) 사용. 스킬이 scripts/pr-create.sh로 base 자동감지·push·생성한다." GUARD_PR_CREATE_WRAPPER_REQUIRED ;;
+      merge)  deny "맨손 gh pr merge 금지 — 머지는 게이트 스킬 경유" "/solo-merge(솔로) 또는 /feature-merge·/pr-review-gate(팀) 사용. 스킬이 CI·스레드 게이트 검증 후 머지한다." GUARD_PR_MERGE_WRAPPER_REQUIRED ;;
     esac
   done < <(split_segments "$COMMAND")
 fi
@@ -269,7 +285,7 @@ fi
 while IFS= read -r RSEG; do
   [[ "$(git_subcommand_scan "$RSEG")" == reset ]] || continue
   if seg_has_token "$RSEG" "--hard"; then
-    deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (${HARNESS_AGENT_NAME}가 대신 실행하지 않음)"
+    deny "git reset --hard 금지 — 미커밋 변경사항 전체 삭제 위험" "필요한 경우 사용자가 직접 실행 (${HARNESS_AGENT_NAME}가 대신 실행하지 않음)" GUARD_HARD_RESET
   fi
 done < <(split_segments "$COMMAND")
 
@@ -293,7 +309,7 @@ while IFS= read -r DSEG; do
     #   파일명에 트레일링(glob `*`·`.bak`)이 붙어도 잡는다($ 종단앵커는 이 형태를 놓쳐 홀이었음, 검증 반영).
     #   디렉터리 패턴만 `(^|/)…(/|$)` 경로세그먼트 앵커 — `rm latest/`의 `test/` 부분매치 과차단만 방지.
     if printf '%s' "$_tok" | grep -qE "(Test\.java|\.(spec|test)\.[A-Za-z]+|test_[^/]*\.py|_test\.py|_spec\.rb|_test\.rb|(^|/)tests?(/|$)|(^|/)__tests__(/|$)|(^|/)db/migrations?(/|$)|(^|/)db/migrate(/|$)|(^|/)migrations(/|$)|(^|/)alembic/versions(/|$)|(^|/)prisma/migrations(/|$))"; then
-      deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (${HARNESS_AGENT_NAME}가 대신 삭제하지 않음)"
+      deny "검증기(테스트/마이그레이션) 삭제 금지 — 게이트 무력화 방지" "정 필요하면 사용자가 직접 실행하세요 (${HARNESS_AGENT_NAME}가 대신 삭제하지 않음)" GUARD_VERIFICATION_DELETE
     fi
   done
 done < <(split_segments "$COMMAND")
@@ -304,7 +320,7 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-
   # 경로의 정규식 메타문자([.+ 등)를 이스케이프 — 미처리 시 해당 경로에서 가드가 빗나감
   PROJECT_ROOT_RE=$(printf '%s' "$PROJECT_ROOT" | sed 's/[][\.*^$()+?{}|]/\\&/g')
   if echo "$COMMAND" | grep -qE "(\"?$PROJECT_ROOT_RE/?\"?[[:space:]]*$|(^|[[:space:]])[\"']?(\./)?(src|app|node_modules)[\"']?(/|[[:space:]]|$))"; then
-    deny "프로젝트 핵심 디렉터리 rm -rf 금지" "삭제가 필요하면 사용자가 직접 실행하세요"
+    deny "프로젝트 핵심 디렉터리 rm -rf 금지" "삭제가 필요하면 사용자가 직접 실행하세요" GUARD_CORE_DELETE
   fi
   # 심링크 표기(/tmp ↔ /private/tmp 등)로 적힌 root도 잡는다 — 경로 토큰을 정규화해 비교
   set -f
@@ -318,7 +334,7 @@ if [[ -n "$PROJECT_ROOT" ]] && echo "$COMMAND" | grep -qE "\brm[[:space:]]+(-[a-
           _R="${RESOLVED%/}"; _PR="${PROJECT_ROOT%/}"
           if [[ "$_PR" == "$_R" || "$_PR" == "$_R"/* ]]; then
             set +f
-            deny "프로젝트 핵심 디렉터리 rm -rf 금지 (루트/상위 경로)" "삭제가 필요하면 사용자가 직접 실행하세요"
+            deny "프로젝트 핵심 디렉터리 rm -rf 금지 (루트/상위 경로)" "삭제가 필요하면 사용자가 직접 실행하세요" GUARD_CORE_DELETE
           fi
         fi
         ;;
@@ -356,9 +372,9 @@ while IFS= read -r NSEG; do
     esac
   done
   # npm/pnpm: install-verb + 전역플래그
-  [[ $_has_npmpnpm -eq 1 && $_nv -eq 1 && $_ng -eq 1 ]] && deny "패키지매니저 전역설치 금지(npm/pnpm -g) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (--save-dev 또는 npx)"
+  [[ $_has_npmpnpm -eq 1 && $_nv -eq 1 && $_ng -eq 1 ]] && deny "패키지매니저 전역설치 금지(npm/pnpm -g) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (--save-dev 또는 npx)" GUARD_GLOBAL_INSTALL
   # yarn(classic): global 서브커맨드 + add verb
-  [[ $_has_yarn -eq 1 && $_yglobal -eq 1 && $_yadd -eq 1 ]] && deny "패키지매니저 전역설치 금지(yarn global add) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (yarn add --dev 또는 npx)"
+  [[ $_has_yarn -eq 1 && $_yglobal -eq 1 && $_yadd -eq 1 ]] && deny "패키지매니저 전역설치 금지(yarn global add) — 글로벌 Node 환경 오염 위험" "로컬 설치 사용 (yarn add --dev 또는 npx)" GUARD_GLOBAL_INSTALL
 done < <(split_segments "$COMMAND")
 
 exit 0

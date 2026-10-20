@@ -131,6 +131,8 @@ import json, os, sys
 from pathlib import Path
 args=sys.argv[1:]; root=Path(os.environ['Q2A_CASE_DIR']); scenario=os.environ['Q2A_SCENARIO']
 with (root/'calls.jsonl').open('a') as f: f.write(json.dumps(args)+'\n')
+if args[:5]==['api','--hostname','github.com','--method','GET']:
+ args=['api',*args[5:]]
 def emit(value): print(json.dumps(value))
 if args[:2]==['repo','view']: print('test/repo')
 elif args[:2]==['pr','checks']:
@@ -145,6 +147,12 @@ elif args[:2]==['pr','checks']:
   emit(rows)
  else: print('quality\tpass\t1s\thttp://fake')
 elif args[:2]==['run','list']: emit([{'headSha':'a'*40,'status':'completed','conclusion':'success','name':'unrelated informational workflow'}])
+elif args[:2]==['api','repos/test/repo/pulls/42']:
+ done=(root/'gate-passed').exists()
+ emit({'number':42,'html_url':'https://github.com/test/repo/pull/42','state':'open','draft':False,
+  'head':{'ref':'fix/candidate','sha':'c'*40 if done and scenario=='head-drift' else 'a'*40,'repo':{'full_name':'test/repo'}},
+  'base':{'ref':'main' if scenario=='auto-main' or done and scenario=='base-name-drift' else 'develop',
+   'sha':'d'*40 if scenario=='stale-pr-base-accepted' or done and scenario=='base-oid-drift' else 'b'*40,'repo':{'full_name':'test/repo'}}})
 elif args[0]=='api' and '/git/ref/heads/' in args[1]:
  if scenario=='live-base-query-fail' or scenario=='live-base-final-query-fail' and (root/'gate-passed').exists(): sys.exit(1)
  if scenario=='live-base-malformed' or scenario=='live-base-final-malformed' and (root/'gate-passed').exists(): print('not-a-commit')

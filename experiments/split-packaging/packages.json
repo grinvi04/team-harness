@@ -38,7 +38,17 @@
         "scripts/resolve-skill-root.mjs",
         "scripts/branch-protection-policy.mjs",
         "scripts/verify-required-checks.mjs",
-        "scripts/repo-policy.mjs"
+        "scripts/repo-policy.mjs",
+        "scripts/stack-policy.mjs",
+        "scripts/stack-rebase.mjs",
+        "scripts/stack-merge.mjs",
+        "scripts/stack-merge-cli.mjs",
+        "scripts/stack-merge-journal.mjs",
+        "scripts/stack.mjs",
+        "scripts/stack.sh",
+        "scripts/observation",
+        "scripts/observe.mjs",
+        "dashboard"
       ]
     },
     {
@@ -80,6 +90,7 @@
       "sources": [
         "codex",
         "scripts/codex-pretool-guard.mjs",
+        "scripts/codex-observation.mjs",
         "scripts/codex-secret-egress-guard.mjs",
         "scripts/codex-security-guidance-adapter.mjs",
         "scripts/patch-codex-security-guidance.mjs"
