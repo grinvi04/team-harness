@@ -166,7 +166,9 @@ CI39093503746의 관측 통합40개 중39 PASS·1 FAIL이다. solo 병합 실패
 시험 정리 순서 오류와 잘못된 health 필드 단언의 첫 FAIL도 원문에 보존하고 시험 코드만 교정했다.
 원문은 `ci-observation-diagnostic/causal-analysis/`의 RED·폐기안·현재 실행·독립 분석이다.
 이는 과거 작은-spool CI의 직접 원인 확정이나 임의 부하의 무손실을 뜻하지 않는다.
-현재 전체 quality·패키지·독립 리뷰·CI와 develop 병합은 이 교정 후보를 대상으로 최종 대조한다.
+7047100의 전체 관측 단위49·통합41·viewer/화면8개와 package23/6/5/4·bundle33·checksum113개가 PASS다.
+Astra/medium/read-only 독립 리뷰는 IPC·수명·저장·화면·패키지에서 조치할 결함을 찾지 못했다.
+현재 head의 전체 quality·필수 CI와 develop 병합·포함은 PR587 원본에서 최종 대조한다.
 
 ## 현재 판정과 다음 단계
 
