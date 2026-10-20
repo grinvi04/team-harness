@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import net from 'node:net';
 import { randomUUID } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { startWriter, requestWriter } from '../plugins/harness-guard/scripts/observation/writer.mjs';
 import { writeLease, validateEvent } from '../plugins/harness-guard/scripts/observation/event.mjs';
 import { finishOperation } from '../plugins/harness-guard/scripts/observation/client.mjs';
@@ -36,6 +37,27 @@ function rawRequest(d, patch, raw) {
 }
 const records = dir => fs.readdirSync(dir).filter(name => name.startsWith('evt-'));
 
+test('a prior loss marker preserves manual-lease emission and exact child-result recovery', t => {
+  const dir = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'writer-recovery-')));
+  t.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+  writeLease(dir, lease(randomUUID()));
+  const marker = path.join(dir, 'writer-loss-v1.json'), loss = { schemaVersion: 1, lost: true };
+  fs.writeFileSync(marker, JSON.stringify(loss), { mode: 0o600 });
+  const parent = randomUUID(), e = event({ parentOperationId: parent });
+  const emitted = spawnSync(process.execPath, [path.resolve('plugins/harness-guard/scripts/observation/emit.mjs'), dir],
+    { input: JSON.stringify(e), encoding: 'utf8', timeout: 250, killSignal: 'SIGKILL' });
+  assert.equal(emitted.error, undefined); assert.equal(emitted.status, 0);
+  assert.equal(emitted.stdout, ''); assert.equal(emitted.stderr, '');
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, `evt-${e.eventId}.json`))), e);
+  const state = { ...context, operationId: parent, headSha: null, baseSha: null, hostSessionId: null, dataDir: dir };
+  const query = spawnSync(process.execPath, [path.resolve('plugins/harness-guard/scripts/observation/bridge.mjs'), 'result-read', 'guard'],
+    { input: JSON.stringify(state), encoding: 'utf8', timeout: 250, killSignal: 'SIGKILL' });
+  assert.equal(query.error, undefined); assert.equal(query.status, 0); assert.equal(query.stderr, '');
+  assert.equal(query.stdout, 'deny\nGUARD_HARD_RESET');
+  assert.deepEqual(JSON.parse(fs.readFileSync(marker)), loss);
+  assert.equal(readSnapshot(dir, context).health.captureState, 'loss-suspected');
+});
+
 test('writer stores exact payload and returns only one matching current-context child', async () => fixture(async ({ dir }) => {
   const parent = randomUUID(), e = event({ parentOperationId: parent });
   assert.equal(validateEvent(e), true);
@@ -54,6 +76,22 @@ test('warm writer revalidates modified records and refuses malformed storage wit
   const name = path.join(dir, `evt-${e.eventId}.json`); fs.writeFileSync(name, '{broken');
   assert.deepEqual(await requestWriter(dir, context, 'append', { event: event() }), { written: false, reasonCode: 'INVALID_STORAGE' });
   assert.equal(fs.readFileSync(name, 'utf8'), '{broken'); assert.equal(records(dir).length, 1);
+}));
+
+test('warm writer observes valid in-place changes for child results and expiry', async () => fixture(async ({ dir }) => {
+  const parent = randomUUID(), e = event({ parentOperationId: parent });
+  assert.equal((await requestWriter(dir, context, 'append', { event: e })).written, true);
+  const state = { ...context, operationId: parent, headSha: null, baseSha: null, hostSessionId: null };
+  assert.equal((await requestWriter(dir, context, 'result', { state, source: 'guard' })).reasonCode, 'GUARD_HARD_RESET');
+  const file = path.join(dir, `evt-${e.eventId}.json`), changed = { ...e, reasonCode: 'GUARD_CORE_DELETE' };
+  assert.equal(validateEvent(changed), true);
+  fs.writeFileSync(file, JSON.stringify(changed));
+  assert.deepEqual(await requestWriter(dir, context, 'result', { state, source: 'guard' }), { outcome: 'deny', reasonCode: 'GUARD_CORE_DELETE' });
+  fs.writeFileSync(file, JSON.stringify({ ...changed, recordedAt: new Date(Date.now() - 7 * 86400000).toISOString() }));
+  const next = event();
+  assert.equal((await requestWriter(dir, context, 'append', { event: next })).written, true);
+  assert.deepEqual(records(dir), [`evt-${next.eventId}.json`]);
+  assert.equal(readSnapshot(dir, context).health.retentionApplied, true);
 }));
 
 test('writer rejects capability, frame, operation and context violations without recording', async () => fixture(async ({ dir, descriptor }) => {

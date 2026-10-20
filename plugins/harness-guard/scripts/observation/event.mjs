@@ -120,11 +120,15 @@ export async function appendEvent(dataDir, event, { viewerId } = {}) {
       // Malformed managed entries are evidence of loss, never silently deleted to make room.
       if (scan.parseErrors) throw Error('INVALID_STORAGE');
       let size = scan.total; const encoded = JSON.stringify(event) + '\n', incoming = Buffer.byteLength(encoded);
-      const ordered = scan.records.sort((a, b) => a.value.recordedAt.localeCompare(b.value.recordedAt) || a.name.localeCompare(b.name));
       const removed = [];
-      for (const item of ordered) {
-        if (Date.parse(item.value.recordedAt) <= now - MAX_AGE || size + incoming > MAX_SPOOL) {
-          removed.push(item); size -= item.size;
+      // Full validation above remains mandatory. Ordering is only needed when
+      // expiry or capacity actually requires retention, not on every warm append.
+      if (size + incoming > MAX_SPOOL || scan.records.some(item => Date.parse(item.value.recordedAt) <= now - MAX_AGE)) {
+        const ordered = scan.records.sort((a, b) => a.value.recordedAt.localeCompare(b.value.recordedAt) || a.name.localeCompare(b.name));
+        for (const item of ordered) {
+          if (Date.parse(item.value.recordedAt) <= now - MAX_AGE || size + incoming > MAX_SPOOL) {
+            removed.push(item); size -= item.size;
+          }
         }
       }
       if (removed.length) {

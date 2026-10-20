@@ -19,7 +19,8 @@ function exactLease(root, binding) {
   } catch { return false; }
 }
 function endpoint(root, target) {
-  for (const name of fs.readdirSync(root.dir).filter(name => /^writer-.*\.json$/.test(name)).sort()) {
+  for (const name of fs.readdirSync(root.dir).filter(name => name.startsWith('writer-') &&
+    name.endsWith('.json') && UUID.test(name.slice(7, -5))).sort()) {
     const d = JSON.parse(readFile(root, name, 1024).data);
     if (!keys(d, descriptorKeys) || d.schemaVersion !== 1 || typeof d.viewerId !== 'string' || !UUID.test(d.viewerId) ||
       name !== `writer-${d.viewerId}.json` || !digest(d.repoId) || !digest(d.worktreeId) ||

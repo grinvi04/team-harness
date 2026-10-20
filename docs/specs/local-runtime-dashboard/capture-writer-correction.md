@@ -17,6 +17,12 @@ cold scan311ms와 warm append108ms를 대조했다. 파일 읽기 비용이 반�
 이번 종료 판정은 **확인된 구조 결함 교정 + 현재 후보의 원래 양성·손실 회귀 확인**이다.
 단순 재실행 성공, 모든 부하에서 무손실, scheduler 정지의 해소를 주장하지 않는다.
 
+후속 CI39408631043은 첫 기록 성공 뒤 두 번째 emitter status1로 실패했다. 외부250ms kill은
+아니며 내부 오류 단계는 미확정이다. warm 경로의 불필요한 정렬을 확인해 보존 삭제가 필요할 때만
+동일 순서로 정렬한다. 전체 stat·변경 payload 재검증·lock·fsync·ACK 순서는 그대로다.
+손실 표식을 descriptor로 오인한 별도 결함은 실제 UUID 파일만 탐색하도록 교정한다.
+이전/manual lease의 실제 emit·결과 조회 복구와 손실 경고 보존을 회귀로 확인한다.
+
 ## 실행 경계
 
 `observe.mjs`는 viewer마다 전용 Node 자식 writer 하나를 소유한다. 자식은 전체 검증 cache를

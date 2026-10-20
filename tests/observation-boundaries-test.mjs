@@ -163,6 +163,8 @@ test('fresh emitter records restore finish within its unchanged budget with a co
     const emitted = spawnSync(process.execPath, [path.resolve('plugins/harness-guard/scripts/observation/emit.mjs'), dir],
       { input: JSON.stringify(child), encoding: 'utf8', timeout: 250, killSignal: 'SIGKILL' });
     assert.equal(emitted.error, undefined); assert.equal(emitted.status, 0);
+    assert.equal(emitted.stdout, ''); assert.equal(emitted.stderr, '');
+    assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, `evt-${child.eventId}.json`))), child);
     const state = { ...template, operationId: parent, dataDir: dir };
     const query = spawnSync(process.execPath, [path.resolve('plugins/harness-guard/scripts/observation/bridge.mjs'), 'result-read', 'stack'],
       { input: JSON.stringify(state), encoding: 'utf8', timeout: 250, killSignal: 'SIGKILL' });
