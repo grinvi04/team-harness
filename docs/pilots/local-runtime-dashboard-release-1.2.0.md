@@ -46,6 +46,16 @@ listener 보존·기존 출력·반환·명령1회 실행을 포함한 runner �
 실행 원문은 위 `.runtime/release-120/cancel-{red,green,regression}.log`로 연결한다.
 SIGKILL·전원 손실의 전달이나 별도 분리된 후손 프로세스 전체 종료를 보장하지 않는다.
 
+## 릴리즈 리뷰의 PR 선택 교정
+
+main PR592의 독립 Codex/Astra medium read-only 검토에서 PR 번호 생략 호출의 CLI 오류를 확인했다.
+일반·solo wrapper가 `--repo`와 함께 조회할 현재 브랜치를 전달하지 않은 결함이다. PR592는 미병합 종료했다.
+현재 브랜치를 명시해 같은 저장소에서 조회하고, detached HEAD는 PR 번호 명시를 요구한다.
+두 경로의 생략 성공·조회 실패·detached 거부/명시 성공6개는 수정 전 RED6이며,
+수정 후6개 모두 GREEN이며, 보호 쓰기 없는 거부·기존 명시 PR 병합과 전체 wrapper35개 PASS다.
+원문은 위 `.runtime/release-120/selection-{red,green,regression}.log`다.
+새 develop 작업 PR 병합 뒤에만 main 후보를 다시 만들며, 이전 후보의 리뷰·CI로 대체하지 않는다.
+
 ## 전달 상태의 원본
 
 아래 원본의 실제 MERGED·SHA·태그·설치 결과로 판정한다. 검증 성공을 전달 완료로 확대하지 않는다.

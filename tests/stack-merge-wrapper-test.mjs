@@ -43,7 +43,10 @@ if(args[1]==='merge'){
 if(args[1]==='checks'){emit([{name:missing?'unrelated':'quality',bucket:'pass'}]);process.exit(0)}
 const n=Number(args[2]),p=pr(n),f=args[args.indexOf('--json')+1];
 if(f==='mergeable'){fs.writeFileSync(path.join(dir,'gate'),'yes');console.log('MERGEABLE')}
-else if(f==='number')console.log(42);
+else if(f==='number'){
+ if(args[2]!=='codex/a'||args[args.indexOf('--repo')+1]!=='test/repo'){process.stderr.write('argument required when using the --repo flag');process.exit(1)}
+ if(s==='single-selection-query-fail'){process.stderr.write('PR lookup failed');process.exit(1)}console.log(42);
+}
 else if(f==='baseRefName')console.log(p.base.ref);
 else if(f==='state')console.log('MERGED');
 else if(f.includes(','))emit({baseRefName:p.base.ref,baseRefOid:p.base.sha,headRefName:p.head.ref,headRefOid:p.head.sha});
@@ -247,3 +250,34 @@ for (const scenario of ['single-fork', 'single-fork-wrong-repo']) test(`ordinary
     assert.equal(f.calls().filter(c => c[0] === 'pr' && c[1] === 'merge').length, 1);
   }
 });
+
+for (const solo of [false, true]) {
+  test(`omitted PR resolves current branch with repository binding before ${solo ? 'solo' : 'ordinary'} merge`, t => {
+    const f = fixture(t, 'single', solo);
+    assert.equal(spawnSync('git', ['symbolic-ref', 'HEAD', 'refs/heads/codex/a'], { cwd: f.dir, env: f.env }).status, 0);
+    const r = f.run(); assert.equal(r.status, 0, r.stdout + r.stderr);
+    const calls = f.calls(), lookup = calls.findIndex(c => c[0] === 'pr' && c.includes('number'));
+    assert.deepEqual(calls[lookup], ['pr', 'view', 'codex/a', '--repo', 'test/repo', '--json', 'number', '--jq', '.number']);
+    assert.ok(calls.findIndex(c => c[0] === 'pr' && c[1] === 'merge') > lookup);
+    assert.equal(existsSync(path.join(f.dir, 'unprotected')), false); assert.deepEqual(f.journals(), []);
+  });
+  test(`failed PR lookup refuses ${solo ? 'solo' : 'ordinary'} merge without protection writes`, t => {
+    const f = fixture(t, 'single-selection-query-fail', solo);
+    assert.equal(spawnSync('git', ['symbolic-ref', 'HEAD', 'refs/heads/codex/a'], { cwd: f.dir, env: f.env }).status, 0);
+    const r = f.run(); assert.notEqual(r.status, 0); assert.match(r.stderr, /PR lookup failed/);
+    assert.equal(f.calls().filter(c => c.includes('DELETE') || c.includes('PATCH') || c[0] === 'pr' && c[1] === 'merge').length, 0);
+    assert.deepEqual(f.journals(), []);
+  });
+  test(`detached HEAD requires explicit PR for ${solo ? 'solo' : 'ordinary'} merge`, t => {
+    const f = fixture(t, 'single', solo);
+    const env = { ...f.env, GIT_AUTHOR_NAME: 'Fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid', GIT_COMMITTER_NAME: 'Fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid' };
+    const commit = spawnSync('git', ['-c', 'core.hooksPath=/dev/null', 'commit', '--allow-empty', '-qm', 'fixture'], { cwd: f.dir, env });
+    assert.equal(commit.status, 0, String(commit.stderr));
+    assert.equal(spawnSync('git', ['checkout', '--detach', '-q'], { cwd: f.dir, env }).status, 0);
+    const r = f.run(); assert.notEqual(r.status, 0); assert.match(r.stderr, /PR 번호.*명시/);
+    assert.equal(f.calls().filter(c => c.includes('DELETE') || c.includes('PATCH') || c[0] === 'pr' && c[1] === 'merge').length, 0);
+    assert.deepEqual(f.journals(), []);
+    const explicit = f.run('42'); assert.equal(explicit.status, 0, explicit.stdout + explicit.stderr);
+    assert.equal(existsSync(path.join(f.dir, 'unprotected')), false);
+  });
+}
