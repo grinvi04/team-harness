@@ -28,13 +28,18 @@ const promoted=s==='promoted-missing-required-ci',missing=s==='missing-required-
 const mutated=fs.existsSync(path.join(dir,'gate'))&&s==='head-drift';
 const pr=n=>({number:n,html_url:'https://github.com/test/repo/pull/'+n,state:promoted&&n===42?'closed':'open',draft:false,merged:promoted&&n===42,
 ...(promoted&&n===42?{merged_at:'2026-10-16T00:00:00Z',merge_commit_sha:b}:{}),
-head:{ref:n===42?'codex/a':'codex/b',sha:promoted&&n===43?fresh:mutated?c:n===42?a:c,repo:ref},
+head:{ref:n===42?'codex/a':'codex/b',sha:promoted&&n===43?fresh:mutated?c:n===42?a:c,repo:s.startsWith('single-fork')?{full_name:'contributor/fork'}:ref},
 base:{ref:n===42||promoted?trunk:'codex/a',sha:n===42||promoted?b:a,repo:ref},
 stack:{id:1,number:44,position:n===42?1:2,size:2,base:{ref:trunk,sha:b}}});
 function emit(value,status=200){if(args.includes('--include'))console.log('HTTP/2 '+status+' X\\ncontent-type: application/json\\n');console.log(JSON.stringify(value))}
 if(args[0]==='repo'){console.log('test/repo');process.exit(0)}
 if(args[0]==='pr'){
-if(args[1]==='merge'){fs.writeFileSync(path.join(dir,'legacy-merge'),'yes');process.exit(0)}
+if(args[1]==='merge'){
+ const jd=path.join(dir,'.git/harness-stack-merges');
+ const journals=fs.existsSync(jd)?fs.readdirSync(jd).filter(n=>/^[a-f0-9]{64}\\.json$/.test(n)).map(n=>JSON.parse(fs.readFileSync(path.join(jd,n)))):[];
+ fs.writeFileSync(path.join(dir,'intent-before-request'),JSON.stringify(journals.some(j=>j.requestStarted===true)));
+ fs.writeFileSync(path.join(dir,'legacy-merge'),'yes');
+ if(s.startsWith('single-lost')){process.stderr.write('lost response');process.exit(1)}process.exit(0)}
 if(args[1]==='checks'){emit([{name:missing?'unrelated':'quality',bucket:'pass'}]);process.exit(0)}
 const n=Number(args[2]),p=pr(n),f=args[args.indexOf('--json')+1];
 if(f==='mergeable'){fs.writeFileSync(path.join(dir,'gate'),'yes');console.log('MERGEABLE')}
@@ -58,7 +63,7 @@ else if(ep.endsWith('/required_status_checks'))emit({strict:true,contexts:['qual
 else if(ep.endsWith('/check-runs'))emit([{check_runs:[{id:1,name:missing?'unrelated':'quality',head_sha:promoted?fresh:a,status:'completed',conclusion:'success',app:{id:1}}]}]);
 else if(ep.endsWith('/statuses'))emit([[]]);
 else if(ep.includes('/git/ref/heads/')){if(args.includes('--jq'))console.log(b);else emit({object:{sha:fs.existsSync(path.join(dir,'put'))?d:b}})}
-else if(ep.includes('/compare/'))emit({status:'identical'});
+else if(ep.includes('/compare/'))emit({status:s==='single-not-contained'?'diverged':'identical'});
 else if(ep.endsWith('/stacks/44'))emit({id:1,number:44,open:true,base:{ref:trunk},pull_requests:[pr(42),pr(43)]});
 else if(ep.includes('/merge-async')){
 if(method==='PUT'){fs.writeFileSync(path.join(dir,'put'),fs.readFileSync(0,'utf8'));if(s==='lost'){process.stderr.write('lost response');process.exit(1)}}
@@ -71,7 +76,7 @@ if(s==='queue')emit({status:'enqueued',details:{message:'queued'}});
 else if(s==='pending')emit({status:'pending',details:{uuid:'0520634a-aa51-44b8-b653-85c35538485a',expected_head_sha:a,merge_method:'merge',merge_action:'default'}});
 else emit({status:'merged',details:{sha:d}});
 }else if(/\\/pulls\\/\\d+$/.test(ep)){
-const p=pr(Number(ep.split('/').at(-1)));if(s==='single')delete p.stack;
+const p=pr(Number(ep.split('/').at(-1)));if(s.startsWith('single')){delete p.stack;if(fs.existsSync(path.join(dir,'legacy-merge'))&&s!=='single-lost-open'){p.state='closed';p.merged=true;p.merge_commit_sha=d;if(s==='single-wrong-head')p.head.sha=c;if(s==='single-fork-wrong-repo')p.head.repo={full_name:'other/fork'}}}
 if(fs.existsSync(path.join(dir,'put'))&&!['lost','queue'].includes(s)){p.state='closed';p.merged=true;p.merge_commit_sha=d}
 emit(p);
 }else throw Error('unexpected '+args);
@@ -205,3 +210,40 @@ for (const solo of [false, true]) test(`main-flow linked ${solo ? 'solo' : 'comp
     assert.deepEqual(f.journals(), [], 'confirmed main-flow solo request releases its reservation')
   }
 })
+
+for (const scenario of ['single-lost-open', 'single-wrong-head', 'single-not-contained']) test(`ordinary solo ${scenario} retains reservation and refuses another exception`, t => {
+  const f = fixture(t, scenario, true), first = f.run('42');
+  assert.notEqual(first.status, 0, first.stdout + first.stderr);
+  assert.equal(existsSync(path.join(f.dir, 'unprotected')), false, 'entire protection readback was restored');
+  const journals = f.journals(); assert.equal(journals.length, 1, 'unknown or mismatched actual result retains the base reservation');
+  assert.equal(journals[0].requestStarted, true); assert.equal(journals[0].restored, true);
+  const second = f.run('42'); assert.notEqual(second.status, 0);
+  const calls = f.calls();
+  assert.equal(calls.filter(c => c.includes('DELETE')).length, 1, 'no second protection exception');
+  assert.equal(calls.filter(c => c[0] === 'pr' && c[1] === 'merge').length, 1, 'no resubmission');
+});
+for (const scenario of ['single', 'single-lost-merged']) test(`ordinary solo ${scenario} releases only after matching actual merge and trunk containment`, t => {
+  const f = fixture(t, scenario, true), r = f.run('42');
+  assert.equal(r.status, scenario === 'single' ? 0 : 1, r.stdout + r.stderr);
+  assert.equal(readFileSync(path.join(f.dir, 'intent-before-request'), 'utf8'), 'true', 'intent must be durable before sending a merge request');
+  assert.equal(existsSync(path.join(f.dir, 'unprotected')), false);
+  assert.deepEqual(f.journals(), []);
+  const dir = path.join(f.dir, '.git/harness-stack-merges');
+  const receipts = readdirSync(dir).filter(n => n.startsWith('archive-')).map(n => JSON.parse(readFileSync(path.join(dir,n))));
+  assert.equal(receipts.length, 1); assert.equal(receipts[0].state, 'merged');
+  assert.equal(receipts[0].mergeSha, d); assert.equal(receipts[0].restored, true);
+});
+
+for (const scenario of ['single-fork', 'single-fork-wrong-repo']) test(`ordinary solo ${scenario} compares the reserved head repository`, t => {
+  const f = fixture(t, scenario, true), r = f.run('42');
+  assert.equal(existsSync(path.join(f.dir, 'unprotected')), false);
+  if (scenario === 'single-fork') {
+    assert.equal(r.status, 0, r.stdout + r.stderr); assert.deepEqual(f.journals(), []);
+  } else {
+    assert.notEqual(r.status, 0); assert.equal(f.journals().length, 1);
+    assert.equal(f.journals()[0].requestStarted, true); assert.equal(f.journals()[0].restored, true);
+    assert.notEqual(f.run('42').status, 0);
+    assert.equal(f.calls().filter(c => c.includes('DELETE')).length, 1);
+    assert.equal(f.calls().filter(c => c[0] === 'pr' && c[1] === 'merge').length, 1);
+  }
+});

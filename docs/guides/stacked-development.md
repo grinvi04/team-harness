@@ -154,6 +154,10 @@ stack은 **현재 최하단이며 actual base가 trunk인 PR 하나**만 요청�
 node "${HARNESS_PLUGIN_ROOT:?}/scripts/stack-merge-cli.mjs" resume '/absolute/merge-journal.json'
 ```
 
+위 `resume`은 linked stack용이다. 일반 solo PR은 같은 journal에 `finish`를 실행한다.
+일반 PR도 요청 전에 intent를 저장하며, `finish`는 실제 PR의 후보·병합 SHA·trunk 포함과 전체
+보호 복원을 다시 읽는다. 둘 다 확인돼야 예약을 해제한다. 미확정이면 보존하며 재제출하지 않는다.
+
 이 재개는 원격 GET만 하며 새 병합 PUT을 보내지 않는다. 로컬 journal·잠금·확인 기록은 갱신한다.
 UUID를 잃었어도 새 요청을 만들지 않으며 실제 PR/trunk 확인으로 확정할 수 없으면 미확정을 유지한다.
 restack/sync journal과 병합 journal은 서로 바꿔 쓰지 않는다.
