@@ -69,3 +69,11 @@ HTTP는 기존 loopback·GET-only·token·Host/Origin 제한을 유지한다. �
 최종 독립 리뷰의 별칭 경계도 대조했다. POSIX에서 합법인 역슬래시 포함 폴더명은 화면의
 별칭 계약에 맞춰 정규화하고, 비어지면 `repository`로 표시한다. repo/worktree 식별자는
 바꾸지 않는다. 실제 viewer HTTP 응답으로 역슬래시 포함 이름과 빈 정규화 결과를 회귀 검증한다.
+
+## 결과 reader의 발행 모듈 격리
+
+결과 조회는 사용하지 않는 `client.mjs` 초기화에 의존하지 않는다. start/finish/child에서만
+발행 모듈을 불러온다. 격리 사본의 발행 모듈 평가300ms 지연으로 manual/writer의 pending 및
+guard 구체 거부가 RED3→GREEN3인지 대조한다. reader 자체·동기 endpoint 검사의 지연은 계속
+외부250ms로 제한하며 미확인·보호 복구·출력·exit를 유지한다. 원래4흐름과 보안 회귀도 필수다.
+이는 불필요한 의존성에 의한 실패 유형의 교정이며 최초421a659 자연 실패의 정확한 원인 증명이 아니다.

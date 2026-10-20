@@ -56,6 +56,18 @@ main PR592의 독립 Codex/Astra medium read-only 검토에서 PR 번호 생략 
 원문은 위 `.runtime/release-120/selection-{red,green,regression}.log`다.
 새 develop 작업 PR 병합 뒤에만 main 후보를 다시 만들며, 이전 후보의 리뷰·CI로 대체하지 않는다.
 
+## 현재 결과 조회 실패와 의존성 교정
+
+421a659의 최종4흐름은 pending 부모 사건 단언에서 첫 FAIL이었다. 첫 probe가 단언 뒤 저장하고
+fixture를 지워 최초 사건·조회 trace가 없으며 내부 단계는 UNVERIFIED다. 후속4흐름·pending8회
+PASS를 해결로 세지 않았다. reader 시작300ms 지연은 같은 실패의 가능한 경로만 증명했다.
+독립 분석 뒤 발행 모듈 평가300ms 지연을 분리했다. manual/writer pending·guard 세 시험은
+RED3→GREEN3이고 원래 실제 viewer4흐름은 각8사건·결과/복구/출력 일치 PASS다. 잠긴 범위는 위
+[writer 교정 계약](../specs/local-runtime-dashboard/capture-writer-correction.md#결과-reader의-발행-모듈-격리)이다.
+실행 원문은 `.runtime/release-120/reader-isolation-{red,green,regression}.log`에 보존한다.
+최초 원인을 소급 확정하거나 모든 scheduler 지연의 무손실을 주장하지 않는다. 현재 후보의
+RED→GREEN·원래4흐름·제한/거부 회귀·독립 판정으로 교정 범위와 릴리즈 GO를 구분한다.
+
 ## 전달 상태의 원본
 
 아래 원본의 실제 MERGED·SHA·태그·설치 결과로 판정한다. 검증 성공을 전달 완료로 확대하지 않는다.
@@ -63,7 +75,7 @@ main PR592의 독립 Codex/Astra medium read-only 검토에서 PR 번호 생략 
 
 | 단계 | 현재 판정에 사용하는 원본·조건 |
 |---|---|
-| 작업 PR→develop | [작업 PR 조회](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Acodex%2Fsolo-result-reservation); MERGED와 원격 develop 포함 모두 확인 |
+| 작업 PR→develop | [작업 PR 조회](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Acodex%2Fobservation-reader-isolation); MERGED와 원격 develop 포함 모두 확인 |
 | 정식 release-check | 현재 후보의 품질·독립 보안·온라인 provenance·package/checksum 실행 결과; 하나라도 필수 미확인이면 NO-GO |
 | release→main | [1.2.0 release PR 조회](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Arelease%2Fv1.2.0); 선행 develop 병합 SHA 포함·현재 리뷰·CI 필수 |
 | 태그·역병합 | [exact 태그](https://github.com/grinvi04/team-harness/tree/v1.2.0)가 실제 main 병합 SHA를 가리키고 [역병합 PR](https://github.com/grinvi04/team-harness/pulls?q=is%3Apr+head%3Async%2Fbackmerge-v1.2.0)이 MERGED인지 각각 확인 |
