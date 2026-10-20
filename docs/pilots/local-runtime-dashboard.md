@@ -1,6 +1,9 @@
 # 로컬 실시간 대시보드 인수 기록
 
-2026-10-18. 1.2.0 미발행 후보. [설계·O1–O5](../specs/local-runtime-dashboard.md)와
+이 문서는 2026-10-18부터의 1.2.0 후보 실행 이력을 보존한다.
+현재 재현·정식 전달 상태는 [1.2.0 검증 기록](local-runtime-dashboard-release-1.2.0.md)을 따른다.
+
+당시 1.2.0 미발행 후보. [설계·O1–O5](../specs/local-runtime-dashboard.md)와
 [T1–T4 계획](../specs/local-runtime-dashboard/implementation-plan.md)의 원래 완료 기준을 유지한다.
 실제 Codex CLI·Desktop 연결과 교정 영향 검증을 확인했다.
 G3의 현재 전달·최종 후보 CI·독립 검토·병합 판정은 아래 PR 원본과 마지막 판정표를 함께 따른다.

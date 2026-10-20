@@ -1,7 +1,8 @@
 # 관측 writer의 cold scan 교정
 
 원래 [O1–O5](../local-runtime-dashboard.md)의 기록·손실·gate 보존 계약을 유지한다.
-현재 실행·전달 판정은 [인수 기록](../../pilots/local-runtime-dashboard.md)과 PR587을 따른다.
+당시 교정·develop 전달은 [인수 기록](../../pilots/local-runtime-dashboard.md)과 PR587을 따른다.
+후속 현재 재현·정식 전달은 [1.2.0 검증 기록](../../pilots/local-runtime-dashboard-release-1.2.0.md)을 따른다.
 판정은 **소유**다. 기존 사건 저장의 실행 비용을 고치며 native hook lifecycle은 바꾸지 않는다.
 
 ## 원인과 증거 경계
@@ -62,8 +63,8 @@ HTTP는 기존 loopback·GET-only·token·Host/Origin 제한을 유지한다. �
 
 시험 정본은 `tests/observation-{boundaries,writer,integration}-test.mjs`다.
 새 writer 전체 디렉터리는 기존 core source 선택에 포함되며 현재 커밋의 package·bundle과 이동 실행으로 확인한다.
-원래 quality·독립 리뷰·필수 CI·보호·Git Flow를 유지하며 승인된 전달 종료점은 PR587의 develop 병합이다.
-main·태그·1.2.0 영구 설치는 이번 교정 범위에 포함하지 않는다.
+당시 승인된 교정 종료점은 PR587의 develop 병합이었다. 후속 사용자 승인으로 현재 후보 재현과
+정식 전달을 진행하며 원래 quality·독립 리뷰·필수 CI·보호·Git Flow를 유지한다.
 
 최종 독립 리뷰의 별칭 경계도 대조했다. POSIX에서 합법인 역슬래시 포함 폴더명은 화면의
 별칭 계약에 맞춰 정규화하고, 비어지면 `repository`로 표시한다. repo/worktree 식별자는

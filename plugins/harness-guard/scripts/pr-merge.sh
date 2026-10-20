@@ -258,7 +258,13 @@ if [ "$STACK_KIND" = stack ]; then
   echo "✅ PR #$PR 실제 병합과 trunk 포함 확인 — 의존 브랜치는 보존, 다음 층은 새 후보로 검증"
   exit 0
 fi
+if [ -n "${HARNESS_STACK_MERGE_JOURNAL:-}" ]; then
+  node "$STACK_ENGINE" start-single "$HARNESS_STACK_MERGE_JOURNAL" "$STACK_SNAPSHOT" || exit 1
+fi
 gh pr merge "$PR" --repo "$OWNER_REPO" --merge --delete-branch --match-head-commit "$HEAD_SHA"
+if [ -n "${HARNESS_STACK_MERGE_JOURNAL:-}" ]; then
+  node "$STACK_ENGINE" confirm-single "$HARNESS_STACK_MERGE_JOURNAL" || exit 1
+fi
 OBS_OUTCOME=unverified OBS_REASON=MERGE_REQUESTED
 echo "✅ PR #$PR 머지 완료"
 

@@ -56,6 +56,25 @@ function restored(data) {
   return !data.solo || normalizedProtection(get(data.snapshot.repo,
     `repos/${data.snapshot.repo}/branches/${encodeURIComponent(data.snapshot.trunk)}/protection`)) === normalizedProtection(data.protection)
 }
+function singleResult(dir, file) {
+  const data = load(dir, file), s = data.snapshot
+  if (!data.solo || s.kind !== 'single' || !data.requestStarted) throw Error('ordinary solo request intent required')
+  data.state = 'unverified'; data.reason = 'actual ordinary merge unverified; no request resubmitted'
+  try {
+    const actual = get(s.repo, `repos/${s.repo}/pulls/${s.pr}`)
+    if (actual.number !== s.pr || actual.merged !== true || actual.state !== 'closed'
+      || actual.head?.sha !== s.identity.head.sha || actual.head?.repo?.full_name !== s.identity.head.repo
+      || actual.base?.ref !== s.trunk || actual.base?.repo?.full_name !== s.repo
+      || !/^[a-f0-9]{40}$/.test(actual.merge_commit_sha)) throw Error('ordinary merge identity unverified')
+    const trunk = get(s.repo, `repos/${s.repo}/git/ref/heads/${encodeURIComponent(s.trunk)}`)?.object?.sha
+    if (!/^[a-f0-9]{40}$/.test(trunk)) throw Error('live trunk unavailable')
+    const comparison = get(s.repo, `repos/${s.repo}/compare/${actual.merge_commit_sha}...${trunk}`)
+    if (!['identical', 'ahead'].includes(comparison.status)) throw Error('merge not contained in live trunk')
+    data.state = 'merged'; data.mergeSha = actual.merge_commit_sha; data.reason = 'actual ordinary PR and trunk confirmed'
+  } catch { /* A missing/failed read is not permission to release or resubmit. */ }
+  save(dir, file, data)
+  return data
+}
 async function runProvider(dir, file, snapshot, resume) {
   const saved = load(dir, file), lock = `${file}.runner`
   fs.mkdirSync(lock, { mode: 0o700 })
@@ -111,9 +130,19 @@ try {
     const trunk = snapshot.kind === 'stack' ? snapshot.trunk : snapshot.identity.base.ref
     noQueue(snapshot.repo, trunk)
     console.log(reserve(directory(), { ...snapshot, trunk }, { solo: true, protection }).file)
+  } else if (action === 'start-single') {
+    const dir = directory(), data = load(dir, first), snapshot = JSON.parse(second)
+    if (!data.solo || snapshot.kind !== 'single' || data.requestStarted || data.state !== 'reserved'
+      || JSON.stringify(data.snapshot) !== JSON.stringify({ ...snapshot, trunk: snapshot.identity.base.ref }))
+      throw Error('ordinary solo candidate/reservation mismatch')
+    data.requestStarted = true; data.state = 'unverified'; data.reason = 'ordinary merge intent persisted before request'
+    save(dir, first, data)
+  } else if (action === 'confirm-single') {
+    if (singleResult(directory(), first).state !== 'merged') throw Error('ordinary merge result unverified; reservation retained')
   } else if (action === 'finish') {
     const dir = directory(), data = load(dir, first)
     const verified = restored(data)
+    if (data.snapshot.kind === 'single' && data.requestStarted) singleResult(dir, first)
     const result = finish(dir, first, { restored: verified })
     console.log(JSON.stringify(result))
     if (!verified) throw Error('protection restoration unverified; reservation retained')
@@ -134,6 +163,6 @@ try {
     if (data.solo) finish(dir, first, { restored: restored(load(dir, first)) })
     console.log(JSON.stringify({ ...outcome, journal: first }))
     if (outcome.state !== 'merged') process.exitCode = 1
-  } else throw Error('internal actions: probe, prepare-solo, merge, resume, finish')
+  } else throw Error('internal actions: probe, prepare-solo, start-single, confirm-single, merge, resume, finish')
 } catch (e) { console.error(`stack merge: ${e.message}`); process.exitCode = 1 }
 if (signalCode) process.exitCode = signalCode
