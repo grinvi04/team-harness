@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { writeLease, validateEvent } from '../plugins/harness-guard/scripts/observation/event.mjs';
 import { readSnapshot } from '../plugins/harness-guard/scripts/observation/read.mjs';
+import { startWriter } from '../plugins/harness-guard/scripts/observation/writer.mjs';
 const scripts = process.env.OBSERVATION_TEST_SCRIPTS || path.resolve('plugins/harness-guard/scripts');
 const guardCases = [
   ['git commit -m fixture', 'GUARD_PROTECTED_COMMIT'],
@@ -22,9 +23,23 @@ const guardCases = [
   ['npm install -g fixture', 'GUARD_GLOBAL_INSTALL'],
 ];
 const hash = value => createHash('sha256').update(value).digest('hex');
+function emitterTrace(root, name = 'emitter-trace.jsonl') {
+  try { return fs.readFileSync(path.join(root, name), 'utf8').trim().split('\n')
+    .filter(Boolean).flatMap(line => { try { return [JSON.parse(line)]; } catch { return []; } }); }
+  catch { return []; }
+}
 function fixture(t) {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'harness-observation-')));
-  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const diagnostics = { reported: false };
+  t.after(() => {
+    try {
+      const trace = emitterTrace(root), errors = trace.filter(e => e.errorCode || e.status !== 0);
+      if (!diagnostics.reported && (t.passed === false || errors.length))
+        t.diagnostic(`observation fixture emitters: ${JSON.stringify({ failed: t.passed === false, trace: t.passed === false ? trace : errors,
+          bridge: t.passed === false ? emitterTrace(root, 'bridge-trace.jsonl') : [] })}`);
+    } catch { /* Preserve the original assertion even if diagnostics fail. */ }
+    finally { fs.rmSync(root, { recursive: true, force: true }); }
+  });
   const repo = path.join(root, 'repo'), data = path.join(root, 'data'), spool = path.join(data, 'observability');
   fs.mkdirSync(repo); fs.mkdirSync(data, { mode: 0o700 }); fs.mkdirSync(spool, { mode: 0o700 });
   const git = (...args) => { const r = spawnSync('git', args, { cwd: repo, encoding: 'utf8' }); assert.equal(r.status, 0, r.stderr); return r.stdout.trim(); };
@@ -32,7 +47,11 @@ function fixture(t) {
   fs.writeFileSync(path.join(repo, '.harness-policy.json'), JSON.stringify({ schemaVersion: 1, mode: 'company', branchFlow: 'git-flow', autoMergeTargets: [] }));
   git('add', '.'); git('commit', '-m', 'test: fixture'); git('branch', 'develop');
   const lease = { schemaVersion: 1, viewerId: randomUUID(), repoId: hash(fs.realpathSync(path.join(repo, '.git'))), worktreeId: hash(repo), expiresAt: new Date(Date.now() + 29000).toISOString() };
-  const env = { ...process.env, PLUGIN_DATA: data, HARNESS_GUARD_LOG: path.join(root, 'guard.log') };
+  const env = { ...process.env, PLUGIN_DATA: data, HARNESS_GUARD_LOG: path.join(root, 'guard.log'),
+    OBSERVATION_STACK_TRACE: path.join(root, 'emitter-trace.jsonl'),
+    OBSERVATION_FIXTURE_KIND: t.name.startsWith('250ms emitter timeout') ? 'intentional-timeout'
+      : t.name.startsWith('guard ') ? 'guard' : t.name.startsWith('structured stack') ? 'structured-stack' : 'other',
+    NODE_OPTIONS: `${process.env.NODE_OPTIONS || ''} --require ${JSON.stringify(path.resolve('tests/helpers/observation-emitter-probe.cjs'))}` };
   for (const k of ['HARNESS_OBSERVE_DIR', 'HARNESS_OBSERVE_PARENT', 'HARNESS_OBSERVE_SESSION', 'HARNESS_GOVERNANCE_CORE_ROOT']) delete env[k];
   const active = () => { lease.expiresAt = new Date(Date.now() + 29000).toISOString(); writeLease(spool, lease); };
   const events = () => fs.readdirSync(spool).filter(n => n.startsWith('evt-')).map(n => JSON.parse(fs.readFileSync(path.join(spool, n), 'utf8')));
@@ -41,7 +60,7 @@ function fixture(t) {
     assert.equal(r.error, undefined, r.error?.message);
     return { status: r.status, stdout: r.stdout, stderr: r.stderr };
   };
-  return { root, repo, data, spool, lease, env, git, active, events, run };
+  return { root, repo, data, spool, lease, env, git, active, events, run, diagnostics };
 }
 function completed(events, source, outcome, reason) {
   const finished = events.filter(e => e.source === source && e.phase === 'finished' && e.outcome === outcome && e.reasonCode === reason);
@@ -282,7 +301,7 @@ function copiedSolo(t, mode, mergeBody, changes = {}) {
   const r = spawnSync('bash', [path.join(plugin, 'scripts/solo-merge.sh'), '42'], { cwd: f.repo,
     env: { ...f.env, PATH: `${bin}:${process.env.PATH}`, HARNESS_OBSERVE_DIR: f.spool,
       GH_STATE: state, GH_LOG: log, FAKE_REVIEWS_CONFIG: reviews, SOLO_MERGE_MERGE_CMD: merge,
-      OBSERVATION_EMITTER_PROBE: probe, ...changes }, encoding: 'utf8', timeout: 10000 });
+      OBSERVATION_EMITTER_PROBE: probe, OBSERVATION_FIXTURE_KIND: mode.startsWith('emitter-') ? mode : 'other', ...changes }, encoding: 'utf8', timeout: 10000 });
   assert.equal(r.error, undefined, r.error?.message); assert.equal(r.signal, null);
   const result = { status: r.status, stdout: r.stdout, stderr: r.stderr };
   result.stdout = result.stdout.replace(/^\{"released":true,"archive":"([^"\n]+)"\}$/gm, (line, archive) => {
@@ -343,10 +362,44 @@ test('TERM and HUP keep signal exit and original full restore under ON and activ
   }
 });
 
+// Report only allowlisted fixture state, before fixture cleanup, preserving the assertion.
+function stackDiagnostics(t, body) {
+  const fixtures = [];
+  const observe = (scenario, solo, capture, missingResult = false) => observedStack(t, scenario, solo, capture, missingResult, fixtures);
+  try { body(observe); }
+  catch (error) {
+    for (const { f, scenario, solo, capture } of fixtures) {
+      try {
+        const collect = (read, fallback) => { try { return read(); } catch { return fallback; } };
+        const trace = emitterTrace(f.root);
+        const events = collect(() => f.events(), []), journalDir = path.join(f.repo, '.git/harness-stack-merges');
+        const journals = collect(() => fs.readdirSync(journalDir), []).filter(n => n.endsWith('.json')).slice(0, 16).map(n => collect(() => {
+          const value = JSON.parse(fs.readFileSync(path.join(journalDir, n), 'utf8'));
+          return { archived: n.startsWith('archive-'), restored: value.restored === true,
+            state: ['reserved', 'pending', 'enqueued', 'failed', 'merged', 'unverified'].includes(value.state) ? value.state : null };
+        }, { unreadable: true }));
+        const diagnostic = { scenario, solo, capture, trace, bridge: emitterTrace(f.root, 'bridge-trace.jsonl'),
+          restoreAttempt: events.some(e => e.reasonCode === 'RESTORE_ATTEMPT'),
+          restoreVerified: events.some(e => e.reasonCode === 'RESTORE_VERIFIED'),
+          writerLoss: fs.existsSync(path.join(f.spool, 'writer-loss-v1.json')),
+          health: collect(() => readSnapshot(f.spool, f.lease).health, { captureState: 'unavailable' }),
+          leasePresent: fs.existsSync(path.join(f.spool, `lease-${f.lease.viewerId}.json`)),
+          leaseRemainingMs: Date.parse(f.lease.expiresAt) - Date.now(),
+          protectionRestored: !fs.existsSync(path.join(f.repo, 'unprotected')), journals };
+        collect(() => fs.writeFileSync(path.join(f.root, 'stack-diagnostic.json'), JSON.stringify(diagnostic), { mode: 0o600 }), null);
+        t.diagnostic(`structured stack fixture: ${JSON.stringify(diagnostic)}`);
+        f.diagnostics.reported = true;
+      } catch { t.diagnostic('structured stack fixture diagnostics unavailable'); }
+    }
+    throw error;
+  }
+}
+
 // Reuse the stack boundary's stateful GitHub double; executeMerge, journals,
 // both wrappers and the real observation writer remain production code.
-function observedStack(t, scenario, solo, capture, missingResult = false) {
-  const f = fixture(t), bin = path.join(f.root, 'bin'); fs.mkdirSync(bin);
+function observedStack(t, scenario, solo, capture, missingResult = false, fixtures = [], prepared) {
+  const f = prepared ?? fixture(t), bin = path.join(f.root, 'bin'); fs.mkdirSync(bin);
+  fixtures.push({ f, scenario, solo, capture });
   const source = fs.readFileSync('tests/stack-merge-wrapper-test.mjs', 'utf8');
   const template = source.split("writeFileSync(path.join(bin, 'gh'), `")[1]?.split('`); spawnSync')[0];
   assert.ok(template);
@@ -395,8 +448,8 @@ for (const solo of [false, true]) for (const [scenario, outcome, reason, rc] of 
   ['pending', 'pending', 'MERGE_PENDING', 1], ['queue', 'enqueued', 'MERGE_PENDING', 1],
   ['lost', 'unverified', 'RESULT_UNVERIFIED', 1], ['failed', 'fail', 'MERGE_FAILED', 1],
   ['normal', 'pass', 'MERGED', 0],
-]) test(`structured stack ${scenario} stays ${outcome} through ${solo ? 'solo' : 'pr'} wrapper exit`, t => {
-  const off = observedStack(t, scenario, solo, false), on = observedStack(t, scenario, solo, true);
+]) test(`structured stack ${scenario} stays ${outcome} through ${solo ? 'solo' : 'pr'} wrapper exit`, t => stackDiagnostics(t, observe => {
+  const off = observe(scenario, solo, false), on = observe(scenario, solo, true);
   assert.equal(off.result.status, rc, off.result.stderr); assert.deepEqual(on.result, off.result);
   assert.deepEqual(on.calls, off.calls);
   const source = solo ? 'solo-merge' : 'pr-merge', events = on.f.events();
@@ -409,19 +462,19 @@ for (const solo of [false, true]) for (const [scenario, outcome, reason, rc] of 
   assert.equal(terminal[0].exitCode, rc);
   if (rc) assert.ok(events.every(e => e.reasonCode !== 'MERGED'));
   if (solo) completed(events, 'solo-merge', 'pass', 'RESTORE_VERIFIED');
-});
+}));
 
-for (const solo of [false, true]) test(`missing structured result never becomes MERGED from exit zero in ${solo ? 'solo' : 'pr'}`, t => {
-  const off = observedStack(t, 'normal', solo, false), on = observedStack(t, 'normal', solo, true, true);
+for (const solo of [false, true]) test(`missing structured result never becomes MERGED from exit zero in ${solo ? 'solo' : 'pr'}`, t => stackDiagnostics(t, observe => {
+  const off = observe('normal', solo, false), on = observe('normal', solo, true, true);
   assert.equal(on.result.status, 0); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
   const source = solo ? 'solo-merge' : 'pr-merge';
   completed(on.f.events(), source, 'unverified', 'RESULT_UNVERIFIED');
   assert.ok(on.f.events().every(e => e.reasonCode !== 'MERGED'));
   assert.equal(readSnapshot(on.f.spool, on.f.lease).health.captureState, 'loss-suspected');
-});
+}));
 
-test('confirmed stack merge with failed solo restore never marks the solo operation pass', t => {
-  const off = observedStack(t, 'restore-fail', true, false), on = observedStack(t, 'restore-fail', true, true);
+test('confirmed stack merge with failed solo restore never marks the solo operation pass', t => stackDiagnostics(t, observe => {
+  const off = observe('restore-fail', true, false), on = observe('restore-fail', true, true);
   assert.equal(on.result.status, 1); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
   completed(on.f.events(), 'stack', 'pass', 'MERGED');
   completed(on.f.events(), 'solo-merge', 'unverified', 'RESTORE_UNVERIFIED');
@@ -429,10 +482,10 @@ test('confirmed stack merge with failed solo restore never marks the solo operat
   const terminal = on.f.events().filter(e => e.operationId === parent.operationId && e.phase === 'finished');
   assert.equal(terminal.length, 1); assert.equal(terminal[0].outcome, 'unverified');
   assert.equal(terminal[0].reasonCode, 'RESULT_UNVERIFIED'); assert.equal(terminal[0].exitCode, 1);
-});
+}));
 
-test('stalled structured result reads are bounded and preserve solo restore and command results', t => {
-  const off = observedStack(t, 'normal', true, false), on = observedStack(t, 'normal', true, true, 'result-timeout');
+test('stalled structured result reads are bounded and preserve solo restore and command results', t => stackDiagnostics(t, observe => {
+  const off = observe('normal', true, false), on = observe('normal', true, true, 'result-timeout');
   assert.equal(on.result.status, 0); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
   const parent = on.f.events().find(e => e.source === 'pr-merge' && e.phase === 'started');
   const start = Date.now();
@@ -443,4 +496,20 @@ test('stalled structured result reads are bounded and preserve solo restore and 
   assert.equal(query.stdout, ''); assert.equal(query.stderr, '');
   completed(on.f.events(), 'solo-merge', 'unverified', 'RESULT_UNVERIFIED');
   completed(on.f.events(), 'solo-merge', 'pass', 'RESTORE_VERIFIED');
+}));
+
+
+test('structured failed solo retains restore and gate parity through the viewer-owned writer', async t => {
+  const off = observedStack(t, 'failed', true, false), f = fixture(t);
+  const writer = await startWriter(f.spool, f.lease, f.lease.viewerId);
+  try {
+    const on = observedStack(t, 'failed', true, true, false, [], f);
+    assert.equal(off.result.status, 1); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
+    const events = on.f.events(); completed(events, 'solo-merge', 'fail', 'MERGE_FAILED');
+    completed(events, 'solo-merge', 'pass', 'RESTORE_VERIFIED');
+    const operation = events.find(e => e.source === 'solo-merge' && e.phase === 'started' && e.parentOperationId === null);
+    const terminal = events.filter(e => e.operationId === operation.operationId && e.phase === 'finished');
+    assert.equal(terminal.length, 1); assert.equal(terminal[0].reasonCode, 'MERGE_FAILED');
+    assert.equal(terminal[0].exitCode, 1); assert.ok(events.every(e => e.reasonCode !== 'MERGED'));
+  } finally { await writer.close(); }
 });

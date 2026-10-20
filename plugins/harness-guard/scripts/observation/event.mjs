@@ -52,9 +52,10 @@ export function validLease(lease, target, now = Date.now()) {
     date(lease.expiresAt) && Date.parse(lease.expiresAt) > now && Date.parse(lease.expiresAt) <= now + 30000 &&
     lease.repoId === target.repoId && lease.worktreeId === target.worktreeId;
 }
-export function readLease(root, target, { allowAnyWorktree = false } = {}) {
+export function readLease(root, target, { allowAnyWorktree = false, viewerId } = {}) {
   for (const name of fs.readdirSync(root.dir)) {
     if (!name.startsWith('lease-') || !name.endsWith('.json') || !UUID.test(name.slice(6, -5))) continue;
+    if (viewerId !== undefined && name !== `lease-${viewerId}.json`) continue;
     try {
       const value = JSON.parse(readFile(root, name, 512).data);
       const leaseTarget = allowAnyWorktree && target.worktreeId === undefined
@@ -102,13 +103,13 @@ export function readEvents(root) {
   unchanged(root);
   return { records, parseErrors, total };
 }
-export async function appendEvent(dataDir, event) {
+export async function appendEvent(dataDir, event, { viewerId } = {}) {
   if (!validateEvent(event)) return { written: false, reasonCode: 'INVALID_EVENT' };
   try {
     const root = directory(dataDir);
-    if (!readLease(root, event)) return { written: false, reasonCode: 'CAPTURE_OFF' };
+    if (!readLease(root, event, { viewerId })) return { written: false, reasonCode: 'CAPTURE_OFF' };
     return await withWriterLock(root, () => {
-      if (!readLease(root, event)) return { written: false, reasonCode: 'CAPTURE_OFF' };
+      if (!readLease(root, event, { viewerId })) return { written: false, reasonCode: 'CAPTURE_OFF' };
       if (cleanDeadTemps(root)) atomicWrite(root, 'retention-v1.json', JSON.stringify({ schemaVersion: 1, applied: true }) + '\n');
       const now = Date.now(), when = Date.parse(event.recordedAt);
       if (when > now + 5000 || when <= now - MAX_AGE) return { written: false, reasonCode: 'EVENT_TIME_INVALID' };
@@ -119,11 +120,15 @@ export async function appendEvent(dataDir, event) {
       // Malformed managed entries are evidence of loss, never silently deleted to make room.
       if (scan.parseErrors) throw Error('INVALID_STORAGE');
       let size = scan.total; const encoded = JSON.stringify(event) + '\n', incoming = Buffer.byteLength(encoded);
-      const ordered = scan.records.sort((a, b) => a.value.recordedAt.localeCompare(b.value.recordedAt) || a.name.localeCompare(b.name));
       const removed = [];
-      for (const item of ordered) {
-        if (Date.parse(item.value.recordedAt) <= now - MAX_AGE || size + incoming > MAX_SPOOL) {
-          removed.push(item); size -= item.size;
+      // Full validation above remains mandatory. Ordering is only needed when
+      // expiry or capacity actually requires retention, not on every warm append.
+      if (size + incoming > MAX_SPOOL || scan.records.some(item => Date.parse(item.value.recordedAt) <= now - MAX_AGE)) {
+        const ordered = scan.records.sort((a, b) => a.value.recordedAt.localeCompare(b.value.recordedAt) || a.name.localeCompare(b.name));
+        for (const item of ordered) {
+          if (Date.parse(item.value.recordedAt) <= now - MAX_AGE || size + incoming > MAX_SPOOL) {
+            removed.push(item); size -= item.size;
+          }
         }
       }
       if (removed.length) {

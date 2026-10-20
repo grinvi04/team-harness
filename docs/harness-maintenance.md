@@ -3,7 +3,7 @@
 team-harness 자체(플러그인·템플릿·docs)를 고치는 절차. 프로젝트 작업 규약이 아니라
 **하네스에 PR을 보내는 사람**을 위한 문서다.
 
-수정할 정본과 생성물은 [저장소 구조 안내](repository-structure.md)를 먼저 읽고, 선택형 의존 PR은 [층별 개발 안내](guides/stacked-development.md)를 따른다.
+정본·생성물과 대시보드 제작·검사는 [저장소 구조 안내](repository-structure.md), 선택형 의존 PR은 [층별 개발 안내](guides/stacked-development.md)를 따른다.
 
 ## 변경 절차
 

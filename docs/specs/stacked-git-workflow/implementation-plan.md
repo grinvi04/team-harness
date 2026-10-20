@@ -3,7 +3,7 @@
 > 실행자: `superpowers:executing-plans`로 순차 구현하고 고위험 전달 경계는 별도 독립 검토한다.
 > 최초 frozen-group G0 FAIL은 [원래 결과](../../pilots/gh-stack-compatibility.md)에 보존한다.
 > [현재 원격 인수](../../pilots/gh-stack-adapter-acceptance.md): 실제 3층 제출·재기반·trusted CI·첫 층 응답 유실 복구 PASS.
-> retained prefix·서버 수신 수정 후 회귀110개와 실제 B/C sync·PR33→34 순차 병합 PASS. 후속 solo·409·현재 전체 품질을 포함한 G1/G2 인수 완료, G3는 미완료다. PR584는 develop4c1136e로 통합됐으며 대시보드 A/B/C 실제 인수를 시작한다.
+> retained prefix·서버 수신 수정 후 회귀110개와 실제 B/C sync·PR33→34 순차 병합 PASS. 후속 solo·409·현재 전체 품질을 포함한 G1/G2 인수와 PR584 develop4c1136e 통합을 확인했다. G3 실제 대시보드 제출·sync·리뷰·develop 통합 판정은 현재 인수 기록과 PR585·586·587 원본을 따른다.
 
 **Goal:** 공식 gh-stack의 branch/PR 관리를 기존 Harness gate와 Git Flow에 연결한다.
 **Architecture:** 공식 엔진 + 얇은 stack 사전/사후 검사 + 기존 PR gate + SHA가 결박된 async provider.
@@ -161,10 +161,13 @@ T1 snapshot을 소비하지만 merge 직전 다시 조회한다. 기존 CI/revie
 - [x] milestone의 간접 PR 생성과 workflow→core runtime binding도 adapter를 거친다. 새 helper를 package에
   포함하고 packaged artifact에서 실제 경로를 실행한다. milestone 명령→core wrapper→adapter와 잘못된 parent 거부4개 PASS.
 - [x] 아래 기존 생성·발견·라우팅·package 검사에 영향 회귀를 연결한다. 실제 사용 증거와 구분한다.
-- [ ] 새 연결 자체는 기존 Git Flow로 develop에 통합한 뒤 대시보드 3층에서 실제 stack 제출·수정·병합을 수행한다.
-- [ ] 원격 actual base/head·CI·리뷰·병합 SHA·보호 원값, 설치 확장 버전과 효과 journal을 기록한다.
-- [ ] 승인된 CI 선행분 외 전체 기능 release/main은 대시보드 stack 종료 후 시작한다. 기존 hotfix/backmerge 비회귀를 확인한다.
-- [ ] 전체 quality·package/bundle·독립 검토를 통과하고 G0–G3 실제 판정을 보고한다.
+
+다음 네 전달 계약의 실행·최종 판정은 [PR587](https://github.com/grinvi04/team-harness/pull/587)에 기록한다. FAIL·미확인이 남으면 G3 완료가 아니다.
+
+- 새 연결 자체는 기존 Git Flow로 develop에 통합한 뒤 대시보드 3층에서 실제 stack 제출·수정·병합을 수행한다.
+- 원격 actual base/head·CI·리뷰·병합 SHA·보호 원값, 설치 확장 버전과 효과 journal을 기록한다.
+- 승인된 CI 선행분 외 전체 기능 release/main은 대시보드 stack 종료 후 시작한다. 기존 hotfix/backmerge 비회귀를 확인한다.
+- 전체 quality·package/bundle·독립 검토를 통과하고 G0–G3 실제 판정을 보고한다.
 
 T3 관련 기존 검사(현재90d7e0f quality에서 실행 PASS; 실제 G3 대시보드 사용과 별개):
 

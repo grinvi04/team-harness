@@ -15,3 +15,8 @@ docs/milestones/
 
 # Local validation output
 .runtime/
+
+# Local dashboard authoring dependencies and caches
+/dashboard/node_modules/
+/dashboard/.vite/
+/dashboard/*.tsbuildinfo
