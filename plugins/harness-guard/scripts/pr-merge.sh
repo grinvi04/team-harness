@@ -172,7 +172,10 @@ done
 
 OWNER_REPO=$(gh repo view --json nameWithOwner --jq .nameWithOwner)
 export GH_REPO="$OWNER_REPO"
-[ -z "$PR" ] && PR=$(gh pr view --repo "$OWNER_REPO" --json number --jq .number)
+if [ -z "$PR" ]; then
+  CURRENT_BRANCH=$(git symbolic-ref --quiet --short HEAD) || { echo "⛔ 현재 브랜치가 없습니다. PR 번호를 명시하세요." >&2; exit 1; }
+  PR=$(gh pr view "$CURRENT_BRANCH" --repo "$OWNER_REPO" --json number --jq .number) || exit 1
+fi
 OWNER="${OWNER_REPO%/*}"; NAME="${OWNER_REPO#*/}"
 echo "게이트 검증: $OWNER_REPO PR #$PR"
 
