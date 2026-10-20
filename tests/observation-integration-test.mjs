@@ -99,6 +99,9 @@ function guardCopy(t, f, fault) {
     const file = path.join(root, 'observation/event.mjs');
     fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace('export function readEvents(root) {',
       "export function readEvents(root) { if(process.argv[2]==='result-read')Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,2000);"));
+  } else if (fault === 'publisher-startup') {
+    const file = path.join(root, 'observation/client.mjs');
+    fs.appendFileSync(file, "\nif(process.argv[2]==='result-read')Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,300);\n");
   } else fs.writeFileSync(path.join(root, 'observation/emit.mjs'), `import fs from 'node:fs';import {randomUUID} from 'node:crypto';
     import {appendEvent} from './event.mjs';const e=JSON.parse(fs.readFileSync(0,'utf8'));
     if(e.source==='guard'&&e.phase==='finished'){
@@ -422,6 +425,13 @@ function observedStack(t, scenario, solo, capture, missingResult = false, fixtur
       const eventFile = path.join(scriptRoot, 'observation/event.mjs');
       fs.writeFileSync(eventFile, fs.readFileSync(eventFile, 'utf8').replace('export function readEvents(root) {',
         "export function readEvents(root) { if (process.argv[2]?.startsWith('result')) Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 2000);"));
+    } else if (missingResult === 'endpoint-timeout') {
+      const file = path.join(scriptRoot, 'observation/writer.mjs');
+      fs.writeFileSync(file, fs.readFileSync(file, 'utf8').replace('export async function requestWriter(dataDir, target, action, payload) {',
+        "export async function requestWriter(dataDir, target, action, payload) { if(process.argv[2]==='result-read')Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,2000);"));
+    } else if (missingResult === 'publisher-startup') {
+      fs.appendFileSync(path.join(scriptRoot, 'observation/client.mjs'),
+        "\nif(process.argv[2]==='result-read')Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,300);\n");
     } else fs.writeFileSync(path.join(scriptRoot, 'observation/emit.mjs'), `import fs from 'node:fs';
       import {appendEvent} from './event.mjs';const event=JSON.parse(fs.readFileSync(0,'utf8'));
       if(event.source==='stack'&&event.phase==='finished')process.exit(19);
@@ -484,8 +494,8 @@ test('confirmed stack merge with failed solo restore never marks the solo operat
   assert.equal(terminal[0].reasonCode, 'RESULT_UNVERIFIED'); assert.equal(terminal[0].exitCode, 1);
 }));
 
-test('stalled structured result reads are bounded and preserve solo restore and command results', t => stackDiagnostics(t, observe => {
-  const off = observe('normal', true, false), on = observe('normal', true, true, 'result-timeout');
+for (const fault of ['result-timeout', 'endpoint-timeout']) test(`stalled structured result ${fault} is bounded and preserves solo restore and command results`, t => stackDiagnostics(t, observe => {
+  const off = observe('normal', true, false), on = observe('normal', true, true, fault);
   assert.equal(on.result.status, 0); assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
   const parent = on.f.events().find(e => e.source === 'pr-merge' && e.phase === 'started');
   const start = Date.now();
@@ -512,4 +522,28 @@ test('structured failed solo retains restore and gate parity through the viewer-
     assert.equal(terminal.length, 1); assert.equal(terminal[0].reasonCode, 'MERGE_FAILED');
     assert.equal(terminal[0].exitCode, 1); assert.ok(events.every(e => e.reasonCode !== 'MERGED'));
   } finally { await writer.close(); }
+});
+
+for (const writerOwned of [false, true]) test(`result reader ignores unused publisher initialization with ${writerOwned ? 'viewer writer' : 'manual lease'}`, async t => {
+  const off = observedStack(t, 'pending', true, false), f = fixture(t);
+  const writer = writerOwned ? await startWriter(f.spool, f.lease, f.lease.viewerId) : null;
+  try {
+    const on = observedStack(t, 'pending', true, true, 'publisher-startup', [], f);
+    assert.deepEqual(on.result, off.result); assert.deepEqual(on.calls, off.calls);
+    const events = f.events();
+    completed(events, 'stack', 'pending', 'MERGE_PENDING');
+    completed(events, 'pr-merge', 'pending', 'MERGE_PENDING');
+    completed(events, 'solo-merge', 'pending', 'MERGE_PENDING');
+    completed(events, 'solo-merge', 'pass', 'RESTORE_VERIFIED');
+    assert.equal(events.length, 8);
+    assert.ok(events.every(e => e.reasonCode !== 'MERGED' && e.reasonCode !== 'RESULT_UNVERIFIED'));
+  } finally { await writer?.close(); }
+});
+
+test('guard detail result reader ignores unused publisher initialization', t => {
+  const f = fixture(t), root = guardCopy(t, f, 'publisher-startup');
+  const input = JSON.stringify({ cwd: f.repo, session_id: 'reader-isolation', tool_input: { cmd: 'git reset --hard' } });
+  const off = runCopied(f, root, 'codex-pretool-guard.mjs', input); f.active();
+  assert.deepEqual(runCopied(f, root, 'codex-pretool-guard.mjs', input), off);
+  completed(f.events(), 'codex-hook', 'deny', 'GUARD_HARD_RESET');
 });

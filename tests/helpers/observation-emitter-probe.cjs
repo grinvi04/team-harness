@@ -131,6 +131,19 @@ if (process.env.OBSERVATION_EMITTER_CHILD === '1') {
   }
   const original = childProcess.spawnSync;
   childProcess.spawnSync = function (command, args, options) {
+    if (Array.isArray(args) && /[\\/]observation[\\/]bridge\.mjs$/.test(args[0] || '') && args[1] === 'result-read') {
+      const started = milliseconds(); let result;
+      try { result = original.apply(this, arguments); return result; }
+      finally {
+        try {
+          const row = { commandMode: 'result-read', durationMs: Math.round((milliseconds() - started) * 100) / 100,
+            status: result?.status ?? null, signal: /^SIG[A-Z0-9]+$/.test(result?.signal || '') ? result.signal : null,
+            errorCode: /^[A-Z][A-Z0-9_]{0,31}$/.test(result?.error?.code || '') ? result.error.code : null };
+          if (!fs.existsSync(trace) || fs.statSync(trace).size < 120000)
+            fs.appendFileSync(trace, JSON.stringify(row) + '\n', { mode: 0o600 });
+        } catch { /* Original options, output limits and result are unchanged. */ }
+      }
+    }
     if (!Array.isArray(args) || !/[\\/]observation[\\/]emit\.mjs$/.test(args[0] || ''))
       return original.apply(this, arguments);
     let emitterKind = 'unknown';
