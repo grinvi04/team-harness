@@ -8,6 +8,7 @@ it('reopens the CLI fragment in the same document, cancels stale authentication 
   vi.useFakeTimers();
   document.body.innerHTML = '<div id="root"></div>';
   history.replaceState(null, '', '/');
+  sessionStorage.clear();
   const a = { ...context, accessToken: 'a'.repeat(43) };
   const b = { ...context, worktreeId: 'd'.repeat(64), accessToken: 'b'.repeat(43) };
   const c = { ...b, accessToken: 'c'.repeat(43) };

@@ -79,7 +79,10 @@ async function requestJson(path: string, token: string, signal: AbortSignal): Pr
   const timer = setTimeout(abort, 2000);
   try {
     const response = await fetch(path, { headers: { Authorization: `Bearer ${token}` }, signal: controller.signal, cache: 'no-store', credentials: 'omit', redirect: 'error' });
-    if (!response.ok) throw Error('HTTP_FAILURE');
+    if (!response.ok) {
+      if (response.status === 401 || response.status === 403) forgetAccessToken(token);
+      throw Error('HTTP_FAILURE');
+    }
     if (Number(response.headers.get('content-length')) > MAX_SNAPSHOT) throw Error('SNAPSHOT_TOO_LARGE');
     if (!response.body) throw Error('EMPTY_RESPONSE');
     const reader = response.body.getReader(), chunks: Uint8Array[] = []; let length = 0;
@@ -98,8 +101,28 @@ export async function fetchContext(accessToken: string, signal: AbortSignal): Pr
   return parseContext(await requestJson('/api/context', accessToken, signal), accessToken);
 }
 
+const ACCESS_SESSION = 'harness-viewer-access-v1';
+const validToken = (value: string | null): value is string => value !== null && /^[a-zA-Z0-9_-]{43}$/.test(value);
+export function forgetAccessToken(token: string): void {
+  try {
+    // An old request must not invalidate a newer CLI credential in this tab.
+    if (sessionStorage.getItem(ACCESS_SESSION) === token) sessionStorage.removeItem(ACCESS_SESSION);
+  } catch { /* Storage can be disabled; authentication still belongs to the server. */ }
+}
 export function consumeAccessToken(): string | null {
-  const token = location.hash.slice(1);
-  history.replaceState(null, '', location.pathname + location.search);
-  return /^[a-zA-Z0-9_-]{43}$/.test(token) ? token : null;
+  if (location.hash) {
+    const token = location.hash.slice(1);
+    history.replaceState(null, '', location.pathname + location.search);
+    try {
+      sessionStorage.removeItem(ACCESS_SESSION);
+      if (validToken(token)) sessionStorage.setItem(ACCESS_SESSION, token);
+    } catch { /* A fresh CLI address also works without session storage. */ }
+    return validToken(token) ? token : null;
+  }
+  try {
+    const token = sessionStorage.getItem(ACCESS_SESSION);
+    if (validToken(token)) return token;
+    sessionStorage.removeItem(ACCESS_SESSION);
+  } catch { /* No stored credential means a CLI address is required. */ }
+  return null;
 }

@@ -1,5 +1,4 @@
 # 의사결정 기록 (Decision Log)
-
 확정된 기술·프로세스 결정의 **단일 출처**. "무엇이 언제 확정됐고, 어느 문서가 정본인가"를 한 곳에서 답한다.
 
 > 존재 이유: 결정이 문서 곳곳의 "(확정)" 표기로 흩어져 있으면, 먼저 쓰인 문서에 후속 결정이
@@ -15,6 +14,7 @@
 
 | 결정 | 시점 | 정본 문서 | 영향 문서 |
 |---|---|---|---|
+| **관측 화면 접근 보존·실제 사건 표시** — fragment는 즉시 지우고 탭 sessionStorage에서 복원해 서버 재인증한다. 기존 서버 제한을 유지하며 실패 자격을 폐기한다. 1.2.1 접근 개선을 포함한1.3.0 사건 UI는 기존 snapshot/view model로 사건 순서를 표시한다. 사라진 필터는 all로 동기화하며 HEAD 일치는 관측 기록의 커밋만 뜻하고 미커밋 검증으로 확대하지 않는다. 업무/native 담당 계층·모델/effort는 추정하지 않는다. | 2026-11-04 / 11-05 | specs/dashboard-refresh-access.md | guides/observability.md, specs/local-runtime-dashboard.md, dashboard |
 | **공식 gh-stack 엔진과 Harness 전달 경계 연결** — trunk 보호·그룹 병합을 따르며 기존 gate를 유지한다. 제출은 현재 원본을 확인하고 사전 OID의 Git atomic push·층별 wrapper·URL link·readback을 연결한다. native push/sync의 내부 fetch로 lease가 바뀌는 경로는 사용하지 않는다. 예외 라벨은 정확 일치·변경 시 재검사를 적용한다. G1 부분 후보이며 전체 지원 완료가 아니다. | 2026-10-15 | specs/stacked-git-workflow.md | stack adapter, repo-policy, pr-create, guard, specs/stacked-git-workflow/final-review.md |
 | **작업 계약·연결·검증·전달로 재설계** — 기존 보호와 R1–R7을 고정한다. 기본 prompt 라우팅은 native에 위임하고 공통 계약·선택 자산 복구·채택한 브랜치·실행 원문 판정을 연결한다. split 승격은 기본 목표에서 제외하며 실제 호스트와 소스 검사를 구분한다. 앞선 라우팅 기본 연결 결정을 대체한다. | 2026-10-15 | specs/team-harness-redesign.md | README.md, product-boundaries.md, developer-workflow.md, repo-assets.md, skills, PR wrapper |
 | **로컬 생성은 명시 단독 스택으로 전환** — 로컬 기본 Spring Boot+Vue·조합·경로 옵션은 제거하고 기존 단독 명령·GitHub CI 조합은 보존한다. npm4프로필을 같은 카탈로그로 연결하며 필수 검사·선언된 선택 검사·E2E 선택을 구분한다. 소유는 검사 연결, native 실행은 위임이다. 호환 변경은 기존 규약대로 미발행1.0.0 후보로 관리한다. | 2026-10-14 | specs/workflow-maturity.md, local-development.md | setup-local.mjs, stacks.json, repository-structure.md, README.md, onboarding.md |

@@ -1,6 +1,7 @@
 # 로컬 실시간 대시보드 설계
+현재 소스: [실제 사건 UI1.3.0](dashboard-refresh-access.md#승인된-후속--실제-사건-다이어그램-2026-11-05). 필터/커밋 표시 정정·92검사/실제 Chromium PASS·두 수정의 읽기전용 독립 검토와 실제 발행·설치를 구분한다.
 
-상태: **실제 CLI·Desktop 연결 확인·전달 판정은 PR 원본 참조**. C640584c의 lease 교정 영향·격리 CLI·이동 artifact와 승인된 c62 Desktop 시험·v1.0.0 복구를 확인했다. 최초 실패·교정 결과를 보존하며 현재 후보 CI·독립 검토·G3 전달 판정은 연결된 실행 기록과 PR585·586·587 원본을 따른다. [현재·과거 결과](../pilots/local-runtime-dashboard.md)에 근거와 한계를 보존한다. 이후 현재 작은 저장소 재현·추가 교정·1.2.0 전달은 [현재 전달 기록](../pilots/local-runtime-dashboard-release-1.2.0.md)을 따른다.
+과거 전달: **실제 CLI·Desktop 연결 확인·전달 판정은 PR 원본 참조**. C640584c의 lease 교정 영향·격리 CLI·이동 artifact와 승인된 c62 Desktop 시험·v1.0.0 복구를 확인했다. 최초 실패·교정 결과를 보존하며 현재 후보 CI·독립 검토·G3 전달 판정은 연결된 실행 기록과 PR585·586·587 원본을 따른다. [현재·과거 결과](../pilots/local-runtime-dashboard.md)에 근거와 한계를 보존한다. 이후 현재 작은 저장소 재현·추가 교정·1.2.0 전달은 [현재 전달 기록](../pilots/local-runtime-dashboard-release-1.2.0.md)을 따른다.
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 원래 연결 범위와 선행 순서를 유지한다.
 사용자가 React + TanStack 채택을 승인했다. 아래는 초기 바닐라 JavaScript 안을 대체하는 설계다.
 기존 재설계·문서 정리의 완료 판정은 유지한다. 아래는 새 기능의 완료 기준이다.
@@ -18,6 +19,7 @@
 
 제품 판단은 [제품 방향](../product-direction.md), 실행 작업은 [구현 계획](local-runtime-dashboard/implementation-plan.md)을 따른다.
 Git 상태는 [stacked Git 설계](stacked-git-workflow.md)의 후보·병합 판정에 연결한다.
+후속 [시안과 연결 한계](local-runtime-dashboard/diagram-data-plan.md)에서 실제 사건 흐름만 구현했다. 담당 계층·모델/effort 실연결은 미수집이다. 정식 전달 범위와 단계는 [전달 기록](dashboard-refresh-access.md#승인된-정식-전달--2026-11-05)을 따른다.
 
 ## 현재 코드에서 확인한 출발점
 
@@ -88,10 +90,12 @@ snapshot을 Effect로 별도 store에 복사하지 않는다. 파생 목록·현
 `refetchInterval=2000`, `retry=false`, `networkMode=always`를 명시한다. 반복 갱신이 재시도 역할을 한다.
 숨긴 탭의 polling은 멈추고 복귀 시 즉시 재조회한다. 이전 데이터는 조회 성공 전까지 마지막 관측값이다.
 오류·timeout이면 캐시가 있어도 **연결 끊김·현재 상태 미확인**을 표시한다. 관측 시각과 갱신 상태를 함께 보인다.
-Query 캐시·접근 토큰은 메모리에만 둔다. 토큰을 query key·저장소·이벤트·빌드 산출물에 넣지 않는다.
+Query 캐시는 메모리, 토큰은 같은 origin의 탭 sessionStorage에 둔다. query key·localStorage·이벤트·빌드에 넣지 않는다.
 snapshot은 unknown에서 런타임 검증한다. TypeScript 타입이나 정상 HTTP 응답만으로 신뢰하지 않는다.
 CLI가 출력하는 시작 URL의 fragment에서 토큰을 읽고 즉시 주소에서 지운다. API만 인증 헤더를 받는다.
-정적 파일에는 사용자 데이터가 없다. 새로고침으로 메모리 토큰이 사라지면 CLI 주소를 다시 여는 안내를 표시한다.
+정적 파일에는 사용자 데이터가 없다. 새로고침 시 저장 자격으로 context를 재인증한다. 무자격은 CLI 주소를 요구한다.
+서버401/403과 context 인증 실패는 해당 자격 삭제를 시도한다. 저장소 거부 시 삭제 보장은 없고 재인증은 필수다. 늦은 실패는 새 자격을 지우지 않는다.
+1.2.0의 메모리 전용 계약은 [새로고침 수정 후보](dashboard-refresh-access.md)에서 변경한다. 브라우저 세션 복원 가능성을 안내한다.
 
 ### 정적 파일 배포 계약
 

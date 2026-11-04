@@ -41,7 +41,7 @@ it('missingFinishIsUnknown', async () => {
 it('staleShaIsHistorical', async () => {
   const data = snapshot(); data.target.headSha = 'e'.repeat(40);
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
-  expect(screen.getByTestId('current-state').textContent).toContain('현재 상태 미확인'); expect(screen.getByText('이전 후보의 근거')).toBeTruthy();
+  expect(screen.getByTestId('current-state').textContent).toContain('현재 상태 미확인'); expect(screen.getByText('현재 커밋과 다른 기록')).toBeTruthy();
 });
 it('restoreAttemptIsNotRestored', async () => {
   const data = snapshot(context, 'unverified'); data.operations[0].events[1].reasonCode = 'RESTORE_ATTEMPT';
@@ -77,7 +77,7 @@ it('noEventsIsUnknownRatherThanAnUnfinishedOperation', async () => {
   const data = snapshot(); data.operations = [];
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
   expect(screen.getByTestId('current-state').textContent).toBe('현재 상태 미확인');
-  expect(screen.getByText('화면 캐시·접근 토큰은 브라우저 메모리에만 보관합니다. 사건은 지정한 로컬 경로에 기록합니다.')).toBeTruthy();
+  expect(screen.getByText('화면 캐시는 메모리, 접근 토큰은 이 주소의 탭 세션 저장소에 보관합니다. 새로고침 시 다시 인증합니다. 사건은 지정한 로컬 경로에 기록합니다.')).toBeTruthy();
 });
 it('bounded history explicitly identifies omitted operations without claiming disk deletion', async () => {
   const base=snapshot(); const data={...base,health:{...base.health,omittedOperations:12}};
@@ -113,7 +113,7 @@ it('identifies different checks and a repeated check in current work, timeline a
   };
   data.operations = [makeCheck(5, 'typecheck'), makeCheck(6, 'lint'), makeCheck(7, 'typecheck')];
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
-  const current = screen.getByRole('region', { name: '현재 작업' });
+  const current = screen.getByRole('region', { name: '최근 사건의 관측 결과' });
   expect(current.textContent).toContain('검사: typecheck');
   const typechecks = screen.getAllByRole('button', { name: /검사: typecheck/ });
   expect(typechecks).toHaveLength(2);
@@ -171,19 +171,113 @@ it('keeps the recorded check name linked from start through finish and retry', a
   retry.operations.push(finished.operations[0]);
   vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(started))).mockResolvedValueOnce(new Response(JSON.stringify(finished))).mockResolvedValue(new Response(JSON.stringify(retry))));
   mount(); await tick();
-  expect(screen.getByRole('region', { name: '현재 작업' }).textContent).toContain('검사: lint');
+  expect(screen.getByRole('region', { name: '최근 사건의 관측 결과' }).textContent).toContain('검사: lint');
   expect(screen.getByTestId('current-state').textContent).toBe('종료 미확인');
   await tick(2000);
-  expect(screen.getByRole('region', { name: '현재 작업' }).textContent).toContain('검사: lint');
+  expect(screen.getByRole('region', { name: '최근 사건의 관측 결과' }).textContent).toContain('검사: lint');
   expect(screen.getByTestId('current-state').textContent).toBe('검사 통과');
   await tick(2000);
-  expect(screen.getByRole('region', { name: '현재 작업' }).textContent).toContain('검사: lint');
+  expect(screen.getByRole('region', { name: '최근 사건의 관측 결과' }).textContent).toContain('검사: lint');
   expect(screen.getByTestId('current-state').textContent).toBe('종료 미확인');
   expect(screen.getAllByRole('button', { name: /검사: lint/ })).toHaveLength(2);
 });
 it('uses the recorded check-runner source when a legacy check has no identifier', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(response())); mount(); await tick();
-  expect(screen.getByRole('region', { name: '현재 작업' }).textContent).toContain('검사: 식별자 미제공 · check-runner');
+  expect(screen.getByRole('region', { name: '최근 사건의 관측 결과' }).textContent).toContain('검사: 식별자 미제공 · check-runner');
   fireEvent.click(screen.getByRole('button', { name: /check-runner.*33333333-3333-4333-8333-333333333333/ }));
   expect(screen.getByRole('complementary', { name: '선택 근거' }).textContent).toContain('식별자 미제공 · check-runner');
+});
+
+it('event diagram keeps the selected record and evidence coherent across views', async () => {
+  const data = snapshot(); data.operations[0].events.forEach(e => { e.evidenceId = 'lint'; });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
+  expect(screen.getByRole('region', { name: '관측 사건 지도' })).toBeTruthy();
+  fireEvent.click(screen.getByRole('button', { name: /check-runner.*검사: lint/ }));
+  for (const name of ['목록 보기', '담당 관계', '사건 흐름']) {
+    fireEvent.click(screen.getByRole('button', { name }));
+    expect(screen.getByRole('complementary', { name: '선택 근거' }).textContent).toContain('lint');
+    expect(screen.getByRole('region', { name: '관측 사건 지도' }).textContent).toContain('lint');
+  }
+  expect(screen.getByText('담당 관계를 아직 수집하지 않았습니다.')).toBeTruthy();
+  expect(screen.getByText('실제 모델 · 미확인 / 미수집')).toBeTruthy();
+  expect(screen.getByText('실제 effort · 미확인 / 미수집')).toBeTruthy();
+});
+it('event diagram never leaves evidence selected outside the active filter', async () => {
+  const data = snapshot(); const other = structuredClone(data.operations[0]);
+  other.operationId = '53333333-3333-4333-8333-333333333333';
+  other.events.forEach((e, i) => { e.operationId = other.operationId; e.eventId = `${i}5555555-5555-4555-8555-555555555555`; e.evidenceId = 'other'; });
+  data.operations.push(other);
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
+  fireEvent.click(screen.getByRole('button', { name: /check-runner.*검사: other/ }));
+  fireEvent.change(screen.getByRole('combobox', { name: '작업 필터' }), { target: { value: data.operations[0].operationId } });
+  expect(screen.queryByRole('complementary', { name: '선택 근거' })).toBeNull();
+  expect(screen.getByRole('region', { name: '관측 사건 지도' }).textContent).not.toContain('other');
+});
+it('event diagram separates lost records from current state and uses Korean absolute time', async () => {
+  const data = snapshot(); data.health.captureState = 'loss-suspected'; data.health.retentionApplied = true;
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
+  expect(screen.getByTestId('current-state').textContent).toBe('현재 상태 미확인');
+  expect(screen.getByRole('region', { name: '관측 사건 지도' }).textContent).toContain('관측 기록');
+  expect(screen.getByText(/업무 완료·병합 완료로 확대하지 않습니다/)).toBeTruthy();
+  expect(screen.getAllByText(/2026년 10월 18일 09:00:00.*한국시간/).length).toBeGreaterThan(0);
+  expect(screen.getByText(/PR 사건 미수집/)).toBeTruthy();
+});
+it('polling removes selected evidence when its record disappears from the snapshot', async () => {
+  const initial = snapshot(); initial.operations[0].events.forEach(e => { e.evidenceId = 'removed-check'; });
+  const updated = snapshot(); const remaining = updated.operations[0];
+  remaining.operationId = '53333333-3333-4333-8333-333333333333';
+  remaining.events.forEach((e, i) => { e.operationId = remaining.operationId; e.eventId = `${i}5555555-5555-4555-8555-555555555555`; e.evidenceId = 'remaining-check'; });
+  const fetch = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(initial))).mockResolvedValueOnce(new Response(JSON.stringify(updated)));
+  vi.stubGlobal('fetch', fetch); mount(); await tick();
+  fireEvent.click(screen.getByRole('button', { name: /check-runner.*검사: removed-check/ }));
+  expect(screen.getByRole('complementary', { name: '선택 근거' }).textContent).toContain('removed-check');
+  await tick(2000);
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(screen.queryByRole('complementary', { name: '선택 근거' })).toBeNull();
+  expect(screen.queryByRole('button', { name: /check-runner.*검사: removed-check/ })).toBeNull();
+  const map = screen.getByRole('region', { name: '관측 사건 지도' });
+  expect(map.textContent).not.toContain('removed-check');
+  expect(map.textContent).toContain('remaining-check');
+});
+it('polling resets a removed operation filter so the remaining record stays visible', async () => {
+  const initial = snapshot(); initial.operations[0].events.forEach(e => { e.evidenceId = 'filtered-A'; });
+  const updated = snapshot(); const remaining = updated.operations[0];
+  remaining.operationId = '53333333-3333-4333-8333-333333333333';
+  remaining.events.forEach((e, i) => { e.operationId = remaining.operationId; e.eventId = `${i}5555555-5555-4555-8555-555555555555`; e.evidenceId = 'remaining-B'; });
+  const fetch = vi.fn().mockResolvedValueOnce(new Response(JSON.stringify(initial))).mockResolvedValueOnce(new Response(JSON.stringify(updated)));
+  vi.stubGlobal('fetch', fetch); mount(); await tick();
+  const filter = screen.getByRole('combobox', { name: '작업 필터' }) as HTMLSelectElement;
+  fireEvent.change(filter, { target: { value: initial.operations[0].operationId } });
+  fireEvent.click(screen.getByRole('button', { name: /check-runner.*검사: filtered-A/ }));
+  expect(filter.value).toBe(initial.operations[0].operationId);
+  expect(screen.getByRole('complementary', { name: '선택 근거' }).textContent).toContain('filtered-A');
+  await tick(2000);
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(filter.value).toBe('all');
+  expect(screen.queryByRole('complementary', { name: '선택 근거' })).toBeNull();
+  expect(screen.queryByRole('button', { name: /check-runner.*검사: filtered-A/ })).toBeNull();
+  expect(screen.getByRole('button', { name: /check-runner.*검사: remaining-B/ })).toBeTruthy();
+  expect(screen.getByRole('region', { name: '관측 사건 지도' }).textContent).toContain('remaining-B');
+  expect(screen.queryByText('관측된 사건이 없습니다. 수집 연결과 실제 실행을 확인하세요.')).toBeNull();
+  fireEvent.click(screen.getByRole('button', { name: /check-runner.*검사: remaining-B/ }));
+  expect(screen.getByRole('complementary', { name: '선택 근거' }).textContent).toContain('remaining-B');
+});
+it.each([
+  ['same commit', 'a'.repeat(40), 'a'.repeat(40), '현재 커밋과 일치하는 기록'],
+  ['different commit', 'b'.repeat(40), 'a'.repeat(40), '현재 커밋과 다른 기록'],
+  ['record commit missing', 'a'.repeat(40), null, '커밋 정보 미제공 · 일치 여부 미확인'],
+  ['current commit missing', null, 'a'.repeat(40), '커밋 정보 미제공 · 일치 여부 미확인'],
+  ['both commits missing', null, null, '커밋 정보 미제공 · 일치 여부 미확인'],
+])('record labels limit %s evidence to the recorded commit', async (_, currentSha, recordedSha, label) => {
+  const data = snapshot(); data.target.headSha = currentSha; data.operations[0].headSha = recordedSha;
+  data.operations[0].events.forEach(e => { e.headSha = recordedSha; });
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify(data)))); mount(); await tick();
+  const record = screen.getByRole('button', { name: new RegExp(data.operations[0].operationId) });
+  expect(record.textContent).toContain(label);
+  expect(record.textContent).not.toContain('현재 후보의 근거');
+  const result = screen.getByRole('region', { name: '최근 사건의 관측 결과' });
+  expect(result.textContent).toContain('관측 당시 결과');
+  expect(result.textContent).toContain('현재 업무·프로세스 상태는 미확인입니다.');
+  expect(result.textContent).toContain('미커밋 변경의 검증 여부는 확인하지 않습니다.');
+  expect(screen.queryByRole('heading', { name: '현재 작업' })).toBeNull();
 });
