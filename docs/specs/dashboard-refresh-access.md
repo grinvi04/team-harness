@@ -172,3 +172,8 @@ Git Flow·원격 보호·공식 wrapper·현재 head/base CI/독립 검토를 �
 구현 `11a173f` 커밋 뒤1.3.0 CHANGELOG 생성·byte 재현·버전 항목/순서2항목도 PASS해 로컬 quality77단계의 필수 범위를 충족했다. 최초 실패·정정 명령/결과와 후보 결박은 `.runtime/release-1.3.0-20261105/`에 보존한다.
 의존성 감사 moderate10/high0/critical0은 기존 dev 도구의 minimatch GHSA-g3hv-75wg-m249 연결이다. lockfile은 불변이며 현재 PR/릴리즈 독립 보안 판정 대상이다.
 이 스냅샷 이후 원격 전달은 작업 브랜치의 PR·보호된 develop/main·`v1.3.0` 태그로 판정하고, 실제 설치는 해당 도구의 설치 목록/파일 대조로 별도 판정한다.
+
+### 원격 CI 준비 단계 정정 — 2026-11-06
+
+PR598의 head `68abd5d`에서 필수 CI4개는 PASS, quality는 격리 loader fixture의 자동 압축 단언에서 FAIL했다. Git2.56의 기본 geometric 임계값은 `gc.auto`와 별도이므로 임시 저장소에 `maintenance.geometric-repack.auto=-1`을 명시한다. 정비 활성·동기 완료와 기존 repack 단언은 유지하며 제품·보호는 바꾸지 않는다.
+원문·공식 Git 소스·로컬2.54 관찰의 한계는 `.runtime/release-1.3.0-20261105/git-maintenance-diagnostic/`에 보존한다. 수정 fixture의 로컬 전체 검사·구문·문서 검사는 PASS이며 실제 모델 호출은0회다. 새 후보의 CI와 독립 검토 전에는 전달 완료로 판정하지 않는다. 승인된 이전69파일 검토는 미실행이며 수정 후보·자료를 다시 고정한다.
