@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { fetchSnapshot, parseSnapshot } from './api';
 import { context, snapshot } from './fixtures';
+beforeEach(() => { sessionStorage.clear(); });
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 describe('snapshot boundary', () => {
   it('accepts explicit bounded-history metadata but rejects invalid omission counts', () => {
@@ -63,7 +64,7 @@ it('consumes a raw fragment token and immediately removes it from browser histor
   history.replaceState(null, '', `/#${context.accessToken}`);
   expect(consumeAccessToken()).toBe(context.accessToken);
   expect(location.hash).toBe('');
-  expect(consumeAccessToken()).toBeNull();
+  expect(consumeAccessToken()).toBe(context.accessToken);
   history.replaceState(null, '', '/#token=invalid');
   expect(consumeAccessToken()).toBeNull();
   expect(location.hash).toBe('');

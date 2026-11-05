@@ -50,3 +50,26 @@ export function nextAction(operation: Operation | undefined): string {
   if (!operation || operation.state === 'unverified') return '터미널의 실제 실행과 종료 결과를 확인하세요. 시간 경과로 완료를 추정하지 않습니다.';
   return '표시한 범위와 후보의 근거를 확인하고 기존 workflow의 다음 단계를 따르세요.';
 }
+
+export const operationKey = (op: Operation) => JSON.stringify([op.operationId, op.source, op.repoId, op.worktreeId, op.hostSessionId, op.headSha, op.baseSha]);
+export function sourceLabel(source: string): string {
+  return ({ 'codex-hook': 'Codex 훅', 'claude-hook': 'Claude 훅', guard: '가드', 'check-runner': '검사 실행기', 'pr-create': 'PR 생성', 'pr-merge': 'PR 병합', 'solo-merge': '보호·병합', stack: '의존 PR' } as Record<string, string>)[source] ?? '출처 미확인';
+}
+export function operationTitle(op: Operation): string {
+  return op.source === 'check-runner' ? `검사: ${checkIdentifier(op) ?? '식별자 미제공 · check-runner'}` : sourceLabel(op.source);
+}
+export function koreanTime(value: string): string {
+  return new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(new Date(value)) + ' 한국시간';
+}
+export function eventLabel(event: Operation['events'][number]): string {
+  return REASONS[event.reasonCode];
+}
+// parentOperationId is an observation link, never an agent or task hierarchy.
+// A reused ID in another session/candidate must not create a relationship.
+export function observationLinks(op: Operation, operations: Operation[]): Operation[] {
+  const sameContext = (other: Operation) => other.repoId === op.repoId && other.worktreeId === op.worktreeId && other.hostSessionId === op.hostSessionId && other.headSha === op.headSha && other.baseSha === op.baseSha;
+  return [...new Set(op.events.flatMap(event => event.parentOperationId ? [event.parentOperationId] : []))].flatMap(id => {
+    const matches = operations.filter(other => other.operationId === id && sameContext(other) && other.operationId !== op.operationId);
+    return matches.length === 1 ? matches : [];
+  });
+}
