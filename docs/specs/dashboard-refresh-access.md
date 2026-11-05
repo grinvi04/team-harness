@@ -177,3 +177,11 @@ Git Flow·원격 보호·공식 wrapper·현재 head/base CI/독립 검토를 �
 
 PR598의 head `68abd5d`에서 필수 CI4개는 PASS, quality는 격리 loader fixture의 자동 압축 단언에서 FAIL했다. Git2.56의 기본 geometric 임계값은 `gc.auto`와 별도이므로 임시 저장소에 `maintenance.geometric-repack.auto=-1`을 명시한다. 정비 활성·동기 완료와 기존 repack 단언은 유지하며 제품·보호는 바꾸지 않는다.
 원문·공식 Git 소스·로컬2.54 관찰의 한계는 `.runtime/release-1.3.0-20261105/git-maintenance-diagnostic/`에 보존한다. 수정 fixture의 로컬 전체 검사·구문·문서 검사는 PASS이며 실제 모델 호출은0회다. 새 후보의 CI와 독립 검토 전에는 전달 완료로 판정하지 않는다. 승인된 이전69파일 검토는 미실행이며 수정 후보·자료를 다시 고정한다.
+
+### develop 병합·릴리즈 후보 — 2026-11-06
+
+[작업 PR598](https://github.com/grinvi04/team-harness/pull/598)은 필수CI5개·전체 PR/보안 독립 검토를 통과한 `d2194ca`를 실제 develop에 병합했다. 병합 SHA `da0ce21d664f19854a65e2cde0edbf60ae4ea4e4`의 원격 포함과 검토 후보의 트리 일치를 확인했고 이 SHA에서 `release/v1.3.0`을 만들었다. 사용 중인 원래 로컬 작업 브랜치는 보존했다.
+최초 검토1회는 부모 로그만 읽은 감시기 오류로50.32초에 중단됐다. 연결된 실제 review 기록의 Astra/medium/read-only/never를 중단 후 확인하고 로컬 감시기만 수정했다. 무모델9회귀·실제 기록 재생 PASS 뒤 사용자가 추가1회를 승인했다.
+추가 검토는 동일70파일·삭제2blob 범위에서210.53초·exit0, 실제 읽기 전용 권한과 원본 불변을 확인했다. 중요한 신규 결함은 발견되지 않았고 기존 minimatch moderate DoS는 배포 입력 경로가 확인되지 않아 이 범위의 차단 결함으로 판단하지 않았다. 경고와 최초 실패는 보존하며 보편적 안전성으로 확대하지 않는다.
+원문·실행·한계는 원래 작업공간의 `.runtime/release-1.3.0-20261105/pr-review-retry-01/result.json`과 `work-pr-merged-v3.json`에 보존한다. 시안·브라우저·새 SSH/Desktop/수집·제품 확장은 실행하지 않았다.
+현재는 릴리즈 검사와 main 전달을 준비하는 단계다. main PR은 현재 후보의 별도 리뷰·CI gate를 유지하며 추가 모델 호출은 별도 승인이 필요하다. main 병합·`v1.3.0` 태그·develop 역병합·설치 갱신은 아직 미실행이고 설치본은1.2.0이다. 실제 이후 결과는 원격 태그·PR과 기존 프로젝트 진행 기록에서 판정한다.
