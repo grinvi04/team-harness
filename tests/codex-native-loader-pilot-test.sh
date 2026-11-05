@@ -22,6 +22,8 @@ git -C "$SOURCE_ROOT" config user.email pilot-fixture@example.invalid
 git -C "$SOURCE_ROOT" add .
 # Exercise real automatic maintenance at the commit/copy boundary.
 git -C "$SOURCE_ROOT" config gc.auto 1
+# Modern Git defaults to geometric repacking, which has a separate threshold.
+git -C "$SOURCE_ROOT" config maintenance.geometric-repack.auto -1
 GIT_TRACE2_EVENT="$TMP/source-git-trace.jsonl" git -C "$SOURCE_ROOT" commit -qm 'test: clean pilot source fixture'
 node - "$TMP/source-git-trace.jsonl" <<'NODE'
 const fs = require('node:fs')
