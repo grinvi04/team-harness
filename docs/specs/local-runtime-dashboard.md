@@ -1,5 +1,5 @@
 # 로컬 실시간 대시보드 설계
-현재 소스: [실제 사건 UI1.3.0](dashboard-refresh-access.md#승인된-후속--실제-사건-다이어그램-2026-11-05). 필터/커밋 표시 정정·92검사/실제 Chromium PASS·두 수정의 읽기전용 독립 검토와 실제 발행·설치를 구분한다.
+현재 소스: [실제 사건 UI1.3.0·확인 범위 종료](dashboard-refresh-access.md#확인-범위-종료--2026-11-09). 발행·설치와11월8일 자동 사건→저장→같은 dataDir 인앱 연결은 확인 범위로 완료다. Hooks 목록 원인/해결·Claude 실제 호스트는 별도 미확인 보류다.
 
 과거 전달: **실제 CLI·Desktop 연결 확인·전달 판정은 PR 원본 참조**. C640584c의 lease 교정 영향·격리 CLI·이동 artifact와 승인된 c62 Desktop 시험·v1.0.0 복구를 확인했다. 최초 실패·교정 결과를 보존하며 현재 후보 CI·독립 검토·G3 전달 판정은 연결된 실행 기록과 PR585·586·587 원본을 따른다. [현재·과거 결과](../pilots/local-runtime-dashboard.md)에 근거와 한계를 보존한다. 이후 현재 작은 저장소 재현·추가 교정·1.2.0 전달은 [현재 전달 기록](../pilots/local-runtime-dashboard-release-1.2.0.md)을 따른다.
 [최종 검토](stacked-git-workflow/final-review.md)에 따라 원래 연결 범위와 선행 순서를 유지한다.
